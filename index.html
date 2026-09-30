@@ -191,10 +191,15 @@
 
   @media (prefers-reduced-motion: reduce) { .note-dot { transition: none; } }
   .looper-top { display: grid; grid-template-columns: minmax(150px, 220px) 1fr; gap: 12px; align-items: end; }
-  .meter { position: relative; height: 10px; border-radius: 3px; background: #121214; border: 1px solid #0a0a0b; overflow: hidden; }
-  #loopMeter { height: 100%; width: 0; background: linear-gradient(90deg, #3aa56f 0%, #3aa56f 70%, #d9c23a 85%, #ff5a4f 100%); background-size: 100vw 100%; }
-  #loopMeter.hot { box-shadow: 0 0 8px var(--root-color); }
-  .meter .thresh { position: absolute; top: -1px; bottom: -1px; width: 2px; background: #fff; opacity: .8; left: 50%; }
+  .meter { position: relative; height: 10px; border-radius: 5px; background: #0b0b0d; border: 1px solid #000; box-shadow: inset 0 1px 3px rgba(0,0,0,.8); }
+  #loopMeter {
+    height: 100%; width: 0; border-radius: 5px;
+    background: linear-gradient(90deg, #39ff9f 0%, #39ff9f 62%, #ffe14a 80%, #ff2d55 100%) no-repeat left center;
+    box-shadow: 0 0 6px rgba(57,255,159,.9), 0 0 14px rgba(57,255,159,.45);
+    transition: width .05s linear;
+  }
+  #loopMeter.hot { box-shadow: 0 0 6px rgba(255,45,85,.95), 0 0 16px rgba(255,45,85,.5); }
+  .meter .thresh { position: absolute; top: -3px; bottom: -3px; width: 2px; border-radius: 1px; background: #ff3df2; box-shadow: 0 0 6px #ff3df2, 0 0 12px #ff3df2; left: 50%; }
   .tracks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
   .track {
     --tc: var(--t1);
@@ -270,7 +275,7 @@
 <body>
 <header class="control-bar">
   <div class="cb-inner">
-    <div class="brand">3nps <span>Übungsprogramm · v5</span></div>
+    <div class="brand">3nps <span>Übungsprogramm · v6</span></div>
     <div class="transport">
       <button class="tbtn" id="playBtn" aria-label="Metronom starten oder stoppen">▶</button>
     </div>
@@ -496,7 +501,7 @@
         <label class="check"><input type="checkbox" id="loopCountIn"> Einzähler vor der ersten Aufnahme</label>
         <label class="check"><input type="checkbox" id="loopSnap"> Freie Länge auf ganze Takte runden</label>
         <div class="row"><span class="lbl">Latenz</span><input type="range" id="loopLatency" min="0" max="300" step="5"><span class="caption" id="loopLatencyVal" style="min-width:52px;text-align:right">–</span></div>
-        <p class="pattern-desc">Die weiße Marke im Eingangspegel ist die Auslöseschwelle. Klingen Aufnahmen zu spät, schieb die Latenz nach rechts. Mit Kopfhörern landet der Loop nicht mit in der Aufnahme.</p>
+        <p class="pattern-desc">Die pinke Marke im Eingangspegel ist die Auslöseschwelle. Klingen Aufnahmen zu spät, schieb die Latenz nach rechts. Mit Kopfhörern landet der Loop nicht mit in der Aufnahme.</p>
       </div>
 
       <div class="card">
@@ -2869,25 +2874,29 @@ const Looper = (() => {
     applyAutoEnd();
     setStatus((start > now + sr * 0.05 ? 'Gleich geht’s los – der Kreis zählt ein.' : 'Spur ' + (t.i + 1) + ' nimmt auf.') + lenTxt);
   }
-  function endRec() {
+  // Beenden per Taster oder Stopp: sofort (bzw. auf den gerade vergangenen Takt/Loopanfang), nie auf ein spätes Ende warten
+  function endRec(stopAfter) {
     const now = nowFrame();
-    if (rec.armed) { cancelRec(); setStatus('Abgebrochen.'); return; }
+    if (rec.armed || now < rec.start) { cancelRec(); setStatus('Abgebrochen.'); return; }
+    rec.userEnded = true;
+    rec.stopAfter = !!stopAfter;
     if (rec.kind === 'first') {
       let end = now;
-      if (snapEl.checked) {
+      if (snapEl.checked || selectedBars()) {
         const bar = barFrames();
-        end = rec.start + Math.max(1, Math.round((end - rec.start) / bar)) * bar;
+        end = rec.start + Math.max(1, Math.round((now - rec.start) / bar)) * bar;
+        if (rec.end !== null) end = Math.min(end, rec.end);
       }
       if (end - rec.start < sr * 0.25) { cancelRec(); setStatus('Zu kurz – nochmal aufnehmen.'); return; }
       rec.end = end;
-      setStatus(end > now ? 'Spiel bis zum Taktende weiter …' : 'Schließe Aufnahme ab …');
+      setStatus(end > now + sr * 0.05 ? 'Spiel bis zum Taktende weiter …' : 'Schließe Aufnahme ab …');
     } else if (rec.kind === 'new') {
-      const c = (now - anchor) / baseL;
-      const e = Math.abs(c - Math.round(c)) < 0.25 ? Math.round(c) : Math.ceil(c);
-      let end = anchor + e * baseL;
-      if (end <= rec.start) end = anchor + (Math.floor((rec.start - anchor) / baseL) + 1) * baseL;
-      rec.end = end; rec.Lt = 0;
-      setStatus(end > now ? 'Spiel bis zum Loop-Ende weiter …' : 'Schließe Aufnahme ab …');
+      const c = (now - anchor) / baseL, b = anchor + Math.floor(c) * baseL;
+      let end = (now - b < baseL * 0.25 && b > rec.start + sr * 0.25) ? b : now;
+      if (rec.end !== null) end = Math.min(end, rec.end);
+      rec.end = end;
+      rec.Lt = Math.max(1, Math.ceil((end - rec.start) / baseL - 1e-6)) * baseL;
+      setStatus('Schließe Aufnahme ab …');
     } else {
       rec.end = now;
       setStatus('Schließe Overdub ab …');
@@ -2913,9 +2922,14 @@ const Looper = (() => {
       t.layers.push(r.layer);
     }
     rebuildMix(t);
-    startTrack(t);
-    t.state = 'playing';
-    setStatus(r.kind === 'overdub' ? 'Spur ' + (t.i + 1) + ': Overdub hinzugefügt.' : 'Spur ' + (t.i + 1) + ' läuft. Nochmal tippen für ein Overdub.');
+    if (r.stopAfter) {
+      stopSrc(t); t.state = 'stopped';
+      setStatus('Spur ' + (t.i + 1) + ' aufgenommen und gestoppt. Tippe auf Play zum Abspielen.');
+    } else {
+      startTrack(t);
+      t.state = 'playing';
+      setStatus(r.kind === 'overdub' ? 'Spur ' + (t.i + 1) + ': Overdub hinzugefügt.' : 'Spur ' + (t.i + 1) + ' läuft. Nochmal tippen für ein Overdub.');
+    }
     update();
   }
   function cancelRec() {
@@ -2973,10 +2987,10 @@ const Looper = (() => {
     if (rec) {
       if (rec.t === t) {
         if (rec.armed || nowFrame() < rec.start) { cancelRec(); setStatus('Abgebrochen.'); return; }
-        if (rec.end === null) endRec();
+        if (!rec.userEnded) endRec();
         return;
       }
-      if (rec.end === null) endRec();
+      if (!rec.userEnded) endRec();
       setStatus('Erst wird Spur ' + (rec.t.i + 1) + ' abgeschlossen, dann tippe erneut.');
       return;
     }
@@ -2999,7 +3013,7 @@ const Looper = (() => {
   tracks.forEach(t => {
     t.foot.addEventListener('click', () => foot(t));
     t.stopB.addEventListener('click', () => {
-      if (rec && rec.t === t) { cancelRec(); setStatus('Aufnahme verworfen.'); return; }
+      if (rec && rec.t === t) { if (!rec.userEnded) endRec(true); else rec.stopAfter = true; return; }
       if (t.src) { if (tracks.filter(o => o.src).length === 1) freeAnchor = anchor / sr; stopSrc(t); t.state = 'stopped'; setStatus('Spur ' + (t.i + 1) + ' gestoppt.'); }
       update();
     });
@@ -3113,7 +3127,7 @@ const Looper = (() => {
         const frac = Math.max(0, Math.min(1, prog - k));
         if (frac > 0) {
           ctx.beginPath(); ctx.arc(cx, cy, R, a0, a0 + (a1 - a0) * frac);
-          ctx.strokeStyle = c; ctx.globalAlpha = dim ? 0.45 : 1;
+          ctx.strokeStyle = c; ctx.globalAlpha = dim ? 0.6 : 1;
           ctx.shadowColor = c; ctx.shadowBlur = dim ? 0 : (frac < 1 ? 18 : 12);
           ctx.lineWidth = lw; ctx.stroke();
           if (!dim) { // heller Kern für den Neon-Effekt
@@ -3215,6 +3229,7 @@ const Looper = (() => {
     const C = css || (css = colors());
     tracks.forEach(t => { drawRing(t, C); drawWave(t, C); });
     meterEl.style.width = (toMeter(level) * 100) + '%';
+    meterEl.style.backgroundSize = (meterEl.parentNode.clientWidth || 200) + 'px 100%';
     meterEl.classList.toggle('hot', !!rec && !rec.armed);
     threshMark.style.left = (toMeter(threshold()) * 100) + '%';
     level *= 0.9;
