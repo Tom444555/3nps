@@ -1,0 +1,33 @@
+3nps-Übungsprogramm als App aufs iPad
+=====================================
+
+Alles geht direkt auf dem iPad, ohne Computer.
+
+1. ZIP entpacken
+   In der Dateien-App auf die ZIP tippen. Es entsteht ein Ordner mit 8 Dateien.
+
+2. Kostenlos online stellen (GitHub Pages)
+   - Auf github.com ein kostenloses Konto anlegen.
+   - Oben rechts „+“ → „New repository“, Name z. B. 3nps, „Public“ lassen, „Create repository“.
+   - Auf „uploading an existing file“ tippen und alle 8 Dateien aus dem Ordner auswählen
+     (index.html, sw.js, manifest.webmanifest und die PNG-Bilder). „Commit changes“.
+   - „Settings“ → links „Pages“ → bei „Branch“ „main“ und „/ (root)“ wählen → „Save“.
+   - Nach 1–2 Minuten erscheint dort die Adresse, z. B. https://DEINNAME.github.io/3nps/
+
+3. Als App installieren
+   - Die Adresse in Safari öffnen.
+   - Teilen-Symbol → „Zum Home-Bildschirm“ → „Hinzufügen“.
+   - Ab jetzt die App immer über das neue Icon starten. Sie funktioniert dann auch offline.
+
+4. Looper
+   - Beim ersten Aufnehmen fragt das iPad nach dem Mikrofon: „Erlauben“ tippen.
+   - Mit Kopfhörern wird der Loop nicht mit aufgenommen.
+   - Sitzen Overdubs nicht im Takt, den Regler „Latenz“ verschieben.
+
+Gut zu wissen
+   - Übungslog und Ideen werden nur auf diesem iPad gespeichert. Die bisherigen
+     Einheiten aus Claude sind beim ersten Start schon drin.
+   - Wichtige Ideen über „Teilen“ als WAV z. B. in Dateien oder iCloud sichern,
+     denn beim Löschen der App gehen die Daten verloren.
+   - Update einspielen: neue index.html auf GitHub hochladen (ersetzt die alte),
+     in sw.js die Zeile CACHE = '3nps-v1' auf v2 erhöhen, App zweimal neu öffnen.
