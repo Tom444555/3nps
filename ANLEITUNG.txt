@@ -23,6 +23,16 @@ Alles geht direkt auf dem iPad, ohne Computer.
    - Beim ersten Aufnehmen fragt das iPad nach dem Mikrofon: „Erlauben“ tippen.
    - Mit Kopfhörern wird der Loop nicht mit aufgenommen.
    - Sitzen Overdubs nicht im Takt, den Regler „Latenz“ verschieben.
+   - Über ♫ an jeder Spur lässt sich eine Audiodatei aus der Dateien-App laden.
+
+5. M-VAVE Chocolate verbinden
+   - Das Pedal in den Tastatur-Modus „Keyboard A“ (Pfeiltasten) oder „Keyboard B“
+     (Bild auf/ab, Leertaste, Enter) schalten – wie, steht im Handbuch des Pedals.
+   - iPad-Einstellungen → Bluetooth → Pedal koppeln.
+   - In der App im Looper-Tab unter „Fußpedal“ dieselbe Belegung wählen.
+     Taster A/B/C = Spur 1/2/3, Taster D = alle starten/stoppen.
+     Taster gedrückt halten = Rückgängig.
+   - Unter „Zuletzt“ siehst du, welche Taste das Pedal gerade gesendet hat.
 
 Gut zu wissen
    - Übungslog und Ideen werden nur auf diesem iPad gespeichert. Die bisherigen
