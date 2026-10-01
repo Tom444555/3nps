@@ -4,12 +4,12 @@
 Alles geht direkt auf dem iPad, ohne Computer.
 
 1. ZIP entpacken
-   In der Dateien-App auf die ZIP tippen. Es entsteht ein Ordner mit 8 Dateien.
+   In der Dateien-App auf die ZIP tippen. Es entsteht ein Ordner mit 10 Dateien.
 
 2. Kostenlos online stellen (GitHub Pages)
    - Auf github.com ein kostenloses Konto anlegen.
    - Oben rechts „+“ → „New repository“, Name z. B. 3nps, „Public“ lassen, „Create repository“.
-   - Auf „uploading an existing file“ tippen und alle 8 Dateien aus dem Ordner auswählen
+   - Auf „uploading an existing file“ tippen und alle 10 Dateien aus dem Ordner auswählen
      (index.html, sw.js, manifest.webmanifest und die PNG-Bilder). „Commit changes“.
    - „Settings“ → links „Pages“ → bei „Branch“ „main“ und „/ (root)“ wählen → „Save“.
    - Nach 1–2 Minuten erscheint dort die Adresse, z. B. https://DEINNAME.github.io/3nps/
@@ -33,6 +33,14 @@ Alles geht direkt auf dem iPad, ohne Computer.
      Taster A/B/C = Spur 1/2/3, Taster D = alle starten/stoppen.
      Taster gedrückt halten = Rückgängig.
    - Unter „Zuletzt“ siehst du, welche Taste das Pedal gerade gesendet hat.
+
+6. Export für Logic Pro
+   - Im Looper auf „Für Logic exportieren“ tippen. Das Teilen-Menü öffnet sich mit einer ZIP-Datei.
+   - Per AirDrop an den Mac schicken oder „In Dateien sichern“ (für Logic Pro auf dem iPad).
+   - Die ZIP enthält: jede Spur als WAV (24 Bit, alle ab Takt 1, gleich lang), einen Mix,
+     eine MIDI-Datei mit Tempo, Taktart, Tonart und – falls an – dem Drum-Groove,
+     und eine „LIES MICH“ mit den Schritten für Logic.
+   - Der Name im Feld „Ideen“ wird zum Namen des Pakets.
 
 Gut zu wissen
    - Übungslog und Ideen werden nur auf diesem iPad gespeichert. Die bisherigen
