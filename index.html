@@ -287,7 +287,8 @@
   .editor-head .chip { background: var(--tc); box-shadow: 0 0 8px var(--tc); }
   .editor-head strong { font: 700 0.9rem var(--f-body); }
   .editor-head .caption { flex: 1 1 200px; min-width: 0; }
-  .ed-wave-wrap { border-radius: 6px; overflow: hidden; border: 1px solid #000; }
+  .ed-wave-wrap { border-radius: 6px; overflow: hidden; border: 1px solid #000; touch-action: none; padding: 0 2px; background: #0b0b0d; }
+  .editor, #edWave { scroll-margin-top: 110px; }
   #edWave { display: block; width: 100%; height: 150px; touch-action: none; cursor: ew-resize; }
   .ed-groups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
   @media (max-width: 700px) { .ed-groups { grid-template-columns: 1fr; } }
@@ -318,6 +319,9 @@
   .tmeter.armed .tm-th { display: block; }
   #loopFlash.active { background: linear-gradient(180deg, #ffab4a, #d96400); border-color: #4a2200; box-shadow: 0 0 10px rgba(255,138,26,.4), 0 1px 0 rgba(255,255,255,.25) inset; }
   .export-btn { background: linear-gradient(180deg, #ffab4a, #d96400) !important; border-color: #4a2200 !important; color: #1a0d00 !important; box-shadow: 0 0 10px rgba(255,138,26,.35), 0 1px 0 rgba(255,255,255,.3) inset !important; }
+  .check-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 0.82rem; color: var(--muted); }
+  .check-list li.ok { color: #7dffb8; }
+  .check-list li.warn { color: #ffb15a; }
   /* ===== Rost & Stahl: Hintergrund aus gerostetem Blech, darauf verschraubte Stahlplatten ===== */
   :root {
     --plate-hi: #3a3a40;
@@ -431,7 +435,7 @@
 <body>
 <header class="control-bar">
   <div class="cb-inner">
-    <div class="brand">3nps <span>Übungsprogramm · v10</span></div>
+    <div class="brand">3nps <span>Übungsprogramm · v11</span></div>
     <div class="transport">
       <button class="tbtn" id="playBtn" aria-label="Metronom starten oder stoppen">▶</button>
     </div>
@@ -655,6 +659,14 @@
         </div>
         <div class="ed-wave-wrap"><canvas id="edWave" aria-label="Wellenform zum Schneiden"></canvas></div>
         <div class="ed-groups">
+          <div class="ed-group ed-check">
+            <span class="ed-label">Loop prüfen</span>
+            <div class="ed-row">
+              <button class="toggle-btn" id="edCheck">Prüfen</button>
+              <button class="toggle-btn active" id="edFix">Nacharbeiten</button>
+            </div>
+            <ul class="check-list" id="edCheckRes"><li>Prüft, ob der Loop ganze Takte hat, Takt 1 am Anfang liegt und der Übergang sauber ist.</li></ul>
+          </div>
           <div class="ed-group" id="edSrc" hidden>
             <span class="ed-label">Ausschnitt aus Datei</span>
             <span class="caption" id="edSrcInfo"></span>
@@ -734,7 +746,16 @@
         <h2>Aufnahme</h2>
         <label class="check"><input type="checkbox" id="loopTrigger"> Aufnahme startet mit dem ersten Ton</label>
         <div class="row" id="threshRow"><span class="lbl">Empfindlichkeit</span><input type="range" id="loopThresh" min="0" max="100" step="1"></div>
-        <label class="check"><input type="checkbox" id="loopCountIn"> Einzähler vor der ersten Aufnahme</label>
+        <div class="row"><span class="lbl">Vorzähler</span>
+          <select id="loopCountIn" aria-label="Vorzähler">
+            <option value="0">Aus</option>
+            <option value="1">1 Takt</option>
+            <option value="2">2 Takte</option>
+            <option value="4">4 Takte</option>
+            <option value="8">8 Takte</option>
+          </select>
+        </div>
+        <label class="check"><input type="checkbox" id="loopCountInPlay"> Vorzähler auch vor dem Abspielen des Loops</label>
         <label class="check"><input type="checkbox" id="loopSnap"> Freie Länge auf ganze Takte runden</label>
         <div class="row"><span class="lbl">Latenz</span><input type="range" id="loopLatency" min="0" max="300" step="5"><span class="caption" id="loopLatencyVal" style="min-width:52px;text-align:right">–</span></div>
         <p class="pattern-desc">Die orange Marke im Eingangspegel ist die Auslöseschwelle. Klingen Aufnahmen zu spät, schieb die Latenz nach rechts. Mit Kopfhörern landet der Loop nicht mit in der Aufnahme.</p>
@@ -2580,86 +2601,274 @@ function detectKeyFromChroma(chroma) {
   return best;
 }
 
-// Takt-Analyse: Tempo (genau), Schlagraster und Schlag 1 aus einem Mono-Signal (ca. 11 kHz)
-function beatAnalyse(x, sr) {
-  const hop = 128, fs = 512, fr = sr / hop;
-  const n = Math.floor((x.length - fs) / hop) + 1;
-  if (n < fr * 2) return null;                       // kürzer als ~2 s: keine sinnvolle Analyse
-  // Hochband (Anschläge) und Tiefband (Bass/Kick, für Schlag 1)
-  const a = Math.exp(-2 * Math.PI * 150 / sr);
-  const hp = new Float32Array(x.length), lp = new Float32Array(x.length);
-  let l = 0;
-  for (let i = 0; i < x.length; i++) { l = (1 - a) * x[i] + a * l; lp[i] = l; hp[i] = x[i] - l; }
-  const eH = new Float32Array(n), eL = new Float32Array(n);
-  let maxE = 0;
-  for (let f = 0; f < n; f++) {
-    let sh = 0, sl = 0; const st = f * hop;
-    for (let i = 0; i < fs; i++) { const v = hp[st + i], w = lp[st + i]; sh += v * v; sl += w * w; }
-    eH[f] = sh / fs; eL[f] = sl / fs; if (eH[f] > maxE) maxE = eH[f];
-  }
-  if (maxE < 1e-8) return null;
-  const gate = maxE * 1e-5;
-  const on = new Float32Array(n), onL = new Float32Array(n);
-  for (let f = 1; f < n; f++) {
-    on[f] = eH[f] > gate ? Math.max(0, Math.log(eH[f] + gate) - Math.log(eH[f - 1] + gate)) : 0;
-    onL[f] = eL[f] > gate ? Math.max(0, Math.log(eL[f] + gate) - Math.log(eL[f - 1] + gate)) : 0;
-  }
-  // Gleitenden Mittelwert abziehen (betont echte Anschläge) und leicht glätten
-  function clean(v) {
-    const out = new Float32Array(n), W = Math.round(fr * 0.25);
-    let s = 0;
-    for (let f = 0; f < n; f++) {
-      s += v[f]; if (f - 2 * W - 1 >= 0) s -= v[f - 2 * W - 1];
-      const c = f - W; if (c >= 0) out[c] = Math.max(0, v[c] - s / (2 * W + 1));
+// Takt-Analyse v2: Tempo, Schlagraster (folgt Temposchwankungen) und Takt-Einsen.
+// Eingang: Mono-Signal mit ca. 11 kHz. Nutzt fft() aus dem Hauptskript.
+function beatAnalyse(x, sr, opts) {
+  opts = opts || {};
+  const hop = 128, N = 1024, fps = sr / hop;
+  const nF = Math.floor((x.length - N) / hop) + 1;
+  if (nF < fps * 3) return null;                         // kürzer als ~3 s
+
+  // ---------- 1) Merkmale pro Rahmen: spektraler Fluss (gesamt/tief/hoch) und Chroma ----------
+  const win = new Float64Array(N);
+  for (let i = 0; i < N; i++) win[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / N);
+  const binHz = sr / N, b30 = Math.ceil(30 / binHz), b150 = Math.floor(160 / binHz), b2k = Math.floor(2000 / binHz), b5k = Math.min(N / 2 - 1, Math.floor(5000 / binHz));
+  const bChLo = Math.ceil(80 / binHz), bChHi = Math.floor(1600 / binHz);
+  const pcOfBin = new Int8Array(N / 2);
+  for (let b = 1; b < N / 2; b++) { const m = 69 + 12 * Math.log2(b * binHz / 440); pcOfBin[b] = ((Math.round(m) % 12) + 12) % 12; }
+  const flux = new Float32Array(nF), fluxLo = new Float32Array(nF), fluxHi = new Float32Array(nF), fluxMid = new Float32Array(nF);
+  const chroma = new Float32Array(nF * 12);
+  let prev = new Float32Array(N / 2), cur = new Float32Array(N / 2);
+  const frame = new Float64Array(N);
+  for (let f = 0; f < nF; f++) {
+    const st = f * hop;
+    for (let i = 0; i < N; i++) frame[i] = x[st + i] * win[i];
+    const { re, im } = fft(frame);
+    let fa = 0, fl = 0, fh = 0, fm = 0;
+    for (let b = b30; b <= b5k; b++) {
+      const mag = Math.sqrt(re[b] * re[b] + im[b] * im[b]);
+      const L = Math.log(1 + 100 * mag);
+      cur[b] = L;
+      const d = L - prev[b];
+      if (d > 0) { fa += d; if (b <= b150) fl += d; else if (b >= b2k) fh += d; else fm += d; }
+      if (b >= bChLo && b <= bChHi) chroma[f * 12 + pcOfBin[b]] += mag;
     }
-    const k = [0.25, 0.6, 1, 0.6, 0.25], sm = new Float32Array(n);
-    for (let f = 2; f < n - 2; f++) { let t = 0; for (let j = -2; j <= 2; j++) t += out[f + j] * k[j + 2]; sm[f] = t; }
+    flux[f] = fa; fluxLo[f] = fl; fluxHi[f] = fh; fluxMid[f] = fm;
+    const t = prev; prev = cur; cur = t;
+  }
+  flux[0] = fluxLo[0] = fluxHi[0] = 0;
+
+  // Gleitenden Mittelwert abziehen (nur echte Anschläge bleiben), dann leicht glätten
+  function clean(v) {
+    const out = new Float32Array(nF), W = Math.max(2, Math.round(fps * 0.2));
+    let s = 0;
+    for (let f = 0; f < nF + W; f++) {
+      if (f < nF) s += v[f];
+      if (f - 2 * W - 1 >= 0) s -= v[f - 2 * W - 1];
+      const c = f - W; if (c >= 0 && c < nF) out[c] = Math.max(0, v[c] - s / (2 * W + 1));
+    }
+    const sm = new Float32Array(nF), k = [0.15, 0.5, 1, 0.5, 0.15];
+    for (let f = 2; f < nF - 2; f++) { let t = 0; for (let j = -2; j <= 2; j++) t += out[f + j] * k[j + 2]; sm[f] = t; }
+    let mx = 0; for (let f = 0; f < nF; f++) if (sm[f] > mx) mx = sm[f];
+    if (mx > 0) for (let f = 0; f < nF; f++) sm[f] /= mx;
     return sm;
   }
-  const O = clean(on), OL = clean(onL);
-  const at = (v, p) => { if (p < 0 || p >= n - 1) return 0; const i = Math.floor(p), f = p - i; return v[i] * (1 - f) + v[i + 1] * f; };
+  const O = clean(flux), OL = clean(fluxLo), OH = clean(fluxHi), OM = clean(fluxMid);
+  let meanO = 0; for (let f = 0; f < nF; f++) meanO += O[f]; meanO /= nF;
+  if (meanO <= 1e-6) return null;
+  const at = (v, p) => { if (p < 0 || p >= nF - 1) return 0; const i = Math.floor(p), fr = p - i; return v[i] * (1 - fr) + v[i + 1] * fr; };
+  const peakAt = (v, p, r) => { let m = 0; for (let q = Math.floor(p - r); q <= Math.ceil(p + r); q++) if (q >= 0 && q < nF && v[q] > m) m = v[q]; return m; };
 
-  // 1) Grobes Tempo über Autokorrelation mit Kammfilter und mildem Vorzug um 110 BPM
-  const maxLag = Math.ceil(60 * fr / 50) * 4 + 2, AC = new Float32Array(maxLag + 1);
-  for (let lag = 1; lag <= maxLag; lag++) { let s = 0; for (let f = 0; f + lag < n; f++) s += O[f] * O[f + lag]; AC[lag] = s / (n - lag); }
-  const acAt = p => { const i = Math.floor(p), f = p - i; return i + 1 > maxLag ? 0 : AC[i] * (1 - f) + AC[i + 1] * f; };
-  let best = null;
-  for (let bpm = 55; bpm <= 200; bpm += 0.25) {
-    const p = 60 * fr / bpm;
-    const comb = acAt(p) + 0.6 * acAt(2 * p) + 0.45 * acAt(3 * p) + 0.5 * acAt(4 * p) + 0.3 * acAt(p / 2);
-    const prior = Math.exp(-0.5 * Math.pow(Math.log2(bpm / 110) / 0.8, 2));
-    const sc = comb * prior;
-    if (!best || sc > best.sc) best = { bpm, sc };
+  // ---------- 2) Tempo-Kandidaten über Autokorrelation ----------
+  const minLag = Math.floor(fps * 60 / 240), maxLag = Math.ceil(fps * 60 / 40) * 4 + 4;
+  const AC = new Float32Array(maxLag + 2);
+  for (let lag = minLag; lag <= maxLag + 1 && lag < nF; lag++) { let s = 0; for (let f = 0; f + lag < nF; f++) s += O[f] * O[f + lag]; AC[lag] = s / (nF - lag); }
+  const acAt = p => { const i = Math.floor(p), fr = p - i; return i + 1 >= AC.length ? 0 : AC[i] * (1 - fr) + AC[i + 1] * fr; };
+  const sal = bpm => { const p = 60 * fps / bpm; return acAt(p) + 0.5 * acAt(2 * p) + 0.33 * acAt(3 * p) + 0.5 * acAt(4 * p); };
+  const prior = bpm => Math.exp(-0.5 * Math.pow(Math.log2(bpm / 115) / 1.0, 2));
+  const curve = [];
+  for (let b = 50; b <= 220; b += 0.5) curve.push([b, sal(b) * prior(b)]);
+  const peaks = [];
+  for (let i = 1; i < curve.length - 1; i++) if (curve[i][1] >= curve[i - 1][1] && curve[i][1] >= curve[i + 1][1]) peaks.push(curve[i]);
+  peaks.sort((a, b) => b[1] - a[1]);
+  const cand = new Set();
+  peaks.slice(0, 4).forEach(([b]) => [1, 2, 0.5, 1.5, 2 / 3, 0.75, 4 / 3].forEach(m => { const v = b * m; if (v >= 50 && v <= 220) cand.add(Math.round(v * 2) / 2); }));
+
+  // ---------- 3) Für jeden Kandidaten Periode und Phase genau anpassen und metrisch bewerten ----------
+  function fit(p0) {
+    let best = { s: -1, p: p0, ph: 0 };
+    const tryP = (p, phs) => { for (const ph of phs) { let s = 0, c = 0; for (let t = ph; t < nF - 1; t += p) { s += at(O, t); c++; } s /= Math.max(1, c); if (s > best.s) best = { s, p, ph }; } };
+    for (let k = -40; k <= 40; k++) { const p = p0 * (1 + k * 0.0006); const phs = []; for (let ph = 0; ph < p; ph += 1) phs.push(ph); tryP(p, phs); }
+    const p1 = best.p, ph1 = best.ph;
+    for (let k = -15; k <= 15; k++) { const p = p1 * (1 + k * 0.00006); const phs = []; for (let d = -1; d <= 1; d += 0.125) if (ph1 + d >= 0) phs.push(ph1 + d); tryP(p, phs); }
+    return best;
   }
-  // 2) Feinabstimmung von Periode und Phase über die ganze Länge
-  function gridScore(p, ph) { let s = 0, c = 0; for (let t = ph; t < n - 1; t += p) { s += at(O, t); c++; } return c ? s / c : 0; }
-  let p0 = 60 * fr / best.bpm, bestP = p0, bestPh = 0, bestS = -1;
-  for (let k = -60; k <= 60; k++) {
-    const p = p0 * (1 + k * 0.0005);
-    for (let ph = 0; ph < p; ph += 0.5) { const s = gridScore(p, ph); if (s > bestS) { bestS = s; bestP = p; bestPh = ph; } }
+  function metric(g) {
+    // mittlere Stärke auf Schlägen, Achteln, Sechzehnteln und das Verhältnis gerade/ungerade Schläge
+    let on = 0, off8 = 0, off16 = 0, ev = 0, od = 0, c = 0, k = 0;
+    for (let t = g.ph; t + g.p < nF - 1; t += g.p, k++) {
+      const v = peakAt(O, t, 1.5); on += v; off8 += peakAt(O, t + g.p / 2, 1.5); off16 += (peakAt(O, t + g.p / 4, 1) + peakAt(O, t + 3 * g.p / 4, 1)) / 2;
+      if (k % 2) od += v; else ev += v; c++;
+    }
+    c = Math.max(1, c);
+    return { on: on / c, off8: off8 / c, off16: off16 / c, alt: Math.max(ev, od) / Math.max(1e-6, Math.min(ev, od)) };
   }
-  // Noch feiner um das Optimum
-  const p1 = bestP, ph1 = bestPh;
-  for (let k = -20; k <= 20; k++) {
-    const p = p1 * (1 + k * 0.00005);
-    for (let d = -1; d <= 1; d += 0.125) { const ph = ph1 + d; if (ph < 0) continue; const s = gridScore(p, ph); if (s > bestS) { bestS = s; bestP = p; bestPh = ph; } }
+  const scored = [...cand].map(b => { const g = fit(60 * fps / b); const m = metric(g); return { bpm: 60 * fps / g.p, g, m, sal: sal(60 * fps / g.p), prior: prior(60 * fps / g.p) }; });
+  // Bewertung: Schlagstärke × Vorzug, Strafe für starkes Gerade/Ungerade-Gefälle (= eigentlich halbes Tempo)
+  // und Strafe, wenn Achtel so stark sind wie Schläge (= eigentlich doppeltes Tempo)
+  scored.forEach(s => {
+    const altPen = s.m.alt > 2.6 ? Math.pow(2.6 / s.m.alt, 1.5) : 1;
+    const offRatio = s.m.off8 / Math.max(1e-6, s.m.on);
+    const offPen = offRatio > 0.8 ? Math.pow(0.8 / offRatio, 2) : 1;
+    const contrast = s.m.on + 0.25 * s.m.off8 + 0.1 * s.m.off16;   // Schläge zählen, passende Unterteilungen bestätigen
+    s.score = Math.max(0, contrast) * altPen * offPen * s.prior;
+  });
+  scored.sort((a, b) => b.score - a.score);
+  let chosen = scored[0];
+  // Oktav-Prüfung über die Rollen von Bass (Kick) und Höhen (Snare/Hi-Hat):
+  //  doppeltes Tempo  → Bass und Höhen wechseln gemeinsam zwischen geraden/ungeraden Schlägen
+  //  halbes Tempo     → auf den Achteln liegt so viel Bass wie auf den Schlägen
+  function roles(g) {
+    let le = 0, lo = 0, he = 0, ho = 0, l8 = 0, h8 = 0, k = 0;
+    for (let t = g.ph; t + g.p < nF - 1; t += g.p, k++) {
+      const L = peakAt(OL, t, 1.5), H = peakAt(OH, t, 1.5);
+      if (k % 2) { lo += L; ho += H; } else { le += L; he += H; }
+      l8 += peakAt(OL, t + g.p / 2, 1.5); h8 += peakAt(OH, t + g.p / 2, 1.5);
+    }
+    if (le < lo) { [le, lo] = [lo, le]; [he, ho] = [ho, he]; }
+    return { aL: (le - lo) / (le + lo + 1e-9), aH: (he - ho) / (he + ho + 1e-9), L8: l8 / (le + lo + 1e-9), H8: h8 / (he + ho + 1e-9) };
   }
-  // 3) Schlag 1: welcher der vier Schläge trägt am meisten Bass und Anschlag?
-  const dScore = [0, 0, 0, 0], dCnt = [0, 0, 0, 0];
-  let k = 0;
-  for (let t = bestPh; t < n - 1; t += bestP, k++) { const b = k % 4; dScore[b] += 1.5 * at(OL, t) + at(O, t); dCnt[b]++; }
-  let down = 0;
-  for (let b = 1; b < 4; b++) if (dScore[b] / (dCnt[b] || 1) > dScore[down] / (dCnt[down] || 1)) down = b;
-  // Zuverlässigkeit: Anschläge auf dem Raster gegenüber Durchschnitt
-  let mean = 0; for (let f = 0; f < n; f++) mean += O[f]; mean /= n;
-  const conf = mean > 0 ? bestS / mean : 0;
-  const frameToSec = f => (f * hop + fs - hop * 0.5) / sr;     // Anschlag liegt am Fensterende
+  if (!opts.forceBpm) {
+    const r0 = roles(chosen.g);
+    if (r0.aL >= 0.25 && r0.aH >= 0.18 && chosen.bpm / 2 >= 50) {
+      const g = fit(chosen.g.p * 2); chosen = { bpm: 60 * fps / g.p, g, octave: 'halbiert' };
+    } else if (chosen.bpm * 2 <= 220) {
+      const g2 = fit(chosen.g.p / 2), r2 = roles(g2);
+      // Bass auf den Achteln (Kick zwischen den Schlägen) oder Snare auf den Achteln bei leerem Doppel-Raster
+      if ((r0.L8 > 1.4 && r0.H8 > 0.45) || (r0.H8 > 0.7 && r0.L8 > 0.8 && r2.H8 < 0.4)) chosen = { bpm: 60 * fps / g2.p, g: g2, octave: 'verdoppelt' };
+    }
+  } else {                                      // vom Benutzer vorgegeben (½ / 2×)
+    const g = fit(60 * fps / opts.forceBpm); chosen = { bpm: 60 * fps / g.p, g };
+  }
+  const P = chosen.g.p;
+
+  // ---------- 4) Schlagverfolgung (dynamische Programmierung) – folgt kleinen Temposchwankungen ----------
+  const alpha = 400, score = new Float32Array(nF), back = new Int32Array(nF).fill(-1);
+  const lo = Math.round(P * 0.8), hi = Math.round(P * 1.25);
+  for (let f = 0; f < nF; f++) {
+    let best = 0, bi = -1;
+    for (let d = lo; d <= hi; d++) {
+      const q = f - d; if (q < 0) break;
+      const v = score[q] - alpha * Math.pow(Math.log(d / P), 2);
+      if (v > best || bi < 0) { best = v; bi = q; }
+    }
+    score[f] = O[f] + (bi >= 0 ? Math.max(0, best) : 0);
+    back[f] = bi >= 0 && best > 0 ? bi : -1;
+  }
+  let end = 0; for (let f = Math.max(0, nF - Math.round(P * 2)); f < nF; f++) if (score[f] > score[end]) end = f;
+  let beatsF = []; for (let f = end; f >= 0; f = back[f]) { beatsF.push(f); if (back[f] < 0) break; }
+  beatsF.reverse();
+  // Vorne fehlende Schläge (Intro, Auftakt) mit der Periode ergänzen
+  while (beatsF.length && beatsF[0] - P > -P * 0.3) beatsF.unshift(beatsF[0] - P);
+  beatsF = beatsF.filter(f => f >= -P * 0.3);
+  // Feinkorrektur jedes Schlags auf das lokale Maximum (±40 ms)
+  const rad = Math.round(fps * 0.04);
+  let beatsR = beatsF.map(f => { let m = f, mv = -1; for (let q = Math.round(f) - rad; q <= Math.round(f) + rad; q++) if (q >= 0 && q < nF && O[q] > mv) { mv = O[q]; m = q; } return mv > 0.08 ? m : f; });
+
+  // Gegenprobe Schlag vs. Achtel: liegt das Raster auf den Achteln (Synkopen), um einen halben Schlag verschieben
+  {
+    // Snare und Akkordanschläge (Mitten) liegen fast immer auf dem Schlag; Kick/Bass sind oft synkopiert
+    const W = (f) => peakAt(O, f, 1.5) + 1.5 * peakAt(OM, f, 1.5) + 0.3 * peakAt(OL, f, 1.5);
+    let on = 0, off = 0;
+    beatsR.forEach(f => { on += W(f); off += W(f + P / 2); });
+    if (off > on * 1.05) { beatsR = beatsR.map(f => f + P / 2).filter(f => f < nF - 1); beatsF = beatsF.map(f => f + P / 2).filter(f => f < nF - 1); }
+  }
+  // Gerades Raster per Regression; wenn es gut passt (Studio-Tempo), wird es verwendet
+  function regress(arr) {
+    const n = arr.length; let sx = 0, sy = 0, sxx = 0, sxy = 0;
+    arr.forEach((y, i) => { sx += i; sy += y; sxx += i * i; sxy += i * y; });
+    const b = (n * sxy - sx * sy) / (n * sxx - sx * sx), a = (sy - b * sx) / n;
+    let r = 0; arr.forEach((y, i) => { r += (y - (a + b * i)) ** 2; });
+    return { a, b, rms: Math.sqrt(r / n) };
+  }
+  let reg = regress(beatsR);
+  // Ausreißer entfernen und neu anpassen
+  const inl = beatsR.map((y, i) => [i, y]).filter(([i, y]) => Math.abs(y - (reg.a + reg.b * i)) < fps * 0.03);
+  if (inl.length > beatsR.length * 0.5) {
+    let sx = 0, sy = 0, sxx = 0, sxy = 0; const n = inl.length;
+    inl.forEach(([i, y]) => { sx += i; sy += y; sxx += i * i; sxy += i * y; });
+    const b = (n * sxy - sx * sy) / (n * sxx - sx * sx), a = (sy - b * sx) / n;
+    let r = 0; beatsR.forEach((y, i) => { r += (y - (a + b * i)) ** 2; });
+    reg = { a, b, rms: Math.sqrt(r / beatsR.length) };
+  }
+  const steady = reg.rms < fps * 0.018;
+  const beats = steady ? beatsR.map((_, i) => reg.a + reg.b * i) : beatsR.map((y, i) => (y + beatsF[i]) / 2 * 0 + y);
+  const period = steady ? reg.b : (beats[beats.length - 1] - beats[0]) / Math.max(1, beats.length - 1);
+
+  // ---------- 5) Takt-Eins: Bass/Kick-Anschläge, Akkordwechsel und Betonung ----------
+  const nb = beats.length;
+  const featLo = beats.map(b => peakAt(OL, b, 2)), featOn = beats.map(b => peakAt(O, b, 2)), featHi = beats.map(b => peakAt(OH, b, 2));
+  // Chroma je Schlag (Mittel zwischen zwei Schlägen), Akkordwechsel = Abstand der Halbtakt-Mittel davor/danach
+  const chB = beats.map((b, i) => {
+    const a = Math.max(0, Math.round(b)), e = Math.min(nF, Math.round(i + 1 < nb ? beats[i + 1] : b + period));
+    const v = new Float32Array(12); for (let f = a; f < e; f++) for (let c = 0; c < 12; c++) v[c] += chroma[f * 12 + c];
+    let s = 0; for (let c = 0; c < 12; c++) s += v[c] * v[c]; s = Math.sqrt(s) || 1; for (let c = 0; c < 12; c++) v[c] /= s; return v;
+  });
+  const nov = beats.map((_, i) => {
+    if (i < 2 || i + 2 > nb) return 0;
+    const A = new Float32Array(12), B = new Float32Array(12);
+    for (let c = 0; c < 12; c++) { A[c] = chB[i - 1][c] + chB[i - 2][c]; B[c] = chB[i][c] + chB[i + 1][c]; }
+    let d = 0, na = 0, nbb = 0; for (let c = 0; c < 12; c++) { d += A[c] * B[c]; na += A[c] * A[c]; nbb += B[c] * B[c]; }
+    return 1 - d / (Math.sqrt(na * nbb) || 1);
+  });
+  const z = arr => { const m = arr.reduce((a, b) => a + b, 0) / arr.length; const sd = Math.sqrt(arr.reduce((a, b) => a + (b - m) ** 2, 0) / arr.length) || 1; return arr.map(v => (v - m) / sd); };
+  const zLo = z(featLo), zOn = z(featOn), zNov = z(nov), zHi = z(featHi);
+  const dsc = [0, 0, 0, 0], dct = [0, 0, 0, 0];
+  for (let i = 0; i < nb; i++) { const k = i % 4; dsc[k] += 1.0 * zLo[i] + 1.4 * zNov[i] + 0.4 * zOn[i] - 0.3 * zHi[i]; dct[k]++; }
+  let down = 0; for (let k = 1; k < 4; k++) if (dsc[k] / dct[k] > dsc[down] / dct[down]) down = k;
+  if (opts.downShift) down = (down + opts.downShift + 400) % 4;
+
+  // ---------- Ergebnis ----------
+  const tSec = f => (f * hop + N / 2) / sr + 0.024;      // geeicht: Anschlag liegt ~24 ms nach der Rahmenmitte
+  const beatTimes = beats.map(tSec);
+  const downbeats = []; for (let i = down; i < nb; i += 4) downbeats.push(beatTimes[i]);
+  // Zuverlässigkeit: Anschläge auf dem Raster gegenüber dem Rest
+  let onG = 0; beats.forEach(b => { onG += peakAt(O, b, 1.5); }); onG /= Math.max(1, nb);
+  const conf = onG / meanO;
   return {
-    bpm: 60 * fr / bestP,
-    beatSec: bestP * hop / sr,
-    firstDownbeat: frameToSec(bestPh + down * bestP),
-    firstBeat: frameToSec(bestPh),
-    confidence: conf
+    bpm: 60 / (period / fps), beatSec: period / fps, firstDownbeat: downbeats[0], firstBeat: beatTimes[0],
+    beats: beatTimes, downbeats, downIndex: down, steady, confidence: conf,
+    alternatives: scored.slice(0, 3).map(s => Math.round(s.bpm * 10) / 10)
+  };
+}
+
+// Loop-Analyse: Datei (oder Spur) als Schleife betrachten. Kurze Loops werden für die Messung
+// aneinandergehängt. Ergebnis: ganze Taktzahl, ob die Länge genau passt, Lage von Takt 1 im Loop.
+function loopAnalyse(x, sr, opts) {
+  const len = x.length, Ls = len / sr;
+  if (Ls < 0.6) return null;
+  const k = Math.max(2, Math.ceil(16 / Ls));
+  const tiled = new Float32Array(len * k);
+  for (let i = 0; i < k; i++) tiled.set(x, i * len);
+  let r = beatAnalyse(tiled, sr, opts);
+  if (!r) return null;
+  // Welche Tempo-Oktave ergibt ganze Takte? Erkanntes Tempo bevorzugen.
+  let best = null;
+  // Bekanntes Tempo als Hinweis: passende Oktave direkt nehmen
+  if (opts && opts.hintBpm) for (const m of [1, 2, 0.5]) {
+    const bpm = r.bpm * m;
+    if (Math.abs(bpm - opts.hintBpm) / opts.hintBpm < 0.04) {
+      const barsF = Ls / (240 / bpm), bars = Math.max(1, Math.round(barsF));
+      best = { m, bpm, barsF, bars, err: Math.abs(barsF - bars) / bars, sc: 0 };
+    }
+  }
+  if (!best) for (const m of [1, 2, 0.5]) {
+    const bpm = r.bpm * m; if (bpm < 45 || bpm > 240) continue;
+    const barsF = Ls / (240 / bpm), bars = Math.max(1, Math.round(barsF));
+    const err = Math.abs(barsF - bars) / bars;
+    const sc = err + (m === 1 ? 0 : 0.012);
+    if (!best || sc < best.sc) best = { m, bpm, barsF, bars, err, sc };
+  }
+  const isLoop = best.err < 0.03;
+  // Andere Tempo-Oktave als erkannt: Raster und Takt 1 mit dem korrigierten Tempo neu bestimmen
+  if (best.m !== 1) { const r2 = beatAnalyse(tiled, sr, Object.assign({}, opts, { forceBpm: best.bpm })); if (r2) r = r2; }
+  // Takt 1 im Loop: zirkulärer Mittelwert der erkannten Einsen modulo Loop-Länge
+  const downs = r.downbeats.slice();
+  let sx = 0, sy = 0;
+  downs.forEach(t => { const a = 2 * Math.PI * ((t % Ls) / Ls) * best.bars; sx += Math.cos(a); sy += Math.sin(a); });
+  let ang = Math.atan2(sy, sx); if (ang < 0) ang += 2 * Math.PI;
+  const barLen = Ls / best.bars;
+  let off = (ang / (2 * Math.PI)) * barLen;                  // Lage von Takt 1 innerhalb eines Takts
+  if (off > barLen / 2) off -= barLen;                       // nächstliegend: leicht vor oder nach dem Anfang
+  // Loop-Dateien beginnen fast immer auf Takt 1: liegt der Anfang auf einem Schlag, bleibt er Takt 1
+  const bs = barLen / 4;
+  let onBeat = off % bs; if (onBeat > bs / 2) onBeat -= bs; if (onBeat < -bs / 2) onBeat += bs;
+  let startKept = false;
+  if (isLoop && Math.abs(onBeat) < 0.035 && !(opts && opts.trustDownbeat)) { off = onBeat; startKept = true; }
+  return {
+    bpm: isLoop ? 240 * best.bars / Ls : best.bpm, detectedBpm: r.bpm, bars: best.bars, barsF: best.barsF,
+    isLoop, lenErrMs: (best.barsF - best.bars) * barLen * 1000, downOffsetSec: off, startKept, confidence: r.confidence,
+    beatSec: isLoop ? barLen / 4 : 60 / best.bpm
   };
 }
 
@@ -2697,11 +2906,12 @@ const Analyzer = (() => {
   const pending = {};
   function makeWorker() {
     try {
-      const src = [fft, pearsonCorrelate, detectKeyFromChroma, chromaMono, beatAnalyse].map(f => f.toString()).join('\n') + `
+      const src = [fft, pearsonCorrelate, detectKeyFromChroma, chromaMono, beatAnalyse, loopAnalyse].map(f => f.toString()).join('\n') + `
         onmessage = e => {
-          const { id, data, sr, type } = e.data;
+          const { id, data, sr, type, opts } = e.data;
           try {
-            if (type === 'beat') { postMessage({ id, beat: beatAnalyse(data, sr) }); return; }
+            if (type === 'beat') { postMessage({ id, beat: beatAnalyse(data, sr, opts) }); return; }
+            if (type === 'loop') { postMessage({ id, beat: loopAnalyse(data, sr, opts) }); return; }
             const r = chromaMono(data, sr);
             const k = detectKeyFromChroma(r.chroma);
             postMessage({ id, pc: k.pc, major: k.major, score: k.score, energy: r.energy / Math.max(1, data.length) });
@@ -2724,14 +2934,14 @@ const Analyzer = (() => {
     }
     return { data: out, sr: sr / f };
   }
-  function run(type, channels, sr, local) {
+  function run(type, channels, sr, local, opts) {
     const m = downmix(channels, sr);
     if (worker === null) worker = makeWorker();
     return new Promise(resolve => {
       if (worker) {
         const id = ++seq;
         pending[id] = resolve;
-        worker.postMessage({ id, data: m.data, sr: m.sr, type }, [m.data.buffer]);
+        worker.postMessage({ id, data: m.data, sr: m.sr, type, opts: opts || {} }, [m.data.buffer]);
         setTimeout(() => { if (pending[id]) { delete pending[id]; resolve({ error: 'timeout' }); } }, 30000);
       } else {
         setTimeout(() => { try { resolve(local(m.data, m.sr)); } catch (err) { resolve({ error: String(err) }); } }, 30);
@@ -2741,8 +2951,14 @@ const Analyzer = (() => {
   function key(channels, sr) {
     return run('key', channels, sr, (d, r) => { const c = chromaMono(d, r), k = detectKeyFromChroma(c.chroma); return { pc: k.pc, major: k.major, score: k.score, energy: c.energy / Math.max(1, d.length) }; });
   }
-  async function beat(channels, sr) {
-    const r = await run('beat', channels, sr, (d, r2) => ({ beat: beatAnalyse(d, r2) }));
+  // Song: Tempo, Schläge und Takt-Einsen (Zeiten in Sekunden)
+  async function beat(channels, sr, opts) {
+    const r = await run('beat', channels, sr, (d, r2) => ({ beat: beatAnalyse(d, r2, opts) }), opts);
+    return r && r.beat ? r.beat : null;
+  }
+  // Loop: ganze Takte? exaktes Tempo, Lage von Takt 1
+  async function loop(channels, sr, opts) {
+    const r = await run('loop', channels, sr, (d, r2) => ({ beat: loopAnalyse(d, r2, opts) }), opts);
     return r && r.beat ? r.beat : null;
   }
   const label = r => NOTES[r.pc] + (r.major ? '-Dur' : '-Moll');
@@ -2752,7 +2968,7 @@ const Analyzer = (() => {
     modeSel.value = r.major ? 'Ionisch (Dur)' : 'Äolisch (Moll)';
     rootSel.dispatchEvent(new Event('change'));   // baut Griffbild, Drone und LCD neu
   }
-  return { key, beat, label, short, apply };
+  return { key, beat, loop, label, short, apply };
 })();
 
 function formatTime(s) {
@@ -2979,7 +3195,9 @@ const Looper = (() => {
   function savePref(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
   latEl.value = loadPref('3nps-latency', '');
   snapEl.checked = loadPref('3nps-snap', '1') === '1';
-  countInEl.checked = loadPref('3nps-countin', '1') === '1';
+  { const v = loadPref('3nps-countin', '1'); countInEl.value = ['0', '1', '2', '4', '8'].includes(v) ? v : '1'; }
+  const countPlayEl = $('loopCountInPlay');
+  countPlayEl.checked = loadPref('3nps-countin-play', '1') === '1';
   barsEl.value = loadPref('3nps-bars', 'free');
   trigEl.checked = loadPref('3nps-trigger', '0') === '1';
   threshEl.value = loadPref('3nps-thresh', '55');
@@ -3248,11 +3466,42 @@ const Looper = (() => {
     g.gain.setValueAtTime(0.25, tm); g.gain.exponentialRampToValueAtTime(0.001, tm + 0.05);
     o.connect(g); g.connect(ensureMasterBus()); o.start(tm); o.stop(tm + 0.06);
   }
+  // ---- Vorzähler: 1, 2, 4 oder 8 Takte vor Aufnahme bzw. Loop-Start ----
+  let countNodes = [], countEnd = 0, countBeats = 0;
+  const countBars = () => parseInt(countInEl.value) || 0;
+  function cancelCountIn() {
+    countNodes.forEach(o => { try { o.stop(); } catch (e) {} });
+    countNodes = []; countEnd = 0; countBeats = 0;
+  }
+  function scheduleCountIn(startFrame, bars) {
+    cancelCountIn();
+    const bt = beatFrames();
+    countBeats = bars * 4; countEnd = startFrame + Math.round(countBeats * bt);
+    for (let i = 0; i < countBeats; i++) {
+      const tm = (startFrame + i * bt) / sr;
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      const bar1 = i % 4 === 0, last = i >= countBeats - 4;
+      o.frequency.value = bar1 ? 1600 : (last ? 1150 : 1000);
+      g.gain.setValueAtTime(bar1 ? 0.3 : 0.2, tm); g.gain.exponentialRampToValueAtTime(0.001, tm + 0.05);
+      o.connect(g); g.connect(ensureMasterBus()); o.start(tm); o.stop(tm + 0.06);
+      countNodes.push(o);
+    }
+  }
+  // Startpunkt für Loop/Aufnahme: mit Drums auf den nächsten Takt, dazu ggf. der Vorzähler
+  function startAnchor(kind) {
+    const bars = countBars(), use = bars > 0 && (kind === 'rec' || countPlayEl.checked);
+    let a = drumsOn ? nextBarFrame() : nowFrame() + Math.round(sr * (use ? 0.12 : 0.03));
+    if (use) { scheduleCountIn(a, bars); a = countEnd; }
+    else cancelCountIn();
+    kick();
+    return a;
+  }
+
   function startNewRecording(t) {
     const now = nowFrame(), nb = selectedBars();
     const lenTxt = nb ? ' Sie endet nach ' + nb + ' Takt' + (nb === 1 ? '' : 'en') + ' von selbst.' : ' Tippe zum Beenden.';
     if (baseL && !anyRunning()) {
-      anchor = drumsOn ? nextBarFrame() : now;
+      anchor = trigEl.checked ? (drumsOn ? nextBarFrame() : now) : startAnchor('rec');
       tracks.forEach(o => { if (o.L && o !== t) { startTrack(o); o.state = 'playing'; } });
     }
     const kind = baseL ? 'new' : 'first';
@@ -3262,17 +3511,12 @@ const Looper = (() => {
       return;
     }
     let start = now;
-    if (!baseL) {
-      if (drumsOn) start = nextBarFrame();
-      else if (countInEl.checked) {
-        const beat = 60 / bpm(), t0 = audioCtx.currentTime + 0.1;
-        for (let i = 0; i < 4; i++) scheduleClick(t0 + i * beat, i === 0);
-        start = Math.round((t0 + 4 * beat) * sr);
-      }
-    } else start = Math.max(now, anchor);
+    if (!baseL) start = startAnchor('rec');
+    else start = Math.max(now, anchor);
     beginRec(t, kind, start);
     applyAutoEnd();
-    setStatus((start > now + sr * 0.05 ? 'Gleich geht’s los – der Kreis zählt ein.' : 'Spur ' + (t.i + 1) + ' nimmt auf.') + lenTxt);
+    const cb = countBars();
+    setStatus((start > now + sr * 0.2 ? (cb ? cb + ' Takt' + (cb === 1 ? '' : 'e') + ' Vorzähler – dann nimmt Spur ' + (t.i + 1) + ' auf.' : 'Gleich geht’s los.') : 'Spur ' + (t.i + 1) + ' nimmt auf.') + lenTxt);
   }
   // Beenden per Taster oder Stopp: sofort (bzw. auf den gerade vergangenen Takt/Loopanfang), nie auf ein spätes Ende warten
   function endRec(stopAfter) {
@@ -3336,6 +3580,7 @@ const Looper = (() => {
   }
   function cancelRec() {
     if (!rec) return;
+    if (nowFrame() < rec.start || rec.armed) cancelCountIn();
     const t = rec.t; rec = null;
     t.state = t.L ? (t.src ? 'playing' : 'stopped') : 'empty';
     update();
@@ -3343,7 +3588,7 @@ const Looper = (() => {
   function clearTrack(t) {
     if (rec && rec.t === t) rec = null;
     stopSrc(t);
-    t.layers = []; t.L = 0; t.mix = null; t.peaks = null; t.state = 'empty'; t.hist = []; t.key = null; t.orig = null;
+    t.layers = []; t.L = 0; t.mix = null; t.peaks = null; t.state = 'empty'; t.hist = []; t.key = null; t.orig = null; t.origPos = null;
     if (!anyContent()) { if (baseL) freeAnchor = anchor / sr; baseL = 0; }
     if (ed.t === t) closeEditor();
     showKey();
@@ -3353,7 +3598,7 @@ const Looper = (() => {
     if (rec && rec.t === t) { cancelRec(); setStatus('Aufnahme verworfen.'); return; }
     if (t.hist.length) {
       const sn = t.hist.pop(), os = others(t);
-      t.layers = sn.layers; t.L = sn.L; rebuildMix(t);
+      t.layers = sn.layers; t.L = sn.L; t.origPos = sn.origPos; t.origBars = sn.origBars; rebuildMix(t);
       if (!os.length || os.every(o => o.L % sn.baseL === 0)) baseL = sn.baseL;
       if (t.src) { if (!os.length) anchor = nowFrame(); startTrack(t); }
       if (ed.t === t) { ed.s = 0; ed.e = t.L; ed.lastOp = null; ed.offMs = 0; edInfo(); }
@@ -3366,25 +3611,55 @@ const Looper = (() => {
   // ---- Audiodatei auf eine Spur legen ----
   // Tempo exakt setzen (auch mit Nachkommastelle), Drums und Taktkreis folgen
   function setTempo(v) {
-    const el = $('bpm'); el.value = (Math.round(v * 100) / 100).toString(); el.dispatchEvent(new Event('input'));
+    const el = $('bpm'); el.value = (Math.round(v * 10000) / 10000).toString(); el.dispatchEvent(new Event('input'));
   }
   const bpmTxt = v => (Math.round(v * 10) / 10).toString().replace('.', ',');
 
-  // Ausschnitt aus dem Original: ab Takt „from“, „nb“ Takte. Schlag 1 genau auf den Loopanfang,
-  // die 10 ms davor ans Loopende (sauberer Übergang). Gibt {seg, L, msg} zurück und setzt baseL.
+  // Gleichmäßige Lautstärke über die ganze Datei (Loop) – Song hat oft Einzählen oder Ausklang
+  function evenEnergy(x) {
+    const w = Math.max(256, Math.floor(Math.min(1.5 * sr, x.length / 4))), S = Math.floor(x.length / w), r = [];
+    if (S < 2) return true;
+    for (let k = 0; k < S; k++) { let e = 0; for (let i = k * w; i < (k + 1) * w; i += 4) e += x[i] * x[i]; r.push(Math.sqrt(e / (w / 4))); }
+    // letztes Fenster genau am Dateiende
+    { let e = 0; for (let i = x.length - w; i < x.length; i += 4) e += x[i] * x[i]; r.push(Math.sqrt(e / (w / 4))); }
+    const med = r.slice().sort((a, b) => a - b)[r.length >> 1] || 1e-9;
+    return Math.min(...r) / med > 0.25 && r[0] / med > 0.45 && r[r.length - 1] / med > 0.45;
+  }
+  // Original einer geladenen Datei mit Taktraster (Einsen in Samples, folgt Temposchwankungen)
+  function makeOrig(data, name, beatRes, isLoopFile) {
+    const toS = t => Math.round(t * sr);
+    let downs = (beatRes.downbeats || []).map(toS).filter(v => v >= 0 && v < data.length);
+    if (!downs.length) return null;
+    const barMed = (() => { if (downs.length < 2) return Math.round(beatRes.beatSec * 4 * sr); const d = []; for (let i = 1; i < downs.length; i++) d.push(downs[i] - downs[i - 1]); d.sort((a, b) => a - b); return d[d.length >> 1]; })();
+    // Rasterende: letzte Eins + ein Takt, solange Audio vorhanden
+    const last = downs[downs.length - 1];
+    if (last + barMed <= data.length + barMed * 0.05) downs.push(Math.min(last + barMed, data.length));
+    // Ausklang: leise Takte am Ende abschneiden (unter 15 % der typischen Taktlautstärke)
+    const rmsBar = i => { let e = 0, c = 0; for (let j = downs[i]; j < downs[i + 1]; j += 16) { e += data[j] * data[j]; c++; } return Math.sqrt(e / Math.max(1, c)); };
+    const br = []; for (let i = 0; i < downs.length - 1; i++) br.push(rmsBar(i));
+    const medB = br.slice().sort((a, b) => a - b)[br.length >> 1] || 1e-9;
+    while (downs.length > 2 && br[downs.length - 2] < medB * 0.15) { downs.pop(); }
+    const bars = downs.length - 1;
+    if (bars < 1) return null;
+    return { data, name, downs, bars, bpm: beatRes.bpm, barMed, steady: beatRes.steady, conf: beatRes.confidence, loopFile: !!isLoopFile };
+  }
+
+  // Ausschnitt aus dem Original: ab Takt „from“, „nb“ Takte – exakt von Eins zu Eins geschnitten.
+  // Schlag 1 liegt genau auf dem Loopanfang, die 10 ms davor ans Loopende (sauberer Übergang).
   function placeExcerpt(t, from, nb) {
     const o = t.orig, os = others(t);
-    nb = Math.max(1, Math.min(nb, o.bars - from + 1));
-    const start = Math.round(o.start + (from - 1) * o.barF);
-    const Ldet = Math.round(nb * o.barF), pre = Math.min(start, Math.round(sr * 0.01));
+    from = Math.max(1, Math.min(from, o.bars)); nb = Math.max(1, Math.min(nb, o.bars - from + 1));
+    const start = o.downs[from - 1], end = o.downs[from - 1 + nb];
+    const Ldet = Math.max(1, end - start), pre = Math.min(start, Math.round(sr * 0.01));
     let seg = new Float32Array(Ldet);
     seg.set(o.data.subarray(start, Math.min(o.data.length, start + Ldet - pre)), 0);
     if (pre) seg.set(o.data.subarray(start - pre, start), Ldet - pre);
-    const what = nb + ' Takt' + (nb === 1 ? '' : 'e') + (from > 1 ? ' ab Takt ' + from : ' ab Schlag 1') + (nb === o.bars - from + 1 && from === 1 ? ' (ganze Datei)' : '');
+    const exactBpm = 240 * nb / (Ldet / sr);
+    const what = nb + ' Takt' + (nb === 1 ? '' : 'e') + (from > 1 ? ' ab Takt ' + from : ' ab Schlag 1') + (from === 1 && nb === o.bars ? (o.loopFile ? ' (Loop-Datei)' : ' (ganze Datei)') : '');
     let L, msg;
     if (!os.length) {
-      L = Ldet; baseL = L;
-      msg = 'Takt erkannt: ' + bpmTxt(o.bpm) + ' BPM, ' + what + '.';
+      L = Ldet; baseL = L; setTempo(exactBpm);
+      msg = what + ' · ' + bpmTxt(exactBpm) + ' BPM.';
     } else {
       L = Math.max(1, Math.round(Ldet / baseL)) * baseL;
       const ratio = L / Ldet;
@@ -3394,9 +3669,11 @@ const Looper = (() => {
         msg = what + ', an den Loop angepasst' + (Math.abs(semis) >= 0.05 ? ' (Tonhöhe ' + (semis > 0 ? '+' : '') + semis.toFixed(2).replace('.', ',') + ' Halbtöne)' : '') + '.';
       } else {
         seg = padTo(seg, L);
-        msg = what + '. Das Tempo der Datei (' + bpmTxt(o.bpm) + ' BPM) weicht stark vom Loop ab. Nutze „An Loop-Länge anpassen“ oder leere die anderen Spuren.';
+        msg = what + '. Das Tempo der Datei (' + bpmTxt(exactBpm) + ' BPM) weicht stark vom Loop ab. Nutze „An Loop-Länge anpassen“ oder leere die anderen Spuren.';
       }
     }
+    t.origPos = Math.abs(L - Ldet) <= 1 ? start : null;      // Zuordnung Loopanfang → Original (für „Prüfen“)
+    t.origBars = nb;
     return { seg, L, msg };
   }
 
@@ -3407,28 +3684,52 @@ const Looper = (() => {
     try { buf = await audioCtx.decodeAudioData(await file.arrayBuffer()); }
     catch (e) { setStatus('„' + file.name + '“ kann das iPad nicht öffnen. Wandle die Datei in MP3, WAV oder M4A um.'); return; }
     if (rec && rec.t === t) cancelRec();
-    const n = Math.min(buf.length, Math.round(buf.sampleRate * 300)), data = new Float32Array(n);
+    const n = Math.min(buf.length, Math.round(buf.sampleRate * 300));
+    let data = new Float32Array(n);
     for (let c = 0; c < buf.numberOfChannels; c++) { const ch = buf.getChannelData(c); for (let i = 0; i < n; i++) data[i] += ch[i] / buf.numberOfChannels; }
     buf = null;
+    const secs = n / sr, os = others(t), nbSel = selectedBars();
+    t.orig = null; t.origPos = null;
+    let seg = null, L = 0, msg = '', warn = '';
 
+    // 1) Kurze Datei: ist sie selbst ein Loop aus ganzen Takten? (strenge Prüfung, sonst Song)
     setStatus('Analysiere Takt und Tempo von „' + file.name + '“ …');
     const beat = await Analyzer.beat([data], sr);
-    const os = others(t), nbSel = selectedBars();
-    let seg = null, L = 0, msg = '';
-    t.orig = null;
-    if (beat && beat.confidence > 2.5) {
-      const barF = beat.beatSec * 4 * sr;
-      const start = Math.max(0, Math.round(beat.firstDownbeat * sr));
-      const bars = Math.floor((n - start) / barF + 0.05);
-      if (bars >= 1) {
-        // Original merken: im Editor lässt sich jeder Ausschnitt daraus wählen
-        t.orig = { data, start, barF, bpm: beat.bpm, bars, name: file.name };
-        const nb = nbSel && nbSel <= bars ? nbSel : bars;          // „Frei“: ganze Datei
-        if (!os.length) setTempo(beat.bpm);
+    if (secs <= 40 && (!beat || beat.confidence > 2.5) && evenEnergy(data)) {
+      const lp = await Analyzer.loop([data], sr);
+      // Song-Analyse (falls die Datei dafür lang genug ist) muss das Tempo bestätigen – bis auf die Oktave
+      const sameTempo = lp && (!beat || [1, 2, 0.5].some(q => Math.abs(lp.bpm - beat.bpm * q) / (beat.bpm * q) < 0.012));
+      if (lp && lp.isLoop && Math.abs(lp.lenErrMs) < 25 && sameTempo && lp.confidence > 2) {
+        // Takt 1 an den Anfang drehen, falls die Datei nicht auf Takt 1 beginnt
+        const k = Math.round(-lp.downOffsetSec * sr);
+        if (Math.abs(k) > sr * 0.003) {
+          const r = new Float32Array(n), kk = mod(-k, n);   // Inhalt bei downOffset → Index 0
+          r.set(data.subarray(kk), 0); r.set(data.subarray(0, kk), n - kk); data = r;
+        }
+        const barF = n / lp.bars, downs = []; for (let i = 0; i <= lp.bars; i++) downs.push(Math.round(i * barF));
+        t.orig = { data, name: file.name, downs, bars: lp.bars, bpm: lp.bpm, barMed: barF, steady: true, conf: lp.confidence, loopFile: true };
+        const nb = nbSel && nbSel <= lp.bars ? nbSel : lp.bars;
         const r = placeExcerpt(t, 1, nb);
-        seg = r.seg; L = r.L; msg = r.msg;
+        seg = r.seg; L = r.L;
+        msg = 'Loop erkannt: ' + r.msg + (lp.startKept ? ' Takt 1 = Dateianfang.' : ' Takt 1 wurde an den Anfang gelegt (' + Math.round(lp.downOffsetSec * 1000) + ' ms).');
       }
     }
+    // 2) Song: Taktraster über die ganze Datei
+    if (!seg) {
+      if (beat && beat.confidence > 2.5) {
+        const o = makeOrig(data, file.name, beat, false);
+        if (o) {
+          t.orig = o;
+          const nb = nbSel && nbSel <= o.bars ? nbSel : o.bars;          // „Frei“: ganze Datei
+          const r = placeExcerpt(t, 1, nb);
+          seg = r.seg; L = r.L;
+          msg = 'Takt erkannt: ' + r.msg + (beat.steady ? '' : ' Das Tempo schwankt leicht, die Takte folgen der Aufnahme.');
+          if (beat.confidence < 4) warn = ' Die Erkennung ist unsicher – prüfe Takt 1 im Editor.';
+          if (beat.alternatives && beat.alternatives.length) t.orig.alts = beat.alternatives;
+        }
+      }
+    }
+    // 3) Kein Takt erkennbar: nach Zeit
     if (!seg) {
       if (!os.length) { L = nbSel ? nbSel * barFrames() : n; baseL = L; }
       else L = Math.max(1, Math.round(n / baseL)) * baseL;
@@ -3437,9 +3738,9 @@ const Looper = (() => {
     }
     stopSrc(t);
     t.layers = [seg]; t.L = L; t.hist = []; rebuildMix(t);
-    if (!anyRunning()) anchor = drumsOn ? nextBarFrame() : nowFrame();
+    if (!anyRunning()) anchor = startAnchor();
     startTrack(t); t.state = 'playing';
-    setStatus('Spur ' + (t.i + 1) + ': ' + msg);
+    setStatus('Spur ' + (t.i + 1) + ': ' + msg + warn);
     update();
     openEditor(t);
     detectTrackKey(t);
@@ -3466,7 +3767,7 @@ const Looper = (() => {
       setStatus('Spur ' + (t.i + 1) + ': Overdub läuft. Tippe zum Beenden.');
     } else if (t.state === 'stopped') {
       ensureAudio();
-      if (!anyRunning()) anchor = drumsOn ? nextBarFrame() : nowFrame();
+      if (!anyRunning()) anchor = startAnchor('play');
       startTrack(t); t.state = 'playing';
       setStatus('Spur ' + (t.i + 1) + ' läuft.');
     }
@@ -3502,11 +3803,12 @@ const Looper = (() => {
     ensureAudio(); sr = audioCtx.sampleRate;
     if (anyRunning() || rec) {
       if (rec) cancelRec();
+      cancelCountIn();
       freeAnchor = anchor / sr;
       tracks.forEach(t => { if (t.src) { stopSrc(t); t.state = 'stopped'; } });
       setStatus('Alle Spuren gestoppt.');
     } else if (anyContent()) {
-      anchor = drumsOn ? nextBarFrame() : nowFrame();
+      anchor = startAnchor('play');
       tracks.forEach(t => { if (t.L) { startTrack(t); t.state = 'playing'; } });
       setStatus('Alle Spuren laufen.');
     } else {
@@ -3518,7 +3820,8 @@ const Looper = (() => {
 
   latEl.addEventListener('input', () => { latVal.textContent = latEl.value + ' ms'; savePref('3nps-latency', latEl.value); });
   snapEl.addEventListener('change', () => savePref('3nps-snap', snapEl.checked ? '1' : '0'));
-  countInEl.addEventListener('change', () => savePref('3nps-countin', countInEl.checked ? '1' : '0'));
+  countInEl.addEventListener('change', () => savePref('3nps-countin', countInEl.value));
+  countPlayEl.addEventListener('change', () => savePref('3nps-countin-play', countPlayEl.checked ? '1' : '0'));
   barsEl.addEventListener('change', () => { savePref('3nps-bars', barsEl.value); snapEl.closest('label').hidden = barsEl.value !== 'free'; });
   trigEl.addEventListener('change', async () => { savePref('3nps-trigger', trigEl.checked ? '1' : '0'); $('threshRow').hidden = !trigEl.checked; if (trigEl.checked) await ensureMic(); });
   threshEl.addEventListener('input', () => { savePref('3nps-thresh', threshEl.value); kick(); });
@@ -3646,15 +3949,28 @@ const Looper = (() => {
       ctx.globalAlpha = 1;
     }
 
+    // Vorzähler: Ring füllt sich Schlag für Schlag, Zahl zählt die Takte bzw. im letzten Takt die Schläge herunter
+    function countdown(endF, col) {
+      const bt = beatFrames(), leftB = (endF - now) / bt;
+      const total = countEnd === endF && countBeats ? countBeats : Math.max(4, Math.ceil(leftB));
+      const S = Math.min(total, 32), done = (total - leftB) * S / total;
+      ring(S, Math.max(0, done), 0, NEON.bar1, false);
+      const p = (total - leftB) * bt;                      // Position im Vorzähler (für den Blitz je Schlag)
+      if (flashMode !== 'off') {
+        const inBeat = mod(p, bt) / sr, fl = 1 - inBeat / 0.2;
+        if (fl > 0) { ctx.beginPath(); ctx.arc(cx, cy, R - lw * 0.6, 0, Math.PI * 2); ctx.fillStyle = NEON.bar1; ctx.globalAlpha = 0.22 * fl * fl; ctx.fill(); ctx.globalAlpha = 1; }
+      }
+      const big = leftB > 4 ? '−' + Math.ceil(leftB / 4) : String(Math.max(1, Math.ceil(leftB)));
+      center(big, leftB > 4 ? 'Takte Vorzähler' : 'Vorzähler', NEON.bar1, true);
+      void col;
+    }
     const isRec = rec && rec.t === t;
     if (isRec && rec.armed) {
       const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 180);
       ctx.globalAlpha = 0.3 + 0.7 * pulse; ring(4, 4, 0, NEON.rec, false); ctx.globalAlpha = 1;
       center('●', 'wartet auf Signal', NEON.rec, true);
-    } else if (isRec && now < rec.start) {
-      const el = 4 - (rec.start - now) / beatFrames();
-      ring(4, Math.max(0, el), 0, NEON.rec, false);
-      center(String(Math.min(4, Math.ceil((rec.start - now) / beatFrames()))), 'Einzähler', NEON.rec, true);
+    } else if ((isRec && now < rec.start) || (!isRec && t.src && now < anchor)) {
+      countdown(isRec ? rec.start : anchor, isRec ? NEON.rec : tc);
     } else if (isRec && rec.kind === 'first') {
       const el = Math.max(0, now - rec.start), beats = el / beatFrames(), nb = selectedBars();
       if (nb && nb <= 8) ring(nb * 4, beats, 4, NEON.rec, false);
@@ -3743,7 +4059,7 @@ const Looper = (() => {
       level *= 0.8;
     }
     tracks.forEach(t => { if (t.foot.dataset.state !== footState(t)) update(); });
-    const active = anyRunning() || rec || drumsOn || level > 0.001 || ed.drag;
+    const active = anyRunning() || rec || drumsOn || level > 0.001 || ed.drag || countEnd > nowFrame();
     if (active) { if (visible) rafId = requestAnimationFrame(tick); else { rafId = 1; setTimeout(() => { rafId = null; tick(); }, 250); } }
   }
   tracks.forEach(t => { new ResizeObserver(kick).observe(t.ring); new ResizeObserver(kick).observe(t.wave); });
@@ -3753,7 +4069,7 @@ const Looper = (() => {
   const ed = { t: null, s: 0, e: 0, drag: null, lastOp: null, offMs: 0, peaks: null, peaksFor: null, peaksW: 0 };
   const edEl = $('loopEditor'), edCv = $('edWave');
   const others = t => tracks.filter(o => o !== t && o.L);
-  function snapshot(t) { t.hist.push({ layers: t.layers.slice(), L: t.L, baseL }); if (t.hist.length > 25) t.hist.shift(); }
+  function snapshot(t) { t.hist.push({ layers: t.layers.slice(), L: t.L, baseL, origPos: t.origPos, origBars: t.origBars }); if (t.hist.length > 25) t.hist.shift(); }
   // Ein Rückgängig-Schritt pro Aktion; mehrere Verschiebungen hintereinander zählen als einer
   function edSnap(op) { if (!(op === 'nudge' && ed.lastOp === 'nudge')) snapshot(ed.t); ed.lastOp = op; }
   function fmtLen(L) {
@@ -3807,6 +4123,7 @@ const Looper = (() => {
     edSnap('trim');
     t.layers = [padTo(t.mix.slice(s0, s0 + Math.min(len, f.L)), f.L)];
     t.L = f.L; baseL = f.base;
+    if (t.origPos != null) t.origPos += s0;
     afterEdit(t, true);
     setStatus('Spur ' + (t.i + 1) + ' ' + label + ': ' + fmtLen(t.L) + (f.L !== len ? ' (an die anderen Spuren angepasst)' : '') + '.');
     detectTrackKey(t);
@@ -3834,6 +4151,7 @@ const Looper = (() => {
       return o;
     });
     ed.offMs += k / sr * 1000;
+    if (t.origPos != null) t.origPos -= k;
     rebuildMix(t); if (t.src) startTrack(t);
     edInfo(); kick();
   }
@@ -3876,6 +4194,7 @@ const Looper = (() => {
     edSnap('fit');
     t.layers = t.layers.map(ly => resample(ly, target));
     t.L = target; if (!os.length) baseL = target;
+    t.origPos = null;
     afterEdit(t, true);
     const semis = 12 * Math.log2(1 / ratio);
     setStatus('Spur ' + (t.i + 1) + ' auf ' + fmtLen(target) + ' angepasst. Tonhöhe ' + (semis > 0 ? '+' : '') + semis.toFixed(2).replace('.', ',') + ' Halbtöne.');
@@ -3896,8 +4215,135 @@ const Looper = (() => {
     edInfo(); update(); kick();
   });
 
-  $('edTempoHalf').addEventListener('click', () => { const v = bpm() / 2; if (v >= 40) { setTempo(v); setStatus('Tempo halbiert: ' + bpmTxt(v) + ' BPM.'); edInfo(); kick(); } });
-  $('edTempoDouble').addEventListener('click', () => { const v = bpm() * 2; if (v <= 200) { setTempo(v); setStatus('Tempo verdoppelt: ' + bpmTxt(v) + ' BPM.'); edInfo(); kick(); } });
+  // Taktraster der geladenen Datei mit umrechnen: 2× = jeder Takt wird zu zwei Takten, ½ = zwei Takte werden einer
+  function regridOrig(t, factor) {
+    const o = t.orig; if (!o) return;
+    let d = o.downs;
+    if (factor === 2) { const nd = []; for (let i = 0; i < d.length - 1; i++) nd.push(d[i], Math.round((d[i] + d[i + 1]) / 2)); nd.push(d[d.length - 1]); d = nd; }
+    else {
+      let keep = 0;
+      if (t.origPos != null) { let bi = 0, bd = Infinity; d.forEach((x, i) => { const q = Math.abs(x - t.origPos); if (q < bd) { bd = q; bi = i; } }); keep = bi % 2; }
+      d = d.filter((_, i) => i % 2 === keep);
+    }
+    if (d.length < 2) return;
+    o.downs = d; o.bars = d.length - 1; o.bpm *= factor; o.barMed = (d[d.length - 1] - d[0]) / o.bars;
+    fillSrc();
+  }
+  $('edTempoHalf').addEventListener('click', () => {
+    const v = bpm() / 2; if (v < 40) return;
+    setTempo(v); if (ed.t) regridOrig(ed.t, 0.5);
+    setStatus('Tempo halbiert: ' + bpmTxt(v) + ' BPM' + (ed.t && ed.t.orig ? ', Taktraster der Datei angepasst (' + ed.t.orig.bars + ' Takte).' : '.')); edInfo(); kick();
+  });
+  $('edTempoDouble').addEventListener('click', () => {
+    const v = bpm() * 2; if (v > 240) return;
+    setTempo(v); if (ed.t) regridOrig(ed.t, 2);
+    setStatus('Tempo verdoppelt: ' + bpmTxt(v) + ' BPM' + (ed.t && ed.t.orig ? ', Taktraster der Datei angepasst (' + ed.t.orig.bars + ' Takte).' : '.')); edInfo(); kick();
+  });
+
+  // ---- Loop prüfen und nacharbeiten ----
+  async function checkLoop(t) {
+    if (!t || !t.L) return null;
+    const ref = t.mix;
+    const lp = await Analyzer.loop([t.mix], sr, { hintBpm: bpm() });
+    if (t.mix !== ref) return null;                            // inzwischen geändert
+    const x = t.mix, n = x.length;
+    let rms = 0, c = 0; for (let i = 0; i < n; i += 8) { rms += x[i] * x[i]; c++; }
+    rms = Math.sqrt(rms / Math.max(1, c)) || 1e-9;
+    return { lp, click: seamClick(x) };
+  }
+  function showCheck(res) {
+    const box = $('edCheckRes');
+    if (!res || !res.lp || res.lp.confidence < 2) {
+      box.innerHTML = '<li class="warn">Kein klarer Takt in dieser Spur erkennbar (zu leise oder ohne Rhythmus).</li>';
+      return { ok: false };
+    }
+    const lp = res.lp, items = [];
+    const lenOk = Math.abs(lp.lenErrMs) < 8, offMs = lp.downOffsetSec * 1000, startOk = Math.abs(offMs) < 15, seamOk = res.click < 1;
+    items.push([lenOk, 'Länge: ' + lp.bars + ' Takt' + (lp.bars === 1 ? '' : 'e') + (lenOk ? ', genau' : ', ' + (lp.lenErrMs > 0 ? '+' : '') + Math.round(lp.lenErrMs) + ' ms daneben')]);
+    items.push([startOk, 'Takt 1: ' + (startOk ? 'liegt am Loopanfang' : 'liegt ' + Math.abs(Math.round(offMs)) + ' ms ' + (offMs > 0 ? 'nach' : 'vor') + ' dem Anfang')]);
+    items.push([seamOk, 'Übergang Ende → Anfang: ' + (seamOk ? 'sauber' : 'möglicher Knackser')]);
+    items.push([true, 'Tempo im Loop: ' + bpmTxt(lp.bpm) + ' BPM' + (lp.startKept ? ' · Takt 1 = Loopanfang angenommen' : '')]);
+    box.innerHTML = items.map(([ok, txt]) => '<li class="' + (ok ? 'ok' : 'warn') + '">' + (ok ? '✓ ' : '⚠ ') + txt + '</li>').join('');
+    return { ok: lenOk && startOk && seamOk };
+  }
+  // Knackser am Übergang: Sprung Ende→Anfang deutlich größer als die Bewegung der Wellenform direkt davor/danach
+  function seamClick(x) {
+    const n = x.length; if (n < 80) return 0;
+    let loc = 0;
+    for (let i = 0; i < 32; i++) { loc = Math.max(loc, Math.abs(x[i + 1] - x[i]), Math.abs(x[n - 1 - i] - x[n - 2 - i])); }
+    const jump = Math.abs(x[0] - x[n - 1]);
+    return jump < 0.01 ? 0 : jump / (3 * Math.max(loc, 1e-4));
+  }
+  function microFade(ly) {
+    const n = Math.min(Math.round(sr * 0.003), ly.length >> 2), o = ly.slice();
+    for (let i = 0; i < n; i++) { const g = i / n; o[i] *= g; o[o.length - 1 - i] *= g; }
+    return o;
+  }
+  $('edCheck').addEventListener('click', async () => {
+    const t = ed.t; if (!t) return;
+    $('edCheckRes').innerHTML = '<li>Prüfe Takt, Länge und Übergang …</li>';
+    const res = await checkLoop(t);
+    const v = showCheck(res);
+    setStatus(v.ok ? 'Spur ' + (t.i + 1) + ': Loop geprüft, alles passt.' : 'Spur ' + (t.i + 1) + ': Loop geprüft. „Nacharbeiten“ korrigiert die markierten Punkte.');
+  });
+  $('edFix').addEventListener('click', async () => {
+    const t = ed.t; if (!t) return;
+    $('edCheckRes').innerHTML = '<li>Analysiere und arbeite nach …</li>';
+    const res = await checkLoop(t);
+    if (!res || !res.lp || res.lp.confidence < 2) { showCheck(res); setStatus('Nacharbeiten nicht möglich: kein klarer Takt in der Spur.'); return; }
+    const lp = res.lp, os = others(t);
+    edSnap('fix');
+    const steps = [];
+    if (t.orig && t.origPos != null) {
+      // Aus dem Original neu schneiden: nächste echte Takt-Eins, ganze Takte nach dem Raster der Datei
+      const o = t.orig, target = t.origPos;
+      let bi = 0, bd = Infinity;
+      for (let i = 0; i < o.downs.length - 1; i++) { const d = Math.abs(o.downs[i] - target); if (d < bd) { bd = d; bi = i; } }
+      // Taktzahl: Ende der Auswahl ebenfalls auf die nächste Eins
+      const endPos = t.origPos + t.L;
+      let ei = bi + 1, ed2 = Infinity;
+      for (let i = bi + 1; i < o.downs.length; i++) { const d = Math.abs(o.downs[i] - endPos); if (d < ed2) { ed2 = d; ei = i; } }
+      const nb = Math.max(1, Math.min(ei - bi, o.bars - bi));
+      const r = placeExcerpt(t, bi + 1, nb);
+      t.layers = [r.seg]; t.L = r.L;
+      steps.push('aus der Datei neu geschnitten: ' + r.msg);
+    } else {
+      let layers = t.layers, L = t.L;
+      const k = Math.round(-lp.downOffsetSec * sr);
+      if (Math.abs(k) > sr * 0.003 && !lp.startKept) {
+        layers = layers.map(ly => { const n = ly.length, kk = mod(k, n), o = new Float32Array(n); o.set(ly.subarray(n - kk), 0); o.set(ly.subarray(0, n - kk), kk); return o; });
+        steps.push('Takt 1 an den Anfang gelegt');
+      }
+      if (!lp.isLoop) {
+        const barF = L / lp.barsF, nb = Math.max(1, Math.floor(lp.barsF + 0.02)), target = Math.min(L, Math.round(nb * barF));
+        layers = layers.map(ly => ly.slice(0, target)); L = target;
+        steps.push('auf ' + nb + ' ganze Takt' + (nb === 1 ? '' : 'e') + ' gekürzt');
+      }
+      const nbBars = Math.max(1, Math.round(lp.barsF));
+      if (!os.length) {
+        baseL = L; setTempo(240 * nbBars / (L / sr));
+        steps.push('Tempo ' + bpmTxt(240 * nbBars / (L / sr)) + ' BPM übernommen');
+      } else {
+        const T = Math.max(1, Math.round(L / baseL)) * baseL, ratio = T / L;
+        if (Math.abs(ratio - 1) > 0.0005 && Math.abs(ratio - 1) <= 0.06) { layers = layers.map(ly => resample(ly, T)); steps.push('an die Loop-Länge angepasst'); }
+        else if (Math.abs(ratio - 1) > 0.06) { layers = layers.map(ly => padTo(ly, T)); steps.push('auf Loop-Länge gebracht'); }
+        L = T;
+      }
+      t.layers = layers; t.L = L;
+    }
+    { // Übergang erst nach dem Neuschnitt bewerten
+      const m = new Float32Array(t.L); t.layers.forEach(ly => { for (let i = 0; i < t.L; i++) m[i] += ly[i]; });
+      let rms = 0, c = 0; for (let i = 0; i < m.length; i += 8) { rms += m[i] * m[i]; c++; }
+      rms = Math.sqrt(rms / Math.max(1, c)) || 1e-9;
+      if (seamClick(m) >= 1) { t.layers = t.layers.map(microFade); steps.push('Übergang geglättet'); }
+    }
+    afterEdit(t, true);
+    detectTrackKey(t);
+    // Ergebnis noch einmal prüfen und anzeigen
+    const after = await checkLoop(t);
+    const v = showCheck(after);
+    setStatus('Spur ' + (t.i + 1) + ' nachgearbeitet: ' + (steps.length ? steps.join(', ') : 'nichts zu ändern') + '.' + (v.ok ? ' Geprüft: passt.' : ''));
+  });
 
   // Tonart
   async function detectTrackKey(t) {
@@ -3968,11 +4414,13 @@ const Looper = (() => {
     const r = edCv.getBoundingClientRect();
     return Math.max(0, Math.min(ed.t.L, (clientX - r.left) / r.width * ed.t.L));
   }
-  edCv.addEventListener('pointerdown', e => {
+  // Greiffläche ist der ganze Rahmen der Wellenform (auch der Rand)
+  const edGrip = edCv.parentNode;
+  edGrip.addEventListener('pointerdown', e => {
     if (!ed.t) return;
     const f = edFrameAt(e.clientX);
     ed.drag = Math.abs(f - ed.s) <= Math.abs(f - ed.e) ? 's' : 'e';
-    try { edCv.setPointerCapture(e.pointerId); } catch (err) {}
+    try { edGrip.setPointerCapture(e.pointerId); } catch (err) {}
     edMove(e); e.preventDefault();
   });
   function edMove(e) {
@@ -3982,9 +4430,9 @@ const Looper = (() => {
     else ed.e = Math.min(ed.t.L, Math.max(f, ed.s + minLen));
     edInfo(); kick();
   }
-  edCv.addEventListener('pointermove', edMove);
-  edCv.addEventListener('pointerup', () => { ed.drag = null; });
-  edCv.addEventListener('pointercancel', () => { ed.drag = null; });
+  edGrip.addEventListener('pointermove', edMove);
+  edGrip.addEventListener('pointerup', () => { ed.drag = null; });
+  edGrip.addEventListener('pointercancel', () => { ed.drag = null; });
 
   function drawEditor(C) {
     const t = ed.t; if (!t || !t.L) return;
@@ -4244,7 +4692,7 @@ const Looper = (() => {
     const t = tracks[0];
     t.L = data.length; t.layers = [data]; rebuildMix(t);
     baseL = t.L;
-    anchor = drumsOn ? nextBarFrame() : nowFrame();
+    anchor = startAnchor('play');
     startTrack(t); t.state = 'playing';
     update();
     detectTrackKey(t);
@@ -4255,6 +4703,8 @@ const Looper = (() => {
     if (!audioCtx) return null;
     const now = nowFrame(), bf = barFrames(), bt = beatFrames();
     const fmt = fr => (Math.floor(fr / bf) + 1) + '.' + (Math.floor(mod(fr, bf) / bt) + 1);
+    const pend = rec && !rec.armed && now < rec.start ? rec.start : (anyRunning() && now < anchor ? anchor : 0);
+    if (pend) { const lb = (pend - now) / beatFrames(); return { text: lb > 4 ? '−' + Math.ceil(lb / 4) : '−0.' + Math.max(1, Math.ceil(lb)), rec: !!rec }; }
     if (rec && !rec.armed && now >= rec.start && rec.kind === 'first') return { text: fmt(now - rec.start), rec: true };
     if (anyRunning()) {
       const L = Math.max(...tracks.filter(t => t.src).map(t => t.L)), b = barOf(L);
@@ -4269,6 +4719,7 @@ const Looper = (() => {
     isEmpty: () => !anyContent(),
     foot: i => foot(tracks[i]),
     exportLogic: () => exportLogic(),
+    debug: () => ({ sr, baseL, anchor, now: nowFrame(), countEnd, bpm: bpm(), tracks: tracks.map(t => ({ L: t.L, state: t.state, origPos: t.origPos, layers: t.layers.length, orig: t.orig ? { bars: t.orig.bars, downs: t.orig.downs.slice(0, 64), loopFile: t.orig.loopFile, bpm: t.orig.bpm } : null, key: t.key ? Analyzer.label(t.key) : null })) }),
     undo: i => undoTrack(tracks[i]),
     all: allStartStop
   };

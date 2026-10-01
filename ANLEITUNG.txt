@@ -24,6 +24,13 @@ Alles geht direkt auf dem iPad, ohne Computer.
    - Mit Kopfhörern wird der Loop nicht mit aufgenommen.
    - Sitzen Overdubs nicht im Takt, den Regler „Latenz“ verschieben.
    - Über ♫ an jeder Spur lässt sich eine Audiodatei aus der Dateien-App laden.
+     Die App erkennt, ob es ein fertiger Loop ist (bleibt unverändert, Tempo wird exakt
+     übernommen) oder ein Song (Taktraster über die ganze Datei, Ausschnitt wählbar).
+   - Mit ✂ öffnet sich der Editor. „Prüfen“ zeigt, ob der Loop ganze Takte hat, Takt 1
+     am Anfang liegt und der Übergang sauber ist. „Nacharbeiten“ korrigiert das.
+     Liegt das erkannte Tempo eine Oktave daneben: „½ Tempo“ oder „2× Tempo“.
+   - Vorzähler (Einstellungen „Aufnahme“): 1, 2, 4 oder 8 Takte vor der Aufnahme und –
+     wenn angehakt – auch vor dem Abspielen. „Alle stoppen“ bricht ihn ab.
 
 5. M-VAVE Chocolate verbinden
    - Das Pedal in den Tastatur-Modus „Keyboard A“ (Pfeiltasten) oder „Keyboard B“
