@@ -10,6 +10,9 @@
 <meta name="apple-mobile-web-app-title" content="3nps">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Uncial+Antiqua&display=swap">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)} html,body{-webkit-tap-highlight-color:transparent} body{-webkit-user-select:none;user-select:none} input,textarea{-webkit-user-select:text;user-select:text}</style>
@@ -28,7 +31,7 @@
     --accent-ink: #0c1a12;
     --t1: #39ff9f;
     --t2: #2de2ff;
-    --t3: #b56bff;
+    --t3: #86a8ff;
     --board: #3b2a21;
     --board-edge: #2a1d17;
     --fretwire: #b9bcb6;
@@ -322,6 +325,69 @@
   .check-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 0.82rem; color: var(--muted); }
   .check-list li.ok { color: #7dffb8; }
   .check-list li.warn { color: #ffb15a; }
+
+  /* ---- Pegel neben der Spur: LED-Kette mit Spitzenwert ---- */
+  .ring-row { grid-template-columns: minmax(0, 1fr) 18px; }
+  .tmeter { opacity: .35; background: linear-gradient(0deg, rgba(57,255,159,.08) 0%, rgba(57,255,159,.08) 60%, rgba(255,225,74,.08) 80%, rgba(255,45,85,.1) 100%), #070708; }
+  #panel-looper.mic-on .tmeter { opacity: .95; }
+  .tmeter.live { opacity: 1 !important; border-color: rgba(255,45,85,.7); }
+  .tmeter::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, transparent 0 4px, rgba(7,7,8,.9) 4px 6px); }
+  .tm-fill { left: 3px; right: 3px; bottom: 3px; height: calc(var(--lv) - 6px); border-radius: 2px; }
+  .tm-pk { position: absolute; left: 3px; right: 3px; height: 3px; bottom: calc(var(--pk, 0%) - 3px); border-radius: 1px; background: #f4fff9; box-shadow: 0 0 6px #fff; opacity: 0; z-index: 1; }
+  #panel-looper.mic-on .tm-pk { opacity: .85; }
+  .tm-th { z-index: 2; }
+  .track.rec-live { border-color: rgba(255,45,85,.55) !important; box-shadow: inset 0 3px 10px rgba(0,0,0,.85), 0 0 0 1px rgba(255,45,85,.45), 0 0 18px rgba(255,45,85,.22) !important; }
+  .meter-row { display: flex; gap: 8px; align-items: center; }
+  .meter-row .meter { flex: 1; }
+  #loopMonitor { padding: 5px 11px; white-space: nowrap; }
+
+  /* ---- Zusatzspuren: Drums und Drone ---- */
+  .lanes { display: grid; gap: 10px; }
+  .lane { --tc: #ff9a2e; padding: 10px 12px; }
+  .lane-drone { --tc: #e8c26a; }
+  .lane-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .lane-head .tname { min-width: 50px; }
+  .lane-head select { flex: 1 1 130px; width: auto; min-width: 0; }
+  .lane-fader { display: flex; align-items: center; gap: 7px; flex: 1 1 130px; min-width: 0; }
+  .lane-fader span { font: 600 0.62rem var(--f-body); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .lane-fader input { flex: 1; min-width: 0; accent-color: var(--tc); }
+  .lane-fader b { font: 600 0.72rem var(--f-mono); color: var(--tc); min-width: 38px; text-align: right; }
+  .lane-sync { font-size: 0.78rem; color: var(--muted); }
+  .lane .lane-on.active, #drumEditBtn.active {
+    background: var(--tc); background: linear-gradient(180deg, color-mix(in srgb, var(--tc) 88%, #fff), color-mix(in srgb, var(--tc) 72%, #000));
+    color: #170c00; border-color: #3a2400; box-shadow: 0 0 12px color-mix(in srgb, var(--tc) 55%, transparent), 0 1px 0 rgba(255,255,255,.3) inset;
+  }
+  .lane-status { margin-top: 6px; }
+  #panel-looper.drone-live .lane-drone .chip { animation: breathe 3.2s ease-in-out infinite; }
+  @keyframes breathe { 50% { box-shadow: 0 0 16px var(--tc), 0 0 4px var(--tc); transform: scale(1.25); } }
+  .drum-designer { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+  .dg-tools { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 4px; }
+  .dg-tools .toggle-btn { padding: 6px 12px; }
+  .dg-row, .dg-ruler { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 8px; align-items: center; }
+  .dg-steps { display: grid; grid-template-columns: repeat(16, minmax(0, 1fr)); gap: 3px; }
+  .dg-steps > :nth-child(4n+1):not(:first-child) { margin-left: 5px; }
+  .dg-ruler i { font: 600 0.62rem var(--f-mono); color: var(--muted); font-style: normal; padding-left: 3px; }
+  .dg-name {
+    appearance: none; cursor: pointer; text-align: left; padding: 6px 8px; border-radius: 6px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    font: 600 0.72rem var(--f-body); color: var(--ink); background: linear-gradient(180deg, #3a3a40, #2c2c31); border: 1px solid #050506;
+  }
+  .dg-name.muted { opacity: .4; text-decoration: line-through; }
+  .dg-cell {
+    appearance: none; cursor: pointer; padding: 0; min-width: 0; height: 30px; border-radius: 4px; touch-action: manipulation;
+    background: #1b1b1f; border: 1px solid #000; box-shadow: inset 0 1px 0 rgba(255,255,255,.05), inset 0 -2px 4px rgba(0,0,0,.5);
+  }
+  .dg-steps > .dg-cell[data-v="0"]:nth-child(-n+4), .dg-steps > .dg-cell[data-v="0"]:nth-child(n+9):nth-child(-n+12) { background: #24242a; }
+  .dg-cell[data-v="1"] { background: #6e4a26; background: color-mix(in srgb, var(--tc) 50%, #1b1b1f); box-shadow: 0 0 6px color-mix(in srgb, var(--tc) 50%, transparent), inset 0 1px 0 rgba(255,255,255,.18); }
+  .dg-cell[data-v="2"] { background: var(--tc); box-shadow: 0 0 10px var(--tc), inset 0 1px 0 rgba(255,255,255,.5); }
+  .dg-cell.now { outline: 2px solid rgba(255,255,255,.6); outline-offset: -2px; }
+  .dg-row[data-i="crash"], .dg-row[data-i="hho"] { --tc: #ffd166; }
+  .dg-row[data-i="hhc"] { --tc: #ffe08a; }
+  .dg-row[data-i="kick"], .dg-row[data-i="tom"] { --tc: #ff7a2e; }
+  @media (max-width: 520px) {
+    .dg-row, .dg-ruler { grid-template-columns: 62px minmax(0, 1fr); gap: 5px; }
+    .dg-steps { gap: 2px; } .dg-steps > :nth-child(4n+1):not(:first-child) { margin-left: 3px; }
+    .dg-cell { height: 26px; } .dg-name { padding: 5px 5px; font-size: .64rem; }
+  }
   /* ===== Rost & Stahl: Hintergrund aus gerostetem Blech, darauf verschraubte Stahlplatten ===== */
   :root {
     --plate-hi: #3a3a40;
@@ -396,7 +462,7 @@
   h2 { color: #b8b9c0; text-shadow: 0 -1px 0 rgba(0,0,0,.8); }
 
   /* Spuren: tief in die Platte eingelassene Felder */
-  .track, .editor {
+  .track, .editor, .lane {
     background: linear-gradient(180deg, rgba(0,0,0,.66), rgba(0,0,0,.58)), url("panel.jpg") 137px 91px / 512px 512px repeat;
     background-color: #17171a;
     border: 1px solid #000;
@@ -429,13 +495,44 @@
 
   .tabs { background: linear-gradient(180deg, rgba(0,0,0,.72), rgba(0,0,0,.6)), url("panel.jpg") 0 0 / 512px 512px repeat; }
   .ed-group { background: rgba(255,255,255,.03); }
+
+  /* ===== Wikinger & Kelten: Eckbeschläge mit Dreipass, Runenband, Unziale ===== */
+  .card, .stat-card {
+    background:
+      url("corner-tl.png") 2px 2px / 34px 34px no-repeat,
+      url("corner-tr.png") calc(100% - 2px) 2px / 34px 34px no-repeat,
+      url("corner-bl.png") 2px calc(100% - 2px) / 34px 34px no-repeat,
+      url("corner-br.png") calc(100% - 2px) calc(100% - 2px) / 34px 34px no-repeat,
+      linear-gradient(180deg, rgba(255,255,255,.06) 0%, rgba(0,0,0,.08) 45%, rgba(0,0,0,.32) 100%),
+      url("panel.jpg") 0 0 / 512px 512px repeat;
+    background-color: #2a2a2e;
+    padding: 22px 28px;
+  }
+  .stat-card { padding: 18px 26px; }
+  h2, .brand { font-family: "Uncial Antiqua", "Iowan Old Style", Georgia, serif; }
+  h2 {
+    font-size: 0.86rem; font-weight: 400; letter-spacing: .05em; text-transform: none;
+    color: #d2b98d; text-shadow: 0 1px 0 rgba(255,255,255,.08), 0 -1px 0 rgba(0,0,0,.9), 0 0 12px rgba(255,170,80,.12);
+  }
+  .brand { font-weight: 400; font-size: 1.05rem; letter-spacing: .02em; color: #e7d3ae; text-shadow: 0 -1px 0 #000, 0 0 14px rgba(255,150,60,.18); display: inline-flex; align-items: center; gap: 9px; }
+  .brand::before { content: ""; width: 30px; height: 30px; flex: 0 0 30px; background: url("emblem.png") center / contain no-repeat; filter: drop-shadow(0 2px 3px rgba(0,0,0,.7)); }
+  .control-bar::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 17px; pointer-events: none;
+    background: url("runes.png") 0 50% / auto 15px repeat-x, linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.15) 40%, rgba(0,0,0,.4));
+    border-top: 1px solid rgba(0,0,0,.6); box-shadow: 0 1px 0 rgba(255,255,255,.06) inset;
+  }
+  .cb-inner { padding-bottom: 24px; }
+  @media (max-width: 520px) {
+    .card { padding: 18px 18px; }
+    .card, .stat-card { background-size: 26px 26px, 26px 26px, 26px 26px, 26px 26px, auto, 512px 512px; }
+  }
 </style>
 
 </head>
 <body>
 <header class="control-bar">
   <div class="cb-inner">
-    <div class="brand">3nps <span>Übungsprogramm · v11</span></div>
+    <div class="brand">3nps <span>Übungsprogramm · v12</span></div>
     <div class="transport">
       <button class="tbtn" id="playBtn" aria-label="Metronom starten oder stoppen">▶</button>
     </div>
@@ -595,7 +692,10 @@
           </select>
         </label>
         <div class="field meter-field"><span>Eingang</span>
-          <div class="meter" aria-hidden="true"><div id="loopMeter"></div><div class="thresh" id="loopThreshMark"></div></div>
+          <div class="meter-row">
+            <div class="meter" aria-hidden="true"><div id="loopMeter"></div><div class="thresh" id="loopThreshMark"></div></div>
+            <button class="toggle-btn" id="loopMonitor">Eingang öffnen</button>
+          </div>
         </div>
       </div>
       <div class="tracks">
@@ -603,7 +703,7 @@
           <div class="track-head"><span class="chip"></span><span class="tname">Spur 1</span><button class="keybadge" id="key0" hidden></button></div>
           <div class="ring-row">
             <canvas class="ring" id="ring0" aria-label="Taktkreis Spur 1"></canvas>
-            <div class="tmeter" id="tmeter0" aria-hidden="true"><div class="tm-fill"></div><div class="tm-th"></div></div>
+            <div class="tmeter" id="tmeter0" aria-hidden="true"><div class="tm-fill"></div><div class="tm-pk"></div><div class="tm-th"></div></div>
           </div>
           <canvas class="wave" id="wave0" aria-label="Wellenform Spur 1"></canvas>
           <button class="foot" id="foot0" data-state="empty"><span class="led"></span><span class="lbl">REC</span></button>
@@ -620,7 +720,7 @@
           <div class="track-head"><span class="chip"></span><span class="tname">Spur 2</span><button class="keybadge" id="key1" hidden></button></div>
           <div class="ring-row">
             <canvas class="ring" id="ring1" aria-label="Taktkreis Spur 2"></canvas>
-            <div class="tmeter" id="tmeter1" aria-hidden="true"><div class="tm-fill"></div><div class="tm-th"></div></div>
+            <div class="tmeter" id="tmeter1" aria-hidden="true"><div class="tm-fill"></div><div class="tm-pk"></div><div class="tm-th"></div></div>
           </div>
           <canvas class="wave" id="wave1" aria-label="Wellenform Spur 2"></canvas>
           <button class="foot" id="foot1" data-state="empty"><span class="led"></span><span class="lbl">REC</span></button>
@@ -637,7 +737,7 @@
           <div class="track-head"><span class="chip"></span><span class="tname">Spur 3</span><button class="keybadge" id="key2" hidden></button></div>
           <div class="ring-row">
             <canvas class="ring" id="ring2" aria-label="Taktkreis Spur 3"></canvas>
-            <div class="tmeter" id="tmeter2" aria-hidden="true"><div class="tm-fill"></div><div class="tm-th"></div></div>
+            <div class="tmeter" id="tmeter2" aria-hidden="true"><div class="tm-fill"></div><div class="tm-pk"></div><div class="tm-th"></div></div>
           </div>
           <canvas class="wave" id="wave2" aria-label="Wellenform Spur 3"></canvas>
           <button class="foot" id="foot2" data-state="empty"><span class="led"></span><span class="lbl">REC</span></button>
@@ -723,20 +823,57 @@
           </div>
         </div>
       </div>
+      <div class="lanes">
+        <div class="lane lane-drums">
+          <div class="lane-head">
+            <span class="chip"></span><span class="tname">Drums</span>
+            <button class="toggle-btn lane-on" id="loopDrums">Drums aus</button>
+            <select id="loopDrumStyle" aria-label="Groove-Vorlage"></select>
+            <label class="lane-fader"><span>Pegel</span><input type="range" id="loopDrumVol" min="0" max="100" step="5" value="70" aria-label="Drum-Lautstärke"></label>
+            <button class="toggle-btn" id="drumEditBtn" aria-expanded="false">Designer</button>
+          </div>
+          <div class="drum-designer" id="drumDesigner" hidden>
+            <div class="dg-tools">
+              <label class="lane-fader"><span>Swing</span><input type="range" id="drumSwing" min="0" max="100" step="5" value="0" aria-label="Swing"><b id="drumSwingVal">0 %</b></label>
+              <button class="toggle-btn" id="drumPreview">Vorhören</button>
+              <button class="toggle-btn" id="drumClear">Leeren</button>
+            </div>
+            <div class="dg-ruler" aria-hidden="true"><span></span><div class="dg-steps"><i>1</i><i></i><i></i><i></i><i>2</i><i></i><i></i><i></i><i>3</i><i></i><i></i><i></i><i>4</i><i></i><i></i><i></i></div></div>
+            <div class="dg-grid" id="drumGrid"></div>
+            <p class="caption">Feld antippen: an → betont → aus. Instrument antippen: stumm. Änderungen werden als „Eigenes Muster“ gespeichert und beim Logic-Export als MIDI-Drumspur mitgegeben.</p>
+          </div>
+        </div>
+        <div class="lane lane-drone">
+          <div class="lane-head">
+            <span class="chip"></span><span class="tname">Drone</span>
+            <button class="toggle-btn lane-on" id="laneDrone">Drone aus</button>
+            <select id="laneDroneRoot" aria-label="Grundton der Drone">
+              <option value="">Tonart wie Skala</option>
+              <option>C</option><option>C#</option><option>D</option><option>D#</option><option>E</option><option>F</option>
+              <option>F#</option><option>G</option><option>G#</option><option>A</option><option>A#</option><option>B</option>
+            </select>
+            <select id="laneDroneMode" aria-label="Tongeschlecht der Drone">
+              <option value="">Modus wie Skala</option>
+              <option value="Ionisch (Dur)">Dur</option>
+              <option value="Äolisch (Moll)">Moll</option>
+              <option value="Dorisch">Dorisch</option>
+              <option value="Mixolydisch">Mixolydisch</option>
+            </select>
+            <button class="toggle-btn" id="laneDroneFromTrack" title="Erkannte Tonart der Spuren übernehmen">Tonart aus Spur</button>
+            <select id="laneDroneStyle" aria-label="Drone-Klang">
+              <option value="v1">Pad &amp; Chor</option>
+              <option value="v2">Brass &amp; Streicher</option>
+            </select>
+            <label class="lane-fader"><span>Pegel</span><input type="range" id="laneDroneVol" min="0" max="100" step="5" value="40" aria-label="Drone-Lautstärke"></label>
+            <label class="check lane-sync"><input type="checkbox" id="laneDroneSync"> startet mit „Alle starten“</label>
+          </div>
+          <div class="lane-status caption" id="laneDroneStatus">Aus</div>
+        </div>
+      </div>
       <div class="global-row">
         <button class="toggle-btn all-btn" id="loopAll">Alle starten</button>
         <button class="toggle-btn" id="loopFlash">Blitz: jeder Takt</button>
         <button class="toggle-btn export-btn" id="loopExport">Für Logic exportieren</button>
-        <span class="divider" aria-hidden="true"></span>
-        <button class="toggle-btn" id="loopDrums">Drums aus</button>
-        <select id="loopDrumStyle" aria-label="Drum-Groove">
-          <option value="rock">Rock</option>
-          <option value="halftime">Halftime</option>
-          <option value="latin">Latin-Feel</option>
-          <option value="funk">Funk (16tel-Hi-Hat)</option>
-          <option value="hats">Nur Hi-Hat</option>
-        </select>
-        <input type="range" id="loopDrumVol" min="0" max="100" step="5" value="70" aria-label="Drum-Lautstärke">
       </div>
       <div class="status-line" id="loopStatus">Tippe auf REC von Spur 1 und spiel deine Idee ein. Nochmal tippen: Loop läuft. Nochmal: Overdub. Mit ✂ schneidest und synchronisierst du eine Spur.</div>
     </div>
@@ -1502,9 +1639,14 @@ function updateGrooveEngineState() {
   }
 }
 
+function droneKeyText() {
+  const ov = window.droneKeyOverride || null;
+  return (ov && ov.root ? ov.root : rootSel.value) + ' ' + (ov && ov.mode ? ov.mode : modeSel.value);
+}
 function keyMidiNotes() {
-  const rootIdx = NOTES.indexOf(rootSel.value);
-  const intervals = MODES[modeSel.value];
+  const ov = window.droneKeyOverride || null;
+  const rootIdx = NOTES.indexOf(ov && ov.root ? ov.root : rootSel.value);
+  const intervals = MODES[ov && ov.mode ? ov.mode : modeSel.value];
   const baseMidi = 36 + rootIdx;
   return {
     root: baseMidi,
@@ -1680,6 +1822,7 @@ function playLeadPhrase() {
 let activeDroneStyle = null;
 
 function startDrone() {
+  if (droneOn && droneNodes) return;
   activeDroneStyle = document.getElementById('droneStyle').value;
   if (activeDroneStyle === 'v2') startDroneV2(); else startDroneV1();
 }
@@ -1876,7 +2019,7 @@ function startDroneV1() {
   const btn = document.getElementById('droneBtn');
   btn.textContent = '■';
   btn.classList.add('playing');
-  document.getElementById('droneStatus').textContent = 'An — ' + rootSel.value + ' ' + modeSel.value;
+  document.getElementById('droneStatus').textContent = 'An — ' + droneKeyText();
 }
 
 function stopDroneV1() {
@@ -1910,7 +2053,7 @@ function updateDroneFreqV1() {
   droneNodes.voices.forEach(v => {
     v.osc.frequency.setTargetAtTime(midiToFreq(keyNotes[v.role]), audioCtx.currentTime, 0.3);
   });
-  document.getElementById('droneStatus').textContent = 'An — ' + rootSel.value + ' ' + modeSel.value + ' (Pad & Chor)';
+  document.getElementById('droneStatus').textContent = 'An — ' + droneKeyText() + ' (Pad & Chor)';
 }
 
 /* ---------- Drone-Stil II: Brass & Streicher, orchestral (episches Zweitthema) ---------- */
@@ -2286,7 +2429,7 @@ function startDroneV2() {
   const btn = document.getElementById('droneBtn');
   btn.textContent = '■';
   btn.classList.add('playing');
-  document.getElementById('droneStatus').textContent = 'An — ' + rootSel.value + ' ' + modeSel.value + ' (Brass & Streicher)';
+  document.getElementById('droneStatus').textContent = 'An — ' + droneKeyText() + ' (Brass & Streicher)';
 }
 
 function stopDroneV2() {
@@ -2329,7 +2472,7 @@ function updateDroneFreqV2() {
     else target = keyNotes[v.role];
     v.osc.frequency.setTargetAtTime(midiToFreq(target), audioCtx.currentTime, 0.3);
   });
-  document.getElementById('droneStatus').textContent = 'An — ' + rootSel.value + ' ' + modeSel.value + ' (Brass & Streicher)';
+  document.getElementById('droneStatus').textContent = 'An — ' + droneKeyText() + ' (Brass & Streicher)';
 }
 
 function tick() {
@@ -3119,7 +3262,8 @@ document.getElementById('droneVolume').addEventListener('input', (e) => {
 document.getElementById('droneStyle').addEventListener('change', () => {
   if (droneOn) {
     stopDrone();
-    setTimeout(startDrone, 950);
+    clearTimeout(window.__droneRestart);
+    window.__droneRestart = setTimeout(() => { if (!droneOn) startDrone(); }, 950);
   }
 });
 
@@ -3189,7 +3333,7 @@ const Looper = (() => {
   let anchor = 0;      // Frame, an dem Phase 0 aller Spuren liegt
   let rec = null;      // {t, kind: first|new|overdub, start, end, chunks, n, layer, armed, Lt}
   let hist = [];       // die letzten Mikrofon-Blöcke, für den Vorlauf beim Signal-Start
-  let level = 0, rafId = null;
+  let level = 0, rafId = null, peakHold = 0;
 
   function loadPref(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } }
   function savePref(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
@@ -3229,14 +3373,139 @@ const Looper = (() => {
   const anyRunning = () => tracks.some(t => t.src);
   const anyContent = () => tracks.some(t => t.L);
 
-  // ---- Drums, im Takt mit dem Loop ----
-  const DRUM_STYLES = {
-    rock: GROOVE_STYLES.rock,
-    halftime: GROOVE_STYLES.halftime,
-    latin: GROOVE_STYLES.latin,
-    funk: { kick: [0, 3, 10], snare: [4, 12], hihat: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15] },
-    hats: { kick: [], snare: [], hihat: [0, 2, 4, 6, 8, 10, 12, 14] }
+  // ---- Drum Designer: 8 Instrumente × 16 Schritte, im Takt mit dem Loop ----
+  const INSTR = [
+    { id: 'crash', name: 'Becken', midi: 49 },
+    { id: 'hho', name: 'HH offen', midi: 46 },
+    { id: 'hhc', name: 'Hi-Hat', midi: 42 },
+    { id: 'rim', name: 'Rimshot', midi: 37 },
+    { id: 'clap', name: 'Clap', midi: 39 },
+    { id: 'snare', name: 'Snare', midi: 38 },
+    { id: 'tom', name: 'Tom', midi: 45 },
+    { id: 'kick', name: 'Kick', midi: 36 }
+  ];
+  // Muster: X = betont, x = normal, . = aus (16 Sechzehntel = 1 Takt)
+  const PRESETS = {
+    rock:     { name: 'Rock', swing: 0, p: { kick: 'X.....x.X.......', snare: '....X.......X...', hhc: 'X.x.X.x.X.x.X.x.' } },
+    pop:      { name: 'Pop (16tel)', swing: 0, p: { kick: 'X......xX.x.....', snare: '....X.......X...', hhc: 'XxxxXxxxXxxxXxxx' } },
+    halftime: { name: 'Halftime', swing: 0, p: { kick: 'X.....x...x.....', snare: '........X.......', hhc: 'X.x.x.x.X.x.x.x.' } },
+    funk:     { name: 'Funk', swing: 10, p: { kick: 'X..x......X..x..', snare: '....X..x.x..X...', hhc: 'XxxxXxxxXxxxXx.x', hho: '..............x.' } },
+    shuffle:  { name: 'Shuffle / Blues', swing: 70, p: { kick: 'X.......X.x.....', snare: '....X.......X...', hhc: 'X.x.X.x.X.x.X.x.' } },
+    hiphop:   { name: 'Hip-Hop', swing: 35, p: { kick: 'X......x..X.....', snare: '....X.......X...', hhc: 'x.x.x.x.x.x.x.x.' } },
+    disco:    { name: 'Disco', swing: 0, p: { kick: 'X...X...X...X...', snare: '....X.......X...', hhc: 'x...x...x...x...', hho: '..x...x...x...x.' } },
+    edm:      { name: 'Four on the Floor', swing: 0, p: { kick: 'X...X...X...X...', clap: '....X.......X...', hho: '..x...x...x...x.', hhc: '.x.x.x.x.x.x.x.x' } },
+    bossa:    { name: 'Bossa Nova', swing: 0, p: { kick: 'X..xX..xX..xX..x', rim: 'x..x..x...x..x..', hhc: 'xxxxxxxxxxxxxxxx' } },
+    reggae:   { name: 'Reggae One Drop', swing: 20, p: { kick: '........X.......', rim: '........X.......', hhc: 'x.x.x.x.x.x.x.x.' } },
+    metal:    { name: 'Metal', swing: 0, p: { kick: 'xxxxxxxxxxxxxxxx', snare: '....X.......X...', crash: 'x...x...x...x...' } },
+    ballad:   { name: 'Ballade', swing: 0, p: { kick: 'X.........x.....', snare: '........X.......', hhc: 'x...x...x...x...', rim: '....x.......x...' } },
+    viking:   { name: 'Wikinger-Trommeln', swing: 0, p: { kick: 'X..x..X.X..x..X.', tom: '..x...x...x.X.x.', crash: 'X...............' } },
+    hats:     { name: 'Nur Hi-Hat', swing: 0, p: { hhc: 'x.x.x.x.x.x.x.x.' } }
   };
+  const blank = () => { const o = {}; INSTR.forEach(i => { o[i.id] = new Array(16).fill(0); }); return o; };
+  function fromPreset(key) {
+    const pr = PRESETS[key], o = blank();
+    Object.entries(pr.p).forEach(([id, s]) => { for (let k = 0; k < 16; k++) o[id][k] = s[k] === 'X' ? 2 : s[k] === 'x' ? 1 : 0; });
+    return o;
+  }
+  const drumBtn = $('loopDrums'), drumStyleEl = $('loopDrumStyle'), drumVolEl = $('loopDrumVol'), swingEl = $('drumSwing');
+  // Vorlagen-Auswahl füllen (inkl. „Eigenes Muster“)
+  drumStyleEl.innerHTML = '';
+  Object.entries(PRESETS).forEach(([k, v]) => drumStyleEl.add(new Option(v.name, k)));
+  drumStyleEl.add(new Option('Eigenes Muster', 'custom'));
+  let pattern, muted = {};
+  {
+    let saved = null; try { saved = JSON.parse(loadPref('3nps-drumpattern', 'null')); } catch (e) {}
+    const st = { latin: 'bossa' }[loadPref('3nps-drumstyle', 'rock')] || loadPref('3nps-drumstyle', 'rock');
+    if (st === 'custom' && saved) { pattern = Object.assign(blank(), saved); drumStyleEl.value = 'custom'; }
+    else { drumStyleEl.value = PRESETS[st] ? st : 'rock'; pattern = fromPreset(drumStyleEl.value); }
+    swingEl.value = loadPref('3nps-swing', String(PRESETS[drumStyleEl.value] ? PRESETS[drumStyleEl.value].swing : 0));
+  }
+  let drumsOn = false, drumBus = null, drumTimer = null, nextStep = 0, freeAnchor = 0, lastAnchor = null;
+  const playedSteps = [];          // [Zeit, Schritt] für die Laufanzeige im Raster
+
+  function ensureDrumBus() {
+    if (drumBus) return drumBus;
+    ensureNoiseBuffer();
+    const master = audioCtx.createGain();
+    master.gain.value = parseInt(drumVolEl.value) / 100;
+    master.connect(ensureMasterBus());
+    // leichte Raumtiefe, ohne den Mix zu verschmieren
+    const comp = audioCtx.createDynamicsCompressor();
+    comp.threshold.value = -14; comp.ratio.value = 3; comp.attack.value = 0.004; comp.release.value = 0.12;
+    const dryGain = audioCtx.createGain(); dryGain.connect(comp); comp.connect(master);
+    const reverbSend = audioCtx.createGain(); reverbSend.gain.value = 0;
+    drumBus = { master, dryGain, reverbSend, openHat: null };
+    return drumBus;
+  }
+
+  // ---- Klangerzeugung (synthetisch, keine Samples nötig) ----
+  function noiseSrc(t, dur) {
+    const s = audioCtx.createBufferSource(); s.buffer = ensureNoiseBuffer();
+    s.start(t, Math.random() * 1.2); s.stop(t + dur + 0.02); return s;
+  }
+  function envGain(t, peak, dur, attack) {
+    const g = audioCtx.createGain(); g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(peak, t + (attack || 0.002));
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur); return g;
+  }
+  function filt(type, f, q) { const b = audioCtx.createBiquadFilter(); b.type = type; b.frequency.value = f; if (q) b.Q.value = q; return b; }
+  const out = () => drumBus.dryGain;
+  const VOICE = {
+    kick(t, v) {
+      const o = audioCtx.createOscillator(); o.type = 'sine';
+      o.frequency.setValueAtTime(155, t); o.frequency.exponentialRampToValueAtTime(48, t + 0.11);
+      const g = envGain(t, 1.0 * v, 0.42); o.connect(g); g.connect(out()); o.start(t); o.stop(t + 0.45);
+      const n = noiseSrc(t, 0.01), h = filt('highpass', 2500), gc = envGain(t, 0.22 * v, 0.012, 0.0005);
+      n.connect(h); h.connect(gc); gc.connect(out());
+    },
+    snare(t, v) {
+      const n = noiseSrc(t, 0.22), hp = filt('highpass', 900), bp = filt('bandpass', 2600, 0.6), g = envGain(t, 0.55 * v, 0.2);
+      n.connect(hp); hp.connect(bp); bp.connect(g); g.connect(out());
+      const o = audioCtx.createOscillator(); o.type = 'triangle'; o.frequency.setValueAtTime(210, t); o.frequency.exponentialRampToValueAtTime(165, t + 0.08);
+      const go = envGain(t, 0.45 * v, 0.1); o.connect(go); go.connect(out()); o.start(t); o.stop(t + 0.12);
+    },
+    hhc(t, v) {
+      if (drumBus.openHat) { try { drumBus.openHat.gain.cancelScheduledValues(t); drumBus.openHat.gain.setTargetAtTime(0.0001, t, 0.01); } catch (e) {} drumBus.openHat = null; }
+      const n = noiseSrc(t, 0.06), hp = filt('highpass', 7500), bp = filt('bandpass', 10500, 0.8), g = envGain(t, 0.32 * v, 0.05, 0.001);
+      n.connect(hp); hp.connect(bp); bp.connect(g); g.connect(out());
+    },
+    hho(t, v) {
+      const n = noiseSrc(t, 0.45), hp = filt('highpass', 7000), bp = filt('bandpass', 9500, 0.7), g = envGain(t, 0.28 * v, 0.42, 0.002);
+      n.connect(hp); hp.connect(bp); bp.connect(g); g.connect(out()); drumBus.openHat = g;
+    },
+    clap(t, v) {
+      const bp = filt('bandpass', 1300, 1.1), g = audioCtx.createGain(); g.gain.value = 0.0001;
+      [0, 0.011, 0.023].forEach((d, i) => { g.gain.setValueAtTime(0.0001, t + d); g.gain.exponentialRampToValueAtTime(0.6 * v * (i === 2 ? 1 : 0.7), t + d + 0.002); g.gain.exponentialRampToValueAtTime(0.05, t + d + 0.01); });
+      g.gain.setValueAtTime(0.35 * v, t + 0.026); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.2);
+      const n = noiseSrc(t, 0.22); n.connect(bp); bp.connect(g); g.connect(out());
+    },
+    tom(t, v) {
+      const o = audioCtx.createOscillator(); o.type = 'sine'; o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(92, t + 0.25);
+      const g = envGain(t, 0.75 * v, 0.38); o.connect(g); g.connect(out()); o.start(t); o.stop(t + 0.4);
+      const n = noiseSrc(t, 0.05), lp = filt('lowpass', 1800), gn = envGain(t, 0.12 * v, 0.05); n.connect(lp); lp.connect(gn); gn.connect(out());
+    },
+    rim(t, v) {
+      const o = audioCtx.createOscillator(); o.type = 'triangle'; o.frequency.value = 1750;
+      const g = envGain(t, 0.4 * v, 0.035, 0.0005); o.connect(g); g.connect(out()); o.start(t); o.stop(t + 0.05);
+      const n = noiseSrc(t, 0.02), bp = filt('bandpass', 3200, 2), gn = envGain(t, 0.3 * v, 0.02, 0.0005); n.connect(bp); bp.connect(gn); gn.connect(out());
+    },
+    crash(t, v) {
+      const n = noiseSrc(t, 1.8), hp = filt('highpass', 3800), pk = filt('peaking', 6500, 0.8), g = envGain(t, 0.32 * v, 1.7, 0.003);
+      pk.gain.value = 6; n.connect(hp); hp.connect(pk); pk.connect(g); g.connect(out());
+    }
+  };
+  const PLAY_ORDER = ['kick', 'snare', 'clap', 'rim', 'tom', 'hhc', 'hho', 'crash'];   // geschlossene Hi-Hat vor der offenen (Abdämpfen)
+  function playStep(step, t) {
+    PLAY_ORDER.forEach(id => { const lv = pattern[id][step]; if (lv && !muted[id]) VOICE[id](t, lv === 2 ? 1 : 0.68); });
+  }
+
+  // ---- Ablauf ----
+  const stepDur = () => 15 / bpm();
+  const barDur = () => 240 / bpm();
+  function grid() {
+    if (baseL && anyRunning()) return { anchor: anchor / sr, cycle: baseL / sr };
+    return { anchor: freeAnchor, cycle: 0 };
+  }
   const flashBtn = $('loopFlash');
   // Blitz: aus, bei jedem Takt oder bei jedem Schlag
   const FLASH_LABEL = { off: 'Blitz: aus', bar: 'Blitz: jeder Takt', beat: 'Blitz: jeder Schlag' };
@@ -3249,27 +3518,6 @@ const Looper = (() => {
   });
   showFlash();
 
-  const drumBtn = $('loopDrums'), drumStyleEl = $('loopDrumStyle'), drumVolEl = $('loopDrumVol');
-  drumStyleEl.value = loadPref('3nps-drumstyle', 'rock');
-  let drumsOn = false, drumBus = null, drumTimer = null, nextStep = 0, freeAnchor = 0, lastAnchor = null;
-
-  function ensureDrumBus() {
-    if (drumBus) return drumBus;
-    ensureNoiseBuffer();
-    const master = audioCtx.createGain();
-    master.gain.value = parseInt(drumVolEl.value) / 100;
-    master.connect(ensureMasterBus());
-    const dryGain = audioCtx.createGain(); dryGain.connect(master);
-    const reverbSend = audioCtx.createGain(); reverbSend.gain.value = 0;
-    drumBus = { master, dryGain, reverbSend };
-    return drumBus;
-  }
-  const stepDur = () => 15 / bpm();
-  const barDur = () => 240 / bpm();
-  function grid() {
-    if (baseL && anyRunning()) return { anchor: anchor / sr, cycle: baseL / sr };
-    return { anchor: freeAnchor, cycle: 0 };
-  }
   function firstStepAfter(g, t) {
     const sd = stepDur();
     const base = g.cycle ? g.anchor + Math.floor((t - g.anchor) / g.cycle) * g.cycle : g.anchor;
@@ -3281,18 +3529,26 @@ const Looper = (() => {
       lastAnchor = g.anchor;
       nextStep = firstStepAfter(g, Math.max(now + 0.03, nextStep - 0.001));
     }
-    const style = DRUM_STYLES[drumStyleEl.value] || DRUM_STYLES.rock;
+    const sw = parseInt(swingEl.value) / 100;
     while (nextStep < now + 0.12) {
       const cycStart = g.cycle ? g.anchor + Math.floor((nextStep - g.anchor + 1e-6) / g.cycle) * g.cycle : g.anchor;
       const k = Math.round((nextStep - cycStart) / sd);
       const step = mod(k, 16);
-      if (style.kick.includes(step)) playKick(nextStep, drumBus);
-      if (style.snare.includes(step)) playSnare(nextStep, drumBus);
-      if (style.hihat.includes(step)) playHihat(nextStep, step % 4 === 0, drumBus);
+      // Swing: zweite Achtel und ungerade Sechzehntel nach hinten
+      const delay = step % 4 === 2 ? sw * sd * 2 / 3 : step % 2 === 1 ? sw * sd / 3 : 0;
+      const tt = Math.max(now, nextStep + delay);
+      playStep(step, tt);
+      playedSteps.push([nextStep, step]); if (playedSteps.length > 64) playedSteps.splice(0, 32);
       let nxt = cycStart + (k + 1) * sd;
       if (g.cycle && nxt > cycStart + g.cycle - sd * 0.5) nxt = cycStart + g.cycle;
       nextStep = nxt;
     }
+  }
+  function currentStep() {
+    if (!drumsOn || !audioCtx) return -1;
+    const now = audioCtx.currentTime; let s = -1;
+    for (const [t, st] of playedSteps) if (t <= now) s = st;
+    return s;
   }
   function nextBarFrame() {
     const bar = barDur(), t = audioCtx.currentTime + 0.15, g = grid();
@@ -3311,15 +3567,122 @@ const Looper = (() => {
       drumTimer = setInterval(drumTick, 25);
       drumTick();
     } else {
-      clearInterval(drumTimer); drumTimer = null;
+      clearInterval(drumTimer); drumTimer = null; playedSteps.length = 0;
     }
     kick();
   }
   drumBtn.addEventListener('click', () => setDrums(!drumsOn));
-  drumStyleEl.addEventListener('change', () => savePref('3nps-drumstyle', drumStyleEl.value));
   drumVolEl.addEventListener('input', () => { if (drumBus) drumBus.master.gain.value = parseInt(drumVolEl.value) / 100; });
 
+  // ---- Raster-Oberfläche ----
+  const gridEl = $('drumGrid');
+  function buildGrid() {
+    let h = '';
+    INSTR.forEach(i => {
+      h += '<div class="dg-row" data-i="' + i.id + '"><button class="dg-name" data-mute="' + i.id + '" title="Stummschalten">' + i.name + '</button><div class="dg-steps">';
+      for (let k = 0; k < 16; k++) h += '<button class="dg-cell" data-i="' + i.id + '" data-k="' + k + '" aria-label="' + i.name + ' Schritt ' + (k + 1) + '"></button>';
+      h += '</div></div>';
+    });
+    gridEl.innerHTML = h;
+    paintGrid();
+  }
+  function paintGrid() {
+    gridEl.querySelectorAll('.dg-cell').forEach(c => { const v = pattern[c.dataset.i][+c.dataset.k]; c.dataset.v = v; });
+    gridEl.querySelectorAll('.dg-name').forEach(b => b.classList.toggle('muted', !!muted[b.dataset.mute]));
+  }
+  function saveCustom() {
+    drumStyleEl.value = 'custom';
+    savePref('3nps-drumstyle', 'custom'); savePref('3nps-drumpattern', JSON.stringify(pattern));
+  }
+  gridEl.addEventListener('click', e => {
+    const c = e.target.closest('.dg-cell');
+    if (c) { const a = pattern[c.dataset.i]; a[+c.dataset.k] = (a[+c.dataset.k] + 1) % 3; c.dataset.v = a[+c.dataset.k]; saveCustom(); return; }
+    const m = e.target.closest('.dg-name');
+    if (m) { muted[m.dataset.mute] = !muted[m.dataset.mute]; paintGrid(); }
+  });
+  drumStyleEl.addEventListener('change', () => {
+    const v = drumStyleEl.value;
+    if (v === 'custom') { let s = null; try { s = JSON.parse(loadPref('3nps-drumpattern', 'null')); } catch (e) {} pattern = Object.assign(blank(), s || {}); }
+    else { pattern = fromPreset(v); swingEl.value = PRESETS[v].swing; savePref('3nps-swing', swingEl.value); }
+    $('drumSwingVal').textContent = swingEl.value + ' %';
+    savePref('3nps-drumstyle', v); paintGrid();
+  });
+  swingEl.addEventListener('input', () => { savePref('3nps-swing', swingEl.value); $('drumSwingVal').textContent = swingEl.value + ' %'; });
+  $('drumClear').addEventListener('click', () => { pattern = blank(); saveCustom(); paintGrid(); });
+  $('drumPreview').addEventListener('click', () => { ensureAudio(); sr = audioCtx.sampleRate; ensureDrumBus(); for (let k = 0; k < 16; k++) playStep(k, audioCtx.currentTime + 0.05 + k * stepDur()); });
+  $('drumSwingVal').textContent = swingEl.value + ' %';
+  buildGrid();
+  let lastLit = -2;
+  function paintPlayhead() {
+    const s = currentStep();
+    if (s === lastLit) return;
+    lastLit = s;
+    gridEl.querySelectorAll('.dg-cell.now').forEach(c => c.classList.remove('now'));
+    if (s >= 0) gridEl.querySelectorAll('.dg-cell[data-k="' + s + '"]').forEach(c => c.classList.add('now'));
+  }
+  const dgPanel = $('drumDesigner'), dgBtn = $('drumEditBtn');
+  function showDesigner(on) { dgPanel.hidden = !on; dgBtn.classList.toggle('active', on); dgBtn.setAttribute('aria-expanded', on ? 'true' : 'false'); savePref('3nps-designer', on ? '1' : '0'); }
+  dgBtn.addEventListener('click', () => showDesigner(dgPanel.hidden));
+  showDesigner(loadPref('3nps-designer', '0') === '1');
+
+  // ---- Drone als eigene Spur (nutzt die Drone-Klänge des Programms) ----
+  const dBtn = $('laneDrone'), dRoot = $('laneDroneRoot'), dMode = $('laneDroneMode'), dStyleSel = $('laneDroneStyle'),
+    dVol = $('laneDroneVol'), dSync = $('laneDroneSync'), dStat = $('laneDroneStatus');
+  const mainDroneBtn = $('droneBtn'), mainDroneStyle = $('droneStyle'), mainDroneVol = $('droneVolume');
+  dRoot.value = loadPref('3nps-ldrone-root', '');
+  dMode.value = loadPref('3nps-ldrone-mode', '');
+  dSync.checked = loadPref('3nps-ldrone-sync', '0') === '1';
+  dStyleSel.value = mainDroneStyle.value; dVol.value = mainDroneVol.value;
+  let droneBusy = 0;
+  function syncDrone() {
+    dBtn.classList.toggle('active', droneOn);
+    dBtn.textContent = droneOn ? 'Drone an' : 'Drone aus';
+    dStyleSel.value = mainDroneStyle.value; dVol.value = mainDroneVol.value;
+    dStat.textContent = (droneOn ? 'Läuft · ' : 'Aus · ') + droneKeyText() + ' · ' + dStyleSel.selectedOptions[0].text;
+    $('panel-looper').classList.toggle('drone-live', droneOn);
+  }
+  function applyDroneKey() {
+    window.droneKeyOverride = (dRoot.value || dMode.value) ? { root: dRoot.value || null, mode: dMode.value || null } : null;
+    savePref('3nps-ldrone-root', dRoot.value); savePref('3nps-ldrone-mode', dMode.value);
+    if (droneOn) updateDroneFreq();
+    syncDrone();
+  }
+  function setDrone(on) {
+    if (on === droneOn) return;
+    ensureAudio();
+    if (on) startDrone(); else stopDrone();
+    syncDrone(); kick();
+  }
+  dBtn.addEventListener('click', () => {
+    const t = performance.now();
+    if (t - droneBusy < 350) return;          // versehentlichen Doppeltipp abfangen
+    droneBusy = t; setDrone(!droneOn);
+  });
+  dRoot.addEventListener('change', applyDroneKey);
+  dMode.addEventListener('change', applyDroneKey);
+  dStyleSel.addEventListener('change', () => { mainDroneStyle.value = dStyleSel.value; mainDroneStyle.dispatchEvent(new Event('change')); syncDrone(); });
+  dVol.addEventListener('input', () => { mainDroneVol.value = dVol.value; mainDroneVol.dispatchEvent(new Event('input')); });
+  dSync.addEventListener('change', () => savePref('3nps-ldrone-sync', dSync.checked ? '1' : '0'));
+  $('laneDroneFromTrack').addEventListener('click', () => {
+    const t = tracks.find(x => x.key);
+    if (!t) { setStatus('Noch keine Tonart erkannt. Tippe in einer Spur auf ✂ → Tonart bestimmen.'); return; }
+    dRoot.value = NOTES[t.key.pc]; dMode.value = t.key.major ? 'Ionisch (Dur)' : 'Äolisch (Moll)';
+    applyDroneKey();
+    setStatus('Drone folgt jetzt der Tonart von Spur ' + (t.i + 1) + ': ' + Analyzer.label(t.key) + '.');
+  });
+  new MutationObserver(syncDrone).observe(mainDroneBtn, { attributes: true, childList: true });
+  mainDroneVol.addEventListener('input', () => { dVol.value = mainDroneVol.value; });
+  mainDroneStyle.addEventListener('change', () => { dStyleSel.value = mainDroneStyle.value; syncDrone(); });
+  $('root').addEventListener('change', syncDrone); $('mode').addEventListener('change', syncDrone);
+  function droneFollow(start) { if (dSync.checked) setDrone(start); }
+  applyDroneKey();
+
   // ---- Mikrofon ----
+  const monBtn = $('loopMonitor');
+  monBtn.addEventListener('click', async () => {
+    if (micReady) { setStatus('Der Eingang ist offen. Die Pegelanzeigen neben den Spuren zeigen dein Signal.'); return; }
+    if (await ensureMic()) setStatus('Eingang offen: Die Pegelanzeigen neben den Spuren zeigen jetzt dein Signal.');
+  });
   async function ensureMic() {
     ensureAudio();
     sr = audioCtx.sampleRate;
@@ -3365,14 +3728,16 @@ const Looper = (() => {
     }
     latVal.textContent = latEl.value + ' ms';
     micReady = true;
+    $('panel-looper').classList.add('mic-on');
+    monBtn.classList.add('active'); monBtn.textContent = 'Eingang offen';
     kick();
     return true;
   }
 
   function handleChunk(startFrame, data) {
-    let sum = 0;
-    for (let i = 0; i < data.length; i += 2) sum += data[i] * data[i];
-    level = Math.max(level * 0.85, Math.sqrt(sum / (data.length / 2)));
+    let pk = 0;
+    for (let i = 0; i < data.length; i++) { const a = data[i] < 0 ? -data[i] : data[i]; if (a > pk) pk = a; }
+    level = Math.max(level * 0.85, pk);
     const m0 = startFrame - latencyFrames();
     hist.push({ m0, data });
     while (hist.length > 1 && hist[0].m0 < m0 - sr * 0.5) hist.shift();
@@ -3806,10 +4171,12 @@ const Looper = (() => {
       cancelCountIn();
       freeAnchor = anchor / sr;
       tracks.forEach(t => { if (t.src) { stopSrc(t); t.state = 'stopped'; } });
+      droneFollow(false);
       setStatus('Alle Spuren gestoppt.');
     } else if (anyContent()) {
       anchor = startAnchor('play');
       tracks.forEach(t => { if (t.L) { startTrack(t); t.state = 'playing'; } });
+      droneFollow(true);
       setStatus('Alle Spuren laufen.');
     } else {
       setStatus('Noch nichts aufgenommen. Tippe auf den Taster einer Spur.');
@@ -3873,7 +4240,7 @@ const Looper = (() => {
   }
 
   // Neonfarben für die Taktkreise; der erste Takt bekommt immer eine eigene Farbe
-  const NEON = { rec: '#ff2d55', dub: '#ffe14a', bar1: '#ff8a1a', t: ['#39ff9f', '#2de2ff', '#b56bff'] };
+  const NEON = { rec: '#ff2d55', dub: '#ffe14a', bar1: '#ff8a1a', t: ['#39ff9f', '#2de2ff', '#86a8ff'] };
 
   function drawRing(t, C) {
     const f = fit(t.ring); if (!f) return;
@@ -4044,22 +4411,26 @@ const Looper = (() => {
       const C = css || (css = colors());
       tracks.forEach(t => { drawRing(t, C); drawWave(t, C); });
       drawEditor(C);
+      if (drumsOn || lastLit !== -1) paintPlayhead();
       meterEl.style.width = (toMeter(level) * 100) + '%';
       meterEl.style.backgroundSize = (meterEl.parentNode.clientWidth || 200) + 'px 100%';
       meterEl.classList.toggle('hot', !!rec && !rec.armed);
       threshMark.style.left = (toMeter(threshold()) * 100) + '%';
       const lv = toMeter(level) * 100, th = toMeter(threshold()) * 100;
+      peakHold = lv >= peakHold ? lv : Math.max(lv, peakHold - 1.2);
       tracks.forEach(t => {
         const live = !!(rec && rec.t === t);
         t.meter.style.setProperty('--lv', lv.toFixed(1) + '%');
+        t.meter.style.setProperty('--pk', peakHold.toFixed(1) + '%');
         t.meter.style.setProperty('--th', th.toFixed(1) + '%');
+        t.meter.closest('.track').classList.toggle('rec-live', live);
         t.meter.classList.toggle('live', live);
         t.meter.classList.toggle('armed', live && rec.armed);
       });
       level *= 0.8;
     }
     tracks.forEach(t => { if (t.foot.dataset.state !== footState(t)) update(); });
-    const active = anyRunning() || rec || drumsOn || level > 0.001 || ed.drag || countEnd > nowFrame();
+    const active = anyRunning() || rec || drumsOn || level > 0.001 || peakHold > 0.5 || ed.drag || countEnd > nowFrame();
     if (active) { if (visible) rafId = requestAnimationFrame(tick); else { rafId = 1; setTimeout(() => { rafId = null; tick(); }, 250); } }
   }
   tracks.forEach(t => { new ResizeObserver(kick).observe(t.ring); new ResizeObserver(kick).observe(t.wave); });
@@ -4568,12 +4939,12 @@ const Looper = (() => {
       const ev = [], dn = str('Drums (' + info.drumsName + ')');
       ev.push([0, [0xFF, 0x03, dn.length, ...dn], 0]);
       const step = PPQ / 4, bars = Math.round(info.beats / 4);
+      const P = info.drums.pattern, sw = info.drums.swing || 0;
       for (let b = 0; b < bars; b++) for (let s = 0; s < 16; s++) {
-        const t = (b * 16 + s) * step, hits = [];
-        if (info.drums.kick.includes(s)) hits.push([36, 112]);
-        if (info.drums.snare.includes(s)) hits.push([38, 104]);
-        if (info.drums.hihat.includes(s)) hits.push([42, s % 4 === 0 ? 92 : 72]);
-        for (const [note, vel] of hits) { ev.push([t, [0x99, note, vel], 2]); ev.push([t + step / 2, [0x89, note, 0], 1]); }
+        const delay = s % 4 === 2 ? sw * step * 2 / 3 : s % 2 === 1 ? sw * step / 3 : 0;
+        const t = Math.round((b * 16 + s) * step + delay), hits = [];
+        INSTR.forEach(i => { const lv = P[i.id][s]; if (lv && !info.drums.muted[i.id]) hits.push([i.midi, lv === 2 ? 115 : 85]); });
+        for (const [note, vel] of hits) { ev.push([t, [0x99, note, vel], 2]); ev.push([t + Math.round(step / 2), [0x89, note, 0], 1]); }
       }
       tracksOut.push(track(ev, endTick));
     }
@@ -4630,7 +5001,7 @@ const Looper = (() => {
     const files = [];
     stems.forEach((s, j) => files.push({ name: base + '/' + String(j + 1).padStart(2, '0') + ' Spur ' + (s.t.i + 1) + ' - ' + tag + '.wav', data: wav24(s.data, gain, info) }));
     files.push({ name: base + '/00 Mix - ' + tag + '.wav', data: wav24(mix, gain, info) });
-    const dStyle = drumsOn ? (DRUM_STYLES[drumStyleEl.value] || DRUM_STYLES.rock) : null;
+    const dStyle = drumsOn ? { pattern: JSON.parse(JSON.stringify(pattern)), muted: Object.assign({}, muted), swing: parseInt(swingEl.value) / 100 } : null;
     files.push({ name: base + '/Tempo und Takt - ' + tag + '.mid', data: midiFile({ bpm: exactBpm, beats, sf, minor, keyLabel, name: base, drums: dStyle, drumsName: drumStyleEl.selectedOptions[0].text }) });
     const lies = [
       base, '',
@@ -4719,7 +5090,7 @@ const Looper = (() => {
     isEmpty: () => !anyContent(),
     foot: i => foot(tracks[i]),
     exportLogic: () => exportLogic(),
-    debug: () => ({ sr, baseL, anchor, now: nowFrame(), countEnd, bpm: bpm(), tracks: tracks.map(t => ({ L: t.L, state: t.state, origPos: t.origPos, layers: t.layers.length, orig: t.orig ? { bars: t.orig.bars, downs: t.orig.downs.slice(0, 64), loopFile: t.orig.loopFile, bpm: t.orig.bpm } : null, key: t.key ? Analyzer.label(t.key) : null })) }),
+    debug: () => ({ sr, baseL, anchor, now: nowFrame(), countEnd, bpm: bpm(), drums: { on: drumsOn, steps: playedSteps.slice(-24), sd: stepDur() }, level, drone: droneOn, tracks: tracks.map(t => ({ L: t.L, state: t.state, origPos: t.origPos, layers: t.layers.length, orig: t.orig ? { bars: t.orig.bars, downs: t.orig.downs.slice(0, 64), loopFile: t.orig.loopFile, bpm: t.orig.bpm } : null, key: t.key ? Analyzer.label(t.key) : null })) }),
     undo: i => undoTrack(tracks[i]),
     all: allStartStop
   };
