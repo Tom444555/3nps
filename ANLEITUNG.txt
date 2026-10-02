@@ -60,6 +60,9 @@ Alles geht direkt auf dem iPad, ohne Computer.
    - In der App unter „Fußpedal“: Belegung „Automatisch“ versteht Keyboard A und B.
      A = Spur 1, B = Spur 2, C = Spur 3, D = alle starten/stoppen. Gedrückt halten = Rückgängig.
    - „Zuletzt“ zeigt bei jedem Tritt, welche Taste ankommt und was sie auslöst.
+   - „Pedal-Empfang“ muss an sein: iPadOS gibt Pfeil- und Bildtasten sonst nicht an die App weiter,
+     sondern scrollt die Seite. Steht dort „einmal in die App tippen“, kurz irgendwo auf eine freie
+     Stelle tippen – dann „bereit ✓“. Beim Tippen in Textfelder (z. B. Ideen-Name) pausiert er kurz.
 
 6. Export für Logic Pro
    - Im Looper auf „Für Logic exportieren“ tippen. Das Teilen-Menü öffnet sich mit einer ZIP-Datei.

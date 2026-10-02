@@ -442,6 +442,9 @@
 
   #pedalLast.hit { background: #e2a050; color: #170c00; box-shadow: 0 0 12px rgba(226,160,80,.6); }
   #pedalLast { transition: background .2s, color .2s; white-space: normal; }
+
+  .recv-stat { font: 700 0.78rem var(--f-mono); color: #ffb15a; }
+  .recv-stat.ok { color: #9fe0a8; }
   /* ===== Rost & Stahl: Hintergrund aus gerostetem Blech, darauf verschraubte Stahlplatten ===== */
   :root {
     --plate-hi: #3a3a40;
@@ -634,7 +637,7 @@
 <body>
 <header class="control-bar">
   <div class="cb-inner">
-    <div class="brand">3nps <span>Übungsprogramm · v13.1</span></div>
+    <div class="brand">3nps <span>Übungsprogramm · v13.2</span></div>
     <div class="transport">
       <button class="tbtn" id="playBtn" aria-label="Metronom starten oder stoppen">▶</button>
     </div>
@@ -1044,6 +1047,7 @@
         </label>
         <div class="pedal-map" id="pedalMap"></div>
         <label class="check"><input type="checkbox" id="pedalHold"> Taster halten = Rückgängig</label>
+        <label class="check"><input type="checkbox" id="pedalRecv" checked> Pedal-Empfang (nötig auf dem iPad) · <b id="pedalRecvStat" class="recv-stat">–</b></label>
         <div class="row"><span class="lbl">Zuletzt</span><kbd id="pedalLast">noch keine Taste empfangen</kbd></div>
         <p class="pattern-desc">Das Pedal muss im Tastatur-Modus sein (in der App CubeSuite „Keyboard A“ oder „Keyboard B“ wählen) und in den iPad-Einstellungen unter Bluetooth verbunden sein. MIDI-Modi kann Safari auf dem iPad nicht empfangen. Bei jedem Tritt zeigt „Zuletzt“, welche Taste ankommt – bleibt es leer, sendet das Pedal noch MIDI.</p>
       </div>
@@ -6325,14 +6329,46 @@ const Pedal = (() => {
   listEl.addEventListener('click', e => {
     const b = e.target.closest('[data-learn]'); if (!b) return;
     learning = learning === b.dataset.learn ? null : b.dataset.learn; render();
+    arm();
   });
   presetEl.addEventListener('change', () => { preset = presetEl.value; save('3nps-pedal-preset', preset); learning = null; render(); });
   holdEl.addEventListener('change', () => save('3nps-pedal-hold', holdEl.checked ? '1' : '0'));
 
   const down = {};
+  // iPadOS schickt Pfeil-/Bildtasten nur an die Seite, wenn ein Eingabefeld aktiv ist – sonst scrollt es selbst.
+  // Deshalb hält ein unsichtbares Feld den Fokus und nimmt die Pedal-Tasten an.
+  const recvEl = $('pedalRecv'), recvStat = $('pedalRecvStat');
+  recvEl.checked = load('3nps-pedal-recv', '1') === '1';
+  const sink = document.createElement('input');
+  sink.type = 'text'; sink.id = 'pedalSink'; sink.tabIndex = -1;
+  ['autocomplete', 'autocorrect', 'autocapitalize'].forEach(a => sink.setAttribute(a, 'off'));
+  sink.setAttribute('inputmode', 'none'); sink.setAttribute('spellcheck', 'false'); sink.setAttribute('aria-hidden', 'true');
+  sink.style.cssText = 'position:fixed;left:0;top:0;width:1px;height:1px;opacity:0;border:0;padding:0;margin:0;font-size:16px;caret-color:transparent;background:transparent;color:transparent;pointer-events:none;z-index:-1';
+  document.body.appendChild(sink);
+  sink.addEventListener('input', () => { sink.value = ''; });
+  const isField = el => el && el !== sink && el.matches && el.matches('input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="button"]), select, textarea, [contenteditable="true"]');
+  function arm() {
+    if (!recvEl.checked) return;
+    if (isField(document.activeElement)) return;
+    try { sink.focus({ preventScroll: true }); } catch (e) { try { sink.focus(); } catch (e2) {} }
+    showRecv();
+  }
+  function showRecv() {
+    const ok = recvEl.checked && document.activeElement === sink;
+    recvStat.textContent = !recvEl.checked ? 'aus' : ok ? 'bereit ✓' : 'einmal in die App tippen';
+    recvStat.classList.toggle('ok', ok);
+  }
+  document.addEventListener('click', e => { if (!isField(e.target) && !(e.target.closest && e.target.closest('select, label'))) arm(); }, true);
+  document.addEventListener('touchend', e => { if (!isField(e.target) && !(e.target.closest && e.target.closest('select, input, textarea, label'))) arm(); }, true);
+  document.addEventListener('change', e => { if (e.target && e.target.matches && e.target.matches('select, input[type="checkbox"], input[type="radio"]')) arm(); }, true);
+  sink.addEventListener('focus', showRecv); sink.addEventListener('blur', () => setTimeout(showRecv, 50));
+  document.addEventListener('visibilitychange', () => setTimeout(showRecv, 100));
+  recvEl.addEventListener('change', () => { save('3nps-pedal-recv', recvEl.checked ? '1' : '0'); if (recvEl.checked) arm(); else sink.blur(); showRecv(); });
+  showRecv();
+
   let flashT = 0;
   window.addEventListener('keydown', e => {
-    if (e.target.closest && e.target.closest('input[type="text"], textarea')) return;
+    if (e.target !== sink && e.target.closest && e.target.closest('input[type="text"], textarea')) return;
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     const key = normKey(e);
     if (learning) {

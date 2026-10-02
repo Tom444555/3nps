@@ -1,5 +1,5 @@
 // Offline-Cache für die 3nps-App. Bei Updates CACHE-Version hochzählen.
-const CACHE = '3nps-v13-1';
+const CACHE = '3nps-v13-2';
 const CORE = ['./', 'index.html', 'bg-metal.jpg', 'panel.jpg', 'panel-dark.jpg', 'runes.png', 'emblem.png', 'corner-tl.png', 'corner-tr.png', 'corner-bl.png', 'corner-br.png', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
