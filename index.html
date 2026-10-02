@@ -445,6 +445,18 @@
 
   .recv-stat { font: 700 0.78rem var(--f-mono); color: #ffb15a; }
   .recv-stat.ok { color: #9fe0a8; }
+
+  /* ---- Eingangspegel als Flammen ---- */
+  .meter.fire { height: 30px; border-radius: 6px; background: linear-gradient(180deg, #050505, #120804); }
+  .meter.fire #loopMeter { display: none; }
+  #loopFlame { position: absolute; left: 0; bottom: 0; width: 100%; height: 44px; pointer-events: none; border-radius: 0 0 6px 6px; filter: blur(0.7px) saturate(1.15); }
+  .meter.fire { box-shadow: inset 0 2px 8px rgba(0,0,0,.9), 0 0 14px rgba(255,110,20,.18); }
+  .meter .thresh { z-index: 2; }
+  .seg { display: inline-flex; }
+  .seg .toggle-btn { padding: 5px 10px; border-radius: 0; }
+  .seg .toggle-btn:first-child { border-radius: 7px 0 0 7px; }
+  .seg .toggle-btn:last-child { border-radius: 0 7px 7px 0; margin-left: -1px; }
+  @media (max-width: 520px) { .meter-row { flex-wrap: wrap; } .meter-row .meter { flex-basis: 100%; } }
   /* ===== Rost & Stahl: Hintergrund aus gerostetem Blech, darauf verschraubte Stahlplatten ===== */
   :root {
     --plate-hi: #3a3a40;
@@ -637,7 +649,7 @@
 <body>
 <header class="control-bar">
   <div class="cb-inner">
-    <div class="brand">3nps <span>Übungsprogramm · v13.2</span></div>
+    <div class="brand">3nps <span>Übungsprogramm · v13.3</span></div>
     <div class="transport">
       <button class="tbtn" id="playBtn" aria-label="Metronom starten oder stoppen">▶</button>
     </div>
@@ -726,6 +738,8 @@
           <option value="v2">Cineastisch II – Brass &amp; Streicher</option>
           <option value="v3">Nordmeer – Wikinger (Wind, Wellen, Trommeln)</option>
           <option value="v4">Nordlicht – Eis &amp; Glas</option>
+          <option value="v5">Elbenküste – Meer &amp; Chor (Meeresrauschen, Harfe)</option>
+          <option value="v6">Waldesruh – Elbenwald (Vögel, Bach, Flöte)</option>
         </select>
       </label>
       <div class="row">
@@ -798,7 +812,10 @@
         </label>
         <div class="field meter-field"><span>Eingang</span>
           <div class="meter-row">
-            <div class="meter" aria-hidden="true"><div id="loopMeter"></div><div class="thresh" id="loopThreshMark"></div></div>
+            <div class="meter" aria-hidden="true"><canvas id="loopFlame" hidden></canvas><div id="loopMeter"></div><div class="thresh" id="loopThreshMark"></div></div>
+            <div class="seg" id="meterStyle" role="group" aria-label="Pegel-Anzeige">
+              <button class="toggle-btn" data-v="bar">Balken</button><button class="toggle-btn" data-v="fire">Flammen</button>
+            </div>
             <button class="toggle-btn" id="loopMonitor">Eingang öffnen</button>
           </div>
         </div>
@@ -997,6 +1014,8 @@
               <option value="v2">Brass &amp; Streicher</option>
               <option value="v3">Nordmeer – Wikinger</option>
               <option value="v4">Nordlicht – Eis &amp; Glas</option>
+              <option value="v5">Elbenküste – Meer &amp; Chor</option>
+              <option value="v6">Waldesruh – Elbenwald</option>
             </select>
             <label class="check lane-sync"><input type="checkbox" id="laneDroneOrn"> Verzierungen</label>
             <label class="lane-fader"><span>Pegel</span><input type="range" id="laneDroneVol" min="0" max="100" step="5" value="40" aria-label="Drone-Lautstärke"></label>
@@ -1989,18 +2008,18 @@ function startDrone() {
   if (droneOn && droneNodes) return;
   activeDroneStyle = document.getElementById('droneStyle').value;
   if (activeDroneStyle === 'v2') startDroneV2();
-  else if (activeDroneStyle === 'v3' || activeDroneStyle === 'v4') NordDrones.start(activeDroneStyle);
+  else if ((typeof NordDrones !== 'undefined' && NordDrones.has(activeDroneStyle))) NordDrones.start(activeDroneStyle);
   else startDroneV1();
 }
 function stopDrone() {
   if (activeDroneStyle === 'v2') stopDroneV2();
-  else if (activeDroneStyle === 'v3' || activeDroneStyle === 'v4') NordDrones.stop();
+  else if ((typeof NordDrones !== 'undefined' && NordDrones.has(activeDroneStyle))) NordDrones.stop();
   else stopDroneV1();
   activeDroneStyle = null;
 }
 function updateDroneFreq() {
   if (activeDroneStyle === 'v2') updateDroneFreqV2();
-  else if (activeDroneStyle === 'v3' || activeDroneStyle === 'v4') NordDrones.retune();
+  else if ((typeof NordDrones !== 'undefined' && NordDrones.has(activeDroneStyle))) NordDrones.retune();
   else updateDroneFreqV1();
 }
 
@@ -4310,14 +4329,205 @@ const NordDrones = (() => {
     return N;
   }
 
+  // ===================== V Elbenküste – Meer & Chor =====================
+  function startV5() {
+    ensureAudio();
+    const vol = parseInt(document.getElementById('droneVolume').value) / 100, t0 = ac().currentTime, k = keyMidiNotes();
+    const master = gain(0); master.connect(ensureMasterBus());
+    master.gain.setValueAtTime(0, t0); master.gain.linearRampToValueAtTime(vol, t0 + 5);
+    const hall = ac().createConvolver(); hall.buffer = hallIR(5.5, 1.8, 0.2);
+    const wet = gain(0.7); hall.connect(wet); wet.connect(master);
+    const dry = gain(0.7); dry.connect(master);
+    const send = (node, amt) => { const s = gain(amt); node.connect(s); s.connect(hall); };
+    const N = { master, voices: [], stops: [], timers: [], alive: true };
+    // Streicher-Fläche: weich, breit, langsam atmend
+    const str = filt('lowpass', 1100, 0.6), strG = gain(0.07); str.connect(strG); strG.connect(dry); send(strG, 0.9);
+    N.stops.push(lfo(0.06, 300, str.frequency), lfo(0.041, 0.025, strG.gain));
+    [['root', -6, -0.5], ['root', 6, 0.5], ['fifth', -4, -0.3], ['fifth', 5, 0.3], ['root8', 0, 0]].forEach(([role, det, pn]) => {
+      const o = osc('sawtooth', hz(k[role]), det), g = gain(role === 'root8' ? 0.5 : 0.7), pp = pan(pn);
+      N.stops.push(lfo(0.17 + Math.random() * 0.1, 3, o.detune));
+      o.connect(g); g.connect(pp); pp.connect(str); o.start(); N.voices.push({ o, role });
+    });
+    // Heller Chor („aah“ ↔ „ooh“), eine Oktave höher, wie aus der Ferne
+    const ch = gain(0.05), c1 = filt('bandpass', 800, 7), c2 = filt('bandpass', 1150, 9), c3 = filt('bandpass', 2900, 12);
+    const cg1 = gain(1), cg2 = gain(0.6), cg3 = gain(0.2), cOut = gain(1), cp = pan(0);
+    ch.connect(c1); ch.connect(c2); ch.connect(c3); c1.connect(cg1); c2.connect(cg2); c3.connect(cg3);
+    [cg1, cg2, cg3].forEach(g => g.connect(cOut)); cOut.connect(cp); cp.connect(dry); send(cp, 1.4);
+    N.stops.push(lfo(1 / 19, 260, c1.frequency), lfo(1 / 19, 380, c2.frequency), lfo(1 / 29, 0.6, cp.pan || cOut.gain), lfo(1 / 13, 0.4, cOut.gain));
+    [['root8', -7], ['root8', 8], ['fifth8', -5], ['fifth8', 6], ['root16', 0]].forEach(([role, det], i) => {
+      const m = role === 'fifth8' ? k.fifth + 12 : role === 'root16' ? k.root8 + 12 : k.root8;
+      const o = osc('sawtooth', hz(m), det), g = gain(0.6);
+      N.stops.push(lfo(5.1 + i * 0.29, 5, o.detune));
+      o.connect(g); g.connect(ch); o.start(); N.voices.push({ o, role });
+    });
+    const sub = osc('sine', hz(k.sub + 12)), subG = gain(0.08); sub.connect(subG); subG.connect(dry); sub.start(); N.voices.push({ o: sub, role: 'subUp' });
+    // Meeresrauschen: tiefe Dünung, brechende Welle, zurücklaufendes Zischen – abwechselnd links und rechts
+    const sea = noiseSrc(0.7), lowLp = filt('lowpass', 380, 0.5), lowG = gain(0.04), crash = filt('bandpass', 1400, 0.5), crashG = gain(0), hiss = filt('highpass', 3200, 0.5), hissG = gain(0), sp = pan(0);
+    sea.connect(lowLp); lowLp.connect(lowG); lowG.connect(sp);
+    sea.connect(crash); crash.connect(crashG); crashG.connect(sp);
+    sea.connect(hiss); hiss.connect(hissG); hissG.connect(sp);
+    sp.connect(dry); send(sp, 0.35); N.stops.push(sea);
+    let side = 1;
+    function wave() {
+      if (!N.alive) return;
+      const t = ac().currentTime + 0.05, rise = 3 + Math.random() * 2, fall = 4 + Math.random() * 3, pk = 0.11 + Math.random() * 0.06;
+      side = -side; if (sp.pan) sp.pan.setTargetAtTime(side * (0.2 + Math.random() * 0.35), t, 2);
+      lowG.gain.setTargetAtTime(pk, t, rise / 3); lowG.gain.setTargetAtTime(0.03, t + rise, fall / 3);
+      crashG.gain.setTargetAtTime(0, t, 0.2); crashG.gain.setTargetAtTime(pk * 0.5, t + rise * 0.85, 0.35); crashG.gain.setTargetAtTime(0, t + rise + 0.8, 1.2);
+      hissG.gain.setTargetAtTime(pk * 0.28, t + rise + 0.4, 0.6); hissG.gain.setTargetAtTime(0, t + rise + 1.6, fall / 3);
+      crash.frequency.setTargetAtTime(900 + Math.random() * 900, t, 1.5);
+      N.timers.push(setTimeout(wave, (rise + fall) * 1000 * (0.85 + Math.random() * 0.3)));
+    }
+    wave();
+    // Harfe (Verzierungen): kleine Arpeggios aus der Skala
+    function harp(t, m, amp) {
+      const f = hz(m), g = gain(0), p = pan((Math.random() - 0.5) * 1.2);
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(amp, t + 0.004); g.gain.setTargetAtTime(0, t + 0.006, 0.9);
+      [[1, 1], [2, 0.35], [3, 0.12], [4, 0.05]].forEach(([h, a]) => { const o = osc('sine', f * h), og = gain(a); o.connect(og); og.connect(g); o.start(t); o.stop(t + 4.5); });
+      g.connect(p); p.connect(dry); send(p, 1.1);
+    }
+    function harps() {
+      if (!N.alive) return;
+      if (orn()) {
+        const notes = scaleMidis(60, 86), t = ac().currentTime + 0.05;
+        if (notes.length > 6) {
+          const st = Math.floor(Math.random() * (notes.length - 6)), up = Math.random() < 0.7, n = 4 + Math.floor(Math.random() * 4);
+          for (let i = 0; i < n; i++) harp(t + i * (0.16 + Math.random() * 0.05), notes[Math.min(notes.length - 1, st + (up ? i : n - 1 - i) * (Math.random() < 0.5 ? 1 : 2))], 0.05);
+        }
+      }
+      N.timers.push(setTimeout(harps, (9 + Math.random() * 12) * 1000));
+    }
+    N.timers.push(setTimeout(harps, 4000));
+    const roleMidi = (kk, r) => r === 'fifth8' ? kk.fifth + 12 : r === 'root16' ? kk.root8 + 12 : r === 'subUp' ? kk.sub + 12 : kk[r];
+    N.retune = () => { const kk = keyMidiNotes(), t = ac().currentTime; N.voices.forEach(v => v.o.frequency.setTargetAtTime(hz(roleMidi(kk, v.role)), t, 0.6)); };
+    return N;
+  }
+
+  // ===================== VI Waldesruh – Elbenwald =====================
+  function startV6() {
+    ensureAudio();
+    const vol = parseInt(document.getElementById('droneVolume').value) / 100, t0 = ac().currentTime, k = keyMidiNotes();
+    const master = gain(0); master.connect(ensureMasterBus());
+    master.gain.setValueAtTime(0, t0); master.gain.linearRampToValueAtTime(vol, t0 + 5);
+    const hall = ac().createConvolver(); hall.buffer = hallIR(3.6, 2.4, 0.25);      // Wald: kürzer, weicher Raum
+    const wet = gain(0.5); hall.connect(wet); wet.connect(master);
+    const dry = gain(0.75); dry.connect(master);
+    const send = (node, amt) => { const s = gain(amt); node.connect(s); s.connect(hall); };
+    const N = { master, voices: [], stops: [], timers: [], alive: true };
+    // Warme Fläche: tiefe Streicher und weiches Horn
+    const lp = filt('lowpass', 750, 0.7), padG = gain(0.085); lp.connect(padG); padG.connect(dry); send(padG, 0.7);
+    N.stops.push(lfo(0.05, 180, lp.frequency), lfo(0.033, 0.02, padG.gain));
+    [['sub', 0, 0.6], ['root', -5, 0.8], ['root', 5, 0.8], ['fifth', 0, 0.6], ['third', -3, 0.35]].forEach(([role, det, a]) => {
+      const m = role === 'third' ? k.pianoChord[1] - 12 : k[role];
+      const o = osc(role === 'sub' ? 'triangle' : 'sawtooth', hz(m), det), g = gain(a);
+      o.connect(g); g.connect(lp); o.start(); N.voices.push({ o, role });
+    });
+    // Blätterrauschen im Wind
+    const lv = noiseSrc(2.9), lbp = filt('bandpass', 4200, 0.6), lg = gain(0.012), lpan = pan(0);
+    lv.connect(lbp); lbp.connect(lg); lg.connect(lpan); lpan.connect(dry); send(lpan, 0.3);
+    N.stops.push(lv, lfo(0.07, 1200, lbp.frequency), lfo(0.023, 0.7, lpan.pan || lg.gain));
+    function breeze() {
+      if (!N.alive) return;
+      const t = ac().currentTime + 0.05, a = 0.012 + Math.random() * 0.03, d = 2.5 + Math.random() * 4;
+      lg.gain.setTargetAtTime(a, t, d / 3); lg.gain.setTargetAtTime(0.01, t + d, d / 2);
+      N.timers.push(setTimeout(breeze, (d * 1.5 + Math.random() * 4) * 1000));
+    }
+    breeze();
+    // Bach: leises Plätschern (Rauschen) und Bläschen
+    const br = noiseSrc(4.4), brLp = filt('bandpass', 700, 0.8), brG = gain(0.018), brP = pan(-0.45);
+    br.connect(brLp); brLp.connect(brG); brG.connect(brP); brP.connect(dry); send(brP, 0.25);
+    N.stops.push(br, lfo(0.31, 220, brLp.frequency), lfo(0.53, 0.006, brG.gain));
+    let nextBub = 0;
+    function bubbles() {
+      if (!N.alive) return;
+      const now = ac().currentTime; if (!nextBub) nextBub = now + 0.1;
+      while (nextBub < now + 0.25) {
+        const t = nextBub, f = 380 + Math.random() * 900, o = osc('sine', f), g = gain(0), d = 0.012 + Math.random() * 0.03;
+        o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * (1.6 + Math.random()), t + d);
+        g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.012 + Math.random() * 0.012, t + 0.003); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+        o.connect(g); g.connect(brP); o.start(t); o.stop(t + d + 0.02);
+        nextBub += 0.03 + Math.random() * 0.12;
+      }
+      N.timers.push(setTimeout(bubbles, 120));
+    }
+    bubbles();
+    // Vögel: verschiedene Arten – Triller, Pfiffe, Rufpaare – an wechselnden Plätzen
+    function chirp(t, f0, f1, d, amp, p) {
+      const o = osc('sine', f0), g = gain(0), m = osc('sine', 30 + Math.random() * 40), mg = gain(f0 * 0.04);
+      o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + d);
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(amp, t + d * 0.15); g.gain.setTargetAtTime(0, t + d * 0.6, d * 0.25);
+      m.connect(mg); mg.connect(o.frequency);
+      o.connect(g); g.connect(p); o.start(t); m.start(t); o.stop(t + d + 0.1); m.stop(t + d + 0.1);
+    }
+    const birdBus = gain(1); birdBus.connect(dry); send(birdBus, 0.8);
+    function bird() {
+      if (!N.alive) return;
+      const t = ac().currentTime + 0.05, p = pan((Math.random() - 0.5) * 1.6); p.connect(birdBus);
+      const dist = 0.4 + Math.random() * 0.6, amp = 0.02 * dist, kind = Math.random();
+      if (kind < 0.35) {                       // Triller
+        const f = 3200 + Math.random() * 2500, n = 5 + Math.floor(Math.random() * 9), sp = 0.045 + Math.random() * 0.03;
+        for (let i = 0; i < n; i++) chirp(t + i * sp, f * (1 + 0.04 * Math.sin(i)), f * 1.25, sp * 0.8, amp, p);
+      } else if (kind < 0.65) {                // Pfiff, fallend oder steigend
+        const f = 2200 + Math.random() * 1800, up = Math.random() < 0.5;
+        chirp(t, f, up ? f * 1.5 : f * 0.7, 0.25 + Math.random() * 0.25, amp * 1.1, p);
+        if (Math.random() < 0.6) chirp(t + 0.45, up ? f * 1.1 : f * 0.8, up ? f * 1.6 : f * 0.6, 0.22, amp, p);
+      } else if (kind < 0.85) {                // Ruf-Paar (Kuckuck-ähnlich, tief)
+        const f = 900 + Math.random() * 400;
+        chirp(t, f * 1.26, f * 1.2, 0.22, amp * 0.9, p); chirp(t + 0.38, f, f * 0.95, 0.3, amp * 0.9, p);
+      } else {                                  // schnelles Zwitschern
+        for (let i = 0; i < 4; i++) { const f = 4000 + Math.random() * 3000; chirp(t + i * 0.09 + Math.random() * 0.03, f, f * (0.7 + Math.random() * 0.6), 0.06, amp * 0.8, p); }
+      }
+      N.timers.push(setTimeout(bird, (2 + Math.random() * 6) * 1000));
+    }
+    N.timers.push(setTimeout(bird, 1800));
+    // Flöte (Verzierungen): ruhige pentatonische Phrasen, gehaucht, mit verzögertem Vibrato
+    function flute(t, m, d) {
+      const f = hz(m), o = osc('sine', f), o2 = osc('sine', f * 2), g = gain(0), g2 = gain(0.12), vib = osc('sine', 5.2), vg = gain(0);
+      vg.gain.setValueAtTime(0, t); vg.gain.linearRampToValueAtTime(f * 0.006, t + d * 0.6);
+      vib.connect(vg); vg.connect(o.frequency);
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.045, t + 0.08); g.gain.setValueAtTime(0.045, t + d - 0.12); g.gain.linearRampToValueAtTime(0, t + d);
+      const br = noiseSrc(Math.random() * 5), bf = filt('bandpass', f * 2, 2), bg = gain(0);
+      bg.gain.setValueAtTime(0, t); bg.gain.linearRampToValueAtTime(0.02, t + 0.03); bg.gain.setTargetAtTime(0.004, t + 0.08, 0.1); bg.gain.linearRampToValueAtTime(0, t + d);
+      br.connect(bf); bf.connect(bg); bg.connect(fl);
+      o.connect(g); o2.connect(g2); g2.connect(g); g.connect(fl);
+      [o, o2, vib].forEach(x => { x.start(t); x.stop(t + d + 0.05); }); br.stop(t + d + 0.05);
+    }
+    const fl = pan(0.15); fl.connect(dry); send(fl, 1.0);
+    function phrase() {
+      if (!N.alive) return;
+      if (orn()) {
+        const all = scaleMidis(74, 91), kk = keyMidiNotes(), root = kk.root % 12;
+        const iv = MODES[(window.droneKeyOverride && window.droneKeyOverride.mode) || modeSel.value];
+        const penta = all.filter(m => [0, iv[1], iv[2], iv[4], iv[5]].includes(((m - root) % 12 + 12) % 12));
+        if (penta.length > 3) {
+          let i = Math.floor(Math.random() * (penta.length - 3)), t = ac().currentTime + 0.1;
+          const n = 3 + Math.floor(Math.random() * 4), bt = 60 / bpm();
+          for (let j = 0; j < n; j++) {
+            const d = bt * (j === n - 1 ? 2 + Math.random() * 1.5 : [0.5, 1, 1, 1.5][Math.floor(Math.random() * 4)]);
+            flute(t, penta[i], d); t += d;
+            i = Math.max(0, Math.min(penta.length - 1, i + [-1, 1, 1, -2, 2][Math.floor(Math.random() * 5)]));
+          }
+          if (Math.random() < 0.5) flute(t, penta.find(m => ((m - root) % 12 + 12) % 12 === 0) || penta[0], bt * 3);
+        }
+      }
+      N.timers.push(setTimeout(phrase, (14 + Math.random() * 14) * 1000));
+    }
+    N.timers.push(setTimeout(phrase, 6000));
+    const roleMidi = (kk, r) => r === 'third' ? kk.pianoChord[1] - 12 : kk[r];
+    N.retune = () => { const kk = keyMidiNotes(), t = ac().currentTime; N.voices.forEach(v => v.o.frequency.setTargetAtTime(hz(roleMidi(kk, v.role)), t, 0.6)); };
+    return N;
+  }
+
+  const NAMES = { v3: 'Nordmeer – Wikinger', v4: 'Nordlicht – Eis & Glas', v5: 'Elbenküste – Meer & Chor', v6: 'Waldesruh – Elbenwald' };
+  const STARTS = { v3: () => startV3(), v4: () => startV4(), v5: () => startV5(), v6: () => startV6() };
   let cur = null;
   function start(style) {
     if (cur) stop(true);
-    cur = style === 'v3' ? startV3() : startV4();
+    cur = (STARTS[style] || STARTS.v4)();
     cur.style = style;
     droneNodes = cur; droneOn = true;
     btnOn(true);
-    setStatus('An — ' + droneKeyText() + (style === 'v3' ? ' (Nordmeer – Wikinger)' : ' (Nordlicht – Eis & Glas)'));
+    setStatus('An — ' + droneKeyText() + ' (' + NAMES[style] + ')');
   }
   function stop(quiet) {
     const N = cur; if (!N) return;
@@ -4328,8 +4538,8 @@ const NordDrones = (() => {
     setTimeout(() => { N.voices.forEach(v => { try { v.o.stop(); } catch (e) {} }); N.stops.forEach(o => { try { o.stop(); } catch (e) {} }); try { N.master.disconnect(); } catch (e) {} }, 1400);
     if (!quiet) { droneNodes = null; droneOn = false; btnOn(false); setStatus('Aus'); }
   }
-  function retune() { if (cur && cur.retune) { cur.retune(); setStatus('An — ' + droneKeyText() + (cur.style === 'v3' ? ' (Nordmeer – Wikinger)' : ' (Nordlicht – Eis & Glas)')); } }
-  return { start, stop, retune };
+  function retune() { if (cur && cur.retune) { cur.retune(); setStatus('An — ' + droneKeyText() + ' (' + NAMES[cur.style] + ')'); } }
+  return { start, stop, retune, has: st => !!STARTS[st] };
 })();
 
 </script>
@@ -4461,6 +4671,63 @@ const Looper = (() => {
   $('root').addEventListener('change', syncDrone); $('mode').addEventListener('change', syncDrone);
   function droneFollow(start) { if (dSync.checked) setDrone(start); }
   applyDroneKey();
+
+  // ---- Eingangspegel als Flammen (abschaltbar: „Balken“ spart Rechenzeit) ----
+  const fireCv = $('loopFlame'), meterBox = meterEl.parentNode;
+  const fire = { on: false, live: false, W: 220, H: 38, t: 0, heat: null, img: null, ctx: null, pal: null, d32: null };
+  function firePalette() {
+    const stops = [[0, 0, 0, 0], [70, 8, 2, 110], [150, 24, 4, 210], [205, 55, 8, 245], [235, 95, 14, 255], [248, 140, 28, 255], [252, 180, 55, 255], [255, 212, 110, 255], [255, 236, 180, 255], [255, 250, 230, 255]];
+    const pal = new Uint32Array(37);
+    for (let i = 0; i < 37; i++) {
+      const x = i / 36 * (stops.length - 1), a = Math.floor(x), f = x - a, A = stops[a], B = stops[Math.min(stops.length - 1, a + 1)];
+      const c = A.map((v, k) => Math.round(v + (B[k] - v) * f));
+      pal[i] = (c[3] << 24) | (c[2] << 16) | (c[1] << 8) | c[0];
+    }
+    return pal;
+  }
+  function setMeterStyle(v) {
+    fire.on = v === 'fire';
+    meterBox.classList.toggle('fire', fire.on); fireCv.hidden = !fire.on;
+    $('meterStyle').querySelectorAll('[data-v]').forEach(b => b.classList.toggle('active', b.dataset.v === v));
+    if (fire.on && !fire.ctx) {
+      fireCv.width = fire.W; fireCv.height = fire.H;
+      fire.ctx = fireCv.getContext('2d'); fire.img = fire.ctx.createImageData(fire.W, fire.H);
+      fire.d32 = new Uint32Array(fire.img.data.buffer); fire.heat = new Uint8Array(fire.W * fire.H); fire.pal = firePalette();
+    }
+    if (!fire.on) meterEl.style.width = '0%';
+    savePref('3nps-meterstyle', v); kick();
+  }
+  $('meterStyle').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if (b) setMeterStyle(b.dataset.v); });
+  function drawFire(lv) {
+    const { W, H, heat, d32, pal } = fire, src = Math.round(lv * W), hot = lv > 0.97;
+    fire.t += 0.033;
+    const t = fire.t;
+    let any = false;
+    for (let x = 0; x < W; x++) {
+      const i = (H - 1) * W + x;
+      if (x < src) {
+        // Flammenzungen: langsam wandernde „Brennstoff“-Verteilung, zur Pegelspitze hin schmaler
+        let fuel = 0.5 + 0.5 * Math.sin(x * 0.16 + t * 2.1 + Math.sin(x * 0.05 - t * 0.9) * 2.2);
+        fuel = Math.pow(fuel, 1.6) * (0.75 + 0.25 * Math.sin(x * 0.043 - t * 1.3));
+        const edge = Math.min(1, (src - x) / 12);
+        heat[i] = Math.min(36, Math.round((hot ? 36 : 9 + 27 * fuel + Math.random() * 3) * (0.45 + 0.55 * edge)));
+        heat[i - W] = Math.max(heat[i - W], heat[i] - 2);
+      } else heat[i] = heat[i] > 3 ? heat[i] - 3 : 0;
+    }
+    for (let y = 0; y < H - 2; y++) {
+      for (let x = 0; x < W; x++) {
+        const v = heat[(y + 1) * W + x];
+        if (!v) { heat[y * W + x] = 0; continue; }
+        const r = (Math.random() * 4) | 0, dx = Math.min(W - 1, Math.max(0, x - (r & 1) + (r >> 1)));
+        const dec = (Math.random() < 0.64 ? 1 : 0) + (Math.random() < 0.06 ? 1 : 0);
+        heat[y * W + dx] = v > dec ? v - dec : 0;
+      }
+    }
+    for (let i = 0; i < W * H; i++) { const v = heat[i]; d32[i] = pal[v]; if (v) any = true; }
+    fire.ctx.putImageData(fire.img, 0, 0);
+    fire.live = any;
+  }
+  setMeterStyle(loadPref('3nps-meterstyle', 'fire'));
 
   // ---- Mikrofon ----
   const monBtn = $('loopMonitor');
@@ -5386,7 +5653,7 @@ const Looper = (() => {
       const C = css || (css = colors());
       tracks.forEach(t => { drawRing(t, C); drawWave(t, C); });
       drawEditor(C);
-      meterEl.style.width = (toMeter(level) * 100) + '%';
+      if (fire.on) drawFire(toMeter(level)); else meterEl.style.width = (toMeter(level) * 100) + '%';
       meterEl.style.backgroundSize = (meterEl.parentNode.clientWidth || 200) + 'px 100%';
       meterEl.classList.toggle('hot', !!rec && !rec.armed);
       threshMark.style.left = (toMeter(threshold()) * 100) + '%';
@@ -5406,7 +5673,7 @@ const Looper = (() => {
       level *= 0.8;
     }
     tracks.forEach(t => { if (t.foot.dataset.state !== footState(t)) update(); });
-    const active = anyRunning() || rec || level > 0.001 || tracks.some(t => t.peakHold > 0.5) || ed.drag || countEnd > nowFrame();
+    const active = anyRunning() || rec || fire.live || level > 0.001 || tracks.some(t => t.peakHold > 0.5) || ed.drag || countEnd > nowFrame();
     if (active) { if (visible) rafId = requestAnimationFrame(tick); else { rafId = 1; setTimeout(() => { rafId = null; tick(); }, 250); } }
   }
   tracks.forEach(t => { new ResizeObserver(kick).observe(t.ring); new ResizeObserver(kick).observe(t.wave); });

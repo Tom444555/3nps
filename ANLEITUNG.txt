@@ -25,6 +25,8 @@ Alles geht direkt auf dem iPad, ohne Computer.
      das Mikrofon leider nicht dauerhaft – nach einem Neustart der App kommt die Frage wieder.
      Nach dem Sperren des iPads öffnet die App das Mikrofon beim nächsten Aufnehmen neu.
    - Unter jeder Spur: „Pegel“ (Wiedergabe) und „Eingang“ (Aufnahme-Verstärkung, −12 bis +24 dB).
+   - Eingangspegel oben im Looper: „Flammen“ oder „Balken“ umschaltbar. Die Balken-Anzeige
+     braucht weniger Rechenzeit (gut für ältere iPads).
      Die App regelt die Lautstärke nicht selbst. Ganz unten: „Gesamt“ und der Schalter „Limiter“
      (schützt vor Übersteuern; aus = kein automatisches Eingreifen).
    - Mit Kopfhörern wird der Loop nicht mit aufgenommen.
@@ -90,7 +92,9 @@ Alles geht direkt auf dem iPad, ohne Computer.
      die erkannte Tonart einer Spur.
    - Vier Klänge: Pad & Chor, Brass & Streicher, „Nordmeer – Wikinger“ (Bordun, tiefer Chor,
      Wind, Brandung, Kriegstrommeln im Takt und ein Horn) und „Nordlicht – Eis & Glas“
-     (schwebende Flächen, gläserne Glocken aus der Skala, eisiger Wind).
+     (schwebende Flächen, gläserne Glocken aus der Skala, eisiger Wind), „Elbenküste – Meer & Chor“
+     (Streicher, heller Chor, Meeresrauschen, Harfen-Arpeggios) und „Waldesruh – Elbenwald“
+     (warme Fläche, Vögel, Blätterrauschen, Bach, Flötenmotive).
      „Verzierungen“ schaltet Trommeln, Hornrufe und Glockenläufe zu oder ab.
    - Mit Haken bei „startet mit Alle starten“ läuft die Drone mit dem Loop an und aus.
 
