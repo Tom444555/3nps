@@ -49,13 +49,17 @@ Alles geht direkt auf dem iPad, ohne Computer.
      wenn angehakt – auch vor dem Abspielen. „Alle stoppen“ bricht ihn ab.
 
 5. M-VAVE Chocolate verbinden
-   - Das Pedal in den Tastatur-Modus „Keyboard A“ (Pfeiltasten) oder „Keyboard B“
-     (Bild auf/ab, Leertaste, Enter) schalten – wie, steht im Handbuch des Pedals.
-   - iPad-Einstellungen → Bluetooth → Pedal koppeln.
-   - In der App im Looper-Tab unter „Fußpedal“ dieselbe Belegung wählen.
-     Taster A/B/C = Spur 1/2/3, Taster D = alle starten/stoppen.
-     Taster gedrückt halten = Rückgängig.
-   - Unter „Zuletzt“ siehst du, welche Taste das Pedal gerade gesendet hat.
+   - Wichtig: Safari auf dem iPad kann kein Bluetooth-MIDI empfangen. Das Pedal muss deshalb
+     im Tastatur-Modus laufen: in der App „CubeSuite“ (App Store, von M-VAVE) den Modus
+     „Keyboard A“ (Pfeiltasten) oder „Keyboard B“ (Bild auf/ab, Leertaste, Enter) wählen.
+   - CubeSuite danach ganz schließen (nach oben wegwischen), damit sie das Pedal freigibt.
+   - iPad-Einstellungen → Bluetooth → „FootCtrl“ verbinden. War es schon gekoppelt:
+     (i) → „Dieses Gerät ignorieren“ und neu verbinden.
+   - Schnelltest außerhalb der App: in „Notizen“ Text tippen, dann Pedal treten – der Cursor
+     springt (Keyboard A) bzw. die Seite blättert (Keyboard B). Passiert nichts, sendet es noch MIDI.
+   - In der App unter „Fußpedal“: Belegung „Automatisch“ versteht Keyboard A und B.
+     A = Spur 1, B = Spur 2, C = Spur 3, D = alle starten/stoppen. Gedrückt halten = Rückgängig.
+   - „Zuletzt“ zeigt bei jedem Tritt, welche Taste ankommt und was sie auslöst.
 
 6. Export für Logic Pro
    - Im Looper auf „Für Logic exportieren“ tippen. Das Teilen-Menü öffnet sich mit einer ZIP-Datei.

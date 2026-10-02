@@ -439,6 +439,9 @@
   #drumSwing:disabled { opacity: .35; }
 
   .ed-inline { align-self: center; margin-right: 4px; }
+
+  #pedalLast.hit { background: #e2a050; color: #170c00; box-shadow: 0 0 12px rgba(226,160,80,.6); }
+  #pedalLast { transition: background .2s, color .2s; white-space: normal; }
   /* ===== Rost & Stahl: Hintergrund aus gerostetem Blech, darauf verschraubte Stahlplatten ===== */
   :root {
     --plate-hi: #3a3a40;
@@ -631,7 +634,7 @@
 <body>
 <header class="control-bar">
   <div class="cb-inner">
-    <div class="brand">3nps <span>Übungsprogramm · v13</span></div>
+    <div class="brand">3nps <span>Übungsprogramm · v13.1</span></div>
     <div class="transport">
       <button class="tbtn" id="playBtn" aria-label="Metronom starten oder stoppen">▶</button>
     </div>
@@ -1033,6 +1036,7 @@
         <h2>Fußpedal</h2>
         <label class="field"><span>Belegung</span>
           <select id="pedalPreset">
+            <option value="auto">M-VAVE Chocolate · Automatisch (Keyboard A und B)</option>
             <option value="a">M-VAVE Chocolate · Keyboard A (Pfeiltasten)</option>
             <option value="b">M-VAVE Chocolate · Keyboard B (Bild, Leertaste, Enter)</option>
             <option value="custom">Eigene Belegung anlernen</option>
@@ -1040,8 +1044,8 @@
         </label>
         <div class="pedal-map" id="pedalMap"></div>
         <label class="check"><input type="checkbox" id="pedalHold"> Taster halten = Rückgängig</label>
-        <div class="row"><span class="lbl">Zuletzt</span><kbd id="pedalLast">–</kbd></div>
-        <p class="pattern-desc">Schalte das Pedal in den Tastatur-Modus und kopple es in den iPad-Einstellungen unter Bluetooth. Es funktioniert in allen Tabs. Die Tasten 1, 2 und 3 steuern die Spuren immer.</p>
+        <div class="row"><span class="lbl">Zuletzt</span><kbd id="pedalLast">noch keine Taste empfangen</kbd></div>
+        <p class="pattern-desc">Das Pedal muss im Tastatur-Modus sein (in der App CubeSuite „Keyboard A“ oder „Keyboard B“ wählen) und in den iPad-Einstellungen unter Bluetooth verbunden sein. MIDI-Modi kann Safari auf dem iPad nicht empfangen. Bei jedem Tritt zeigt „Zuletzt“, welche Taste ankommt – bleibt es leer, sendet das Pedal noch MIDI.</p>
       </div>
     </div>
 
@@ -6281,6 +6285,18 @@ const Pedal = (() => {
     a: { foot0: 'ArrowUp', foot1: 'ArrowDown', foot2: 'ArrowLeft', all: 'ArrowRight' },
     b: { foot0: 'PageUp', foot1: 'PageDown', foot2: ' ', all: 'Enter' }
   };
+  // Automatisch: Keyboard A und B gleichzeitig (egal, welchen Tastatur-Modus das Pedal gerade hat)
+  const AUTO = { ArrowUp: 'foot0', PageUp: 'foot0', ArrowDown: 'foot1', PageDown: 'foot1', ArrowLeft: 'foot2', ' ': 'foot2', ArrowRight: 'all', Enter: 'all' };
+  // iPadOS meldet Pfeil-/Bildtasten je nach Version mit eigenen Namen – alles auf die Standardnamen bringen
+  const ALIAS = { UIKeyInputUpArrow: 'ArrowUp', UIKeyInputDownArrow: 'ArrowDown', UIKeyInputLeftArrow: 'ArrowLeft', UIKeyInputRightArrow: 'ArrowRight',
+    UIKeyInputPageUp: 'PageUp', UIKeyInputPageDown: 'PageDown', UIKeyInputEscape: 'Escape', Up: 'ArrowUp', Down: 'ArrowDown', Left: 'ArrowLeft', Right: 'ArrowRight', Spacebar: ' ' };
+  const CODES = { 38: 'ArrowUp', 40: 'ArrowDown', 37: 'ArrowLeft', 39: 'ArrowRight', 33: 'PageUp', 34: 'PageDown', 32: ' ', 13: 'Enter' };
+  function normKey(e) {
+    let k = e.key;
+    if (ALIAS[k]) k = ALIAS[k];
+    if (!k || k === 'Unidentified' || k === 'Process') k = CODES[e.keyCode] || (e.code === 'Space' ? ' ' : e.code) || '';
+    return k;
+  }
   const FALLBACK = { '1': 'foot0', '2': 'foot1', '3': 'foot2' };
   const NAMES = { ArrowUp: 'Pfeil ↑', ArrowDown: 'Pfeil ↓', ArrowLeft: 'Pfeil ←', ArrowRight: 'Pfeil →', PageUp: 'Bild ↑', PageDown: 'Bild ↓', ' ': 'Leertaste', Enter: 'Enter', Escape: 'Esc', Tab: 'Tab' };
   const keyName = k => NAMES[k] || (k.length === 1 ? k.toUpperCase() : k);
@@ -6288,19 +6304,21 @@ const Pedal = (() => {
   function save(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
 
   const presetEl = $('pedalPreset'), holdEl = $('pedalHold'), lastEl = $('pedalLast'), listEl = $('pedalMap');
-  let preset = load('3nps-pedal-preset', 'a');
+  let preset = load('3nps-pedal-preset', 'auto');
+  if (!['auto', 'a', 'b', 'custom'].includes(preset)) preset = 'auto';
   let custom = {}; try { custom = JSON.parse(load('3nps-pedal-custom', '{}')) || {}; } catch (e) {}
   holdEl.checked = load('3nps-pedal-hold', '1') === '1';
   presetEl.value = preset;
   let learning = null;
-  const map = () => preset === 'custom' ? Object.assign({}, PRESETS.a, custom) : PRESETS[preset];
+  const map = () => preset === 'custom' ? Object.assign({}, PRESETS.a, custom) : preset === 'auto' ? PRESETS.a : PRESETS[preset];
+  const showKeys = id => preset === 'auto' ? keyName(PRESETS.a[id]) + ' / ' + keyName(PRESETS.b[id]) : keyName(map()[id] || '–');
 
   function render() {
     const m = map();
     listEl.innerHTML = ACTIONS.map(a => `
       <div class="pedal-row">
         <span class="pedal-act">${a.label}</span>
-        <kbd>${learning === a.id ? 'Pedal drücken …' : keyName(m[a.id] || '–')}</kbd>
+        <kbd>${learning === a.id ? 'Pedal drücken …' : showKeys(a.id)}</kbd>
         <button class="toggle-btn" data-learn="${a.id}" ${preset !== 'custom' ? 'hidden' : ''}>${learning === a.id ? 'Abbrechen' : 'Anlernen'}</button>
       </div>`).join('');
   }
@@ -6312,26 +6330,32 @@ const Pedal = (() => {
   holdEl.addEventListener('change', () => save('3nps-pedal-hold', holdEl.checked ? '1' : '0'));
 
   const down = {};
-  document.addEventListener('keydown', e => {
+  let flashT = 0;
+  window.addEventListener('keydown', e => {
     if (e.target.closest && e.target.closest('input[type="text"], textarea')) return;
     if (e.metaKey || e.ctrlKey || e.altKey) return;
-    lastEl.textContent = keyName(e.key);
+    const key = normKey(e);
     if (learning) {
       e.preventDefault();
-      custom[learning] = e.key; save('3nps-pedal-custom', JSON.stringify(custom));
+      custom[learning] = key; save('3nps-pedal-custom', JSON.stringify(custom));
+      lastEl.textContent = keyName(key);
       learning = null; render(); return;
     }
     const m = map();
-    let id = Object.keys(m).find(k => m[k] === e.key) || FALLBACK[e.key];
-    if (!id) return;
+    let id = preset === 'auto' ? AUTO[key] : Object.keys(m).find(k => m[k] === key);
+    id = id || FALLBACK[key];
+    const a = id ? ACTIONS.find(x => x.id === id) : null;
+    lastEl.textContent = keyName(key) + (a ? ' → ' + a.label : ' (nicht belegt)');
+    lastEl.classList.add('hit'); clearTimeout(flashT); flashT = setTimeout(() => lastEl.classList.remove('hit'), 250);
+    if (!a) return;
     e.preventDefault();
     if (e.repeat) return;
-    const a = ACTIONS.find(x => x.id === id);
-    down[e.key] = { t: performance.now(), a };
+    down[key] = { t: performance.now(), a };
     a.run();
-  });
-  document.addEventListener('keyup', e => {
-    const d = down[e.key]; delete down[e.key];
+  }, true);
+  window.addEventListener('keyup', e => {
+    const key = normKey(e);
+    const d = down[key]; delete down[key];
     if (!d || !holdEl.checked || !d.a.hold) return;
     if (performance.now() - d.t >= 800) d.a.hold();
   });
