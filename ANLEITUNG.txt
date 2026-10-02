@@ -4,12 +4,12 @@
 Alles geht direkt auf dem iPad, ohne Computer.
 
 1. ZIP entpacken
-   In der Dateien-App auf die ZIP tippen. Es entsteht ein Ordner mit 16 Dateien.
+   In der Dateien-App auf die ZIP tippen. Es entsteht ein Ordner mit 17 Dateien.
 
 2. Kostenlos online stellen (GitHub Pages)
    - Auf github.com ein kostenloses Konto anlegen.
    - Oben rechts „+“ → „New repository“, Name z. B. 3nps, „Public“ lassen, „Create repository“.
-   - Auf „uploading an existing file“ tippen und alle 16 Dateien aus dem Ordner auswählen
+   - Auf „uploading an existing file“ tippen und alle 17 Dateien aus dem Ordner auswählen
      (index.html, sw.js, manifest.webmanifest und die PNG-Bilder). „Commit changes“.
    - „Settings“ → links „Pages“ → bei „Branch“ „main“ und „/ (root)“ wählen → „Save“.
    - Nach 1–2 Minuten erscheint dort die Adresse, z. B. https://DEINNAME.github.io/3nps/
@@ -21,14 +21,30 @@ Alles geht direkt auf dem iPad, ohne Computer.
 
 4. Looper
    - Beim ersten Aufnehmen fragt das iPad nach dem Mikrofon: „Erlauben“ tippen.
+     Die App fragt höchstens einmal pro Start. Als Home-Bildschirm-App erlaubt iPadOS
+     das Mikrofon leider nicht dauerhaft – nach einem Neustart der App kommt die Frage wieder.
+     Nach dem Sperren des iPads öffnet die App das Mikrofon beim nächsten Aufnehmen neu.
+   - Unter jeder Spur: „Pegel“ (Wiedergabe) und „Eingang“ (Aufnahme-Verstärkung, −12 bis +24 dB).
+     Die App regelt die Lautstärke nicht selbst. Ganz unten: „Gesamt“ und der Schalter „Limiter“
+     (schützt vor Übersteuern; aus = kein automatisches Eingreifen).
    - Mit Kopfhörern wird der Loop nicht mit aufgenommen.
    - Sitzen Overdubs nicht im Takt, den Regler „Latenz“ verschieben.
+   - Erste Aufnahme ohne Klick/Vorzähler: Die App erkennt nach dem Stoppen Tempo und Takt-Eins
+     aus deinem Spiel und taktet den Loop auf ganze Takte ein (Meldung „eingetaktet“).
    - Über ♫ an jeder Spur lässt sich eine Audiodatei aus der Dateien-App laden.
-     Die App erkennt, ob es ein fertiger Loop ist (bleibt unverändert, Tempo wird exakt
-     übernommen) oder ein Song (Taktraster über die ganze Datei, Ausschnitt wählbar).
+     Bei Dateien über 20 Sekunden fragt die App vorher: ganze Datei (Standard) oder Ausschnitt
+     (ab Takt … für … Takte). Die App erkennt, ob es ein fertiger Loop ist (bleibt unverändert,
+     Tempo wird exakt übernommen) oder ein Song (Taktraster über die ganze Datei).
+   - Läuft schon ein Loop, wird eine neue Datei ins Tempo des Loops gedehnt – die Tonhöhe bleibt –
+     und automatisch fein an die anderen Spuren angeglichen.
    - Mit ✂ öffnet sich der Editor. „Prüfen“ zeigt, ob der Loop ganze Takte hat, Takt 1
      am Anfang liegt und der Übergang sauber ist. „Nacharbeiten“ korrigiert das.
      Liegt das erkannte Tempo eine Oktave daneben: „½ Tempo“ oder „2× Tempo“.
+     Liegt die Takt-Eins daneben: „Takt-Eins falsch? ◀ / ▶ 1 Schlag“ verschiebt das Raster.
+     „Feinabgleich“ legt die Anschläge der Spur genau auf die der anderen Spuren.
+   - Im Editor: +/− oder zwei Finger zoomen, unten in der Übersicht blättern,
+     oben in der Zeitleiste tippen = dorthin springen, „▶ ab Auswahl“ spielt ab dem Griff.
+     Auch ein Tipp auf die kleine Wellenform unter dem Taktkreis springt an diese Stelle.
    - Vorzähler (Einstellungen „Aufnahme“): 1, 2, 4 oder 8 Takte vor der Aufnahme und –
      wenn angehakt – auch vor dem Abspielen. „Alle stoppen“ bricht ihn ab.
 
@@ -49,18 +65,26 @@ Alles geht direkt auf dem iPad, ohne Computer.
      und eine „LIES MICH“ mit den Schritten für Logic.
    - Der Name im Feld „Ideen“ wird zum Namen des Pakets.
 
-7. Drums und Drum Designer
-   - Unter den Spuren: „Drums an“ startet den Groove, immer im Takt des Loops.
-   - 14 Vorlagen (Rock, Pop, Funk, Shuffle, Hip-Hop, Disco, Four on the Floor, Bossa,
-     Reggae, Metal, Ballade, Wikinger-Trommeln, Halftime, Nur Hi-Hat).
-   - „Designer“ öffnet das Raster: 8 Instrumente × 16 Schritte. Feld antippen: an → betont → aus.
-     Instrumentname antippen = stumm. Swing-Regler für Shuffle-Gefühl, „Vorhören“ spielt einen Takt.
-   - Jede Änderung wird als „Eigenes Muster“ gespeichert und beim Logic-Export als MIDI-Drumspur mitgegeben.
+7. Drums und Drum Designer (im Looper und im Tab „Begleitung“)
+   - „Drums an“ startet den Groove – im Looper immer im Takt des Loops, in der Begleitung frei im Tempo.
+   - Über 30 Vorlagen, gruppiert: Blues (Texas/Chicago Shuffle, Slow Blues 12/8, Half-Time Shuffle,
+     Boogie, Jump Blues, Train Beat, Funky Blues, Delta Stomp …), Rock & Pop, Funk & Soul,
+     Latin & Welt, Elektronisch, Wikinger-Trommeln.
+   - Neues Schlagzeug: 12 Instrumente mit mehreren Anschlagstärken, Raumklang und Stereobild.
+   - „Designer“: Raster 16tel (gerade) oder Triolen (Shuffle/12/8). Feld antippen: an → betont →
+     leise (Ghost) → aus. Instrumentname antippen = stumm. „Swing“, „Gefühl“ (menschliche
+     Schwankungen) und automatische Fills (alle 4, 8 oder 12 Takte, danach Becken auf der Eins).
+   - Eigene Muster werden gespeichert und beim Logic-Export als MIDI-Drumspur mitgegeben.
+   - In der Begleitung spielt der Bass jetzt mit der Kick der Drums.
 
-8. Drone-Spur
+8. Drone-Spur (im Looper und im Tab „Begleitung“)
    - „Drone an“ legt den Drone-Klang unter den Loop, ein- und ausschaltbar mit einem Tipp.
    - Grundton und Dur/Moll frei wählbar oder „wie Skala“. „Tonart aus Spur“ übernimmt
-     die erkannte Tonart einer Spur. Klang: Pad & Chor oder Brass & Streicher.
+     die erkannte Tonart einer Spur.
+   - Vier Klänge: Pad & Chor, Brass & Streicher, „Nordmeer – Wikinger“ (Bordun, tiefer Chor,
+     Wind, Brandung, Kriegstrommeln im Takt und ein Horn) und „Nordlicht – Eis & Glas“
+     (schwebende Flächen, gläserne Glocken aus der Skala, eisiger Wind).
+     „Verzierungen“ schaltet Trommeln, Hornrufe und Glockenläufe zu oder ab.
    - Mit Haken bei „startet mit Alle starten“ läuft die Drone mit dem Loop an und aus.
 
 9. Eingangspegel
