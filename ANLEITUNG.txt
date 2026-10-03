@@ -1,16 +1,16 @@
-3nps-Übungsprogramm als App aufs iPad
-=====================================
+Looper (3nps-Übungsprogramm) als App aufs iPad
+==============================================
 
 Alles geht direkt auf dem iPad, ohne Computer.
 
 1. ZIP entpacken
-   In der Dateien-App auf die ZIP tippen. Es entsteht ein Ordner mit 17 Dateien.
+   In der Dateien-App auf die ZIP tippen. Es entsteht ein Ordner mit 22 Dateien.
 
 2. Kostenlos online stellen (GitHub Pages)
    - Auf github.com ein kostenloses Konto anlegen.
    - Oben rechts „+“ → „New repository“, Name z. B. 3nps, „Public“ lassen, „Create repository“.
-   - Auf „uploading an existing file“ tippen und alle 17 Dateien aus dem Ordner auswählen
-     (index.html, sw.js, manifest.webmanifest und die PNG-Bilder). „Commit changes“.
+   - Auf „uploading an existing file“ tippen und alle 22 Dateien aus dem Ordner auswählen
+     (index.html, sw.js, manifest.webmanifest, die PNG- und JPG-Bilder). „Commit changes“.
    - „Settings“ → links „Pages“ → bei „Branch“ „main“ und „/ (root)“ wählen → „Save“.
    - Nach 1–2 Minuten erscheint dort die Adresse, z. B. https://DEINNAME.github.io/3nps/
 
@@ -104,6 +104,8 @@ Alles geht direkt auf dem iPad, ohne Computer.
      aufnehmende Spur leuchtet rot.
    - Kommt ein Stereo-Signal an, teilt sich der obere Balken in zwei: oben links (L), unten rechts (R).
      Neben „Eingang“ steht dann „Stereo L/R“.
+   - Die Pegel neben jeder Spur zeigen ebenfalls links (L) und rechts (R), in der Farbe der Spur.
+     Gelb-orange heißt: kräftig, rot oben: kurz vor dem Übersteuern.
 
 10. Ideen speichern
    - „Speichern“ sichert alle drei Spuren einzeln, dazu Tempo und Tonart. Mit den Haken
@@ -130,10 +132,31 @@ Alles geht direkt auf dem iPad, ohne Computer.
      trotzdem voll, sie liegen dann gleich auf beiden Seiten.
    - Mono-Dateien bleiben mono (spart Speicher) und klingen in der Mitte.
 
+13. Optik (Looper → Karte „App · Optik und Sicherung“)
+   - „Nordisch“: Eis, Rost und Runen (bisherige Optik).
+   - „Metal“: schwarzer Stahl, Riffelblech, Pyramiden-Nieten, Chrom und Blutrot.
+     Spurfarben Chrom, Glut und Messing; die Anzeige oben leuchtet rot wie ein Verstärker.
+   - Die Wahl bleibt gespeichert. Klang und Funktionen sind in beiden Optiken gleich.
+
+14. Alles sichern und neues App-Symbol „Looper“
+   - „Alles sichern“ packt Ideen, eigene Drum-Muster, das Übungslog und alle Einstellungen
+     in eine ZIP-Datei. Im Teilen-Menü „In Dateien sichern“ wählen (z. B. iCloud Drive).
+     Die Datei nicht entpacken – „Sicherung laden“ liest sie so, wie sie ist.
+   - Neues Symbol und Name „Looper“: iPadOS übernimmt beides erst, wenn die App neu zum
+     Home-Bildschirm hinzugefügt wird. Beim Entfernen des alten Symbols löscht iPadOS aber
+     die gespeicherten Daten. Darum in dieser Reihenfolge:
+       1. Neue Dateien auf GitHub hochladen (alle 22, vorhandene ersetzen).
+       2. Die alte App öffnen, zweimal neu starten, bis oben „Looper · v16“ steht.
+       3. Looper → „Alles sichern“ → „In Dateien sichern“.
+       4. Altes Symbol lange drücken → „App entfernen“.
+       5. Adresse in Safari öffnen → Teilen → „Zum Home-Bildschirm“ → Name „Looper“ → „Hinzufügen“.
+       6. Neue App öffnen → Looper → „Sicherung laden“ → die gesicherte Datei wählen.
+   - Wer das alte Symbol behalten will, muss nichts tun: Die App selbst ist trotzdem auf v16.
+
 Gut zu wissen
    - Übungslog und Ideen werden nur auf diesem iPad gespeichert. Die bisherigen
      Einheiten aus Claude sind beim ersten Start schon drin.
    - Wichtige Ideen über „Teilen“ als WAV z. B. in Dateien oder iCloud sichern,
      denn beim Löschen der App gehen die Daten verloren.
-   - Update einspielen: neue index.html auf GitHub hochladen (ersetzt die alte),
+   - Update einspielen: geänderte Dateien auf GitHub hochladen (ersetzen die alten; im Zweifel alle),
      in sw.js die Zeile CACHE = '3nps-v1' auf v2 erhöhen, App zweimal neu öffnen.

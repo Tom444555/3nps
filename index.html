@@ -3,16 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>3nps-Übungsprogramm</title>
+<title>Looper</title>
 <meta name="theme-color" content="#1b1b1d">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="3nps">
+<meta name="apple-mobile-web-app-title" content="Looper">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Uncial+Antiqua&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Uncial+Antiqua&family=Metal+Mania&family=Black+Ops+One&display=swap">
+<script>try{if(localStorage.getItem('3nps-theme')==='metal'){document.documentElement.dataset.theme='metal';}}catch(e){}</script>
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)} html,body{-webkit-tap-highlight-color:transparent} body{-webkit-user-select:none;user-select:none} input,textarea{-webkit-user-select:text;user-select:text}</style>
@@ -470,6 +471,36 @@
   .ring, .wave, #edWave, #edOver { will-change: transform; transform: translateZ(0); }
   .track, .lane { contain: layout style; }
   html.lite .card, html.lite .stat-card { box-shadow: 0 1px 0 rgba(255,255,255,.12) inset, 0 -2px 0 rgba(0,0,0,.7) inset, 0 8px 18px rgba(0,0,0,.7); }
+
+  /* ---- v15.1: Spur-Pegel in Stereo – links L, rechts R ---- */
+  .ring-row { grid-template-columns: minmax(0, 1fr) 26px; }
+  .tm-ch { position: absolute; top: 0; bottom: 0; --lv: 0%; --pk: 0%; }
+  .tm-ch.l { left: 0; right: 50%; }
+  .tm-ch.r { left: 50%; right: 0; }
+  .tm-ch.l .tm-fill, .tm-ch.l .tm-pk { left: 3px; right: 1px; }
+  .tm-ch.r .tm-fill, .tm-ch.r .tm-pk { left: 1px; right: 3px; }
+  .tm-ch.r::after { content: ""; position: absolute; left: 0; top: 3px; bottom: 3px; width: 1px; background: rgba(0,0,0,.85); z-index: 3; }
+  .tm-ch::before { position: absolute; top: 3px; left: 0; right: 0; text-align: center; font: 700 7px/1 var(--f-mono, monospace); color: rgba(200,230,255,.55); z-index: 3; pointer-events: none; }
+  .tm-ch.l::before { content: "L"; }
+  .tm-ch.r::before { content: "R"; }
+
+  /* ---- v15.1: Pegelfarben im Stil der App – Eis/Nordlicht, warm erst kurz vor dem Übersteuern ---- */
+  .track { --tcd: #6f8fb8; --tcg: rgba(228,242,255,.5); }
+  .track.t2 { --tcd: #1670c8; --tcg: rgba(45,226,255,.55); }
+  .track.t3 { --tcd: #4450d0; --tcg: rgba(134,168,255,.55); }
+  #loopMeter, .meter.st #loopMeterR {
+    background-image: linear-gradient(90deg, #3f5fff 0%, #2de2ff 42%, #d8f5ff 64%, #ffb04a 83%, #ff2d55 100%);
+    box-shadow: 0 0 6px rgba(45,226,255,.75), 0 0 14px rgba(45,226,255,.3);
+  }
+  #loopMeter.hot, .meter.st #loopMeterR.hot { box-shadow: 0 0 6px rgba(255,45,85,.95), 0 0 16px rgba(255,45,85,.5); }
+  .tmeter { background: linear-gradient(0deg, rgba(110,170,255,.07) 0%, rgba(110,170,255,.07) 64%, rgba(255,176,74,.09) 83%, rgba(255,45,85,.11) 100%), #070708; }
+  .tm-fill {
+    background: linear-gradient(0deg, var(--tcd) 0%, var(--tc) 52%, var(--tc) 64%, #ffb04a 83%, #ff2d55 100%);
+    background-size: 100% var(--mh, 200px); background-position: bottom;
+    box-shadow: 0 0 6px var(--tcg), 0 0 14px var(--tcg);
+  }
+  .tmeter.live .tm-fill { box-shadow: 0 0 8px rgba(255,45,85,.9), 0 0 18px rgba(255,45,85,.45); }
+
   /* ===== Rost & Stahl: Hintergrund aus gerostetem Blech, darauf verschraubte Stahlplatten ===== */
   :root {
     --plate-hi: #3a3a40;
@@ -656,13 +687,128 @@
   .ed-group { background: rgba(0,0,0,.28); border-color: rgba(255,255,255,.035); box-shadow: inset 0 2px 8px rgba(0,0,0,.5); }
   .dg-cell { background: #121215; }
   @media (max-width: 520px) { .card::after { inset: 5px; } }
+
+  /* ===== Optik „Metal“: schwarzer Stahl, Riffelblech, Pyramiden-Nieten, Chrom, Glut und Blutrot ===== */
+  :root { --neon-rec: #ff2d55; --neon-dub: #ffe14a; --neon-bar1: #ff8a1a; }
+  :root[data-theme="metal"] {
+    --bg: #0c0c0d; --surface: #18181a; --surface-2: #222225; --raised: #2c2c30;
+    --ink: #f1f1f3; --muted: #a29e9c; --line: #3a3536; --line-soft: #29252a;
+    --accent: #ff3b30; --accent-ink: #1a0303; --active-color: #ff8a2a;
+    --t1: #c9d1dd; --t2: #ff7a1a; --t3: #e0b040;
+    --neon-rec: #ff2433; --neon-dub: #ffd84a; --neon-bar1: #fff6e6;
+    --dub: #ffd84a;
+    --lcd-bg: #120505; --lcd-ink: #ff4a3a; --lcd-dim: #7d3730;
+    --board: #1f1c1c; --board-edge: #0e0c0c; --fretwire: #c9ced6;
+    background: #0a0a0b url("bg-iron.jpg") repeat;
+    background-size: 1024px 1024px;
+  }
+  :root[data-theme="metal"] body::before {
+    background:
+      radial-gradient(ellipse 70% 42% at 50% 0%, rgba(225,232,255,.10) 0%, rgba(200,210,255,.03) 45%, transparent 70%),
+      radial-gradient(ellipse 150% 120% at 50% 35%, transparent 28%, rgba(0,0,0,.6) 74%, rgba(0,0,0,.9) 100%),
+      radial-gradient(ellipse 90% 38% at 50% 106%, rgba(170,12,10,.32), transparent 70%);
+  }
+
+  /* Schrift: Marke in Metal-Lettern mit Chrom, Überschriften und Tabs als Schablonenschrift */
+  :root[data-theme="metal"] .brand {
+    font-family: "Metal Mania", "Avenir Next Condensed", Impact, sans-serif; font-weight: 400; font-size: 1.45rem; letter-spacing: .05em; line-height: 1;
+    background: linear-gradient(180deg, #ffffff 0%, #d9dce2 40%, #6c707a 52%, #eef0f3 70%, #9aa0aa 100%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
+    text-shadow: none; filter: drop-shadow(0 2px 0 #000) drop-shadow(0 0 7px rgba(255,36,40,.35));
+  }
+  :root[data-theme="metal"] .brand span { font: 600 .66rem var(--f-body); letter-spacing: .08em; -webkit-text-fill-color: #8f8a8a; color: #8f8a8a; text-transform: uppercase; }
+  :root[data-theme="metal"] .brand::before { width: 36px; height: 36px; flex-basis: 36px; background-image: url("emblem-iron.png"); filter: drop-shadow(0 2px 3px rgba(0,0,0,.85)); }
+  :root[data-theme="metal"] h2 {
+    font-family: "Black Ops One", "Avenir Next Condensed", Impact, sans-serif; font-weight: 400; font-size: .9rem;
+    text-transform: uppercase; letter-spacing: .07em; color: #dde1e7;
+    text-shadow: 0 -1px 0 #000, 0 1px 0 rgba(255,255,255,.06), 0 0 12px rgba(255,40,30,.28);
+  }
+  :root[data-theme="metal"] .tab { font-family: "Black Ops One", "Avenir Next Condensed", Impact, sans-serif; font-weight: 400; text-transform: uppercase; letter-spacing: .05em; color: #8e8a8a; }
+  :root[data-theme="metal"] .tab[aria-selected="true"] {
+    background: linear-gradient(180deg, #d01a22 0%, #9c0d13 55%, #6e070b 100%); color: #fff;
+    box-shadow: 0 1px 0 rgba(255,170,160,.4) inset, 0 -1px 0 rgba(0,0,0,.4) inset, 0 0 14px rgba(255,30,24,.35);
+    text-shadow: 0 1px 0 rgba(0,0,0,.6);
+  }
+
+  /* Kontrollleiste: Riffelblech, darunter ein Nietenband */
+  :root[data-theme="metal"] .control-bar {
+    background:
+      var(--rivet) 10px 50% / 12px 12px no-repeat,
+      var(--rivet) calc(100% - 10px) 50% / 12px 12px no-repeat,
+      linear-gradient(180deg, rgba(255,255,255,.05) 0%, rgba(0,0,0,.25) 50%, rgba(0,0,0,.55) 100%),
+      url("panel-iron.jpg") 0 0 / 512px 512px repeat;
+    background-color: #111113;
+  }
+  :root[data-theme="metal"] .control-bar::after {
+    height: 18px; background: url("studs-iron.png") 0 50% / auto 18px repeat-x, #151213;
+    border-top: 1px solid #000; box-shadow: 0 1px 0 rgba(255,255,255,.05) inset, 0 3px 6px rgba(0,0,0,.6);
+  }
+  :root[data-theme="metal"] .lcd { box-shadow: 0 1px 0 rgba(255,255,255,.07), inset 0 3px 10px rgba(0,0,0,.9), inset 0 0 0 1px #000, inset 0 0 18px rgba(255,30,20,.12); }
+  :root[data-theme="metal"] .lcd .v { text-shadow: 0 0 6px rgba(255,60,40,.55); }
+  :root[data-theme="metal"] .tabs { background: linear-gradient(180deg, rgba(0,0,0,.82), rgba(0,0,0,.7)), url("panel-iron.jpg") 0 0 / 512px 512px repeat; }
+
+  /* Platten: Riffelblech mit Pyramiden-Nieten in den Ecken */
+  :root[data-theme="metal"] .card, :root[data-theme="metal"] .stat-card {
+    background:
+      url("stud-iron.png") 5px 5px / 22px 22px no-repeat,
+      url("stud-iron.png") calc(100% - 5px) 5px / 22px 22px no-repeat,
+      url("stud-iron.png") 5px calc(100% - 5px) / 22px 22px no-repeat,
+      url("stud-iron.png") calc(100% - 5px) calc(100% - 5px) / 22px 22px no-repeat,
+      radial-gradient(ellipse 120% 70% at 50% 0%, rgba(230,236,255,.05), transparent 60%),
+      linear-gradient(180deg, rgba(0,0,0,.06) 0%, rgba(0,0,0,.26) 60%, rgba(26,0,0,.5) 100%),
+      url("panel-iron.jpg") 0 0 / 512px 512px repeat;
+    background-color: #111113;
+    border: 1px solid #000; border-top-color: #34343a;
+  }
+  :root[data-theme="metal"] .card::after { border-color: rgba(0,0,0,.75); box-shadow: 0 1px 0 rgba(255,255,255,.06), inset 0 0 0 1px rgba(150,12,12,.16); }
+  :root[data-theme="metal"] .track, :root[data-theme="metal"] .editor, :root[data-theme="metal"] .lane {
+    background: linear-gradient(180deg, rgba(0,0,0,.76), rgba(0,0,0,.68)), url("panel-iron.jpg") 137px 91px / 512px 512px repeat;
+    background-color: #0a0a0b;
+  }
+  :root[data-theme="metal"] .track.rec-live { border-color: rgba(255,36,51,.65) !important; box-shadow: inset 0 3px 10px rgba(0,0,0,.85), 0 0 0 1px rgba(255,36,51,.5), 0 0 22px rgba(255,36,51,.28) !important; }
+
+  /* Taster und Schalter: dunkler Stahl, aktiv in Blutrot */
+  :root[data-theme="metal"] .toggle-btn, :root[data-theme="metal"] .mini button, :root[data-theme="metal"] .file-mini, :root[data-theme="metal"] .tbtn {
+    background: linear-gradient(180deg, #3e3e44, #232326); border-color: #000;
+  }
+  :root[data-theme="metal"] .toggle-btn.active {
+    background: linear-gradient(180deg, #ff4a3d 0%, #c8141c 55%, #840a0f 100%); color: #fff; border-color: #2a0204;
+    box-shadow: 0 1px 0 rgba(255,190,180,.5) inset, 0 -1px 0 rgba(0,0,0,.35) inset, 0 0 12px rgba(255,40,30,.32), 0 2px 3px rgba(0,0,0,.55);
+    text-shadow: 0 1px 0 rgba(0,0,0,.5);
+  }
+  :root[data-theme="metal"] #playBtn.playing { background: linear-gradient(180deg, #c8141c, #7a0a0f); }
+  :root[data-theme="metal"] .foot {
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(255,255,255,.2), transparent 60%),
+      repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 2px, rgba(0,0,0,.09) 2px 4px),
+      linear-gradient(180deg, #5b5d64, #36373c 60%, #26272b);
+  }
+  :root[data-theme="metal"] .export-btn { background: linear-gradient(180deg, #ff8a3a, #c2410c) !important; border-color: #3a1200 !important; }
+  :root[data-theme="metal"] select, :root[data-theme="metal"] .text-in { background-color: #0d0d0e; }
+
+  /* Pegel: Stahl → Chrom → Glut → Rot */
+  :root[data-theme="metal"] #loopMeter, :root[data-theme="metal"] .meter.st #loopMeterR {
+    background-image: linear-gradient(90deg, #4c5059 0%, #b8bfca 40%, #f4f6f9 62%, #ff8a1a 82%, #ff1e1e 100%);
+    box-shadow: 0 0 6px rgba(255,255,255,.35), 0 0 14px rgba(255,90,40,.22);
+  }
+  :root[data-theme="metal"] #loopMeter.hot, :root[data-theme="metal"] .meter.st #loopMeterR.hot { box-shadow: 0 0 6px rgba(255,36,51,.95), 0 0 16px rgba(255,36,51,.5); }
+  :root[data-theme="metal"] .track { --tcd: #5a606b; --tcg: rgba(220,228,240,.42); }
+  :root[data-theme="metal"] .track.t2 { --tcd: #8f2a05; --tcg: rgba(255,122,26,.55); }
+  :root[data-theme="metal"] .track.t3 { --tcd: #7a5510; --tcg: rgba(224,176,64,.5); }
+  :root[data-theme="metal"] .tmeter { background: linear-gradient(0deg, rgba(200,200,210,.06) 0%, rgba(200,200,210,.06) 64%, rgba(255,138,26,.09) 83%, rgba(255,30,30,.12) 100%), #070708; }
+  :root[data-theme="metal"] .chan-info { color: #c9d1dd; }
+
+  @media (max-width: 520px) {
+    :root[data-theme="metal"] .card, :root[data-theme="metal"] .stat-card { background-size: 18px 18px, 18px 18px, 18px 18px, 18px 18px, auto, auto, 512px 512px; }
+    :root[data-theme="metal"] .brand { font-size: 1.25rem; }
+  }
 </style>
 
 </head>
 <body>
 <header class="control-bar">
   <div class="cb-inner">
-    <div class="brand">3nps <span>Übungsprogramm · v15</span></div>
+    <div class="brand">Looper <span>3nps · v16</span></div>
     <div class="transport">
       <button class="tbtn" id="playBtn" aria-label="Metronom starten oder stoppen">▶</button>
     </div>
@@ -835,7 +981,7 @@
           <div class="track-head"><span class="chip"></span><span class="tname">Spur 1</span><button class="keybadge" id="key0" hidden></button></div>
           <div class="ring-row">
             <canvas class="ring" id="ring0" aria-label="Taktkreis Spur 1"></canvas>
-            <div class="tmeter" id="tmeter0" aria-hidden="true"><div class="tm-fill"></div><div class="tm-pk"></div><div class="tm-th"></div></div>
+            <div class="tmeter" id="tmeter0" aria-hidden="true"><div class="tm-ch l"><div class="tm-fill"></div><div class="tm-pk"></div></div><div class="tm-ch r"><div class="tm-fill"></div><div class="tm-pk"></div></div><div class="tm-th"></div></div>
           </div>
           <canvas class="wave" id="wave0" aria-label="Wellenform Spur 1"></canvas>
           <button class="foot" id="foot0" data-state="empty"><span class="led"></span><span class="lbl">REC</span></button>
@@ -853,7 +999,7 @@
           <div class="track-head"><span class="chip"></span><span class="tname">Spur 2</span><button class="keybadge" id="key1" hidden></button></div>
           <div class="ring-row">
             <canvas class="ring" id="ring1" aria-label="Taktkreis Spur 2"></canvas>
-            <div class="tmeter" id="tmeter1" aria-hidden="true"><div class="tm-fill"></div><div class="tm-pk"></div><div class="tm-th"></div></div>
+            <div class="tmeter" id="tmeter1" aria-hidden="true"><div class="tm-ch l"><div class="tm-fill"></div><div class="tm-pk"></div></div><div class="tm-ch r"><div class="tm-fill"></div><div class="tm-pk"></div></div><div class="tm-th"></div></div>
           </div>
           <canvas class="wave" id="wave1" aria-label="Wellenform Spur 2"></canvas>
           <button class="foot" id="foot1" data-state="empty"><span class="led"></span><span class="lbl">REC</span></button>
@@ -871,7 +1017,7 @@
           <div class="track-head"><span class="chip"></span><span class="tname">Spur 3</span><button class="keybadge" id="key2" hidden></button></div>
           <div class="ring-row">
             <canvas class="ring" id="ring2" aria-label="Taktkreis Spur 3"></canvas>
-            <div class="tmeter" id="tmeter2" aria-hidden="true"><div class="tm-fill"></div><div class="tm-pk"></div><div class="tm-th"></div></div>
+            <div class="tmeter" id="tmeter2" aria-hidden="true"><div class="tm-ch l"><div class="tm-fill"></div><div class="tm-pk"></div></div><div class="tm-ch r"><div class="tm-fill"></div><div class="tm-pk"></div></div><div class="tm-th"></div></div>
           </div>
           <canvas class="wave" id="wave2" aria-label="Wellenform Spur 3"></canvas>
           <button class="foot" id="foot2" data-state="empty"><span class="led"></span><span class="lbl">REC</span></button>
@@ -1107,6 +1253,22 @@
         <label class="check"><input type="checkbox" id="ideaWithDrone" checked> Drone mitspeichern</label>
       </div>
       <div class="log-list" id="ideaList"><p class="pattern-desc">Wird geladen …</p></div>
+    </div>
+
+    <div class="card app-card">
+      <h2>App · Optik und Sicherung</h2>
+      <label class="field"><span>Optik</span>
+        <select id="appTheme">
+          <option value="nordic">Nordisch – Eis, Rost und Runen</option>
+          <option value="metal">Metal – Stahl, Nieten und Blutrot</option>
+        </select>
+      </label>
+      <div class="row backup-row">
+        <button class="toggle-btn" id="backupSave">Alles sichern</button>
+        <button class="toggle-btn" id="backupLoad">Sicherung laden</button>
+        <input type="file" id="backupFile" hidden>
+      </div>
+      <p class="pattern-desc" id="backupInfo">„Alles sichern“ packt Ideen, eigene Drum-Muster, das Übungslog und alle Einstellungen in eine Datei – z. B. in Dateien oder iCloud ablegen. Vor dem Löschen oder Neu-Hinzufügen der App sichern, danach hier „Sicherung laden“.</p>
     </div>
   
     <div class="modal" id="impDlg" hidden role="dialog" aria-modal="true" aria-labelledby="impTitle">
@@ -4705,7 +4867,7 @@ const Looper = (() => {
 
   const tracks = [0, 1, 2].map(i => ({
     i, layers: [], L: 0, mix: null, src: null, gain: null, state: 'empty', peaks: null, hist: [], key: null, orig: null,
-    meter: $('tmeter' + i),
+    meter: $('tmeter' + i), mL: $('tmeter' + i).querySelector('.tm-ch.l'), mR: $('tmeter' + i).querySelector('.tm-ch.r'), pkL: 0, pkR: 0,
     ring: $('ring' + i), wave: $('wave' + i), foot: $('foot' + i), stopB: $('stop' + i), undoB: $('undo' + i),
     clearB: $('clear' + i), fileIn: $('file' + i), vol: $('vol' + i), editB: $('edit' + i), keyB: $('key' + i),
     ing: $('ing' + i), ingV: $('ingv' + i), volV: $('volv' + i), inGain: 1
@@ -5657,6 +5819,15 @@ const Looper = (() => {
 
   // Neonfarben für die Taktkreise; der erste Takt bekommt immer eine eigene Farbe
   const NEON = { rec: '#ff2d55', dub: '#ffe14a', bar1: '#ff8a1a', t: ['#e4f2ff', '#2de2ff', '#86a8ff'] };
+  // Farben folgen der gewählten Optik (CSS-Variablen)
+  function readNeon() {
+    const c = getComputedStyle(document.documentElement), g = (n, d) => c.getPropertyValue(n).trim() || d;
+    NEON.rec = g('--neon-rec', '#ff2d55'); NEON.dub = g('--neon-dub', '#ffe14a'); NEON.bar1 = g('--neon-bar1', '#ff8a1a');
+    NEON.t = [g('--t1', '#e4f2ff'), g('--t2', '#2de2ff'), g('--t3', '#86a8ff')];
+    css = null; tracks.forEach(t => { t.mh = 0; });
+    if (ed.t) edEl.style.setProperty('--tc', NEON.t[ed.t.i]);
+    kick();
+  }
 
   function drawRing(t, C) {
     const f = fit(t.ring); if (!f) return;
@@ -5839,12 +6010,15 @@ const Looper = (() => {
       const th = toMeter(threshold()) * 100;
       tracks.forEach(t => {
         const live = !!(rec && rec.t === t);
-        const lv = toMeter(level * t.inGain) * 100;
-        t.peakHold = lv >= (t.peakHold || 0) ? lv : Math.max(lv, t.peakHold - 1.2);
-        t.meter.style.setProperty('--lv', lv.toFixed(1) + '%');
-        t.meter.style.setProperty('--pk', t.peakHold.toFixed(1) + '%');
+        const lvL = toMeter(levelL * t.inGain) * 100, lvR = toMeter(levelR * t.inGain) * 100;
+        t.pkL = lvL >= t.pkL ? lvL : Math.max(lvL, t.pkL - 1.2);
+        t.pkR = lvR >= t.pkR ? lvR : Math.max(lvR, t.pkR - 1.2);
+        t.peakHold = Math.max(t.pkL, t.pkR);
+        t.mL.style.setProperty('--lv', lvL.toFixed(1) + '%'); t.mL.style.setProperty('--pk', t.pkL.toFixed(1) + '%');
+        t.mR.style.setProperty('--lv', lvR.toFixed(1) + '%'); t.mR.style.setProperty('--pk', t.pkR.toFixed(1) + '%');
         t.meter.style.setProperty('--th', th.toFixed(1) + '%');
-        t.meter.classList.toggle('clip', lv > 98);
+        const mh = t.meter.clientHeight; if (mh && mh !== t.mh) { t.mh = mh; t.meter.style.setProperty('--mh', (mh - 6) + 'px'); }
+        t.meter.classList.toggle('clip', lvL > 98 || lvR > 98);
         t.meter.closest('.track').classList.toggle('rec-live', live);
         t.meter.classList.toggle('live', live);
         t.meter.classList.toggle('armed', live && rec.armed);
@@ -6824,6 +6998,7 @@ const Looper = (() => {
     foot: i => foot(tracks[i]),
     exportLogic: () => exportLogic(),
     _micDrop: () => { if (stream) stream.getAudioTracks()[0].dispatchEvent(new Event('ended')); },
+    themeChanged: () => readNeon(), _zip: files => makeZip(files),
     _stereo: i => { const t = tracks[i]; if (!t || !t.mix) return null; const x = t.mix; let a = 0, b = 0, ab = 0; for (let k = 0; k < x.length; k += 4) { a += x.l[k] * x.l[k]; b += x.r[k] * x.r[k]; ab += x.l[k] * x.r[k]; } const n = Math.ceil(x.length / 4); return { L: t.L, shared: x.r === x.l, rmsL: Math.sqrt(a / n), rmsR: Math.sqrt(b / n), corr: ab / Math.sqrt(a * b + 1e-20), layers: t.layers.map(ly => ly.r === ly.l ? 1 : 2), inInfo: ($('inChanInfo') || {}).textContent, stereoSeen, inChans }; },
     debug: () => ({ mic: micReady, sr, baseL, anchor, now: nowFrame(), countEnd, bpm: bpm(), drums: Object.assign({}, Rhythm.debug(), { on: Rhythm.on() }), level, drone: droneOn, tracks: tracks.map(t => ({ L: t.L, state: t.state, origPos: t.origPos, layers: t.layers.length, orig: t.orig ? { bars: t.orig.bars, downs: t.orig.downs.slice(0, 64), loopFile: t.orig.loopFile, bpm: t.orig.bpm } : null, key: t.key ? Analyzer.label(t.key) : null })) }),
     undo: i => undoTrack(tracks[i]),
@@ -7070,6 +7245,130 @@ const Pedal = (() => {
 
   render();
   Looper.update();
+})();
+
+</script>
+<script>
+/* ---------- App: Optik umschalten, alles sichern und wiederherstellen ---------- */
+const AppCfg = (() => {
+  const $ = id => document.getElementById(id);
+  const root = document.documentElement;
+  const THEME_BG = { nordic: '#1b1b1d', metal: '#0a0a0b' };
+  const themeSel = $('appTheme');
+
+  function applyTheme(v) {
+    if (!THEME_BG[v]) v = 'nordic';
+    if (v === 'metal') root.dataset.theme = 'metal'; else delete root.dataset.theme;
+    const m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', THEME_BG[v]);
+    try { localStorage.setItem('3nps-theme', v); } catch (e) {}
+    if (themeSel && themeSel.value !== v) themeSel.value = v;
+    try { if (typeof Looper !== 'undefined' && Looper.themeChanged) Looper.themeChanged(); } catch (e) {}
+    document.dispatchEvent(new CustomEvent('themechange', { detail: v }));
+  }
+  let cur = 'nordic';
+  try { cur = localStorage.getItem('3nps-theme') || 'nordic'; } catch (e) {}
+  if (themeSel) { themeSel.value = THEME_BG[cur] ? cur : 'nordic'; themeSel.addEventListener('change', () => applyTheme(themeSel.value)); }
+  applyTheme(cur);
+
+  // ---- Sicherung: eine ZIP-Datei mit sicherung.json und den Audiodaten als Binärteile ----
+  const info = $('backupInfo'), say = t => { if (info) info.textContent = t; };
+  const STORES = ['sessions', 'ideas', 'meta'];
+  const TYPES = { Uint8Array, Int8Array, Int16Array, Uint16Array, Int32Array, Uint32Array, Float32Array, Float64Array };
+
+  async function pack(v, bins) {
+    if (v instanceof Blob) { bins.push(new Uint8Array(await v.arrayBuffer())); return { $bin: bins.length - 1, t: 'Blob', mime: v.type || '' }; }
+    if (v instanceof ArrayBuffer) { bins.push(new Uint8Array(v)); return { $bin: bins.length - 1, t: 'ArrayBuffer' }; }
+    if (ArrayBuffer.isView(v)) { bins.push(new Uint8Array(v.buffer, v.byteOffset, v.byteLength)); return { $bin: bins.length - 1, t: v.constructor.name }; }
+    if (Array.isArray(v)) { const a = []; for (const x of v) a.push(await pack(x, bins)); return a; }
+    if (v && typeof v === 'object') { const o = {}; for (const k of Object.keys(v)) o[k] = await pack(v[k], bins); return o; }
+    return v;
+  }
+  function unpack(v, files) {
+    if (Array.isArray(v)) return v.map(x => unpack(x, files));
+    if (v && typeof v === 'object') {
+      if (typeof v.$bin === 'number' && v.t) {
+        const u = files['bin/' + v.$bin]; if (!u) throw new Error('Teil ' + v.$bin + ' fehlt');
+        const copy = u.slice();                                   // eigener, ausgerichteter Speicher
+        if (v.t === 'Blob') return new Blob([copy], { type: v.mime || '' });
+        if (v.t === 'ArrayBuffer') return copy.buffer;
+        const C = TYPES[v.t] || Uint8Array;
+        return new C(copy.buffer, 0, copy.byteLength / (C.BYTES_PER_ELEMENT || 1));
+      }
+      const o = {}; for (const k of Object.keys(v)) o[k] = unpack(v[k], files); return o;
+    }
+    return v;
+  }
+  // Liest ZIP-Dateien ohne Kompression (so schreibt die App sie)
+  function readZip(buf) {
+    const dv = new DataView(buf), u8 = new Uint8Array(buf), dec = new TextDecoder(), out = {};
+    let p = 0;
+    while (p + 30 <= buf.byteLength && dv.getUint32(p, true) === 0x04034b50) {
+      const method = dv.getUint16(p + 8, true), size = dv.getUint32(p + 18, true), nlen = dv.getUint16(p + 26, true), xlen = dv.getUint16(p + 28, true);
+      const name = dec.decode(u8.subarray(p + 30, p + 30 + nlen)), start = p + 30 + nlen + xlen;
+      if (method !== 0) throw new Error('gepackt');
+      out[name] = u8.subarray(start, start + size); p = start + size;
+    }
+    return out;
+  }
+  async function offer(file) {
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: file.name }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
+    }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = file.name;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 20000);
+  }
+
+  async function backup() {
+    say('Sichere …');
+    await new Promise(r => setTimeout(r, 30));
+    const bins = [], db = {}, local = {};
+    for (const s of STORES) { let rows = []; try { rows = await AppDB.all(s); } catch (e) {} db[s] = await pack(rows, bins); }
+    try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith('3nps-')) local[k] = localStorage.getItem(k); } } catch (e) {}
+    const now = new Date();
+    const head = { app: 'Looper', format: 1, date: now.toISOString(), local, db };
+    const files = [{ name: 'sicherung.json', data: new TextEncoder().encode(JSON.stringify(head)) }];
+    bins.forEach((u, i) => files.push({ name: 'bin/' + i, data: u }));
+    const zip = Looper._zip(files);
+    const stamp = now.toLocaleDateString('de-DE', { year: 'numeric', month: '2-digit', day: '2-digit' }).split('.').reverse().join('-');
+    const file = new File([zip], 'Looper-Sicherung ' + stamp + '.zip', { type: 'application/zip' });
+    const n = (db.ideas || []).length, m = (db.sessions || []).length;
+    say('Sicherung fertig: ' + n + ' Idee' + (n === 1 ? '' : 'n') + ', ' + m + ' Log-Einträge, ' + Object.keys(local).length + ' Einstellungen · ' + (zip.size / 1048576).toFixed(1).replace('.', ',') + ' MB. Im Teilen-Menü „In Dateien sichern“ wählen.');
+    await offer(file);
+    return { file, zip, head };
+  }
+
+  async function restore(file) {
+    say('Lade Sicherung …');
+    let files, head;
+    try {
+      files = readZip(await file.arrayBuffer());
+      head = JSON.parse(new TextDecoder().decode(files['sicherung.json']));
+      if (!head || head.app !== 'Looper' || !head.db) throw new Error('fremd');
+    } catch (e) {
+      say('Das ist keine Looper-Sicherung (oder sie wurde verändert, z. B. entpackt und neu gepackt).');
+      return null;
+    }
+    let ideas = 0, logs = 0;
+    for (const s of STORES) {
+      const rows = unpack(head.db[s] || [], files);
+      for (const r of rows) { try { await AppDB.put(s, r); if (s === 'ideas') ideas++; if (s === 'sessions') logs++; } catch (e) {} }
+    }
+    let nset = 0;
+    try { Object.entries(head.local || {}).forEach(([k, v]) => { if (k.startsWith('3nps-') && typeof v === 'string') { localStorage.setItem(k, v); nset++; } }); } catch (e) {}
+    say('Sicherung geladen: ' + ideas + ' Idee' + (ideas === 1 ? '' : 'n') + ', ' + logs + ' Log-Einträge, ' + nset + ' Einstellungen. Die App startet neu …');
+    return { ideas, logs, nset };
+  }
+
+  if ($('backupSave')) $('backupSave').addEventListener('click', () => backup().catch(e => say('Sichern fehlgeschlagen: ' + (e && e.message || e))));
+  if ($('backupLoad')) $('backupLoad').addEventListener('click', () => $('backupFile').click());
+  if ($('backupFile')) $('backupFile').addEventListener('change', async e => {
+    const f = e.target.files && e.target.files[0]; e.target.value = '';
+    if (!f) return;
+    const r = await restore(f).catch(err => { say('Laden fehlgeschlagen: ' + (err && err.message || err)); return null; });
+    if (r && !window.__noReload) setTimeout(() => location.reload(), 1600);
+  });
+
+  return { applyTheme, backup, restore };
 })();
 
 </script>
