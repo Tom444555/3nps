@@ -25,8 +25,6 @@ Alles geht direkt auf dem iPad, ohne Computer.
      das Mikrofon leider nicht dauerhaft – nach einem Neustart der App kommt die Frage wieder.
      Nach dem Sperren des iPads öffnet die App das Mikrofon beim nächsten Aufnehmen neu.
    - Unter jeder Spur: „Pegel“ (Wiedergabe) und „Eingang“ (Aufnahme-Verstärkung, −12 bis +24 dB).
-   - Eingangspegel oben im Looper: „Flammen“ oder „Balken“ umschaltbar. Die Balken-Anzeige
-     braucht weniger Rechenzeit (gut für ältere iPads).
      Die App regelt die Lautstärke nicht selbst. Ganz unten: „Gesamt“ und der Schalter „Limiter“
      (schützt vor Übersteuern; aus = kein automatisches Eingreifen).
    - Mit Kopfhörern wird der Loop nicht mit aufgenommen.
@@ -69,7 +67,7 @@ Alles geht direkt auf dem iPad, ohne Computer.
 6. Export für Logic Pro
    - Im Looper auf „Für Logic exportieren“ tippen. Das Teilen-Menü öffnet sich mit einer ZIP-Datei.
    - Per AirDrop an den Mac schicken oder „In Dateien sichern“ (für Logic Pro auf dem iPad).
-   - Die ZIP enthält: jede Spur als WAV (24 Bit, alle ab Takt 1, gleich lang), einen Mix,
+   - Die ZIP enthält: jede Spur als Stereo-WAV (24 Bit, alle ab Takt 1, gleich lang), einen Mix,
      eine MIDI-Datei mit Tempo, Taktart, Tonart und – falls an – dem Drum-Groove,
      und eine „LIES MICH“ mit den Schritten für Logic.
    - Der Name im Feld „Ideen“ wird zum Namen des Pakets.
@@ -83,7 +81,9 @@ Alles geht direkt auf dem iPad, ohne Computer.
    - „Designer“: Raster 16tel (gerade) oder Triolen (Shuffle/12/8). Feld antippen: an → betont →
      leise (Ghost) → aus. Instrumentname antippen = stumm. „Swing“, „Gefühl“ (menschliche
      Schwankungen) und automatische Fills (alle 4, 8 oder 12 Takte, danach Becken auf der Eins).
-   - Eigene Muster werden gespeichert und beim Logic-Export als MIDI-Drumspur mitgegeben.
+   - Änderungen an einer Vorlage landen im „Entwurf“. Mit Namen und „Muster speichern“ wird daraus
+     ein eigenes Muster unter „Meine Muster“ (Änderungen daran werden direkt gespeichert,
+     „Muster löschen“ entfernt es). Beim Logic-Export geht das Muster als MIDI-Drumspur mit.
    - In der Begleitung spielt der Bass jetzt mit der Kick der Drums.
 
 8. Drone-Spur (im Looper und im Tab „Begleitung“)
@@ -102,6 +102,33 @@ Alles geht direkt auf dem iPad, ohne Computer.
    - „Eingang öffnen“ (oben im Looper) zeigt das Signal schon vor der Aufnahme
      in den Pegelanzeigen neben jeder Spur. Weiße Linie = Spitzenwert, die
      aufnehmende Spur leuchtet rot.
+   - Kommt ein Stereo-Signal an, teilt sich der obere Balken in zwei: oben links (L), unten rechts (R).
+     Neben „Eingang“ steht dann „Stereo L/R“.
+
+10. Ideen speichern
+   - „Speichern“ sichert alle drei Spuren einzeln, dazu Tempo und Tonart. Mit den Haken
+     „Drums mitspeichern“ und „Drone mitspeichern“ kommen Drum-Muster und Drone-Einstellungen
+     dazu (inklusive, ob sie liefen). „Laden“ stellt alles wieder her, „Teilen“ gibt einen WAV-Mix aus.
+   - Gespeichert wird in Stereo mit 24 Bit. Ältere Ideen lassen sich weiter laden.
+
+11. Leistung (Karte „Aufnahme“)
+   - „Automatisch“ schaltet in den Sparmodus, wenn die Anzeige ruckelt. „Sparsam“ entlastet das iPad
+     dauerhaft (ruhigere Anzeige, größerer Audio-Puffer nach einem Neustart der App). Der Klang
+     bleibt gleich – nur die Verzögerung wird etwas größer.
+   - USB-Audio (z. B. Spark LIVE über Adapter): Wird das Gerät kurz getrennt (Ladekabel an/ab),
+     öffnet die App den Eingang automatisch neu und setzt den Ton fort.
+     Tipp: Ladegerät zuerst in den Adapter stecken, dann iPad und Spark verbinden, dann die App starten.
+
+12. Stereo
+   - Die ganze App arbeitet in Stereo: Aufnahme, Overdubs, Wiedergabe, Laden von Dateien,
+     Bearbeiten (Schneiden, Verschieben, Strecken, Nacharbeiten), Ideen und der Logic-Export.
+     Beim Strecken werden beide Seiten gemeinsam bearbeitet, das Stereobild bleibt erhalten.
+   - Welche zwei Kanäle ankommen, bestimmt das Audio-Gerät (beim Spark LIVE die USB-Zuordnung,
+     z. B. Kanal 3/4). Die App nimmt die ersten beiden Kanäle, die iPadOS liefert.
+   - Steht neben „Eingang“ „Mono (Gerät liefert 1 Kanal)“, gibt iPadOS nur einen Kanal weiter.
+     Dann Gerät ab- und wieder anstecken und die App neu öffnen. Mono-Aufnahmen klingen
+     trotzdem voll, sie liegen dann gleich auf beiden Seiten.
+   - Mono-Dateien bleiben mono (spart Speicher) und klingen in der Mitte.
 
 Gut zu wissen
    - Übungslog und Ideen werden nur auf diesem iPad gespeichert. Die bisherigen

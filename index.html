@@ -202,6 +202,15 @@
     transition: width .05s linear;
   }
   #loopMeter.hot { box-shadow: 0 0 6px rgba(255,45,85,.95), 0 0 16px rgba(255,45,85,.5); }
+  #loopMeterR { display: none; }
+  .meter.st #loopMeter, .meter.st #loopMeterR { position: absolute; left: 0; height: calc(50% - 1px); border-radius: 9px; }
+  .meter.st #loopMeter { top: 0; }
+  .meter.st #loopMeterR { display: block; bottom: 0; width: 0;
+    background: linear-gradient(90deg, #39ff9f 0%, #39ff9f 62%, #ffe14a 80%, #ff2d55 100%) no-repeat left center;
+    box-shadow: 0 0 6px rgba(57,255,159,.9), 0 0 14px rgba(57,255,159,.45); transition: width .05s linear; }
+  .meter.st #loopMeterR.hot { box-shadow: 0 0 6px rgba(255,45,85,.95), 0 0 16px rgba(255,45,85,.5); }
+  .chan-info { font-style: normal; font-size: .78em; letter-spacing: .04em; color: #9fd8ff; margin-left: 6px; opacity: .9; }
+  .chan-info.mono { color: #ffcf7a; }
   .meter .thresh { position: absolute; top: -2px; bottom: -2px; width: 3px; border-radius: 1px; background: #ff8a1a; box-shadow: 0 0 6px #ff8a1a, 0 0 12px #ff8a1a; left: 50%; }
   .tracks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
   .track {
@@ -446,17 +455,21 @@
   .recv-stat { font: 700 0.78rem var(--f-mono); color: #ffb15a; }
   .recv-stat.ok { color: #9fe0a8; }
 
-  /* ---- Eingangspegel als Flammen ---- */
-  .meter.fire { height: 30px; border-radius: 6px; background: linear-gradient(180deg, #050505, #120804); }
-  .meter.fire #loopMeter { display: none; }
-  #loopFlame { position: absolute; left: 0; bottom: 0; width: 100%; height: 44px; pointer-events: none; border-radius: 0 0 6px 6px; filter: blur(0.7px) saturate(1.15); }
-  .meter.fire { box-shadow: inset 0 2px 8px rgba(0,0,0,.9), 0 0 14px rgba(255,110,20,.18); }
-  .meter .thresh { z-index: 2; }
   .seg { display: inline-flex; }
   .seg .toggle-btn { padding: 5px 10px; border-radius: 0; }
   .seg .toggle-btn:first-child { border-radius: 7px 0 0 7px; }
   .seg .toggle-btn:last-child { border-radius: 0 7px 7px 0; margin-left: -1px; }
   @media (max-width: 520px) { .meter-row { flex-wrap: wrap; } .meter-row .meter { flex-basis: 100%; } }
+
+  .dg-save .text-in { flex: 1 1 180px; }
+  #drumNote { color: #ffcf8a; }
+
+  .idea-opts { display: flex; gap: 18px; flex-wrap: wrap; margin: 6px 0 2px; }
+
+  /* Animierte Flächen in eigene Ebenen legen: Neuzeichnen betrifft nur sie, nicht die Platten dahinter */
+  .ring, .wave, #edWave, #edOver { will-change: transform; transform: translateZ(0); }
+  .track, .lane { contain: layout style; }
+  html.lite .card, html.lite .stat-card { box-shadow: 0 1px 0 rgba(255,255,255,.12) inset, 0 -2px 0 rgba(0,0,0,.7) inset, 0 8px 18px rgba(0,0,0,.7); }
   /* ===== Rost & Stahl: Hintergrund aus gerostetem Blech, darauf verschraubte Stahlplatten ===== */
   :root {
     --plate-hi: #3a3a40;
@@ -649,7 +662,7 @@
 <body>
 <header class="control-bar">
   <div class="cb-inner">
-    <div class="brand">3nps <span>Übungsprogramm · v13.3</span></div>
+    <div class="brand">3nps <span>Übungsprogramm · v15</span></div>
     <div class="transport">
       <button class="tbtn" id="playBtn" aria-label="Metronom starten oder stoppen">▶</button>
     </div>
@@ -810,12 +823,9 @@
             <option value="64">64 Takte</option>
           </select>
         </label>
-        <div class="field meter-field"><span>Eingang</span>
+        <div class="field meter-field"><span>Eingang <em class="chan-info" id="inChanInfo"></em></span>
           <div class="meter-row">
-            <div class="meter" aria-hidden="true"><canvas id="loopFlame" hidden></canvas><div id="loopMeter"></div><div class="thresh" id="loopThreshMark"></div></div>
-            <div class="seg" id="meterStyle" role="group" aria-label="Pegel-Anzeige">
-              <button class="toggle-btn" data-v="bar">Balken</button><button class="toggle-btn" data-v="fire">Flammen</button>
-            </div>
+            <div class="meter" id="loopMeterBox" aria-hidden="true"><div id="loopMeter"></div><div id="loopMeterR"></div><div class="thresh" id="loopThreshMark"></div></div>
             <button class="toggle-btn" id="loopMonitor">Eingang öffnen</button>
           </div>
         </div>
@@ -987,8 +997,14 @@
               <button class="toggle-btn" id="drumPreview">Vorhören</button>
               <button class="toggle-btn" id="drumClear">Leeren</button>
             </div>
+            <div class="dg-tools dg-save">
+              <input type="text" id="drumSaveName" class="text-in" maxlength="40" placeholder="Name, z. B. Mein Shuffle">
+              <button class="toggle-btn active" id="drumSaveBtn">Muster speichern</button>
+              <button class="toggle-btn" id="drumDelBtn" hidden>Muster löschen</button>
+              <span class="caption" id="drumNote" hidden></span>
+            </div>
             <div class="dg-grid" id="drumGrid"></div>
-            <p class="caption">Feld antippen: an → betont → leise (Ghost) → aus. Instrument antippen: stumm. „Gefühl“ = kleine menschliche Schwankungen in Timing und Lautstärke. Änderungen werden als „Eigenes Muster“ gespeichert und beim Logic-Export als MIDI-Drumspur mitgegeben.</p>
+            <p class="caption">Feld antippen: an → betont → leise (Ghost) → aus. Instrument antippen: stumm. „Gefühl“ = kleine menschliche Schwankungen in Timing und Lautstärke. Änderungen an einer Vorlage landen im „Entwurf“ – mit „Muster speichern“ bekommt dein Groove einen eigenen Namen unter „Meine Muster“. Änderungen an einem eigenen Muster werden direkt dort gespeichert.</p>
           </div>
         </div>
         </div>
@@ -1052,6 +1068,14 @@
         <label class="check"><input type="checkbox" id="loopSnap"> Freie Länge auf ganze Takte runden</label>
         <div class="row"><span class="lbl">Latenz</span><input type="range" id="loopLatency" min="0" max="300" step="5"><span class="caption" id="loopLatencyVal" style="min-width:52px;text-align:right">–</span></div>
         <p class="pattern-desc">Die orange Marke im Eingangspegel ist die Auslöseschwelle. Klingen Aufnahmen zu spät, schieb die Latenz nach rechts. Mit Kopfhörern landet der Loop nicht mit in der Aufnahme.</p>
+        <label class="field"><span>Leistung</span>
+          <select id="perfMode">
+            <option value="auto">Automatisch (schaltet bei Ruckeln auf sparsam)</option>
+            <option value="high">Hohe Qualität</option>
+            <option value="lite">Sparsam (z. B. beim Laden, ältere iPads)</option>
+          </select>
+        </label>
+        <p class="pattern-desc" id="perfInfo">Sparsam: ruhigere Anzeige und größerer Audio-Puffer (nach einem Neustart der App) – der Klang bleibt gleich, nur die Verzögerung wird etwas größer.</p>
       </div>
 
       <div class="card">
@@ -1077,6 +1101,10 @@
       <div class="row">
         <input type="text" id="ideaName" class="text-in" placeholder="Name (optional)" maxlength="60">
         <button class="toggle-btn active" id="ideaSave">Speichern</button>
+      </div>
+      <div class="toggle-row idea-opts">
+        <label class="check"><input type="checkbox" id="ideaWithDrums" checked> Drums mitspeichern</label>
+        <label class="check"><input type="checkbox" id="ideaWithDrone" checked> Drone mitspeichern</label>
       </div>
       <div class="log-list" id="ideaList"><p class="pattern-desc">Wird geladen …</p></div>
     </div>
@@ -1324,7 +1352,7 @@ function ensureAudio() {
   if (!audioCtx) {
     // höchste vom Gerät unterstützte Samplerate anfordern (bessere Klangqualität als der oft niedrigere Default)
     try {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'balanced' });
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: (function () { try { return localStorage.getItem('3nps-perf') === 'lite' ? 'playback' : 'balanced'; } catch (e) { return 'balanced'; } })() });
     } catch (e) {
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     }
@@ -3777,6 +3805,15 @@ const Rhythm = (() => {
     P('Blues', 'funkyblues', 'Funky Blues', 16, 20, { kick: 'X..x..x...X..x..', snare: '....X..g.g..X..g', hhc: 'XxxxXxxxXxxxXxxx' }),
     P('Blues', 'bluesballad', 'Blues-Ballade (Rim)', 12, 0, { hhc: 'xggxggxggxgg', rim: '...x.....x..', kick: 'X.....x.....' }),
     P('Blues', 'delta', 'Delta Stomp', 16, 0, { kick: 'X...X...X...X...', clap: '....X.......X...', shaker: 'x.x.x.x.x.x.x.x.' }),
+    P('Blues', 'kc_shuffle', 'Kansas City Shuffle', 12, 0, { ride: 'X.xX.xX.xX.x', hhp: '...x.....x..', kick: 'g..g..g..g..', snare: 'g.gX.gg.gX.g' }),
+    P('Blues', 'double_shuffle', 'Double Shuffle (Snare)', 12, 0, { hhc: 'X.xX.xX.xX.x', snare: 'x.xX.xx.xX.x', kick: 'X..x..X..x..' }),
+    P('Blues', 'gospel_shuffle', 'Gospel-Shuffle', 12, 0, { hhc: 'X.xX.xX.xX.x', kick: 'X..x..X..x.x', snare: '..gX.gg.gX.g', hhp: '...x.....x..' }),
+    P('Blues', 'boogie_train', 'Boogie-Train (Snare-Triolen)', 12, 0, { snare: 'XgxXgxXgxXgx', kick: 'X..x..X..x..', crash: 'X...........' }),
+    P('Blues', 'rumba_blues', 'Blues-Rumba', 16, 0, { kick: 'X..x..x...x.....', rim: 'x..x..x...x.x...', hhc: 'x.x.x.x.x.x.x.x.', tomh: '..............x.' }),
+    P('Blues', 'minor_blues', 'Moll-Blues (laid back)', 16, 30, { kick: 'X.....x...x.....', snare: '....X.......X...', hhc: 'x.gxx.gxx.gxx.gx' }),
+    P('Blues', 'swamp', 'Swamp Blues (Toms)', 12, 0, { kick: 'X.....X..x..', toml: 'x..x..x..x..', rim: '...x.....x..', shaker: 'x.xx.xx.xx.x' }),
+    P('Blues', 'blues128half', 'Blues 12/8 Halftime', 12, 0, { hhc: 'xxxxxxxxxxxx', kick: 'X.....x.....', snare: '......X.....' }),
+    P('Blues', 'stop_time', 'Stop-Time (Akzent auf 1)', 12, 0, { crash: 'X...........', kick: 'X...........', snare: 'X...........', hhp: '...x..x..x..' }),
     P('Rock & Pop', 'rock', 'Rock', 16, 0, { kick: 'X.....x.X.......', snare: '....X.......X...', hhc: 'X.x.X.x.X.x.X.x.' }),
     P('Rock & Pop', 'pop', 'Pop (16tel)', 16, 0, { kick: 'X......xX.x.....', snare: '....X.......X...', hhc: 'XxxxXxxxXxxxXxxx' }),
     P('Rock & Pop', 'halftime', 'Halftime', 16, 0, { kick: 'X.....x...x.....', snare: '........X.......', hhc: 'X.x.x.x.X.x.x.x.' }),
@@ -3814,27 +3851,52 @@ const Rhythm = (() => {
   styleEl.innerHTML = '';
   let og = null, lastGroup = "";
   PRESETS.forEach(p => { if (p.group !== lastGroup) { og = document.createElement("optgroup"); og.label = p.group; styleEl.appendChild(og); lastGroup = p.group; } og.appendChild(new Option(p.name, p.key)); });
-  const ogC = document.createElement('optgroup'); ogC.label = 'Eigene'; ogC.appendChild(new Option('Eigenes Muster', 'custom')); styleEl.appendChild(ogC);
+  const ogC = document.createElement('optgroup'); ogC.label = 'Eigene'; ogC.appendChild(new Option('Entwurf (zuletzt bearbeitet)', 'custom')); styleEl.appendChild(ogC);
+  // Gespeicherte eigene Muster (bleiben auf dem iPad)
+  let user = []; try { user = JSON.parse(pref('3nps-userpatterns', '[]')) || []; } catch (e) { user = []; }
+  const ogU = document.createElement('optgroup'); ogU.label = 'Meine Muster'; styleEl.appendChild(ogU);
+  function renderUser() {
+    ogU.innerHTML = ''; user.forEach(u => ogU.appendChild(new Option(u.name, u.key)));
+    ogU.hidden = !user.length;
+  }
+  renderUser();
+  const findUser = k => user.find(u => u.key === k);
+  function storeUser() { setPref('3nps-userpatterns', JSON.stringify(user)); }
 
   function loadState() {
     let k = pref('3nps-drumstyle', 'shuffle_tx'); k = OLD[k] || k;
     let saved = null; try { saved = JSON.parse(pref('3nps-drumpattern2', 'null')); } catch (e) {}
-    if (k === 'custom' && saved && saved.steps) {
+    const uk = findUser(k);
+    if (uk) {
+      res = uk.res === 12 ? 12 : 16; pat = blank(res);
+      IDS.forEach(id => { if (uk.steps[id]) for (let s = 0; s < res; s++) pat[id][s] = uk.steps[id][s] | 0; });
+      presetKey = k;
+    } else if (k === 'custom' && saved && saved.steps) {
       res = saved.res === 12 ? 12 : 16; pat = blank(res);
       IDS.forEach(id => { if (saved.steps[id]) for (let s = 0; s < res; s++) pat[id][s] = saved.steps[id][s] | 0; });
       presetKey = 'custom';
     } else { presetKey = byKey[k] ? k : 'shuffle_tx'; const pr = byKey[presetKey]; res = pr.res; pat = fromPreset(pr); }
     styleEl.value = presetKey;
-    swingEl.value = pref('3nps-swing', String(presetKey !== 'custom' ? byKey[presetKey].swing : 0));
+    swingEl.value = pref('3nps-swing', String(byKey[presetKey] ? byKey[presetKey].swing : 0));
     humanEl.value = pref('3nps-human', '35');
     fillsEl.value = pref('3nps-fills', '0');
     volEl.value = pref('3nps-drumvol', '70');
   }
   loadState();
+  const stepsCopy = () => { const st = {}; IDS.forEach(id => { st[id] = pat[id].slice(); }); return st; };
+  // Änderungen: an einem eigenen Muster direkt dort speichern, an einer Vorlage als „Entwurf“
   function saveCustom() {
+    const u = findUser(presetKey);
+    if (u) { u.res = res; u.steps = stepsCopy(); u.swing = parseInt(swingEl.value); storeUser(); return; }
     presetKey = 'custom'; styleEl.value = 'custom'; setPref('3nps-drumstyle', 'custom');
-    const steps = {}; IDS.forEach(id => { steps[id] = pat[id].slice(); });
-    setPref('3nps-drumpattern2', JSON.stringify({ res, steps }));
+    setPref('3nps-drumpattern2', JSON.stringify({ res, steps: stepsCopy() }));
+    showSaveUi();
+  }
+  function showSaveUi() {
+    const u = findUser(presetKey);
+    $('drumDelBtn').hidden = !u;
+    $('drumSaveBtn').textContent = u ? 'Als neues Muster speichern' : 'Muster speichern';
+    $('drumSaveName').placeholder = u ? 'Name für eine Kopie' : 'Name, z. B. Mein Shuffle';
   }
 
   // ---- Klang: Kit im Hintergrund erzeugen, Kanäle mit Panorama, Raum, Bus-Kompressor ----
@@ -3883,11 +3945,16 @@ const Rhythm = (() => {
       ch[i.id] = g;
     });
     // Fallback-Stimmen, solange das Kit noch erzeugt wird (erste Sekunde nach dem Start)
-    bus = { master, sum, ch, open: null, dryGain: sum, reverbSend: room };
+    bus = { master, sum, ch, open: null, dryGain: sum, reverbSend: room, room, wet, linked: true };
     return bus;
   }
+  function connectBus(v) {
+    if (!bus || bus.linked === v) return;
+    try { if (v) bus.master.connect(ensureMasterBus()); else bus.master.disconnect(); bus.linked = v; } catch (e) {}
+  }
+  function setLite(v) { /* Klang bleibt im Sparmodus unverändert */ }
   function hit(id, t, v) {
-    const b = ensureBus();
+    const b = ensureBus(); if (!b.linked) connectBus(true);
     if (id === 'hhc' || id === 'hhp') { if (b.open) { try { b.open.gain.cancelScheduledValues(t); b.open.gain.setTargetAtTime(0, t, 0.012); } catch (e) {} b.open = null; } }
     if (!kit) { // einfache Ersatzstimmen
       if (id === 'kick') playKick(t, b); else if (id === 'snare' || id === 'clap' || id === 'rim') playSnare(t, b); else if (id !== 'crash' && id !== 'tomh' && id !== 'toml') playHihat(t, v > 0.8, b);
@@ -3987,7 +4054,10 @@ const Rhythm = (() => {
     on = !!v;
     btn.classList.toggle('active', on); btn.textContent = on ? 'Drums an' : 'Drums aus';
     if (on) { ensureBus(); bus.master.gain.value = parseInt(volEl.value) / 100; }
-    clock(); paint(); lastLit = -2;
+    clock(); paint(); lastLit = -2; startAnim();
+    // Ausgeschaltet: Drum-Kanal nach dem Ausklingen vom Ausgang trennen (spart Rechenzeit)
+    clearTimeout(setOn.t);
+    if (on) connectBus(true); else setOn.t = setTimeout(() => { if (!on) connectBus(false); }, 3000);
     document.dispatchEvent(new CustomEvent('rhythm', { detail: { on } }));
   }
   btn.addEventListener('click', () => setOn(!on));
@@ -4022,9 +4092,9 @@ const Rhythm = (() => {
   function preview1(id, lv) { ensureAudio(); ensureBus(); hit(id, audioCtx.currentTime + 0.01, VEL[lv]); }
   styleEl.addEventListener('change', () => {
     const v = styleEl.value;
-    if (v === 'custom') { setPref('3nps-drumstyle', 'custom'); loadState(); }
+    if (v === 'custom' || findUser(v)) { setPref('3nps-drumstyle', v); loadState(); if (findUser(v)) { swingEl.value = findUser(v).swing || 0; setPref('3nps-swing', swingEl.value); } }
     else { const pr = byKey[v]; presetKey = v; res = pr.res; pat = fromPreset(pr); swingEl.value = pr.swing; setPref('3nps-swing', swingEl.value); setPref('3nps-drumstyle', v); }
-    buildGrid();
+    buildGrid(); showSaveUi();
   });
   resEl.addEventListener('change', () => {
     const nr = parseInt(resEl.value); if (nr === res) return;
@@ -4037,14 +4107,34 @@ const Rhythm = (() => {
   humanEl.addEventListener('input', () => { setPref('3nps-human', humanEl.value); paint(); });
   fillsEl.addEventListener('change', () => setPref('3nps-fills', fillsEl.value));
   $('drumClear').addEventListener('click', () => { pat = blank(res); saveCustom(); paint(); });
+  $('drumSaveBtn').addEventListener('click', () => {
+    const nameIn = $('drumSaveName'); let name = nameIn.value.trim();
+    if (!name) name = 'Mein Muster ' + (user.length + 1);
+    const key = 'u_' + Date.now().toString(36);
+    user.push({ key, name, res, steps: stepsCopy(), swing: parseInt(swingEl.value) });
+    storeUser(); renderUser();
+    presetKey = key; styleEl.value = key; setPref('3nps-drumstyle', key);
+    nameIn.value = ''; showSaveUi(); nameIn.blur();
+    flashNote('„' + name + '“ gespeichert – steht jetzt unter „Meine Muster“.');
+  });
+  $('drumDelBtn').addEventListener('click', e => {
+    const b = e.currentTarget, u = findUser(presetKey); if (!u) return;
+    if (b.dataset.armed !== '1') { b.dataset.armed = '1'; b.textContent = 'Wirklich löschen?'; setTimeout(() => { b.dataset.armed = ''; b.textContent = 'Muster löschen'; }, 2500); return; }
+    b.dataset.armed = ''; b.textContent = 'Muster löschen';
+    user = user.filter(x => x !== u); storeUser(); renderUser();
+    setPref('3nps-drumpattern2', JSON.stringify({ res, steps: stepsCopy() }));
+    presetKey = 'custom'; styleEl.value = 'custom'; setPref('3nps-drumstyle', 'custom'); showSaveUi();
+    flashNote('„' + u.name + '“ gelöscht. Das Muster bleibt als Entwurf erhalten.');
+  });
+  function flashNote(t) { const n = $('drumNote'); n.textContent = t; n.hidden = false; clearTimeout(flashNote.t); flashNote.t = setTimeout(() => { n.hidden = true; }, 4000); }
   $('drumPreview').addEventListener('click', () => {
     ensureAudio(); ensureBus(); const sd = stepDur(), t0 = audioCtx.currentTime + 0.08;
     for (let k = 0; k < res; k++) IDS.forEach(id => { const lv = pat[id][k]; if (lv && !muted[id]) hit(id, t0 + k * sd, VEL[lv]); });
   });
-  function showDesigner(v) { dgPanel.hidden = !v; dgBtn.classList.toggle('active', v); dgBtn.setAttribute('aria-expanded', v ? 'true' : 'false'); setPref('3nps-designer', v ? '1' : '0'); }
+  function showDesigner(v) { dgPanel.hidden = !v; if (v) setTimeout(startAnim, 0); dgBtn.classList.toggle('active', v); dgBtn.setAttribute('aria-expanded', v ? 'true' : 'false'); setPref('3nps-designer', v ? '1' : '0'); }
   dgBtn.addEventListener('click', () => showDesigner(dgPanel.hidden));
   showDesigner(pref('3nps-designer', '0') === '1');
-  buildGrid();
+  buildGrid(); showSaveUi();
   let lastLit = -2;
   function currentStep() { if (!on || !audioCtx) return -1; const now = audioCtx.currentTime; let s = -1; for (const [t, st] of played) if (t <= now) s = st; return s; }
   function paintPlayhead() {
@@ -4053,7 +4143,13 @@ const Rhythm = (() => {
     gridEl.querySelectorAll('.dg-cell.now').forEach(c => c.classList.remove('now'));
     if (s >= 0) gridEl.querySelectorAll('.dg-cell[data-k="' + s + '"]').forEach(c => c.classList.add('now'));
   }
-  (function anim() { if (on || lastLit !== -1) paintPlayhead(); setTimeout(() => requestAnimationFrame(anim), 30); })();
+  let animOn = false;
+  function anim() {
+    paintPlayhead();
+    if (on && !dgPanel.hidden && !document.hidden) setTimeout(() => requestAnimationFrame(anim), 33);
+    else { animOn = false; lastLit = -2; gridEl.querySelectorAll('.dg-cell.now').forEach(c => c.classList.remove('now')); }
+  }
+  function startAnim() { if (!animOn && on && !dgPanel.hidden) { animOn = true; anim(); } }
 
   // ---- Bass der Begleitung am selben Taktgeber: spielt mit der Kick (Grundton/Quinte) ----
   listeners.push((step, t, sd, bar, p) => {
@@ -4104,7 +4200,25 @@ const Rhythm = (() => {
   // Kit früh im Hintergrund erzeugen (sobald Audio einmal angefasst wurde)
   ['pointerdown', 'keydown'].forEach(ev => window.addEventListener(ev, function once() { window.removeEventListener(ev, once, true); setTimeout(() => { try { ensureAudio(); makeKit(); } catch (e) {} }, 50); }, true));
 
+  function getState() {
+    return { on, key: presetKey, name: styleEl.selectedOptions[0] ? styleEl.selectedOptions[0].text : '', res, steps: stepsCopy(), swing: parseInt(swingEl.value),
+      human: parseInt(humanEl.value), fills: fillsEl.value, vol: parseInt(volEl.value), muted: Object.assign({}, muted) };
+  }
+  function setState(st) {
+    if (!st || !st.steps) return;
+    res = st.res === 12 ? 12 : 16; pat = blank(res);
+    IDS.forEach(id => { if (st.steps[id]) for (let k = 0; k < res; k++) pat[id][k] = st.steps[id][k] | 0; });
+    if (byKey[st.key] || findUser(st.key)) { presetKey = st.key; styleEl.value = st.key; setPref('3nps-drumstyle', st.key); }
+    else { presetKey = 'custom'; styleEl.value = 'custom'; setPref('3nps-drumstyle', 'custom'); setPref('3nps-drumpattern2', JSON.stringify({ res, steps: stepsCopy() })); }
+    swingEl.value = st.swing || 0; humanEl.value = st.human != null ? st.human : 35; fillsEl.value = st.fills || '0'; volEl.value = st.vol != null ? st.vol : 70;
+    muted = Object.assign({}, st.muted || {});
+    ['3nps-swing', '3nps-human', '3nps-fills', '3nps-drumvol'].forEach((k, i) => setPref(k, [swingEl, humanEl, fillsEl, volEl][i].value));
+    if (bus) bus.master.gain.value = parseInt(volEl.value) / 100;
+    buildGrid(); showSaveUi();
+    setOn(!!st.on);
+  }
   return {
+    getState, setState, setLite,
     INSTR, on: () => on, setOn, setGrid: fn => { gridFn = fn; },
     setBass: v => { bassNeed = !!v; clock(); },
     nextBarTime: () => { const g = grid(), bd = barDur(), t = audioCtx.currentTime + 0.15; return g.anchor + Math.ceil((t - g.anchor) / bd) * bd; },
@@ -4547,7 +4661,7 @@ const NordDrones = (() => {
 /* ---------- Looper: 3 synchrone Spuren mit Taktkreisen ---------- */
 const Looper = (() => {
   const $ = id => document.getElementById(id);
-  const statusEl = $('loopStatus'), infoEl = $('loopInfo'), meterEl = $('loopMeter'), threshMark = $('loopThreshMark'), allBtn = $('loopAll');
+  const statusEl = $('loopStatus'), infoEl = $('loopInfo'), meterEl = $('loopMeter'), meterR = $('loopMeterR'), threshMark = $('loopThreshMark'), allBtn = $('loopAll');
   const snapEl = $('loopSnap'), countInEl = $('loopCountIn'), latEl = $('loopLatency'), latVal = $('loopLatencyVal');
   const barsEl = $('loopBars'), trigEl = $('loopTrigger'), threshEl = $('loopThresh');
 
@@ -4557,7 +4671,7 @@ const Looper = (() => {
   let anchor = 0;      // Frame, an dem Phase 0 aller Spuren liegt
   let rec = null;      // {t, kind: first|new|overdub, start, end, chunks, n, layer, armed, Lt}
   let hist = [];       // die letzten Mikrofon-Blöcke, für den Vorlauf beim Signal-Start
-  let level = 0, rafId = null, peakHold = 0;
+  let level = 0, levelL = 0, levelR = 0, rafId = null, peakHold = 0;
   let cap = null;      // Mitschnitt rund um die erste Aufnahme (für das Eintakten)
 
   function loadPref(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } }
@@ -4596,6 +4710,19 @@ const Looper = (() => {
     clearB: $('clear' + i), fileIn: $('file' + i), vol: $('vol' + i), editB: $('edit' + i), keyB: $('key' + i),
     ing: $('ing' + i), ingV: $('ingv' + i), volV: $('volv' + i), inGain: 1
   }));
+  // ---- Stereo: jedes Audio-Stück ist { l, r, length } (bei Mono-Quellen zeigen l und r auf dasselbe Feld) ----
+  const S = n => ({ l: new Float32Array(n), r: new Float32Array(n), length: n });
+  const SP = (l, r) => ({ l, r: r || l, length: l.length });
+  const smap = (x, fn) => { const a = fn(x.l, 0); return SP(a, x.r === x.l ? a : fn(x.r, 1)); };
+  function monoOf(x) {
+    if (!x) return null;
+    if (x._m) return x._m;
+    if (x.r === x.l) return (x._m = x.l);
+    const m = new Float32Array(x.length), a = x.l, b = x.r;
+    for (let i = 0; i < m.length; i++) m[i] = (a[i] + b[i]) * 0.5;
+    return (x._m = m);
+  }
+  const chans = x => x.r === x.l ? [x.l] : [x.l, x.r];
   const anyRunning = () => tracks.some(t => t.src);
   const anyContent = () => tracks.some(t => t.L);
 
@@ -4672,62 +4799,34 @@ const Looper = (() => {
   function droneFollow(start) { if (dSync.checked) setDrone(start); }
   applyDroneKey();
 
-  // ---- Eingangspegel als Flammen (abschaltbar: „Balken“ spart Rechenzeit) ----
-  const fireCv = $('loopFlame'), meterBox = meterEl.parentNode;
-  const fire = { on: false, live: false, W: 220, H: 38, t: 0, heat: null, img: null, ctx: null, pal: null, d32: null };
-  function firePalette() {
-    const stops = [[0, 0, 0, 0], [70, 8, 2, 110], [150, 24, 4, 210], [205, 55, 8, 245], [235, 95, 14, 255], [248, 140, 28, 255], [252, 180, 55, 255], [255, 212, 110, 255], [255, 236, 180, 255], [255, 250, 230, 255]];
-    const pal = new Uint32Array(37);
-    for (let i = 0; i < 37; i++) {
-      const x = i / 36 * (stops.length - 1), a = Math.floor(x), f = x - a, A = stops[a], B = stops[Math.min(stops.length - 1, a + 1)];
-      const c = A.map((v, k) => Math.round(v + (B[k] - v) * f));
-      pal[i] = (c[3] << 24) | (c[2] << 16) | (c[1] << 8) | c[0];
-    }
-    return pal;
+  // ---- Leistung: „sparsam“ entlastet das iPad (z. B. beim Laden, wenn es warm wird) ----
+  const perfEl = $('perfMode');
+  perfEl.value = loadPref('3nps-perf', 'auto');
+  if (!['auto', 'high', 'lite'].includes(perfEl.value)) perfEl.value = 'auto';
+  window.__lite = perfEl.value === 'lite';
+  let autoLite = false;
+  function applyLite(v, why) {
+    window.__lite = v;
+    if (typeof Rhythm !== 'undefined') Rhythm.setLite(v);
+    document.documentElement.classList.toggle('lite', v);
+    $('perfInfo').textContent = v ? 'Sparsam aktiv' + (why ? ' – ' + why : '') + '. Ruhigere Anzeige; der größere Audio-Puffer greift nach dem nächsten Start der App. Der Klang bleibt gleich.'
+      : 'Sparsam: ruhigere Anzeige und größerer Audio-Puffer (nach einem Neustart der App) – der Klang bleibt gleich, nur die Verzögerung wird etwas größer.';
+    kick();
   }
-  function setMeterStyle(v) {
-    fire.on = v === 'fire';
-    meterBox.classList.toggle('fire', fire.on); fireCv.hidden = !fire.on;
-    $('meterStyle').querySelectorAll('[data-v]').forEach(b => b.classList.toggle('active', b.dataset.v === v));
-    if (fire.on && !fire.ctx) {
-      fireCv.width = fire.W; fireCv.height = fire.H;
-      fire.ctx = fireCv.getContext('2d'); fire.img = fire.ctx.createImageData(fire.W, fire.H);
-      fire.d32 = new Uint32Array(fire.img.data.buffer); fire.heat = new Uint8Array(fire.W * fire.H); fire.pal = firePalette();
+  perfEl.addEventListener('change', () => { savePref('3nps-perf', perfEl.value); autoLite = false; applyLite(perfEl.value === 'lite'); });
+  // Ruckel-Erkennung: viele lange Pausen zwischen den Bildern → automatisch sparsam
+  const jank = { last: 0, n: 0, bad: 0, t0: 0 };
+  function watchJank(nowMs) {
+    if (perfEl.value !== 'auto' || window.__lite) { jank.last = nowMs; jank.t0 = nowMs; jank.n = jank.bad = 0; return; }
+    const dt = nowMs - jank.last; jank.last = nowMs;
+    if (dt > 400) { jank.t0 = nowMs; jank.n = jank.bad = 0; return; }       // Pause/Tabwechsel nicht zählen
+    jank.n++; if (dt > 70) jank.bad++;
+    if (nowMs - jank.t0 >= 4000) {
+      if (jank.n >= 20 && jank.bad / jank.n >= 0.2) { autoLite = true; applyLite(true, 'automatisch eingeschaltet, weil die Anzeige ruckelte'); setStatus('Das iPad ist gerade ausgelastet – die App läuft jetzt im Sparmodus (Einstellung „Leistung“).'); }
+      jank.n = 0; jank.bad = 0; jank.t0 = nowMs;
     }
-    if (!fire.on) meterEl.style.width = '0%';
-    savePref('3nps-meterstyle', v); kick();
   }
-  $('meterStyle').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if (b) setMeterStyle(b.dataset.v); });
-  function drawFire(lv) {
-    const { W, H, heat, d32, pal } = fire, src = Math.round(lv * W), hot = lv > 0.97;
-    fire.t += 0.033;
-    const t = fire.t;
-    let any = false;
-    for (let x = 0; x < W; x++) {
-      const i = (H - 1) * W + x;
-      if (x < src) {
-        // Flammenzungen: langsam wandernde „Brennstoff“-Verteilung, zur Pegelspitze hin schmaler
-        let fuel = 0.5 + 0.5 * Math.sin(x * 0.16 + t * 2.1 + Math.sin(x * 0.05 - t * 0.9) * 2.2);
-        fuel = Math.pow(fuel, 1.6) * (0.75 + 0.25 * Math.sin(x * 0.043 - t * 1.3));
-        const edge = Math.min(1, (src - x) / 12);
-        heat[i] = Math.min(36, Math.round((hot ? 36 : 9 + 27 * fuel + Math.random() * 3) * (0.45 + 0.55 * edge)));
-        heat[i - W] = Math.max(heat[i - W], heat[i] - 2);
-      } else heat[i] = heat[i] > 3 ? heat[i] - 3 : 0;
-    }
-    for (let y = 0; y < H - 2; y++) {
-      for (let x = 0; x < W; x++) {
-        const v = heat[(y + 1) * W + x];
-        if (!v) { heat[y * W + x] = 0; continue; }
-        const r = (Math.random() * 4) | 0, dx = Math.min(W - 1, Math.max(0, x - (r & 1) + (r >> 1)));
-        const dec = (Math.random() < 0.64 ? 1 : 0) + (Math.random() < 0.06 ? 1 : 0);
-        heat[y * W + dx] = v > dec ? v - dec : 0;
-      }
-    }
-    for (let i = 0; i < W * H; i++) { const v = heat[i]; d32[i] = pal[v]; if (v) any = true; }
-    fire.ctx.putImageData(fire.img, 0, 0);
-    fire.live = any;
-  }
-  setMeterStyle(loadPref('3nps-meterstyle', 'fire'));
+  setTimeout(() => applyLite(window.__lite), 0);
 
   // ---- Mikrofon ----
   const monBtn = $('loopMonitor');
@@ -4745,33 +4844,34 @@ const Looper = (() => {
     }
     try {
       if (navigator.audioSession) { try { navigator.audioSession.type = 'play-and-record'; } catch (e) {} }
-      stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+      stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: { ideal: 2 }, sampleRate: { ideal: audioCtx.sampleRate } } });
     } catch (e) {
       setStatus('Kein Zugriff aufs Mikrofon. Erlaube ihn in den iPad-Einstellungen unter Datenschutz → Mikrofon bzw. für die Website in Safari.');
       return false;
     }
-    stream.getAudioTracks().forEach(tr => tr.addEventListener('ended', micLost));
+    stream.getAudioTracks().forEach(tr => tr.addEventListener('ended', () => micLost()));
     micSource = audioCtx.createMediaStreamSource(stream);
     sinkNode = audioCtx.createGain(); sinkNode.gain.value = 0;
     let workletOk = false;
     if (audioCtx.audioWorklet && window.AudioWorkletNode) {
       try {
-        const code = `class Tap extends AudioWorkletProcessor{constructor(){super();this.b=new Float32Array(2048);this.n=0;this.s=0;}
-          process(inp){const c=inp[0]&&inp[0][0];if(!c){if(this.n){this.port.postMessage({f:this.s,d:this.b.slice(0,this.n)});this.n=0;}return true;}
-          if(this.n===0)this.s=currentFrame;this.b.set(c,this.n);this.n+=c.length;
-          if(this.n+c.length>this.b.length){this.port.postMessage({f:this.s,d:this.b.slice(0,this.n)});this.n=0;}return true;}}
+        const code = `class Tap extends AudioWorkletProcessor{constructor(){super();this.a=new Float32Array(2048);this.b=new Float32Array(2048);this.n=0;this.s=0;}
+          flush(){this.port.postMessage({f:this.s,l:this.a.slice(0,this.n),r:this.b.slice(0,this.n)});this.n=0;}
+          process(inp){const c=inp[0]&&inp[0][0];if(!c){if(this.n)this.flush();return true;}const d=inp[0][1]||c;
+          if(this.n===0)this.s=currentFrame;this.a.set(c,this.n);this.b.set(d,this.n);this.n+=c.length;
+          if(this.n+c.length>this.a.length)this.flush();return true;}}
           registerProcessor('tap',Tap);`;
         const url = URL.createObjectURL(new Blob([code], { type: 'application/javascript' }));
         await audioCtx.audioWorklet.addModule(url);
-        tapNode = new AudioWorkletNode(audioCtx, 'tap', { numberOfInputs: 1, numberOfOutputs: 1, channelCount: 1, channelCountMode: 'explicit' });
-        tapNode.port.onmessage = e => handleChunk(e.data.f, e.data.d);
+        tapNode = new AudioWorkletNode(audioCtx, 'tap', { numberOfInputs: 1, numberOfOutputs: 1, channelCount: 2, channelCountMode: 'explicit', outputChannelCount: [1] });
+        tapNode.port.onmessage = e => handleChunk(e.data.f, SP(e.data.l, e.data.r));
         workletOk = true;
       } catch (e) { workletOk = false; }
     }
     if (!workletOk) {
       // Ausweichweg, falls das Aufnahme-Modul nicht lädt
-      tapNode = audioCtx.createScriptProcessor(2048, 1, 1);
-      tapNode.onaudioprocess = e => handleChunk(Math.round(e.playbackTime * sr) - 2048, new Float32Array(e.inputBuffer.getChannelData(0)));
+      tapNode = audioCtx.createScriptProcessor(2048, 2, 1);
+      tapNode.onaudioprocess = e => { const ib = e.inputBuffer; handleChunk(Math.round(e.playbackTime * sr) - 2048, SP(new Float32Array(ib.getChannelData(0)), new Float32Array(ib.getChannelData(ib.numberOfChannels > 1 ? 1 : 0)))); };
     }
     micSource.connect(tapNode); tapNode.connect(sinkNode); sinkNode.connect(audioCtx.destination);
     if (latEl.value === '') {
@@ -4781,6 +4881,8 @@ const Looper = (() => {
     }
     latVal.textContent = latEl.value + ' ms';
     micReady = true;
+    try { const st = stream.getAudioTracks()[0].getSettings(); inChans = st.channelCount || 0; } catch (e) { inChans = 0; }
+    showInChans();
     $('panel-looper').classList.add('mic-on');
     monBtn.classList.add('active'); monBtn.textContent = 'Eingang offen';
     kick();
@@ -4788,26 +4890,80 @@ const Looper = (() => {
   }
 
   // iPadOS beendet das Mikrofon z. B. beim Sperren oder App-Wechsel – dann beim nächsten Bedarf neu öffnen
-  function micLost() {
+  function micLost(reason) {
     if (!micReady) return;
     micReady = false;
     try { micSource && micSource.disconnect(); tapNode && tapNode.disconnect(); } catch (e) {}
-    micSource = null; tapNode = null; stream = null;
+    try { stream && stream.getTracks().forEach(tr => tr.stop()); } catch (e) {}
+    micSource = null; tapNode = null; stream = null; stereoSeen = false; showInChans();
     $('panel-looper').classList.remove('mic-on');
     monBtn.classList.remove('active'); monBtn.textContent = 'Eingang öffnen';
     if (rec) cancelRec();
-    setStatus('Das iPad hat das Mikrofon geschlossen (z. B. nach dem Sperren). Beim nächsten Aufnehmen wird es wieder geöffnet.');
+    if (reason === 'device') return;
+    setStatus('Der Eingang wurde unterbrochen (z. B. Sperren, Ladekabel, USB-Gerät). Ich öffne ihn neu …');
+    // Gleich wieder öffnen (ohne Nachfrage, solange die Erlaubnis gilt); sonst beim nächsten Tippen
+    setTimeout(reopenMic, 900);
   }
+  const reopenLog = [];
+  async function reopenMic() {
+    if (micReady || document.hidden) return;
+    const now = Date.now(); while (reopenLog.length && now - reopenLog[0] > 30000) reopenLog.shift();
+    if (reopenLog.length >= 3) { setStatus('Das Audio-Gerät verbindet sich immer wieder neu. Prüfe Adapter/Kabel, dann „Eingang öffnen“.'); return; }
+    reopenLog.push(now);
+    try { if (await ensureMic()) { setStatus('Eingang wieder offen – das Audio-Gerät wurde neu verbunden.'); return; } } catch (e) {}
+    setStatus('Eingang geschlossen. Tippe auf „Eingang öffnen“ oder REC, um weiterzumachen.');
+  }
+  // USB-Audio-Gerät oder Ladegerät an-/abgesteckt: Mikrofon neu verbinden, Ton fortsetzen
+  if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) {
+    navigator.mediaDevices.addEventListener('devicechange', () => {
+      setTimeout(() => {
+        if (audioCtx && audioCtx.state !== 'running') audioCtx.resume().catch(() => {});
+        if (micReady && stream && stream.getAudioTracks().some(tr => tr.readyState === 'ended' || tr.muted)) { micLost('device'); setTimeout(reopenMic, 600); }
+      }, 500);
+    });
+  }
+  // Ton vom iPad unterbrochen (Audio-Weg gewechselt): sofort wieder starten, notfalls beim nächsten Tippen
+  let ctxHooked = false, needResume = false;
+  function hookCtx() {
+    if (ctxHooked || !audioCtx) return; ctxHooked = true;
+    audioCtx.addEventListener('statechange', () => {
+      if (audioCtx.state === 'running') { if (needResume) { needResume = false; setStatus('Ton läuft wieder.'); } return; }
+      if (document.hidden) return;
+      audioCtx.resume().then(() => {}).catch(() => {});
+      setTimeout(() => { if (audioCtx.state !== 'running') { needResume = true; setStatus('Der Ton wurde vom iPad unterbrochen (z. B. Ladekabel/USB-Gerät). Tippe einmal auf den Bildschirm, um weiterzumachen.'); } }, 400);
+    });
+  }
+  setInterval(hookCtx, 1000);
+  ['pointerdown', 'keydown'].forEach(ev => window.addEventListener(ev, () => { if (audioCtx && audioCtx.state !== 'running') audioCtx.resume().catch(() => {}); }, true));
+  let wasMic = false;
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden || !audioCtx) return;
+    if (document.hidden) { wasMic = micReady; return; }
+    if (!audioCtx) return;
     if (audioCtx.state !== 'running') audioCtx.resume().catch(() => {});
     if (micReady && stream && stream.getAudioTracks().every(tr => tr.readyState === 'ended')) micLost();
+    else if (!micReady && wasMic) reopenMic();
   });
 
+  // Eingang: Stereo erkennen (unterschiedliche Kanäle) und anzeigen
+  let inChans = 0, stereoSeen = false;
+  function showInChans() {
+    const el = $('inChanInfo'); if (!el) return;
+    el.textContent = !micReady ? '' : stereoSeen ? '· Stereo L/R' : inChans === 1 ? '· Mono (Gerät liefert 1 Kanal)' : inChans >= 2 ? '· Stereo-Eingang' : '';
+    el.classList.toggle('mono', micReady && !stereoSeen && inChans === 1);
+    const box = $('loopMeterBox'); if (box) box.classList.toggle('st', micReady && stereoSeen);
+  }
   function handleChunk(startFrame, data) {
-    let pk = 0;
-    for (let i = 0; i < data.length; i++) { const a = data[i] < 0 ? -data[i] : data[i]; if (a > pk) pk = a; }
+    let pk = 0, pkR = 0; const L = data.l, R = data.r;
+    for (let i = 0; i < L.length; i++) { const a = L[i] < 0 ? -L[i] : L[i]; if (a > pk) pk = a; }
+    const pkL = pk;
+    if (R !== L) {
+      let df = 0;
+      for (let i = 0; i < R.length; i++) { const a = R[i] < 0 ? -R[i] : R[i]; if (a > pkR) pkR = a; df += Math.abs(L[i] - R[i]); }
+      if (pkR > pk) pk = pkR;
+      if (!stereoSeen && df / R.length > 1e-4) { stereoSeen = true; showInChans(); }
+    } else pkR = pkL;
     level = Math.max(level * 0.85, pk);
+    levelL = Math.max(levelL * 0.85, pkL); levelR = Math.max(levelR * 0.85, pkR);
     const m0 = startFrame - latencyFrames();
     if (cap) {
       cap.list.push({ m0, data });
@@ -4820,7 +4976,7 @@ const Looper = (() => {
     if (rec.armed) {
       const thr = threshold() / rec.t.inGain;
       for (let i = 0; i < data.length; i++) {
-        if (Math.abs(data[i]) > thr) { trigger(m0 + i); return; }
+        if (Math.abs(L[i]) > thr || Math.abs(R[i]) > thr) { trigger(m0 + i); return; }
       }
       kick(); return;
     }
@@ -4835,11 +4991,11 @@ const Looper = (() => {
     if (to > from) {
       const g = rec.t.inGain;
       if (rec.kind === 'overdub') {
-        const Lt = rec.t.L, ly = rec.layer;
-        for (let i = from; i < to; i++) ly[mod(m0 + i - anchor, Lt)] += data[i] * g;
+        const Lt = rec.t.L, ly = rec.layer, dl = data.l, dr = data.r;
+        for (let i = from; i < to; i++) { const j = mod(m0 + i - anchor, Lt); ly.l[j] += dl[i] * g; ly.r[j] += dr[i] * g; }
       } else {
-        const c = data.slice(from, to);
-        if (g !== 1) for (let i = 0; i < c.length; i++) c[i] *= g;
+        const c = S(to - from);
+        for (let i = from; i < to; i++) { c.l[i - from] = data.l[i] * g; c.r[i - from] = data.r[i] * g; }
         rec.chunks.push(c); rec.n += to - from;
       }
     }
@@ -4859,22 +5015,26 @@ const Looper = (() => {
   }
 
   function joinChunks(chunks, n) {
-    const out = new Float32Array(n); let o = 0;
-    for (const c of chunks) { out.set(c.subarray(0, Math.min(c.length, n - o)), o); o += c.length; if (o >= n) break; }
+    const out = S(n); let o = 0;
+    for (const c of chunks) { const k = Math.min(c.length, n - o); out.l.set(c.l.subarray(0, k), o); out.r.set(c.r.subarray(0, k), o); o += c.length; if (o >= n) break; }
     return out;
   }
 
   // ---- Spuren abspielen ----
   function rebuildMix(t) {
-    t.mix = new Float32Array(t.L);
-    t.layers.forEach(ly => { for (let i = 0; i < t.L; i++) t.mix[i] += ly[i]; });
+    if (t.layers.length === 1 && t.layers[0].length === t.L) { t.mix = t.layers[0]; t.mix._m = null; }
+    else {
+      const m = S(t.L);
+      t.layers.forEach(ly => { const a = ly.l, b = ly.r; for (let i = 0; i < t.L; i++) { m.l[i] += a[i]; m.r[i] += b[i]; } });
+      t.mix = m;
+    }
     t.peaks = null;
   }
   function startTrack(t) {
     stopSrc(t);
     if (!t.L) return;
-    const buf = audioCtx.createBuffer(1, t.L, sr);
-    buf.copyToChannel(t.mix, 0);
+    const buf = audioCtx.createBuffer(2, t.L, sr);
+    buf.copyToChannel(t.mix.l, 0); buf.copyToChannel(t.mix.r, 1);
     const s = audioCtx.createBufferSource();
     s.buffer = buf; s.loop = true;
     t.gain = audioCtx.createGain(); t.gain.gain.value = parseInt(t.vol.value) / 100;
@@ -4890,7 +5050,7 @@ const Looper = (() => {
 
   // ---- Aufnahme ----
   function beginRec(t, kind, start) {
-    rec = { t, kind, start, end: null, chunks: [], n: 0, layer: kind === 'overdub' ? new Float32Array(t.L) : null, armed: false, Lt: 0,
+    rec = { t, kind, start, end: null, chunks: [], n: 0, layer: kind === 'overdub' ? S(t.L) : null, armed: false, Lt: 0,
       bpm0: bpm(), hadRef: countBars() > 0 || drumsOnF() || (typeof isPlaying !== 'undefined' && isPlaying) };
     cap = kind === 'first' ? { t, list: hist.slice(), until: 0, onDone: null } : null;
     t.state = kind === 'overdub' ? 'overdub' : 'recording';
@@ -5001,7 +5161,7 @@ const Looper = (() => {
       baseL = t.L; anchor = r.end; t.hist = []; t.orig = null; t.origPos = null;
       if (cap && cap.t === t && snapEl.checked) {
         r.provLayer = t.layers[0];
-        cap.until = r.end + Math.round(0.7 * sr);
+        cap.until = r.end + Math.round(1.5 * sr);
         cap.onDone = c => refineFirst(t, r, c).catch(e => console.warn(e));
       } else cap = null;
     } else if (r.kind === 'new') {
@@ -5010,8 +5170,8 @@ const Looper = (() => {
         const c0 = Math.floor((r.start - anchor) / baseL), c1 = Math.floor((r.end - 1 - anchor) / baseL);
         t.L = Math.max(1, c1 - c0 + 1) * baseL;
       }
-      const raw = joinChunks(r.chunks, r.n), ly = new Float32Array(t.L);
-      for (let j = 0; j < raw.length; j++) ly[mod(r.start + j - anchor, t.L)] += raw[j];
+      const raw = joinChunks(r.chunks, r.n), ly = S(t.L);
+      for (let j = 0; j < raw.length; j++) { const k = mod(r.start + j - anchor, t.L); ly.l[k] += raw.l[j]; ly.r[k] += raw.r[j]; }
       t.layers = [ly]; t.hist = []; t.orig = null;
     } else {
       snapshot(t);
@@ -5032,18 +5192,22 @@ const Looper = (() => {
   // Erste Aufnahme eintakten: Tempo und Takt-Eins aus dem Gespielten bestimmen, Loop auf ganze Takte legen
   async function refineFirst(t, r, c) {
     const pre = Math.round(0.6 * sr), from = r.start - pre, to = c.until, g = t.inGain;
-    const x = new Float32Array(to - from);
+    const xs = S(to - from);
     for (const ch of c.list) {
-      const a = Math.max(ch.m0, from), b = Math.min(ch.m0 + ch.data.length, to);
-      for (let i = a; i < b; i++) x[i - from] = ch.data[i - ch.m0] * g;
+      const a = Math.max(ch.m0, from), b = Math.min(ch.m0 + ch.data.length, to), dl = ch.data.l, dr = ch.data.r;
+      for (let i = a; i < b; i++) { xs.l[i - from] = dl[i - ch.m0] * g; xs.r[i - from] = dr[i - ch.m0] * g; }
     }
+    const x = monoOf(xs);
     const stillSame = () => t.layers.length === 1 && t.layers[0] === r.provLayer && !(rec && rec.t === t);
     const rawLen = (r.pressEnd && !selectedBars() ? r.pressEnd : r.end) - r.start;
     const B = r.bpm0, ref = r.hadRef;
     let T = null, startF = r.start, how = '';
     if (rawLen / sr >= 3.2) {
-      const beat = await Analyzer.beat([x], sr, { hintBpm: B, hintStrong: ref });
-      if (!stillSame()) return;
+      // Analyse nur über das Gespielte plus kurzen Nachlauf; der längere Nachlauf dient nur dem Feinabgleich der Länge
+      const aEnd = Math.min(xs.length, r.end + Math.round(0.7 * sr) - from);
+      const beat = await Analyzer.beat(chans(xs).map(a => a.subarray(0, aEnd)), sr, { hintBpm: B, hintStrong: ref });
+      window.__rf = { beat: beat && { bpm: beat.bpm, conf: beat.confidence, alt: beat.alternatives }, rawLen: rawLen / sr };
+      if (!stillSame()) { window.__rf.why = 'changed'; return; }
       if (beat && beat.confidence > 2.2) {
         let cands = [beat.bpm, beat.bpm * 2, beat.bpm / 2].filter(v => v >= 40 && v <= 240);
         if (ref) {
@@ -5051,7 +5215,13 @@ const Looper = (() => {
           T = Math.abs(best / B - 1) < 0.04 ? best : B;
         } else {
           // Oktave mit der saubersten ganzen Taktzahl, bei Gleichstand die erkannte
-          const err = v => { const nb = rawLen / (240 / v * sr); return Math.abs(nb - Math.max(1, Math.round(nb))) + (v === beat.bpm ? 0 : 0.12); };
+          // dazu die Alternativen der Analyse und die Triolen-Verwandten (×1,5 / ×⅔) – mit etwas Abschlag
+          const pen = new Map(cands.map(v => [v, v === beat.bpm ? 0 : 0.12]));
+          const addC = (v, p) => { if (v >= 40 && v <= 240 && ![...pen.keys()].some(u => Math.abs(u / v - 1) < 0.01)) pen.set(v, p); };
+          (beat.alternatives || []).forEach(a => { addC(a, 0.15); addC(a * 2, 0.2); addC(a / 2, 0.2); });
+          addC(beat.bpm * 1.5, 0.2); addC(beat.bpm * 2 / 3, 0.2);
+          cands = [...pen.keys()];
+          const err = v => { const nb = rawLen / (240 / v * sr); return Math.abs(nb - Math.max(1, Math.round(nb))) + pen.get(v); };
           T = cands.reduce((a, b) => err(b) < err(a) ? b : a);
           // Takt-Eins: erkannte Eins (oder Schlag) nahe am Tastendruck
           const st = pre / sr, bs = 60 / T, near = (arr) => arr.reduce((m, v) => Math.abs(v - st) < Math.abs(m - st) ? v : m, Infinity);
@@ -5062,7 +5232,7 @@ const Looper = (() => {
         }
       }
     } else {
-      const lp = await Analyzer.loop([t.mix], sr, { hintBpm: B });
+      const lp = await Analyzer.loop(chans(t.mix), sr, { hintBpm: B });
       if (!stillSame()) return;
       if (lp && lp.confidence > 2 && (!ref || Math.abs(lp.bpm / B - 1) < 0.04)) { T = lp.bpm; if (!ref) how = ' (Tempo aus deinem Spiel erkannt)'; }
     }
@@ -5078,7 +5248,8 @@ const Looper = (() => {
       const D = 16, n = Math.floor(x.length / D), e = new Float32Array(n);
       let acc = 0; const sm = Math.max(1, Math.round(0.003 * sr / D));
       for (let i = 1; i < n; i++) { let v = 0; for (let j = i * D; j < i * D + D && j < x.length; j++) { const d = x[j] - x[j - 1]; v += d < 0 ? -d : d; } acc += (v - acc) / sm; e[i] = acc; }
-      const s0e = Math.round((startF - from) / D), beatE = Math.round(60 / T * sr / D), w0 = Math.max(0, s0e - (beatE >> 1)), w1 = s0e + beatE * 2;
+      const base = Math.round(L2 / D), R = Math.round(Math.max(0.035, 0.007 * L2 / sr) * sr / D);
+      const s0e = Math.round((startF - from) / D), beatE = Math.round(60 / T * sr / D), w0 = Math.max(0, s0e - (beatE >> 1)), w1 = Math.min(s0e + beatE * 2, n - base - R - 2);
       const ncc = dl => {
         let ab = 0, aa = 0, bb = 0, ma = 0, mb = 0, c = 0;
         for (let i = w0; i < w1; i++) { const j = i + dl; if (j >= n) return -1; ma += e[i]; mb += e[j]; c++; }
@@ -5086,22 +5257,24 @@ const Looper = (() => {
         for (let i = w0; i < w1; i++) { const a = e[i] - ma, b = e[i + dl] - mb; ab += a * b; aa += a * a; bb += b * b; }
         return ab / Math.sqrt(aa * bb + 1e-12);
       };
-      const base = Math.round(L2 / D), R = Math.round(0.035 * sr / D);
-      let best = 0, bv = ncc(base);
-      for (let d = -R; d <= R; d++) { const v = ncc(base + d); if (v > bv + 1e-4) { bv = v; best = d; } }
-      if (bv > 0.45 && best) L2 += best * D;
+      if (w1 - w0 >= beatE) {
+        let best = 0, bv = ncc(base);
+        for (let d = -R; d <= R; d++) { const v = ncc(base + d); if (v > bv + 1e-4) { bv = v; best = d; } }
+        if (bv > 0.45 && best) L2 += best * D;
+        if (window.__rf) Object.assign(window.__rf, { fine: best * D / sr, bv });
+      }
     }
-    if (startF - from < Math.round(0.012 * sr) || startF + L2 > to) { if (startF + L2 > to) return; }
+    if (window.__rf) Object.assign(window.__rf, { T, L2: L2 / sr, startF: (startF - from) / sr, to: (to - from) / sr });
+    if (startF - from < Math.round(0.012 * sr) || startF + L2 > to) { if (startF + L2 > to) { if (window.__rf) window.__rf.why = 'short'; return; } }
     // Loop schneiden: Takt 1 an den Anfang, die 10 ms davor ans Ende (sauberer Übergang)
-    const s0 = startF - from, preW = Math.min(s0, Math.round(0.01 * sr)), seg = new Float32Array(L2);
-    seg.set(x.subarray(s0, s0 + L2 - preW), 0);
-    seg.set(x.subarray(s0 - preW, s0), L2 - preW);
+    const s0 = startF - from, preW = Math.min(s0, Math.round(0.01 * sr));
+    const seg = smap(xs, a => { const o = new Float32Array(L2); o.set(a.subarray(s0, s0 + L2 - preW), 0); o.set(a.subarray(s0 - preW, s0), L2 - preW); return o; });
     if (!stillSame()) return;
     const Lold = t.L, wasPlaying = !!t.src, now = nowFrame();
     t.layers = [seg]; t.L = L2; baseL = L2; rebuildMix(t);
     setTempo(nbars * 240 / (L2 / sr));
     const barF = L2 / nbars, downs = []; for (let k = 0; k <= nbars; k++) downs.push(Math.round(s0 + k * barF));
-    t.orig = { data: x, name: 'Aufnahme', downs, bars: nbars, bpm: bpm(), barMed: barF, steady: true, conf: 3, loopFile: true, recorded: true };
+    t.orig = { data: xs, name: 'Aufnahme', downs, bars: nbars, bpm: bpm(), barMed: barF, steady: true, conf: 3, loopFile: true, recorded: true };
     t.origPos = s0; t.origBars = nbars;
     if (wasPlaying) {
       const p = mod(now - anchor, Lold), q = mod(p + (r.start - startF), L2);
@@ -5172,7 +5345,8 @@ const Looper = (() => {
     const last = downs[downs.length - 1];
     if (last + barMed <= data.length + barMed * 0.05) downs.push(Math.min(last + barMed, data.length));
     // Ausklang: leise Takte am Ende abschneiden (unter 15 % der typischen Taktlautstärke)
-    const rmsBar = i => { let e = 0, c = 0; for (let j = downs[i]; j < downs[i + 1]; j += 16) { e += data[j] * data[j]; c++; } return Math.sqrt(e / Math.max(1, c)); };
+    const dm = monoOf(data);
+    const rmsBar = i => { let e = 0, c = 0; for (let j = downs[i]; j < downs[i + 1]; j += 16) { e += dm[j] * dm[j]; c++; } return Math.sqrt(e / Math.max(1, c)); };
     const br = []; for (let i = 0; i < downs.length - 1; i++) br.push(rmsBar(i));
     const medB = br.slice().sort((a, b) => a - b)[br.length >> 1] || 1e-9;
     // Ausklang: der letzte Takt zählt nur, wenn er noch kräftig klingt (kein Nachhall / Schlussakkord)
@@ -5189,9 +5363,7 @@ const Looper = (() => {
     from = Math.max(1, Math.min(from, o.bars)); nb = Math.max(1, Math.min(nb, o.bars - from + 1));
     const start = o.downs[from - 1], end = o.downs[from - 1 + nb];
     const Ldet = Math.max(1, end - start), pre = Math.min(start, Math.round(sr * 0.01));
-    let seg = new Float32Array(Ldet);
-    seg.set(o.data.subarray(start, Math.min(o.data.length, start + Ldet - pre)), 0);
-    if (pre) seg.set(o.data.subarray(start - pre, start), Ldet - pre);
+    let seg = smap(o.data, a => { const g = new Float32Array(Ldet); g.set(a.subarray(start, Math.min(a.length, start + Ldet - pre)), 0); if (pre) g.set(a.subarray(start - pre, start), Ldet - pre); return g; });
     const exactBpm = 240 * nb / (Ldet / sr);
     const what = nb + ' Takt' + (nb === 1 ? '' : 'e') + (from > 1 ? ' ab Takt ' + from : ' ab Schlag 1') + (from === 1 && nb === o.bars ? (o.loopFile ? ' (Loop-Datei)' : ' (ganze Datei)') : '');
     let L, msg;
@@ -5208,11 +5380,11 @@ const Looper = (() => {
       L = Lb >= baseL ? Math.ceil(Lb / baseL - 1e-6) * baseL : (os2 ? Lb : baseL);
       if (Math.abs(ratio - 1) <= 0.35) {
         if (Math.abs(ratio - 1) > 0.0005) seg = stretch(seg, Lb);
-        seg = padTo(seg, L);
+        seg = padS(seg, L);
         msg = what + (Math.abs(ratio - 1) > 0.002 ? ', ins Tempo des Loops gebracht (' + bpmTxt(exactBpm) + ' → ' + bpmTxt(exactBpm / ratio) + ' BPM, Tonhöhe bleibt)' : ', passt zum Loop') + (L > Lb + 1 ? ' – auf ' + Math.round(L / barF) + ' Takte des Loops aufgefüllt' : '') + '.';
       } else {
         L = Math.max(1, Math.round(Ldet / baseL)) * baseL;
-        seg = padTo(seg, L);
+        seg = padS(seg, L);
         msg = what + '. Das Tempo der Datei (' + bpmTxt(exactBpm) + ' BPM) weicht stark vom Loop ab. Nutze „An Loop-Länge anpassen“ oder leere die anderen Spuren.';
       }
     }
@@ -5224,16 +5396,16 @@ const Looper = (() => {
   // Analyse einer geladenen Datei: Loop-Datei (ganze Takte) oder Song mit Taktraster
   async function analyseImport(data, name) {
     const n = data.length, secs = n / sr;
-    const beat = await Analyzer.beat([data], sr);
-    if (secs <= 40 && (!beat || beat.confidence > 2.5) && evenEnergy(data)) {
-      const lp = await Analyzer.loop([data], sr);
+    const beat = await Analyzer.beat(chans(data), sr);
+    if (secs <= 40 && (!beat || beat.confidence > 2.5) && evenEnergy(monoOf(data))) {
+      const lp = await Analyzer.loop(chans(data), sr);
       // Song-Analyse muss das Tempo bestätigen – bis auf die Oktave
       const sameTempo = lp && (!beat || [1, 2, 0.5].some(q => Math.abs(lp.bpm - beat.bpm * q) / (beat.bpm * q) < 0.012));
       if (lp && lp.isLoop && Math.abs(lp.lenErrMs) < 25 && sameTempo && lp.confidence > 2) {
         const k = Math.round(-lp.downOffsetSec * sr);
         if (Math.abs(k) > sr * 0.003) {           // Takt 1 an den Dateianfang drehen
-          const r = new Float32Array(n), kk = mod(-k, n);
-          r.set(data.subarray(kk), 0); r.set(data.subarray(0, kk), n - kk); data = r;
+          const kk = mod(-k, n);
+          data = smap(data, a => { const r = new Float32Array(n); r.set(a.subarray(kk), 0); r.set(a.subarray(0, kk), n - kk); return r; });
         }
         const barF = n / lp.bars, downs = []; for (let i = 0; i <= lp.bars; i++) downs.push(Math.round(i * barF));
         return { kind: 'loop', lp, orig: { data, name, downs, bars: lp.bars, bpm: lp.bpm, barMed: barF, steady: true, conf: lp.confidence, loopFile: true } };
@@ -5295,9 +5467,11 @@ const Looper = (() => {
     try { buf = await audioCtx.decodeAudioData(await file.arrayBuffer()); }
     catch (e) { setStatus('„' + file.name + '“ kann das iPad nicht öffnen. Wandle die Datei in MP3, WAV oder M4A um.'); return; }
     if (rec && rec.t === t) cancelRec();
-    const n = Math.min(buf.length, Math.round(buf.sampleRate * 600));
-    const data = new Float32Array(n);
-    for (let c = 0; c < buf.numberOfChannels; c++) { const ch = buf.getChannelData(c); for (let i = 0; i < n; i++) data[i] += ch[i] / buf.numberOfChannels; }
+    // Stereo bleibt Stereo (Mono-Dateien: beide Seiten gleich). Höchstens 6 Minuten, damit der Speicher reicht.
+    const n = Math.min(buf.length, Math.round(buf.sampleRate * 360));
+    const l = buf.getChannelData(0).slice(0, n);
+    const data = buf.numberOfChannels > 1 ? SP(l, buf.getChannelData(1).slice(0, n)) : SP(l);
+    if (buf.length > n) setStatus('Die Datei ist länger als 6 Minuten – die ersten 6 Minuten werden verwendet.');
     buf = null;
     const secs = n / sr;
     setStatus('Analysiere Takt und Tempo von „' + file.name + '“ …');
@@ -5327,10 +5501,10 @@ const Looper = (() => {
       // Kein Takt erkennbar: nach Zeit
       const want = choice.mode === 'part' ? Math.min(n, choice.bars * barFrames()) : n;
       const d0 = choice.mode === 'part' ? Math.min(n - 1, (choice.from - 1) * barFrames()) : 0;
-      const part = data.subarray(d0, Math.min(n, d0 + want));
+      const part = smap(data, a => a.slice(d0, Math.min(n, d0 + want)));
       if (!os.length) { L = part.length; baseL = L; }
       else L = Math.max(1, Math.round(part.length / baseL)) * baseL;
-      seg = padTo(part.slice(), L);
+      seg = padS(part, L);
       msg = 'Kein klarer Takt erkannt, nach Zeit eingesetzt. Schneide den Loop im Editor zu.';
     }
     stopSrc(t);
@@ -5506,7 +5680,7 @@ const Looper = (() => {
         const frac = Math.max(0, Math.min(1, prog - k));
         if (frac > 0) {
           ctx.beginPath(); ctx.arc(cx, cy, R, a0, a0 + (a1 - a0) * frac);
-          if (!dim) { // Neon-Schein als breite, transparente Striche
+          if (!dim && !window.__lite) { // Neon-Schein als breite, transparente Striche
             ctx.strokeStyle = c; ctx.globalAlpha = 0.16; ctx.lineWidth = lw * 2.0; ctx.stroke();
             ctx.globalAlpha = 0.32; ctx.lineWidth = lw * 1.5; ctx.stroke();
           }
@@ -5622,20 +5796,20 @@ const Looper = (() => {
       return;
     }
     const n = Math.max(1, Math.floor(w));
-    if (!t.peaks || t.peaks.length !== n) {
-      t.peaks = new Float32Array(n);
-      const step = t.L / n; let max = 1e-4;
+    if (!t.peaks || t.peaks.length !== n * 2) {
+      t.peaks = new Float32Array(n * 2);
+      const step = t.L / n, L = t.mix.l, R = t.mix.r; let max = 1e-4;
       for (let x = 0; x < n; x++) {
-        let p = 0; const a = Math.floor(x * step), b = Math.min(t.L, Math.floor((x + 1) * step));
-        for (let i = a; i < b; i += 8) { const v = Math.abs(t.mix[i]); if (v > p) p = v; }
-        t.peaks[x] = p; if (p > max) max = p;
+        let p = 0, q = 0; const a = Math.floor(x * step), b = Math.min(t.L, Math.floor((x + 1) * step));
+        for (let i = a; i < b; i += 8) { const v = Math.abs(L[i]), w = Math.abs(R[i]); if (v > p) p = v; if (w > q) q = w; }
+        t.peaks[x] = p; t.peaks[n + x] = q; if (p > max) max = p; if (q > max) max = q;
       }
-      for (let x = 0; x < n; x++) t.peaks[x] /= max;
+      for (let x = 0; x < 2 * n; x++) t.peaks[x] /= max;
     }
     ctx.fillStyle = tc; ctx.globalAlpha = t.src ? 0.22 : 0.1;
     ctx.beginPath(); ctx.roundRect ? ctx.roundRect(0, 0, w, h, 4) : ctx.rect(0, 0, w, h); ctx.fill();
     ctx.globalAlpha = t.src ? 0.95 : 0.45;
-    for (let x = 0; x < n; x++) { const ph = Math.max(1, t.peaks[x] * (h - 6)); ctx.fillRect(x, (h - ph) / 2, 1, ph); }
+    for (let x = 0; x < n; x++) { const up = Math.max(0.5, t.peaks[x] * (h - 6) / 2), dn = Math.max(0.5, t.peaks[n + x] * (h - 6) / 2); ctx.fillRect(x, h / 2 - up, 1, up + dn); }
     ctx.globalAlpha = 1;
     const bf = barFrames();
     if (t.L / bf <= 32) { ctx.fillStyle = 'rgba(0,0,0,.35)'; for (let fr = bf; fr < t.L - 1; fr += bf) ctx.fillRect(Math.round(fr / t.L * w), 0, 1, h); }
@@ -5648,14 +5822,19 @@ const Looper = (() => {
     rafId = null;
     const nowMs = performance.now();
     const visible = !panelEl.hidden && !document.hidden;
-    if (visible && nowMs - lastDraw >= 33) {      // höchstens 30 Bilder pro Sekunde
+    if (visible) watchJank(nowMs);
+    if (visible && nowMs - lastDraw >= (window.__lite ? 66 : 33)) {      // höchstens 30 (sparsam 15) Bilder pro Sekunde
       lastDraw = nowMs;
       const C = css || (css = colors());
       tracks.forEach(t => { drawRing(t, C); drawWave(t, C); });
       drawEditor(C);
-      if (fire.on) drawFire(toMeter(level)); else meterEl.style.width = (toMeter(level) * 100) + '%';
-      meterEl.style.backgroundSize = (meterEl.parentNode.clientWidth || 200) + 'px 100%';
-      meterEl.classList.toggle('hot', !!rec && !rec.armed);
+      const bgS = (meterEl.parentNode.clientWidth || 200) + 'px 100%', hot = !!rec && !rec.armed;
+      if (stereoSeen) {
+        meterEl.style.width = (toMeter(levelL) * 100) + '%';
+        meterR.style.width = (toMeter(levelR) * 100) + '%'; meterR.style.backgroundSize = bgS; meterR.classList.toggle('hot', hot);
+      } else meterEl.style.width = (toMeter(level) * 100) + '%';
+      meterEl.style.backgroundSize = bgS;
+      meterEl.classList.toggle('hot', hot);
       threshMark.style.left = (toMeter(threshold()) * 100) + '%';
       const th = toMeter(threshold()) * 100;
       tracks.forEach(t => {
@@ -5670,10 +5849,10 @@ const Looper = (() => {
         t.meter.classList.toggle('live', live);
         t.meter.classList.toggle('armed', live && rec.armed);
       });
-      level *= 0.8;
+      level *= 0.8; levelL *= 0.8; levelR *= 0.8;
     }
     tracks.forEach(t => { if (t.foot.dataset.state !== footState(t)) update(); });
-    const active = anyRunning() || rec || fire.live || level > 0.001 || tracks.some(t => t.peakHold > 0.5) || ed.drag || countEnd > nowFrame();
+    const active = anyRunning() || rec || level > 0.001 || tracks.some(t => t.peakHold > 0.5) || ed.drag || countEnd > nowFrame();
     if (active) { if (visible) rafId = requestAnimationFrame(tick); else { rafId = 1; setTimeout(() => { rafId = null; tick(); }, 250); } }
   }
   tracks.forEach(t => { new ResizeObserver(kick).observe(t.ring); new ResizeObserver(kick).observe(t.wave); });
@@ -5743,6 +5922,7 @@ const Looper = (() => {
     return { L: Math.max(1, Math.round(L / baseL)) * baseL, base: baseL };
   }
   function padTo(a, L) { if (a.length === L) return a; const o = new Float32Array(L); o.set(a.subarray(0, Math.min(L, a.length))); return o; }
+  const padS = (x, L) => x.length === L ? x : smap(x, a => padTo(a, L));
   function afterEdit(t, restartFromTop) {
     rebuildMix(t);
     if (t.src) { if (restartFromTop && !others(t).length) anchor = nowFrame(); startTrack(t); }
@@ -5754,7 +5934,7 @@ const Looper = (() => {
     if (len < sr * 0.1) { setStatus('Die Auswahl ist zu kurz.'); return; }
     const f = fitLength(t, len);
     edSnap('trim');
-    t.layers = [padTo(t.mix.slice(s0, s0 + Math.min(len, f.L)), f.L)];
+    t.layers = [smap(t.mix, a => padTo(a.slice(s0, s0 + Math.min(len, f.L)), f.L))];
     t.L = f.L; baseL = f.base;
     if (t.origPos != null) t.origPos += s0;
     afterEdit(t, true);
@@ -5765,10 +5945,9 @@ const Looper = (() => {
   $('edHalf').addEventListener('click', () => ed.t && trimTo(0, Math.round(ed.t.L / 2), 'halbiert'));
   $('edDouble').addEventListener('click', () => {
     const t = ed.t; if (!t) return;
-    const d = new Float32Array(t.L * 2); d.set(t.mix, 0); d.set(t.mix, t.L);
-    const f = fitLength(t, d.length);
+    const f = fitLength(t, t.L * 2);
     edSnap('double');
-    t.layers = [padTo(d, f.L)]; t.L = f.L; baseL = f.base;
+    t.layers = [smap(t.mix, a => { const d = new Float32Array(a.length * 2); d.set(a, 0); d.set(a, a.length); return padTo(d, f.L); })]; t.L = f.L; baseL = f.base;
     afterEdit(t, false);
     setStatus('Spur ' + (t.i + 1) + ' verdoppelt: ' + fmtLen(t.L) + '.');
   });
@@ -5781,9 +5960,9 @@ const Looper = (() => {
   }
   function fineAlign(t) {
     const os = others(t).filter(o => o.mix); if (!os.length || !t.mix) return null;
-    const D = Math.max(16, Math.round(sr / 1400)), et = onsetEnv(t.mix, D), n = et.length;
+    const D = Math.max(16, Math.round(sr / 1400)), et = onsetEnv(monoOf(t.mix), D), n = et.length;
     const ref = new Float32Array(n);
-    os.forEach(o => { const eo = onsetEnv(o.mix, D), no = eo.length; for (let i = 0; i < n; i++) ref[i] += eo[i % no]; });
+    os.forEach(o => { const eo = onsetEnv(monoOf(o.mix), D), no = eo.length; for (let i = 0; i < n; i++) ref[i] += eo[i % no]; });
     const mean = a => a.reduce((x, y) => x + y, 0) / a.length, mt = mean(et), mr = mean(ref);
     let st = 0, sr2 = 0; for (let i = 0; i < n; i++) { st += (et[i] - mt) ** 2; sr2 += (ref[i] - mr) ** 2; }
     const norm = Math.sqrt(st * sr2) || 1;
@@ -5795,7 +5974,7 @@ const Looper = (() => {
   }
   function rotateTrack(t, k) {
     k = Math.round(k); if (!k) return;
-    t.layers = t.layers.map(ly => { const L = ly.length, kk = mod(k, L), o = new Float32Array(L); o.set(ly.subarray(L - kk), 0); o.set(ly.subarray(0, L - kk), kk); return o; });
+    t.layers = t.layers.map(ly => smap(ly, a => { const L = a.length, kk = mod(k, L), o = new Float32Array(L); o.set(a.subarray(L - kk), 0); o.set(a.subarray(0, L - kk), kk); return o; }));
     if (t.origPos != null) t.origPos -= k;
     rebuildMix(t); if (t.src) startTrack(t);
   }
@@ -5815,11 +5994,11 @@ const Looper = (() => {
     const t = ed.t; if (!t) return;
     k = Math.round(k); if (!k) return;
     edSnap('nudge');
-    t.layers = t.layers.map(ly => {
-      const L = ly.length, kk = mod(k, L), o = new Float32Array(L);
-      o.set(ly.subarray(L - kk), 0); o.set(ly.subarray(0, L - kk), kk);
+    t.layers = t.layers.map(ly => smap(ly, a => {
+      const L = a.length, kk = mod(k, L), o = new Float32Array(L);
+      o.set(a.subarray(L - kk), 0); o.set(a.subarray(0, L - kk), kk);
       return o;
-    });
+    }));
     ed.offMs += k / sr * 1000;
     if (t.origPos != null) t.origPos -= k;
     rebuildMix(t); if (t.src) startTrack(t);
@@ -5837,7 +6016,7 @@ const Looper = (() => {
   });
   $('edAuto').addEventListener('click', () => {
     const t = ed.t; if (!t) return;
-    const x = t.mix, win = Math.max(1, Math.round(sr * 0.005)), env = [];
+    const x = monoOf(t.mix), win = Math.max(1, Math.round(sr * 0.005)), env = [];
     let max = 0;
     for (let i = 0; i < x.length; i += win) {
       let p = 0; const end = Math.min(x.length, i + win);
@@ -5856,32 +6035,51 @@ const Looper = (() => {
 
   // An die Loop-Länge anpassen (strecken/stauchen, Tonhöhe ändert sich dabei leicht)
   // Zeitdehnung ohne Tonhöhenänderung (WSOLA), als Schleife gelesen und geschrieben → nahtloser Loop
+  // Stereo: die Schnittpositionen werden aus der Mono-Summe bestimmt und auf beide Kanäle gleich angewendet –
+  // so bleiben Stereobild und Phase zwischen links und rechts erhalten.
   function stretch(x, n) {
-    const m = x.length; if (n === m) return x.slice();
-    const W = sr > 30000 ? 2048 : 1024, Hs = W >> 1, Ha = Hs * m / n, D = W >> 2;
-    const win = new Float32Array(W); for (let i = 0; i < W; i++) win[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / W);
-    const out = new Float32Array(n), wsum = new Float32Array(n), X = i => x[((i % m) + m) % m];
+    if (x && x.l) {
+      if (n === x.length) return smap(x, a => a.slice());
+      const pos = wsolaPos(monoOf(x), n), a = wsolaApply(x.l, n, pos);
+      return SP(a, x.r === x.l ? a : wsolaApply(x.r, n, pos));
+    }
+    if (n === x.length) return x.slice();
+    return wsolaApply(x, n, wsolaPos(x, n));
+  }
+  const wsolaW = () => sr > 30000 ? 2048 : 1024;
+  function wsolaPos(x, n) {
+    const m = x.length, W = wsolaW(), Hs = W >> 1, Ha = Hs * m / n, D = W >> 2;
+    const X = i => x[((i % m) + m) % m];
     const corr = (a, b, step) => { let s = 0; for (let i = 0; i < Hs; i += step) s += X(a + i) * X(b + i); return s; };
+    const frames = Math.ceil(n / Hs), pos = new Int32Array(frames);
     let prev = 0;
-    const frames = Math.ceil(n / Hs);
     for (let k = 0; k < frames; k++) {
       const nominal = Math.round(k * Ha);
-      let pos = nominal;
+      let p = nominal;
       if (k > 0) {
         const nat = prev + Hs; let best = -Infinity, bd = 0;
         for (let d = -D; d <= D; d += 8) { const c = corr(nat, nominal + d, 4); if (c > best) { best = c; bd = d; } }
         const c0 = bd; best = -Infinity;
         for (let d = c0 - 8; d <= c0 + 8; d++) { const c = corr(nat, nominal + d, 2); if (c > best) { best = c; bd = d; } }
-        pos = nominal + bd;
+        p = nominal + bd;
       }
-      const o = k * Hs;
-      for (let i = 0; i < W; i++) { const j = (o + i) % n; out[j] += X(pos + i) * win[i]; wsum[j] += win[i]; }
-      prev = pos;
+      pos[k] = p; prev = p;
+    }
+    return pos;
+  }
+  function wsolaApply(x, n, pos) {
+    const m = x.length, W = wsolaW(), Hs = W >> 1;
+    const win = new Float32Array(W); for (let i = 0; i < W; i++) win[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / W);
+    const out = new Float32Array(n), wsum = new Float32Array(n);
+    for (let k = 0; k < pos.length; k++) {
+      const o = k * Hs, p = pos[k];
+      for (let i = 0; i < W; i++) { const j = (o + i) % n; out[j] += x[(((p + i) % m) + m) % m] * win[i]; wsum[j] += win[i]; }
     }
     for (let i = 0; i < n; i++) if (wsum[i] > 1e-6) out[i] /= wsum[i];
     return out;
   }
   function resample(ly, n) {
+    if (ly && ly.l) return smap(ly, a => resample(a, n));
     const o = new Float32Array(n), r = ly.length / n, last = ly.length - 1;
     for (let i = 0; i < n; i++) { const x = i * r, j = Math.floor(x), f = x - j; o[i] = ly[j] * (1 - f) + ly[j < last ? j + 1 : last] * f; }
     return o;
@@ -5945,12 +6143,9 @@ const Looper = (() => {
   async function checkLoop(t) {
     if (!t || !t.L) return null;
     const ref = t.mix;
-    const lp = await Analyzer.loop([t.mix], sr, { hintBpm: bpm() });
+    const lp = await Analyzer.loop(chans(t.mix), sr, { hintBpm: bpm() });
     if (t.mix !== ref) return null;                            // inzwischen geändert
-    const x = t.mix, n = x.length;
-    let rms = 0, c = 0; for (let i = 0; i < n; i += 8) { rms += x[i] * x[i]; c++; }
-    rms = Math.sqrt(rms / Math.max(1, c)) || 1e-9;
-    return { lp, click: seamClick(x) };
+    return { lp, click: seamClickS(t.mix) };
   }
   function showCheck(res) {
     const box = $('edCheckRes');
@@ -5975,7 +6170,9 @@ const Looper = (() => {
     const jump = Math.abs(x[0] - x[n - 1]);
     return jump < 0.01 ? 0 : jump / (3 * Math.max(loc, 1e-4));
   }
+  const seamClickS = x => x.r === x.l ? seamClick(x.l) : Math.max(seamClick(x.l), seamClick(x.r));
   function microFade(ly) {
+    if (ly && ly.l) return smap(ly, microFade);
     const n = Math.min(Math.round(sr * 0.003), ly.length >> 2), o = ly.slice();
     for (let i = 0; i < n; i++) { const g = i / n; o[i] *= g; o[o.length - 1 - i] *= g; }
     return o;
@@ -6012,12 +6209,12 @@ const Looper = (() => {
       let layers = t.layers, L = t.L;
       const k = Math.round(-lp.downOffsetSec * sr);
       if (Math.abs(k) > sr * 0.003 && !lp.startKept) {
-        layers = layers.map(ly => { const n = ly.length, kk = mod(k, n), o = new Float32Array(n); o.set(ly.subarray(n - kk), 0); o.set(ly.subarray(0, n - kk), kk); return o; });
+        layers = layers.map(ly => smap(ly, a => { const n = a.length, kk = mod(k, n), o = new Float32Array(n); o.set(a.subarray(n - kk), 0); o.set(a.subarray(0, n - kk), kk); return o; }));
         steps.push('Takt 1 an den Anfang gelegt');
       }
       if (!lp.isLoop) {
         const barF = L / lp.barsF, nb = Math.max(1, Math.floor(lp.barsF + 0.02)), target = Math.min(L, Math.round(nb * barF));
-        layers = layers.map(ly => ly.slice(0, target)); L = target;
+        layers = layers.map(ly => smap(ly, a => a.slice(0, target))); L = target;
         steps.push('auf ' + nb + ' ganze Takt' + (nb === 1 ? '' : 'e') + ' gekürzt');
       }
       const nbBars = Math.max(1, Math.round(lp.barsF));
@@ -6027,16 +6224,14 @@ const Looper = (() => {
       } else {
         const T = Math.max(1, Math.round(L / baseL)) * baseL, ratio = T / L;
         if (Math.abs(ratio - 1) > 0.0005 && Math.abs(ratio - 1) <= 0.35) { layers = layers.map(ly => stretch(ly, T)); steps.push('ins Tempo des Loops gedehnt (Tonhöhe bleibt)'); }
-        else if (Math.abs(ratio - 1) > 0.35) { layers = layers.map(ly => padTo(ly, T)); steps.push('auf Loop-Länge gebracht'); }
+        else if (Math.abs(ratio - 1) > 0.35) { layers = layers.map(ly => padS(ly, T)); steps.push('auf Loop-Länge gebracht'); }
         L = T;
       }
       t.layers = layers; t.L = L;
     }
     { // Übergang erst nach dem Neuschnitt bewerten
-      const m = new Float32Array(t.L); t.layers.forEach(ly => { for (let i = 0; i < t.L; i++) m[i] += ly[i]; });
-      let rms = 0, c = 0; for (let i = 0; i < m.length; i += 8) { rms += m[i] * m[i]; c++; }
-      rms = Math.sqrt(rms / Math.max(1, c)) || 1e-9;
-      if (seamClick(m) >= 1) { t.layers = t.layers.map(microFade); steps.push('Übergang geglättet'); }
+      const m = S(t.L); t.layers.forEach(ly => { for (let i = 0; i < t.L; i++) { m.l[i] += ly.l[i]; m.r[i] += ly.r[i]; } });
+      if (seamClickS(m) >= 1) { t.layers = t.layers.map(microFade); steps.push('Übergang geglättet'); }
     }
     afterEdit(t, true);
     detectTrackKey(t);
@@ -6049,11 +6244,11 @@ const Looper = (() => {
   // Tonart
   async function detectTrackKey(t) {
     if (!t.L) return null;
-    const x = t.mix; let sum = 0, n = 0;
+    const x = monoOf(t.mix); let sum = 0, n = 0;
     for (let i = 0; i < x.length; i += 16) { sum += x[i] * x[i]; n++; }
     if (Math.sqrt(sum / Math.max(1, n)) < 0.002) { t.key = null; showKey(); return null; }
     const ref = t.mix;
-    const r = await Analyzer.key([ref], sr);
+    const r = await Analyzer.key(chans(ref), sr);
     if (t.mix !== ref) return t.key;            // inzwischen geändert – neues Ergebnis kommt
     t.key = r.error ? null : r;
     showKey();
@@ -6115,8 +6310,8 @@ const Looper = (() => {
     const o = t.orig, from = parseInt($('edFrom').value) || 1, nb = parseInt($('edBars').value) || 1;
     edSnap('downshift');
     if (o.loopFile && !o.recorded) {
-      const n = o.data.length, k = mod(Math.round(dir * o.barMed / 4), n), r = new Float32Array(n);
-      r.set(o.data.subarray(k), 0); r.set(o.data.subarray(0, k), n - k); o.data = r;
+      const n = o.data.length, k = mod(Math.round(dir * o.barMed / 4), n);
+      o.data = smap(o.data, a => { const r = new Float32Array(n); r.set(a.subarray(k), 0); r.set(a.subarray(0, k), n - k); return r; });
     } else {
       const d = o.downs, nd = d.map((x, i) => {
         const nx = i + 1 < d.length ? d[i + 1] : x + o.barMed, pv = i > 0 ? d[i - 1] : x - o.barMed;
@@ -6228,18 +6423,24 @@ const Looper = (() => {
   edOv.addEventListener('pointercancel', () => { ovDrag = false; });
 
   // Spitzenwerte in Blöcken zu 64 Samples (schnelles Zeichnen in jeder Zoomstufe)
+  // Spitzenwerte je Kanal in Blöcken zu 64 Samples (links oben, rechts unten gezeichnet)
   function blockPeaks(t) {
     if (t.bp && t.bpFor === t.mix) return t.bp;
-    const B = 64, n = Math.ceil(t.L / B), bp = new Float32Array(n); let max = 1e-4;
-    for (let k = 0; k < n; k++) { let p = 0; const a = k * B, e = Math.min(t.L, a + B); for (let i = a; i < e; i++) { const v = t.mix[i] < 0 ? -t.mix[i] : t.mix[i]; if (v > p) p = v; } bp[k] = p; if (p > max) max = p; }
-    t.bp = bp; t.bpFor = t.mix; t.bpMax = max;
-    return bp;
+    const B = 64, n = Math.ceil(t.L / B), bl = new Float32Array(n), br = new Float32Array(n); let max = 1e-4;
+    const L = t.mix.l, R = t.mix.r;
+    for (let k = 0; k < n; k++) {
+      let p = 0, q = 0; const a = k * B, e = Math.min(t.L, a + B);
+      for (let i = a; i < e; i++) { const v = L[i] < 0 ? -L[i] : L[i], w = R[i] < 0 ? -R[i] : R[i]; if (v > p) p = v; if (w > q) q = w; }
+      bl[k] = p; br[k] = q; if (p > max) max = p; if (q > max) max = q;
+    }
+    t.bp = { l: bl, r: br }; t.bpFor = t.mix; t.bpMax = max;
+    return t.bp;
   }
-  function peakRange(t, a, b) {
+  function peakRange(t, a, b, ch) {
     a = Math.max(0, Math.floor(a)); b = Math.min(t.L, Math.ceil(b));
     if (b <= a) return 0;
-    if (b - a >= 256) { const bp = blockPeaks(t); let p = 0; for (let k = Math.floor(a / 64); k < Math.ceil(b / 64); k++) if (bp[k] > p) p = bp[k]; return p; }
-    let p = 0; for (let i = a; i < b; i++) { const v = t.mix[i] < 0 ? -t.mix[i] : t.mix[i]; if (v > p) p = v; } return p;
+    if (b - a >= 256) { const bp = blockPeaks(t)[ch || 'l']; let p = 0; for (let k = Math.floor(a / 64); k < Math.ceil(b / 64); k++) if (bp[k] > p) p = bp[k]; return p; }
+    const x = t.mix[ch || 'l']; let p = 0; for (let i = a; i < b; i++) { const v = x[i] < 0 ? -x[i] : x[i]; if (v > p) p = v; } return p;
   }
   function drawOverview(t, tc) {
     const f = fit(edOv); if (!f) return;
@@ -6247,7 +6448,10 @@ const Looper = (() => {
     ctx.fillStyle = '#08080a'; ctx.fillRect(0, 0, w, h);
     const n = Math.floor(w), st = t.L / n;
     ctx.fillStyle = tc; ctx.globalAlpha = 0.45;
-    for (let x = 0; x < n; x++) { const p = peakRange(t, x * st, (x + 1) * st) / t.bpMax, ph = Math.max(1, p * (h - 6)); ctx.fillRect(x, (h - ph) / 2, 1, ph); }
+    for (let x = 0; x < n; x++) {
+      const pl = peakRange(t, x * st, (x + 1) * st, 'l') / t.bpMax, pr = peakRange(t, x * st, (x + 1) * st, 'r') / t.bpMax, hh = (h - 6) / 2;
+      ctx.fillRect(x, h / 2 - Math.max(0.5, pl * hh), 1, Math.max(0.5, pl * hh) + Math.max(0.5, pr * hh));
+    }
     ctx.globalAlpha = 1;
     ctx.fillStyle = 'rgba(255,138,26,.22)'; ctx.fillRect(ed.s / t.L * w, 0, (ed.e - ed.s) / t.L * w, h);
     const vx = ed.v0 / t.L * w, vw = Math.max(4, span() / t.L * w);
@@ -6284,9 +6488,9 @@ const Looper = (() => {
     ctx.fillStyle = tc;
     for (let x = 0; x < n; x++) {
       ctx.globalAlpha = (x >= xs && x <= xe) ? 0.9 : 0.25;
-      const p = peakRange(t, v0 + x * st, v0 + (x + 1) * st) / t.bpMax;
-      const ph = Math.max(1, p * amp * 2);
-      ctx.fillRect(x, mid - ph / 2, 1, ph);
+      const pl = peakRange(t, v0 + x * st, v0 + (x + 1) * st, 'l') / t.bpMax, pr = peakRange(t, v0 + x * st, v0 + (x + 1) * st, 'r') / t.bpMax;
+      const up = Math.max(0.5, pl * amp), dn = Math.max(0.5, pr * amp);
+      ctx.fillRect(x, mid - up, 1, up + dn);
     }
     ctx.globalAlpha = 1;
     // Außerhalb der Auswahl abdunkeln
@@ -6342,25 +6546,32 @@ const Looper = (() => {
     return new Blob([...parts, ...central, new Uint8Array(e.buffer)], { type: 'application/zip' });
   }
 
-  // 24-Bit-WAV mit ACID-Block (Tempo, Schläge, Grundton) – für DAWs, die ihn lesen
-  function wav24(samples, gain, info) {
-    const n = samples.length, dataBytes = n * 3, acid = 8 + 24;
+  // 24-Bit-WAV in Stereo (2 Kanäle, verschachtelt), optional mit ACID-Block (Tempo, Schläge, Grundton) für DAWs
+  function wav24(x, gain, info) {
+    if (!x.l) x = SP(x);
+    const n = x.length, ch = 2, dataBytes = n * 3 * ch, acid = info ? 8 + 24 : 0;
     const buf = new ArrayBuffer(12 + 24 + acid + 8 + dataBytes), v = new DataView(buf), u = new Uint8Array(buf);
     const w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
     w(0, 'RIFF'); v.setUint32(4, buf.byteLength - 8, true); w(8, 'WAVE');
-    w(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
-    v.setUint32(24, sr, true); v.setUint32(28, sr * 3, true); v.setUint16(32, 3, true); v.setUint16(34, 24, true);
+    w(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, ch, true);
+    v.setUint32(24, sr, true); v.setUint32(28, sr * 3 * ch, true); v.setUint16(32, 3 * ch, true); v.setUint16(34, 24, true);
     let o = 36;
-    w(o, 'acid'); v.setUint32(o + 4, 24, true);
-    v.setUint32(o + 8, 0x02 | 0x04, true); v.setUint16(o + 12, 60 + info.rootPc, true); v.setUint16(o + 14, 0x8000, true);
-    v.setFloat32(o + 16, 0, true); v.setUint32(o + 20, info.beats, true); v.setUint16(o + 24, 4, true); v.setUint16(o + 26, 4, true);
-    v.setFloat32(o + 28, info.bpm, true);
-    o += acid;
+    if (info) {
+      w(o, 'acid'); v.setUint32(o + 4, 24, true);
+      v.setUint32(o + 8, 0x02 | 0x04, true); v.setUint16(o + 12, 60 + info.rootPc, true); v.setUint16(o + 14, 0x8000, true);
+      v.setFloat32(o + 16, 0, true); v.setUint32(o + 20, info.beats, true); v.setUint16(o + 24, 4, true); v.setUint16(o + 26, 4, true);
+      v.setFloat32(o + 28, info.bpm, true);
+      o += acid;
+    }
     w(o, 'data'); v.setUint32(o + 4, dataBytes, true); o += 8;
+    const L = x.l, R = x.r;
     for (let i = 0; i < n; i++) {
-      let x = samples[i] * gain; x = x > 1 ? 1 : x < -1 ? -1 : x;
-      const s = Math.round(x * 8388607);
-      u[o] = s & 0xFF; u[o + 1] = (s >> 8) & 0xFF; u[o + 2] = (s >> 16) & 0xFF; o += 3;
+      let a = L[i] * gain; a = a > 1 ? 1 : a < -1 ? -1 : a;
+      let s = Math.round(a * 8388607);
+      u[o] = s & 0xFF; u[o + 1] = (s >> 8) & 0xFF; u[o + 2] = (s >> 16) & 0xFF;
+      a = R[i] * gain; a = a > 1 ? 1 : a < -1 ? -1 : a;
+      s = Math.round(a * 8388607);
+      u[o + 3] = s & 0xFF; u[o + 4] = (s >> 8) & 0xFF; u[o + 5] = (s >> 16) & 0xFF; o += 6;
     }
     return u;
   }
@@ -6415,15 +6626,15 @@ const Looper = (() => {
     const exactBpm = Math.abs(total / bar - bars) < 0.02 ? 60 * sr * beats / total : tempo;
     // Spuren auf Gesamtlänge bringen (mit Pegel), gemeinsamer Schutz vor Übersteuern
     const stems = used.map(t => {
-      const g = parseInt(t.vol.value) / 100, out = new Float32Array(total);
-      for (let i = 0; i < total; i++) out[i] = t.mix[i % t.L] * g;
+      const g = parseInt(t.vol.value) / 100, out = S(total), ml = t.mix.l, mr = t.mix.r;
+      for (let i = 0; i < total; i++) { const j = i % t.L; out.l[i] = ml[j] * g; out.r[i] = mr[j] * g; }
       return { t, data: out };
     });
-    const mix = new Float32Array(total);
-    stems.forEach(s => { for (let i = 0; i < total; i++) mix[i] += s.data[i]; });
-    let peak = 0;
-    for (let i = 0; i < total; i++) peak = Math.max(peak, Math.abs(mix[i]));
-    stems.forEach(s => { for (let i = 0; i < s.data.length; i++) peak = Math.max(peak, Math.abs(s.data[i])); });
+    const mix = S(total);
+    stems.forEach(s => { for (let i = 0; i < total; i++) { mix.l[i] += s.data.l[i]; mix.r[i] += s.data.r[i]; } });
+    const pk = x => { let p = 0; for (let i = 0; i < x.length; i++) { const a = x.l[i] < 0 ? -x.l[i] : x.l[i], b = x.r[i] < 0 ? -x.r[i] : x.r[i]; if (a > p) p = a; if (b > p) p = b; } return p; };
+    let peak = pk(mix);
+    stems.forEach(s => { peak = Math.max(peak, pk(s.data)); });
     const gain = peak > 0.97 ? 0.97 / peak : 1;
     // Tonart: erkannte Tonart der ersten Spur, sonst die eingestellte Skala
     const k = (used.find(t => t.key) || {}).key;
@@ -6453,7 +6664,7 @@ const Looper = (() => {
     const lies = [
       base, '',
       'Tempo: ' + tempoTxt + ' BPM · Taktart 4/4 · ' + bars + ' Takte · Tonart ' + keyLabel,
-      'Alle WAV-Dateien beginnen auf Takt 1 und sind gleich lang (24 Bit, ' + sr + ' Hz).', '',
+      'Alle WAV-Dateien beginnen auf Takt 1 und sind gleich lang (Stereo, 24 Bit, ' + sr + ' Hz).', '',
       'So geht es in Logic Pro (Mac oder iPad):',
       '1. Neues leeres Projekt anlegen.',
       '2. Die MIDI-Datei „Tempo und Takt …“ ins Projekt ziehen. Logic fragt, ob es das Tempo übernehmen soll: Ja.',
@@ -6479,17 +6690,12 @@ const Looper = (() => {
   $('loopExport').addEventListener('click', exportLogic);
 
 
-  // ---- WAV-Mixdown ----
-  function toWav(samples) {
-    let peak = 0; for (let i = 0; i < samples.length; i++) peak = Math.max(peak, Math.abs(samples[i]));
+  // ---- WAV-Mixdown (Stereo, 24 Bit) ----
+  function toWav(x) {
+    if (!x.l) x = SP(x);
+    let peak = 0; for (let i = 0; i < x.length; i++) { const a = Math.abs(x.l[i]), b = Math.abs(x.r[i]); if (a > peak) peak = a; if (b > peak) peak = b; }
     const norm = peak > 0.98 ? 0.98 / peak : 1;
-    const buf = new ArrayBuffer(44 + samples.length * 2), v = new DataView(buf);
-    const w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
-    w(0, 'RIFF'); v.setUint32(4, 36 + samples.length * 2, true); w(8, 'WAVE'); w(12, 'fmt ');
-    v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, sr, true);
-    v.setUint32(28, sr * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, 'data'); v.setUint32(40, samples.length * 2, true);
-    for (let i = 0; i < samples.length; i++) v.setInt16(44 + i * 2, Math.max(-1, Math.min(1, samples[i] * norm)) * 0x7fff, true);
-    return new Blob([buf], { type: 'audio/wav' });
+    return new Blob([wav24(x, norm, null)], { type: 'audio/wav' });
   }
   function getMix() {
     const used = tracks.filter(t => t.L);
@@ -6498,16 +6704,96 @@ const Looper = (() => {
     let mult = 1;
     used.forEach(t => { const n = Math.round(t.L / baseL); mult = mult * n / gcd(mult, n); });
     mult = Math.min(mult, 16);
-    const total = baseL * mult, out = new Float32Array(total);
-    used.forEach(t => { const g = parseInt(t.vol.value) / 100; for (let i = 0; i < total; i++) out[i] += t.mix[i % t.L] * g; });
+    const total = baseL * mult, out = S(total);
+    used.forEach(t => { const g = parseInt(t.vol.value) / 100, ml = t.mix.l, mr = t.mix.r; for (let i = 0; i < total; i++) { const j = i % t.L; out.l[i] += ml[j] * g; out.r[i] += mr[j] * g; } });
     return { wav: toWav(out), secs: total / sr };
   }
+  // ---- Komplette Session (alle Spuren) für „Ideen“ ----
+  // Gespeichert wird 24 Bit je Kanal (enc 'i24'); ein rechter Kanal nur, wenn er sich vom linken unterscheidet.
+  // Ältere Ideen (Mono, 16 Bit in „pcm“) bleiben ladbar.
+  function enc24(a) {
+    const u = new Uint8Array(a.length * 3);
+    for (let i = 0, o = 0; i < a.length; i++, o += 3) { let v = a[i]; v = v > 1 ? 1 : v < -1 ? -1 : v; const s = Math.round(v * 8388607); u[o] = s & 255; u[o + 1] = (s >> 8) & 255; u[o + 2] = (s >> 16) & 255; }
+    return u;
+  }
+  function dec24(u, n) {
+    const a = new Float32Array(n);
+    for (let i = 0, o = 0; i < n; i++, o += 3) { let s = u[o] | (u[o + 1] << 8) | (u[o + 2] << 16); if (s & 0x800000) s -= 0x1000000; a[i] = s / 8388607; }
+    return a;
+  }
+  function sameData(x) {
+    if (x.r === x.l) return true;
+    const a = x.l, b = x.r; for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false; return true;
+  }
+  function sessTrackData(st) {
+    if (st.enc === 'i24') { const l = dec24(st.dl, st.L); return SP(l, st.dr ? dec24(st.dr, st.L) : null); }
+    const l = new Float32Array(st.L); for (let j = 0; j < st.L; j++) l[j] = st.pcm[j] / 32767;
+    return SP(l, st.pcmR ? Float32Array.from(st.pcmR, v => v / 32767) : null);
+  }
+  function getSession() {
+    const used = tracks.filter(t => t.L); if (!used.length) return null;
+    return {
+      sr, baseL, stereo: true,
+      tracks: tracks.map(t => {
+        if (!t.L) return null;
+        const m = t.mix, mono = sameData(m);
+        const o = { L: t.L, enc: 'i24', dl: enc24(m.l), vol: parseInt(t.vol.value) };
+        if (!mono) o.dr = enc24(m.r);
+        return o;
+      })
+    };
+  }
+  function sessionMix(sess) {
+    const ts = sess.tracks.filter(Boolean); if (!ts.length) return null;
+    const gcd = (a, b) => b ? gcd(b, a % b) : a; let mult = 1;
+    ts.forEach(t => { const n = Math.max(1, Math.round(t.L / sess.baseL)); mult = mult * n / gcd(mult, n); });
+    const total = sess.baseL * Math.min(mult, 16), out = S(total);
+    ts.forEach(t => { const g = (t.vol != null ? t.vol : 90) / 100, d = sessTrackData(t); for (let i = 0; i < total; i++) { const j = i % t.L; out.l[i] += d.l[j] * g; out.r[i] += d.r[j] * g; } });
+    const keep = sr; sr = sess.sr; const w = toWav(out); sr = keep;
+    return { wav: w, secs: total / sess.sr };
+  }
+  function loadSession(sess) {
+    ensureAudio(); sr = audioCtx.sampleRate;
+    if (rec) cancelRec();
+    cancelCountIn();
+    tracks.forEach(t => { stopSrc(t); t.layers = []; t.L = 0; t.mix = null; t.peaks = null; t.state = 'empty'; t.hist = []; t.key = null; t.orig = null; t.origPos = null; });
+    if (ed.t) closeEditor();
+    const q = sr / sess.sr;
+    baseL = Math.round(sess.baseL * q);
+    sess.tracks.forEach((st, i) => {
+      if (!st) return;
+      const t = tracks[i], f = sessTrackData(st);
+      const L = Math.max(1, Math.round(st.L / sess.baseL)) * baseL;
+      t.layers = [Math.abs(q - 1) < 1e-6 ? f : resample(f, L)]; t.L = L; rebuildMix(t);
+      if (st.vol != null) { t.vol.value = st.vol; t.volV.textContent = st.vol; }
+    });
+    anchor = startAnchor('play');
+    tracks.forEach(t => { if (t.L) { startTrack(t); t.state = 'playing'; detectTrackKey(t); } });
+    update();
+  }
+  // Drone-Spur: Einstellungen merken und wiederherstellen
+  function getDroneState() {
+    return { on: !!droneOn, style: mainDroneStyle.value, root: dRoot.value, mode: dMode.value, vol: parseInt(mainDroneVol.value), orn: $('pianoShimmer').checked };
+  }
+  function setDroneState(st) {
+    if (!st) return;
+    if (droneOn) setDrone(false);
+    mainDroneStyle.value = st.style || 'v1'; dStyleSel.value = mainDroneStyle.value;
+    dRoot.value = st.root || ''; dMode.value = st.mode || '';
+    mainDroneVol.value = st.vol != null ? st.vol : 40; dVol.value = mainDroneVol.value;
+    $('pianoShimmer').checked = st.orn !== false; $('laneDroneOrn').checked = $('pianoShimmer').checked;
+    applyDroneKey();
+    if (st.on) setTimeout(() => setDrone(true), droneOn ? 1300 : 50);
+    syncDrone();
+  }
+
   function loadSamples(data) {
     ensureAudio(); sr = audioCtx.sampleRate;
     rec = null;
     tracks.forEach(t => { stopSrc(t); t.layers = []; t.L = 0; t.mix = null; t.peaks = null; t.state = 'empty'; t.hist = []; t.key = null; t.orig = null; });
     if (ed.t) closeEditor();
     const t = tracks[0];
+    if (!data.l) data = SP(data);
     t.L = data.length; t.layers = [data]; rebuildMix(t);
     baseL = t.L;
     anchor = startAnchor('play');
@@ -6533,11 +6819,13 @@ const Looper = (() => {
   }
 
   return {
-    getMix, loadSamples, update, position,
+    getMix, loadSamples, update, position, getSession, sessionMix, loadSession, getDroneState, setDroneState,
     isEmpty: () => !anyContent(),
     foot: i => foot(tracks[i]),
     exportLogic: () => exportLogic(),
-    debug: () => ({ sr, baseL, anchor, now: nowFrame(), countEnd, bpm: bpm(), drums: Object.assign({}, Rhythm.debug(), { on: Rhythm.on() }), level, drone: droneOn, tracks: tracks.map(t => ({ L: t.L, state: t.state, origPos: t.origPos, layers: t.layers.length, orig: t.orig ? { bars: t.orig.bars, downs: t.orig.downs.slice(0, 64), loopFile: t.orig.loopFile, bpm: t.orig.bpm } : null, key: t.key ? Analyzer.label(t.key) : null })) }),
+    _micDrop: () => { if (stream) stream.getAudioTracks()[0].dispatchEvent(new Event('ended')); },
+    _stereo: i => { const t = tracks[i]; if (!t || !t.mix) return null; const x = t.mix; let a = 0, b = 0, ab = 0; for (let k = 0; k < x.length; k += 4) { a += x.l[k] * x.l[k]; b += x.r[k] * x.r[k]; ab += x.l[k] * x.r[k]; } const n = Math.ceil(x.length / 4); return { L: t.L, shared: x.r === x.l, rmsL: Math.sqrt(a / n), rmsR: Math.sqrt(b / n), corr: ab / Math.sqrt(a * b + 1e-20), layers: t.layers.map(ly => ly.r === ly.l ? 1 : 2), inInfo: ($('inChanInfo') || {}).textContent, stereoSeen, inChans }; },
+    debug: () => ({ mic: micReady, sr, baseL, anchor, now: nowFrame(), countEnd, bpm: bpm(), drums: Object.assign({}, Rhythm.debug(), { on: Rhythm.on() }), level, drone: droneOn, tracks: tracks.map(t => ({ L: t.L, state: t.state, origPos: t.origPos, layers: t.layers.length, orig: t.orig ? { bars: t.orig.bars, downs: t.orig.downs.slice(0, 64), loopFile: t.orig.loopFile, bpm: t.orig.bpm } : null, key: t.key ? Analyzer.label(t.key) : null })) }),
     undo: i => undoTrack(tracks[i]),
     all: allStartStop
   };
@@ -6701,7 +6989,7 @@ const Pedal = (() => {
       <div class="idea-row" data-id="${i.id}">
         <div class="idea-main">
           <div class="idea-name">${esc(i.name)}</div>
-          <div class="log-meta" style="text-align:left">${esc(i.root)} ${esc(i.mode)} · ${String(Math.round(i.bpm * 10) / 10).replace('.', ',')} BPM ·${i.drums ? ' Drums ·' : ''} ${i.secs.toFixed(1).replace('.', ',')} s · ${esc(i.dateStr)}</div>
+          <div class="log-meta" style="text-align:left">${esc(i.root)} ${esc(i.mode)} · ${String(Math.round(i.bpm * 10) / 10).replace('.', ',')} BPM · ${i.session ? i.session.tracks.filter(Boolean).length + ' Spur' + (i.session.tracks.filter(Boolean).length === 1 ? '' : 'en') + ' · ' : ''}${i.drumState ? 'Drums: ' + esc(i.drumState.name) + ' · ' : (i.drums ? 'Drums · ' : '')}${i.droneState ? 'Drone · ' : ''}${i.secs.toFixed(1).replace('.', ',')} s · ${esc(i.dateStr)}</div>
         </div>
         <div class="idea-actions">
           <button class="toggle-btn" data-act="load">Laden</button>
@@ -6711,19 +6999,28 @@ const Pedal = (() => {
       </div>`).join('');
   }
 
+  const withDrums = $('ideaWithDrums'), withDrone = $('ideaWithDrone');
+  const pl = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } };
+  const ps = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+  withDrums.checked = pl('3nps-idea-drums', '1') === '1'; withDrone.checked = pl('3nps-idea-drone', '1') === '1';
+  withDrums.addEventListener('change', () => ps('3nps-idea-drums', withDrums.checked ? '1' : '0'));
+  withDrone.addEventListener('change', () => ps('3nps-idea-drone', withDrone.checked ? '1' : '0'));
   $('ideaSave').addEventListener('click', async () => {
-    const m = Looper.getMix(); if (!m) return;
+    const sess = Looper.getSession(); if (!sess) return;
+    const m = Looper.sessionMix(sess);
     const now = new Date();
     const name = nameEl.value.trim() || ('Idee ' + now.toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }));
+    const drumState = withDrums.checked ? Rhythm.getState() : null, droneState = withDrone.checked ? Looper.getDroneState() : null;
     try {
       await AppDB.put('ideas', {
-        id: newId(), name, ts: now.getTime(),
+        id: newId(), v: 2, name, ts: now.getTime(),
         dateStr: now.toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' }),
-        root: rootSel.value, mode: modeSel.value, bpm: parseFloat($('bpm').value), secs: m.secs, wav: m.wav,
-        drums: $('loopDrums').classList.contains('active') ? $('loopDrumStyle').value : null
+        root: rootSel.value, mode: modeSel.value, bpm: parseFloat($('bpm').value), secs: m.secs,
+        session: sess, drumState, droneState
       });
       nameEl.value = '';
-      $('loopStatus').textContent = 'Gespeichert als „' + name + '“ (alle Spuren zusammengemischt).';
+      const n = sess.tracks.filter(Boolean).length;
+      $('loopStatus').textContent = 'Gespeichert als „' + name + '“: ' + n + ' Spur' + (n === 1 ? '' : 'en') + (drumState ? ', Drums (' + drumState.name + ')' : '') + (droneState ? ', Drone' : '') + '.';
       render();
     } catch (e) {
       $('loopStatus').textContent = 'Speichern fehlgeschlagen. Ist der Gerätespeicher voll?';
@@ -6737,16 +7034,24 @@ const Pedal = (() => {
     const act = btn.dataset.act;
     if (act === 'load') {
       ensureAudio();
-      const ab = await idea.wav.arrayBuffer();
-      const buf = await audioCtx.decodeAudioData(ab);
       rootSel.value = idea.root; modeSel.value = idea.mode; rebuild();
       rootSel.dispatchEvent(new Event('change'));
       $('bpm').value = idea.bpm; $('bpm').dispatchEvent(new Event('input'));
-      if (idea.drums) $('loopDrumStyle').value = idea.drums;
-      Looper.loadSamples(new Float32Array(buf.getChannelData(0)));
-      $('loopStatus').textContent = '„' + idea.name + '“ liegt auf Spur 1. Tonart und Tempo sind übernommen.';
+      if (idea.session) {
+        Looper.loadSession(idea.session);
+        if (idea.drumState) Rhythm.setState(idea.drumState);
+        if (idea.droneState) Looper.setDroneState(idea.droneState);
+        const n = idea.session.tracks.filter(Boolean).length;
+        $('loopStatus').textContent = '„' + idea.name + '“ geladen: ' + n + ' Spur' + (n === 1 ? '' : 'en') + (idea.drumState ? ', Drums' : '') + (idea.droneState ? ', Drone' : '') + ', Tonart und Tempo.';
+      } else {
+        const buf = await audioCtx.decodeAudioData(await idea.wav.arrayBuffer());
+        const l0 = new Float32Array(buf.getChannelData(0));
+        Looper.loadSamples(buf.numberOfChannels > 1 ? { l: l0, r: new Float32Array(buf.getChannelData(1)), length: l0.length } : l0);
+        $('loopStatus').textContent = '„' + idea.name + '“ liegt auf Spur 1. Tonart und Tempo sind übernommen.';
+      }
     } else if (act === 'share') {
-      const file = new File([idea.wav], idea.name.replace(/[\\/:*?"<>|]/g, '_') + '.wav', { type: 'audio/wav' });
+      const wav = idea.wav || Looper.sessionMix(idea.session).wav;
+      const file = new File([wav], idea.name.replace(/[\\/:*?"<>|]/g, '_') + '.wav', { type: 'audio/wav' });
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         try { await navigator.share({ files: [file], title: idea.name }); } catch (err) {}
       } else {
