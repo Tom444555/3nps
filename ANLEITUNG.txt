@@ -122,15 +122,18 @@ Alles geht direkt auf dem iPad, ohne Computer.
      Tipp: Ladegerät zuerst in den Adapter stecken, dann iPad und Spark verbinden, dann die App starten.
 
 12. Stereo
-   - Die ganze App arbeitet in Stereo: Aufnahme, Overdubs, Wiedergabe, Laden von Dateien,
-     Bearbeiten (Schneiden, Verschieben, Strecken, Nacharbeiten), Ideen und der Logic-Export.
-     Beim Strecken werden beide Seiten gemeinsam bearbeitet, das Stereobild bleibt erhalten.
-   - Welche zwei Kanäle ankommen, bestimmt das Audio-Gerät (beim Spark LIVE die USB-Zuordnung,
-     z. B. Kanal 3/4). Die App nimmt die ersten beiden Kanäle, die iPadOS liefert.
-   - Steht neben „Eingang“ „Mono (Gerät liefert 1 Kanal)“, gibt iPadOS nur einen Kanal weiter.
-     Dann Gerät ab- und wieder anstecken und die App neu öffnen. Mono-Aufnahmen klingen
-     trotzdem voll, sie liegen dann gleich auf beiden Seiten.
-   - Mono-Dateien bleiben mono (spart Speicher) und klingen in der Mitte.
+   - Stereo sind: geladene Dateien, Wiedergabe, Bearbeiten (Schneiden, Verschieben, Strecken,
+     Nacharbeiten), Ideen und der Logic-Export. Beim Strecken werden beide Seiten gemeinsam
+     bearbeitet, das Stereobild bleibt erhalten.
+   - Neben jeder Spur steht „Stereo“ oder „Mono“ – das zeigt, was in der Spur liegt.
+   - Der Spur-Pegel zeigt beim Abspielen den Klang der Spur (links L, rechts R).
+     Ist die Spur leer oder nimmt sie gerade auf, zeigt er den Eingang.
+   - Aufnahme über den Eingang ist auf dem iPad mono: iPadOS gibt Safari und Web-Apps nur
+     einen Eingangskanal, auch wenn das Audio-Gerät (z. B. Spark LIVE) stereo liefert.
+     Neben „Eingang“ steht dann „mono (Grenze von iPadOS)“. Die Aufnahme liegt in der Mitte.
+   - Echte Stereo-Aufnahme: in einer anderen App aufnehmen, die den USB-Eingang in Stereo
+     nimmt (z. B. GarageBand oder Logic Pro), als WAV exportieren und hier in eine Spur laden.
+   - Mono-Dateien und Mono-Aufnahmen werden nur einmal gespeichert (spart Speicher).
 
 13. Optik (Looper → Karte „App · Optik und Sicherung“)
    - „Nordisch“: Eis, Rost und Runen (bisherige Optik).

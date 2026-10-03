@@ -501,6 +501,13 @@
   }
   .tmeter.live .tm-fill { box-shadow: 0 0 8px rgba(255,45,85,.9), 0 0 18px rgba(255,45,85,.45); }
 
+  /* ---- v16.1: Stereo/Mono-Kennzeichen je Spur, Spur-Pegel zeigt beim Abspielen den Klang der Spur ---- */
+  .chb { font: 700 .62rem var(--f-mono); letter-spacing: .06em; text-transform: uppercase; padding: 2px 6px; border-radius: 4px;
+    color: var(--muted); border: 1px solid var(--line); background: rgba(0,0,0,.35); }
+  .chb.st { color: var(--tc); border-color: var(--tc); box-shadow: 0 0 6px var(--tcg, transparent); }
+  .tmeter.play { opacity: .95 !important; }
+  .tmeter.play .tm-pk { opacity: .85; }
+
   /* ===== Rost & Stahl: Hintergrund aus gerostetem Blech, darauf verschraubte Stahlplatten ===== */
   :root {
     --plate-hi: #3a3a40;
@@ -808,7 +815,7 @@
 <body>
 <header class="control-bar">
   <div class="cb-inner">
-    <div class="brand">Looper <span>3nps · v16</span></div>
+    <div class="brand">Looper <span>3nps · v16.1</span></div>
     <div class="transport">
       <button class="tbtn" id="playBtn" aria-label="Metronom starten oder stoppen">▶</button>
     </div>
@@ -978,7 +985,7 @@
       </div>
       <div class="tracks">
         <div class="track t1" data-state="empty">
-          <div class="track-head"><span class="chip"></span><span class="tname">Spur 1</span><button class="keybadge" id="key0" hidden></button></div>
+          <div class="track-head"><span class="chip"></span><span class="tname">Spur 1</span><span class="chb" id="chb0" hidden></span><button class="keybadge" id="key0" hidden></button></div>
           <div class="ring-row">
             <canvas class="ring" id="ring0" aria-label="Taktkreis Spur 1"></canvas>
             <div class="tmeter" id="tmeter0" aria-hidden="true"><div class="tm-ch l"><div class="tm-fill"></div><div class="tm-pk"></div></div><div class="tm-ch r"><div class="tm-fill"></div><div class="tm-pk"></div></div><div class="tm-th"></div></div>
@@ -996,7 +1003,7 @@
           <div class="fader in"><span>Eingang</span><input type="range" id="ing0" min="-12" max="24" step="1" value="0" aria-label="Eingangsverstärkung Spur 1"><b class="fv" id="ingv0">0 dB</b></div>
         </div>
         <div class="track t2" data-state="empty">
-          <div class="track-head"><span class="chip"></span><span class="tname">Spur 2</span><button class="keybadge" id="key1" hidden></button></div>
+          <div class="track-head"><span class="chip"></span><span class="tname">Spur 2</span><span class="chb" id="chb1" hidden></span><button class="keybadge" id="key1" hidden></button></div>
           <div class="ring-row">
             <canvas class="ring" id="ring1" aria-label="Taktkreis Spur 2"></canvas>
             <div class="tmeter" id="tmeter1" aria-hidden="true"><div class="tm-ch l"><div class="tm-fill"></div><div class="tm-pk"></div></div><div class="tm-ch r"><div class="tm-fill"></div><div class="tm-pk"></div></div><div class="tm-th"></div></div>
@@ -1014,7 +1021,7 @@
           <div class="fader in"><span>Eingang</span><input type="range" id="ing1" min="-12" max="24" step="1" value="0" aria-label="Eingangsverstärkung Spur 2"><b class="fv" id="ingv1">0 dB</b></div>
         </div>
         <div class="track t3" data-state="empty">
-          <div class="track-head"><span class="chip"></span><span class="tname">Spur 3</span><button class="keybadge" id="key2" hidden></button></div>
+          <div class="track-head"><span class="chip"></span><span class="tname">Spur 3</span><span class="chb" id="chb2" hidden></span><button class="keybadge" id="key2" hidden></button></div>
           <div class="ring-row">
             <canvas class="ring" id="ring2" aria-label="Taktkreis Spur 3"></canvas>
             <div class="tmeter" id="tmeter2" aria-hidden="true"><div class="tm-ch l"><div class="tm-fill"></div><div class="tm-pk"></div></div><div class="tm-ch r"><div class="tm-fill"></div><div class="tm-pk"></div></div><div class="tm-th"></div></div>
@@ -4867,7 +4874,7 @@ const Looper = (() => {
 
   const tracks = [0, 1, 2].map(i => ({
     i, layers: [], L: 0, mix: null, src: null, gain: null, state: 'empty', peaks: null, hist: [], key: null, orig: null,
-    meter: $('tmeter' + i), mL: $('tmeter' + i).querySelector('.tm-ch.l'), mR: $('tmeter' + i).querySelector('.tm-ch.r'), pkL: 0, pkR: 0,
+    chB: $('chb' + i), meter: $('tmeter' + i), mL: $('tmeter' + i).querySelector('.tm-ch.l'), mR: $('tmeter' + i).querySelector('.tm-ch.r'), pkL: 0, pkR: 0,
     ring: $('ring' + i), wave: $('wave' + i), foot: $('foot' + i), stopB: $('stop' + i), undoB: $('undo' + i),
     clearB: $('clear' + i), fileIn: $('file' + i), vol: $('vol' + i), editB: $('edit' + i), keyB: $('key' + i),
     ing: $('ing' + i), ingV: $('ingv' + i), volV: $('volv' + i), inGain: 1
@@ -4885,6 +4892,8 @@ const Looper = (() => {
     return (x._m = m);
   }
   const chans = x => x.r === x.l ? [x.l] : [x.l, x.r];
+  // Links und rechts gleich (Mono-Quelle, z. B. der iPad-Eingang) → nur einmal speichern
+  const monoIfSame = x => (x && x.r !== x.l && sameData(x)) ? SP(x.l) : x;
   const anyRunning = () => tracks.some(t => t.src);
   const anyContent = () => tracks.some(t => t.L);
 
@@ -5110,8 +5119,9 @@ const Looper = (() => {
   let inChans = 0, stereoSeen = false;
   function showInChans() {
     const el = $('inChanInfo'); if (!el) return;
-    el.textContent = !micReady ? '' : stereoSeen ? '· Stereo L/R' : inChans === 1 ? '· Mono (Gerät liefert 1 Kanal)' : inChans >= 2 ? '· Stereo-Eingang' : '';
-    el.classList.toggle('mono', micReady && !stereoSeen && inChans === 1);
+    el.textContent = !micReady ? '' : stereoSeen ? '· Stereo L/R' : inChans >= 2 ? '· mono (beide Kanäle gleich)' : '· mono (Grenze von iPadOS)';
+    el.classList.toggle('mono', micReady && !stereoSeen);
+    el.title = micReady && !stereoSeen && inChans < 2 ? 'Safari und Web-Apps bekommen auf dem iPad nur einen Eingangskanal. Für echte Stereo-Aufnahmen in einer anderen App aufnehmen und die Datei hier laden.' : '';
     const box = $('loopMeterBox'); if (box) box.classList.toggle('st', micReady && stereoSeen);
   }
   function handleChunk(startFrame, data) {
@@ -5319,7 +5329,7 @@ const Looper = (() => {
     const r = rec; rec = null; const t = r.t;
     if (r.kind === 'first') {
       t.L = r.end - r.start;
-      t.layers = [joinChunks(r.chunks, t.L)];
+      t.layers = [monoIfSame(joinChunks(r.chunks, t.L))];
       baseL = t.L; anchor = r.end; t.hist = []; t.orig = null; t.origPos = null;
       if (cap && cap.t === t && snapEl.checked) {
         r.provLayer = t.layers[0];
@@ -5334,10 +5344,10 @@ const Looper = (() => {
       }
       const raw = joinChunks(r.chunks, r.n), ly = S(t.L);
       for (let j = 0; j < raw.length; j++) { const k = mod(r.start + j - anchor, t.L); ly.l[k] += raw.l[j]; ly.r[k] += raw.r[j]; }
-      t.layers = [ly]; t.hist = []; t.orig = null;
+      t.layers = [monoIfSame(ly)]; t.hist = []; t.orig = null;
     } else {
       snapshot(t);
-      t.layers = t.layers.concat([r.layer]);
+      t.layers = t.layers.concat([monoIfSame(r.layer)]);
     }
     rebuildMix(t);
     detectTrackKey(t);
@@ -5354,11 +5364,12 @@ const Looper = (() => {
   // Erste Aufnahme eintakten: Tempo und Takt-Eins aus dem Gespielten bestimmen, Loop auf ganze Takte legen
   async function refineFirst(t, r, c) {
     const pre = Math.round(0.6 * sr), from = r.start - pre, to = c.until, g = t.inGain;
-    const xs = S(to - from);
+    const xs0 = S(to - from);
     for (const ch of c.list) {
       const a = Math.max(ch.m0, from), b = Math.min(ch.m0 + ch.data.length, to), dl = ch.data.l, dr = ch.data.r;
-      for (let i = a; i < b; i++) { xs.l[i - from] = dl[i - ch.m0] * g; xs.r[i - from] = dr[i - ch.m0] * g; }
+      for (let i = a; i < b; i++) { xs0.l[i - from] = dl[i - ch.m0] * g; xs0.r[i - from] = dr[i - ch.m0] * g; }
     }
+    const xs = monoIfSame(xs0);
     const x = monoOf(xs);
     const stillSame = () => t.layers.length === 1 && t.layers[0] === r.provLayer && !(rec && rec.t === t);
     const rawLen = (r.pressEnd && !selectedBars() ? r.pressEnd : r.end) - r.start;
@@ -5420,9 +5431,11 @@ const Looper = (() => {
         return ab / Math.sqrt(aa * bb + 1e-12);
       };
       if (w1 - w0 >= beatE) {
-        let best = 0, bv = ncc(base);
+        const v0 = ncc(base);
+        let best = 0, bv = v0;
         for (let d = -R; d <= R; d++) { const v = ncc(base + d); if (v > bv + 1e-4) { bv = v; best = d; } }
-        if (bv > 0.45 && best) L2 += best * D;
+        // nur echte Spitzen übernehmen: nicht am Rand des Suchbereichs und deutlich besser als ohne Korrektur
+        if (bv > 0.45 && best && Math.abs(best) < R - 1 && bv > v0 + 0.02) L2 += best * D;
         if (window.__rf) Object.assign(window.__rf, { fine: best * D / sr, bv });
       }
     }
@@ -5632,7 +5645,7 @@ const Looper = (() => {
     // Stereo bleibt Stereo (Mono-Dateien: beide Seiten gleich). Höchstens 6 Minuten, damit der Speicher reicht.
     const n = Math.min(buf.length, Math.round(buf.sampleRate * 360));
     const l = buf.getChannelData(0).slice(0, n);
-    const data = buf.numberOfChannels > 1 ? SP(l, buf.getChannelData(1).slice(0, n)) : SP(l);
+    const data = buf.numberOfChannels > 1 ? monoIfSame(SP(l, buf.getChannelData(1).slice(0, n))) : SP(l);
     if (buf.length > n) setStatus('Die Datei ist länger als 6 Minuten – die ersten 6 Minuten werden verwendet.');
     buf = null;
     const secs = n / sr;
@@ -5791,6 +5804,9 @@ const Looper = (() => {
       t.clearB.disabled = !(t.L || (rec && rec.t === t));
       t.editB.disabled = !t.L || !!(rec && rec.t === t);
       t.editB.classList.toggle('on', ed.t === t);
+      const st2 = !!(t.L && t.mix && t.mix.r !== t.mix.l);
+      t.chB.hidden = !t.L; t.chB.textContent = st2 ? 'Stereo' : 'Mono'; t.chB.classList.toggle('st', st2);
+      t.chB.title = st2 ? 'Diese Spur ist stereo (links und rechts verschieden)' : 'Diese Spur ist mono (links und rechts gleich)';
     });
     allBtn.textContent = (anyRunning() || rec) ? 'Alle stoppen' : 'Alle starten';
     allBtn.classList.toggle('active', anyRunning());
@@ -6010,7 +6026,20 @@ const Looper = (() => {
       const th = toMeter(threshold()) * 100;
       tracks.forEach(t => {
         const live = !!(rec && rec.t === t);
-        const lvL = toMeter(levelL * t.inGain) * 100, lvR = toMeter(levelR * t.inGain) * 100;
+        let lvL, lvR;
+        const showPlay = !!(t.src && t.L && t.mix && !live && audioCtx);
+        if (showPlay) {
+          const g = parseInt(t.vol.value) / 100, now = nowFrame() - Math.round(((audioCtx.outputLatency || 0) + (audioCtx.baseLatency || 0)) * sr);
+          const p1 = mod(now - anchor, t.L), win = Math.min(t.L, Math.round(sr / 25)), ml = t.mix.l, mr = t.mix.r;
+          let a = 0, b = 0;
+          for (let k = 0; k < win; k += 2) { const j = (p1 - k + t.L) % t.L, x = ml[j], y = mr[j]; const ax = x < 0 ? -x : x, ay = y < 0 ? -y : y; if (ax > a) a = ax; if (ay > b) b = ay; }
+          t.plL = Math.max((t.plL || 0) * 0.8, a * g); t.plR = Math.max((t.plR || 0) * 0.8, b * g);
+          lvL = toMeter(t.plL) * 100; lvR = toMeter(t.plR) * 100;
+        } else {
+          t.plL = t.plR = 0;
+          lvL = toMeter(levelL * t.inGain) * 100; lvR = toMeter(levelR * t.inGain) * 100;
+        }
+        t.meter.classList.toggle('play', showPlay);
         t.pkL = lvL >= t.pkL ? lvL : Math.max(lvL, t.pkL - 1.2);
         t.pkR = lvR >= t.pkR ? lvR : Math.max(lvR, t.pkR - 1.2);
         t.peakHold = Math.max(t.pkL, t.pkR);
