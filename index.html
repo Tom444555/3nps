@@ -12,8 +12,8 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Uncial+Antiqua&family=Metal+Mania&family=Black+Ops+One&display=swap">
-<script>try{if(localStorage.getItem('3nps-theme')==='metal'){document.documentElement.dataset.theme='metal';}}catch(e){}</script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Uncial+Antiqua&family=Metal+Mania&family=Black+Ops+One&family=Russo+One&family=Michroma&family=Cinzel:wght@600;700&display=swap">
+<script>try{var t=localStorage.getItem('3nps-theme');if(t&&t!=='nordic'&&/^(metal|amp|ice)$/.test(t)){document.documentElement.dataset.theme=t;}}catch(e){}</script>
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)} html,body{-webkit-tap-highlight-color:transparent} body{-webkit-user-select:none;user-select:none} input,textarea{-webkit-user-select:text;user-select:text}</style>
@@ -809,13 +809,232 @@
     :root[data-theme="metal"] .card, :root[data-theme="metal"] .stat-card { background-size: 18px 18px, 18px 18px, 18px 18px, 18px 18px, auto, auto, 512px 512px; }
     :root[data-theme="metal"] .brand { font-size: 1.25rem; }
   }
+
+  /* ===== Optik „Verstärker“: Tolex, gebürstetes Alu-Frontblech, schwarz eloxierte Platten, Bespannstoff, Kontrolllampe ===== */
+  :root[data-theme="amp"] {
+    --bg: #0b0b0b; --surface: #161618; --surface-2: #202023; --raised: #2a2a2e;
+    --ink: #f2f2f3; --muted: #a8a8ad; --line: #3a3a3e; --line-soft: #29292c;
+    --accent: #ff3b2f; --accent-ink: #1a0303; --active-color: #ffb347;
+    --t1: #8fd3ff; --t2: #ffb347; --t3: #5cff8a;
+    --neon-rec: #ff2a2a; --neon-dub: #ffd84a; --neon-bar1: #ffffff; --dub: #ffd84a;
+    --lcd-bg: #140b04; --lcd-ink: #ffb35c; --lcd-dim: #80562b;
+    --board: #1d1a18; --board-edge: #0d0c0b; --fretwire: #d0d3d8;
+    background: #0b0b0b url("tolex.jpg") repeat; background-size: 256px 256px;
+  }
+  :root[data-theme="amp"] body::before {
+    background:
+      radial-gradient(ellipse 60% 40% at 50% 0%, rgba(255,214,160,.12) 0%, rgba(255,190,120,.04) 45%, transparent 70%),
+      radial-gradient(ellipse 150% 120% at 50% 35%, transparent 30%, rgba(0,0,0,.55) 75%, rgba(0,0,0,.85) 100%);
+  }
+  /* Schrift: Frontplatten-Beschriftung, breit und klar */
+  :root[data-theme="amp"] .brand {
+    font-family: "Russo One", "Avenir Next Condensed", Impact, sans-serif; font-weight: 400; font-size: 1.35rem; letter-spacing: .06em;
+    color: #121212; text-shadow: 0 1px 0 rgba(255,255,255,.55), 0 -1px 0 rgba(0,0,0,.25);
+  }
+  :root[data-theme="amp"] .brand span { font: 700 .62rem var(--f-body); letter-spacing: .14em; text-transform: uppercase; color: #2a2a2c; }
+  :root[data-theme="amp"] .brand::before { width: 30px; height: 30px; flex-basis: 30px; background-image: url("jewel.png"); filter: drop-shadow(0 0 6px rgba(255,40,30,.65)); }
+  :root[data-theme="amp"] h2 {
+    font-family: "Michroma", "Avenir Next", system-ui, sans-serif; font-weight: 400; font-size: .74rem;
+    text-transform: uppercase; letter-spacing: .14em; color: #eef0f3; text-shadow: 0 -1px 0 #000;
+  }
+  :root[data-theme="amp"] .tab { font-family: "Michroma", "Avenir Next", system-ui, sans-serif; font-weight: 400; font-size: .64rem; text-transform: uppercase; letter-spacing: .1em; color: #9a9aa0; }
+  :root[data-theme="amp"] .tab[aria-selected="true"] {
+    background: linear-gradient(180deg, rgba(255,255,255,.25), rgba(0,0,0,.12)), url("alu.jpg") 0 0 / 512px 512px; color: #111;
+    box-shadow: 0 1px 0 rgba(255,255,255,.7) inset, 0 -1px 0 rgba(0,0,0,.3) inset, 0 2px 4px rgba(0,0,0,.6); text-shadow: 0 1px 0 rgba(255,255,255,.5);
+  }
+  :root[data-theme="amp"] .tabs { background: linear-gradient(180deg, rgba(0,0,0,.6), rgba(0,0,0,.5)), url("alu-dark.jpg") 0 0 / 512px 512px; }
+
+  /* Kontrollleiste: gebürstete Alu-Frontplatte mit Schrauben, darunter Bespannstoff mit Silberkeder */
+  :root[data-theme="amp"] .control-bar {
+    background:
+      url("screw.png") 8px 50% / 16px 16px no-repeat,
+      url("screw.png") calc(100% - 8px) 50% / 16px 16px no-repeat,
+      linear-gradient(180deg, rgba(255,255,255,.22) 0%, rgba(255,255,255,0) 40%, rgba(0,0,0,.18) 100%),
+      url("alu.jpg") 0 0 / 1024px 1024px;
+    background-color: #b8babe;
+    border-bottom: 1px solid #000;
+    box-shadow: 0 1px 0 rgba(255,255,255,.6) inset, 0 -1px 0 rgba(0,0,0,.35) inset, 0 8px 22px rgba(0,0,0,.7);
+  }
+  :root[data-theme="amp"] .control-bar::after {
+    height: 18px; background: linear-gradient(180deg, rgba(0,0,0,.25), rgba(0,0,0,.05) 40%, rgba(0,0,0,.35)), url("grille.jpg") 0 0 / 96px 96px;
+    border-top: 2px solid #c9ccd2; border-bottom: 2px solid #8d9096; box-shadow: 0 3px 6px rgba(0,0,0,.6);
+  }
+  :root[data-theme="amp"] .control-bar .lbl, :root[data-theme="amp"] .tempo-ctl .lbl { color: #1b1b1d; text-shadow: 0 1px 0 rgba(255,255,255,.5); }
+  :root[data-theme="amp"] .lcd { border-color: #000; box-shadow: 0 1px 0 rgba(255,255,255,.6), inset 0 3px 10px rgba(0,0,0,.9), inset 0 0 0 1px #000, inset 0 0 16px rgba(255,140,40,.12); }
+  :root[data-theme="amp"] .lcd .v { text-shadow: 0 0 6px rgba(255,150,60,.55); }
+  :root[data-theme="amp"] .tbtn { background: linear-gradient(180deg, #2f2f33, #141416); color: #f0f0f0; border-color: #000; box-shadow: 0 1px 0 rgba(255,255,255,.12) inset, 0 2px 3px rgba(0,0,0,.6); }
+  :root[data-theme="amp"] #playBtn.playing { background: linear-gradient(180deg, #d32a1f, #8e130d); }
+
+  /* Platten: schwarz eloxiert, Schrauben in den Ecken, Silberkante */
+  :root[data-theme="amp"] .card, :root[data-theme="amp"] .stat-card {
+    background:
+      url("screw.png") 6px 6px / 16px 16px no-repeat,
+      url("screw.png") calc(100% - 6px) 6px / 16px 16px no-repeat,
+      url("screw.png") 6px calc(100% - 6px) / 16px 16px no-repeat,
+      url("screw.png") calc(100% - 6px) calc(100% - 6px) / 16px 16px no-repeat,
+      radial-gradient(ellipse 120% 70% at 50% 0%, rgba(255,255,255,.05), transparent 60%),
+      linear-gradient(180deg, rgba(0,0,0,.05) 0%, rgba(0,0,0,.25) 100%),
+      url("alu-dark.jpg") 0 0 / 1024px 1024px;
+    background-color: #1c1c1e;
+    border: 1px solid #000;
+    box-shadow: 0 0 0 1px #6f7278, 0 0 0 2px #0a0a0a, 0 1px 0 rgba(255,255,255,.12) inset, 0 10px 22px rgba(0,0,0,.75), 0 26px 50px rgba(0,0,0,.6);
+  }
+  :root[data-theme="amp"] .card::after { border-color: rgba(0,0,0,.6); box-shadow: 0 1px 0 rgba(255,255,255,.05); }
+  /* Spuren wie Lautsprecherbespannung */
+  :root[data-theme="amp"] .track, :root[data-theme="amp"] .editor, :root[data-theme="amp"] .lane {
+    background: linear-gradient(180deg, rgba(0,0,0,.62), rgba(0,0,0,.55)), url("grille.jpg") 0 0 / 96px 96px;
+    background-color: #0c0c0c; border: 1px solid #000;
+    box-shadow: inset 0 0 0 2px #2a2a2c, inset 0 0 0 3px #000, inset 0 8px 22px rgba(0,0,0,.9), 0 1px 0 rgba(255,255,255,.08);
+  }
+  :root[data-theme="amp"] .track.rec-live { border-color: rgba(255,42,42,.7) !important; box-shadow: inset 0 0 0 2px #2a2a2c, inset 0 8px 22px rgba(0,0,0,.9), 0 0 0 1px rgba(255,42,42,.55), 0 0 22px rgba(255,42,42,.3) !important; }
+
+  /* Taster: schwarzer Kunststoff, aktiv leuchtet rot wie die Kontrolllampe */
+  :root[data-theme="amp"] .toggle-btn, :root[data-theme="amp"] .mini button, :root[data-theme="amp"] .file-mini {
+    background: linear-gradient(180deg, #333336, #18181a); border: 1px solid #000; color: #ececee;
+    box-shadow: 0 1px 0 rgba(255,255,255,.12) inset, 0 2px 3px rgba(0,0,0,.6);
+  }
+  :root[data-theme="amp"] .toggle-btn.active {
+    background: linear-gradient(180deg, #e8392b 0%, #b81d14 55%, #7c0f0a 100%); color: #fff; border-color: #2a0402;
+    box-shadow: 0 1px 0 rgba(255,190,170,.45) inset, 0 0 14px rgba(255,50,30,.45), 0 2px 3px rgba(0,0,0,.6); text-shadow: 0 1px 0 rgba(0,0,0,.5);
+  }
+  :root[data-theme="amp"] .foot {
+    background: radial-gradient(ellipse at 50% 18%, rgba(255,255,255,.55), rgba(255,255,255,0) 55%), linear-gradient(180deg, #d9dbe0, #8d9096 55%, #5d6066);
+    color: #111; text-shadow: 0 1px 0 rgba(255,255,255,.6);
+  }
+  :root[data-theme="amp"] .foot[data-state="recording"], :root[data-theme="amp"] .foot[data-state="pending"] { color: #8e0d06; }
+  :root[data-theme="amp"] .export-btn { background: linear-gradient(180deg, #ffb347, #d97706) !important; border-color: #3a1e00 !important; color: #1a0d00 !important; }
+  :root[data-theme="amp"] select, :root[data-theme="amp"] .text-in { background-color: #0e0e0f; border-color: #55575c; }
+
+  /* Pegel: klassische LED-Kette grün → gelb → rot */
+  :root[data-theme="amp"] #loopMeter, :root[data-theme="amp"] .meter.st #loopMeterR {
+    background-image: linear-gradient(90deg, #22c55e 0%, #22c55e 60%, #facc15 80%, #ff2a1a 100%);
+    box-shadow: 0 0 6px rgba(34,197,94,.7), 0 0 14px rgba(34,197,94,.3);
+  }
+  :root[data-theme="amp"] .tm-fill { background: linear-gradient(0deg, #22c55e 0%, #22c55e 60%, #facc15 80%, #ff2a1a 100%); background-size: 100% var(--mh, 200px); background-position: bottom; box-shadow: 0 0 6px rgba(34,197,94,.55); }
+  :root[data-theme="amp"] .tmeter { background: linear-gradient(0deg, rgba(34,197,94,.08) 0%, rgba(34,197,94,.08) 60%, rgba(250,204,21,.08) 80%, rgba(255,42,26,.1) 100%), #070707; }
+  :root[data-theme="amp"] .chan-info { color: #ffb35c; }
+  @media (max-width: 520px) {
+    :root[data-theme="amp"] .card, :root[data-theme="amp"] .stat-card { background-size: 13px 13px, 13px 13px, 13px 13px, 13px 13px, auto, auto, 1024px 1024px; }
+    :root[data-theme="amp"] .brand { font-size: 1.15rem; }
+  }
+
+  /* ===== Optik „Eiswand“: raues Gletschereis, Frost, Eiszapfen, vereiste Niete, kaltes Licht ===== */
+  :root[data-theme="ice"] {
+    --bg: #06121c; --surface: #0e1c28; --surface-2: #152634; --raised: #1d3142;
+    --ink: #eef7ff; --muted: #9fb4c6; --line: #2b3d4e; --line-soft: #1d2b38;
+    --accent: #7fd8ff; --accent-ink: #031018; --active-color: #7fd8ff;
+    --t1: #f0fbff; --t2: #67d4ff; --t3: #8a9cff;
+    --neon-rec: #ff2d45; --neon-dub: #ffe14a; --neon-bar1: #ffffff;
+    --lcd-bg: #04101a; --lcd-ink: #c4f0ff; --lcd-dim: #4c6c84;
+    --board: #182633; --board-edge: #0b141c; --fretwire: #d6eefb;
+    background: #06121c url("bg-ice.jpg") repeat; background-size: 1024px 1024px;
+  }
+  :root[data-theme="ice"] body::before {
+    background:
+      radial-gradient(ellipse 70% 45% at 50% 0%, rgba(210,240,255,.16) 0%, rgba(170,220,255,.05) 45%, transparent 70%),
+      radial-gradient(ellipse 150% 120% at 50% 35%, transparent 28%, rgba(0,6,14,.55) 74%, rgba(0,4,10,.9) 100%),
+      linear-gradient(180deg, transparent 70%, rgba(180,220,255,.06) 100%);
+  }
+  /* Schrift: in Stein gemeißelte Versalien, eisig glänzend */
+  :root[data-theme="ice"] .brand {
+    font-family: "Cinzel", "Trajan Pro", "Iowan Old Style", Georgia, serif; font-weight: 700; font-size: 1.35rem; letter-spacing: .1em; line-height: 1;
+    background: linear-gradient(180deg, #ffffff 0%, #d9f3ff 45%, #7cc4ea 60%, #e8f8ff 100%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; text-shadow: none; color: transparent; text-shadow: none;
+    filter: drop-shadow(0 2px 0 rgba(0,8,16,.9)) drop-shadow(0 0 8px rgba(120,200,255,.45));
+  }
+  :root[data-theme="ice"] .brand span { font: 600 .64rem var(--f-body); letter-spacing: .1em; text-transform: uppercase; -webkit-text-fill-color: #8fb3cb; color: #8fb3cb; }
+  :root[data-theme="ice"] .brand::before { width: 34px; height: 34px; flex-basis: 34px; background-image: url("emblem-ice.png"); filter: drop-shadow(0 0 6px rgba(120,200,255,.6)); }
+  :root[data-theme="ice"] h2 {
+    font-family: "Cinzel", "Trajan Pro", Georgia, serif; font-weight: 700; font-size: .86rem;
+    text-transform: uppercase; letter-spacing: .1em; color: #e2f5ff;
+    text-shadow: 0 -1px 0 #000, 0 0 12px rgba(120,200,255,.35);
+  }
+  :root[data-theme="ice"] .tab { font-family: "Cinzel", Georgia, serif; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #8ea7ba; }
+  :root[data-theme="ice"] .tab[aria-selected="true"] {
+    background: linear-gradient(180deg, #e8f8ff 0%, #a9dcf5 50%, #5c9fc6 100%); color: #04131f;
+    box-shadow: 0 1px 0 rgba(255,255,255,.8) inset, 0 -1px 0 rgba(0,30,60,.4) inset, 0 0 16px rgba(130,210,255,.35);
+    text-shadow: 0 1px 0 rgba(255,255,255,.5);
+  }
+  :root[data-theme="ice"] .tabs { background: linear-gradient(180deg, rgba(0,8,16,.8), rgba(0,8,16,.65)), url("panel-ice.jpg") 0 0 / 512px 512px; }
+
+  /* Kontrollleiste: dunkles Eis, darunter hängen Eiszapfen */
+  :root[data-theme="ice"] .control-bar {
+    background:
+      url("rivet-ice.png") 8px 50% / 14px 14px no-repeat,
+      url("rivet-ice.png") calc(100% - 8px) 50% / 14px 14px no-repeat,
+      linear-gradient(180deg, rgba(200,235,255,.12) 0%, rgba(0,0,0,.15) 50%, rgba(0,6,14,.55) 100%),
+      url("panel-ice.jpg") 0 0 / 512px 512px;
+    background-color: #0a1824; border-bottom: 1px solid rgba(190,230,255,.35);
+    box-shadow: 0 1px 0 rgba(220,245,255,.2) inset, 0 8px 22px rgba(0,0,0,.7);
+  }
+  :root[data-theme="ice"] .control-bar::after {
+    height: 34px; bottom: -32px; background: url("icicles.png") 0 0 / auto 34px repeat-x; border: 0; box-shadow: none;
+    filter: drop-shadow(0 3px 3px rgba(0,0,0,.5));
+  }
+  :root[data-theme="ice"] .cb-inner { padding-bottom: 12px; }
+  :root[data-theme="ice"] .lcd { border-color: rgba(160,215,245,.25); box-shadow: inset 0 3px 10px rgba(0,0,0,.9), inset 0 0 0 1px #000, inset 0 0 18px rgba(120,200,255,.12); }
+  :root[data-theme="ice"] .lcd .v { text-shadow: 0 0 6px rgba(150,220,255,.6); }
+  :root[data-theme="ice"] .tabs { margin-top: 16px; }
+
+  /* Platten: dunkle Eisblöcke mit vereisten Nieten und Frostkante */
+  :root[data-theme="ice"] .card, :root[data-theme="ice"] .stat-card {
+    background:
+      url("rivet-ice.png") 6px 6px / 16px 16px no-repeat,
+      url("rivet-ice.png") calc(100% - 6px) 6px / 16px 16px no-repeat,
+      url("rivet-ice.png") 6px calc(100% - 6px) / 16px 16px no-repeat,
+      url("rivet-ice.png") calc(100% - 6px) calc(100% - 6px) / 16px 16px no-repeat,
+      radial-gradient(ellipse 120% 60% at 50% 0%, rgba(200,235,255,.08), transparent 60%),
+      linear-gradient(180deg, rgba(0,0,0,.05) 0%, rgba(0,8,18,.35) 100%),
+      url("panel-ice.jpg") 0 0 / 512px 512px;
+    background-color: #0b1a26;
+    border: 1px solid rgba(170,220,250,.28);
+    box-shadow: 0 1px 0 rgba(225,245,255,.22) inset, inset 0 0 34px rgba(150,210,245,.08), 0 10px 22px rgba(0,0,0,.7), 0 28px 60px rgba(0,0,0,.6);
+  }
+  :root[data-theme="ice"] .card::after { border-color: rgba(0,10,20,.6); box-shadow: 0 1px 0 rgba(200,235,255,.06); }
+  :root[data-theme="ice"] .track, :root[data-theme="ice"] .editor, :root[data-theme="ice"] .lane {
+    background: linear-gradient(180deg, rgba(0,6,12,.72), rgba(0,6,12,.64)), url("panel-ice.jpg") 137px 91px / 512px 512px;
+    background-color: #050d14; border: 1px solid rgba(150,210,245,.18);
+    box-shadow: inset 0 8px 22px rgba(0,0,0,.9), inset 0 0 0 1px rgba(170,220,250,.04), 0 1px 0 rgba(200,235,255,.08);
+  }
+  :root[data-theme="ice"] .track.rec-live { border-color: rgba(255,45,69,.65) !important; box-shadow: inset 0 3px 10px rgba(0,0,0,.85), 0 0 0 1px rgba(255,45,69,.5), 0 0 22px rgba(255,45,69,.28) !important; }
+
+  /* Taster: kaltes Schiefergrau, aktiv glimmt Eisblau */
+  :root[data-theme="ice"] .toggle-btn, :root[data-theme="ice"] .mini button, :root[data-theme="ice"] .file-mini, :root[data-theme="ice"] .tbtn {
+    background: linear-gradient(180deg, #2b3a47, #16212b); border: 1px solid #02070c; color: #e6f3fb;
+    box-shadow: 0 1px 0 rgba(200,235,255,.15) inset, 0 2px 3px rgba(0,0,0,.6);
+  }
+  :root[data-theme="ice"] .toggle-btn.active {
+    background: linear-gradient(180deg, #d9f3ff 0%, #8dcdee 50%, #3f87b3 100%); color: #03111c; border-color: #021019;
+    box-shadow: 0 1px 0 rgba(255,255,255,.8) inset, 0 0 14px rgba(120,200,255,.45), 0 2px 3px rgba(0,0,0,.6); text-shadow: 0 1px 0 rgba(255,255,255,.45);
+  }
+  :root[data-theme="ice"] #playBtn.playing { background: linear-gradient(180deg, #8dcdee, #3f87b3); }
+  :root[data-theme="ice"] .foot {
+    background: radial-gradient(ellipse at 50% 0%, rgba(220,245,255,.28), transparent 60%), linear-gradient(180deg, #51606c, #2f3a44 60%, #222a31);
+  }
+  :root[data-theme="ice"] .export-btn { background: linear-gradient(180deg, #d9f3ff, #4c95c0) !important; border-color: #021019 !important; color: #03111c !important; }
+  :root[data-theme="ice"] select, :root[data-theme="ice"] .text-in { background-color: #050e16; border-color: rgba(150,210,245,.25); }
+
+  /* Pegel: Tiefblau → Eis → Weiß, warm erst kurz vor dem Übersteuern */
+  :root[data-theme="ice"] #loopMeter, :root[data-theme="ice"] .meter.st #loopMeterR {
+    background-image: linear-gradient(90deg, #2a5cff 0%, #5fd6ff 42%, #effaff 64%, #ffb04a 83%, #ff2d45 100%);
+    box-shadow: 0 0 6px rgba(120,210,255,.7), 0 0 14px rgba(120,210,255,.3);
+  }
+  :root[data-theme="ice"] .track { --tcd: #5a7d99; --tcg: rgba(230,245,255,.45); }
+  :root[data-theme="ice"] .track.t2 { --tcd: #1b5e95; --tcg: rgba(103,212,255,.55); }
+  :root[data-theme="ice"] .track.t3 { --tcd: #3a3fa8; --tcg: rgba(138,156,255,.5); }
+  :root[data-theme="ice"] .chan-info { color: #bfeaff; }
+  @media (max-width: 520px) {
+    :root[data-theme="ice"] .card, :root[data-theme="ice"] .stat-card { background-size: 13px 13px, 13px 13px, 13px 13px, 13px 13px, auto, auto, 512px 512px; }
+    :root[data-theme="ice"] .brand { font-size: 1.15rem; }
+  }
+  :root[data-theme="ice"] #caption { margin-top: 30px; }
 </style>
 
 </head>
 <body>
 <header class="control-bar">
   <div class="cb-inner">
-    <div class="brand">Looper <span>3nps · v16.1</span></div>
+    <div class="brand">Looper <span>3nps · v17</span></div>
     <div class="transport">
       <button class="tbtn" id="playBtn" aria-label="Metronom starten oder stoppen">▶</button>
     </div>
@@ -906,6 +1125,8 @@
           <option value="v4">Nordlicht – Eis &amp; Glas</option>
           <option value="v5">Elbenküste – Meer &amp; Chor (Meeresrauschen, Harfe)</option>
           <option value="v6">Waldesruh – Elbenwald (Vögel, Bach, Flöte)</option>
+          <option value="v7">Nachtbrandung – Küste & Fläche (Meer im Hintergrund, E-Piano)</option>
+          <option value="v8">Maschinenhalle – Stahl & Takt (Presse, Ventile, Turbine)</option>
         </select>
       </label>
       <div class="row">
@@ -1185,6 +1406,8 @@
               <option value="v4">Nordlicht – Eis &amp; Glas</option>
               <option value="v5">Elbenküste – Meer &amp; Chor</option>
               <option value="v6">Waldesruh – Elbenwald</option>
+              <option value="v7">Nachtbrandung – Küste & Fläche</option>
+              <option value="v8">Maschinenhalle – Stahl & Takt</option>
             </select>
             <label class="check lane-sync"><input type="checkbox" id="laneDroneOrn"> Verzierungen</label>
             <label class="lane-fader"><span>Pegel</span><input type="range" id="laneDroneVol" min="0" max="100" step="5" value="40" aria-label="Drone-Lautstärke"></label>
@@ -1268,8 +1491,14 @@
         <select id="appTheme">
           <option value="nordic">Nordisch – Eis, Rost und Runen</option>
           <option value="metal">Metal – Stahl, Nieten und Blutrot</option>
+          <option value="amp">Verstärker – Tolex, Alu-Front und Röhrenglühen</option>
+          <option value="ice">Eiswand – raues Gletschereis und Frost</option>
         </select>
       </label>
+      <div class="row install-row" id="installRow" hidden>
+        <button class="toggle-btn active" id="appInstall">Als App installieren</button>
+      </div>
+      <p class="pattern-desc mac-hint" id="macHint" hidden></p>
       <div class="row backup-row">
         <button class="toggle-btn" id="backupSave">Alles sichern</button>
         <button class="toggle-btn" id="backupLoad">Sicherung laden</button>
@@ -1587,6 +1816,14 @@ function applyMasterPrefs() {
   else { L.threshold.value = 0; L.knee.value = 0; L.ratio.value = 1; }
 }
 
+// Nach jedem Ton die Klangknoten wieder abklemmen. Safari behält beendete Knoten sonst im Audio-Graphen:
+// über Stunden wird die Wiedergabe dann zäh, Drums kommen verzögert und es knackt.
+function vEnd(srcs, nodes) {
+  srcs = [].concat(srcs); let left = srcs.length;
+  const done = () => { if (--left > 0) return; srcs.forEach(x => { try { x.disconnect(); } catch (e) {} }); (nodes || []).forEach(n => { try { n.disconnect(); } catch (e) {} }); };
+  srcs.forEach(x => { try { x.addEventListener('ended', done, { once: true }); } catch (e) { x.onended = done; } });
+}
+
 function clickSound(accent) {
   ensureAudio();
   const osc = audioCtx.createOscillator();
@@ -1598,6 +1835,7 @@ function clickSound(accent) {
   gain.connect(ensureMasterBus());
   osc.start();
   osc.stop(audioCtx.currentTime + 0.06);
+  vEnd(osc, [gain]);
 }
 
 function midiToFreq(midi) {
@@ -1673,6 +1911,7 @@ function playKick(t, bus) {
   osc.connect(g);
   g.connect(bus.dryGain);
   osc.start(t); osc.stop(t + 0.34);
+  vEnd(osc, [g]);
 }
 
 function playSnare(t, bus) {
@@ -1688,6 +1927,7 @@ function playSnare(t, bus) {
   ng.connect(bus.dryGain);
   ng.connect(bus.reverbSend);
   noiseSrc.start(t); noiseSrc.stop(t + 0.2);
+  vEnd(noiseSrc, [hp, ng]);
 
   const osc = audioCtx.createOscillator();
   osc.type = 'triangle'; osc.frequency.value = 190;
@@ -1696,6 +1936,7 @@ function playSnare(t, bus) {
   og.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
   osc.connect(og); og.connect(bus.dryGain);
   osc.start(t); osc.stop(t + 0.1);
+  vEnd(osc, [og]);
 }
 
 function playHihat(t, accent, bus) {
@@ -1712,6 +1953,7 @@ function playHihat(t, accent, bus) {
   noiseSrc.connect(hp); hp.connect(g);
   g.connect(bus.dryGain);
   noiseSrc.start(t); noiseSrc.stop(t + dur + 0.02);
+  vEnd(noiseSrc, [hp, g]);
 }
 
 let bassSampleBuffers = {};
@@ -1779,6 +2021,7 @@ function playBassNote(t, deg, stepDurMs) {
 
   src.start(t);
   src.stop(t + holdSec + 0.25);
+  vEnd(src, [tone, g]);
 }
 
 /* ---------- Beat-Erkennung aus geladener Audiodatei ---------- */
@@ -2063,6 +2306,7 @@ function playPianoNote(midi, velocity) {
 
   osc1.start(t); osc2.start(t);
   osc1.stop(t + 3.5); osc2.stop(t + 3.5);
+  vEnd([osc1, osc2], [g2, g]);
 }
 
 function playBellNote(midi, velocity) {
@@ -2092,6 +2336,7 @@ function playBellNote(midi, velocity) {
 
   carrier.start(t); modulator.start(t);
   carrier.stop(t + 2.9); modulator.stop(t + 2.9);
+  vEnd([carrier, modulator], [modGain, g]);
 }
 
 function playPluckNote(midi, velocity) {
@@ -2118,6 +2363,7 @@ function playPluckNote(midi, velocity) {
 
   osc.start(t);
   osc.stop(t + 1.2);
+  vEnd(osc, [bandpass, g]);
 }
 
 function scheduleShimmer() {
@@ -2191,6 +2437,7 @@ function playLeadPhrase() {
     const endTime = cursor + noteDur;
     g.gain.exponentialRampToValueAtTime(0.0006, endTime + 2.4);
     osc1.stop(endTime + 2.5); osc2.stop(endTime + 2.5); vibrato.stop(endTime + 2.5);
+    vEnd([osc1, osc2, vibrato], [vibratoGain, filter, g, g2]);
 
     phraseSpanMs = (endTime - t0) * 1000;
   }
@@ -2464,6 +2711,7 @@ function playPizzNote(midi, velocity) {
   g.connect(droneNodes.pingPong.input);
   osc.start(t);
   osc.stop(t + 0.55);
+  vEnd(osc, [filter, g]);
 }
 
 function playHornStab(midi, velocity) {
@@ -2491,6 +2739,7 @@ function playHornStab(midi, velocity) {
   g.connect(droneNodes.pingPong.input);
   osc1.start(t); osc2.start(t);
   osc1.stop(t + 1.7); osc2.stop(t + 1.7);
+  vEnd([osc1, osc2], [filter, g, g2]);
 }
 
 function playHarpGliss(baseMidi, velocity) {
@@ -2513,6 +2762,7 @@ function playHarpGliss(baseMidi, velocity) {
     g.connect(droneNodes.pingPong.input);
     osc.start(t);
     osc.stop(t + 1.3);
+    vEnd(osc, [g]);
   });
 }
 
@@ -2586,6 +2836,7 @@ function playLeadPhraseV2() {
     const endTime = cursor + noteDur;
     g.gain.exponentialRampToValueAtTime(0.0006, endTime + 2.8);
     osc1.stop(endTime + 2.9); osc2.stop(endTime + 2.9); vibrato.stop(endTime + 2.9);
+    vEnd([osc1, osc2, vibrato], [vibratoGain, filter, g, g2]);
 
     phraseSpanMs = (endTime - t0) * 1000;
   }
@@ -2617,6 +2868,7 @@ function playRiserHit() {
   const hitTime = t0 + riseDur;
   rg.gain.exponentialRampToValueAtTime(0.0005, hitTime + 0.4);
   noise.stop(hitTime + 0.5);
+  vEnd(noise, [rf, rg]);
 
   const keyNotes = droneNodes.keyNotes;
   const hitNotes = [keyNotes.sub, keyNotes.root, keyNotes.fifth, keyNotes.root8];
@@ -2633,6 +2885,7 @@ function playRiserHit() {
     g.connect(droneNodes.pingPong.input);
     osc.start(hitTime);
     osc.stop(hitTime + 3.3);
+    vEnd(osc, [g]);
   });
 }
 
@@ -2804,6 +3057,7 @@ function startDroneV2() {
     g.connect(droneNodes.pingPong.input);
     osc.start(t); osc.stop(t + 1.7);
     clickNoise.start(t); clickNoise.stop(t + 0.1);
+    vEnd(osc, [g]); vEnd(clickNoise, [clickFilter, clickGain]);
 
     droneNodes.timpaniTimeout = setTimeout(timpaniHit, 2200 + Math.random() * 1400);
   }
@@ -4069,24 +4323,31 @@ const Rhythm = (() => {
   }
 
   // ---- Klang: Kit im Hintergrund erzeugen, Kanäle mit Panorama, Raum, Bus-Kompressor ----
-  let kit = null, kitBusy = false, bus = null;
+  // Das Kit wird gleich beim Start der App im Hintergrund erzeugt (fest 48 kHz – der Browser rechnet bei Bedarf um).
+  // So klingt schon der allererste Schlag richtig; vorher sprangen kurz Ersatzstimmen ein, die knisterten.
+  let kit = null, kitRaw = null, kitBusy = false, kitFailed = false, bus = null, wantOn = false;
+  const KIT_SR = 48000;
+  function kitToBuffers() {
+    if (kit || !kitRaw || typeof audioCtx === 'undefined' || !audioCtx) return;
+    const k = {};
+    Object.entries(kitRaw).forEach(([id, layers]) => { k[id] = layers.map(l => l.map(a => { const b = audioCtx.createBuffer(1, a.length, KIT_SR); b.copyToChannel(a, 0); return b; })); });
+    kit = k; kitRaw = null;
+    if (wantOn) { wantOn = false; setOn(true); }
+  }
   function makeKit() {
-    if (kit || kitBusy || typeof audioCtx === 'undefined' || !audioCtx) return;
+    if (kit || kitRaw || kitBusy) { kitToBuffers(); return; }
     kitBusy = true;
-    const sr = audioCtx.sampleRate;
-    const done = data => {
-      const k = {};
-      Object.entries(data).forEach(([id, layers]) => { k[id] = layers.map(l => l.map(a => { const b = audioCtx.createBuffer(1, a.length, sr); b.copyToChannel(a, 0); return b; })); });
-      kit = k; kitBusy = false;
-    };
+    const done = data => { kitRaw = data; kitBusy = false; kitToBuffers(); };
     try {
       const src = synthKit.toString() + '\nonmessage = e => { const r = synthKit(e.data.sr); const tr = []; Object.values(r).forEach(l => l.forEach(v => v.forEach(a => tr.push(a.buffer)))); postMessage(r, tr); };';
       const w = new Worker(URL.createObjectURL(new Blob([src], { type: 'application/javascript' })));
       w.onmessage = e => { done(e.data); w.terminate(); };
-      w.onerror = () => { w.terminate(); setTimeout(() => done(synthKit(sr)), 10); };
-      w.postMessage({ sr });
-    } catch (e) { setTimeout(() => done(synthKit(sr)), 10); }
+      w.onerror = () => { w.terminate(); setTimeout(() => done(synthKit(KIT_SR)), 10); };
+      w.postMessage({ sr: KIT_SR });
+    } catch (e) { setTimeout(() => done(synthKit(KIT_SR)), 10); }
+    setTimeout(() => { if (!kit && !kitRaw) { kitFailed = true; if (wantOn) { wantOn = false; setOn(true); } } }, 4000);
   }
+  setTimeout(makeKit, 250);
   function roomIR(sr) {
     const n = Math.round(sr * 0.9), b = audioCtx.createBuffer(2, n, sr);
     for (let c = 0; c < 2; c++) {
@@ -4135,11 +4396,21 @@ const Rhythm = (() => {
     s.playbackRate.value = 1 + (Math.random() - 0.5) * 0.012;
     const g = audioCtx.createGain(); g.gain.value = Math.pow(v / [0.4, 0.75, 1][L], 0.9) * (L === 2 ? 1 : 1);
     s.connect(g); g.connect(b.ch[id]); s.start(t);
+    vEnd(s, [g]);                                   // nach dem Ausklingen abklemmen (Safari hält sonst alles im Graphen)
+    pend.push([t, s]);
     if (id === 'hho') b.open = g;
   }
+  // Geplante, noch nicht erklungene Schläge – bei einem Rastersprung (neuer Loop-Anfang) werden sie verworfen
+  const pend = [];
+  function dropPending(after) {
+    for (const [t, s] of pend) if (t > after) { try { s.stop(); } catch (e) {} }
+    pend.length = 0;
+  }
+  let lateHits = 0;
 
   // ---- Taktgeber ----
   let gridFn = null, freeAnchor = 0, lastG = null, timer = null, nextT = 0, lastAnchor = null, lastRes = 0;
+  const AHEAD = 0.3;
   const bpmNow = () => parseFloat(document.getElementById('bpm').value) || 80;
   const barDur = () => 240 / bpmNow();
   const stepDur = () => barDur() / res;
@@ -4181,12 +4452,17 @@ const Rhythm = (() => {
   function tick() {
     if (!audioCtx) return;
     const now = audioCtx.currentTime, g = grid(), sd = stepDur();
+    // Rastersprung (neuer Loop-Anfang, anderes Raster): schon geplante Schläge verwerfen und neu ansetzen
     if (lastAnchor !== g.anchor || lastRes !== res || nextT < now - 0.2) {
+      const jump = lastAnchor !== null;
       lastAnchor = g.anchor; lastRes = res;
-      nextT = firstAfter(g, Math.max(now + 0.03, nextT - 0.001));
+      if (jump && nextT > now) { dropPending(now + 0.012); nextT = firstAfter(g, now + 0.03); }
+      else nextT = firstAfter(g, Math.max(now + 0.03, nextT - 0.001));
     }
+    while (pend.length && pend[0][0] < now - 0.05) pend.shift();
     const sw = res === 16 ? parseInt(swingEl.value) / 100 : 0, hu = parseInt(humanEl.value) / 100;
-    while (nextT < now + 0.13) {
+    // 0,3 s Vorlauf: kurze Hänger der Oberfläche (Speicher aufräumen, Zeichnen, Laden) verschieben keinen Schlag
+    while (nextT < now + AHEAD) {
       const si = stepInfo(nextT, g), step = si.step;
       const delay = step % 4 === 2 ? sw * sd * 2 / 3 : step % 2 === 1 ? sw * sd / 3 : 0;
       const tt = Math.max(now, nextT + delay);
@@ -4200,6 +4476,7 @@ const Rhythm = (() => {
           if (lv === 1 && (id === 'hhc' || id === 'ride' || id === 'shaker' || id === 'hho')) v *= step % beatLen === 0 ? 1.08 : (res === 16 && step % 2 ? 0.82 : 0.92);
           v *= 1 + (Math.random() - 0.5) * 0.3 * hu;
           const jt = (Math.random() - 0.5) * 0.012 * hu;
+          if (tt + jt < now) lateHits++;
           hit(id, Math.max(now, tt + jt), Math.min(1.05, Math.max(0.08, v)));
         });
       }
@@ -4220,16 +4497,24 @@ const Rhythm = (() => {
     } else if (!need && timer) { clearInterval(timer); timer = null; played.length = 0; }
   }
   function setOn(v) {
+    if (v && !kit && !kitFailed) {               // Kit noch nicht fertig: kurz warten statt Ersatzstimmen
+      ensureAudio(); makeKit(); kitToBuffers();
+      if (!kit) { wantOn = true; btn.classList.add('active'); btn.textContent = 'Drums laden …'; return; }
+    }
+    if (!v) wantOn = false;
     on = !!v;
     btn.classList.toggle('active', on); btn.textContent = on ? 'Drums an' : 'Drums aus';
-    if (on) { ensureBus(); bus.master.gain.value = parseInt(volEl.value) / 100; }
+    if (on) {                                     // weich einblenden: kein Knacken beim Einschalten
+      ensureBus(); const g = bus.master.gain, t0 = audioCtx.currentTime;
+      g.cancelScheduledValues(t0); g.setValueAtTime(0, t0); g.linearRampToValueAtTime(parseInt(volEl.value) / 100, t0 + 0.02);
+    }
     clock(); paint(); lastLit = -2; startAnim();
     // Ausgeschaltet: Drum-Kanal nach dem Ausklingen vom Ausgang trennen (spart Rechenzeit)
     clearTimeout(setOn.t);
     if (on) connectBus(true); else setOn.t = setTimeout(() => { if (!on) connectBus(false); }, 3000);
     document.dispatchEvent(new CustomEvent('rhythm', { detail: { on } }));
   }
-  btn.addEventListener('click', () => setOn(!on));
+  btn.addEventListener('click', () => setOn(!(on || wantOn)));
   volEl.addEventListener('input', () => { setPref('3nps-drumvol', volEl.value); if (bus) bus.master.gain.setTargetAtTime(parseInt(volEl.value) / 100, audioCtx.currentTime, 0.02); });
 
   // ---- Designer ----
@@ -4393,7 +4678,7 @@ const Rhythm = (() => {
     nextBarTime: () => { const g = grid(), bd = barDur(), t = audioCtx.currentTime + 0.15; return g.anchor + Math.ceil((t - g.anchor) / bd) * bd; },
     resync: () => { lastAnchor = null; },
     stepDur, res: () => res, midiEvents, setDetected, name: () => styleEl.selectedOptions[0] ? styleEl.selectedOptions[0].text : '',
-    debug: () => ({ on, res, steps: played.slice(-24), sd: stepDur(), kit: !!kit, preset: presetKey })
+    debug: () => ({ on, res, steps: played.slice(-24), sd: stepDur(), kit: !!kit, preset: presetKey, late: lateHits, pending: pend.length })
   };
 })();
 
@@ -4438,12 +4723,29 @@ const NordDrones = (() => {
     return noiseBuf;
   }
   const ac = () => audioCtx;
-  function osc(type, f, det) { const o = ac().createOscillator(); o.type = type; o.frequency.value = f; if (det) o.detune.value = det; return o; }
-  function gain(v) { const g = ac().createGain(); g.gain.value = v; return g; }
-  function filt(type, f, q) { const b = ac().createBiquadFilter(); b.type = type; b.frequency.value = f; if (q) b.Q.value = q; return b; }
+  // Klänge, die zeitgesteuert entstehen (Trommel, Horn, Glocke, Harfe, Vogel …), sammeln ihre Knoten
+  // und werden nach dem Ausklingen vom Graphen getrennt – sonst sammeln sich in Safari über Stunden Tausende an.
+  let vNodes = null;
+  const tr = n => { if (vNodes) vNodes.push(n); return n; };
+  function voice(fn) {
+    const prev = vNodes, mine = []; vNodes = mine;
+    try { fn(); } finally {
+      vNodes = prev;
+      const srcs = mine.filter(n => typeof n.start === 'function');
+      if (srcs.length) {
+        let left = srcs.length;
+        const done = () => { if (--left > 0) return; mine.forEach(n => { try { n.disconnect(); } catch (e) {} }); };
+        srcs.forEach(x => { try { x.addEventListener('ended', done, { once: true }); } catch (e) { x.onended = done; } });
+      }
+    }
+  }
+  const T = (fn, ms) => setTimeout(() => voice(fn), ms);
+  function osc(type, f, det) { const o = tr(ac().createOscillator()); o.type = type; o.frequency.value = f; if (det) o.detune.value = det; return o; }
+  function gain(v) { const g = tr(ac().createGain()); g.gain.value = v; return g; }
+  function filt(type, f, q) { const b = tr(ac().createBiquadFilter()); b.type = type; b.frequency.value = f; if (q) b.Q.value = q; return b; }
   function lfo(rate, depth, target, type) { const o = osc(type || 'sine', rate), g = gain(depth); o.connect(g); g.connect(target); o.start(); return o; }
-  function pan(v) { try { const p = ac().createStereoPanner(); p.pan.value = v; return p; } catch (e) { return gain(1); } }
-  function noiseSrc(offset) { const s = ac().createBufferSource(); s.buffer = noise(); s.loop = true; s.start(ac().currentTime, offset || 0); return s; }
+  function pan(v) { try { const p = tr(ac().createStereoPanner()); p.pan.value = v; return p; } catch (e) { return gain(1); } }
+  function noiseSrc(offset) { const s = tr(ac().createBufferSource()); s.buffer = noise(); s.loop = true; s.start(ac().currentTime, offset || 0); return s; }
   const hz = m => 440 * Math.pow(2, (m - 69) / 12);
   const orn = () => { const el = document.getElementById('pianoShimmer'); return !el || el.checked; };
   const bpm = () => parseFloat(document.getElementById('bpm').value) || 80;
@@ -4506,13 +4808,13 @@ const NordDrones = (() => {
       seaG.gain.cancelScheduledValues(t); seaG.gain.setTargetAtTime(peak, t, up / 3); seaG.gain.setTargetAtTime(0.03, t + up, down / 3);
       foamG.gain.cancelScheduledValues(t); foamG.gain.setTargetAtTime(0.06, t + up * 0.8, 0.4); foamG.gain.setTargetAtTime(0, t + up + 0.6, 0.9);
       seaLp.frequency.setTargetAtTime(380 + Math.random() * 400, t, 2);
-      N.timers.push(setTimeout(wave, (up + down) * 1000 * (0.8 + Math.random() * 0.4)));
+      N.timers.push(T(wave, (up + down) * 1000 * (0.8 + Math.random() * 0.4)));
     }
     function gust() {
       const t = ac().currentTime + 0.05, a = 0.06 + Math.random() * 0.12, d = 2 + Math.random() * 4;
       wg.gain.setTargetAtTime(a, t, d / 3); wg.gain.setTargetAtTime(0.025, t + d, d / 2);
       whG.gain.setTargetAtTime(Math.random() < 0.35 ? 0.02 : 0.0, t, 1.2);
-      N.timers.push(setTimeout(gust, (d * 1.6 + Math.random() * 3) * 1000));
+      N.timers.push(T(gust, (d * 1.6 + Math.random() * 3) * 1000));
     }
     wave(); gust();
     // 6) Kriegstrommeln (Verzierungen): „DUM . . . | DUM . DUM .“ im Tempo, auf den Takt
@@ -4536,7 +4838,7 @@ const NordDrones = (() => {
         }
         nextBar += bd; barN++;
       }
-      N.timers.push(setTimeout(drums, 120));
+      N.timers.push(T(drums, 120));
     }
     // 7) Horn (Lure) ab und zu, auf Grundton oder Quinte
     function horn() {
@@ -4550,10 +4852,10 @@ const NordDrones = (() => {
         g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.09, t + 1.4); g.gain.setValueAtTime(0.09, t + 3.2); g.gain.linearRampToValueAtTime(0, t + 5.4);
         [o, o2].forEach(x => { x.connect(lp); x.start(t); x.stop(t + 5.6); }); lp.connect(g); g.connect(p); p.connect(dry); send(p, 1.2);
       }
-      N.timers.push(setTimeout(horn, (24 + Math.random() * 18) * 1000));
+      N.timers.push(T(horn, (24 + Math.random() * 18) * 1000));
     }
     N.alive = true;
-    N.timers.push(setTimeout(drums, 600), setTimeout(horn, 9000));
+    N.timers.push(T(drums, 600), T(horn, 9000));
     N.retune = () => { const kk = keyMidiNotes(), t = ac().currentTime; N.voices.forEach(v => v.o.frequency.setTargetAtTime(hz(kk[v.role]), t, 0.4)); };
     return N;
   }
@@ -4605,9 +4907,9 @@ const NordDrones = (() => {
         if (Math.random() < (orn() ? 0.35 : 0.15)) { const st = Math.floor(Math.random() * Math.max(1, notes.length - 6)); [0, 2, 4].forEach((d, i) => bell(t + i * 0.18, notes[Math.min(notes.length - 1, st + d)], 0.05)); }
         else bell(t, notes[Math.floor(Math.random() * notes.length)], 0.045 + Math.random() * 0.03);
       }
-      N.timers.push(setTimeout(bells, (orn() ? 1.6 + Math.random() * 3 : 4 + Math.random() * 5) * 1000));
+      N.timers.push(T(bells, (orn() ? 1.6 + Math.random() * 3 : 4 + Math.random() * 5) * 1000));
     }
-    N.timers.push(setTimeout(bells, 1500));
+    N.timers.push(T(bells, 1500));
     N.retune = () => { const kk = keyMidiNotes(), t = ac().currentTime; N.voices.forEach(v => v.o.frequency.setTargetAtTime(v.r === 'sub' ? hz(kk.sub + 12) : hz(roleMidi(kk, v.r)), t, 0.6)); };
     return N;
   }
@@ -4659,7 +4961,7 @@ const NordDrones = (() => {
       crashG.gain.setTargetAtTime(0, t, 0.2); crashG.gain.setTargetAtTime(pk * 0.5, t + rise * 0.85, 0.35); crashG.gain.setTargetAtTime(0, t + rise + 0.8, 1.2);
       hissG.gain.setTargetAtTime(pk * 0.28, t + rise + 0.4, 0.6); hissG.gain.setTargetAtTime(0, t + rise + 1.6, fall / 3);
       crash.frequency.setTargetAtTime(900 + Math.random() * 900, t, 1.5);
-      N.timers.push(setTimeout(wave, (rise + fall) * 1000 * (0.85 + Math.random() * 0.3)));
+      N.timers.push(T(wave, (rise + fall) * 1000 * (0.85 + Math.random() * 0.3)));
     }
     wave();
     // Harfe (Verzierungen): kleine Arpeggios aus der Skala
@@ -4678,9 +4980,9 @@ const NordDrones = (() => {
           for (let i = 0; i < n; i++) harp(t + i * (0.16 + Math.random() * 0.05), notes[Math.min(notes.length - 1, st + (up ? i : n - 1 - i) * (Math.random() < 0.5 ? 1 : 2))], 0.05);
         }
       }
-      N.timers.push(setTimeout(harps, (9 + Math.random() * 12) * 1000));
+      N.timers.push(T(harps, (9 + Math.random() * 12) * 1000));
     }
-    N.timers.push(setTimeout(harps, 4000));
+    N.timers.push(T(harps, 4000));
     const roleMidi = (kk, r) => r === 'fifth8' ? kk.fifth + 12 : r === 'root16' ? kk.root8 + 12 : r === 'subUp' ? kk.sub + 12 : kk[r];
     N.retune = () => { const kk = keyMidiNotes(), t = ac().currentTime; N.voices.forEach(v => v.o.frequency.setTargetAtTime(hz(roleMidi(kk, v.role)), t, 0.6)); };
     return N;
@@ -4713,7 +5015,7 @@ const NordDrones = (() => {
       if (!N.alive) return;
       const t = ac().currentTime + 0.05, a = 0.012 + Math.random() * 0.03, d = 2.5 + Math.random() * 4;
       lg.gain.setTargetAtTime(a, t, d / 3); lg.gain.setTargetAtTime(0.01, t + d, d / 2);
-      N.timers.push(setTimeout(breeze, (d * 1.5 + Math.random() * 4) * 1000));
+      N.timers.push(T(breeze, (d * 1.5 + Math.random() * 4) * 1000));
     }
     breeze();
     // Bach: leises Plätschern (Rauschen) und Bläschen
@@ -4731,7 +5033,7 @@ const NordDrones = (() => {
         o.connect(g); g.connect(brP); o.start(t); o.stop(t + d + 0.02);
         nextBub += 0.03 + Math.random() * 0.12;
       }
-      N.timers.push(setTimeout(bubbles, 120));
+      N.timers.push(T(bubbles, 120));
     }
     bubbles();
     // Vögel: verschiedene Arten – Triller, Pfiffe, Rufpaare – an wechselnden Plätzen
@@ -4760,9 +5062,9 @@ const NordDrones = (() => {
       } else {                                  // schnelles Zwitschern
         for (let i = 0; i < 4; i++) { const f = 4000 + Math.random() * 3000; chirp(t + i * 0.09 + Math.random() * 0.03, f, f * (0.7 + Math.random() * 0.6), 0.06, amp * 0.8, p); }
       }
-      N.timers.push(setTimeout(bird, (2 + Math.random() * 6) * 1000));
+      N.timers.push(T(bird, (2 + Math.random() * 6) * 1000));
     }
-    N.timers.push(setTimeout(bird, 1800));
+    N.timers.push(T(bird, 1800));
     // Flöte (Verzierungen): ruhige pentatonische Phrasen, gehaucht, mit verzögertem Vibrato
     function flute(t, m, d) {
       const f = hz(m), o = osc('sine', f), o2 = osc('sine', f * 2), g = gain(0), g2 = gain(0.12), vib = osc('sine', 5.2), vg = gain(0);
@@ -4793,20 +5095,213 @@ const NordDrones = (() => {
           if (Math.random() < 0.5) flute(t, penta.find(m => ((m - root) % 12 + 12) % 12 === 0) || penta[0], bt * 3);
         }
       }
-      N.timers.push(setTimeout(phrase, (14 + Math.random() * 14) * 1000));
+      N.timers.push(T(phrase, (14 + Math.random() * 14) * 1000));
     }
-    N.timers.push(setTimeout(phrase, 6000));
+    N.timers.push(T(phrase, 6000));
     const roleMidi = (kk, r) => r === 'third' ? kk.pianoChord[1] - 12 : kk[r];
     N.retune = () => { const kk = keyMidiNotes(), t = ac().currentTime; N.voices.forEach(v => v.o.frequency.setTargetAtTime(hz(roleMidi(kk, v.role)), t, 0.6)); };
     return N;
   }
 
-  const NAMES = { v3: 'Nordmeer – Wikinger', v4: 'Nordlicht – Eis & Glas', v5: 'Elbenküste – Meer & Chor', v6: 'Waldesruh – Elbenwald' };
-  const STARTS = { v3: () => startV3(), v4: () => startV4(), v5: () => startV5(), v6: () => startV6() };
+
+  // ===================== VII Nachtbrandung – Küste & warme Fläche =====================
+  // Warme, langsam atmende Fläche vorn, das Meer im Hintergrund – echt stereo: links und rechts brechen
+  // die Wellen unabhängig voneinander, beim Zurücklaufen rasselt Kies. Verzierung: einzelne E-Piano-Töne mit Echo.
+  function startV7() {
+    ensureAudio();
+    const vol = parseInt(document.getElementById('droneVolume').value) / 100, t0 = ac().currentTime, k = keyMidiNotes();
+    const master = gain(0); master.connect(ensureMasterBus());
+    master.gain.setValueAtTime(0, t0); master.gain.linearRampToValueAtTime(vol, t0 + 6);
+    const hall = tr(ac().createConvolver()); hall.buffer = hallIR(4.8, 2.0, 0.25);
+    const wet = gain(0.55); hall.connect(wet); wet.connect(master);
+    const dry = gain(0.75); dry.connect(master);
+    const send = (node, amt) => { const s = gain(amt); node.connect(s); s.connect(hall); };
+    const N = { master, voices: [], stops: [], timers: [], alive: true };
+    const third8 = kk => { const ov = window.droneKeyOverride || null, iv = MODES[ov && ov.mode ? ov.mode : modeSel.value]; return kk.root8 + (iv ? iv[2] : 4); };
+    const roleM = (kk, r) => r === 'third8' ? third8(kk) : kk[r];
+    // 1) Warme Fläche
+    const padF = filt('lowpass', 760, 0.7), padG = gain(0.075); padF.connect(padG); padG.connect(dry); send(padG, 0.8);
+    N.stops.push(lfo(0.031, 280, padF.frequency), lfo(0.047, 0.018, padG.gain));
+    [['sub', 0, 0, 'sine', 0.55], ['root', -5, -0.55, 'triangle', 0.8], ['root', 5, 0.55, 'triangle', 0.8], ['fifth', -3, -0.3, 'triangle', 0.55],
+     ['fifth', 4, 0.3, 'triangle', 0.55], ['third8', 0, 0.15, 'triangle', 0.22], ['root8', -9, -0.8, 'sawtooth', 0.14], ['root8', 9, 0.8, 'sawtooth', 0.14]]
+      .forEach(([role, det, pn, type, a]) => {
+        const o = osc(type, hz(roleM(k, role)), det), g = gain(a), pp = pan(pn);
+        N.stops.push(lfo(0.11 + Math.random() * 0.08, 2.5, o.detune));
+        o.connect(g); g.connect(pp); pp.connect(padF); o.start(); N.voices.push({ o, role });
+      });
+    // 2) Meer im Hintergrund: zwei unabhängige Brandungen (links/rechts) mit Kies beim Zurücklaufen
+    const seaBus = gain(0.85); seaBus.connect(dry); send(seaBus, 0.3);
+    function shore(side) {
+      const src = noiseSrc(side < 0 ? 0.4 : 2.9), p = pan(side * 0.72);
+      const swell = filt('lowpass', 320, 0.5), swellG = gain(0.035), brk = filt('bandpass', 1100, 0.45), brkG = gain(0), back = filt('highpass', 2600, 0.5), backG = gain(0);
+      src.connect(swell); swell.connect(swellG); swellG.connect(p);
+      src.connect(brk); brk.connect(brkG); brkG.connect(p);
+      src.connect(back); back.connect(backG); backG.connect(p);
+      const gsrc = noiseSrc(side < 0 ? 4.1 : 1.3), gbp = filt('bandpass', 4800, 1.2), am = gain(0.5), gG = gain(0), chop = osc('square', 17 + Math.random() * 9), chopG = gain(0.5);
+      chop.connect(chopG); chopG.connect(am.gain); chop.start();
+      gsrc.connect(gbp); gbp.connect(am); am.connect(gG); gG.connect(p);
+      p.connect(seaBus); N.stops.push(src, gsrc, chop);
+      function wave() {
+        if (!N.alive) return;
+        const t = ac().currentTime + 0.05, rise = 4 + Math.random() * 3, fall = 5 + Math.random() * 3, pk = 0.09 + Math.random() * 0.05;
+        swellG.gain.setTargetAtTime(pk, t, rise / 3); swellG.gain.setTargetAtTime(0.025, t + rise, fall / 3);
+        brkG.gain.setTargetAtTime(0, t, 0.2); brkG.gain.setTargetAtTime(pk * 0.42, t + rise * 0.88, 0.3); brkG.gain.setTargetAtTime(0, t + rise + 0.9, 1.3);
+        backG.gain.setTargetAtTime(pk * 0.22, t + rise + 0.5, 0.7); backG.gain.setTargetAtTime(0, t + rise + 1.8, fall / 3);
+        gG.gain.setTargetAtTime(pk * 0.18, t + rise + 0.9, 0.5); gG.gain.setTargetAtTime(0, t + rise + 2.6, 0.9);
+        brk.frequency.setTargetAtTime(800 + Math.random() * 800, t, 1.5);
+        N.timers.push(T(wave, (rise + fall) * 1000 * (0.85 + Math.random() * 0.3)));
+      }
+      N.timers.push(T(wave, side < 0 ? 200 : 3600 + Math.random() * 2000));
+    }
+    shore(-1); shore(1);
+    // 3) Verzierung: E-Piano-Töne (FM) mit Ping-Pong-Echo im Tempo
+    const dl = tr(ac().createDelay(2)), dr = tr(ac().createDelay(2)), fb = gain(0.38), dlp = filt('lowpass', 2600, 0.5), pl = pan(-0.7), pr = pan(0.7), echoIn = gain(1), echoOut = gain(0.55);
+    const setDelay = () => { const q = 60 / bpm() * 0.75; dl.delayTime.value = Math.min(1.9, q); dr.delayTime.value = Math.min(1.9, q); };
+    setDelay();
+    echoIn.connect(dl); dl.connect(pl); dl.connect(dr); dr.connect(pr); dr.connect(dlp); dlp.connect(fb); fb.connect(dl);
+    pl.connect(echoOut); pr.connect(echoOut); echoOut.connect(dry); send(echoOut, 0.6);
+    function ep(t, m, amp) {
+      const f = hz(m), car = osc('sine', f), mod = osc('sine', f * 14.0), mg = gain(0), car2 = osc('sine', f * 2.0), g = gain(0), g2 = gain(0.12), p = pan((Math.random() - 0.5) * 0.8);
+      mg.gain.setValueAtTime(f * 1.6, t); mg.gain.exponentialRampToValueAtTime(f * 0.02, t + 0.5);
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(amp, t + 0.006); g.gain.setTargetAtTime(0, t + 0.01, 1.4);
+      mod.connect(mg); mg.connect(car.frequency); car.connect(g); car2.connect(g2); g2.connect(g); g.connect(p); p.connect(dry); g.connect(echoIn); send(p, 0.9);
+      [car, mod, car2].forEach(o => { o.start(t); o.stop(t + 6); });
+    }
+    function keys() {
+      if (!N.alive) return;
+      setDelay();
+      if (orn()) {
+        const notes = scaleMidis(60, 81), t = ac().currentTime + 0.05;
+        if (notes.length) {
+          const a = notes[Math.floor(Math.random() * notes.length)];
+          ep(t, a, 0.05);
+          if (Math.random() < 0.45) { const b = notes[Math.min(notes.length - 1, notes.indexOf(a) + 2)]; ep(t + 60 / bpm(), b, 0.04); }
+        }
+      }
+      N.timers.push(T(keys, (orn() ? 3.5 + Math.random() * 5 : 9 + Math.random() * 6) * 1000));
+    }
+    N.timers.push(T(keys, 3000));
+    N.retune = () => { const kk = keyMidiNotes(), t = ac().currentTime; N.voices.forEach(v => v.o.frequency.setTargetAtTime(hz(roleM(kk, v.role)), t, 0.6)); };
+    return N;
+  }
+
+  // ===================== VIII Maschinenhalle – Stahl & Takt =====================
+  // Große Stahlhalle: Netzbrummen, Turbine, singende Stahlrohre auf Grundton und Quinte, im Tempo
+  // stampft eine Presse, Ventile zischen, das Förderband tickt. Ab und zu rasselt eine Kette, ein ferner Schlag hallt nach.
+  function metalIR(sec) {
+    const key = 'metal|' + sec;
+    if (irCache[key]) return irCache[key];
+    const sr = audioCtx.sampleRate, n = Math.round(sr * sec), b = audioCtx.createBuffer(2, n, sr);
+    const modes = [[173, 1.6], [241, 1.9], [389, 1.3], [517, 1.7], [733, 1.1], [1013, 0.9], [1597, 0.7], [2311, 0.5]];
+    for (let c = 0; c < 2; c++) {
+      const d = b.getChannelData(c); let lp = 0;
+      for (let i = 0; i < n; i++) {
+        const t = i / sr, a = Math.min(0.97, 0.3 + 0.7 * t / sec);
+        lp += (Math.random() * 2 - 1 - lp) * (1 - a);
+        let v = lp * Math.pow(1 - i / n, 1.7);
+        if (t < 0.09 && Math.random() < 0.004) v += (Math.random() - 0.5) * 1.4 * (1 - t / 0.09);   // frühe Reflexionen von Stahlwänden
+        for (const [f, dcy] of modes) v += 0.018 * Math.sin(2 * Math.PI * f * (1 + c * 0.003) * t) * Math.exp(-t / dcy) * (t < 0.01 ? t / 0.01 : 1);
+        d[i] = v * (t < 0.006 ? t / 0.006 : 1);
+      }
+    }
+    let e = 0; for (let c = 0; c < 2; c++) { const d = b.getChannelData(c); for (let i = 0; i < n; i += 4) e += d[i] * d[i]; }
+    const g = 0.6 / Math.sqrt(e / (n / 2) * sec * 40 + 1e-9);
+    for (let c = 0; c < 2; c++) { const d = b.getChannelData(c); for (let i = 0; i < n; i++) d[i] *= g; }
+    irCache[key] = b; return b;
+  }
+  function mkBuf(sec, fn) {
+    const sr = audioCtx.sampleRate, n = Math.round(sr * sec), b = audioCtx.createBuffer(1, n, sr), d = b.getChannelData(0);
+    let st = {}; for (let i = 0; i < n; i++) d[i] = fn(i / sr, st);
+    return b;
+  }
+  function startV8() {
+    ensureAudio();
+    const vol = parseInt(document.getElementById('droneVolume').value) / 100, t0 = ac().currentTime, k = keyMidiNotes();
+    const master = gain(0); master.connect(ensureMasterBus());
+    master.gain.setValueAtTime(0, t0); master.gain.linearRampToValueAtTime(vol, t0 + 4);
+    const hall = tr(ac().createConvolver()); hall.buffer = metalIR(3.6);
+    const wet = gain(0.8); hall.connect(wet); wet.connect(master);
+    const dry = gain(0.6); dry.connect(master);
+    const send = (node, amt) => { const s = gain(amt); node.connect(s); s.connect(hall); };
+    const N = { master, voices: [], stops: [], timers: [], alive: true };
+    // 1) Netzbrummen (50 Hz mit Obertönen), leise und leicht schwankend
+    const hum = gain(0.018); hum.connect(dry); send(hum, 0.2);
+    [[50, 1], [100, 0.6], [150, 0.35], [250, 0.12]].forEach(([f, a]) => { const o = osc('sine', f), g = gain(a); o.connect(g); g.connect(hum); o.start(); N.stops.push(o); });
+    N.stops.push(lfo(0.13, 0.006, hum.gain));
+    // 2) Turbine: tiefe Säge auf dem Grundton, Tiefpass zieht langsam auf und zu; dazu ein heller Pfeifton (Oktaven über dem Grundton)
+    const tf = filt('lowpass', 240, 2.5), tg = gain(0.06); tf.connect(tg); tg.connect(dry); send(tg, 0.4);
+    N.stops.push(lfo(0.045, 150, tf.frequency));
+    [['sub', -4], ['sub', 4], ['root', 0]].forEach(([role, det]) => { const o = osc('sawtooth', hz(k[role]), det); o.connect(tf); o.start(); N.voices.push({ o, role }); N.stops.push(lfo(0.07 + Math.random() * 0.05, 4, o.detune)); });
+    const whine = osc('sine', hz(k.root8 + 24)), wg = gain(0.006), wp = pan(0.3); whine.connect(wg); wg.connect(wp); wp.connect(dry); send(wp, 0.8); whine.start();
+    N.voices.push({ o: whine, role: 'w24' }); N.stops.push(lfo(0.09, 9, whine.detune), lfo(0.031, 0.005, wg.gain));
+    // 3) Singende Stahlrohre: gefiltertes Rauschen auf Grundton, Quinte und Oktave, schwillt langsam
+    const pipes = [];
+    [['root8', -0.6, 0.9], ['fifth', 0.5, 0.7], ['root8', 0.1, 0.5, 12]].forEach(([role, pn, a, up]) => {
+      const src = noiseSrc(Math.random() * 5), bp = filt('bandpass', hz(k[role] + (up || 0)), 60), g = gain(0), p = pan(pn);
+      src.connect(bp); bp.connect(g); g.connect(p); p.connect(dry); send(p, 1.2);
+      N.stops.push(src, lfo(0.021 + Math.random() * 0.02, 0.5 * a, g.gain));
+      g.gain.setValueAtTime(0.55 * a, t0);
+      pipes.push({ bp, role, up: up || 0 });
+    });
+    // 4) Klänge für den Maschinentakt einmal vorberechnen (spart Rechenzeit auf dem iPad)
+    const R = Math.random;
+    const metalF = hz(k.root8 + 12);
+    const clank = mkBuf(1.4, (t, s) => { let v = 0; [[1, 0.5, 0.9], [1.47, 0.35, 0.6], [2.09, 0.25, 0.45], [2.83, 0.18, 0.35], [3.98, 0.1, 0.25]].forEach(([m, a, d]) => { v += a * Math.sin(2 * Math.PI * metalF * m * t) * Math.exp(-t / d); }); s.n = (s.n || 0) * 0.6 + (R() * 2 - 1) * 0.4; return (v * 0.6 + s.n * Math.exp(-t / 0.012) * 0.8) * (t < 0.0015 ? t / 0.0015 : 1); });
+    const thud = mkBuf(0.6, (t, s) => { s.ph = (s.ph || 0) + 2 * Math.PI * (38 + 70 * Math.exp(-t / 0.04)) / audioCtx.sampleRate; return Math.sin(s.ph) * Math.exp(-t / 0.18) * (t < 0.002 ? t / 0.002 : 1) + (R() * 2 - 1) * Math.exp(-t / 0.006) * 0.3; });
+    const valve = mkBuf(0.45, (t, s) => { const w = R() * 2 - 1; s.h = 0.85 * ((s.h || 0) + w - (s.w || 0)); s.w = w; return s.h * (t < 0.008 ? t / 0.008 : Math.exp(-(t - 0.008) / 0.12)) * 0.5; });
+    const tick = mkBuf(0.08, (t) => (Math.sin(2 * Math.PI * 3150 * t) * 0.6 + Math.sin(2 * Math.PI * 5210 * t) * 0.4) * Math.exp(-t / 0.012));
+    const link = mkBuf(0.07, (t) => (Math.sin(2 * Math.PI * 2440 * t) * 0.5 + Math.sin(2 * Math.PI * 4390 * t) * 0.35 + (R() * 2 - 1) * 0.3) * Math.exp(-t / 0.01));
+    function play(buf, t, amp, pn, wetAmt, rate) {
+      const s = tr(ac().createBufferSource()); s.buffer = buf; if (rate) s.playbackRate.value = rate;
+      const g = gain(amp), p = pan(pn); s.connect(g); g.connect(p); p.connect(dry); send(p, wetAmt); s.start(t);
+    }
+    // 5) Maschinentakt im Tempo des Loops: Presse auf der Eins, Ventile auf 2 und 4, Förderband in Achteln
+    let nextBar = 0;
+    function machine() {
+      if (!N.alive) return;
+      const now = ac().currentTime, bd = 240 / bpm(), bt = bd / 4;
+      if (!nextBar || nextBar < now - 1) nextBar = typeof Rhythm !== 'undefined' ? Rhythm.nextBarTime() : now + 0.2;
+      while (nextBar < now + 0.35) {
+        const t = nextBar, full = orn();
+        play(thud, t, 0.5, 0, 0.5); play(clank, t + 0.004, 0.16, -0.2, 1.1, 1 + (R() - 0.5) * 0.01);
+        if (full) {
+          play(valve, t + bt, 0.22, -0.5, 0.6); play(valve, t + 3 * bt, 0.22, 0.5, 0.6);
+          for (let i = 0; i < 8; i++) play(tick, t + i * bt / 2, i % 2 ? 0.035 : 0.06, 0.6, 0.4, 1 + (R() - 0.5) * 0.04);
+          if (R() < 0.35) play(clank, t + 2 * bt + 0.01, 0.08, 0.45, 1.2, 0.84);
+        } else play(tick, t + 2 * bt, 0.05, 0.5, 0.5);
+        nextBar += bd;
+      }
+      N.timers.push(T(machine, 120));
+    }
+    N.timers.push(T(machine, 400));
+    // 6) Ereignisse: Kette, ferner Schlag, Dampfstoß
+    function events() {
+      if (!N.alive) return;
+      const t = ac().currentTime + 0.05, r = R();
+      if (r < 0.4) { let tt = t; const pn = (R() - 0.5) * 1.6, n = 10 + Math.floor(R() * 14); for (let i = 0; i < n; i++) { play(link, tt, 0.05 + R() * 0.05, pn + (R() - 0.5) * 0.2, 1, 0.8 + R() * 0.5); tt += 0.03 + R() * 0.05; } }
+      else if (r < 0.7) { play(thud, t, 0.35, (R() - 0.5) * 1.4, 2.2, 0.8); play(clank, t + 0.01, 0.12, (R() - 0.5) * 1.4, 2.5, 0.62 + R() * 0.2); }
+      else { const src = noiseSrc(R() * 5), hp = filt('highpass', 1800, 0.7), g = gain(0), p = pan((R() - 0.5) * 1.6), d = 1.4 + R() * 1.6;
+        hp.frequency.setValueAtTime(1200, t); hp.frequency.linearRampToValueAtTime(3800, t + d);
+        g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.07, t + 0.08); g.gain.setTargetAtTime(0, t + d * 0.6, d / 4);
+        src.connect(hp); hp.connect(g); g.connect(p); p.connect(dry); send(p, 1.3); src.stop(t + d + 1.2); }
+      N.timers.push(T(events, (orn() ? 5 + R() * 8 : 12 + R() * 10) * 1000));
+    }
+    N.timers.push(T(events, 2500));
+    N.retune = () => {
+      const kk = keyMidiNotes(), t = ac().currentTime;
+      N.voices.forEach(v => v.o.frequency.setTargetAtTime(v.role === 'w24' ? hz(kk.root8 + 24) : hz(kk[v.role]), t, 0.8));
+      pipes.forEach(pp => pp.bp.frequency.setTargetAtTime(hz(kk[pp.role] + pp.up), t, 0.8));
+    };
+    return N;
+  }
+
+  const NAMES = { v3: 'Nordmeer – Wikinger', v4: 'Nordlicht – Eis & Glas', v5: 'Elbenküste – Meer & Chor', v6: 'Waldesruh – Elbenwald', v7: 'Nachtbrandung – Küste & Fläche', v8: 'Maschinenhalle – Stahl & Takt' };
+  const STARTS = { v3: () => startV3(), v4: () => startV4(), v5: () => startV5(), v6: () => startV6(), v7: () => startV7(), v8: () => startV8() };
   let cur = null;
   function start(style) {
     if (cur) stop(true);
-    cur = (STARTS[style] || STARTS.v4)();
+    const prevV = vNodes; vNodes = [];
+    try { cur = (STARTS[style] || STARTS.v4)(); } finally { if (cur) cur.all = vNodes; vNodes = prevV; }
     cur.style = style;
     droneNodes = cur; droneOn = true;
     btnOn(true);
@@ -4818,7 +5313,7 @@ const NordDrones = (() => {
     N.timers.forEach(clearTimeout);
     const t = ac().currentTime;
     N.master.gain.cancelScheduledValues(t); N.master.gain.setValueAtTime(N.master.gain.value, t); N.master.gain.linearRampToValueAtTime(0, t + 1.2);
-    setTimeout(() => { N.voices.forEach(v => { try { v.o.stop(); } catch (e) {} }); N.stops.forEach(o => { try { o.stop(); } catch (e) {} }); try { N.master.disconnect(); } catch (e) {} }, 1400);
+    setTimeout(() => { N.voices.forEach(v => { try { v.o.stop(); } catch (e) {} }); N.stops.forEach(o => { try { o.stop(); } catch (e) {} }); try { N.master.disconnect(); } catch (e) {} (N.all || []).forEach(n => { try { n.disconnect(); } catch (e) {} }); }, 1400);
     if (!quiet) { droneNodes = null; droneOn = false; btnOn(false); setStatus('Aus'); }
   }
   function retune() { if (cur && cur.retune) { cur.retune(); setStatus('An — ' + droneKeyText() + ' (' + NAMES[cur.style] + ')'); } }
@@ -5218,6 +5713,7 @@ const Looper = (() => {
   }
   function stopSrc(t) {
     if (t.src) { try { t.src.stop(); } catch (e) {} t.src.disconnect(); t.src = null; }
+    if (t.gain) { const g = t.gain; t.gain = null; setTimeout(() => { try { g.disconnect(); } catch (e) {} }, 50); }
   }
 
   // ---- Aufnahme ----
@@ -5242,6 +5738,7 @@ const Looper = (() => {
     o.frequency.value = accent ? 1500 : 1000;
     g.gain.setValueAtTime(0.25, tm); g.gain.exponentialRampToValueAtTime(0.001, tm + 0.05);
     o.connect(g); g.connect(ensureMasterBus()); o.start(tm); o.stop(tm + 0.06);
+    vEnd(o, [g]);
   }
   // ---- Vorzähler: 1, 2, 4 oder 8 Takte vor Aufnahme bzw. Loop-Start ----
   let countNodes = [], countEnd = 0, countBeats = 0;
@@ -5261,6 +5758,7 @@ const Looper = (() => {
       o.frequency.value = bar1 ? 1600 : (last ? 1150 : 1000);
       g.gain.setValueAtTime(bar1 ? 0.3 : 0.2, tm); g.gain.exponentialRampToValueAtTime(0.001, tm + 0.05);
       o.connect(g); g.connect(ensureMasterBus()); o.start(tm); o.stop(tm + 0.06);
+      vEnd(o, [g]);
       countNodes.push(o);
     }
   }
@@ -6622,6 +7120,13 @@ const Looper = (() => {
   const ovMove = e => { if (!ovDrag || !ed.t) return; const r = edOv.getBoundingClientRect(); ed.v0 = (e.clientX - r.left) / r.width * ed.t.L - span() / 2; clampView(); kick(); };
   edOv.addEventListener('pointerdown', e => { if (!ed.t) return; ovDrag = true; try { edOv.setPointerCapture(e.pointerId); } catch (err) {} ovMove(e); e.preventDefault(); });
   edOv.addEventListener('pointermove', ovMove);
+  // Mac: Trackpad/Mausrad – Zusammenziehen (oder ⌘/Strg + Rad) zoomt, seitlich wischen blättert
+  edGrip.addEventListener('wheel', e => {
+    if (!ed.t) return;
+    if (e.ctrlKey || e.metaKey) { zoomAt(Math.exp(-e.deltaY * 0.01), edFrameAt(e.clientX)); e.preventDefault(); return; }
+    const dx = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : (e.shiftKey ? e.deltaY : 0);
+    if (dx && ed.zoom > 1) { ed.v0 += dx / Math.max(1, edGrip.clientWidth) * span(); clampView(); kick(); e.preventDefault(); }
+  }, { passive: false });
   edOv.addEventListener('pointerup', () => { ovDrag = false; });
   edOv.addEventListener('pointercancel', () => { ovDrag = false; });
 
@@ -7282,12 +7787,12 @@ const Pedal = (() => {
 const AppCfg = (() => {
   const $ = id => document.getElementById(id);
   const root = document.documentElement;
-  const THEME_BG = { nordic: '#1b1b1d', metal: '#0a0a0b' };
+  const THEME_BG = { nordic: '#1b1b1d', metal: '#0a0a0b', amp: '#0b0b0b', ice: '#06121c' };
   const themeSel = $('appTheme');
 
   function applyTheme(v) {
     if (!THEME_BG[v]) v = 'nordic';
-    if (v === 'metal') root.dataset.theme = 'metal'; else delete root.dataset.theme;
+    if (v !== 'nordic') root.dataset.theme = v; else delete root.dataset.theme;
     const m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', THEME_BG[v]);
     try { localStorage.setItem('3nps-theme', v); } catch (e) {}
     if (themeSel && themeSel.value !== v) themeSel.value = v;
@@ -7397,7 +7902,31 @@ const AppCfg = (() => {
     if (r && !window.__noReload) setTimeout(() => location.reload(), 1600);
   });
 
-  return { applyTheme, backup, restore };
+  // ---- Mac: als eigene App installieren (Chrome/Edge), Hinweise je nach Browser ----
+  const ua = navigator.userAgent;
+  const isMac = /Macintosh/.test(ua) && !(navigator.maxTouchPoints > 1);
+  const isChromium = /Chrome\/|Chromium\/|Edg\//.test(ua);
+  const standalone = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+  let deferred = null;
+  const instRow = $('installRow'), macHint = $('macHint');
+  function macInfo() {
+    if (!macHint) return;
+    if (!isMac) { macHint.hidden = true; return; }
+    macHint.hidden = false;
+    if (standalone) macHint.textContent = 'Läuft als Mac-App. ' + (isChromium ? 'Der Eingang kommt hier in Stereo an, wenn das Gerät zwei Kanäle liefert.' : 'Hinweis: Für Stereo-Aufnahme die App in Google Chrome installieren.');
+    else if (isChromium) macHint.textContent = deferred ? 'Mac: „Als App installieren“ legt Looper ins Programme-Verzeichnis und ins Dock – mit eigenem Fenster, offline und mit Stereo-Eingang.' : 'Mac: In Chrome oben rechts in der Adressleiste auf das Installieren-Symbol klicken (oder im Chrome-Menü ⋮ „Looper installieren“ bzw. „Seite als App installieren“ wählen).';
+    else macHint.textContent = 'Mac: Für Stereo-Aufnahme diese Seite in Google Chrome öffnen und dort installieren. In Safari geht „Ablage → Zum Dock hinzufügen“, Aufnahmen sind dort aber nur mono.';
+  }
+  window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferred = e; if (instRow) instRow.hidden = false; macInfo(); });
+  window.addEventListener('appinstalled', () => { deferred = null; if (instRow) instRow.hidden = true; if (macHint) { macHint.hidden = false; macHint.textContent = 'Installiert. Looper startet jetzt aus dem Dock oder dem Programme-Ordner.'; } });
+  if ($('appInstall')) $('appInstall').addEventListener('click', async () => {
+    if (!deferred) return;
+    deferred.prompt(); try { await deferred.userChoice; } catch (e) {}
+    deferred = null; if (instRow) instRow.hidden = true;
+  });
+  macInfo();
+
+  return { applyTheme, backup, restore, isMac, standalone };
 })();
 
 </script>

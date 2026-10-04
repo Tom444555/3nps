@@ -1,23 +1,34 @@
 {
+  "id": "./",
   "name": "Looper",
   "short_name": "Looper",
+  "description": "Stereo-Looper mit Drums, Drones und Griffbrett-Training – für iPad und Mac.",
   "lang": "de",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
+  "display_override": [
+    "standalone"
+  ],
   "orientation": "any",
+  "categories": [
+    "music",
+    "education"
+  ],
   "background_color": "#0a0a0b",
   "theme_color": "#0a0a0b",
   "icons": [
     {
       "src": "icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "icon-maskable-512.png",

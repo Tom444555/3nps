@@ -4,12 +4,12 @@ Looper (3nps-Übungsprogramm) als App aufs iPad
 Alles geht direkt auf dem iPad, ohne Computer.
 
 1. ZIP entpacken
-   In der Dateien-App auf die ZIP tippen. Es entsteht ein Ordner mit 22 Dateien.
+   In der Dateien-App auf die ZIP tippen. Es entsteht ein Ordner mit 33 Dateien.
 
 2. Kostenlos online stellen (GitHub Pages)
    - Auf github.com ein kostenloses Konto anlegen.
    - Oben rechts „+“ → „New repository“, Name z. B. 3nps, „Public“ lassen, „Create repository“.
-   - Auf „uploading an existing file“ tippen und alle 22 Dateien aus dem Ordner auswählen
+   - Auf „uploading an existing file“ tippen und alle 33 Dateien aus dem Ordner auswählen
      (index.html, sw.js, manifest.webmanifest, die PNG- und JPG-Bilder). „Commit changes“.
    - „Settings“ → links „Pages“ → bei „Branch“ „main“ und „/ (root)“ wählen → „Save“.
    - Nach 1–2 Minuten erscheint dort die Adresse, z. B. https://DEINNAME.github.io/3nps/
@@ -90,11 +90,16 @@ Alles geht direkt auf dem iPad, ohne Computer.
    - „Drone an“ legt den Drone-Klang unter den Loop, ein- und ausschaltbar mit einem Tipp.
    - Grundton und Dur/Moll frei wählbar oder „wie Skala“. „Tonart aus Spur“ übernimmt
      die erkannte Tonart einer Spur.
-   - Vier Klänge: Pad & Chor, Brass & Streicher, „Nordmeer – Wikinger“ (Bordun, tiefer Chor,
+   - Acht Klänge: Pad & Chor, Brass & Streicher, „Nordmeer – Wikinger“ (Bordun, tiefer Chor,
      Wind, Brandung, Kriegstrommeln im Takt und ein Horn) und „Nordlicht – Eis & Glas“
      (schwebende Flächen, gläserne Glocken aus der Skala, eisiger Wind), „Elbenküste – Meer & Chor“
      (Streicher, heller Chor, Meeresrauschen, Harfen-Arpeggios) und „Waldesruh – Elbenwald“
-     (warme Fläche, Vögel, Blätterrauschen, Bach, Flötenmotive).
+     (warme Fläche, Vögel, Blätterrauschen, Bach, Flötenmotive),
+     „Nachtbrandung – Küste & Fläche“ (warme Fläche vorn, das Meer im Hintergrund – links und
+     rechts brechen die Wellen unabhängig, Kies rasselt beim Zurücklaufen; E-Piano-Töne mit Echo)
+     und „Maschinenhalle – Stahl & Takt“ (Netzbrummen, Turbine, singende Stahlrohre auf Grundton
+     und Quinte; im Tempo stampft eine Presse, Ventile zischen, das Förderband tickt; ab und zu
+     rasselt eine Kette oder ein ferner Schlag hallt durch die Halle).
      „Verzierungen“ schaltet Trommeln, Hornrufe und Glockenläufe zu oder ab.
    - Mit Haken bei „startet mit Alle starten“ läuft die Drone mit dem Loop an und aus.
 
@@ -139,7 +144,11 @@ Alles geht direkt auf dem iPad, ohne Computer.
    - „Nordisch“: Eis, Rost und Runen (bisherige Optik).
    - „Metal“: schwarzer Stahl, Riffelblech, Pyramiden-Nieten, Chrom und Blutrot.
      Spurfarben Chrom, Glut und Messing; die Anzeige oben leuchtet rot wie ein Verstärker.
-   - Die Wahl bleibt gespeichert. Klang und Funktionen sind in beiden Optiken gleich.
+   - „Verstärker“: Tolex, gebürstete Alu-Frontplatte mit Schrauben, Spuren wie Lautsprecher-
+     bespannung, rote Kontrolllampe, Pegel als LED-Kette grün → gelb → rot, Anzeige in Röhren-Orange.
+   - „Eiswand“: raues, geschichtetes Gletschereis mit Rissen und Raureif, Eiszapfen unter der
+     Leiste, vereiste Niete, kaltes Licht.
+   - Die Wahl bleibt gespeichert. Klang und Funktionen sind in allen Optiken gleich.
 
 14. Alles sichern und neues App-Symbol „Looper“
    - „Alles sichern“ packt Ideen, eigene Drum-Muster, das Übungslog und alle Einstellungen
@@ -148,13 +157,28 @@ Alles geht direkt auf dem iPad, ohne Computer.
    - Neues Symbol und Name „Looper“: iPadOS übernimmt beides erst, wenn die App neu zum
      Home-Bildschirm hinzugefügt wird. Beim Entfernen des alten Symbols löscht iPadOS aber
      die gespeicherten Daten. Darum in dieser Reihenfolge:
-       1. Neue Dateien auf GitHub hochladen (alle 22, vorhandene ersetzen).
+       1. Neue Dateien auf GitHub hochladen (alle 33, vorhandene ersetzen).
        2. Die alte App öffnen, zweimal neu starten, bis oben „Looper · v16“ steht.
        3. Looper → „Alles sichern“ → „In Dateien sichern“.
        4. Altes Symbol lange drücken → „App entfernen“.
        5. Adresse in Safari öffnen → Teilen → „Zum Home-Bildschirm“ → Name „Looper“ → „Hinzufügen“.
        6. Neue App öffnen → Looper → „Sicherung laden“ → die gesicherte Datei wählen.
    - Wer das alte Symbol behalten will, muss nichts tun: Die App selbst ist trotzdem auf v16.
+
+15. Auf dem Mac
+   - Dieselbe Adresse (GitHub Pages) in Google Chrome öffnen. Oben rechts in der Adressleiste
+     auf das Installieren-Symbol klicken oder in Looper → „App“ auf „Als App installieren“.
+     Looper liegt dann im Programme-Ordner und im Dock, öffnet in einem eigenen Fenster
+     und läuft auch offline. Die iPad-App bleibt unverändert.
+   - Nur in Chrome (oder Edge) kommt der Eingang auf dem Mac in Stereo an. Safari nimmt auf dem
+     Mac wie auf dem iPad nur mono auf („Ablage → Zum Dock hinzufügen“ geht trotzdem).
+   - Spark LIVE per USB anschließen und in Chrome beim ersten „Eingang öffnen“ das Mikrofon
+     erlauben. Liefert der Spark zwei verschiedene Kanäle, steht neben „Eingang“ „Stereo L/R“.
+     Den Ausgang wählt macOS (Systemeinstellungen → Ton).
+   - Editor: Auf dem Trackpad mit zwei Fingern zusammenziehen/auseinanderziehen zoomt,
+     seitlich wischen blättert.
+   - Mac und iPad speichern getrennt. Ideen mitnehmen: auf dem einen Gerät „Alles sichern“,
+     die Datei per AirDrop schicken, auf dem anderen „Sicherung laden“.
 
 Gut zu wissen
    - Übungslog und Ideen werden nur auf diesem iPad gespeichert. Die bisherigen
