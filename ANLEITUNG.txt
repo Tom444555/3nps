@@ -180,6 +180,15 @@ Alles geht direkt auf dem iPad, ohne Computer.
    - Mac und iPad speichern getrennt. Ideen mitnehmen: auf dem einen Gerät „Alles sichern“,
      die Datei per AirDrop schicken, auf dem anderen „Sicherung laden“.
 
+16. Equalizer (7 Bänder, je Spur und für die Drums)
+   - Unter jeder Spur „EQ“ antippen: Das Feld klappt auf. Bei den Drums sitzt „EQ“ neben „Designer“.
+   - Bänder 63 Hz, 160, 400, 1k, 2,5k, 6,3k, 12 kHz, je ±12 dB. Schieber ziehen, doppelt tippen = 0 dB.
+     Die Kurve oben zeigt die Wirkung. „0 dB“ setzt alles zurück, „Vorlage …“ bietet schnelle
+     Einstellungen (z. B. „Wärmer“, „Mehr Biss“, „Weniger Mulm“, „Bass raus“, bei den Drums
+     „Druckvoll“, „Weniger Becken“).
+   - Steht „EQ ●“ auf dem Knopf, ist der EQ aktiv. Die Einstellungen bleiben gespeichert, kommen
+     mit in Ideen und wirken auch auf den Logic-Export und den geteilten Mix (so, wie du es hörst).
+
 Gut zu wissen
    - Übungslog und Ideen werden nur auf diesem iPad gespeichert. Die bisherigen
      Einheiten aus Claude sind beim ersten Start schon drin.
