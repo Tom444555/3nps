@@ -705,6 +705,18 @@
   .sf-idea { margin: 0; font: 600 1.05rem var(--f-body); line-height: 1.5; min-height: 3em; }
   @media (max-width: 520px) { .sf-ctrl { margin-left: 0; align-items: flex-start; } .sf-seg b { font-size: 1.15rem; } .sf-now b { font-size: 1.8rem; } }
   @media (max-width: 520px) { .tabs .tab { font-size: .74rem; padding-left: 2px; padding-right: 2px; white-space: normal; line-height: 1.15; } }
+  /* Akkordgriffe im Griffbild */
+  .sf-nh-l { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .sf-nh-l .seg .toggle-btn { padding: 5px 12px; font-size: .8rem; }
+  .sf-grips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .sf-grips[hidden] { display: none; }
+  .sf-grips .toggle-btn { padding: 6px 12px; font-size: .82rem; }
+  .sf-grips .sf-strum { margin-left: auto; }
+  .sf-neckwrap.grip .sf-leg { display: none; }
+  .nk-zone { fill: color-mix(in srgb, var(--accent) 14%, transparent); stroke: color-mix(in srgb, var(--accent) 55%, transparent); stroke-width: 1.5; pointer-events: none; }
+  .nk-x { fill: var(--muted); font: 700 16px var(--f-body); text-anchor: middle; dominant-baseline: middle; }
+  .nk-n.open circle { fill: var(--bg); stroke: var(--t2); stroke-width: 2; } .nk-n.open text { fill: var(--ink); }
+  .nk-n.open.root circle { stroke: var(--root-color); } .nk-n.third:not(.open) circle { fill: color-mix(in srgb, var(--t2) 70%, #fff); }
   /* ===== Rost & Stahl: Hintergrund aus gerostetem Blech, darauf verschraubte Stahlplatten ===== */
   :root {
     --plate-hi: #3a3a40;
@@ -1799,9 +1811,10 @@
       <h2 id="sfScaleTitle">Was passt drüber</h2>
       <div class="sf-scales" id="sfScales"></div>
       <div class="sf-neckwrap">
-        <div class="sf-neckhead"><span id="sfNeckTitle">Griffbild</span>
+        <div class="sf-neckhead"><span class="sf-nh-l"><span class="seg" id="sfNeckMode" role="group" aria-label="Griffbild zeigt"><button class="toggle-btn active" data-m="scale">Tonleiter</button><button class="toggle-btn" data-m="grip">Griffe</button></span><span id="sfNeckTitle">Griffbild</span></span>
           <span class="sf-leg"><i class="root"></i>Grundton <i class="ct"></i>Akkordton <i class="char"></i>Charakterton <i class="sc"></i>Tonleiter <i class="out"></i>Reibung</span></div>
         <div class="sf-neckscroll"><svg id="sfNeck" class="sf-neck" aria-label="Griffbild"></svg></div>
+        <div class="sf-grips" id="sfGrips" hidden></div>
       </div>
     </div>
 
@@ -9358,6 +9371,61 @@ const AppCfg = (() => {
 
 </script>
 <script>
+// ---- Akkordgriffe (CAGED): E-, A-, D-Form als verschiebbare Griffe, C- und G-Form nur offen ----
+// Bünde je Saite von tief E nach hoch e, null = nicht anschlagen. Versatz relativ zum Grundton-Bund der Form.
+const Voicings = (() => {
+  const md = x => ((x % 12) + 12) % 12;
+  const OPEN = [40, 45, 50, 55, 59, 64];                 // E2 A2 D3 G3 B3 E4
+  const SHAPES = [
+    { id: 'E', name: 'E-Form', base: 4, t: {
+      '': [0, 2, 2, 1, 0, 0], m: [0, 2, 2, 0, 0, 0], '7': [0, 2, 0, 1, 0, 0], maj7: [0, null, 1, 1, 0, null], m7: [0, 2, 0, 0, 0, 0],
+      sus4: [0, 2, 2, 2, 0, 0], sus2: [0, 2, 4, 4, null, null], dim: [0, 1, 2, 0, null, null], '5': [0, 2, 2, null, null, null],
+      '6': [0, 2, 2, 1, 2, 0], m6: [0, 2, 2, 0, 2, 0], add9: [0, 2, 4, 1, 0, 0], '9': [0, 2, 0, 1, 0, 2], m9: [0, 2, 0, 0, 0, 2],
+      m11: [0, 0, 0, 0, 0, 0], m7b5: [0, 1, 0, 0, null, null] } },
+    { id: 'A', name: 'A-Form', base: 9, t: {
+      '': [null, 0, 2, 2, 2, 0], m: [null, 0, 2, 2, 1, 0], '7': [null, 0, 2, 0, 2, 0], maj7: [null, 0, 2, 1, 2, 0], m7: [null, 0, 2, 0, 1, 0],
+      sus4: [null, 0, 2, 2, 3, 0], sus2: [null, 0, 2, 2, 0, 0], dim: [null, 0, 1, 2, 1, null], '5': [null, 0, 2, 2, null, null],
+      '6': [null, 0, 2, 2, 2, 2], m6: [null, 0, 2, 2, 1, 2], add9: [null, 0, 2, 4, 2, 0], '9': [null, 0, -1, 0, 0, null],
+      m9: [null, 0, -2, 0, 0, 0], maj9: [null, 0, -1, 1, 0, null], m11: [null, 0, 0, 0, 1, 0], m7b5: [null, 0, 1, 0, 1, null] } },
+    { id: 'D', name: 'D-Form', base: 2, t: {
+      '': [null, null, 0, 2, 3, 2], m: [null, null, 0, 2, 3, 1], '7': [null, null, 0, 2, 1, 2], maj7: [null, null, 0, 2, 2, 2], m7: [null, null, 0, 2, 1, 1],
+      sus4: [null, null, 0, 2, 3, 3], sus2: [null, null, 0, 2, 3, 0], dim: [null, null, 0, 1, 3, 1], '5': [null, null, 0, 2, 3, null],
+      '6': [null, null, 0, 2, 0, 2], m6: [null, null, 0, 2, 0, 1], m7b5: [null, null, 0, 1, 1, 1] } },
+    { id: 'C', name: 'C-Form', base: 9, open: true, t: {
+      '': [null, 0, -1, -3, -2, -3], '7': [null, 0, -1, 0, -2, -3], maj7: [null, 0, -1, -3, -3, -3], add9: [null, 0, -1, -3, 0, -3] } },
+    { id: 'G', name: 'G-Form', base: 4, open: true, t: {
+      '': [0, -1, -3, -3, -3, 0], '7': [0, -1, -3, -3, -3, -2], '6': [0, -1, -3, -3, -3, -3] } }
+  ];
+  const IV = { '': [0, 4, 7], m: [0, 3, 7], '7': [0, 4, 7, 10], maj7: [0, 4, 7, 11], m7: [0, 3, 7, 10], sus4: [0, 5, 7], sus2: [0, 2, 7],
+    dim: [0, 3, 6], '5': [0, 7], '6': [0, 4, 7, 9], m6: [0, 3, 7, 9], add9: [0, 2, 4, 7], m9: [0, 2, 3, 7, 10], maj9: [0, 2, 4, 7, 11], '9': [0, 2, 4, 7, 10], m11: [0, 3, 5, 7, 10], m7b5: [0, 3, 6, 10] };
+  // alle Griffe für Grundton pc (0–11) und Akkordtyp, sortiert: offen zuerst, dann nach Lage
+  function forChord(pc, type) {
+    const out = [];
+    SHAPES.forEach(sh => {
+      const off = sh.t[type]; if (!off) return;
+      const r0 = md(pc - sh.base);
+      for (const r of [r0, r0 + 12]) {
+        const fr = off.map(o => o == null ? null : o + r), used = fr.filter(x => x != null);
+        if (Math.min(...used) < 0 || Math.max(...used) > 15) continue;
+        const pressed = used.filter(x => x > 0), lo = pressed.length ? Math.min(...pressed) : 0, hi = pressed.length ? Math.max(...pressed) : 0;
+        if (hi - lo > 4) continue;
+        const isOpen = used.includes(0) && hi <= 4;
+        if (sh.open && !isOpen) continue;
+        if (out.some(v => v.frets.join() === fr.join())) continue;
+        out.push({ shape: sh.id, name: isOpen ? 'offen (' + sh.name + ')' : sh.name + ' · Bund ' + lo, frets: fr, pos: isOpen ? 0 : lo, open: isOpen });
+        break;
+      }
+    });
+    out.sort((a, b) => (b.open - a.open) || (a.pos - b.pos));
+    return out.slice(0, 4);
+  }
+  // MIDI-Töne eines Griffs (tief → hoch)
+  const notes = v => v.frets.map((f, s) => f == null ? null : OPEN[s] + f).filter(x => x != null);
+  return { forChord, notes, IV, OPEN };
+})();
+if (typeof window !== 'undefined') window.Voicings = Voicings;
+if (typeof module !== 'undefined') module.exports = Voicings;
+
 // ---- Solo Finder: was passt über den gerade klingenden Akkord? ----
 // Oben die Akkordfolge des Loops (klingender Akkord eingerahmt), darunter Tonart, mögliche Akkorde,
 // passende Tonleitern (Kirchentonleitern, Pentatonik, Blues, Akkordtöne) mit Griffbild, Wechsel zum
@@ -9395,7 +9463,7 @@ const AppCfg = (() => {
   const IVN = ['1', '♭2', '2', '♭3', '3', '4', '♭5', '5', '♭6', '6', '♭7', '7'];
   const IVLONG = ['Grundton', 'kleine Sekunde', 'große Sekunde', 'kleine Terz', 'große Terz', 'Quarte', 'übermäßige Quarte / ♭5', 'Quinte', 'kleine Sexte', 'große Sexte', 'kleine Septime', 'große Septime'];
 
-  let state = { track: null, follow: true, focus: null, keyOv: 'auto', scale: null, idea: 0, sig: '' };
+  let state = { track: null, follow: true, focus: null, keyOv: 'auto', scale: null, idea: 0, sig: '', neck: 'scale', gripC: null, gripI: 0, ctx: null };
   // ---- Hilfen ----
   function parseChord(name) {
     const m = /^([A-G]#?)(.*)$/.exec(name || ''); if (!m) return null;
@@ -9578,7 +9646,8 @@ const AppCfg = (() => {
         + (sc.mode ? '<button class="toggle-btn sf-apply" data-root="' + s.root + '" data-mode="' + sc.mode + '">Ins Griffbrett</button>' : '') + '</div>';
     }).join('');
     const cur = sugg.find(s => s.id + s.root === state.scale) || prim;
-    renderNeck(cur, c, k);
+    state.ctx = { s: cur, c, k };
+    drawNeck();
     // Färbungen
     const col = colorings(c, prim ? prim.pcs : keyPcs(k));
     $('sfColors').innerHTML = col.length ? col.map(x => chordBtn(x, k, 'col', '')).join('') : '<span class="sf-muted">–</span>';
@@ -9608,14 +9677,7 @@ const AppCfg = (() => {
   const OPEN = [64, 59, 55, 50, 45, 40], FR = 15;
   function renderNeck(s, c, k) {
     const svg = $('sfNeck'); if (!s) { svg.innerHTML = ''; return; }
-    const W = 760, H = 168, x0 = 34, fw = (W - x0 - 8) / FR, y0 = 18, sh = (H - y0 - 22) / 5;
-    const fx = fr => fr === 0 ? x0 - 15 : x0 + (fr - 0.5) * fw;
-    let h = '<rect x="' + x0 + '" y="' + (y0 - 6) + '" width="' + (W - x0 - 8) + '" height="' + (sh * 5 + 12) + '" class="nk-board" rx="3"/>';
-    for (let f = 0; f <= FR; f++) h += '<line x1="' + (x0 + f * fw) + '" x2="' + (x0 + f * fw) + '" y1="' + (y0 - 6) + '" y2="' + (y0 + sh * 5 + 6) + '" class="' + (f === 0 ? 'nk-nut' : 'nk-fret') + '"/>';
-    [3, 5, 7, 9, 15].forEach(f => h += '<circle cx="' + fx(f) + '" cy="' + (y0 + sh * 2.5) + '" r="4" class="nk-dot"/>');
-    h += '<circle cx="' + fx(12) + '" cy="' + (y0 + sh * 1.5) + '" r="4" class="nk-dot"/><circle cx="' + fx(12) + '" cy="' + (y0 + sh * 3.5) + '" r="4" class="nk-dot"/>';
-    for (let st = 0; st < 6; st++) h += '<line x1="' + (x0 - 2) + '" x2="' + (W - 8) + '" y1="' + (y0 + st * sh) + '" y2="' + (y0 + st * sh) + '" class="nk-str" style="stroke-width:' + (0.8 + st * 0.35) + '"/>';
-    [1, 3, 5, 7, 9, 12, 15].forEach(f => h += '<text x="' + fx(f) + '" y="' + (H - 4) + '" class="nk-num">' + f + '</text>');
+    const g = neckFrame(), { W, H, y0, sh, fx } = g; let h = g.h;
     const ct = c.iv.map(x => md(c.r + x));
     for (let st = 0; st < 6; st++) for (let f = 0; f <= FR; f++) {
       const m = OPEN[st] + f, p = md(m);
@@ -9628,6 +9690,52 @@ const AppCfg = (() => {
     $('sfNeckTitle').textContent = 'Griffbild: ' + nn(s.root, k) + ' ' + SC[s.id].n;
   }
 
+  // ---- Griffbild: Tonleiter oder Akkordgriffe ----
+  function drawNeck() {
+    const x = state.ctx; if (!x) return;
+    const grip = state.neck === 'grip' && typeof Voicings !== 'undefined';
+    $('sfNeckMode').querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.m === (grip ? 'grip' : 'scale')));
+    $('sfGrips').hidden = !grip;
+    $('sfNeck').closest('.sf-neckwrap').classList.toggle('grip', grip);
+    if (grip) renderGrip(state.gripC || x.c, x.k); else renderNeck(x.s, x.c, x.k);
+  }
+  function neckFrame() {
+    const W = 760, H = 168, x0 = 34, fw = (W - x0 - 8) / FR, y0 = 18, sh = (H - y0 - 22) / 5;
+    const fx = fr => fr === 0 ? x0 - 15 : x0 + (fr - 0.5) * fw;
+    let h = '<rect x="' + x0 + '" y="' + (y0 - 6) + '" width="' + (W - x0 - 8) + '" height="' + (sh * 5 + 12) + '" class="nk-board" rx="3"/>';
+    for (let f = 0; f <= FR; f++) h += '<line x1="' + (x0 + f * fw) + '" x2="' + (x0 + f * fw) + '" y1="' + (y0 - 6) + '" y2="' + (y0 + sh * 5 + 6) + '" class="' + (f === 0 ? 'nk-nut' : 'nk-fret') + '"/>';
+    [3, 5, 7, 9, 15].forEach(f => h += '<circle cx="' + fx(f) + '" cy="' + (y0 + sh * 2.5) + '" r="4" class="nk-dot"/>');
+    h += '<circle cx="' + fx(12) + '" cy="' + (y0 + sh * 1.5) + '" r="4" class="nk-dot"/><circle cx="' + fx(12) + '" cy="' + (y0 + sh * 3.5) + '" r="4" class="nk-dot"/>';
+    for (let st = 0; st < 6; st++) h += '<line x1="' + (x0 - 2) + '" x2="' + (W - 8) + '" y1="' + (y0 + st * sh) + '" y2="' + (y0 + st * sh) + '" class="nk-str" style="stroke-width:' + (0.8 + st * 0.35) + '"/>';
+    [1, 3, 5, 7, 9, 12, 15].forEach(f => h += '<text x="' + fx(f) + '" y="' + (H - 4) + '" class="nk-num">' + f + '</text>');
+    return { W, H, x0, fw, y0, sh, fx, h };
+  }
+  function renderGrip(c, k) {
+    const svg = $('sfNeck'), vs = Voicings.forChord(c.r, CH[c.t] ? c.t : '');
+    if (state.gripI >= vs.length) state.gripI = 0;
+    const v = vs[state.gripI], g = neckFrame(); let h = g.h;
+    $('sfNeckTitle').textContent = 'Griff: ' + chordName(c, k) + (v ? ' · ' + v.name : '');
+    if (v) {
+      const fr = v.frets.filter(f => f != null && f > 0), lo = Math.min(...fr), hi = Math.max(...fr);
+      if (fr.length && !v.open) h += '<rect x="' + (g.x0 + (lo - 1) * g.fw + 2) + '" y="' + (g.y0 - 9) + '" width="' + ((hi - lo + 1) * g.fw - 4) + '" height="' + (g.sh * 5 + 18) + '" class="nk-zone" rx="6"/>';
+      v.frets.forEach((f, s) => {
+        const st = 5 - s, y = g.y0 + st * g.sh;
+        if (f == null) { h += '<text x="' + (g.x0 - 15) + '" y="' + (y + 0.5) + '" class="nk-x">×</text>'; return; }
+        const m = Voicings.OPEN[s] + f, p = md(m), rel = md(p - c.r);
+        const cls = rel === 0 ? 'root' : (rel === 3 || rel === 4) ? 'ct third' : 'ct';
+        h += '<g class="nk-n ' + cls + (f === 0 ? ' open' : '') + '" data-m="' + m + '"><circle cx="' + g.fx(f) + '" cy="' + y + '" r="11"/><text x="' + g.fx(f) + '" y="' + (y + 0.5) + '">' + nn(p, k) + '</text></g>';
+      });
+    }
+    svg.setAttribute('viewBox', '0 0 ' + g.W + ' ' + g.H);
+    svg.innerHTML = h;
+    $('sfGrips').innerHTML = vs.map((x, i) => '<button class="toggle-btn' + (i === state.gripI ? ' active' : '') + '" data-g="' + i + '">' + x.name + '</button>').join('')
+      + (v ? '<button class="toggle-btn sf-strum" data-strum="1">▶ Anschlagen</button>' : '<span class="sf-muted">Für diesen Akkord gibt es keinen Griff.</span>');
+    state.voicing = v || null;
+  }
+  function strum() {
+    const v = state.voicing; if (!v || !window.Quinten) return;
+    Voicings.notes(v).forEach((m, i) => setTimeout(() => Quinten.playNote(m), i * 28));
+  }
   // ---- Ideen-Würfel ----
   function idea() {
     const f = state.focus, k = state.k; if (!f || !k) return;
@@ -9688,6 +9796,7 @@ const AppCfg = (() => {
     const c = parseChord(s.name);
     if (ci.playing) { Looper.seek(ci.track, s.a + 1); }
     else { state.focus = { c, seg: i, live: false }; if (window.Quinten) Quinten.play(c.r, c.iv); }
+    state.neck = 'grip'; state.gripC = null; state.gripI = 0;
     update(true);
   });
   panel.addEventListener('click', e => {
@@ -9695,7 +9804,9 @@ const AppCfg = (() => {
     if (b) {
       const c = { r: +b.dataset.r, t: b.dataset.t, iv: CH[b.dataset.t] };
       if (window.Quinten) Quinten.play(c.r, c.iv);
-      if (!b.classList.contains('col')) { state.follow = false; $('sfFollow').checked = false; state.focus = { c, seg: null, live: false }; update(true); }
+      state.neck = 'grip'; state.gripI = 0;
+      if (!b.classList.contains('col')) { state.gripC = null; state.follow = false; $('sfFollow').checked = false; state.focus = { c, seg: null, live: false }; update(true); }
+      else { state.gripC = c; drawNeck(); }
       b.classList.add('hit'); setTimeout(() => b.classList.remove('hit'), 250);
       return;
     }
@@ -9705,7 +9816,11 @@ const AppCfg = (() => {
       ap.textContent = '✓ Im Griffbrett'; return;
     }
     const sc = e.target.closest('.sf-sc');
-    if (sc) { state.scale = sc.dataset.key; update(true); return; }
+    if (sc) { state.scale = sc.dataset.key; state.neck = 'scale'; state.gripC = null; update(true); return; }
+    const nm = e.target.closest('#sfNeckMode button');
+    if (nm) { state.neck = nm.dataset.m; state.gripC = null; drawNeck(); return; }
+    const gb = e.target.closest('#sfGrips button');
+    if (gb) { if (gb.dataset.strum) strum(); else { state.gripI = +gb.dataset.g; drawNeck(); strum(); } return; }
     const n = e.target.closest('.nk-n');
     if (n && window.Quinten) Quinten.playNote(+n.dataset.m);
   });
@@ -9726,7 +9841,7 @@ const AppCfg = (() => {
     timer = setInterval(() => update(false), 100);
   });
   window.addEventListener('resize', () => { if (!panel.hidden) { bandSig = ''; update(true); } });
-  window.SoloFinder = { state: () => state, suggestions: (r, t, pc, major) => suggestions({ r, t, iv: CH[t] }, { pc, major }), roman: (r, t, pc, major) => roman({ r, t, iv: CH[t] }, { pc, major }), update };
+  window.SoloFinder = { state: () => state, drawNeck, suggestions: (r, t, pc, major) => suggestions({ r, t, iv: CH[t] }, { pc, major }), roman: (r, t, pc, major) => roman({ r, t, iv: CH[t] }, { pc, major }), update };
 })();
 
 </script>

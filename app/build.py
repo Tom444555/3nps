@@ -87,7 +87,7 @@ head = head.replace('AUDIO_ACCEPT', ACCEPT)
 assert 'AUDIO_ACCEPT' not in head and 'LOOPER_PANEL' not in head and 'CIRCLE_PANEL' not in head and 'SOLO_PANEL' not in head
 script = script.replace("'Aus – folgt dem Tempo unten'", "'Aus – folgt dem Tempo oben'")
 rhythm = rd(A + 'eq.js') + '\n' + rd(A + 'kit.js') + '\n' + rd(A + 'rhythm.js') + '\n' + rd(A + 'drones.js')
-body = head + script + '\n<script>\n' + rhythm + '\n</script>\n<script>\n' + looper + '\n</script>\n<script>\n' + appcfg + '\n</script>\n<script>\n' + rd(A + 'circle.js') + '\n</script>\n<script>\n' + rd(A + 'solo.js') + '\n</script>\n' + tabs
+body = head + script + '\n<script>\n' + rhythm + '\n</script>\n<script>\n' + looper + '\n</script>\n<script>\n' + appcfg + '\n</script>\n<script>\n' + rd(A + 'circle.js') + '\n</script>\n<script>\n' + rd(A + 'voicings.js') + '\n' + rd(A + 'solo.js') + '\n</script>\n' + tabs
 
 top = '''<!doctype html>
 <html lang="de">

@@ -88,3 +88,15 @@
   .sf-idea { margin: 0; font: 600 1.05rem var(--f-body); line-height: 1.5; min-height: 3em; }
   @media (max-width: 520px) { .sf-ctrl { margin-left: 0; align-items: flex-start; } .sf-seg b { font-size: 1.15rem; } .sf-now b { font-size: 1.8rem; } }
   @media (max-width: 520px) { .tabs .tab { font-size: .74rem; padding-left: 2px; padding-right: 2px; white-space: normal; line-height: 1.15; } }
+  /* Akkordgriffe im Griffbild */
+  .sf-nh-l { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .sf-nh-l .seg .toggle-btn { padding: 5px 12px; font-size: .8rem; }
+  .sf-grips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .sf-grips[hidden] { display: none; }
+  .sf-grips .toggle-btn { padding: 6px 12px; font-size: .82rem; }
+  .sf-grips .sf-strum { margin-left: auto; }
+  .sf-neckwrap.grip .sf-leg { display: none; }
+  .nk-zone { fill: color-mix(in srgb, var(--accent) 14%, transparent); stroke: color-mix(in srgb, var(--accent) 55%, transparent); stroke-width: 1.5; pointer-events: none; }
+  .nk-x { fill: var(--muted); font: 700 16px var(--f-body); text-anchor: middle; dominant-baseline: middle; }
+  .nk-n.open circle { fill: var(--bg); stroke: var(--t2); stroke-width: 2; } .nk-n.open text { fill: var(--ink); }
+  .nk-n.open.root circle { stroke: var(--root-color); } .nk-n.third:not(.open) circle { fill: color-mix(in srgb, var(--t2) 70%, #fff); }

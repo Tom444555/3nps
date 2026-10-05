@@ -35,7 +35,7 @@
   const IVN = ['1', '♭2', '2', '♭3', '3', '4', '♭5', '5', '♭6', '6', '♭7', '7'];
   const IVLONG = ['Grundton', 'kleine Sekunde', 'große Sekunde', 'kleine Terz', 'große Terz', 'Quarte', 'übermäßige Quarte / ♭5', 'Quinte', 'kleine Sexte', 'große Sexte', 'kleine Septime', 'große Septime'];
 
-  let state = { track: null, follow: true, focus: null, keyOv: 'auto', scale: null, idea: 0, sig: '' };
+  let state = { track: null, follow: true, focus: null, keyOv: 'auto', scale: null, idea: 0, sig: '', neck: 'scale', gripC: null, gripI: 0, ctx: null };
   // ---- Hilfen ----
   function parseChord(name) {
     const m = /^([A-G]#?)(.*)$/.exec(name || ''); if (!m) return null;
@@ -218,7 +218,8 @@
         + (sc.mode ? '<button class="toggle-btn sf-apply" data-root="' + s.root + '" data-mode="' + sc.mode + '">Ins Griffbrett</button>' : '') + '</div>';
     }).join('');
     const cur = sugg.find(s => s.id + s.root === state.scale) || prim;
-    renderNeck(cur, c, k);
+    state.ctx = { s: cur, c, k };
+    drawNeck();
     // Färbungen
     const col = colorings(c, prim ? prim.pcs : keyPcs(k));
     $('sfColors').innerHTML = col.length ? col.map(x => chordBtn(x, k, 'col', '')).join('') : '<span class="sf-muted">–</span>';
@@ -248,14 +249,7 @@
   const OPEN = [64, 59, 55, 50, 45, 40], FR = 15;
   function renderNeck(s, c, k) {
     const svg = $('sfNeck'); if (!s) { svg.innerHTML = ''; return; }
-    const W = 760, H = 168, x0 = 34, fw = (W - x0 - 8) / FR, y0 = 18, sh = (H - y0 - 22) / 5;
-    const fx = fr => fr === 0 ? x0 - 15 : x0 + (fr - 0.5) * fw;
-    let h = '<rect x="' + x0 + '" y="' + (y0 - 6) + '" width="' + (W - x0 - 8) + '" height="' + (sh * 5 + 12) + '" class="nk-board" rx="3"/>';
-    for (let f = 0; f <= FR; f++) h += '<line x1="' + (x0 + f * fw) + '" x2="' + (x0 + f * fw) + '" y1="' + (y0 - 6) + '" y2="' + (y0 + sh * 5 + 6) + '" class="' + (f === 0 ? 'nk-nut' : 'nk-fret') + '"/>';
-    [3, 5, 7, 9, 15].forEach(f => h += '<circle cx="' + fx(f) + '" cy="' + (y0 + sh * 2.5) + '" r="4" class="nk-dot"/>');
-    h += '<circle cx="' + fx(12) + '" cy="' + (y0 + sh * 1.5) + '" r="4" class="nk-dot"/><circle cx="' + fx(12) + '" cy="' + (y0 + sh * 3.5) + '" r="4" class="nk-dot"/>';
-    for (let st = 0; st < 6; st++) h += '<line x1="' + (x0 - 2) + '" x2="' + (W - 8) + '" y1="' + (y0 + st * sh) + '" y2="' + (y0 + st * sh) + '" class="nk-str" style="stroke-width:' + (0.8 + st * 0.35) + '"/>';
-    [1, 3, 5, 7, 9, 12, 15].forEach(f => h += '<text x="' + fx(f) + '" y="' + (H - 4) + '" class="nk-num">' + f + '</text>');
+    const g = neckFrame(), { W, H, y0, sh, fx } = g; let h = g.h;
     const ct = c.iv.map(x => md(c.r + x));
     for (let st = 0; st < 6; st++) for (let f = 0; f <= FR; f++) {
       const m = OPEN[st] + f, p = md(m);
@@ -268,6 +262,52 @@
     $('sfNeckTitle').textContent = 'Griffbild: ' + nn(s.root, k) + ' ' + SC[s.id].n;
   }
 
+  // ---- Griffbild: Tonleiter oder Akkordgriffe ----
+  function drawNeck() {
+    const x = state.ctx; if (!x) return;
+    const grip = state.neck === 'grip' && typeof Voicings !== 'undefined';
+    $('sfNeckMode').querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.m === (grip ? 'grip' : 'scale')));
+    $('sfGrips').hidden = !grip;
+    $('sfNeck').closest('.sf-neckwrap').classList.toggle('grip', grip);
+    if (grip) renderGrip(state.gripC || x.c, x.k); else renderNeck(x.s, x.c, x.k);
+  }
+  function neckFrame() {
+    const W = 760, H = 168, x0 = 34, fw = (W - x0 - 8) / FR, y0 = 18, sh = (H - y0 - 22) / 5;
+    const fx = fr => fr === 0 ? x0 - 15 : x0 + (fr - 0.5) * fw;
+    let h = '<rect x="' + x0 + '" y="' + (y0 - 6) + '" width="' + (W - x0 - 8) + '" height="' + (sh * 5 + 12) + '" class="nk-board" rx="3"/>';
+    for (let f = 0; f <= FR; f++) h += '<line x1="' + (x0 + f * fw) + '" x2="' + (x0 + f * fw) + '" y1="' + (y0 - 6) + '" y2="' + (y0 + sh * 5 + 6) + '" class="' + (f === 0 ? 'nk-nut' : 'nk-fret') + '"/>';
+    [3, 5, 7, 9, 15].forEach(f => h += '<circle cx="' + fx(f) + '" cy="' + (y0 + sh * 2.5) + '" r="4" class="nk-dot"/>');
+    h += '<circle cx="' + fx(12) + '" cy="' + (y0 + sh * 1.5) + '" r="4" class="nk-dot"/><circle cx="' + fx(12) + '" cy="' + (y0 + sh * 3.5) + '" r="4" class="nk-dot"/>';
+    for (let st = 0; st < 6; st++) h += '<line x1="' + (x0 - 2) + '" x2="' + (W - 8) + '" y1="' + (y0 + st * sh) + '" y2="' + (y0 + st * sh) + '" class="nk-str" style="stroke-width:' + (0.8 + st * 0.35) + '"/>';
+    [1, 3, 5, 7, 9, 12, 15].forEach(f => h += '<text x="' + fx(f) + '" y="' + (H - 4) + '" class="nk-num">' + f + '</text>');
+    return { W, H, x0, fw, y0, sh, fx, h };
+  }
+  function renderGrip(c, k) {
+    const svg = $('sfNeck'), vs = Voicings.forChord(c.r, CH[c.t] ? c.t : '');
+    if (state.gripI >= vs.length) state.gripI = 0;
+    const v = vs[state.gripI], g = neckFrame(); let h = g.h;
+    $('sfNeckTitle').textContent = 'Griff: ' + chordName(c, k) + (v ? ' · ' + v.name : '');
+    if (v) {
+      const fr = v.frets.filter(f => f != null && f > 0), lo = Math.min(...fr), hi = Math.max(...fr);
+      if (fr.length && !v.open) h += '<rect x="' + (g.x0 + (lo - 1) * g.fw + 2) + '" y="' + (g.y0 - 9) + '" width="' + ((hi - lo + 1) * g.fw - 4) + '" height="' + (g.sh * 5 + 18) + '" class="nk-zone" rx="6"/>';
+      v.frets.forEach((f, s) => {
+        const st = 5 - s, y = g.y0 + st * g.sh;
+        if (f == null) { h += '<text x="' + (g.x0 - 15) + '" y="' + (y + 0.5) + '" class="nk-x">×</text>'; return; }
+        const m = Voicings.OPEN[s] + f, p = md(m), rel = md(p - c.r);
+        const cls = rel === 0 ? 'root' : (rel === 3 || rel === 4) ? 'ct third' : 'ct';
+        h += '<g class="nk-n ' + cls + (f === 0 ? ' open' : '') + '" data-m="' + m + '"><circle cx="' + g.fx(f) + '" cy="' + y + '" r="11"/><text x="' + g.fx(f) + '" y="' + (y + 0.5) + '">' + nn(p, k) + '</text></g>';
+      });
+    }
+    svg.setAttribute('viewBox', '0 0 ' + g.W + ' ' + g.H);
+    svg.innerHTML = h;
+    $('sfGrips').innerHTML = vs.map((x, i) => '<button class="toggle-btn' + (i === state.gripI ? ' active' : '') + '" data-g="' + i + '">' + x.name + '</button>').join('')
+      + (v ? '<button class="toggle-btn sf-strum" data-strum="1">▶ Anschlagen</button>' : '<span class="sf-muted">Für diesen Akkord gibt es keinen Griff.</span>');
+    state.voicing = v || null;
+  }
+  function strum() {
+    const v = state.voicing; if (!v || !window.Quinten) return;
+    Voicings.notes(v).forEach((m, i) => setTimeout(() => Quinten.playNote(m), i * 28));
+  }
   // ---- Ideen-Würfel ----
   function idea() {
     const f = state.focus, k = state.k; if (!f || !k) return;
@@ -328,6 +368,7 @@
     const c = parseChord(s.name);
     if (ci.playing) { Looper.seek(ci.track, s.a + 1); }
     else { state.focus = { c, seg: i, live: false }; if (window.Quinten) Quinten.play(c.r, c.iv); }
+    state.neck = 'grip'; state.gripC = null; state.gripI = 0;
     update(true);
   });
   panel.addEventListener('click', e => {
@@ -335,7 +376,9 @@
     if (b) {
       const c = { r: +b.dataset.r, t: b.dataset.t, iv: CH[b.dataset.t] };
       if (window.Quinten) Quinten.play(c.r, c.iv);
-      if (!b.classList.contains('col')) { state.follow = false; $('sfFollow').checked = false; state.focus = { c, seg: null, live: false }; update(true); }
+      state.neck = 'grip'; state.gripI = 0;
+      if (!b.classList.contains('col')) { state.gripC = null; state.follow = false; $('sfFollow').checked = false; state.focus = { c, seg: null, live: false }; update(true); }
+      else { state.gripC = c; drawNeck(); }
       b.classList.add('hit'); setTimeout(() => b.classList.remove('hit'), 250);
       return;
     }
@@ -345,7 +388,11 @@
       ap.textContent = '✓ Im Griffbrett'; return;
     }
     const sc = e.target.closest('.sf-sc');
-    if (sc) { state.scale = sc.dataset.key; update(true); return; }
+    if (sc) { state.scale = sc.dataset.key; state.neck = 'scale'; state.gripC = null; update(true); return; }
+    const nm = e.target.closest('#sfNeckMode button');
+    if (nm) { state.neck = nm.dataset.m; state.gripC = null; drawNeck(); return; }
+    const gb = e.target.closest('#sfGrips button');
+    if (gb) { if (gb.dataset.strum) strum(); else { state.gripI = +gb.dataset.g; drawNeck(); strum(); } return; }
     const n = e.target.closest('.nk-n');
     if (n && window.Quinten) Quinten.playNote(+n.dataset.m);
   });
@@ -366,5 +413,5 @@
     timer = setInterval(() => update(false), 100);
   });
   window.addEventListener('resize', () => { if (!panel.hidden) { bandSig = ''; update(true); } });
-  window.SoloFinder = { state: () => state, suggestions: (r, t, pc, major) => suggestions({ r, t, iv: CH[t] }, { pc, major }), roman: (r, t, pc, major) => roman({ r, t, iv: CH[t] }, { pc, major }), update };
+  window.SoloFinder = { state: () => state, drawNeck, suggestions: (r, t, pc, major) => suggestions({ r, t, iv: CH[t] }, { pc, major }), roman: (r, t, pc, major) => roman({ r, t, iv: CH[t] }, { pc, major }), update };
 })();
