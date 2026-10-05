@@ -37,6 +37,8 @@ Alles geht direkt auf dem iPad, ohne Computer.
      Tempo wird exakt übernommen) oder ein Song (Taktraster über die ganze Datei).
    - Läuft schon ein Loop, wird eine neue Datei ins Tempo des Loops gedehnt – die Tonhöhe bleibt –
      und automatisch fein an die anderen Spuren angeglichen.
+   - Hat ein Song ein freies Intro (ohne festen Takt), sucht die App den Beginn des regelmäßigen
+     Takts und zählt erst dort „Takt 1“. Der Dialog zeigt das an, z. B. „Takt 1 bei 0:08“.
    - Mit ✂ öffnet sich der Editor. „Prüfen“ zeigt, ob der Loop ganze Takte hat, Takt 1
      am Anfang liegt und der Übergang sauber ist. „Nacharbeiten“ korrigiert das.
      Liegt das erkannte Tempo eine Oktave daneben: „½ Tempo“ oder „2× Tempo“.
@@ -208,6 +210,35 @@ Alles geht direkt auf dem iPad, ohne Computer.
      dieses eine Repository vergeben.
    - Sicherungsdateien von anderen kann die App gefahrlos laden: Namen werden nur als Text angezeigt,
      und eine Sicherheitsregel (Content Security Policy) verbietet Verbindungen zu fremden Servern.
+
+19. Genaue Takterkennung (v20)
+   - Die App misst nach der groben Takterkennung jeden Anschlag auf etwa 1 ms genau nach und legt das
+     Taktraster durch alle Anschläge. Loops werden dadurch exakt auf der Eins geschnitten, das Tempo
+     stimmt auf Hundertstel-BPM. Bei leicht schwankendem Tempo (live gespielt) folgt das Raster dem Spiel.
+   - Breaks, Halftime-Teile und Stellen ohne Schlagzeug überbrückt das Raster; die Takte zählen durch.
+   - Becken auf der Eins (Crash am Teilanfang) helfen jetzt beim Finden von Takt 1.
+   - „Takt-Eins falsch? ◀ / ▶“ springt auf den nächsten erkannten Schlag und ist exakt umkehrbar.
+   - Exakt zugeschnittene Loop-Dateien (z. B. aus Logic oder einer Loop-Sammlung) bleiben unverändert:
+     Ihr Anfang gilt als Takt 1, auch wenn der erste Ton weich einsetzt.
+
+20. Neue Spuren automatisch angleichen
+   - Nimmst du Spur 2 oder 3 auf, vergleicht die App deine Anschläge mit denen von Spur 1 und verschiebt
+     die neue Aufnahme so, dass sie genau sitzt (höchstens ±60 ms bzw. eine Zweiunddreißigstel).
+     Die Meldung zeigt, um wie viel; ↶ nimmt nur den Abgleich zurück.
+   - Flächen und Klänge ohne klare Anschläge bleiben, wie sie sind.
+   - Abschalten: Karte „Aufnahme“ → „Neue Spuren automatisch an Spur 1 angleichen“.
+
+21. Akkorde
+   - Für jede Spur erkennt die App die Akkorde je Schlag (Dur, Moll, 7, maj7, m7, 6, sus2, sus4, dim, Powerchord),
+     auch bei verstimmter Gitarre. Sie stehen unter der kleinen Wellenform; der klingende Akkord leuchtet,
+     ein Tipp auf einen Akkord springt dorthin.
+   - Im Editor (✂) stehen sie über der Wellenform und unter „Tonart und Akkorde“ als Zeile je Takt.
+   - Beim Export für Logic landen sie als Marker in der MIDI-Datei und im Text „LIES MICH“.
+   - Bei Riffs ohne Terz (Boogie, Powerchords) zeigt die App z. B. „A5“ oder „A6“ – das ist richtig.
+
+22. Bass der Begleitung
+   - Der Bass wird beim Start der App selbst erzeugt (gezupfte Saite, im Hintergrund). Es stecken keine
+     fremden Aufnahmen mehr in der App, und der Bass setzt pünktlich mit der Kick ein.
 
 Gut zu wissen
    - Übungslog und Ideen werden nur auf diesem iPad gespeichert. Eine neue Installation
