@@ -472,10 +472,10 @@ const Rhythm = (() => {
     return ev;
   }
 
-  // ---- Die Drum-Spur wandert mit: im Looper unter den Spuren, in der Begleitung als eigene Karte ----
+  // ---- Die Drum-Spur wandert mit: im Looper unter den Spuren, im Griffbrett (Begleitung) als eigene Karte ----
   const lane = document.querySelector('.lane-drums');
   document.addEventListener('tabchange', e => {
-    const home = $(e.detail === 'begleitung' ? 'beglDrumsHome' : 'loopDrumsHome');
+    const home = $(e.detail === 'griffbrett' ? 'beglDrumsHome' : 'loopDrumsHome');
     if (home && lane && lane.parentNode !== home) home.appendChild(lane);
   });
 

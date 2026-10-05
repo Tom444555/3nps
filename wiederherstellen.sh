@@ -12,7 +12,7 @@ cd "$ZIEL/test"
 # Ordner für Bildschirmfotos der Tests (fest im Skript hinterlegt)
 grep -ho "/tmp/claude-0/[^'\"]*scratchpad/" *.py | sort -u | xargs -r mkdir -p
 # Stereo-Testdateien liegen als FLAC im Repo
-for f in stereo/*.flac; do ffmpeg -loglevel error -y -i "$f" "stereo/$(basename "$f" .flac).wav"; done
+for f in stereo/*.flac; do ffmpeg -loglevel error -y -i "$f" -map_metadata -1 -fflags +bitexact -flags:a +bitexact "stereo/$(basename "$f" .flac).wav"; done
 # Testaudio neu erzeugen (deterministisch, ~1 Minute)
 pip install --quiet --break-system-packages numpy scipy playwright 2>/dev/null || true
 python3 gen_corpus.py >/dev/null

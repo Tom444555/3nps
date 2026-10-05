@@ -65,7 +65,7 @@ const Looper = (() => {
     chB: $('chb' + i), meter: $('tmeter' + i), mL: $('tmeter' + i).querySelector('.tm-ch.l'), mR: $('tmeter' + i).querySelector('.tm-ch.r'), pkL: 0, pkR: 0,
     ring: $('ring' + i), wave: $('wave' + i), foot: $('foot' + i), stopB: $('stop' + i), undoB: $('undo' + i),
     clearB: $('clear' + i), fileIn: $('file' + i), vol: $('vol' + i), editB: $('edit' + i), keyB: $('key' + i),
-    ing: $('ing' + i), ingV: $('ingv' + i), volV: $('volv' + i), inGain: 1, chordEl: $('chords' + i), chords: null, chOn: -1
+    ing: $('ing' + i), ingV: $('ingv' + i), volV: $('volv' + i), inGain: 1, chordEl: $('chords' + i), chords: null, chOn: -1, chdB: $('chd' + i), chdName: null
   }));
   // ---- Stereo: jedes Audio-Stück ist { l, r, length } (bei Mono-Quellen zeigen l und r auf dasselbe Feld) ----
   const S = n => ({ l: new Float32Array(n), r: new Float32Array(n), length: n });
@@ -1268,6 +1268,15 @@ const Looper = (() => {
       lastDraw = nowMs;
       const C = css || (css = colors());
       tracks.forEach(t => { drawRing(t, C); drawWave(t, C); });
+      tracks.forEach(t => {                       // klingender Akkord im Spurkopf (links neben der Tonart)
+        const c = t.chords, has = !!(t.src && c && c.L === t.L && c.segs.some(q => q.name !== '–'));
+        const i = has ? chordAt(t, mod(playFrame() - anchor, t.L)) : -1;
+        const nm = i >= 0 ? c.segs[i].name : null;
+        if (nm === t.chdName) return;
+        t.chdName = nm; if (!t.chdB) return;
+        t.chdB.hidden = nm == null;
+        if (nm != null) { t.chdB.lastChild.textContent = nm; t.chdB.classList.toggle('rest', nm === '–'); }
+      });
       tracks.forEach(t => {                       // klingenden Akkord hervorheben
         if (!t.chords || t.chordEl.hidden) return;
         const i = t.src ? chordAt(t, mod(playFrame() - anchor, t.L)) : -1;

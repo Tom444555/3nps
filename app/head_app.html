@@ -92,6 +92,7 @@
   .tab:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--t2); outline-offset: 2px; }
 
   .panel { display: flex; flex-direction: column; gap: 14px; }
+  .sub-head { margin: 10px 2px -4px; font: 700 .72rem var(--f-body); letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
   [hidden]:not([hidden=until-found i]) { display: none !important; }
 
   /* Panels */
@@ -179,7 +180,7 @@
 
 <header class="control-bar">
   <div class="cb-inner">
-    <div class="brand">Looper <span>3nps · v20</span></div>
+    <div class="brand">Looper <span>3nps · v21</span></div>
     <div class="transport">
       <button class="tbtn" id="playBtn" aria-label="Metronom starten oder stoppen">▶</button>
     </div>
@@ -201,15 +202,13 @@
   <p class="caption" id="caption" style="margin-bottom:10px"></p>
 
   <nav class="tabs" role="tablist" aria-label="Bereiche">
-    <button class="tab" role="tab" id="tab-griffbrett" data-tab="griffbrett" aria-selected="true">Griffbrett</button>
-    <button class="tab" role="tab" id="tab-begleitung" data-tab="begleitung" aria-selected="false">Begleitung</button>
-    <button class="tab" role="tab" id="tab-song" data-tab="song" aria-selected="false">Song</button>
-    <button class="tab" role="tab" id="tab-looper" data-tab="looper" aria-selected="false">Looper</button>
-    <button class="tab" role="tab" id="tab-log" data-tab="log" aria-selected="false">Log</button>
+    <button class="tab" role="tab" id="tab-looper" data-tab="looper" aria-selected="true">Looper</button>
+    <button class="tab" role="tab" id="tab-griffbrett" data-tab="griffbrett" aria-selected="false">Griffbrett</button>
+    <button class="tab" role="tab" id="tab-quinten" data-tab="quinten" aria-selected="false">Quintenzirkel</button>
   </nav>
 
   <!-- Griffbrett -->
-  <section class="panel" id="panel-griffbrett" role="tabpanel" aria-labelledby="tab-griffbrett">
+  <section class="panel" id="panel-griffbrett" role="tabpanel" aria-labelledby="tab-griffbrett" hidden>
     <div class="card">
       <div class="fields">
         <label class="field"><span>Grundton</span><select id="root"></select></label>
@@ -256,10 +255,8 @@
       </div>
       <div class="status-line" id="statusLine">Bereit</div>
     </div>
-  </section>
 
-  <!-- Begleitung -->
-  <section class="panel" id="panel-begleitung" role="tabpanel" aria-labelledby="tab-begleitung" hidden>
+    <h2 class="sub-head">Begleitung</h2>
     <div class="card">
       <h2>Grundton-Drone</h2>
       <label class="field"><span>Klangfarbe</span>
@@ -298,10 +295,8 @@
       <div class="row"><span class="lbl">Lautstärke</span><input type="range" id="grooveVolume" min="0" max="100" step="5" value="70"></div>
       <div class="status-line" id="grooveStatus">Aus – spielt mit der Kick der Drums, im Grundton der Skala</div>
     </div>
-  </section>
 
-  <!-- Song -->
-  <section class="panel" id="panel-song" role="tabpanel" aria-labelledby="tab-song" hidden>
+    <h2 class="sub-head">Song</h2>
     <div class="card" id="musicPlayer">
       <h2>Über einen Song üben</h2>
       <div class="file-row">
@@ -323,12 +318,8 @@
       </div>
       <div class="status-line" id="musicStatus">MP3, WAV, AIFF, M4A/AAC, Apple Lossless, FLAC, CAF und Videos mit Tonspur. Tonart und Tempo werden erkannt, Skala und Begleitung passen sich an.</div>
     </div>
-  </section>
 
-LOOPER_PANEL
-
-  <!-- Log -->
-  <section class="panel" id="panel-log" role="tabpanel" aria-labelledby="tab-log" hidden>
+    <h2 class="sub-head" id="logHead">Übungslog</h2>
     <div class="stats-row">
       <div class="stat-card"><div class="num" id="statToday">0</div><div class="lbl">Minuten heute</div></div>
       <div class="stat-card"><div class="num" id="statStreak">0</div><div class="lbl">Tage in Folge</div></div>
@@ -339,5 +330,14 @@ LOOPER_PANEL
       <div class="log-list" id="logList"><p class="pattern-desc">Verlauf wird geladen …</p></div>
     </div>
   </section>
+
+
+
+LOOPER_PANEL
+
+  <!-- Quintenzirkel -->
+CIRCLE_PANEL
+
+
 </div>
 

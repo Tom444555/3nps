@@ -36,7 +36,7 @@ async def main():
                 elif a == 9: await pg.click('.dg-name[data-mute="' + random.choice(['kick','snare','hhc']) + '"]')
                 elif a == 10: await pg.click('#laneDrone'); await pg.wait_for_timeout(500); await pg.click('#laneDrone')
                 elif a == 11: await pg.select_option('#laneDroneStyle', random.choice(['v1', 'v2', 'v3', 'v4', 'v5', 'v6']))
-                elif a == 12: await pg.click('#tab-begleitung'); await pg.wait_for_timeout(300); await pg.click('#btnBass'); await pg.wait_for_timeout(1500); await pg.click('#btnBass'); await pg.click('#tab-looper')
+                elif a == 12: await pg.click('#tab-griffbrett'); await pg.wait_for_timeout(300); await pg.click('#btnBass'); await pg.wait_for_timeout(1500); await pg.click('#btnBass'); await pg.click('#tab-looper')
                 elif a == 13: await pg.select_option('#drumFills', random.choice(['0', '4', '8', '12']))
                 else: await pg.select_option('#drumRes', random.choice(['12', '16']))
             except Exception as e: errs.append('Aktion %d: %s' % (a, str(e)[:100]))

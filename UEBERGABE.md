@@ -1,6 +1,6 @@
 # Looper – Übergabe für die nächste Sitzung
 
-Stand: 5. Oktober 2026 · Version **v20** ist live unter https://tom444555.github.io/3nps/
+Stand: 5. Oktober 2026 · Version **v21** ist live unter https://tom444555.github.io/3nps/
 Repository: `Tom444555/3nps` · Branch `main` = fertige App (GitHub Pages) · Branch `entwicklung` = dieser Quellcode.
 
 ## So geht es in einem neuen Chat weiter
@@ -24,7 +24,8 @@ Testaudio neu, baut die App, startet den Testserver auf Port 8765).
 | Datei | Inhalt |
 |---|---|
 | `script.part` | Grundprogramm (Griffbrett, Skalen, Begleitung, Drone-Grundlage, Übungslog); Bass wird über `bass.js` erzeugt |
-| `app/looper.js` | Looper: 3 Stereo-Spuren, Aufnahme, Overdub, Editor, Export für Logic, Sitzungen, Autosicherung, Akkordleiste, Abgleich |
+| `app/looper.js` | Looper: 3 Stereo-Spuren, Aufnahme, Overdub, Editor, Export für Logic, Sitzungen, Autosicherung, Akkordleiste, Akkordfeld im Spurkopf, Abgleich |
+| `app/circle.js`, `circle.html`, `circle.css` | Quintenzirkel (Reiter „Quintenzirkel“): Tonart wählen, Akkorde anhören, ins Griffbrett übernehmen, klingender Looper-Akkord |
 | `app/beat.js` | Takterkennung: Tempo, Schlagraster, Feinbestimmung (~1 ms), Takt-Eins, freies Intro, Loop-Analyse |
 | `app/chords.js` | Akkorderkennung je Schlag (HPSS, Stimmung, Chroma, Vorlagen, Viterbi) |
 | `app/analysis.js` | Analyse-Worker (Tonart, Takt, Loop, Akkorde) – Funktionen werden als Text in den Worker kopiert |
@@ -36,6 +37,7 @@ Testaudio neu, baut die App, startet den Testserver auf Port 8765).
 | `app/*.css`, `looper.html`, `head_app.html` | Oberfläche, vier Optiken |
 | `app/build.py` | baut `app/www/index.html` (alles in einer Datei, CSP, eingebettete Schriften) und `preview.html` |
 | `app/tex/*.py` | erzeugen die Texturen/Icons der Optiken |
+| `tabs.js` | Reiter-Umschaltung (Ereignis `tabchange`) |
 | `test/` | Tests (Playwright/Chromium) und Auswertungen (Node) |
 
 ## Arbeitsablauf
@@ -49,9 +51,9 @@ Testaudio neu, baut die App, startet den Testserver auf Port 8765).
    Danach den Branch `entwicklung` mit den Quellen aktualisieren (diese Datei mitpflegen).
 6. Auf dem iPad: App zweimal öffnen, dann ist die neue Version aktiv.
 
-## Tests und erwartete Ergebnisse (v20)
+## Tests und erwartete Ergebnisse (v21)
 
-- Browser: `v20test.py` 16/16 · `suite.py` 81/81 · `stereotest.py` 16/16 · `eqtest.py` 9/9 · `restoretest.py` 7/7 ·
+- Browser: `v21test.py` 6/6 (Akkordfeld) · `v21tabs.py` 18/18 (Reiter, Quintenzirkel) · `v20test.py` 16/16 · `suite.py` 81/81 · `stereotest.py` 16/16 · `eqtest.py` 9/9 · `restoretest.py` 7/7 ·
   `backuptest.py` 7/7 · `csptest.py` (keine fremden Anfragen) · `crashtest.py`, `taptest.py` (Speicher stabil) ·
   `rec_fit.py 1` 10/10 · `importall.py` 57/63 (bekannte Fälle: Eins bei Shuffles) · `synctest.py`, `firsthit.py`,
   `drone78.py`, `mono_rec.py`, `sesstest.py`, `droptest.py`, `pedaltest2.py` ohne Fehler.
@@ -61,6 +63,13 @@ Testaudio neu, baut die App, startet den Testserver auf Port 8765).
 - Akkorde (Node): `node chordeval.js` → Grundton 95,5 %, exakt 91,5 % · `node chordsong.js` → 82,8 % (Riffs ohne Terz schwerer).
 
 ## Technische Eckpunkte
+
+- **Reiter (seit v21):** Looper (links, Start) · Griffbrett · Quintenzirkel. Begleitung (Drone, Drums, Bass), Song und
+  Übungslog sind Karten im Griffbrett (Zwischenüberschriften `.sub-head`). `tabs.js` leitet alte gespeicherte Reiter
+  (`begleitung`, `song`, `log`) aufs Griffbrett um; die Drum-Spur wandert bei `tabchange` = `griffbrett` in `#beglDrumsHome`.
+- **Akkordfeld:** `#chd0–2` im Spurkopf links neben der Tonart, nur beim Abspielen sichtbar, aktualisiert in `tick()`.
+- **Quintenzirkel:** SVG, englische Tonnamen wie im übrigen Programm (B = H), Schreibweise je Tonart (E♯ in F♯-Dur usw.);
+  liest den klingenden Akkord aus `.chdbadge`; `window.Quinten` für Tests.
 
 - **Stereo-Modell:** Audio-Stücke sind `{l, r, length}`; Mono-Quellen teilen ein Feld (`r === l`). iPadOS liefert über
   getUserMedia nur Mono – Stereo-Aufnahme geht dort erst mit nativer Hülle.

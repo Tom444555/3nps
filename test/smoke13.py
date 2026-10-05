@@ -17,7 +17,7 @@ async def main():
         print('ghost', await pg.get_attribute('.dg-cell[data-i="snare"][data-k="5"]', 'data-v'), await pg.input_value('#loopDrumStyle'))
         await pg.select_option('#drumRes', '16'); await pg.select_option('#drumFills', '4'); await pg.wait_for_timeout(1500)
         # Begleitung: Lane wandert mit
-        await pg.click('#tab-begleitung'); await pg.wait_for_timeout(300)
+        await pg.click('#tab-griffbrett'); await pg.wait_for_timeout(300)
         print('lane in begleitung', await pg.evaluate("!!document.querySelector('#beglDrumsHome .lane-drums')"))
         await pg.click('#btnBass'); await pg.wait_for_timeout(1500)
         for st in ['v3', 'v4', 'v1']:

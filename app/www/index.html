@@ -110,6 +110,7 @@
   .tab:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--t2); outline-offset: 2px; }
 
   .panel { display: flex; flex-direction: column; gap: 14px; }
+  .sub-head { margin: 10px 2px -4px; font: 700 .72rem var(--f-body); letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
   [hidden]:not([hidden=until-found i]) { display: none !important; }
 
   /* Panels */
@@ -411,6 +412,17 @@
     color: #08090b; box-shadow: 0 0 14px var(--tc), 0 1px 0 rgba(255,255,255,.45) inset, 0 -2px 0 rgba(0,0,0,.2) inset;
   }
   .keybadge small { font: 700 0.52rem var(--f-body); letter-spacing: .14em; text-transform: uppercase; opacity: .7; }
+  /* klingender Akkord links neben der Tonart */
+  .chdbadge {
+    margin-left: auto; display: inline-flex; flex-direction: column; align-items: center; line-height: 1.05;
+    min-width: 3.4em; padding: 4px 10px 5px; border-radius: 9px; border: 1px solid var(--tc);
+    background: rgba(0,0,0,.45); color: var(--tc); box-shadow: 0 0 10px color-mix(in srgb, var(--tc) 45%, transparent), inset 0 2px 6px rgba(0,0,0,.6);
+  }
+  .chdbadge[hidden] { display: none; }
+  .chdbadge b { font: 800 1.08rem var(--f-mono); letter-spacing: .01em; white-space: nowrap; }
+  .chdbadge small { font: 700 0.52rem var(--f-body); letter-spacing: .14em; text-transform: uppercase; opacity: .7; color: var(--muted); }
+  .chdbadge.rest b { color: var(--muted); }
+  .chdbadge:not([hidden]) + .keybadge { margin-left: 0; }
   .master-fader { flex: 1 1 170px; }
   .master-fader b { font: 600 0.72rem var(--f-mono); color: var(--muted); min-width: 44px; text-align: right; }
   .modal { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(4,3,2,.72); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
@@ -551,6 +563,54 @@
   .chordbar .ch.on { color: #0b0b0c; background: var(--tc); box-shadow: 0 0 10px color-mix(in srgb, var(--tc) 60%, transparent); }
   .ed-chords { font: 700 0.86rem var(--f-mono); color: var(--ink); line-height: 1.5; word-break: break-word; }
   .ed-chords b { color: var(--tc); font-weight: 700; }
+  /* ---- Quintenzirkel ---- */
+  .qz-card { flex-direction: row; flex-wrap: wrap; align-items: flex-start; gap: 18px; }
+  .qz-wrap { flex: 1 1 380px; max-width: 560px; margin: 0 auto; }
+  #qzSvg { width: 100%; height: auto; display: block; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+  .qz-info { flex: 1 1 300px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .qz-seg { cursor: pointer; outline: none; }
+  .qz-seg path { fill: var(--surface-2); stroke: var(--bg); stroke-width: 2; transition: fill .15s; }
+  .qz-min path { fill: color-mix(in srgb, var(--surface-2) 82%, #000); }
+  .qz-dim path { fill: color-mix(in srgb, var(--surface-2) 64%, #000); }
+  .qz-seg.in path { fill: color-mix(in srgb, var(--accent) 30%, var(--surface-2)); }
+  .qz-seg.sel path { fill: var(--accent); }
+  .qz-seg:focus-visible path { stroke: var(--ink); }
+  .qz-seg.hit path { fill: var(--dub); }
+  .qz-seg text { text-anchor: middle; dominant-baseline: middle; pointer-events: none; fill: var(--ink); }
+  .qz-name { font: 700 19px var(--f-mono); }
+  .qz-min .qz-name { font-size: 15px; }
+  .qz-dim .qz-name { font-size: 11.5px; fill: var(--muted); }
+  .qz-alt { font: 600 11px var(--f-mono); fill: var(--muted) !important; }
+  .qz-rom { font: 700 9.5px var(--f-body); letter-spacing: .06em; fill: var(--muted) !important; }
+  .qz-seg.in .qz-rom { fill: var(--ink) !important; }
+  .qz-seg.sel text, .qz-seg.sel .qz-rom, .qz-seg.sel .qz-alt { fill: var(--accent-ink) !important; }
+  .qz-live { fill: none; stroke: var(--dub); stroke-width: 4; pointer-events: none; filter: drop-shadow(0 0 6px var(--dub)); }
+  .qz-mark { fill: none; stroke: var(--root-color); stroke-width: 2.5; stroke-dasharray: 5 4; pointer-events: none; }
+  .qz-c1 { text-anchor: middle; font: 700 19px var(--f-display); fill: var(--ink); }
+  .qz-c2 { text-anchor: middle; font: 600 12px var(--f-mono); fill: var(--muted); }
+  .qz-c3 { text-anchor: middle; font: 700 13px var(--f-mono); fill: var(--dub); }
+  .qz-key { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .qz-key span { font: 800 1.6rem var(--f-display); }
+  .qz-key small { font: 600 .85rem var(--f-mono); color: var(--muted); }
+  .qz-row { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+  .qz-row.col { flex-direction: column; align-items: stretch; gap: 6px; }
+  .qz-row .lbl { font: 600 .62rem var(--f-body); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .qz-scale { font: 700 1.05rem var(--f-mono); letter-spacing: .04em; }
+  .qz-chords { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+  .qz-ch { appearance: none; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); color: var(--ink);
+    padding: 7px 2px 8px; display: flex; flex-direction: column; align-items: center; gap: 2px; font: 700 1rem var(--f-mono); cursor: pointer; min-width: 0; }
+  .qz-ch small { font: 700 .6rem var(--f-body); color: var(--muted); letter-spacing: .06em; }
+  .qz-ch.dim { color: var(--muted); }
+  .qz-ch.hit { background: var(--dub); color: #111; }
+  .qz-ch.hit small { color: #333; }
+  .qz-rel { margin: 0; font: 500 .85rem var(--f-body); color: var(--muted); line-height: 1.5; }
+  .qz-rel b { color: var(--ink); }
+  .qz-act { display: flex; gap: 8px; flex-wrap: wrap; }
+  .qz-act .toggle-btn { flex: 1 1 auto; }
+  .qz-board b { color: var(--root-color); }
+  .qz-board::before { content: ''; display: inline-block; width: 14px; height: 10px; margin-right: 6px; border: 2px dashed var(--root-color); border-radius: 2px; vertical-align: -1px; }
+  .qz-board:empty::before { display: none; }
+  @media (max-width: 520px) { .qz-chords { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
   /* ===== Rost & Stahl: Hintergrund aus gerostetem Blech, darauf verschraubte Stahlplatten ===== */
   :root {
     --plate-hi: #3a3a40;
@@ -1077,7 +1137,7 @@
 <body>
 <header class="control-bar">
   <div class="cb-inner">
-    <div class="brand">Looper <span>3nps · v20</span></div>
+    <div class="brand">Looper <span>3nps · v21</span></div>
     <div class="transport">
       <button class="tbtn" id="playBtn" aria-label="Metronom starten oder stoppen">▶</button>
     </div>
@@ -1099,15 +1159,13 @@
   <p class="caption" id="caption" style="margin-bottom:10px"></p>
 
   <nav class="tabs" role="tablist" aria-label="Bereiche">
-    <button class="tab" role="tab" id="tab-griffbrett" data-tab="griffbrett" aria-selected="true">Griffbrett</button>
-    <button class="tab" role="tab" id="tab-begleitung" data-tab="begleitung" aria-selected="false">Begleitung</button>
-    <button class="tab" role="tab" id="tab-song" data-tab="song" aria-selected="false">Song</button>
-    <button class="tab" role="tab" id="tab-looper" data-tab="looper" aria-selected="false">Looper</button>
-    <button class="tab" role="tab" id="tab-log" data-tab="log" aria-selected="false">Log</button>
+    <button class="tab" role="tab" id="tab-looper" data-tab="looper" aria-selected="true">Looper</button>
+    <button class="tab" role="tab" id="tab-griffbrett" data-tab="griffbrett" aria-selected="false">Griffbrett</button>
+    <button class="tab" role="tab" id="tab-quinten" data-tab="quinten" aria-selected="false">Quintenzirkel</button>
   </nav>
 
   <!-- Griffbrett -->
-  <section class="panel" id="panel-griffbrett" role="tabpanel" aria-labelledby="tab-griffbrett">
+  <section class="panel" id="panel-griffbrett" role="tabpanel" aria-labelledby="tab-griffbrett" hidden>
     <div class="card">
       <div class="fields">
         <label class="field"><span>Grundton</span><select id="root"></select></label>
@@ -1154,10 +1212,8 @@
       </div>
       <div class="status-line" id="statusLine">Bereit</div>
     </div>
-  </section>
 
-  <!-- Begleitung -->
-  <section class="panel" id="panel-begleitung" role="tabpanel" aria-labelledby="tab-begleitung" hidden>
+    <h2 class="sub-head">Begleitung</h2>
     <div class="card">
       <h2>Grundton-Drone</h2>
       <label class="field"><span>Klangfarbe</span>
@@ -1196,10 +1252,8 @@
       <div class="row"><span class="lbl">Lautstärke</span><input type="range" id="grooveVolume" min="0" max="100" step="5" value="70"></div>
       <div class="status-line" id="grooveStatus">Aus – spielt mit der Kick der Drums, im Grundton der Skala</div>
     </div>
-  </section>
 
-  <!-- Song -->
-  <section class="panel" id="panel-song" role="tabpanel" aria-labelledby="tab-song" hidden>
+    <h2 class="sub-head">Song</h2>
     <div class="card" id="musicPlayer">
       <h2>Über einen Song üben</h2>
       <div class="file-row">
@@ -1221,7 +1275,20 @@
       </div>
       <div class="status-line" id="musicStatus">MP3, WAV, AIFF, M4A/AAC, Apple Lossless, FLAC, CAF und Videos mit Tonspur. Tonart und Tempo werden erkannt, Skala und Begleitung passen sich an.</div>
     </div>
+
+    <h2 class="sub-head" id="logHead">Übungslog</h2>
+    <div class="stats-row">
+      <div class="stat-card"><div class="num" id="statToday">0</div><div class="lbl">Minuten heute</div></div>
+      <div class="stat-card"><div class="num" id="statStreak">0</div><div class="lbl">Tage in Folge</div></div>
+      <div class="stat-card"><div class="num" id="statTotal">0</div><div class="lbl">Einheiten gesamt</div></div>
+    </div>
+    <div class="card">
+      <h2>Letzte Einheiten</h2>
+      <div class="log-list" id="logList"><p class="pattern-desc">Verlauf wird geladen …</p></div>
+    </div>
   </section>
+
+
 
   <!-- Looper -->
   <section class="panel" id="panel-looper" role="tabpanel" aria-labelledby="tab-looper" hidden>
@@ -1249,7 +1316,7 @@
       </div>
       <div class="tracks">
         <div class="track t1" data-state="empty">
-          <div class="track-head"><span class="chip"></span><span class="tname">Spur 1</span><span class="chb" id="chb0" hidden></span><button class="keybadge" id="key0" hidden></button></div>
+          <div class="track-head"><span class="chip"></span><span class="tname">Spur 1</span><span class="chb" id="chb0" hidden></span><span class="chdbadge" id="chd0" hidden aria-live="off" title="Klingender Akkord"><small>Akkord</small><b></b></span><button class="keybadge" id="key0" hidden></button></div>
           <div class="ring-row">
             <canvas class="ring" id="ring0" aria-label="Taktkreis Spur 1"></canvas>
             <div class="tmeter" id="tmeter0" aria-hidden="true"><div class="tm-ch l"><div class="tm-fill"></div><div class="tm-pk"></div></div><div class="tm-ch r"><div class="tm-fill"></div><div class="tm-pk"></div></div><div class="tm-th"></div></div>
@@ -1270,7 +1337,7 @@
           <div id="eqp0" hidden></div>
         </div>
         <div class="track t2" data-state="empty">
-          <div class="track-head"><span class="chip"></span><span class="tname">Spur 2</span><span class="chb" id="chb1" hidden></span><button class="keybadge" id="key1" hidden></button></div>
+          <div class="track-head"><span class="chip"></span><span class="tname">Spur 2</span><span class="chb" id="chb1" hidden></span><span class="chdbadge" id="chd1" hidden aria-live="off" title="Klingender Akkord"><small>Akkord</small><b></b></span><button class="keybadge" id="key1" hidden></button></div>
           <div class="ring-row">
             <canvas class="ring" id="ring1" aria-label="Taktkreis Spur 2"></canvas>
             <div class="tmeter" id="tmeter1" aria-hidden="true"><div class="tm-ch l"><div class="tm-fill"></div><div class="tm-pk"></div></div><div class="tm-ch r"><div class="tm-fill"></div><div class="tm-pk"></div></div><div class="tm-th"></div></div>
@@ -1291,7 +1358,7 @@
           <div id="eqp1" hidden></div>
         </div>
         <div class="track t3" data-state="empty">
-          <div class="track-head"><span class="chip"></span><span class="tname">Spur 3</span><span class="chb" id="chb2" hidden></span><button class="keybadge" id="key2" hidden></button></div>
+          <div class="track-head"><span class="chip"></span><span class="tname">Spur 3</span><span class="chb" id="chb2" hidden></span><span class="chdbadge" id="chd2" hidden aria-live="off" title="Klingender Akkord"><small>Akkord</small><b></b></span><button class="keybadge" id="key2" hidden></button></div>
           <div class="ring-row">
             <canvas class="ring" id="ring2" aria-label="Taktkreis Spur 3"></canvas>
             <div class="tmeter" id="tmeter2" aria-hidden="true"><div class="tm-ch l"><div class="tm-fill"></div><div class="tm-pk"></div></div><div class="tm-ch r"><div class="tm-fill"></div><div class="tm-pk"></div></div><div class="tm-th"></div></div>
@@ -1583,18 +1650,29 @@
   </section>
 
 
-  <!-- Log -->
-  <section class="panel" id="panel-log" role="tabpanel" aria-labelledby="tab-log" hidden>
-    <div class="stats-row">
-      <div class="stat-card"><div class="num" id="statToday">0</div><div class="lbl">Minuten heute</div></div>
-      <div class="stat-card"><div class="num" id="statStreak">0</div><div class="lbl">Tage in Folge</div></div>
-      <div class="stat-card"><div class="num" id="statTotal">0</div><div class="lbl">Einheiten gesamt</div></div>
-    </div>
-    <div class="card">
-      <h2>Letzte Einheiten</h2>
-      <div class="log-list" id="logList"><p class="pattern-desc">Verlauf wird geladen …</p></div>
+  <!-- Quintenzirkel -->
+  <section class="panel" id="panel-quinten" role="tabpanel" aria-labelledby="tab-quinten" hidden>
+    <div class="card qz-card">
+      <div class="qz-wrap">
+        <svg id="qzSvg" viewBox="-12 -12 424 424" aria-label="Quintenzirkel"></svg>
+      </div>
+      <div class="qz-info">
+        <div class="qz-key"><span id="qzKey">G-Dur</span><small id="qzAcc"></small></div>
+        <div class="qz-row"><span class="lbl">Tonleiter</span><span class="qz-scale" id="qzScale"></span></div>
+        <div class="qz-row col"><span class="lbl">Akkorde der Tonart · antippen zum Anhören</span><div class="qz-chords" id="qzChords"></div></div>
+        <p class="qz-rel" id="qzRel"></p>
+        <div class="qz-act">
+          <button class="toggle-btn active" id="qzApply">Ins Griffbrett übernehmen</button>
+          <button class="toggle-btn" id="qzSync">Tonart vom Griffbrett</button>
+        </div>
+        <p class="pattern-desc qz-board" id="qzBoard"></p>
+        <p class="pattern-desc">Außen Dur, in der Mitte die parallelen Moll-Tonarten, innen die verminderten Akkorde. Hell markiert sind die sieben Akkorde der gewählten Tonart – direkte Nachbarn sind Subdominante (links) und Dominante (rechts). Läuft der Looper, leuchtet der gerade klingende Akkord mit.</p>
+      </div>
     </div>
   </section>
+
+
+
 </div>
 
 <script>
@@ -5200,10 +5278,10 @@ const Rhythm = (() => {
     return ev;
   }
 
-  // ---- Die Drum-Spur wandert mit: im Looper unter den Spuren, in der Begleitung als eigene Karte ----
+  // ---- Die Drum-Spur wandert mit: im Looper unter den Spuren, im Griffbrett (Begleitung) als eigene Karte ----
   const lane = document.querySelector('.lane-drums');
   document.addEventListener('tabchange', e => {
-    const home = $(e.detail === 'begleitung' ? 'beglDrumsHome' : 'loopDrumsHome');
+    const home = $(e.detail === 'griffbrett' ? 'beglDrumsHome' : 'loopDrumsHome');
     if (home && lane && lane.parentNode !== home) home.appendChild(lane);
   });
 
@@ -5946,7 +6024,7 @@ const Looper = (() => {
     chB: $('chb' + i), meter: $('tmeter' + i), mL: $('tmeter' + i).querySelector('.tm-ch.l'), mR: $('tmeter' + i).querySelector('.tm-ch.r'), pkL: 0, pkR: 0,
     ring: $('ring' + i), wave: $('wave' + i), foot: $('foot' + i), stopB: $('stop' + i), undoB: $('undo' + i),
     clearB: $('clear' + i), fileIn: $('file' + i), vol: $('vol' + i), editB: $('edit' + i), keyB: $('key' + i),
-    ing: $('ing' + i), ingV: $('ingv' + i), volV: $('volv' + i), inGain: 1, chordEl: $('chords' + i), chords: null, chOn: -1
+    ing: $('ing' + i), ingV: $('ingv' + i), volV: $('volv' + i), inGain: 1, chordEl: $('chords' + i), chords: null, chOn: -1, chdB: $('chd' + i), chdName: null
   }));
   // ---- Stereo: jedes Audio-Stück ist { l, r, length } (bei Mono-Quellen zeigen l und r auf dasselbe Feld) ----
   const S = n => ({ l: new Float32Array(n), r: new Float32Array(n), length: n });
@@ -7149,6 +7227,15 @@ const Looper = (() => {
       lastDraw = nowMs;
       const C = css || (css = colors());
       tracks.forEach(t => { drawRing(t, C); drawWave(t, C); });
+      tracks.forEach(t => {                       // klingender Akkord im Spurkopf (links neben der Tonart)
+        const c = t.chords, has = !!(t.src && c && c.L === t.L && c.segs.some(q => q.name !== '–'));
+        const i = has ? chordAt(t, mod(playFrame() - anchor, t.L)) : -1;
+        const nm = i >= 0 ? c.segs[i].name : null;
+        if (nm === t.chdName) return;
+        t.chdName = nm; if (!t.chdB) return;
+        t.chdB.hidden = nm == null;
+        if (nm != null) { t.chdB.lastChild.textContent = nm; t.chdB.classList.toggle('rest', nm === '–'); }
+      });
       tracks.forEach(t => {                       // klingenden Akkord hervorheben
         if (!t.chords || t.chordEl.hidden) return;
         const i = t.src ? chordAt(t, mod(playFrame() - anchor, t.L)) : -1;
@@ -8798,9 +8885,209 @@ const AppCfg = (() => {
 
 </script>
 <script>
+// ---- Quintenzirkel: Dur außen, Moll in der Mitte, verminderte Akkorde innen ----
+// Antippen wählt die Tonart und spielt den Akkord; die sieben Akkorde der Tonart sind hervorgehoben.
+// Der klingende Akkord des Loopers leuchtet mit, „Ins Griffbrett übernehmen“ setzt Grundton und Modus.
+(function () {
+  const $ = id => document.getElementById(id);
+  const panel = $('panel-quinten'), svg = $('qzSvg');
+  if (!panel || !svg) return;
+  const NS = 'http://www.w3.org/2000/svg';
+  // Position k im Zirkel (0 = C oben, im Uhrzeigersinn Quinten)
+  const MAJ = ['C', 'G', 'D', 'A', 'E', 'B', 'F♯', 'D♭', 'A♭', 'E♭', 'B♭', 'F'];
+  const MAJ_ALT = { 6: 'G♭' };
+  const MIN = ['Am', 'Em', 'Bm', 'F♯m', 'C♯m', 'G♯m', 'D♯m', 'B♭m', 'Fm', 'Cm', 'Gm', 'Dm'];
+  const MIN_ALT = { 6: 'E♭m' };
+  const DIM = ['B°', 'F♯°', 'C♯°', 'G♯°', 'D♯°', 'A♯°', 'E♯°', 'C°', 'G°', 'D°', 'A°', 'E°'];
+  const SHARPS = ['F♯', 'C♯', 'G♯', 'D♯', 'A♯', 'E♯'], FLATS = ['B♭', 'E♭', 'A♭', 'D♭', 'G♭', 'C♭'];
+  const LET = ['C', 'D', 'E', 'F', 'G', 'A', 'B'], LPC = [0, 2, 4, 5, 7, 9, 11];
+  const ACC = { '-2': '𝄫', '-1': '♭', '0': '', '1': '♯', '2': '𝄪' };
+  const kOfMajorPc = pc => (((pc % 12) + 12) % 12) * 7 % 12;
+  const pcOfK = k => (k * 7) % 12;
+
+  // Tonnamen wie im übrigen Programm (englisch: B = H), Vorzeichen passend zur Tonart
+  function spell(letterIdx, pc) {
+    let d = ((pc - LPC[letterIdx]) % 12 + 12) % 12; if (d > 6) d -= 12;
+    return LET[letterIdx] + ACC[d];
+  }
+  const letterOf = name => LET.indexOf(name[0]);
+  const minRoot = k => MIN[k].slice(0, -1);
+  const SCALE = { major: [0, 2, 4, 5, 7, 9, 11], minor: [0, 2, 3, 5, 7, 8, 10] };
+  // sel = { k, minor }
+  function keyInfo(sel) {
+    const tonicName = sel.minor ? minRoot(sel.k) : MAJ[sel.k];
+    const tonicPc = sel.minor ? (pcOfK(sel.k) + 9) % 12 : pcOfK(sel.k);
+    const li = letterOf(tonicName), iv = sel.minor ? SCALE.minor : SCALE.major;
+    const notes = iv.map((x, i) => spell((li + i) % 7, (tonicPc + x) % 12));
+    const qual = sel.minor ? ['m', 'dim', '', 'm', 'm', '', ''] : ['', 'm', 'm', '', '', 'm', 'dim'];
+    const rom = sel.minor ? ['i', 'ii°', 'III', 'iv', 'v', 'VI', 'VII'] : ['I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii°'];
+    const chords = notes.map((n, i) => ({ name: n + (qual[i] === 'm' ? 'm' : qual[i] === 'dim' ? '°' : ''), rom: rom[i], pc: (tonicPc + iv[i]) % 12, q: qual[i] }));
+    const acc = sel.k === 0 ? 0 : sel.k <= 6 ? sel.k : sel.k - 12;
+    return { tonicName, tonicPc, notes, chords, acc };
+  }
+  function accText(acc) {
+    if (!acc) return 'keine Vorzeichen';
+    const n = Math.abs(acc), list = (acc > 0 ? SHARPS : FLATS).slice(0, n);
+    return n + (acc > 0 ? ' ♯' : ' ♭') + ' (' + list.join(', ') + ')';
+  }
+  const keyLabel = sel => sel.minor ? minRoot(sel.k) + '-Moll' : MAJ[sel.k] + '-Dur';
+
+  // ---- Zeichnen ----
+  const C = 200, RING = { maj: [148, 196], min: [104, 148], dim: [70, 104] };
+  function arc(r0, r1, k) {
+    const a0 = (k * 30 - 105) * Math.PI / 180, a1 = (k * 30 - 75) * Math.PI / 180;
+    const p = (r, a) => (C + r * Math.cos(a)).toFixed(2) + ' ' + (C + r * Math.sin(a)).toFixed(2);
+    return 'M' + p(r1, a0) + 'A' + r1 + ' ' + r1 + ' 0 0 1 ' + p(r1, a1) + 'L' + p(r0, a1) + 'A' + r0 + ' ' + r0 + ' 0 0 0 ' + p(r0, a0) + 'Z';
+  }
+  function el(tag, attrs, parent) { const e = document.createElementNS(NS, tag); for (const a in attrs) e.setAttribute(a, attrs[a]); if (parent) parent.appendChild(e); return e; }
+  const segs = { maj: [], min: [], dim: [] };
+  ['maj', 'min', 'dim'].forEach(ring => {
+    const [r0, r1] = RING[ring], rm = (r0 + r1) / 2;
+    for (let k = 0; k < 12; k++) {
+      const g = el('g', { class: 'qz-seg qz-' + ring, 'data-ring': ring, 'data-k': k, role: 'button', tabindex: ring === 'dim' ? -1 : 0 }, svg);
+      el('path', { d: arc(r0, r1, k) }, g);
+      const a = (k * 30 - 90) * Math.PI / 180, x = C + rm * Math.cos(a), y = C + rm * Math.sin(a);
+      const name = ring === 'maj' ? MAJ[k] : ring === 'min' ? MIN[k] : DIM[k];
+      const alt = ring === 'maj' ? MAJ_ALT[k] : ring === 'min' ? MIN_ALT[k] : null;
+      const t = el('text', { x: x.toFixed(1), y: (y + (alt ? -4 : 0) - (ring === 'dim' ? 0 : 3)).toFixed(1), class: 'qz-name' }, g); t.textContent = name;
+      if (alt) { const t2 = el('text', { x: x.toFixed(1), y: (y + 9).toFixed(1), class: 'qz-alt' }, g); t2.textContent = alt; }
+      const r = el('text', { x: x.toFixed(1), y: (y + (alt ? 20 : ring === 'dim' ? 12 : 13)).toFixed(1), class: 'qz-rom' }, g);
+      g.label = name + (alt ? ' / ' + alt : ''); g.rom = r;
+      g.setAttribute('aria-label', ring === 'maj' ? name + '-Dur' : ring === 'min' ? name.slice(0, -1) + '-Moll' : name + ' vermindert');
+      segs[ring].push(g);
+    }
+  });
+  const live = el('path', { class: 'qz-live', d: '' }, svg);
+  const mark = el('path', { class: 'qz-mark', d: '' }, svg);
+  const cTitle = el('text', { x: C, y: C - 10, class: 'qz-c1' }, svg);
+  const cSub = el('text', { x: C, y: C + 12, class: 'qz-c2' }, svg);
+  const cLive = el('text', { x: C, y: C + 32, class: 'qz-c3' }, svg);
+
+  let sel = { k: 1, minor: false }, liveKey = null;
+  function render() {
+    const info = keyInfo(sel), k = sel.k, n = i => (k + i + 12) % 12;
+    // Rollen im Zirkel (Stufen der gewählten Tonart)
+    const roles = sel.minor
+      ? { maj: { [n(-1)]: 'VI', [k]: 'III', [n(1)]: 'VII' }, min: { [n(-1)]: 'iv', [k]: 'i', [n(1)]: 'v' }, dim: { [k]: 'ii°' } }
+      : { maj: { [n(-1)]: 'IV', [k]: 'I', [n(1)]: 'V' }, min: { [n(-1)]: 'ii', [k]: 'vi', [n(1)]: 'iii' }, dim: { [k]: 'vii°' } };
+    ['maj', 'min', 'dim'].forEach(ring => segs[ring].forEach((g, i) => {
+      const r = roles[ring][i];
+      g.classList.toggle('in', !!r);
+      g.classList.toggle('sel', i === k && ((ring === 'maj' && !sel.minor) || (ring === 'min' && sel.minor)));
+      g.rom.textContent = r || '';
+    }));
+    cTitle.textContent = keyLabel(sel);
+    cSub.textContent = accText(info.acc).replace(/ \(.*\)/, '');
+    $('qzKey').textContent = keyLabel(sel);
+    $('qzAcc').textContent = accText(info.acc);
+    $('qzScale').textContent = info.notes.join('  ');
+    $('qzChords').innerHTML = info.chords.map((c, i) => '<button class="qz-ch' + (c.q === 'dim' ? ' dim' : '') + '" data-i="' + i + '"><small>' + c.rom + '</small>' + c.name + '</button>').join('');
+    const par = sel.minor ? MAJ[k] + '-Dur' : minRoot(k) + '-Moll';
+    const sub = sel.minor ? minRoot(n(-1)) + '-Moll' : MAJ[n(-1)] + '-Dur';
+    const dom = sel.minor ? minRoot(n(1)) + '-Moll' : MAJ[n(1)] + '-Dur';
+    $('qzRel').innerHTML = 'Parallele <b>' + par + '</b> · Subdominante <b>' + sub + '</b> · Dominante <b>' + dom + '</b>';
+    const gk = boardKey();
+    const same = gk && gk.k === sel.k && gk.minor === sel.minor && !gk.mode;
+    $('qzApply').disabled = !!same;
+    $('qzApply').textContent = same ? '✓ Im Griffbrett' : 'Ins Griffbrett übernehmen';
+    showBoard(gk); renderChord._cur = null;
+    $('qzChords').querySelectorAll('.qz-ch').forEach(b => b.addEventListener('click', () => {
+      const c = info.chords[+b.dataset.i]; playChord(c.pc, c.q); flashBtn(b);
+    }));
+  }
+  function flashBtn(b) { b.classList.add('hit'); setTimeout(() => b.classList.remove('hit'), 260); }
+
+  // ---- Tonart des Griffbretts ----
+  const MODE_OFF = { 'Ionisch (Dur)': 0, 'Dorisch': 2, 'Phrygisch': 4, 'Lydisch': 5, 'Mixolydisch': 7, 'Äolisch (Moll)': 9, 'Lokrisch': 11 };
+  function boardKey() {
+    if (typeof rootSel === 'undefined' || typeof NOTES === 'undefined') return null;
+    const pc = NOTES.indexOf(rootSel.value), m = modeSel.value, off = MODE_OFF[m];
+    if (pc < 0 || off == null) return null;
+    if (m === 'Äolisch (Moll)') return { k: kOfMajorPc(pc + 3), minor: true };
+    return { k: kOfMajorPc(pc - off), minor: false, mode: off ? m : null, root: rootSel.value };
+  }
+  function showBoard(gk) {
+    const t = $('qzBoard');
+    if (!gk) { t.textContent = ''; mark.style.display = 'none'; return; }
+    mark.style.display = '';
+    const [r0, r1] = gk.minor ? RING.min : RING.maj; mark.setAttribute('d', arc(r0 + 3, r1 - 3, gk.k));
+    t.innerHTML = 'Griffbrett: <b>' + (gk.mode ? gk.root.replace('#', '♯') + ' ' + gk.mode + '</b> (Töne von ' + MAJ[gk.k] + '-Dur)' : keyLabel(gk) + '</b>');
+  }
+  function select(s2, play) {
+    sel = s2; render();
+    if (play) { const info = keyInfo(sel); playChord(info.tonicPc, sel.minor ? 'm' : ''); }
+  }
+  svg.addEventListener('click', e => {
+    const g = e.target.closest('.qz-seg'); if (!g) return;
+    const k = +g.dataset.k, ring = g.dataset.ring;
+    if (ring === 'dim') { playChord((pcOfK(k) + 11) % 12, 'dim'); g.classList.add('hit'); setTimeout(() => g.classList.remove('hit'), 260); return; }
+    select({ k, minor: ring === 'min' }, true);
+  });
+  svg.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.closest('.qz-seg')) { e.preventDefault(); e.target.dispatchEvent(new MouseEvent('click', { bubbles: true })); } });
+  $('qzApply').addEventListener('click', () => {
+    const info = keyInfo(sel);
+    rootSel.value = NOTES[info.tonicPc]; modeSel.value = sel.minor ? 'Äolisch (Moll)' : 'Ionisch (Dur)';
+    rootSel.dispatchEvent(new Event('change'));
+    render();
+  });
+  $('qzSync').addEventListener('click', () => { const gk = boardKey(); if (gk) select({ k: gk.k, minor: gk.minor }, false); });
+
+  // ---- Akkord anspielen (kurz angeschlagen, über den Master-Bus) ----
+  function playChord(rootPc, q) {
+    try {
+      ensureAudio(); const ac = audioCtx, out = (typeof ensureMasterBus === 'function' ? ensureMasterBus() : null) || ac.destination;
+      const iv = q === 'm' ? [0, 3, 7, 12, 15] : q === 'dim' ? [0, 3, 6, 12] : [0, 4, 7, 12, 16];
+      const base = 40 + ((rootPc - 4 + 12) % 12);                 // Grundton zwischen E2 und D#3
+      const t0 = ac.currentTime + 0.02;
+      const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.setValueAtTime(3200, t0); lp.frequency.exponentialRampToValueAtTime(900, t0 + 1.4); lp.Q.value = 0.7;
+      const bus = ac.createGain(); bus.gain.value = 0.22; lp.connect(bus); bus.connect(out);
+      [-12].concat(iv).forEach((x, i) => {
+        const f = 440 * Math.pow(2, (base + 12 + x - 69) / 12), t = t0 + i * 0.022;
+        const g = ac.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(i === 0 ? 0.32 : 0.22, t + 0.006); g.gain.exponentialRampToValueAtTime(0.001, t + 1.8);
+        ['triangle', 'sawtooth'].forEach((type, j) => { const o = ac.createOscillator(); o.type = type; o.frequency.value = f; o.detune.value = j ? 4 : -3; const og = ac.createGain(); og.gain.value = j ? 0.18 : 0.8; o.connect(og); og.connect(g); o.start(t); o.stop(t + 1.9); });
+        g.connect(lp);
+      });
+      setTimeout(() => { try { bus.disconnect(); } catch (e) {} }, 2300);
+    } catch (e) {}
+  }
+
+  // ---- klingender Akkord aus dem Looper ----
+  function parseChord(name) {
+    const m = /^([A-G]#?)(.*)$/.exec(name || ''); if (!m) return null;
+    const pc = NOTES.indexOf(m[1]), suf = m[2]; if (pc < 0) return null;
+    if (/^dim/.test(suf)) return { ring: 'dim', k: kOfMajorPc(pc + 1) };
+    if (/^m(?!aj)/.test(suf)) return { ring: 'min', k: kOfMajorPc(pc + 3) };
+    return { ring: 'maj', k: kOfMajorPc(pc) };
+  }
+  function renderChord() {
+    const b = document.querySelector('.chdbadge:not([hidden]) b'), name = b ? b.textContent : '';
+    if (name === renderChord._cur) return; renderChord._cur = name;
+    const p = name && name !== '–' ? parseChord(name) : null;
+    if (!p) { live.setAttribute('d', ''); cLive.textContent = ''; return; }
+    const [r0, r1] = RING[p.ring]; live.setAttribute('d', arc(r0 - 1, r1 + 1, p.k));
+    cLive.textContent = '♪ ' + name.replace('#', '♯');
+  }
+  let timer = null;
+  function onTab(name) {
+    clearInterval(timer); timer = null;
+    if (name !== 'quinten') return;
+    const gk = boardKey(); if (gk) select({ k: gk.k, minor: gk.minor }, false); else render();
+    renderChord._cur = null; renderChord(); timer = setInterval(renderChord, 120);
+  }
+  document.addEventListener('tabchange', e => onTab(e.detail));
+  if (typeof rootSel !== 'undefined') { rootSel.addEventListener('change', () => { if (!panel.hidden) render(); }); modeSel.addEventListener('change', () => { if (!panel.hidden) render(); }); }
+  render();
+  window.Quinten = { select: (k, minor) => select({ k, minor: !!minor }, false), sel: () => Object.assign({}, sel), info: () => keyInfo(sel), parseChord };
+})();
+
+</script>
+<script>
 (function () {
   const tabs = document.querySelectorAll('.tab');
+  // frühere Reiter (Begleitung, Song, Log) liegen jetzt im Griffbrett
+  const OLD = { begleitung: 'griffbrett', song: 'griffbrett', log: 'griffbrett' };
   function show(name) {
+    name = OLD[name] || name;
     tabs.forEach(t => {
       const on = t.dataset.tab === name;
       t.setAttribute('aria-selected', on ? 'true' : 'false');
@@ -8810,10 +9097,11 @@ const AppCfg = (() => {
     document.dispatchEvent(new CustomEvent('tabchange', { detail: name }));
   }
   tabs.forEach(t => t.addEventListener('click', () => show(t.dataset.tab)));
-  let start = 'griffbrett';
-  const hash = (location.hash || '').slice(1);
-  try { start = localStorage.getItem('3nps-tab') || start; } catch (e) {}
+  let start = 'looper';
+  const hash = OLD[(location.hash || '').slice(1)] || (location.hash || '').slice(1);
+  try { start = OLD[localStorage.getItem('3nps-tab')] || localStorage.getItem('3nps-tab') || start; } catch (e) {}
   if (document.getElementById('panel-' + hash)) start = hash;
+  if (!document.getElementById('panel-' + start)) start = 'looper';
   if (document.getElementById('panel-' + start)) show(start);
 
   // Status des Metronoms auch in der Tempo-Leiste zeigen
