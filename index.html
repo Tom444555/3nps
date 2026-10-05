@@ -221,7 +221,11 @@
     box-shadow: 0 1px 0 rgba(255,255,255,.04) inset;
   }
   .track.t2 { --tc: var(--t2); } .track.t3 { --tc: var(--t3); }
-  .track-head { display: flex; align-items: center; gap: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--line-soft); }
+  .track-head { display: flex; align-items: center; gap: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--line-soft); min-height: 52px; }
+  .th-left { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-width: 0; }
+  .th-name { display: flex; align-items: center; gap: 8px; }
+  .th-chords { margin-left: auto; display: flex; gap: 6px; align-items: stretch; }
+  .th-chords[hidden] { display: none; }
   .chip { width: 10px; height: 10px; border-radius: 3px; background: var(--tc); box-shadow: 0 0 6px var(--tc); }
   .tname { font: 600 0.8rem var(--f-body); }
   .ring { width: 100%; aspect-ratio: 1; max-width: 100%; display: block; }
@@ -412,17 +416,19 @@
     color: #08090b; box-shadow: 0 0 14px var(--tc), 0 1px 0 rgba(255,255,255,.45) inset, 0 -2px 0 rgba(0,0,0,.2) inset;
   }
   .keybadge small { font: 700 0.52rem var(--f-body); letter-spacing: .14em; text-transform: uppercase; opacity: .7; }
-  /* klingender Akkord links neben der Tonart */
+  /* Spurkopf rechts: klingender und kommender Akkord */
+  .track-head .keybadge { margin-left: 0; }
   .chdbadge {
-    margin-left: auto; display: inline-flex; flex-direction: column; align-items: center; line-height: 1.05;
-    min-width: 3.4em; padding: 4px 10px 5px; border-radius: 9px; border: 1px solid var(--tc);
+    display: inline-flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.05;
+    min-width: 3.6em; padding: 4px 10px 5px; border-radius: 9px; border: 1px solid var(--tc);
     background: rgba(0,0,0,.45); color: var(--tc); box-shadow: 0 0 10px color-mix(in srgb, var(--tc) 45%, transparent), inset 0 2px 6px rgba(0,0,0,.6);
   }
-  .chdbadge[hidden] { display: none; }
-  .chdbadge b { font: 800 1.08rem var(--f-mono); letter-spacing: .01em; white-space: nowrap; }
+  .chdbadge b { font: 800 1.3rem var(--f-mono); letter-spacing: .01em; white-space: nowrap; }
   .chdbadge small { font: 700 0.52rem var(--f-body); letter-spacing: .14em; text-transform: uppercase; opacity: .7; color: var(--muted); }
   .chdbadge.rest b { color: var(--muted); }
-  .chdbadge:not([hidden]) + .keybadge { margin-left: 0; }
+  .chdbadge.next { border-color: var(--line); box-shadow: inset 0 2px 6px rgba(0,0,0,.6); color: var(--ink); opacity: .8; }
+  .chdbadge.next b { font-size: 1.05rem; }
+  .chdbadge.next[hidden] { display: none; }
   .master-fader { flex: 1 1 170px; }
   .master-fader b { font: 600 0.72rem var(--f-mono); color: var(--muted); min-width: 44px; text-align: right; }
   .modal { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(4,3,2,.72); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
@@ -555,12 +561,6 @@
 
 
   /* Akkordleiste unter der Wellenform: Breite je Akkord = Dauer, der klingende Akkord leuchtet */
-  .chordbar { display: flex; height: 20px; margin-top: -4px; border-radius: 4px; overflow: hidden; background: rgba(0,0,0,.28); border: 1px solid rgba(255,255,255,.05); }
-  .chordbar .ch { flex: 1 1 0; min-width: 0; appearance: none; border: 0; border-left: 1px solid rgba(255,255,255,.1); background: transparent; color: var(--muted);
-    font: 700 0.7rem var(--f-mono); padding: 0 3px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: clip; cursor: pointer; touch-action: manipulation; }
-  .chordbar .ch:first-child { border-left: 0; }
-  .chordbar .ch.rest { color: rgba(255,255,255,.18); }
-  .chordbar .ch.on { color: #0b0b0c; background: var(--tc); box-shadow: 0 0 10px color-mix(in srgb, var(--tc) 60%, transparent); }
   .ed-chords { font: 700 0.86rem var(--f-mono); color: var(--ink); line-height: 1.5; word-break: break-word; }
   .ed-chords b { color: var(--tc); font-weight: 700; }
   /* ---- Quintenzirkel ---- */
@@ -1137,7 +1137,7 @@
 <body>
 <header class="control-bar">
   <div class="cb-inner">
-    <div class="brand">Looper <span>3nps · v21</span></div>
+    <div class="brand">Looper <span>3nps · v22</span></div>
     <div class="transport">
       <button class="tbtn" id="playBtn" aria-label="Metronom starten oder stoppen">▶</button>
     </div>
@@ -1316,13 +1316,12 @@
       </div>
       <div class="tracks">
         <div class="track t1" data-state="empty">
-          <div class="track-head"><span class="chip"></span><span class="tname">Spur 1</span><span class="chb" id="chb0" hidden></span><span class="chdbadge" id="chd0" hidden aria-live="off" title="Klingender Akkord"><small>Akkord</small><b></b></span><button class="keybadge" id="key0" hidden></button></div>
+          <div class="track-head"><div class="th-left"><div class="th-name"><span class="chip"></span><span class="tname">Spur 1</span><span class="chb" id="chb0" hidden></span></div><button class="keybadge" id="key0" hidden></button></div><div class="th-chords" id="thc0" hidden><span class="chdbadge" id="chd0" title="Klingender Akkord"><small>Akkord</small><b></b></span><span class="chdbadge next" id="chn0" title="Nächster Akkord"><small>Danach</small><b></b></span></div></div>
           <div class="ring-row">
             <canvas class="ring" id="ring0" aria-label="Taktkreis Spur 1"></canvas>
             <div class="tmeter" id="tmeter0" aria-hidden="true"><div class="tm-ch l"><div class="tm-fill"></div><div class="tm-pk"></div></div><div class="tm-ch r"><div class="tm-fill"></div><div class="tm-pk"></div></div><div class="tm-th"></div></div>
           </div>
           <canvas class="wave" id="wave0" aria-label="Wellenform Spur 1"></canvas>
-          <div class="chordbar" id="chords0" hidden aria-label="Akkorde Spur 1"></div>
           <button class="foot" id="foot0" data-state="empty"><span class="led"></span><span class="lbl">REC</span></button>
           <div class="mini">
             <button id="stop0" aria-label="Spur 1 stoppen" title="Stopp">■</button>
@@ -1337,13 +1336,12 @@
           <div id="eqp0" hidden></div>
         </div>
         <div class="track t2" data-state="empty">
-          <div class="track-head"><span class="chip"></span><span class="tname">Spur 2</span><span class="chb" id="chb1" hidden></span><span class="chdbadge" id="chd1" hidden aria-live="off" title="Klingender Akkord"><small>Akkord</small><b></b></span><button class="keybadge" id="key1" hidden></button></div>
+          <div class="track-head"><div class="th-left"><div class="th-name"><span class="chip"></span><span class="tname">Spur 2</span><span class="chb" id="chb1" hidden></span></div><button class="keybadge" id="key1" hidden></button></div><div class="th-chords" id="thc1" hidden><span class="chdbadge" id="chd1" title="Klingender Akkord"><small>Akkord</small><b></b></span><span class="chdbadge next" id="chn1" title="Nächster Akkord"><small>Danach</small><b></b></span></div></div>
           <div class="ring-row">
             <canvas class="ring" id="ring1" aria-label="Taktkreis Spur 2"></canvas>
             <div class="tmeter" id="tmeter1" aria-hidden="true"><div class="tm-ch l"><div class="tm-fill"></div><div class="tm-pk"></div></div><div class="tm-ch r"><div class="tm-fill"></div><div class="tm-pk"></div></div><div class="tm-th"></div></div>
           </div>
           <canvas class="wave" id="wave1" aria-label="Wellenform Spur 2"></canvas>
-          <div class="chordbar" id="chords1" hidden aria-label="Akkorde Spur 2"></div>
           <button class="foot" id="foot1" data-state="empty"><span class="led"></span><span class="lbl">REC</span></button>
           <div class="mini">
             <button id="stop1" aria-label="Spur 2 stoppen" title="Stopp">■</button>
@@ -1358,13 +1356,12 @@
           <div id="eqp1" hidden></div>
         </div>
         <div class="track t3" data-state="empty">
-          <div class="track-head"><span class="chip"></span><span class="tname">Spur 3</span><span class="chb" id="chb2" hidden></span><span class="chdbadge" id="chd2" hidden aria-live="off" title="Klingender Akkord"><small>Akkord</small><b></b></span><button class="keybadge" id="key2" hidden></button></div>
+          <div class="track-head"><div class="th-left"><div class="th-name"><span class="chip"></span><span class="tname">Spur 3</span><span class="chb" id="chb2" hidden></span></div><button class="keybadge" id="key2" hidden></button></div><div class="th-chords" id="thc2" hidden><span class="chdbadge" id="chd2" title="Klingender Akkord"><small>Akkord</small><b></b></span><span class="chdbadge next" id="chn2" title="Nächster Akkord"><small>Danach</small><b></b></span></div></div>
           <div class="ring-row">
             <canvas class="ring" id="ring2" aria-label="Taktkreis Spur 3"></canvas>
             <div class="tmeter" id="tmeter2" aria-hidden="true"><div class="tm-ch l"><div class="tm-fill"></div><div class="tm-pk"></div></div><div class="tm-ch r"><div class="tm-fill"></div><div class="tm-pk"></div></div><div class="tm-th"></div></div>
           </div>
           <canvas class="wave" id="wave2" aria-label="Wellenform Spur 3"></canvas>
-          <div class="chordbar" id="chords2" hidden aria-label="Akkorde Spur 3"></div>
           <button class="foot" id="foot2" data-state="empty"><span class="led"></span><span class="lbl">REC</span></button>
           <div class="mini">
             <button id="stop2" aria-label="Spur 3 stoppen" title="Stopp">■</button>
@@ -6024,7 +6021,7 @@ const Looper = (() => {
     chB: $('chb' + i), meter: $('tmeter' + i), mL: $('tmeter' + i).querySelector('.tm-ch.l'), mR: $('tmeter' + i).querySelector('.tm-ch.r'), pkL: 0, pkR: 0,
     ring: $('ring' + i), wave: $('wave' + i), foot: $('foot' + i), stopB: $('stop' + i), undoB: $('undo' + i),
     clearB: $('clear' + i), fileIn: $('file' + i), vol: $('vol' + i), editB: $('edit' + i), keyB: $('key' + i),
-    ing: $('ing' + i), ingV: $('ingv' + i), volV: $('volv' + i), inGain: 1, chordEl: $('chords' + i), chords: null, chOn: -1, chdB: $('chd' + i), chdName: null
+    ing: $('ing' + i), ingV: $('ingv' + i), volV: $('volv' + i), inGain: 1, chords: null, thC: $('thc' + i), chdB: $('chd' + i), chnB: $('chn' + i), chdName: null
   }));
   // ---- Stereo: jedes Audio-Stück ist { l, r, length } (bei Mono-Quellen zeigen l und r auf dasselbe Feld) ----
   const S = n => ({ l: new Float32Array(n), r: new Float32Array(n), length: n });
@@ -7227,20 +7224,17 @@ const Looper = (() => {
       lastDraw = nowMs;
       const C = css || (css = colors());
       tracks.forEach(t => { drawRing(t, C); drawWave(t, C); });
-      tracks.forEach(t => {                       // klingender Akkord im Spurkopf (links neben der Tonart)
+      tracks.forEach(t => {                       // Spurkopf rechts: klingender und kommender Akkord
         const c = t.chords, has = !!(t.src && c && c.L === t.L && c.segs.some(q => q.name !== '–'));
         const i = has ? chordAt(t, mod(playFrame() - anchor, t.L)) : -1;
         const nm = i >= 0 ? c.segs[i].name : null;
         if (nm === t.chdName) return;
-        t.chdName = nm; if (!t.chdB) return;
-        t.chdB.hidden = nm == null;
-        if (nm != null) { t.chdB.lastChild.textContent = nm; t.chdB.classList.toggle('rest', nm === '–'); }
-      });
-      tracks.forEach(t => {                       // klingenden Akkord hervorheben
-        if (!t.chords || t.chordEl.hidden) return;
-        const i = t.src ? chordAt(t, mod(playFrame() - anchor, t.L)) : -1;
-        if (i === t.chOn) return;
-        const bs = t.chordEl.children; if (t.chOn >= 0 && bs[t.chOn]) bs[t.chOn].classList.remove('on'); if (i >= 0 && bs[i]) bs[i].classList.add('on'); t.chOn = i;
+        t.chdName = nm; if (!t.thC) return;
+        t.thC.hidden = nm == null;
+        if (nm == null) return;
+        t.chdB.lastChild.textContent = nm; t.chdB.classList.toggle('rest', nm === '–');
+        const nx = nextChord(c, i);
+        t.chnB.hidden = !nx; if (nx) t.chnB.lastChild.textContent = nx;
       });
       drawEditor(C);
       const bgS = (meterEl.parentNode.clientWidth || 200) + 'px 100%', hot = !!rec && !rec.armed;
@@ -7792,13 +7786,16 @@ const Looper = (() => {
     out.forEach(q => { if (q.e - q.a < 1) return; const l = m[m.length - 1]; if (l && l.name === q.name && Math.abs(l.e - q.a) < 4) l.e = q.e; else m.push(Object.assign({}, q)); });
     return { segs: m, L };
   }
-  const chordName = n => n === '–' ? '' : n;
   function chordAt(t, f) { const c = t.chords; if (!c) return -1; for (let i = 0; i < c.segs.length; i++) if (f >= c.segs[i].a && f < c.segs[i].e) return i; return -1; }
+  // nächster anderer Akkord nach Abschnitt i (über das Loop-Ende hinweg)
+  function nextChord(c, i) {
+    const n = c.segs.length, cur = c.segs[i].name;
+    for (let k = 1; k < n; k++) { const q = c.segs[(i + k) % n].name; if (q !== '–' && q !== cur) return q; }
+    return '';
+  }
   function showChords(t) {
-    const el = t.chordEl; if (!el) return;
-    const c = t.chords, ok = !!(c && c.L === t.L && c.segs.some(q => q.name !== '–'));
-    el.hidden = !ok; t.chOn = -1;
-    el.innerHTML = ok ? c.segs.map((q, i) => '<button class="ch' + (q.name === '–' ? ' rest' : '') + '" data-i="' + i + '" style="flex-grow:' + Math.max(1, q.e - q.a) + '" title="' + (q.name === '–' ? 'kein Akkord' : q.name) + '">' + chordName(q.name) + '</button>').join('') : '';
+    t.chdName = undefined;                       // Spurkopf beim nächsten Bild neu setzen
+    if (t.thC && !(t.chords && t.chords.L === t.L)) t.thC.hidden = true;
     if (ed.t === t) showEdChords();
   }
   // Im Editor: Akkorde je Takt als Zeile („Am | F | C G | …“)
@@ -7814,10 +7811,6 @@ const Looper = (() => {
     }
     el.innerHTML = 'Akkorde: <b>' + bars.join('</b> | <b>') + '</b>' + (Math.abs(c.tune || 0) >= 8 ? ' <span class="caption">(Stimmung ' + (c.tune > 0 ? '+' : '') + c.tune + ' Cent)</span>' : '');
   }
-  tracks.forEach(t => {
-    if (!t.chordEl) return;
-    t.chordEl.addEventListener('click', e => { const b = e.target.closest('.ch'); if (!b || !t.chords || rec) return; const q = t.chords.segs[+b.dataset.i]; if (q) seekTo(t, q.a); });
-  });
   $('edKey').addEventListener('click', async () => {
     if (!ed.t) return;
     $('edKeyRes').textContent = 'analysiere …'; $('edChords').textContent = 'Akkorde: werden erkannt …';
@@ -8454,6 +8447,15 @@ const Looper = (() => {
     _stereo: i => { const t = tracks[i]; if (!t || !t.mix) return null; const x = t.mix; let a = 0, b = 0, ab = 0; for (let k = 0; k < x.length; k += 4) { a += x.l[k] * x.l[k]; b += x.r[k] * x.r[k]; ab += x.l[k] * x.r[k]; } const n = Math.ceil(x.length / 4); return { L: t.L, shared: x.r === x.l, rmsL: Math.sqrt(a / n), rmsR: Math.sqrt(b / n), corr: ab / Math.sqrt(a * b + 1e-20), layers: t.layers.map(ly => ly.r === ly.l ? 1 : 2), inInfo: ($('inChanInfo') || {}).textContent, stereoSeen, inChans }; },
     debug: () => ({ mic: micReady, sr, baseL, anchor, now: nowFrame(), countEnd, bpm: bpm(), drums: Object.assign({}, Rhythm.debug(), { on: Rhythm.on() }), level, drone: droneOn, tracks: tracks.map(t => ({ L: t.L, state: t.state, origPos: t.origPos, layers: t.layers.length, orig: t.orig ? { bars: t.orig.bars, downs: t.orig.downs.slice(0, 64), loopFile: t.orig.loopFile, bpm: t.orig.bpm } : null, key: t.key ? Analyzer.label(t.key) : null })) }),
     undo: i => undoTrack(tracks[i]),
+    // klingender Akkord der ersten laufenden Spur mit erkannten Akkorden (für den Quintenzirkel)
+    nowChord: () => {
+      for (const t of tracks) {
+        const c = t.chords; if (!t.src || !c || c.L !== t.L || !c.segs.some(q => q.name !== '–')) continue;
+        const i = chordAt(t, mod(playFrame() - anchor, t.L)); if (i < 0) continue;
+        return { name: c.segs[i].name, next: nextChord(c, i), track: t.i };
+      }
+      return null;
+    },
     _chords: i => tracks[i].chords ? { segs: tracks[i].chords.segs.map(q => ({ name: q.name, a: q.a, e: q.e })), L: tracks[i].chords.L, tune: tracks[i].chords.tune } : null,
     _detectChords: i => detectTrackChords(tracks[i]).then(() => tracks[i].chords && tracks[i].chords.segs.map(q => q.name)),
     _shift: (i, ms) => rotateTrack(tracks[i], Math.round(ms / 1000 * sr)),
@@ -9060,7 +9062,7 @@ const AppCfg = (() => {
     return { ring: 'maj', k: kOfMajorPc(pc) };
   }
   function renderChord() {
-    const b = document.querySelector('.chdbadge:not([hidden]) b'), name = b ? b.textContent : '';
+    const nc = typeof Looper !== 'undefined' && Looper.nowChord ? Looper.nowChord() : null, name = nc ? nc.name : '';
     if (name === renderChord._cur) return; renderChord._cur = name;
     const p = name && name !== '–' ? parseChord(name) : null;
     if (!p) { live.setAttribute('d', ''); cLive.textContent = ''; return; }
