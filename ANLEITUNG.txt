@@ -210,8 +210,8 @@ Alles geht direkt auf dem iPad, ohne Computer.
      und eine Sicherheitsregel (Content Security Policy) verbietet Verbindungen zu fremden Servern.
 
 Gut zu wissen
-   - Übungslog und Ideen werden nur auf diesem iPad gespeichert. Die bisherigen
-     Einheiten aus Claude sind beim ersten Start schon drin.
+   - Übungslog und Ideen werden nur auf diesem iPad gespeichert. Eine neue Installation
+     startet mit leerem Log.
    - Wichtige Ideen über „Teilen“ als WAV z. B. in Dateien oder iCloud sichern,
      denn beim Löschen der App gehen die Daten verloren.
    - Update einspielen: geänderte Dateien auf GitHub hochladen (ersetzen die alten; im Zweifel alle),
