@@ -1,0 +1,62 @@
+  <section class="panel" id="panel-jam" role="tabpanel" aria-labelledby="tab-jam" hidden>
+    <div class="card">
+      <div class="jam-top">
+        <button class="play-btn" id="jamPlay" aria-label="Jam starten">▶</button>
+        <div class="jam-tempo">
+          <span class="lbl">Tempo</span>
+          <div class="jam-bpmrow"><button class="toggle-btn" id="jamBpmDown" aria-label="langsamer">−</button><b id="jamBpm">80</b><span class="jam-unit">BPM</span><button class="toggle-btn" id="jamBpmUp" aria-label="schneller">+</button></div>
+          <span class="jam-pass" id="jamPass"></span>
+        </div>
+        <label class="field jam-key"><span>Tonart</span><select id="jamKey" aria-label="Tonart"></select></label>
+        <label class="field jam-pre"><span>Vorlage</span><select id="jamPre" aria-label="Vorlage"></select></label>
+      </div>
+      <div class="card-head"><h2>Akkordfolge</h2><span class="jam-len" id="jamLen"></span></div>
+      <div class="jam-seq" id="jamSeq"></div>
+      <div class="jam-edit" id="jamEdit" hidden>
+        <span class="lbl">Länge</span>
+        <button class="toggle-btn" data-len="2">½ Takt</button><button class="toggle-btn" data-len="4">1 Takt</button><button class="toggle-btn" data-len="8">2 Takte</button><button class="toggle-btn" data-len="16">4 Takte</button>
+        <span class="jam-sep"></span>
+        <button class="toggle-btn" data-act="left" aria-label="nach links">◀</button><button class="toggle-btn" data-act="right" aria-label="nach rechts">▶</button>
+        <button class="toggle-btn" data-act="dup">Verdoppeln</button><button class="toggle-btn" data-act="del">Entfernen</button>
+      </div>
+      <div class="jam-add">
+        <span class="lbl">Akkord anhängen (Akkorde der Tonart)</span>
+        <div class="sf-dia" id="jamPal"></div>
+      </div>
+      <div class="jam-textrow">
+        <label class="field"><span>Oder eintippen – z. B. „Am F C G“, „Am7:2 D7“ (2 Takte), „C:½ G:½“</span><input type="text" id="jamText" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Akkordfolge eintippen"></label>
+        <button class="toggle-btn active" id="jamApply">Übernehmen</button>
+        <button class="toggle-btn" id="jamUndo">↶ Letzten</button>
+        <button class="toggle-btn" id="jamClear">Leeren</button>
+      </div>
+      <div class="status-line" id="jamStatus">Bereit</div>
+    </div>
+
+    <div class="sf-two">
+      <div class="card">
+        <h2>Begleitung</h2>
+        <div class="jam-mix">
+          <label class="check"><input type="checkbox" id="jamDrums"> Drums</label>
+          <button class="toggle-btn" id="jamBass">Bass aus</button>
+          <label class="check"><input type="checkbox" id="jamPad"> Fläche</label>
+          <div class="row"><span class="lbl">Fläche</span><input type="range" id="jamPadVol" min="0" max="100" step="5" value="45" aria-label="Lautstärke Fläche"></div>
+        </div>
+        <p class="pattern-desc">Der Bass spielt mit der Kick den Grundton und die Quinte des jeweiligen Akkords. Schlagzeug-Stil und Designer: unten.</p>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>Tempo-Trainer</h2><label class="check"><input type="checkbox" id="jamTr"> an</label></div>
+        <div class="jam-tr" id="jamTrBox">
+          <label class="field"><span>Start</span><input type="number" id="jamTr_start" min="40" max="200" inputmode="numeric"></label>
+          <label class="field"><span>Ziel</span><input type="number" id="jamTr_target" min="40" max="200" inputmode="numeric"></label>
+          <label class="field"><span>Schritt (BPM)</span><input type="number" id="jamTr_step" min="1" max="20" inputmode="numeric"></label>
+          <label class="field"><span>alle … Durchläufe</span><input type="number" id="jamTr_every" min="1" max="16" inputmode="numeric"></label>
+        </div>
+        <p class="pattern-desc">Startet beim Start-Tempo und wird nach der eingestellten Zahl von Durchläufen schneller, bis das Ziel erreicht ist – ohne Sprung im Groove.</p>
+      </div>
+    </div>
+
+    <div class="card begl-drums">
+      <h2>Drums &amp; Designer</h2>
+      <div id="jamDrumsHome"></div>
+    </div>
+  </section>

@@ -2519,6 +2519,8 @@ const Looper = (() => {
       return { tracks: list, track: t.i, segs: t.chords.segs.map(q => ({ name: q.name, a: q.a, e: q.e })), L: t.L, pos, downs, sr,
         key: t.key ? { pc: t.key.pc, major: !!t.key.major } : null, playing: !!t.src };
     },
+    busy: () => !!rec || tracks.some(t => !!t.src),     // spielt oder nimmt gerade etwas auf (für den Jam)
+    stopAll: () => { const b = $('loopAll'); if (b && tracks.some(t => !!t.src) && !rec) b.click(); },
     seek: (i, f) => { const t = tracks[i]; if (t && t.L && !rec) seekTo(t, f); },
     nowChord: () => {
       for (const t of tracks) {

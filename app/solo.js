@@ -130,10 +130,15 @@
     if (m === 'Dorisch' || m === 'Phrygisch') return { pc, major: false };
     return { pc: md(pc - off), major: true };
   }
-  function info() { return typeof Looper !== 'undefined' && Looper.chordInfo ? Looper.chordInfo(state.track) : { tracks: [], track: -1 }; }
+  function info() {
+    const L = typeof Looper !== 'undefined' && Looper.chordInfo ? Looper.chordInfo(state.track) : { tracks: [], track: -1 };
+    // Läuft der Jam (und kein Loop), zeigt der Solo Finder dessen Akkordfolge
+    if (window.Jam && Jam.active() && !(L && L.playing)) { const j = Jam.chordInfo(); if (j) { j.tracks = L.tracks || []; return j; } }
+    return L;
+  }
   function currentKey(ci) {
     if (state.keyOv !== 'auto') { const [p, m] = state.keyOv.split(':'); return { k: { pc: +p, major: m === 'M' }, src: 'manuell' }; }
-    if (ci && ci.key) return { k: ci.key, src: 'erkannt in Spur ' + (ci.track + 1) };
+    if (ci && ci.key) return { k: ci.key, src: ci.jam ? 'aus dem Jam' : 'erkannt in Spur ' + (ci.track + 1) };
     return { k: boardKey(), src: 'vom Griffbrett' };
   }
   const segAt = (ci, f) => { if (!ci.segs) return -1; for (let i = 0; i < ci.segs.length; i++) if (f >= ci.segs[i].a && f < ci.segs[i].e) return i; return -1; };
@@ -366,7 +371,7 @@
     const b = e.target.closest('.sf-seg'); if (!b || b.classList.contains('rest')) return;
     const ci = info(), i = +b.dataset.i, s = ci.segs && ci.segs[i]; if (!s) return;
     const c = parseChord(s.name);
-    if (ci.playing) { Looper.seek(ci.track, s.a + 1); }
+    if (ci.playing && !ci.jam) { Looper.seek(ci.track, s.a + 1); }
     else { state.focus = { c, seg: i, live: false }; if (window.Quinten) Quinten.play(c.r, c.iv); }
     state.neck = 'grip'; state.gripC = null; state.gripI = 0;
     update(true);

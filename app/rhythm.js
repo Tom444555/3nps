@@ -277,9 +277,16 @@ const Rhythm = (() => {
     else { [6, 7, 8].forEach((s, i) => z('snare', s, i ? 1 : 2)); [9, 10].forEach(s => z('tomh', s, s === 9 ? 2 : 1)); z('toml', 11, 2); z('kick', 9, 1); }
     return { p, crash: false };
   }
+  let lastSd = 0;
   function tick() {
     if (!audioCtx) return;
     const now = audioCtx.currentTime, g = grid(), sd = stepDur();
+    // Tempo geändert, Drums laufen frei: Schrittzählung nahtlos fortsetzen (kein Sprung im Muster)
+    if (!g.cycle && lastSd && Math.abs(sd - lastSd) > 1e-9 && nextT > now - 0.2 && lastAnchor === g.anchor) {
+      const kNext = Math.round((nextT - g.anchor) / lastSd);
+      freeAnchor = nextT - kNext * sd; g.anchor = freeAnchor; lastAnchor = freeAnchor;
+    }
+    lastSd = sd;
     // Rastersprung (neuer Loop-Anfang, anderes Raster): schon geplante Schläge verwerfen und neu ansetzen
     if (lastAnchor !== g.anchor || lastRes !== res || nextT < now - 0.2) {
       const jump = lastAnchor !== null;
@@ -315,8 +322,9 @@ const Rhythm = (() => {
       nextT = nx;
     }
   }
+  let jamNeed = false;
   function clock() {
-    const need = on || bassNeed;
+    const need = on || bassNeed || jamNeed;
     if (need && !timer) {
       ensureAudio(); ensureBus();
       if (!gridFn || !gridFn()) { if (!lastG) freeAnchor = audioCtx.currentTime + 0.06; }
@@ -475,7 +483,7 @@ const Rhythm = (() => {
   // ---- Die Drum-Spur wandert mit: im Looper unter den Spuren, im Griffbrett (Begleitung) als eigene Karte ----
   const lane = document.querySelector('.lane-drums');
   document.addEventListener('tabchange', e => {
-    const home = $(e.detail === 'griffbrett' ? 'beglDrumsHome' : 'loopDrumsHome');
+    const home = $(e.detail === 'griffbrett' ? 'beglDrumsHome' : e.detail === 'jam' ? 'jamDrumsHome' : 'loopDrumsHome');
     if (home && lane && lane.parentNode !== home) home.appendChild(lane);
   });
 
@@ -504,6 +512,10 @@ const Rhythm = (() => {
     getState, setState, setLite, setEq: v => setDrumEq(v, false), getEq: () => drumEq.slice(),
     INSTR, on: () => on, setOn, setGrid: fn => { gridFn = fn; },
     setBass: v => { bassNeed = !!v; clock(); },
+    // Jam: hält den Taktgeber am Laufen und bekommt jeden Schritt vor dem Bass gemeldet (Akkordwechsel zuerst)
+    setJam: v => { jamNeed = !!v; clock(); },
+    addListener: (fn, first) => { if (first) listeners.unshift(fn); else listeners.push(fn); return () => { const i = listeners.indexOf(fn); if (i >= 0) listeners.splice(i, 1); }; },
+    free: () => !(gridFn && gridFn()),
     nextBarTime: () => { const g = grid(), bd = barDur(), t = audioCtx.currentTime + 0.15; return g.anchor + Math.ceil((t - g.anchor) / bd) * bd; },
     resync: () => { lastAnchor = null; },
     stepDur, res: () => res, midiEvents, setDetected, name: () => styleEl.selectedOptions[0] ? styleEl.selectedOptions[0].text : '',

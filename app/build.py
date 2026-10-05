@@ -12,7 +12,7 @@ tabs = rd(D + 'tabs.js')
 storage = rd(A + 'storage.js')
 looper = rd(A + 'looper.js')
 lhtml = rd(A + 'looper.html')
-lcss = rd(A + 'looper.css') + rd(A + 'circle.css') + rd(A + 'solo.css')
+lcss = rd(A + 'looper.css') + rd(A + 'circle.css') + rd(A + 'solo.css') + rd(A + 'jam.css')
 # Früher wurde das persönliche Übungslog beim ersten Start eingespielt. Für die öffentliche App bleibt es leer.
 seeds = []
 
@@ -82,12 +82,16 @@ EARLY = "<script>try{var t=localStorage.getItem('3nps-theme');if(t&&t!=='nordic'
 ACCEPT = 'audio/*,video/*,.mp3,.wav,.wave,.aif,.aiff,.aifc,.m4a,.m4b,.aac,.caf,.flac,.alac,.ogg,.oga,.opus,.mp4,.mov,.3gp,.webm,.amr'
 head = head.replace('</style>', lcss + metal + themecss + '</style>', 1)
 head = head.replace('step="1" value="80"', 'step="any" value="80"')
-head = head.replace('LOOPER_PANEL', lhtml).replace('CIRCLE_PANEL', rd(A + 'circle.html')).replace('SOLO_PANEL', rd(A + 'solo.html'))
+head = head.replace('LOOPER_PANEL', lhtml).replace('CIRCLE_PANEL', rd(A + 'circle.html')).replace('SOLO_PANEL', rd(A + 'solo.html')).replace('JAM_PANEL', rd(A + 'jam.html'))
 head = head.replace('AUDIO_ACCEPT', ACCEPT)
-assert 'AUDIO_ACCEPT' not in head and 'LOOPER_PANEL' not in head and 'CIRCLE_PANEL' not in head and 'SOLO_PANEL' not in head
+assert 'AUDIO_ACCEPT' not in head and 'LOOPER_PANEL' not in head and 'CIRCLE_PANEL' not in head and 'SOLO_PANEL' not in head and 'JAM_PANEL' not in head
+# Bass kann einem Akkord folgen (Jam): window.bassChordAt() liefert Grundton und Quinte des klingenden Akkords
+old_b = "  const rootIdx = NOTES.indexOf(rootSel.value);\n  const intervals = MODES[modeSel.value];\n  const baseMidi = 36 + rootIdx;\n  const midi = deg === 'fifth' ? baseMidi + intervals[4] : baseMidi;"
+assert old_b in script
+script = script.replace(old_b, "  const ovc = typeof window.bassChordAt === 'function' ? window.bassChordAt(t) : null;\n  const rootIdx = ovc ? ovc.root : NOTES.indexOf(rootSel.value);\n  const intervals = MODES[modeSel.value];\n  const baseMidi = 36 + rootIdx;\n  const midi = deg === 'fifth' ? baseMidi + (ovc ? ovc.fifth : intervals[4]) : baseMidi;", 1)
 script = script.replace("'Aus – folgt dem Tempo unten'", "'Aus – folgt dem Tempo oben'")
 rhythm = rd(A + 'eq.js') + '\n' + rd(A + 'kit.js') + '\n' + rd(A + 'rhythm.js') + '\n' + rd(A + 'drones.js')
-body = head + script + '\n<script>\n' + rhythm + '\n</script>\n<script>\n' + looper + '\n</script>\n<script>\n' + appcfg + '\n</script>\n<script>\n' + rd(A + 'circle.js') + '\n</script>\n<script>\n' + rd(A + 'voicings.js') + '\n' + rd(A + 'solo.js') + '\n</script>\n' + tabs
+body = head + script + '\n<script>\n' + rhythm + '\n</script>\n<script>\n' + looper + '\n</script>\n<script>\n' + appcfg + '\n</script>\n<script>\n' + rd(A + 'circle.js') + '\n</script>\n<script>\n' + rd(A + 'voicings.js') + '\n' + rd(A + 'solo.js') + '\n</script>\n<script>\n' + rd(A + 'jam.js') + '\n</script>\n' + tabs
 
 top = '''<!doctype html>
 <html lang="de">

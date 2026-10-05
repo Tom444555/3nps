@@ -1,0 +1,30 @@
+  /* ---- Jam ---- */
+  .jam-top { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: flex-end; }
+  .jam-tempo { display: flex; flex-direction: column; gap: 3px; }
+  .jam-tempo .lbl, .jam-add .lbl, .jam-edit .lbl { font: 600 .62rem var(--f-body); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .jam-bpmrow { display: flex; align-items: center; gap: 8px; }
+  .jam-bpmrow b { font: 800 1.9rem var(--f-mono); min-width: 2.2em; text-align: center; }
+  .jam-bpmrow .toggle-btn { min-width: 40px; font-size: 1.1rem; padding: 4px 0; }
+  .jam-unit { font: 600 .7rem var(--f-mono); color: var(--muted); }
+  .jam-pass { font: 600 .75rem var(--f-body); color: var(--muted); min-height: 1em; }
+  .jam-key { flex: 0 1 180px; } .jam-pre { flex: 1 1 220px; }
+  .jam-len { font: 600 .8rem var(--f-mono); color: var(--muted); }
+  .jam-seq { display: flex; flex-wrap: wrap; gap: 6px; min-height: 76px; padding: 8px; border-radius: 10px; background: rgba(0,0,0,.35); border: 1px solid var(--line-soft); }
+  .jam-c { flex: 1 1 0; min-width: 76px; appearance: none; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); color: var(--ink);
+    padding: 10px 4px; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; }
+  .jam-c b { font: 800 1.4rem var(--f-mono); } .jam-c small { font: 600 .62rem var(--f-body); color: var(--muted); white-space: nowrap; }
+  .jam-c.sel { outline: 2px dashed var(--dub); outline-offset: 2px; }
+  .jam-c.on { background: color-mix(in srgb, var(--accent) 22%, var(--surface-2)); border: 3px solid var(--accent); box-shadow: 0 0 16px color-mix(in srgb, var(--accent) 65%, transparent); }
+  .jam-edit { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 8px; border: 1px dashed var(--dub); border-radius: 8px; }
+  .jam-edit[hidden] { display: none; }
+  .jam-edit .toggle-btn { padding: 5px 10px; font-size: .8rem; }
+  .jam-sep { width: 10px; }
+  .jam-add { display: flex; flex-direction: column; gap: 6px; }
+  .jam-textrow { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; }
+  .jam-textrow .field { flex: 1 1 280px; }
+  .jam-textrow input[type=text] { width: 100%; box-sizing: border-box; font: 600 1rem var(--f-mono); padding: 9px 10px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); }
+  .jam-mix { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
+  .jam-mix .row { flex: 1 1 200px; }
+  .jam-tr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 12px; }
+  .jam-tr input { width: 100%; box-sizing: border-box; font: 700 1rem var(--f-mono); padding: 7px 8px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); }
+  .jam-tr.off { opacity: .45; }
