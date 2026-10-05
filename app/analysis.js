@@ -41,7 +41,7 @@ const Analyzer = (() => {
             if (type === 'chords') { postMessage({ id, chords: chordAnalyse(data, sr, opts.beats, opts) }); return; }
             const r = chromaMono(data, sr);
             const k = detectKeyFromChroma(r.chroma);
-            postMessage({ id, pc: k.pc, major: k.major, score: k.score, energy: r.energy / Math.max(1, data.length) });
+            postMessage({ id, pc: k.pc, major: k.major, score: k.score, chroma: r.chroma, energy: r.energy / Math.max(1, data.length) });
           } catch (err) { postMessage({ id, error: String(err) }); }
         };`;
       const w = new Worker(URL.createObjectURL(new Blob([src], { type: 'application/javascript' })));
@@ -76,7 +76,7 @@ const Analyzer = (() => {
     });
   }
   function key(channels, sr) {
-    return run('key', channels, sr, (d, r) => { const c = chromaMono(d, r), k = detectKeyFromChroma(c.chroma); return { pc: k.pc, major: k.major, score: k.score, energy: c.energy / Math.max(1, d.length) }; });
+    return run('key', channels, sr, (d, r) => { const c = chromaMono(d, r), k = detectKeyFromChroma(c.chroma); return { pc: k.pc, major: k.major, score: k.score, chroma: c.chroma, energy: c.energy / Math.max(1, d.length) }; });
   }
   // Song: Tempo, Schläge und Takt-Einsen (Zeiten in Sekunden)
   async function beat(channels, sr, opts) {
@@ -103,3 +103,67 @@ const Analyzer = (() => {
   }
   return { key, beat, loop, chords, label, short, apply };
 })();
+
+// ---- Tonart aus Akkordfolge + Chroma (löst vor allem Dur/Parallel-Moll sicherer auf) ----
+// segs: [{ name, root, type, beats, beat }], chroma: 12 Werte (ganzes Stück), opts.loop: Schleife (erster Akkord = Takt 1)
+function keyFromChords(segs, chroma, opts) {
+  opts = opts || {};
+  const MAJ = [6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88];
+  const MIN = [6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17];
+  const corr = (x, y) => { const n = 12; let mx = 0, my = 0; for (let i = 0; i < n; i++) { mx += x[i]; my += y[i]; } mx /= n; my /= n;
+    let a = 0, b = 0, c = 0; for (let i = 0; i < n; i++) { const p = x[i] - mx, q = y[i] - my; a += p * q; b += p * p; c += q * q; } return a / (Math.sqrt(b * c) || 1); };
+  const qual = t => t == null ? null : /^(m|m7|m6|m9|m11)$/.test(t) ? 'm' : /^dim/.test(t) ? 'd' : /^(sus|5)/.test(t) ? '*' : 'M';
+  // erlaubte Stufen je Tonart: Halbtonabstand → Qualität (Gewicht)
+  const DIA = {
+    M: { 0: { M: 1 }, 2: { m: 1, M: 0.2 }, 4: { m: 1, M: 0.2 }, 5: { M: 1, m: 0.3 }, 7: { M: 1 }, 9: { m: 1, M: 0.2 }, 11: { d: 1 }, 10: { M: 0.5 }, 8: { M: 0.3 }, 6: { d: 0.5 } },
+    m: { 0: { m: 1 }, 2: { d: 1, m: 0.3 }, 3: { M: 1 }, 5: { m: 1, M: 0.5 }, 7: { m: 1, M: 1 }, 8: { M: 1 }, 10: { M: 1 }, 11: { d: 0.6 } }
+  };
+  const P = Object.assign({ first: 0.5, res: 0.3 }, opts.P || {});
+  // 6er-Akkord = Moll-7-Akkord eine kleine Terz tiefer (B6 = G#m7): beide Deutungen zulassen
+  const ch = [];
+  (segs || []).forEach(s => {
+    if (!(s.root >= 0) || s.name === '–') return;
+    if (s.type === '6') { ch.push(Object.assign({}, s, { beats: (s.beats || 1) * 0.5 })); ch.push(Object.assign({}, s, { root: (s.root + 9) % 12, type: 'm7', beats: (s.beats || 1) * 0.5, alias: true })); }
+    else ch.push(s);
+  });
+  const tot = ch.reduce((a, s) => a + (s.beats || 1), 0);
+  const real = ch.filter(s => !s.alias);
+  const nbt = real.reduce((a, s) => Math.max(a, (s.beat || 0) + (s.beats || 1)), 0);
+  const down = opts.down != null ? opts.down : (real.length ? Math.min(...real.map(s => s.beat || 0)) : 0);
+  const covers = b => s => { const a = s.beat || 0, n = Math.round((s.beats || 1) * (s.alias || s.type === '6' ? 2 : 1)); return (b >= a && b < a + n) || (b + nbt >= a && b + nbt < a + n); };
+  const firsts = ch.filter(covers(down)), lasts = ch.filter(covers((down - 1 + nbt) % Math.max(1, nbt)));
+  // Folge in Zeitreihenfolge (für V7 → I)
+  const order = real.slice().sort((a, b) => (a.beat || 0) - (b.beat || 0));
+  const res = [];
+  for (let t = 0; t < 12; t++) for (const mode of ['M', 'm']) {
+    const rot = []; for (let i = 0; i < 12; i++) rot.push(chroma ? chroma[(t + i) % 12] : 0);
+    const kk = chroma ? corr(rot, mode === 'M' ? MAJ : MIN) : 0;
+    let fit = 0, tonic = 0, dom = 0;
+    ch.forEach(s => {
+      const rel = ((s.root - t) % 12 + 12) % 12, q = qual(s.type), w = s.beats || 1, d = DIA[mode][rel];
+      let f = -1;
+      if (d) f = q === '*' ? Math.max(d.M || 0, d.m || 0) : (d[q] != null ? d[q] : -0.6);
+      if (mode === 'M' && q === 'M' && /^7/.test(s.type || '') && (rel === 2 || rel === 4 || rel === 9)) f = Math.max(f, 0.5);
+      fit += w * f;
+      if (rel === 0 && (q === mode || q === '*' || (mode === 'M' && q === 'M'))) tonic += w;
+      if (mode === 'm' && rel === 7 && q === 'M') dom += w;   // Dur-Dominante (harmonisch Moll)
+    });
+    let sc = 0.6 * kk;
+    if (tot) {
+      sc += fit / tot + 0.7 * tonic / tot + 0.25 * dom / tot;
+      const isT = s => ((s.root - t) % 12 + 12) % 12 === 0 && (qual(s.type) === mode || qual(s.type) === '*');
+      if (opts.loop !== false && firsts.some(isT)) sc += P.first;
+      const lr = lasts.map(s => ((s.root - t) % 12 + 12) % 12);
+      if (lr.some(r => r === 7 || (r === 5 && mode === 'M') || (r === 10 && mode === 'm'))) sc += 0.1;
+      if (lasts.some(isT)) sc += 0.12;
+      // Dominantseptakkord löst auf die Tonika auf (auch über das Loop-Ende hinweg)
+      for (let i = 0; i < order.length; i++) {
+        const a = order[i], b = order[(i + 1) % order.length];
+        if (a !== b && /^7/.test(a.type || '') && ((a.root - t) % 12 + 12) % 12 === 7 && isT(b)) { sc += P.res; break; }
+      }
+    }
+    res.push({ pc: t, major: mode === 'M', score: sc, kk });
+  }
+  res.sort((a, b) => b.score - a.score);
+  return Object.assign({}, res[0], { margin: res[0].score - res[1].score, alt: res[1] });
+}

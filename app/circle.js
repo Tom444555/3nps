@@ -167,7 +167,7 @@
   function playChord(rootPc, q) {
     try {
       ensureAudio(); const ac = audioCtx, out = (typeof ensureMasterBus === 'function' ? ensureMasterBus() : null) || ac.destination;
-      const iv = q === 'm' ? [0, 3, 7, 12, 15] : q === 'dim' ? [0, 3, 6, 12] : [0, 4, 7, 12, 16];
+      const iv = Array.isArray(q) ? q.concat(q.filter(x => x < 7).map(x => x + 12)).sort((a, b) => a - b) : q === 'm' ? [0, 3, 7, 12, 15] : q === 'dim' ? [0, 3, 6, 12] : [0, 4, 7, 12, 16];
       const base = 40 + ((rootPc - 4 + 12) % 12);                 // Grundton zwischen E2 und D#3
       const t0 = ac.currentTime + 0.02;
       const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.setValueAtTime(3200, t0); lp.frequency.exponentialRampToValueAtTime(900, t0 + 1.4); lp.Q.value = 0.7;
@@ -182,6 +182,17 @@
     } catch (e) {}
   }
 
+  // einzelner Ton (MIDI), z. B. beim Antippen im Griffbild des Solo Finders
+  function playNote(m) {
+    try {
+      ensureAudio(); const ac = audioCtx, out = (typeof ensureMasterBus === 'function' ? ensureMasterBus() : null) || ac.destination;
+      const t = ac.currentTime + 0.01, f = 440 * Math.pow(2, (m - 69) / 12);
+      const g = ac.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.25, t + 0.005); g.gain.exponentialRampToValueAtTime(0.001, t + 1.2);
+      const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 2600; g.connect(lp); lp.connect(out);
+      ['triangle', 'sawtooth'].forEach((type, j) => { const o = ac.createOscillator(); o.type = type; o.frequency.value = f; const og = ac.createGain(); og.gain.value = j ? 0.15 : 0.8; o.connect(og); og.connect(g); o.start(t); o.stop(t + 1.3); });
+      setTimeout(() => { try { lp.disconnect(); } catch (e) {} }, 1600);
+    } catch (e) {}
+  }
   // ---- klingender Akkord aus dem Looper ----
   function parseChord(name) {
     const m = /^([A-G]#?)(.*)$/.exec(name || ''); if (!m) return null;
@@ -212,5 +223,5 @@
   }
   { const gk = boardKey(); if (gk) sel = { k: gk.k, minor: gk.minor }; }
   render();
-  window.Quinten = { trackKey: () => trackKey && Object.assign({}, trackKey), select: (k, minor) => select({ k, minor: !!minor }, false), sel: () => Object.assign({}, sel), info: () => keyInfo(sel), parseChord };
+  window.Quinten = { play: playChord, playNote, trackKey: () => trackKey && Object.assign({}, trackKey), select: (k, minor) => select({ k, minor: !!minor }, false), sel: () => Object.assign({}, sel), info: () => keyInfo(sel), parseChord };
 })();

@@ -1787,8 +1787,19 @@ const Looper = (() => {
     const r = await Analyzer.key(chans(ref), sr);
     if (t.mix !== ref) return t.key;            // inzwischen geändert – neues Ergebnis kommt
     t.key = r.error ? null : r;
+    t.keyChroma = r.error ? null : { chroma: r.chroma, mix: ref };
+    refineKey(t);
     showKey();
     return t.key;
+  }
+  // Tonart mit der Akkordfolge nachschärfen (Dur/Parallel-Moll, Tonika auf Takt 1, Kadenzen)
+  function refineKey(t) {
+    const kc = t.keyChroma, cr = t.chordRaw;
+    if (!kc || !cr || kc.mix !== t.mix || cr.mix !== t.mix || typeof keyFromChords !== 'function') return false;
+    const k = keyFromChords(cr.segs, kc.chroma, { loop: true, down: cr.down });
+    if (!k || (t.key && t.key.pc === k.pc && t.key.major === k.major)) return false;
+    t.key = Object.assign({}, t.key || {}, { pc: k.pc, major: k.major, score: k.score, byChords: true });
+    return true;
   }
   function showKey() {
     tracks.forEach(t => {
@@ -1817,6 +1828,8 @@ const Looper = (() => {
     if (t.mix !== ref || !t.L) return t.chords;
     t.chords = r && r.segments && r.segments.length ? normChords(r.segments, t.L) : null;
     if (t.chords) t.chords.tune = r.tuneCents;
+    t.chordRaw = t.chords ? { segs: r.segments, down: down0, mix: ref } : null;
+    if (refineKey(t)) showKey();
     showChords(t); kick();
     return t.chords;
   }
@@ -2495,6 +2508,18 @@ const Looper = (() => {
     debug: () => ({ mic: micReady, sr, baseL, anchor, now: nowFrame(), countEnd, bpm: bpm(), drums: Object.assign({}, Rhythm.debug(), { on: Rhythm.on() }), level, drone: droneOn, tracks: tracks.map(t => ({ L: t.L, state: t.state, origPos: t.origPos, layers: t.layers.length, orig: t.orig ? { bars: t.orig.bars, downs: t.orig.downs.slice(0, 64), loopFile: t.orig.loopFile, bpm: t.orig.bpm } : null, key: t.key ? Analyzer.label(t.key) : null })) }),
     undo: i => undoTrack(tracks[i]),
     // klingender Akkord der ersten laufenden Spur mit erkannten Akkorden (für den Quintenzirkel)
+    // komplette Akkordfolge einer Spur für den Solo Finder (Frames, Taktanfänge, Abspielposition, Tonart)
+    chordInfo: want => {
+      const ok = t => !!(t.chords && t.chords.L === t.L && t.L && t.chords.segs.some(q => q.name !== '–'));
+      const list = tracks.map(t => ({ i: t.i, has: ok(t), playing: !!t.src }));
+      let t = want != null && tracks[want] && ok(tracks[want]) ? tracks[want] : tracks.find(q => q.src && ok(q)) || tracks.find(ok);
+      if (!t) return { tracks: list, track: -1 };
+      const pos = t.src && audioCtx ? mod(playFrame() - anchor, t.L) : null;
+      const downs = trackDowns(t).filter(x => x > -2 && x < t.L - 2).map(x => Math.max(0, x));
+      return { tracks: list, track: t.i, segs: t.chords.segs.map(q => ({ name: q.name, a: q.a, e: q.e })), L: t.L, pos, downs, sr,
+        key: t.key ? { pc: t.key.pc, major: !!t.key.major } : null, playing: !!t.src };
+    },
+    seek: (i, f) => { const t = tracks[i]; if (t && t.L && !rec) seekTo(t, f); },
     nowChord: () => {
       for (const t of tracks) {
         const c = t.chords; if (!t.src || !c || c.L !== t.L || !c.segs.some(q => q.name !== '–')) continue;

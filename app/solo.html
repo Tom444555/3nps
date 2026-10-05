@@ -1,0 +1,49 @@
+  <section class="panel" id="panel-solo" role="tabpanel" aria-labelledby="tab-solo" hidden>
+    <div class="card sf-top">
+      <div class="sf-row">
+        <div class="sf-keybox">
+          <span class="lbl">Tonart</span>
+          <b id="sfKey">–</b>
+          <span class="sf-keysrc" id="sfKeySrc"></span>
+        </div>
+        <label class="field sf-keysel"><span>Tonart festlegen</span><select id="sfKeySel" aria-label="Tonart festlegen"></select></label>
+        <div class="sf-ctrl">
+          <div class="seg" id="sfTracks" role="group" aria-label="Spur">
+            <button class="toggle-btn active" data-t="auto">Auto</button><button class="toggle-btn" data-t="0">1</button><button class="toggle-btn" data-t="1">2</button><button class="toggle-btn" data-t="2">3</button>
+          </div>
+          <label class="check"><input type="checkbox" id="sfFollow" checked> folgt dem Looper</label>
+        </div>
+      </div>
+      <div class="sf-head" id="sfHead" hidden><span>Takt</span></div>
+      <div class="sf-band" id="sfBand"><div class="sf-strip" id="sfStrip"></div></div>
+      <div class="sf-now" id="sfNow"></div>
+      <p class="sf-keynotes"><span class="lbl">Töne der Tonart</span> <span id="sfKeyNotes"></span></p>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Mögliche Akkorde</h2><span class="sf-legend" id="sfDiaNote"></span></div>
+      <div class="sf-dia" id="sfDia"></div>
+      <div class="sf-colrow"><span class="lbl">Färbungen (antippen zum Anhören)</span><div class="sf-colors" id="sfColors"></div></div>
+    </div>
+
+    <div class="card">
+      <h2 id="sfScaleTitle">Was passt drüber</h2>
+      <div class="sf-scales" id="sfScales"></div>
+      <div class="sf-neckwrap">
+        <div class="sf-neckhead"><span id="sfNeckTitle">Griffbild</span>
+          <span class="sf-leg"><i class="root"></i>Grundton <i class="ct"></i>Akkordton <i class="char"></i>Charakterton <i class="sc"></i>Tonleiter <i class="out"></i>Reibung</span></div>
+        <div class="sf-neckscroll"><svg id="sfNeck" class="sf-neck" aria-label="Griffbild"></svg></div>
+      </div>
+    </div>
+
+    <div class="sf-two">
+      <div class="card">
+        <h2>Nächster Wechsel</h2>
+        <div id="sfMove"></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>Ideen-Würfel</h2><button class="toggle-btn active" id="sfDice">🎲 Neue Idee</button></div>
+        <p class="sf-idea" id="sfIdea"></p>
+      </div>
+    </div>
+  </section>

@@ -1,6 +1,6 @@
 # Looper – Übergabe für die nächste Sitzung
 
-Stand: 5. Oktober 2026 · Version **v23** ist live unter https://tom444555.github.io/3nps/
+Stand: 5. Oktober 2026 · Version **v24** ist live unter https://tom444555.github.io/3nps/
 Repository: `Tom444555/3nps` · Branch `main` = fertige App (GitHub Pages) · Branch `entwicklung` = dieser Quellcode.
 
 ## So geht es in einem neuen Chat weiter
@@ -25,6 +25,7 @@ Testaudio neu, baut die App, startet den Testserver auf Port 8765).
 |---|---|
 | `script.part` | Grundprogramm (Griffbrett, Skalen, Begleitung, Drone-Grundlage, Übungslog); Bass wird über `bass.js` erzeugt |
 | `app/looper.js` | Looper: 3 Stereo-Spuren, Aufnahme, Overdub, Editor, Export für Logic, Sitzungen, Autosicherung, Akkorde im Spurkopf, Abgleich |
+| `app/solo.js`, `solo.html`, `solo.css` | Solo Finder (Reiter „Solo Finder“): Akkordleiste, Tonart, mögliche Akkorde/Färbungen, Tonleitern mit Griffbild, nächster Wechsel, Ideen-Würfel |
 | `app/circle.js`, `circle.html`, `circle.css` | Quintenzirkel (Reiter „Quintenzirkel“): Tonart wählen, Akkorde anhören, ins Griffbrett übernehmen, klingender Looper-Akkord |
 | `app/beat.js` | Takterkennung: Tempo, Schlagraster, Feinbestimmung (~1 ms), Takt-Eins, freies Intro, Loop-Analyse |
 | `app/chords.js` | Akkorderkennung je Schlag (HPSS, Stimmung, Chroma, Vorlagen, Viterbi) |
@@ -51,25 +52,33 @@ Testaudio neu, baut die App, startet den Testserver auf Port 8765).
    Danach den Branch `entwicklung` mit den Quellen aktualisieren (diese Datei mitpflegen).
 6. Auf dem iPad: App zweimal öffnen, dann ist die neue Version aktiv.
 
-## Tests und erwartete Ergebnisse (v23)
+## Tests und erwartete Ergebnisse (v24)
 
-- Browser: `v22key.py` 7/7 (Zirkel folgt Spur-Tonart) · `v21test.py` 8/8 (Spurkopf) · `v21tabs.py` 18/18 (Reiter, Quintenzirkel) · `v20test.py` 14/14 · `suite.py` 81/81 · `stereotest.py` 16/16 · `eqtest.py` 9/9 · `restoretest.py` 7/7 ·
+- Browser: `v24solo.py` 22/22 (Solo Finder) · `v22key.py` 7/7 (Zirkel folgt Spur-Tonart) · `v21test.py` 8/8 (Spurkopf) · `v21tabs.py` 18/18 (Reiter, Quintenzirkel) · `v20test.py` 14/14 · `suite.py` 81/81 · `stereotest.py` 16/16 · `eqtest.py` 9/9 · `restoretest.py` 7/7 ·
   `backuptest.py` 7/7 · `csptest.py` (keine fremden Anfragen) · `crashtest.py`, `taptest.py` (Speicher stabil) ·
   `rec_fit.py 1` 10/10 · `importall.py` 57/63 (bekannte Fälle: Eins bei Shuffles) · `synctest.py`, `firsthit.py`,
   `drone78.py`, `mono_rec.py`, `sesstest.py`, `droptest.py`, `pedaltest2.py` ohne Fehler.
   `glitchtest.py` vergleicht mit einer alten Version auf Port 8766 (optional).
 - Takterkennung (Node): `node precision.js` → Tempo 49/52, Eins 47/52, Schlagfehler Median 1,0 ms ·
   `node longeval.js` → 5/6 (Ballade 74 BPM wird als 148 erkannt) · `sh evalall.sh` (Loops 102/112 + 11/11).
+- Tonart (Node): `node keyeval.js` → bisher (nur Chroma) 36/59, neu (Chroma + Akkordfolge) 52/59; Korpus `test/keys` aus `gen_keys.py`.
 - Akkorde (Node): `node chordeval.js` → Grundton 95,5 %, exakt 91,5 % · `node chordsong.js` → 82,8 % (Riffs ohne Terz schwerer).
 
 ## Technische Eckpunkte
 
-- **Reiter (seit v21, Reihenfolge v23):** Looper (links, Start) · Quintenzirkel · Griffbrett. Begleitung (Drone, Drums, Bass), Song und
+- **Reiter (v24):** Looper (links, Start) · Quintenzirkel · Solo Finder · Griffbrett. Begleitung (Drone, Drums, Bass), Song und
   Übungslog sind Karten im Griffbrett (Zwischenüberschriften `.sub-head`). `tabs.js` leitet alte gespeicherte Reiter
   (`begleitung`, `song`, `log`) aufs Griffbrett um; die Drum-Spur wandert bei `tabchange` = `griffbrett` in `#beglDrumsHome`.
 - **Spurkopf (v22):** links Name + Tonart (`.th-left`), rechts `#thc0–2` mit klingendem (`#chd`) und nächstem Akkord (`#chn`),
   nur beim Abspielen, aktualisiert in `tick()`. Die Akkordleiste unter der Wellenform gibt es nicht mehr (Editor zeigt Akkorde je Takt).
   `Looper.nowChord()` liefert den klingenden Akkord auch, wenn der Looper-Reiter nicht sichtbar ist (Quintenzirkel).
+- **Tonart (v24):** `Analyzer.key` liefert jetzt auch die Chroma; nach der Akkorderkennung schärft `refineKey(t)` die Tonart
+  mit `keyFromChords()` (analysis.js) nach: Diatonik-Passung, Dauer der Tonika, Akkord auf Takt 1, Kadenz, V7→I,
+  Dur-Dominante in Moll, 6er-Akkorde auch als Moll-7 eine kleine Terz tiefer. Song-Player nutzt noch die reine Chroma.
+- **Solo Finder:** liest `Looper.chordInfo(spur)` (Abschnitte in Frames, Taktanfänge, Position, Tonart) und springt mit
+  `Looper.seek()`; Akkord-/Tonklang über `Quinten.play(root, intervalle)` / `Quinten.playNote(midi)`.
+  Tonleiter-Wahl: Kirchentonleiter (bzw. HM/Phrygisch-Dominant/Melodisch Moll) auf dem Akkordgrundton, die alle
+  Akkordtöne enthält und die meisten Töne mit der Tonart teilt; dazu Pentatoniken, Blues, Akkordtöne, „mutig“.
 - **Quintenzirkel:** SVG, englische Tonnamen wie im übrigen Programm (B = H), Schreibweise je Tonart (E♯ in F♯-Dur usw.);
   liest den klingenden Akkord über `Looper.nowChord()`; folgt dem Ereignis `trackkey`
   (aus `showKey()` in looper.js, sobald sich die erkannte Tonart einer Spur ändert) und jeder Änderung von Grundton/Modus; `window.Quinten` für Tests.

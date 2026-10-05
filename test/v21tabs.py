@@ -12,7 +12,7 @@ async def main():
         pg.on('pageerror', lambda e: errs.append(str(e)))
         await pg.goto('http://localhost:8765/index.html'); await pg.wait_for_timeout(800)
         tabs = await pg.evaluate("[...document.querySelectorAll('.tab')].map(t => t.textContent)")
-        check('Drei Reiter, Looper links', tabs == ['Looper', 'Quintenzirkel', 'Griffbrett'], tabs)
+        check('Reiter, Looper links', tabs == ['Looper', 'Quintenzirkel', 'Solo Finder', 'Griffbrett'], tabs)
         check('Start im Looper', await pg.is_visible('#panel-looper'))
         await pg.click('#tab-griffbrett'); await pg.wait_for_timeout(400)
         ids = ['fretboard', 'droneBtn', 'btnBass', 'beglDrumsHome', 'audioFile', 'logList', 'statToday']
