@@ -608,6 +608,10 @@
   .qz-act { display: flex; gap: 8px; flex-wrap: wrap; }
   .qz-act .toggle-btn { flex: 1 1 auto; }
   .qz-board b { color: var(--root-color); }
+  .qz-tmark { fill: none; stroke-width: 2.5; pointer-events: none; }
+  .qz-act .toggle-btn[hidden] { display: none; }
+  .qz-track::before { content: ''; display: inline-block; width: 14px; height: 10px; margin-right: 6px; border: 2px solid var(--muted); border-radius: 2px; vertical-align: -1px; }
+  .qz-track:empty::before { display: none; }
   .qz-board::before { content: ''; display: inline-block; width: 14px; height: 10px; margin-right: 6px; border: 2px dashed var(--root-color); border-radius: 2px; vertical-align: -1px; }
   .qz-board:empty::before { display: none; }
   @media (max-width: 520px) { .qz-chords { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
@@ -1137,7 +1141,7 @@
 <body>
 <header class="control-bar">
   <div class="cb-inner">
-    <div class="brand">Looper <span>3nps · v22</span></div>
+    <div class="brand">Looper <span>3nps · v23</span></div>
     <div class="transport">
       <button class="tbtn" id="playBtn" aria-label="Metronom starten oder stoppen">▶</button>
     </div>
@@ -1160,8 +1164,8 @@
 
   <nav class="tabs" role="tablist" aria-label="Bereiche">
     <button class="tab" role="tab" id="tab-looper" data-tab="looper" aria-selected="true">Looper</button>
-    <button class="tab" role="tab" id="tab-griffbrett" data-tab="griffbrett" aria-selected="false">Griffbrett</button>
     <button class="tab" role="tab" id="tab-quinten" data-tab="quinten" aria-selected="false">Quintenzirkel</button>
+    <button class="tab" role="tab" id="tab-griffbrett" data-tab="griffbrett" aria-selected="false">Griffbrett</button>
   </nav>
 
   <!-- Griffbrett -->
@@ -1661,9 +1665,11 @@
         <div class="qz-act">
           <button class="toggle-btn active" id="qzApply">Ins Griffbrett übernehmen</button>
           <button class="toggle-btn" id="qzSync">Tonart vom Griffbrett</button>
+          <button class="toggle-btn" id="qzFromTrack" hidden>Tonart von Spur</button>
         </div>
         <p class="pattern-desc qz-board" id="qzBoard"></p>
-        <p class="pattern-desc">Außen Dur, in der Mitte die parallelen Moll-Tonarten, innen die verminderten Akkorde. Hell markiert sind die sieben Akkorde der gewählten Tonart – direkte Nachbarn sind Subdominante (links) und Dominante (rechts). Läuft der Looper, leuchtet der gerade klingende Akkord mit.</p>
+        <p class="pattern-desc qz-track" id="qzTrack"></p>
+        <p class="pattern-desc">Außen Dur, in der Mitte die parallelen Moll-Tonarten, innen die verminderten Akkorde. Hell markiert sind die sieben Akkorde der gewählten Tonart – direkte Nachbarn sind Subdominante (links) und Dominante (rechts). Lädst du eine Datei oder spielst etwas ein, springt der Zirkel auf die erkannte Tonart (farbig umrandet in Spurfarbe). Läuft der Looper, leuchtet der gerade klingende Akkord mit.</p>
       </div>
     </div>
   </section>
@@ -6674,7 +6680,7 @@ const Looper = (() => {
     if (cap && cap.t === t) cap = null;
     stopSrc(t);
     t.layers = []; t.L = 0; t.mix = null; t.peaks = null; t.state = 'empty'; t.hist = []; t.key = null; t.orig = null; t.origPos = null; t.buf = null; t.bufFor = null;
-    clearTimeout(t.chTimer); t.chords = null; showChords(t);
+    clearTimeout(t.chTimer); t.chords = null; showChords(t); showKey();
     if (!anyContent()) baseL = 0;
     markDirty();
     if (ed.t === t) closeEditor();
@@ -7748,6 +7754,9 @@ const Looper = (() => {
   }
   function showKey() {
     tracks.forEach(t => {
+      // neue oder geänderte Tonart melden (Quintenzirkel folgt sofort)
+      const ks = t.key ? t.key.pc + (t.key.major ? 'M' : 'm') : '';
+      if (ks !== (t.keySent || '')) { t.keySent = ks; document.dispatchEvent(new CustomEvent('trackkey', { detail: { track: t.i, key: t.key ? { pc: t.key.pc, major: !!t.key.major } : null } })); }
       t.keyB.hidden = !t.key;
       if (t.key) { t.keyB.innerHTML = '<small>Tonart</small>' + Analyzer.label(t.key).replace('-', ' '); t.keyB.title = 'Tonart ' + Analyzer.label(t.key) + ' für Griffbrett und Drone übernehmen'; }
     });
@@ -8961,6 +8970,7 @@ const AppCfg = (() => {
   });
   const live = el('path', { class: 'qz-live', d: '' }, svg);
   const mark = el('path', { class: 'qz-mark', d: '' }, svg);
+  const tmark = el('path', { class: 'qz-tmark', d: '' }, svg);
   const cTitle = el('text', { x: C, y: C - 10, class: 'qz-c1' }, svg);
   const cSub = el('text', { x: C, y: C + 12, class: 'qz-c2' }, svg);
   const cLive = el('text', { x: C, y: C + 32, class: 'qz-c3' }, svg);
@@ -8992,7 +9002,7 @@ const AppCfg = (() => {
     const same = gk && gk.k === sel.k && gk.minor === sel.minor && !gk.mode;
     $('qzApply').disabled = !!same;
     $('qzApply').textContent = same ? '✓ Im Griffbrett' : 'Ins Griffbrett übernehmen';
-    showBoard(gk); renderChord._cur = null;
+    showBoard(gk); showTrack(); renderChord._cur = null;
     $('qzChords').querySelectorAll('.qz-ch').forEach(b => b.addEventListener('click', () => {
       const c = info.chords[+b.dataset.i]; playChord(c.pc, c.q); flashBtn(b);
     }));
@@ -9015,6 +9025,22 @@ const AppCfg = (() => {
     const [r0, r1] = gk.minor ? RING.min : RING.maj; mark.setAttribute('d', arc(r0 + 3, r1 - 3, gk.k));
     t.innerHTML = 'Griffbrett: <b>' + (gk.mode ? gk.root.replace('#', '♯') + ' ' + gk.mode + '</b> (Töne von ' + MAJ[gk.k] + '-Dur)' : keyLabel(gk) + '</b>');
   }
+  // ---- zuletzt erkannte Tonart einer Spur (Datei geladen oder eingespielt) ----
+  let trackKey = null;                       // { i, k, minor }
+  const keyFromPc = (pc, major) => major ? { k: kOfMajorPc(pc), minor: false } : { k: kOfMajorPc(pc + 3), minor: true };
+  function showTrack() {
+    const t = $('qzTrack'), b = $('qzFromTrack');
+    if (!trackKey) { t.textContent = ''; b.hidden = true; tmark.setAttribute('d', ''); return; }
+    const [r0, r1] = trackKey.minor ? RING.min : RING.maj;
+    tmark.setAttribute('d', arc(r0 + 7, r1 - 7, trackKey.k)); tmark.style.stroke = 'var(--t' + (trackKey.i + 1) + ')';
+    t.innerHTML = 'Spur ' + (trackKey.i + 1) + ': <b style="color:var(--t' + (trackKey.i + 1) + ')">' + keyLabel(trackKey) + '</b>';
+    b.hidden = false; b.textContent = 'Tonart von Spur ' + (trackKey.i + 1);
+  }
+  document.addEventListener('trackkey', e => {
+    const d = e.detail || {};
+    if (d.key) { trackKey = Object.assign({ i: d.track }, keyFromPc(d.key.pc, d.key.major)); select({ k: trackKey.k, minor: trackKey.minor }, false); }
+    else if (trackKey && trackKey.i === d.track) { trackKey = null; render(); }
+  });
   function select(s2, play) {
     sel = s2; render();
     if (play) { const info = keyInfo(sel); playChord(info.tonicPc, sel.minor ? 'm' : ''); }
@@ -9033,6 +9059,7 @@ const AppCfg = (() => {
     render();
   });
   $('qzSync').addEventListener('click', () => { const gk = boardKey(); if (gk) select({ k: gk.k, minor: gk.minor }, false); });
+  $('qzFromTrack').addEventListener('click', () => { if (trackKey) select({ k: trackKey.k, minor: trackKey.minor }, false); });
 
   // ---- Akkord anspielen (kurz angeschlagen, über den Master-Bus) ----
   function playChord(rootPc, q) {
@@ -9073,13 +9100,17 @@ const AppCfg = (() => {
   function onTab(name) {
     clearInterval(timer); timer = null;
     if (name !== 'quinten') return;
-    const gk = boardKey(); if (gk) select({ k: gk.k, minor: gk.minor }, false); else render();
+    render();
     renderChord._cur = null; renderChord(); timer = setInterval(renderChord, 120);
   }
   document.addEventListener('tabchange', e => onTab(e.detail));
-  if (typeof rootSel !== 'undefined') { rootSel.addEventListener('change', () => { if (!panel.hidden) render(); }); modeSel.addEventListener('change', () => { if (!panel.hidden) render(); }); }
+  if (typeof rootSel !== 'undefined') {
+    const follow = () => { const gk = boardKey(); if (gk) select({ k: gk.k, minor: gk.minor }, false); else render(); };
+    rootSel.addEventListener('change', follow); modeSel.addEventListener('change', follow);
+  }
+  { const gk = boardKey(); if (gk) sel = { k: gk.k, minor: gk.minor }; }
   render();
-  window.Quinten = { select: (k, minor) => select({ k, minor: !!minor }, false), sel: () => Object.assign({}, sel), info: () => keyInfo(sel), parseChord };
+  window.Quinten = { trackKey: () => trackKey && Object.assign({}, trackKey), select: (k, minor) => select({ k, minor: !!minor }, false), sel: () => Object.assign({}, sel), info: () => keyInfo(sel), parseChord };
 })();
 
 </script>
