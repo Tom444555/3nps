@@ -1,0 +1,108 @@
+
+  /* ===== Optik „Verstärker“: Tolex, gebürstetes Alu-Frontblech, schwarz eloxierte Platten, Bespannstoff, Kontrolllampe ===== */
+  :root[data-theme="amp"] {
+    --bg: #0b0b0b; --surface: #161618; --surface-2: #202023; --raised: #2a2a2e;
+    --ink: #f2f2f3; --muted: #a8a8ad; --line: #3a3a3e; --line-soft: #29292c;
+    --accent: #ff3b2f; --accent-ink: #1a0303; --active-color: #ffb347;
+    --t1: #8fd3ff; --t2: #ffb347; --t3: #5cff8a;
+    --neon-rec: #ff2a2a; --neon-dub: #ffd84a; --neon-bar1: #ffffff; --dub: #ffd84a;
+    --lcd-bg: #140b04; --lcd-ink: #ffb35c; --lcd-dim: #80562b;
+    --board: #1d1a18; --board-edge: #0d0c0b; --fretwire: #d0d3d8;
+    background: #0b0b0b url("tolex.jpg") repeat; background-size: 256px 256px;
+  }
+  :root[data-theme="amp"] body::before {
+    background:
+      radial-gradient(ellipse 60% 40% at 50% 0%, rgba(255,214,160,.12) 0%, rgba(255,190,120,.04) 45%, transparent 70%),
+      radial-gradient(ellipse 150% 120% at 50% 35%, transparent 30%, rgba(0,0,0,.55) 75%, rgba(0,0,0,.85) 100%);
+  }
+  /* Schrift: Frontplatten-Beschriftung, breit und klar */
+  :root[data-theme="amp"] .brand {
+    font-family: "Russo One", "Avenir Next Condensed", Impact, sans-serif; font-weight: 400; font-size: 1.35rem; letter-spacing: .06em;
+    color: #121212; text-shadow: 0 1px 0 rgba(255,255,255,.55), 0 -1px 0 rgba(0,0,0,.25);
+  }
+  :root[data-theme="amp"] .brand span { font: 700 .62rem var(--f-body); letter-spacing: .14em; text-transform: uppercase; color: #2a2a2c; }
+  :root[data-theme="amp"] .brand::before { width: 30px; height: 30px; flex-basis: 30px; background-image: url("jewel.png"); filter: drop-shadow(0 0 6px rgba(255,40,30,.65)); }
+  :root[data-theme="amp"] h2 {
+    font-family: "Michroma", "Avenir Next", system-ui, sans-serif; font-weight: 400; font-size: .74rem;
+    text-transform: uppercase; letter-spacing: .14em; color: #eef0f3; text-shadow: 0 -1px 0 #000;
+  }
+  :root[data-theme="amp"] .tab { font-family: "Michroma", "Avenir Next", system-ui, sans-serif; font-weight: 400; font-size: .64rem; text-transform: uppercase; letter-spacing: .1em; color: #9a9aa0; }
+  :root[data-theme="amp"] .tab[aria-selected="true"] {
+    background: linear-gradient(180deg, rgba(255,255,255,.25), rgba(0,0,0,.12)), url("alu.jpg") 0 0 / 512px 512px; color: #111;
+    box-shadow: 0 1px 0 rgba(255,255,255,.7) inset, 0 -1px 0 rgba(0,0,0,.3) inset, 0 2px 4px rgba(0,0,0,.6); text-shadow: 0 1px 0 rgba(255,255,255,.5);
+  }
+  :root[data-theme="amp"] .tabs { background: linear-gradient(180deg, rgba(0,0,0,.6), rgba(0,0,0,.5)), url("alu-dark.jpg") 0 0 / 512px 512px; }
+
+  /* Kontrollleiste: gebürstete Alu-Frontplatte mit Schrauben, darunter Bespannstoff mit Silberkeder */
+  :root[data-theme="amp"] .control-bar {
+    background:
+      url("screw.png") 8px 50% / 16px 16px no-repeat,
+      url("screw.png") calc(100% - 8px) 50% / 16px 16px no-repeat,
+      linear-gradient(180deg, rgba(255,255,255,.22) 0%, rgba(255,255,255,0) 40%, rgba(0,0,0,.18) 100%),
+      url("alu.jpg") 0 0 / 1024px 1024px;
+    background-color: #b8babe;
+    border-bottom: 1px solid #000;
+    box-shadow: 0 1px 0 rgba(255,255,255,.6) inset, 0 -1px 0 rgba(0,0,0,.35) inset, 0 8px 22px rgba(0,0,0,.7);
+  }
+  :root[data-theme="amp"] .control-bar::after {
+    height: 18px; background: linear-gradient(180deg, rgba(0,0,0,.25), rgba(0,0,0,.05) 40%, rgba(0,0,0,.35)), url("grille.jpg") 0 0 / 96px 96px;
+    border-top: 2px solid #c9ccd2; border-bottom: 2px solid #8d9096; box-shadow: 0 3px 6px rgba(0,0,0,.6);
+  }
+  :root[data-theme="amp"] .control-bar .lbl, :root[data-theme="amp"] .tempo-ctl .lbl { color: #1b1b1d; text-shadow: 0 1px 0 rgba(255,255,255,.5); }
+  :root[data-theme="amp"] .lcd { border-color: #000; box-shadow: 0 1px 0 rgba(255,255,255,.6), inset 0 3px 10px rgba(0,0,0,.9), inset 0 0 0 1px #000, inset 0 0 16px rgba(255,140,40,.12); }
+  :root[data-theme="amp"] .lcd .v { text-shadow: 0 0 6px rgba(255,150,60,.55); }
+  :root[data-theme="amp"] .tbtn { background: linear-gradient(180deg, #2f2f33, #141416); color: #f0f0f0; border-color: #000; box-shadow: 0 1px 0 rgba(255,255,255,.12) inset, 0 2px 3px rgba(0,0,0,.6); }
+  :root[data-theme="amp"] #playBtn.playing { background: linear-gradient(180deg, #d32a1f, #8e130d); }
+
+  /* Platten: schwarz eloxiert, Schrauben in den Ecken, Silberkante */
+  :root[data-theme="amp"] .card, :root[data-theme="amp"] .stat-card {
+    background:
+      url("screw.png") 6px 6px / 16px 16px no-repeat,
+      url("screw.png") calc(100% - 6px) 6px / 16px 16px no-repeat,
+      url("screw.png") 6px calc(100% - 6px) / 16px 16px no-repeat,
+      url("screw.png") calc(100% - 6px) calc(100% - 6px) / 16px 16px no-repeat,
+      radial-gradient(ellipse 120% 70% at 50% 0%, rgba(255,255,255,.05), transparent 60%),
+      linear-gradient(180deg, rgba(0,0,0,.05) 0%, rgba(0,0,0,.25) 100%),
+      url("alu-dark.jpg") 0 0 / 1024px 1024px;
+    background-color: #1c1c1e;
+    border: 1px solid #000;
+    box-shadow: 0 0 0 1px #6f7278, 0 0 0 2px #0a0a0a, 0 1px 0 rgba(255,255,255,.12) inset, 0 10px 22px rgba(0,0,0,.75), 0 26px 50px rgba(0,0,0,.6);
+  }
+  :root[data-theme="amp"] .card::after { border-color: rgba(0,0,0,.6); box-shadow: 0 1px 0 rgba(255,255,255,.05); }
+  /* Spuren wie Lautsprecherbespannung */
+  :root[data-theme="amp"] .track, :root[data-theme="amp"] .editor, :root[data-theme="amp"] .lane {
+    background: linear-gradient(180deg, rgba(0,0,0,.62), rgba(0,0,0,.55)), url("grille.jpg") 0 0 / 96px 96px;
+    background-color: #0c0c0c; border: 1px solid #000;
+    box-shadow: inset 0 0 0 2px #2a2a2c, inset 0 0 0 3px #000, inset 0 8px 22px rgba(0,0,0,.9), 0 1px 0 rgba(255,255,255,.08);
+  }
+  :root[data-theme="amp"] .track.rec-live { border-color: rgba(255,42,42,.7) !important; box-shadow: inset 0 0 0 2px #2a2a2c, inset 0 8px 22px rgba(0,0,0,.9), 0 0 0 1px rgba(255,42,42,.55), 0 0 22px rgba(255,42,42,.3) !important; }
+
+  /* Taster: schwarzer Kunststoff, aktiv leuchtet rot wie die Kontrolllampe */
+  :root[data-theme="amp"] .toggle-btn, :root[data-theme="amp"] .mini button, :root[data-theme="amp"] .file-mini {
+    background: linear-gradient(180deg, #333336, #18181a); border: 1px solid #000; color: #ececee;
+    box-shadow: 0 1px 0 rgba(255,255,255,.12) inset, 0 2px 3px rgba(0,0,0,.6);
+  }
+  :root[data-theme="amp"] .toggle-btn.active {
+    background: linear-gradient(180deg, #e8392b 0%, #b81d14 55%, #7c0f0a 100%); color: #fff; border-color: #2a0402;
+    box-shadow: 0 1px 0 rgba(255,190,170,.45) inset, 0 0 14px rgba(255,50,30,.45), 0 2px 3px rgba(0,0,0,.6); text-shadow: 0 1px 0 rgba(0,0,0,.5);
+  }
+  :root[data-theme="amp"] .foot {
+    background: radial-gradient(ellipse at 50% 18%, rgba(255,255,255,.55), rgba(255,255,255,0) 55%), linear-gradient(180deg, #d9dbe0, #8d9096 55%, #5d6066);
+    color: #111; text-shadow: 0 1px 0 rgba(255,255,255,.6);
+  }
+  :root[data-theme="amp"] .foot[data-state="recording"], :root[data-theme="amp"] .foot[data-state="pending"] { color: #8e0d06; }
+  :root[data-theme="amp"] .export-btn { background: linear-gradient(180deg, #ffb347, #d97706) !important; border-color: #3a1e00 !important; color: #1a0d00 !important; }
+  :root[data-theme="amp"] select, :root[data-theme="amp"] .text-in { background-color: #0e0e0f; border-color: #55575c; }
+
+  /* Pegel: klassische LED-Kette grün → gelb → rot */
+  :root[data-theme="amp"] #loopMeter, :root[data-theme="amp"] .meter.st #loopMeterR {
+    background-image: linear-gradient(90deg, #22c55e 0%, #22c55e 60%, #facc15 80%, #ff2a1a 100%);
+    box-shadow: 0 0 6px rgba(34,197,94,.7), 0 0 14px rgba(34,197,94,.3);
+  }
+  :root[data-theme="amp"] .tm-fill { background: linear-gradient(0deg, #22c55e 0%, #22c55e 60%, #facc15 80%, #ff2a1a 100%); background-size: 100% var(--mh, 200px); background-position: bottom; box-shadow: 0 0 6px rgba(34,197,94,.55); }
+  :root[data-theme="amp"] .tmeter { background: linear-gradient(0deg, rgba(34,197,94,.08) 0%, rgba(34,197,94,.08) 60%, rgba(250,204,21,.08) 80%, rgba(255,42,26,.1) 100%), #070707; }
+  :root[data-theme="amp"] .chan-info { color: #ffb35c; }
+  @media (max-width: 520px) {
+    :root[data-theme="amp"] .card, :root[data-theme="amp"] .stat-card { background-size: 13px 13px, 13px 13px, 13px 13px, 13px 13px, auto, auto, 1024px 1024px; }
+    :root[data-theme="amp"] .brand { font-size: 1.15rem; }
+  }

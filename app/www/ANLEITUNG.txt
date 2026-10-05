@@ -1,0 +1,249 @@
+Looper (3nps-Übungsprogramm) als App aufs iPad
+==============================================
+
+Alles geht direkt auf dem iPad, ohne Computer.
+
+1. ZIP entpacken
+   In der Dateien-App auf die ZIP tippen. Es entsteht ein Ordner mit 34 Dateien.
+
+2. Kostenlos online stellen (GitHub Pages)
+   - Auf github.com ein kostenloses Konto anlegen.
+   - Oben rechts „+“ → „New repository“, Name z. B. 3nps, „Public“ lassen, „Create repository“.
+   - Auf „uploading an existing file“ tippen und alle 34 Dateien aus dem Ordner auswählen
+     (index.html, sw.js, manifest.webmanifest, die PNG- und JPG-Bilder). „Commit changes“.
+   - „Settings“ → links „Pages“ → bei „Branch“ „main“ und „/ (root)“ wählen → „Save“.
+   - Nach 1–2 Minuten erscheint dort die Adresse, z. B. https://DEINNAME.github.io/3nps/
+
+3. Als App installieren
+   - Die Adresse in Safari öffnen.
+   - Teilen-Symbol → „Zum Home-Bildschirm“ → „Hinzufügen“.
+   - Ab jetzt die App immer über das neue Icon starten. Sie funktioniert dann auch offline.
+
+4. Looper
+   - Beim ersten Aufnehmen fragt das iPad nach dem Mikrofon: „Erlauben“ tippen.
+     Die App fragt höchstens einmal pro Start. Als Home-Bildschirm-App erlaubt iPadOS
+     das Mikrofon leider nicht dauerhaft – nach einem Neustart der App kommt die Frage wieder.
+     Nach dem Sperren des iPads öffnet die App das Mikrofon beim nächsten Aufnehmen neu.
+   - Unter jeder Spur: „Pegel“ (Wiedergabe) und „Eingang“ (Aufnahme-Verstärkung, −12 bis +24 dB).
+     Die App regelt die Lautstärke nicht selbst. Ganz unten: „Gesamt“ und der Schalter „Limiter“
+     (schützt vor Übersteuern; aus = kein automatisches Eingreifen).
+   - Mit Kopfhörern wird der Loop nicht mit aufgenommen.
+   - Sitzen Overdubs nicht im Takt, den Regler „Latenz“ verschieben.
+   - Erste Aufnahme ohne Klick/Vorzähler: Die App erkennt nach dem Stoppen Tempo und Takt-Eins
+     aus deinem Spiel und taktet den Loop auf ganze Takte ein (Meldung „eingetaktet“).
+   - Über ♫ an jeder Spur lässt sich eine Audiodatei aus der Dateien-App laden.
+     Bei Dateien über 20 Sekunden fragt die App vorher: ganze Datei (Standard) oder Ausschnitt
+     (ab Takt … für … Takte). Die App erkennt, ob es ein fertiger Loop ist (bleibt unverändert,
+     Tempo wird exakt übernommen) oder ein Song (Taktraster über die ganze Datei).
+   - Läuft schon ein Loop, wird eine neue Datei ins Tempo des Loops gedehnt – die Tonhöhe bleibt –
+     und automatisch fein an die anderen Spuren angeglichen.
+   - Hat ein Song ein freies Intro (ohne festen Takt), sucht die App den Beginn des regelmäßigen
+     Takts und zählt erst dort „Takt 1“. Der Dialog zeigt das an, z. B. „Takt 1 bei 0:08“.
+   - Mit ✂ öffnet sich der Editor. „Prüfen“ zeigt, ob der Loop ganze Takte hat, Takt 1
+     am Anfang liegt und der Übergang sauber ist. „Nacharbeiten“ korrigiert das.
+     Liegt das erkannte Tempo eine Oktave daneben: „½ Tempo“ oder „2× Tempo“.
+     Liegt die Takt-Eins daneben: „Takt-Eins falsch? ◀ / ▶ 1 Schlag“ verschiebt das Raster.
+     „Feinabgleich“ legt die Anschläge der Spur genau auf die der anderen Spuren.
+   - Im Editor: +/− oder zwei Finger zoomen, unten in der Übersicht blättern,
+     oben in der Zeitleiste tippen = dorthin springen, „▶ ab Auswahl“ spielt ab dem Griff.
+     Auch ein Tipp auf die kleine Wellenform unter dem Taktkreis springt an diese Stelle.
+   - Vorzähler (Einstellungen „Aufnahme“): 1, 2, 4 oder 8 Takte vor der Aufnahme und –
+     wenn angehakt – auch vor dem Abspielen. „Alle stoppen“ bricht ihn ab.
+
+5. M-VAVE Chocolate verbinden
+   - Wichtig: Safari auf dem iPad kann kein Bluetooth-MIDI empfangen. Das Pedal muss deshalb
+     im Tastatur-Modus laufen: in der App „CubeSuite“ (App Store, von M-VAVE) den Modus
+     „Keyboard A“ (Pfeiltasten) oder „Keyboard B“ (Bild auf/ab, Leertaste, Enter) wählen.
+   - CubeSuite danach ganz schließen (nach oben wegwischen), damit sie das Pedal freigibt.
+   - iPad-Einstellungen → Bluetooth → „FootCtrl“ verbinden. War es schon gekoppelt:
+     (i) → „Dieses Gerät ignorieren“ und neu verbinden.
+   - Schnelltest außerhalb der App: in „Notizen“ Text tippen, dann Pedal treten – der Cursor
+     springt (Keyboard A) bzw. die Seite blättert (Keyboard B). Passiert nichts, sendet es noch MIDI.
+   - In der App unter „Fußpedal“: Belegung „Automatisch“ versteht Keyboard A und B.
+     A = Spur 1, B = Spur 2, C = Spur 3, D = alle starten/stoppen. Gedrückt halten = Rückgängig.
+   - „Zuletzt“ zeigt bei jedem Tritt, welche Taste ankommt und was sie auslöst.
+   - „Pedal-Empfang“ muss an sein: iPadOS gibt Pfeil- und Bildtasten sonst nicht an die App weiter,
+     sondern scrollt die Seite. Steht dort „einmal in die App tippen“, kurz irgendwo auf eine freie
+     Stelle tippen – dann „bereit ✓“. Beim Tippen in Textfelder (z. B. Ideen-Name) pausiert er kurz.
+
+6. Export für Logic Pro
+   - Im Looper auf „Für Logic exportieren“ tippen. Das Teilen-Menü öffnet sich mit einer ZIP-Datei.
+   - Per AirDrop an den Mac schicken oder „In Dateien sichern“ (für Logic Pro auf dem iPad).
+   - Die ZIP enthält: jede Spur als Stereo-WAV (24 Bit, alle ab Takt 1, gleich lang), einen Mix,
+     eine MIDI-Datei mit Tempo, Taktart, Tonart und – falls an – dem Drum-Groove,
+     und eine „LIES MICH“ mit den Schritten für Logic.
+   - Der Name im Feld „Ideen“ wird zum Namen des Pakets.
+
+7. Drums und Drum Designer (im Looper und im Tab „Begleitung“)
+   - „Drums an“ startet den Groove – im Looper immer im Takt des Loops, in der Begleitung frei im Tempo.
+   - Über 30 Vorlagen, gruppiert: Blues (Texas/Chicago Shuffle, Slow Blues 12/8, Half-Time Shuffle,
+     Boogie, Jump Blues, Train Beat, Funky Blues, Delta Stomp …), Rock & Pop, Funk & Soul,
+     Latin & Welt, Elektronisch, Wikinger-Trommeln.
+   - Neues Schlagzeug: 12 Instrumente mit mehreren Anschlagstärken, Raumklang und Stereobild.
+   - „Designer“: Raster 16tel (gerade) oder Triolen (Shuffle/12/8). Feld antippen: an → betont →
+     leise (Ghost) → aus. Instrumentname antippen = stumm. „Swing“, „Gefühl“ (menschliche
+     Schwankungen) und automatische Fills (alle 4, 8 oder 12 Takte, danach Becken auf der Eins).
+   - Änderungen an einer Vorlage landen im „Entwurf“. Mit Namen und „Muster speichern“ wird daraus
+     ein eigenes Muster unter „Meine Muster“ (Änderungen daran werden direkt gespeichert,
+     „Muster löschen“ entfernt es). Beim Logic-Export geht das Muster als MIDI-Drumspur mit.
+   - In der Begleitung spielt der Bass jetzt mit der Kick der Drums.
+
+8. Drone-Spur (im Looper und im Tab „Begleitung“)
+   - „Drone an“ legt den Drone-Klang unter den Loop, ein- und ausschaltbar mit einem Tipp.
+   - Grundton und Dur/Moll frei wählbar oder „wie Skala“. „Tonart aus Spur“ übernimmt
+     die erkannte Tonart einer Spur.
+   - Acht Klänge: Pad & Chor, Brass & Streicher, „Nordmeer – Wikinger“ (Bordun, tiefer Chor,
+     Wind, Brandung, Kriegstrommeln im Takt und ein Horn) und „Nordlicht – Eis & Glas“
+     (schwebende Flächen, gläserne Glocken aus der Skala, eisiger Wind), „Elbenküste – Meer & Chor“
+     (Streicher, heller Chor, Meeresrauschen, Harfen-Arpeggios) und „Waldesruh – Elbenwald“
+     (warme Fläche, Vögel, Blätterrauschen, Bach, Flötenmotive),
+     „Nachtbrandung – Küste & Fläche“ (warme Fläche vorn, das Meer im Hintergrund – links und
+     rechts brechen die Wellen unabhängig, Kies rasselt beim Zurücklaufen; E-Piano-Töne mit Echo)
+     und „Maschinenhalle – Stahl & Takt“ (Netzbrummen, Turbine, singende Stahlrohre auf Grundton
+     und Quinte; im Tempo stampft eine Presse, Ventile zischen, das Förderband tickt; ab und zu
+     rasselt eine Kette oder ein ferner Schlag hallt durch die Halle).
+     „Verzierungen“ schaltet Trommeln, Hornrufe und Glockenläufe zu oder ab.
+   - Mit Haken bei „startet mit Alle starten“ läuft die Drone mit dem Loop an und aus.
+
+9. Eingangspegel
+   - „Eingang öffnen“ (oben im Looper) zeigt das Signal schon vor der Aufnahme
+     in den Pegelanzeigen neben jeder Spur. Weiße Linie = Spitzenwert, die
+     aufnehmende Spur leuchtet rot.
+   - Kommt ein Stereo-Signal an, teilt sich der obere Balken in zwei: oben links (L), unten rechts (R).
+     Neben „Eingang“ steht dann „Stereo L/R“.
+   - Die Pegel neben jeder Spur zeigen ebenfalls links (L) und rechts (R), in der Farbe der Spur.
+     Gelb-orange heißt: kräftig, rot oben: kurz vor dem Übersteuern.
+
+10. Ideen speichern
+   - „Speichern“ sichert alle drei Spuren einzeln, dazu Tempo und Tonart. Mit den Haken
+     „Drums mitspeichern“ und „Drone mitspeichern“ kommen Drum-Muster und Drone-Einstellungen
+     dazu (inklusive, ob sie liefen). „Laden“ stellt alles wieder her, „Teilen“ gibt einen WAV-Mix aus.
+   - Gespeichert wird in Stereo mit 24 Bit. Ältere Ideen lassen sich weiter laden.
+
+11. Leistung (Karte „Aufnahme“)
+   - „Automatisch“ schaltet in den Sparmodus, wenn die Anzeige ruckelt. „Sparsam“ entlastet das iPad
+     dauerhaft (ruhigere Anzeige, größerer Audio-Puffer nach einem Neustart der App). Der Klang
+     bleibt gleich – nur die Verzögerung wird etwas größer.
+   - USB-Audio (z. B. Spark LIVE über Adapter): Wird das Gerät kurz getrennt (Ladekabel an/ab),
+     öffnet die App den Eingang automatisch neu und setzt den Ton fort.
+     Tipp: Ladegerät zuerst in den Adapter stecken, dann iPad und Spark verbinden, dann die App starten.
+
+12. Stereo
+   - Stereo sind: geladene Dateien, Wiedergabe, Bearbeiten (Schneiden, Verschieben, Strecken,
+     Nacharbeiten), Ideen und der Logic-Export. Beim Strecken werden beide Seiten gemeinsam
+     bearbeitet, das Stereobild bleibt erhalten.
+   - Neben jeder Spur steht „Stereo“ oder „Mono“ – das zeigt, was in der Spur liegt.
+   - Der Spur-Pegel zeigt beim Abspielen den Klang der Spur (links L, rechts R).
+     Ist die Spur leer oder nimmt sie gerade auf, zeigt er den Eingang.
+   - Aufnahme über den Eingang ist auf dem iPad mono: iPadOS gibt Safari und Web-Apps nur
+     einen Eingangskanal, auch wenn das Audio-Gerät (z. B. Spark LIVE) stereo liefert.
+     Neben „Eingang“ steht dann „mono (Grenze von iPadOS)“. Die Aufnahme liegt in der Mitte.
+   - Echte Stereo-Aufnahme: in einer anderen App aufnehmen, die den USB-Eingang in Stereo
+     nimmt (z. B. GarageBand oder Logic Pro), als WAV exportieren und hier in eine Spur laden.
+   - Mono-Dateien und Mono-Aufnahmen werden nur einmal gespeichert (spart Speicher).
+
+13. Optik (Looper → Karte „App · Optik und Sicherung“)
+   - „Nordisch“: Eis, Rost und Runen (bisherige Optik).
+   - „Metal“: schwarzer Stahl, Riffelblech, Pyramiden-Nieten, Chrom und Blutrot.
+     Spurfarben Chrom, Glut und Messing; die Anzeige oben leuchtet rot wie ein Verstärker.
+   - „Verstärker“: Tolex, gebürstete Alu-Frontplatte mit Schrauben, Spuren wie Lautsprecher-
+     bespannung, rote Kontrolllampe, Pegel als LED-Kette grün → gelb → rot, Anzeige in Röhren-Orange.
+   - „Eiswand“: raues, geschichtetes Gletschereis mit Rissen und Raureif, Eiszapfen unter der
+     Leiste, vereiste Niete, kaltes Licht.
+   - Die Wahl bleibt gespeichert. Klang und Funktionen sind in allen Optiken gleich.
+
+14. Alles sichern und neues App-Symbol „Looper“
+   - „Alles sichern“ packt Ideen, eigene Drum-Muster, das Übungslog und alle Einstellungen
+     in eine ZIP-Datei. Im Teilen-Menü „In Dateien sichern“ wählen (z. B. iCloud Drive).
+     Die Datei nicht entpacken – „Sicherung laden“ liest sie so, wie sie ist.
+   - Neues Symbol und Name „Looper“: iPadOS übernimmt beides erst, wenn die App neu zum
+     Home-Bildschirm hinzugefügt wird. Beim Entfernen des alten Symbols löscht iPadOS aber
+     die gespeicherten Daten. Darum in dieser Reihenfolge:
+       1. Neue Dateien auf GitHub hochladen (alle 34, vorhandene ersetzen).
+       2. Die alte App öffnen, zweimal neu starten, bis oben „Looper · v16“ steht.
+       3. Looper → „Alles sichern“ → „In Dateien sichern“.
+       4. Altes Symbol lange drücken → „App entfernen“.
+       5. Adresse in Safari öffnen → Teilen → „Zum Home-Bildschirm“ → Name „Looper“ → „Hinzufügen“.
+       6. Neue App öffnen → Looper → „Sicherung laden“ → die gesicherte Datei wählen.
+   - Wer das alte Symbol behalten will, muss nichts tun: Die App selbst ist trotzdem auf v16.
+
+15. Auf dem Mac
+   - Dieselbe Adresse (GitHub Pages) in Google Chrome öffnen. Oben rechts in der Adressleiste
+     auf das Installieren-Symbol klicken oder in Looper → „App“ auf „Als App installieren“.
+     Looper liegt dann im Programme-Ordner und im Dock, öffnet in einem eigenen Fenster
+     und läuft auch offline. Die iPad-App bleibt unverändert.
+   - Nur in Chrome (oder Edge) kommt der Eingang auf dem Mac in Stereo an. Safari nimmt auf dem
+     Mac wie auf dem iPad nur mono auf („Ablage → Zum Dock hinzufügen“ geht trotzdem).
+   - Spark LIVE per USB anschließen und in Chrome beim ersten „Eingang öffnen“ das Mikrofon
+     erlauben. Liefert der Spark zwei verschiedene Kanäle, steht neben „Eingang“ „Stereo L/R“.
+     Den Ausgang wählt macOS (Systemeinstellungen → Ton).
+   - Editor: Auf dem Trackpad mit zwei Fingern zusammenziehen/auseinanderziehen zoomt,
+     seitlich wischen blättert.
+   - Mac und iPad speichern getrennt. Ideen mitnehmen: auf dem einen Gerät „Alles sichern“,
+     die Datei per AirDrop schicken, auf dem anderen „Sicherung laden“.
+
+16. Equalizer (7 Bänder, je Spur und für die Drums)
+   - Unter jeder Spur „EQ“ antippen: Das Feld klappt auf. Bei den Drums sitzt „EQ“ neben „Designer“.
+   - Bänder 63 Hz, 160, 400, 1k, 2,5k, 6,3k, 12 kHz, je ±12 dB. Schieber ziehen, doppelt tippen = 0 dB.
+     Die Kurve oben zeigt die Wirkung. „0 dB“ setzt alles zurück, „Vorlage …“ bietet schnelle
+     Einstellungen (z. B. „Wärmer“, „Mehr Biss“, „Weniger Mulm“, „Bass raus“, bei den Drums
+     „Druckvoll“, „Weniger Becken“).
+   - Steht „EQ ●“ auf dem Knopf, ist der EQ aktiv. Die Einstellungen bleiben gespeichert, kommen
+     mit in Ideen und wirken auch auf den Logic-Export und den geteilten Mix (so, wie du es hörst).
+
+17. Absturzschutz und Speicher
+   - Die App sichert die aktuellen Spuren (mit EQ, Tempo und Tonart) ein paar Sekunden nach jeder
+     Änderung automatisch. Wird sie neu geladen – etwa nach einem Absturz –, erscheint im Looper
+     „Letzte Sitzung gefunden“: „Wiederherstellen“ holt alles zurück, „Verwerfen“ löscht die Sicherung.
+     Drums und Drone sind danach aus und lassen sich wieder einschalten.
+   - Sehr lange Loops (ganze Songs) brauchen viel Arbeitsspeicher. Die App verwirft dann ältere
+     Rückgängig-Schritte von selbst; ab sehr großen Spuren pausiert die automatische Sicherung
+     (Hinweis in der Statuszeile) – dann wichtige Loops unter „Ideen“ speichern.
+   - Doppeltippen zoomt die Seite nicht mehr.
+
+18. Sicherheit
+   - Die App hat keinen Server und kein Konto. Aufnahmen, Ideen und Einstellungen bleiben auf dem
+     Gerät. Sie baut keine Verbindungen zu fremden Diensten auf – die Schriften sind eingebaut
+     (Lizenz siehe SCHRIFTEN-LIZENZ.txt). Das Mikrofon wird nur im Gerät verarbeitet.
+   - Wer das GitHub-Repository ändern kann, ändert die App für alle, die sie nutzen. Darum das
+     GitHub-Konto mit starkem Passwort und Zwei-Faktor-Anmeldung schützen und Zugänge nur für
+     dieses eine Repository vergeben.
+   - Sicherungsdateien von anderen kann die App gefahrlos laden: Namen werden nur als Text angezeigt,
+     und eine Sicherheitsregel (Content Security Policy) verbietet Verbindungen zu fremden Servern.
+
+19. Genaue Takterkennung (v20)
+   - Die App misst nach der groben Takterkennung jeden Anschlag auf etwa 1 ms genau nach und legt das
+     Taktraster durch alle Anschläge. Loops werden dadurch exakt auf der Eins geschnitten, das Tempo
+     stimmt auf Hundertstel-BPM. Bei leicht schwankendem Tempo (live gespielt) folgt das Raster dem Spiel.
+   - Breaks, Halftime-Teile und Stellen ohne Schlagzeug überbrückt das Raster; die Takte zählen durch.
+   - Becken auf der Eins (Crash am Teilanfang) helfen jetzt beim Finden von Takt 1.
+   - „Takt-Eins falsch? ◀ / ▶“ springt auf den nächsten erkannten Schlag und ist exakt umkehrbar.
+   - Exakt zugeschnittene Loop-Dateien (z. B. aus Logic oder einer Loop-Sammlung) bleiben unverändert:
+     Ihr Anfang gilt als Takt 1, auch wenn der erste Ton weich einsetzt.
+
+20. Neue Spuren automatisch angleichen
+   - Nimmst du Spur 2 oder 3 auf, vergleicht die App deine Anschläge mit denen von Spur 1 und verschiebt
+     die neue Aufnahme so, dass sie genau sitzt (höchstens ±60 ms bzw. eine Zweiunddreißigstel).
+     Die Meldung zeigt, um wie viel; ↶ nimmt nur den Abgleich zurück.
+   - Flächen und Klänge ohne klare Anschläge bleiben, wie sie sind.
+   - Abschalten: Karte „Aufnahme“ → „Neue Spuren automatisch an Spur 1 angleichen“.
+
+21. Akkorde
+   - Für jede Spur erkennt die App die Akkorde je Schlag (Dur, Moll, 7, maj7, m7, 6, sus2, sus4, dim, Powerchord),
+     auch bei verstimmter Gitarre. Sie stehen unter der kleinen Wellenform; der klingende Akkord leuchtet,
+     ein Tipp auf einen Akkord springt dorthin.
+   - Im Editor (✂) stehen sie über der Wellenform und unter „Tonart und Akkorde“ als Zeile je Takt.
+   - Beim Export für Logic landen sie als Marker in der MIDI-Datei und im Text „LIES MICH“.
+   - Bei Riffs ohne Terz (Boogie, Powerchords) zeigt die App z. B. „A5“ oder „A6“ – das ist richtig.
+
+22. Bass der Begleitung
+   - Der Bass wird beim Start der App selbst erzeugt (gezupfte Saite, im Hintergrund). Es stecken keine
+     fremden Aufnahmen mehr in der App, und der Bass setzt pünktlich mit der Kick ein.
+
+Gut zu wissen
+   - Übungslog und Ideen werden nur auf diesem iPad gespeichert. Eine neue Installation
+     startet mit leerem Log.
+   - Wichtige Ideen über „Teilen“ als WAV z. B. in Dateien oder iCloud sichern,
+     denn beim Löschen der App gehen die Daten verloren.
+   - Update einspielen: geänderte Dateien auf GitHub hochladen (ersetzen die alten; im Zweifel alle),
+     in sw.js die Zeile CACHE = '3nps-v1' auf v2 erhöhen, App zweimal neu öffnen.

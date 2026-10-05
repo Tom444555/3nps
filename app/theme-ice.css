@@ -1,0 +1,111 @@
+
+  /* ===== Optik „Eiswand“: raues Gletschereis, Frost, Eiszapfen, vereiste Niete, kaltes Licht ===== */
+  :root[data-theme="ice"] {
+    --bg: #06121c; --surface: #0e1c28; --surface-2: #152634; --raised: #1d3142;
+    --ink: #eef7ff; --muted: #9fb4c6; --line: #2b3d4e; --line-soft: #1d2b38;
+    --accent: #7fd8ff; --accent-ink: #031018; --active-color: #7fd8ff;
+    --t1: #f0fbff; --t2: #67d4ff; --t3: #8a9cff;
+    --neon-rec: #ff2d45; --neon-dub: #ffe14a; --neon-bar1: #ffffff;
+    --lcd-bg: #04101a; --lcd-ink: #c4f0ff; --lcd-dim: #4c6c84;
+    --board: #182633; --board-edge: #0b141c; --fretwire: #d6eefb;
+    background: #06121c url("bg-ice.jpg") repeat; background-size: 1024px 1024px;
+  }
+  :root[data-theme="ice"] body::before {
+    background:
+      radial-gradient(ellipse 70% 45% at 50% 0%, rgba(210,240,255,.16) 0%, rgba(170,220,255,.05) 45%, transparent 70%),
+      radial-gradient(ellipse 150% 120% at 50% 35%, transparent 28%, rgba(0,6,14,.55) 74%, rgba(0,4,10,.9) 100%),
+      linear-gradient(180deg, transparent 70%, rgba(180,220,255,.06) 100%);
+  }
+  /* Schrift: in Stein gemeißelte Versalien, eisig glänzend */
+  :root[data-theme="ice"] .brand {
+    font-family: "Cinzel", "Trajan Pro", "Iowan Old Style", Georgia, serif; font-weight: 700; font-size: 1.35rem; letter-spacing: .1em; line-height: 1;
+    background: linear-gradient(180deg, #ffffff 0%, #d9f3ff 45%, #7cc4ea 60%, #e8f8ff 100%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; text-shadow: none; color: transparent; text-shadow: none;
+    filter: drop-shadow(0 2px 0 rgba(0,8,16,.9)) drop-shadow(0 0 8px rgba(120,200,255,.45));
+  }
+  :root[data-theme="ice"] .brand span { font: 600 .64rem var(--f-body); letter-spacing: .1em; text-transform: uppercase; -webkit-text-fill-color: #8fb3cb; color: #8fb3cb; }
+  :root[data-theme="ice"] .brand::before { width: 34px; height: 34px; flex-basis: 34px; background-image: url("emblem-ice.png"); filter: drop-shadow(0 0 6px rgba(120,200,255,.6)); }
+  :root[data-theme="ice"] h2 {
+    font-family: "Cinzel", "Trajan Pro", Georgia, serif; font-weight: 700; font-size: .86rem;
+    text-transform: uppercase; letter-spacing: .1em; color: #e2f5ff;
+    text-shadow: 0 -1px 0 #000, 0 0 12px rgba(120,200,255,.35);
+  }
+  :root[data-theme="ice"] .tab { font-family: "Cinzel", Georgia, serif; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #8ea7ba; }
+  :root[data-theme="ice"] .tab[aria-selected="true"] {
+    background: linear-gradient(180deg, #e8f8ff 0%, #a9dcf5 50%, #5c9fc6 100%); color: #04131f;
+    box-shadow: 0 1px 0 rgba(255,255,255,.8) inset, 0 -1px 0 rgba(0,30,60,.4) inset, 0 0 16px rgba(130,210,255,.35);
+    text-shadow: 0 1px 0 rgba(255,255,255,.5);
+  }
+  :root[data-theme="ice"] .tabs { background: linear-gradient(180deg, rgba(0,8,16,.8), rgba(0,8,16,.65)), url("panel-ice.jpg") 0 0 / 512px 512px; }
+
+  /* Kontrollleiste: dunkles Eis, darunter hängen Eiszapfen */
+  :root[data-theme="ice"] .control-bar {
+    background:
+      url("rivet-ice.png") 8px 50% / 14px 14px no-repeat,
+      url("rivet-ice.png") calc(100% - 8px) 50% / 14px 14px no-repeat,
+      linear-gradient(180deg, rgba(200,235,255,.12) 0%, rgba(0,0,0,.15) 50%, rgba(0,6,14,.55) 100%),
+      url("panel-ice.jpg") 0 0 / 512px 512px;
+    background-color: #0a1824; border-bottom: 1px solid rgba(190,230,255,.35);
+    box-shadow: 0 1px 0 rgba(220,245,255,.2) inset, 0 8px 22px rgba(0,0,0,.7);
+  }
+  :root[data-theme="ice"] .control-bar::after {
+    height: 34px; bottom: -32px; background: url("icicles.png") 0 0 / auto 34px repeat-x; border: 0; box-shadow: none;
+    filter: drop-shadow(0 3px 3px rgba(0,0,0,.5));
+  }
+  :root[data-theme="ice"] .cb-inner { padding-bottom: 12px; }
+  :root[data-theme="ice"] .lcd { border-color: rgba(160,215,245,.25); box-shadow: inset 0 3px 10px rgba(0,0,0,.9), inset 0 0 0 1px #000, inset 0 0 18px rgba(120,200,255,.12); }
+  :root[data-theme="ice"] .lcd .v { text-shadow: 0 0 6px rgba(150,220,255,.6); }
+  :root[data-theme="ice"] .tabs { margin-top: 16px; }
+
+  /* Platten: dunkle Eisblöcke mit vereisten Nieten und Frostkante */
+  :root[data-theme="ice"] .card, :root[data-theme="ice"] .stat-card {
+    background:
+      url("rivet-ice.png") 6px 6px / 16px 16px no-repeat,
+      url("rivet-ice.png") calc(100% - 6px) 6px / 16px 16px no-repeat,
+      url("rivet-ice.png") 6px calc(100% - 6px) / 16px 16px no-repeat,
+      url("rivet-ice.png") calc(100% - 6px) calc(100% - 6px) / 16px 16px no-repeat,
+      radial-gradient(ellipse 120% 60% at 50% 0%, rgba(200,235,255,.08), transparent 60%),
+      linear-gradient(180deg, rgba(0,0,0,.05) 0%, rgba(0,8,18,.35) 100%),
+      url("panel-ice.jpg") 0 0 / 512px 512px;
+    background-color: #0b1a26;
+    border: 1px solid rgba(170,220,250,.28);
+    box-shadow: 0 1px 0 rgba(225,245,255,.22) inset, inset 0 0 34px rgba(150,210,245,.08), 0 10px 22px rgba(0,0,0,.7), 0 28px 60px rgba(0,0,0,.6);
+  }
+  :root[data-theme="ice"] .card::after { border-color: rgba(0,10,20,.6); box-shadow: 0 1px 0 rgba(200,235,255,.06); }
+  :root[data-theme="ice"] .track, :root[data-theme="ice"] .editor, :root[data-theme="ice"] .lane {
+    background: linear-gradient(180deg, rgba(0,6,12,.72), rgba(0,6,12,.64)), url("panel-ice.jpg") 137px 91px / 512px 512px;
+    background-color: #050d14; border: 1px solid rgba(150,210,245,.18);
+    box-shadow: inset 0 8px 22px rgba(0,0,0,.9), inset 0 0 0 1px rgba(170,220,250,.04), 0 1px 0 rgba(200,235,255,.08);
+  }
+  :root[data-theme="ice"] .track.rec-live { border-color: rgba(255,45,69,.65) !important; box-shadow: inset 0 3px 10px rgba(0,0,0,.85), 0 0 0 1px rgba(255,45,69,.5), 0 0 22px rgba(255,45,69,.28) !important; }
+
+  /* Taster: kaltes Schiefergrau, aktiv glimmt Eisblau */
+  :root[data-theme="ice"] .toggle-btn, :root[data-theme="ice"] .mini button, :root[data-theme="ice"] .file-mini, :root[data-theme="ice"] .tbtn {
+    background: linear-gradient(180deg, #2b3a47, #16212b); border: 1px solid #02070c; color: #e6f3fb;
+    box-shadow: 0 1px 0 rgba(200,235,255,.15) inset, 0 2px 3px rgba(0,0,0,.6);
+  }
+  :root[data-theme="ice"] .toggle-btn.active {
+    background: linear-gradient(180deg, #d9f3ff 0%, #8dcdee 50%, #3f87b3 100%); color: #03111c; border-color: #021019;
+    box-shadow: 0 1px 0 rgba(255,255,255,.8) inset, 0 0 14px rgba(120,200,255,.45), 0 2px 3px rgba(0,0,0,.6); text-shadow: 0 1px 0 rgba(255,255,255,.45);
+  }
+  :root[data-theme="ice"] #playBtn.playing { background: linear-gradient(180deg, #8dcdee, #3f87b3); }
+  :root[data-theme="ice"] .foot {
+    background: radial-gradient(ellipse at 50% 0%, rgba(220,245,255,.28), transparent 60%), linear-gradient(180deg, #51606c, #2f3a44 60%, #222a31);
+  }
+  :root[data-theme="ice"] .export-btn { background: linear-gradient(180deg, #d9f3ff, #4c95c0) !important; border-color: #021019 !important; color: #03111c !important; }
+  :root[data-theme="ice"] select, :root[data-theme="ice"] .text-in { background-color: #050e16; border-color: rgba(150,210,245,.25); }
+
+  /* Pegel: Tiefblau → Eis → Weiß, warm erst kurz vor dem Übersteuern */
+  :root[data-theme="ice"] #loopMeter, :root[data-theme="ice"] .meter.st #loopMeterR {
+    background-image: linear-gradient(90deg, #2a5cff 0%, #5fd6ff 42%, #effaff 64%, #ffb04a 83%, #ff2d45 100%);
+    box-shadow: 0 0 6px rgba(120,210,255,.7), 0 0 14px rgba(120,210,255,.3);
+  }
+  :root[data-theme="ice"] .track { --tcd: #5a7d99; --tcg: rgba(230,245,255,.45); }
+  :root[data-theme="ice"] .track.t2 { --tcd: #1b5e95; --tcg: rgba(103,212,255,.55); }
+  :root[data-theme="ice"] .track.t3 { --tcd: #3a3fa8; --tcg: rgba(138,156,255,.5); }
+  :root[data-theme="ice"] .chan-info { color: #bfeaff; }
+  @media (max-width: 520px) {
+    :root[data-theme="ice"] .card, :root[data-theme="ice"] .stat-card { background-size: 13px 13px, 13px 13px, 13px 13px, 13px 13px, auto, auto, 512px 512px; }
+    :root[data-theme="ice"] .brand { font-size: 1.15rem; }
+  }
+  :root[data-theme="ice"] #caption { margin-top: 30px; }

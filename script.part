@@ -1,0 +1,2023 @@
+<script>
+const NOTES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const STRING_OPEN = [40,45,50,55,59,64];
+
+const MODES = {
+  "Ionisch (Dur)": [0,2,4,5,7,9,11],
+  "Dorisch": [0,2,3,5,7,9,10],
+  "Phrygisch": [0,1,3,5,7,8,10],
+  "Lydisch": [0,2,4,6,7,9,11],
+  "Mixolydisch": [0,2,4,5,7,9,10],
+  "Äolisch (Moll)": [0,2,3,5,7,8,10],
+  "Lokrisch": [0,1,3,5,6,8,10],
+};
+
+const PATTERN_DESC = {
+  updown: "Klassisches Auf- und Abspielen der kompletten Position, Saite für Saite.",
+  seq3: "Überlappende 3er-Gruppen: Noten 1-2-3, dann 2-3-4, dann 3-4-5 usw. — trainiert Wechselschlag und Übergänge.",
+  thirds: "Jede zweite Note der Skala (diatonische Terzen) — gutes Ohrtraining und Fingerunabhängigkeit."
+};
+const PATTERN_LABEL = {
+  updown: "Rauf & Runter",
+  seq3: "3er-Sequenz",
+  thirds: "Terzsprünge"
+};
+
+const rootSel = document.getElementById('root');
+const modeSel = document.getElementById('mode');
+const posSel = document.getElementById('position');
+const patternSel = document.getElementById('pattern');
+NOTES.forEach(n => rootSel.add(new Option(n, n)));
+Object.keys(MODES).forEach(m => modeSel.add(new Option(m, m)));
+for (let p = 1; p <= 7; p++) posSel.add(new Option('Position ' + p, p));
+rootSel.value = 'G';
+modeSel.value = 'Ionisch (Dur)';
+posSel.value = '1';
+
+let showFingers = false;
+let currentPattern = [];
+let playSequence = [];
+let seqPointer = 0;
+let isPlaying = false;
+let intervalId = null;
+let audioCtx = null;
+let beatCounter = 0;
+let dbApi = null;
+let sessionStartMs = null;
+let metronomeMuted = false;
+let droneOn = false;
+let droneNodes = null;
+let beatOn = false;
+let bassOn = false;
+let grooveNodes = null;
+
+const GROOVE_STYLES = {
+  rock: {
+    kick: [0, 7, 8],
+    snare: [4, 12],
+    hihat: [0, 2, 4, 6, 8, 10, 12, 14],
+    bass: [{ step: 0, deg: 'root' }, { step: 7, deg: 'root' }, { step: 8, deg: 'fifth' }, { step: 12, deg: 'root' }]
+  },
+  halftime: {
+    kick: [0, 10],
+    snare: [8],
+    hihat: [0, 4, 8, 12],
+    bass: [{ step: 0, deg: 'root' }, { step: 10, deg: 'fifth' }]
+  },
+  latin: {
+    kick: [0, 6, 10],
+    snare: [4, 12],
+    hihat: [0, 2, 4, 6, 8, 10, 12, 14],
+    bass: [{ step: 0, deg: 'root' }, { step: 6, deg: 'fifth' }, { step: 10, deg: 'root' }]
+  }
+};
+
+function buildPattern(rootIdx, intervals, posIdx) {
+  const offsets = [];
+  for (let k = 0; k < 7; k++) {
+    const idx = (posIdx + k) % 7;
+    let val = intervals[idx];
+    if (idx < posIdx) val += 12;
+    offsets.push(val);
+  }
+  const anchorOffset = offsets[0];
+  const anchorPC = (rootIdx + anchorOffset) % 12;
+  const anchorFret = ((anchorPC - (STRING_OPEN[0] % 12)) + 12) % 12;
+  const anchorPitch = STRING_OPEN[0] + anchorFret;
+
+  const seq = [];
+  for (let i = 0; i < 21; i++) {
+    const cyc = Math.floor(i / 7);
+    const off = offsets[i % 7] - offsets[0] + 12 * cyc;
+    seq.push(anchorPitch + off);
+  }
+
+  const notes = [];
+  let ptr = 0;
+  for (let s = 0; s < 6; s++) {
+    const stringPitches = [seq[ptr], seq[ptr + 1], seq[ptr + 2]];
+    ptr += 3;
+    const diff1 = stringPitches[1] - stringPitches[0];
+    let fingers = (diff1 === 1) ? [1, 3, 4] : [1, 2, 4];
+    stringPitches.forEach((pitch, i) => {
+      notes.push({ string: s, fret: pitch - STRING_OPEN[s], pitch, finger: fingers[i] });
+    });
+  }
+  return notes;
+}
+
+function buildSequence(patternType) {
+  const n = currentPattern.length; // 21
+  const idxAsc = [...Array(n).keys()];
+  const idxDesc = [...idxAsc].reverse();
+
+  if (patternType === 'updown') {
+    return idxAsc.concat(idxDesc.slice(1), idxAsc.slice(1));
+  }
+  if (patternType === 'seq3') {
+    const up = [];
+    for (let i = 0; i <= n - 3; i++) up.push(i, i + 1, i + 2);
+    const down = [];
+    for (let i = n - 1; i >= 2; i--) down.push(i, i - 1, i - 2);
+    return up.concat(down);
+  }
+  if (patternType === 'thirds') {
+    const up = [];
+    for (let i = 0; i < n; i += 2) up.push(i);
+    const down = [...up].reverse();
+    return up.concat(down.slice(1), up.slice(1));
+  }
+  return idxAsc;
+}
+
+function renderBoard(highlightIdx) {
+  const rootIdx = NOTES.indexOf(rootSel.value);
+  const frets = currentPattern.map(n => n.fret);
+  const minFret = Math.min(...frets), maxFret = Math.max(...frets);
+  const startFret = Math.max(0, minFret - 1);
+  const endFret = Math.min(24, maxFret + 1);
+
+  const board = document.getElementById('fretboard');
+  board.innerHTML = '';
+
+  for (let s = 5; s >= 0; s--) {
+    const row = document.createElement('div');
+    row.className = 'string-row';
+    for (let f = startFret; f <= endFret; f++) {
+      const cell = document.createElement('div');
+      cell.className = 'fret-cell' + (f === 0 ? ' nut' : '');
+      const matchIdx = currentPattern.findIndex(n => n.string === s && n.fret === f);
+      if (matchIdx !== -1) {
+        const match = currentPattern[matchIdx];
+        const isRoot = (match.pitch % 12) === rootIdx;
+        const dot = document.createElement('div');
+        let cls = 'note-dot ' + (showFingers ? 'finger-mode ' : '') + (isRoot ? 'root' : 'scale');
+        if (matchIdx === highlightIdx) cls += ' active';
+        dot.className = cls;
+        dot.textContent = showFingers ? match.finger : NOTES[match.pitch % 12];
+        cell.appendChild(dot);
+      }
+      row.appendChild(cell);
+    }
+    board.appendChild(row);
+  }
+
+  const numRow = document.getElementById('fretNumbers');
+  numRow.innerHTML = '';
+  for (let f = startFret; f <= endFret; f++) {
+    const span = document.createElement('span');
+    span.textContent = f;
+    numRow.appendChild(span);
+  }
+}
+
+function renderLegend() {
+  const legend = document.getElementById('legend');
+  if (showFingers) {
+    legend.innerHTML = `
+      <span><span class="swatch" style="background:var(--root-color)"></span> Grundton</span>
+      <span><span class="swatch" style="background:var(--finger-color)"></span> Finger 1–4</span>
+      <span><span class="swatch" style="background:var(--active-color)"></span> Aktueller Ton</span>
+    `;
+  } else {
+    legend.innerHTML = `
+      <span><span class="swatch" style="background:var(--root-color)"></span> Grundton</span>
+      <span><span class="swatch" style="background:var(--scale-color)"></span> Skalenton</span>
+      <span><span class="swatch" style="background:var(--active-color)"></span> Aktueller Ton</span>
+    `;
+  }
+}
+
+function rebuild() {
+  stopPlayback();
+  const rootIdx = NOTES.indexOf(rootSel.value);
+  const intervals = MODES[modeSel.value];
+  const posIdx = parseInt(posSel.value) - 1;
+  currentPattern = buildPattern(rootIdx, intervals, posIdx);
+  playSequence = buildSequence(patternSel.value);
+  seqPointer = 0;
+
+  const startPC = (rootIdx + intervals[posIdx]) % 12;
+  document.getElementById('caption').textContent =
+    'Startton: ' + NOTES[startPC] + ' (Stufe ' + (posIdx + 1) + ') — ' + modeSel.value;
+  document.getElementById('patternDesc').textContent = PATTERN_DESC[patternSel.value];
+
+  renderBoard(-1);
+  renderLegend();
+  document.getElementById('statusLine').textContent = 'Bereit — ' + playSequence.length + ' Töne im Muster';
+  updateDroneFreq();
+}
+
+function ensureAudio() {
+  if (!audioCtx) {
+    // höchste vom Gerät unterstützte Samplerate anfordern (bessere Klangqualität als der oft niedrigere Default)
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 48000, latencyHint: 'playback' });
+    } catch (e) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    ensureMasterBus();
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+let masterBus = null;
+function ensureMasterBus() {
+  if (masterBus) return masterBus;
+  const input = audioCtx.createGain();
+  input.gain.value = 1;
+
+  // sanfte Höhenanhebung für mehr Klarheit/"Luft" im Gesamtmix
+  const airShelf = audioCtx.createBiquadFilter();
+  airShelf.type = 'highshelf';
+  airShelf.frequency.value = 9000;
+  airShelf.gain.value = 1.5;
+
+  // dezente Wärme/Sättigung statt hartem digitalem Clipping bei vollem Mix
+  const saturator = audioCtx.createWaveShaper();
+  const curveLen = 1024;
+  const curve = new Float32Array(curveLen);
+  for (let i = 0; i < curveLen; i++) {
+    const x = (i / (curveLen - 1)) * 2 - 1;
+    curve[i] = Math.tanh(x * 1.15);
+  }
+  saturator.curve = curve;
+  saturator.oversample = '4x';
+
+  // finaler Limiter als Sicherheitsnetz, damit Drone + Beat + Bass + Metronom + Song
+  // gemeinsam nie hart übersteuern, sondern sauber und laut bleiben
+  const limiter = audioCtx.createDynamicsCompressor();
+  limiter.threshold.value = -3;
+  limiter.knee.value = 6;
+  limiter.ratio.value = 12;
+  limiter.attack.value = 0.003;
+  limiter.release.value = 0.15;
+
+  const outGain = audioCtx.createGain();
+  outGain.gain.value = 1.0;
+
+  input.connect(airShelf);
+  airShelf.connect(saturator);
+  saturator.connect(limiter);
+  limiter.connect(outGain);
+  outGain.connect(audioCtx.destination);
+  window.masterOut = outGain; window.masterLimiter = limiter;
+  applyMasterPrefs();
+
+  masterBus = input;
+  return masterBus;
+}
+
+// Gesamtlautstärke und Limiter (im Looper einstellbar, gespeichert)
+function applyMasterPrefs() {
+  if (!window.masterOut) return;
+  let vol = 100, lim = '1';
+  try { vol = parseFloat(localStorage.getItem('3nps-master') || '100'); lim = localStorage.getItem('3nps-limiter') || '1'; } catch (e) {}
+  window.masterOut.gain.setTargetAtTime(vol / 100, audioCtx.currentTime, 0.03);
+  const L = window.masterLimiter;
+  if (lim === '1') { L.threshold.value = -1.5; L.knee.value = 2; L.ratio.value = 20; L.attack.value = 0.002; L.release.value = 0.08; }
+  else { L.threshold.value = 0; L.knee.value = 0; L.ratio.value = 1; }
+}
+
+// Nach jedem Ton die Klangknoten wieder abklemmen. Safari behält beendete Knoten sonst im Audio-Graphen:
+// über Stunden wird die Wiedergabe dann zäh, Drums kommen verzögert und es knackt.
+function vEnd(srcs, nodes) {
+  srcs = [].concat(srcs); let left = srcs.length;
+  const done = () => { if (--left > 0) return; srcs.forEach(x => { try { x.disconnect(); } catch (e) {} }); (nodes || []).forEach(n => { try { n.disconnect(); } catch (e) {} }); };
+  srcs.forEach(x => { try { x.addEventListener('ended', done, { once: true }); } catch (e) { x.onended = done; } });
+}
+
+function clickSound(accent) {
+  ensureAudio();
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.frequency.value = accent ? 1400 : 900;
+  gain.gain.value = 0.18;
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.06);
+  osc.connect(gain);
+  gain.connect(ensureMasterBus());
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.06);
+  vEnd(osc, [gain]);
+}
+
+function midiToFreq(midi) {
+  return 440 * Math.pow(2, (midi - 69) / 12);
+}
+
+let reverbNode = null;
+function ensureReverb() {
+  if (reverbNode) return reverbNode;
+  const duration = 6, decay = 2.4;
+  const rate = audioCtx.sampleRate;
+  const length = rate * duration;
+  const impulse = audioCtx.createBuffer(2, length, rate);
+  for (let ch = 0; ch < 2; ch++) {
+    const raw = new Float32Array(length);
+    for (let i = 0; i < length; i++) {
+      raw[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, decay);
+    }
+    // natürliche Höhendämpfung über die Zeit (wie Luftabsorption in einem echten Raum) —
+    // macht den Hall weich statt nach hartem, digitalem Rauschen zu klingen
+    const smoothed = onePoleLowpass(raw, rate, 5200);
+    impulse.copyToChannel(smoothed, ch);
+  }
+  reverbNode = audioCtx.createConvolver();
+  reverbNode.buffer = impulse;
+  return reverbNode;
+}
+
+let pingPong = null;
+function ensurePingPong() {
+  if (pingPong) return pingPong;
+  const delayTime = 0.44, feedback = 0.36;
+  const delayA = audioCtx.createDelay(2.0); delayA.delayTime.value = delayTime;
+  const delayB = audioCtx.createDelay(2.0); delayB.delayTime.value = delayTime * 1.5;
+  const fbA = audioCtx.createGain(); fbA.gain.value = feedback;
+  const fbB = audioCtx.createGain(); fbB.gain.value = feedback;
+  const panA = audioCtx.createStereoPanner(); panA.pan.value = -0.65;
+  const panB = audioCtx.createStereoPanner(); panB.pan.value = 0.65;
+  const input = audioCtx.createGain();
+  const output = audioCtx.createGain();
+
+  input.connect(delayA);
+  delayA.connect(panA); panA.connect(output);
+  delayA.connect(fbA); fbA.connect(delayB);
+  delayB.connect(panB); panB.connect(output);
+  delayB.connect(fbB); fbB.connect(delayA);
+
+  pingPong = { input, output };
+  return pingPong;
+}
+
+let noiseBuffer = null;
+function ensureNoiseBuffer() {
+  if (noiseBuffer) return noiseBuffer;
+  const size = audioCtx.sampleRate * 2;
+  noiseBuffer = audioCtx.createBuffer(1, size, audioCtx.sampleRate);
+  const data = noiseBuffer.getChannelData(0);
+  for (let i = 0; i < size; i++) data[i] = Math.random() * 2 - 1;
+  return noiseBuffer;
+}
+
+// Bass-Töne werden beim Start selbst erzeugt (bass.js, im Hintergrund) – keine fremden Aufnahmen in der App.
+
+function playKick(t) {
+  const osc = audioCtx.createOscillator();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(150, t);
+  osc.frequency.exponentialRampToValueAtTime(45, t + 0.12);
+  const g = audioCtx.createGain();
+  g.gain.setValueAtTime(0.9, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.32);
+  osc.connect(g);
+  g.connect(grooveNodes.dryGain);
+  osc.start(t); osc.stop(t + 0.34);
+  vEnd(osc, [g]);
+}
+
+function playSnare(t) {
+  const noiseSrc = audioCtx.createBufferSource();
+  noiseSrc.buffer = ensureNoiseBuffer();
+  const hp = audioCtx.createBiquadFilter();
+  hp.type = 'highpass'; hp.frequency.value = 1500;
+  const ng = audioCtx.createGain();
+  ng.gain.setValueAtTime(0.35, t);
+  ng.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+  noiseSrc.connect(hp); hp.connect(ng);
+  ng.connect(grooveNodes.dryGain);
+  ng.connect(grooveNodes.reverbSend);
+  noiseSrc.start(t); noiseSrc.stop(t + 0.2);
+  vEnd(noiseSrc, [hp, ng]);
+
+  const osc = audioCtx.createOscillator();
+  osc.type = 'triangle'; osc.frequency.value = 190;
+  const og = audioCtx.createGain();
+  og.gain.setValueAtTime(0.25, t);
+  og.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
+  osc.connect(og); og.connect(grooveNodes.dryGain);
+  osc.start(t); osc.stop(t + 0.1);
+  vEnd(osc, [og]);
+}
+
+function playHihat(t, accent) {
+  const noiseSrc = audioCtx.createBufferSource();
+  noiseSrc.buffer = ensureNoiseBuffer();
+  const hp = audioCtx.createBiquadFilter();
+  hp.type = 'highpass'; hp.frequency.value = 7500;
+  const g = audioCtx.createGain();
+  const peak = accent ? 0.22 : 0.13;
+  const dur = accent ? 0.09 : 0.045;
+  g.gain.setValueAtTime(peak, t);
+  g.gain.exponentialRampToValueAtTime(0.0008, t + dur);
+  noiseSrc.connect(hp); hp.connect(g);
+  g.connect(grooveNodes.dryGain);
+  noiseSrc.start(t); noiseSrc.stop(t + dur + 0.02);
+  vEnd(noiseSrc, [hp, g]);
+}
+
+let bassSampleBuffers = {};
+let bassSamplesReady = false;
+
+async function loadBassSamples() {
+  ensureAudio();
+  const SR = audioCtx.sampleRate || 48000;
+  const done = raw => {
+    Object.entries(raw).forEach(([midi, a]) => {
+      const b = audioCtx.createBuffer(1, a.length, SR); b.copyToChannel(a, 0); bassSampleBuffers[parseInt(midi)] = b;
+    });
+    bassSamplesReady = true;
+  };
+  try {
+    const src = synthBass.toString() + '\nonmessage = e => { const r = synthBass(e.data.sr, 36, 55, 2.2); postMessage(r, Object.values(r).map(a => a.buffer)); };';
+    const w = new Worker(URL.createObjectURL(new Blob([src], { type: 'application/javascript' })));
+    w.onmessage = e => { w.terminate(); done(e.data); };
+    w.onerror = () => { w.terminate(); setTimeout(() => done(synthBass(SR, 36, 55, 2.2)), 10); };
+    w.postMessage({ sr: SR });
+  } catch (e) { setTimeout(() => done(synthBass(SR, 36, 55, 2.2)), 10); }
+}
+
+function nearestBassSample(midi) {
+  const available = Object.keys(bassSampleBuffers).map(Number);
+  if (!available.length) return null;
+  if (bassSampleBuffers[midi]) return { buffer: bassSampleBuffers[midi], rate: 1 };
+  const nearest = available.reduce((a, b) => Math.abs(b - midi) < Math.abs(a - midi) ? b : a, available[0]);
+  const rate = Math.pow(2, (midi - nearest) / 12);
+  return { buffer: bassSampleBuffers[nearest], rate };
+}
+
+function playBassNote(t, deg, stepDurMs) {
+  if (!bassSamplesReady) return;
+  const rootIdx = NOTES.indexOf(rootSel.value);
+  const intervals = MODES[modeSel.value];
+  const baseMidi = 36 + rootIdx;
+  const midi = deg === 'fifth' ? baseMidi + intervals[4] : baseMidi;
+  const sample = nearestBassSample(midi);
+  if (!sample || !sample.buffer) return;
+
+  const src = audioCtx.createBufferSource();
+  src.buffer = sample.buffer;
+  src.playbackRate.value = sample.rate;
+
+  const tone = audioCtx.createBiquadFilter();
+  tone.type = 'lowpass';
+  tone.frequency.value = 3400;
+
+  const holdSec = Math.min(stepDurMs / 1000 * 3.6, 1.6);
+  const g = audioCtx.createGain();
+  g.gain.setValueAtTime(0.9, t);
+  g.gain.setValueAtTime(0.9, t + Math.max(0, holdSec - 0.15));
+  g.gain.linearRampToValueAtTime(0.0001, t + holdSec + 0.18);
+
+  src.connect(tone);
+  tone.connect(g);
+  g.connect(grooveNodes.dryGain);
+  g.connect(grooveNodes.reverbSend);
+
+  src.start(t);
+  src.stop(t + holdSec + 0.25);
+  vEnd(src, [tone, g]);
+}
+
+/* ---------- Beat-Erkennung aus geladener Audiodatei ---------- */
+
+function computeMonoDownsampled(buffer, targetSr) {
+  const sr = buffer.sampleRate;
+  const numCh = buffer.numberOfChannels;
+  const chData = [];
+  for (let c = 0; c < numCh; c++) chData.push(buffer.getChannelData(c));
+  const n = buffer.length;
+  const mono = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    let s = 0;
+    for (let c = 0; c < numCh; c++) s += chData[c][i];
+    mono[i] = s / numCh;
+  }
+  if (!targetSr || targetSr >= sr) return { data: mono, sr };
+  const ratio = sr / targetSr;
+  const outLen = Math.floor(n / ratio);
+  const out = new Float32Array(outLen);
+  for (let i = 0; i < outLen; i++) out[i] = mono[Math.floor(i * ratio)];
+  return { data: out, sr: targetSr };
+}
+
+function onePoleLowpass(data, sr, cutoffHz) {
+  const rc = 1 / (2 * Math.PI * cutoffHz);
+  const dt = 1 / sr;
+  const alpha = dt / (rc + dt);
+  const out = new Float32Array(data.length);
+  let prev = 0;
+  for (let i = 0; i < data.length; i++) {
+    prev = prev + alpha * (data[i] - prev);
+    out[i] = prev;
+  }
+  return out;
+}
+
+function onePoleHighpass(data, sr, cutoffHz) {
+  const rc = 1 / (2 * Math.PI * cutoffHz);
+  const dt = 1 / sr;
+  const alpha = rc / (rc + dt);
+  const out = new Float32Array(data.length);
+  let prevIn = data[0] || 0, prevOut = 0;
+  for (let i = 0; i < data.length; i++) {
+    const cur = alpha * (prevOut + data[i] - prevIn);
+    out[i] = cur;
+    prevOut = cur;
+    prevIn = data[i];
+  }
+  return out;
+}
+
+function frameEnergyEnvelope(data, frameSize, hop) {
+  const numFrames = Math.max(0, Math.floor((data.length - frameSize) / hop) + 1);
+  const env = new Float32Array(numFrames);
+  for (let f = 0; f < numFrames; f++) {
+    const start = f * hop;
+    let sum = 0;
+    for (let i = 0; i < frameSize; i++) {
+      const v = data[start + i];
+      sum += v * v;
+    }
+    env[f] = Math.sqrt(sum / frameSize);
+  }
+  return env;
+}
+
+function onsetEnvelope(env) {
+  const out = new Float32Array(env.length);
+  for (let i = 1; i < env.length; i++) {
+    out[i] = Math.max(0, env[i] - env[i - 1]);
+  }
+  return out;
+}
+
+// Autokorrelation der Onset-Kurve, um Tempo (BPM) und Taktphase zu bestimmen
+function detectTempoAndPhase(onsetEnv, hop, sr) {
+  const minBpm = 70, maxBpm = 180;
+  const minLag = Math.max(1, Math.round((60 / maxBpm) * sr / hop));
+  const maxLag = Math.round((60 / minBpm) * sr / hop);
+  let bestLag = minLag, bestScore = -Infinity;
+  for (let lag = minLag; lag <= maxLag; lag++) {
+    let score = 0, count = 0;
+    for (let i = 0; i + lag < onsetEnv.length; i++) {
+      score += onsetEnv[i] * onsetEnv[i + lag];
+      count++;
+    }
+    if (count > 0) score /= count;
+    if (score > bestScore) { bestScore = score; bestLag = lag; }
+  }
+  let bpm = 60 * sr / (bestLag * hop);
+  while (bpm > 190) bpm /= 2;
+  while (bpm < 70) bpm *= 2;
+
+  let bestPhase = 0, bestPhaseScore = -Infinity;
+  for (let ph = 0; ph < bestLag; ph++) {
+    let sum = 0, n = 0;
+    for (let i = ph; i < onsetEnv.length; i += bestLag) { sum += onsetEnv[i]; n++; }
+    const avg = n ? sum / n : 0;
+    if (avg > bestPhaseScore) { bestPhaseScore = avg; bestPhase = ph; }
+  }
+  return { bpm, periodFrames: bestLag, phase: bestPhase };
+}
+
+// Extrahiert Tempo + ein 16tel-Kick/Snare/Hihat-Muster aus dem geladenen Song
+function detectBeatFromBuffer(buffer) {
+  const targetSr = 11025; // reicht für Rhythmus-Analyse, spart Rechenzeit
+  const { data: mono, sr } = computeMonoDownsampled(buffer, targetSr);
+  const maxSamples = Math.min(mono.length, sr * 60); // max. 60s analysieren
+  const analysed = mono.subarray(0, maxSamples);
+
+  const lowBand = onePoleLowpass(analysed, sr, 130);
+  const highBand = onePoleHighpass(analysed, sr, 2500);
+
+  const frameSize = 1024, hop = 512;
+  const lowEnv = frameEnergyEnvelope(lowBand, frameSize, hop);
+  const highEnv = frameEnergyEnvelope(highBand, frameSize, hop);
+  const broadEnv = frameEnergyEnvelope(analysed, frameSize, hop);
+  const onset = onsetEnvelope(broadEnv);
+
+  const { bpm, periodFrames, phase } = detectTempoAndPhase(onset, hop, sr);
+  const stepFrames = periodFrames / 4; // 16tel-Raster (1 Periode = 1 Viertelschlag)
+
+  const numSteps = 16;
+  const kickScore = new Array(numSteps).fill(0);
+  const snareScore = new Array(numSteps).fill(0);
+  const stepCount = new Array(numSteps).fill(0);
+
+  for (let f = phase; f < lowEnv.length; f++) {
+    const rel = Math.round((f - phase) / stepFrames);
+    const stepIdx = ((rel % numSteps) + numSteps) % numSteps;
+    kickScore[stepIdx] += lowEnv[f];
+    snareScore[stepIdx] += highEnv[f];
+    stepCount[stepIdx]++;
+  }
+  for (let s = 0; s < numSteps; s++) {
+    if (stepCount[s] > 0) {
+      kickScore[s] /= stepCount[s];
+      snareScore[s] /= stepCount[s];
+    }
+  }
+
+  // Backbeat-Bonus für die typischen Snare-Positionen (Schlag 2 & 4 = Step 4 & 12 von 16)
+  const snareBiased = snareScore.map((v, i) => (i === 4 || i === 12) ? v * 1.35 : v);
+
+  const rankedKick = [...kickScore.keys()].sort((a, b) => kickScore[b] - kickScore[a]);
+  const kickSteps = Array.from(new Set([0, ...rankedKick.slice(0, 3)])).slice(0, 4).sort((a, b) => a - b);
+
+  const rankedSnare = [...snareBiased.keys()]
+    .filter(i => !kickSteps.includes(i))
+    .sort((a, b) => snareBiased[b] - snareBiased[a]);
+  const snareSteps = rankedSnare.slice(0, 2).sort((a, b) => a - b);
+
+  const maxHigh = Math.max(...snareScore, 0.0001);
+  let hihatSteps = [];
+  for (let s = 0; s < numSteps; s += 2) {
+    if (snareScore[s] > maxHigh * 0.35) hihatSteps.push(s);
+  }
+  if (hihatSteps.length < 4) {
+    hihatSteps = [0, 2, 4, 6, 8, 10, 12, 14];
+  }
+
+  const bassPattern = kickSteps.map((s, i) => ({ step: s, deg: i % 2 === 0 ? 'root' : 'fifth' }));
+
+  return {
+    bpm: Math.round(bpm),
+    pattern: { kick: kickSteps, snare: snareSteps, hihat: hihatSteps, bass: bassPattern }
+  };
+}
+
+function scheduleGrooveStep() {
+  if (!grooveNodes) return;
+  const bpm = parseInt(document.getElementById('bpm').value);
+  const stepDurMs = (60000 / bpm) / 4;
+  const style = GROOVE_STYLES[document.getElementById('grooveStyle').value];
+  const step = grooveNodes.stepIndex % 16;
+  const t = audioCtx.currentTime;
+
+  if (beatOn) {
+    if (style.kick.includes(step)) playKick(t);
+    if (style.snare.includes(step)) playSnare(t);
+    if (style.hihat.includes(step)) playHihat(t, step % 4 === 0);
+  }
+  if (bassOn) {
+    const hit = style.bass.find(b => b.step === step);
+    if (hit) playBassNote(t, hit.deg, stepDurMs);
+  }
+
+  grooveNodes.stepIndex++;
+  grooveNodes.timeoutId = setTimeout(scheduleGrooveStep, stepDurMs);
+}
+
+function startGrooveEngine() {
+  ensureAudio();
+  ensureReverb();
+  ensureNoiseBuffer();
+  const vol = parseInt(document.getElementById('grooveVolume').value) / 100;
+
+  const master = audioCtx.createGain();
+  master.gain.value = 0;
+  master.connect(ensureMasterBus());
+
+  const dryGain = audioCtx.createGain();
+  dryGain.gain.value = 1;
+  dryGain.connect(master);
+
+  const wetGain = audioCtx.createGain();
+  wetGain.gain.value = 0.22;
+  reverbNode.connect(wetGain);
+  wetGain.connect(master);
+
+  const reverbSend = audioCtx.createGain();
+  reverbSend.gain.value = 0.5;
+  reverbSend.connect(reverbNode);
+
+  master.gain.linearRampToValueAtTime(vol, audioCtx.currentTime + 0.15);
+
+  grooveNodes = { master, dryGain, wetGain, reverbSend, stepIndex: 0, timeoutId: null };
+  document.getElementById('grooveStatus').textContent = 'Läuft – spielt mit der Kick der Drums';
+}
+
+function stopGrooveEngine() {
+  if (!grooveNodes) return;
+  const { master, timeoutId } = grooveNodes;
+  if (timeoutId) clearTimeout(timeoutId);
+  master.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.15);
+  setTimeout(() => { try { master.disconnect(); } catch (e) {} }, 300);
+  grooveNodes = null;
+  document.getElementById('grooveStatus').textContent = 'Aus – spielt mit der Kick der Drums, im Grundton der Skala';
+}
+
+function updateGrooveEngineState() {
+  if (bassOn) {
+    if (!grooveNodes) startGrooveEngine();
+  } else {
+    stopGrooveEngine();
+  }
+  if (typeof Rhythm !== 'undefined') Rhythm.setBass(bassOn);
+}
+
+function keyMidiNotes() {
+  const rootIdx = NOTES.indexOf(rootSel.value);
+  const intervals = MODES[modeSel.value];
+  const baseMidi = 36 + rootIdx;
+  return {
+    root: baseMidi,
+    root8: baseMidi + 12,
+    fifth: baseMidi + intervals[4],
+    sub: baseMidi - 12,
+    pianoChord: [baseMidi + 12, baseMidi + intervals[2] + 12, baseMidi + intervals[4] + 12, baseMidi + 24]
+  };
+}
+
+function playPianoNote(midi, velocity) {
+  ensureAudio();
+  const t = audioCtx.currentTime;
+  const osc1 = audioCtx.createOscillator();
+  osc1.type = 'triangle';
+  osc1.frequency.value = midiToFreq(midi);
+  const osc2 = audioCtx.createOscillator();
+  osc2.type = 'sine';
+  osc2.frequency.value = midiToFreq(midi) * 2.003;
+
+  const g2 = audioCtx.createGain();
+  g2.gain.value = 0.15;
+  const g = audioCtx.createGain();
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(velocity, t + 0.015);
+  g.gain.exponentialRampToValueAtTime(0.0008, t + 3.4);
+
+  osc1.connect(g);
+  osc2.connect(g2);
+  g2.connect(g);
+  g.connect(droneNodes.dryGain);
+  g.connect(droneNodes.reverbSend);
+  g.connect(droneNodes.pingPong.input);
+
+  osc1.start(t); osc2.start(t);
+  osc1.stop(t + 3.5); osc2.stop(t + 3.5);
+  vEnd([osc1, osc2], [g2, g]);
+}
+
+function playBellNote(midi, velocity) {
+  ensureAudio();
+  const t = audioCtx.currentTime;
+  const carrier = audioCtx.createOscillator();
+  carrier.type = 'sine';
+  carrier.frequency.value = midiToFreq(midi);
+  const modulator = audioCtx.createOscillator();
+  modulator.type = 'sine';
+  modulator.frequency.value = midiToFreq(midi) * 3.01;
+  const modGain = audioCtx.createGain();
+  modGain.gain.setValueAtTime(420, t);
+  modGain.gain.exponentialRampToValueAtTime(0.01, t + 1.8);
+  modulator.connect(modGain);
+  modGain.connect(carrier.frequency);
+
+  const g = audioCtx.createGain();
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(velocity, t + 0.008);
+  g.gain.exponentialRampToValueAtTime(0.0006, t + 2.8);
+
+  carrier.connect(g);
+  g.connect(droneNodes.dryGain);
+  g.connect(droneNodes.reverbSend);
+  g.connect(droneNodes.pingPong.input);
+
+  carrier.start(t); modulator.start(t);
+  carrier.stop(t + 2.9); modulator.stop(t + 2.9);
+  vEnd([carrier, modulator], [modGain, g]);
+}
+
+function playPluckNote(midi, velocity) {
+  ensureAudio();
+  const t = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  osc.type = 'triangle';
+  osc.frequency.value = midiToFreq(midi);
+  const bandpass = audioCtx.createBiquadFilter();
+  bandpass.type = 'bandpass';
+  bandpass.frequency.value = midiToFreq(midi) * 2;
+  bandpass.Q.value = 7;
+
+  const g = audioCtx.createGain();
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(velocity, t + 0.004);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 1.1);
+
+  osc.connect(bandpass);
+  bandpass.connect(g);
+  g.connect(droneNodes.dryGain);
+  g.connect(droneNodes.reverbSend);
+  g.connect(droneNodes.pingPong.input);
+
+  osc.start(t);
+  osc.stop(t + 1.2);
+  vEnd(osc, [bandpass, g]);
+}
+
+function scheduleShimmer() {
+  if (!droneOn || !droneNodes) return;
+  if (document.getElementById('pianoShimmer').checked) {
+    const chord = droneNodes.keyNotes.pianoChord;
+    const midi = chord[Math.floor(Math.random() * chord.length)];
+    const velocity = 0.12 + Math.random() * 0.08;
+    const roll = Math.random();
+    if (roll < 0.5) playPianoNote(midi, velocity);
+    else if (roll < 0.78) playBellNote(midi - 12, velocity * 0.9);
+    else playPluckNote(midi + 12, velocity);
+  }
+  const delay = 2400 + Math.random() * 3400;
+  droneNodes.shimmerTimeout = setTimeout(scheduleShimmer, delay);
+}
+
+function playLeadPhrase() {
+  if (!droneOn || !droneNodes) return;
+  const proceed = document.getElementById('pianoShimmer').checked;
+  let phraseSpanMs = 0;
+
+  if (proceed) {
+    const rootIdx = NOTES.indexOf(rootSel.value);
+    const intervals = MODES[modeSel.value];
+    const leadBase = 36 + rootIdx + 24; // zwei Oktaven über dem tiefen Grundton
+    const chordDegrees = [0, intervals[2], intervals[4], intervals[5]];
+    const phraseLen = 2 + Math.floor(Math.random() * 3);
+    const notesSeq = [];
+    for (let i = 0; i < phraseLen; i++) {
+      const deg = chordDegrees[Math.floor(Math.random() * chordDegrees.length)];
+      const octShift = Math.random() < 0.25 ? -12 : 0;
+      notesSeq.push(leadBase + deg + octShift);
+    }
+
+    const t0 = audioCtx.currentTime;
+    const noteDur = 1.1 + Math.random() * 0.7;
+
+    const osc1 = audioCtx.createOscillator(); osc1.type = 'sawtooth';
+    const osc2 = audioCtx.createOscillator(); osc2.type = 'sine';
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'lowpass'; filter.frequency.value = 2100; filter.Q.value = 1.1;
+    const vibrato = audioCtx.createOscillator(); vibrato.type = 'sine'; vibrato.frequency.value = 5.4;
+    const vibratoGain = audioCtx.createGain(); vibratoGain.gain.value = 5;
+    vibrato.connect(vibratoGain);
+    vibratoGain.connect(osc1.detune);
+    vibratoGain.connect(osc2.detune);
+
+    const g = audioCtx.createGain(); g.gain.setValueAtTime(0, t0);
+    const g2 = audioCtx.createGain(); g2.gain.value = 0.35;
+
+    osc1.frequency.setValueAtTime(midiToFreq(notesSeq[0]), t0);
+    osc2.frequency.setValueAtTime(midiToFreq(notesSeq[0] - 12), t0);
+
+    osc1.connect(filter);
+    osc2.connect(g2); g2.connect(filter);
+    filter.connect(g);
+    g.connect(droneNodes.dryGain);
+    g.connect(droneNodes.reverbSend);
+    g.connect(droneNodes.pingPong.input);
+
+    osc1.start(t0); osc2.start(t0); vibrato.start(t0);
+    g.gain.linearRampToValueAtTime(0.1, t0 + 0.55);
+
+    let cursor = t0;
+    for (let i = 1; i < notesSeq.length; i++) {
+      cursor += noteDur;
+      osc1.frequency.setTargetAtTime(midiToFreq(notesSeq[i]), cursor, 0.1);
+      osc2.frequency.setTargetAtTime(midiToFreq(notesSeq[i] - 12), cursor, 0.1);
+    }
+    const endTime = cursor + noteDur;
+    g.gain.exponentialRampToValueAtTime(0.0006, endTime + 2.4);
+    osc1.stop(endTime + 2.5); osc2.stop(endTime + 2.5); vibrato.stop(endTime + 2.5);
+    vEnd([osc1, osc2, vibrato], [vibratoGain, filter, g, g2]);
+
+    phraseSpanMs = (endTime - t0) * 1000;
+  }
+
+  const rest = 10000 + Math.random() * 12000;
+  droneNodes.leadTimeout = setTimeout(playLeadPhrase, phraseSpanMs + rest);
+}
+
+let activeDroneStyle = null;
+
+function startDrone() {
+  activeDroneStyle = document.getElementById('droneStyle').value;
+  if (activeDroneStyle === 'v2') startDroneV2();
+  else if ((typeof NordDrones !== 'undefined' && NordDrones.has(activeDroneStyle))) NordDrones.start(activeDroneStyle);
+  else startDroneV1();
+}
+function stopDrone() {
+  if (activeDroneStyle === 'v2') stopDroneV2();
+  else if ((typeof NordDrones !== 'undefined' && NordDrones.has(activeDroneStyle))) NordDrones.stop();
+  else stopDroneV1();
+  activeDroneStyle = null;
+}
+function updateDroneFreq() {
+  if (activeDroneStyle === 'v2') updateDroneFreqV2();
+  else if ((typeof NordDrones !== 'undefined' && NordDrones.has(activeDroneStyle))) NordDrones.retune();
+  else updateDroneFreqV1();
+}
+
+function startDroneV1() {
+  ensureAudio();
+  ensureReverb();
+  const ppd = ensurePingPong();
+  const noiseBuf = ensureNoiseBuffer();
+  const vol = parseInt(document.getElementById('droneVolume').value) / 100;
+  const keyNotes = keyMidiNotes();
+  const now = audioCtx.currentTime;
+
+  const master = audioCtx.createGain();
+  master.gain.value = 0;
+  master.connect(ensureMasterBus());
+
+  const dryGain = audioCtx.createGain();
+  dryGain.gain.value = 0.85;
+  dryGain.connect(master);
+
+  const wetGain = audioCtx.createGain();
+  wetGain.gain.value = 0.42;
+  reverbNode.connect(wetGain);
+  wetGain.connect(master);
+
+  const reverbSend = audioCtx.createGain();
+  reverbSend.gain.value = 1;
+  reverbSend.connect(reverbNode);
+
+  ppd.output.connect(master);
+
+  // langsame Stereo-Bewegung im Pad (Pink-Floyd-artige Weite)
+  const padPanner = audioCtx.createStereoPanner();
+  const panLfo = audioCtx.createOscillator();
+  panLfo.type = 'sine';
+  panLfo.frequency.value = 0.023;
+  const panLfoGain = audioCtx.createGain();
+  panLfoGain.gain.value = 0.4;
+  panLfo.connect(panLfoGain);
+  panLfoGain.connect(padPanner.pan);
+  panLfo.start();
+  padPanner.connect(dryGain);
+  padPanner.connect(reverbSend);
+
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = 850;
+  filter.Q.value = 0.7;
+  filter.connect(padPanner);
+
+  const lfo = audioCtx.createOscillator();
+  lfo.type = 'sine';
+  lfo.frequency.value = 0.055;
+  const lfoGain = audioCtx.createGain();
+  lfoGain.gain.value = 520;
+  lfo.connect(lfoGain);
+  lfoGain.connect(filter.frequency);
+  lfo.start();
+
+  // zweite, sehr langsame Filterbewegung für große orchestrale Schwünge
+  const lfoSlow = audioCtx.createOscillator();
+  lfoSlow.type = 'sine';
+  lfoSlow.frequency.value = 0.011;
+  const lfoSlowGain = audioCtx.createGain();
+  lfoSlowGain.gain.value = 340;
+  lfoSlow.connect(lfoSlowGain);
+  lfoSlowGain.connect(filter.frequency);
+  lfoSlow.start();
+
+  // Sägezahn-Pad, langsam eingeblendet (cineastischer Swell)
+  const voiceDefs = [
+    { role: 'root', detunes: [-11, -4, 4, 11], gain: 0.09, type: 'sawtooth' },
+    { role: 'root8', detunes: [-7, 7], gain: 0.05, type: 'sawtooth' },
+    { role: 'fifth', detunes: [-6, 6], gain: 0.045, type: 'sawtooth' },
+  ];
+  const voices = [];
+  voiceDefs.forEach(v => {
+    v.detunes.forEach(det => {
+      const osc = audioCtx.createOscillator();
+      osc.type = v.type;
+      osc.frequency.value = midiToFreq(keyNotes[v.role]);
+      osc.detune.value = det;
+      const g = audioCtx.createGain();
+      g.gain.setValueAtTime(0, now);
+      g.gain.linearRampToValueAtTime(v.gain, now + 3.5);
+      osc.connect(g);
+      g.connect(filter);
+      osc.start();
+      voices.push({ osc, role: v.role });
+    });
+  });
+
+  // Sub-Bass mit langsamem Puls (Zimmer-artiges "Atmen")
+  const sub = audioCtx.createOscillator();
+  sub.type = 'sine';
+  sub.frequency.value = midiToFreq(keyNotes.sub);
+  const subGain = audioCtx.createGain();
+  subGain.gain.setValueAtTime(0, now);
+  subGain.gain.linearRampToValueAtTime(0.3, now + 4);
+  sub.connect(subGain);
+  subGain.connect(filter);
+  sub.start();
+  voices.push({ osc: sub, role: 'sub' });
+
+  const pulseLfo = audioCtx.createOscillator();
+  pulseLfo.type = 'sine';
+  pulseLfo.frequency.value = 0.18;
+  const pulseDepth = audioCtx.createGain();
+  pulseDepth.gain.value = 0.1;
+  pulseLfo.connect(pulseDepth);
+  pulseDepth.connect(subGain.gain);
+  pulseLfo.start();
+
+  // Chor-Layer: detunte Dreieckstöne durch Formant-Filter (Gladiator-artige Chor-Textur)
+  const choirGain = audioCtx.createGain();
+  choirGain.gain.setValueAtTime(0, now);
+  choirGain.gain.linearRampToValueAtTime(0.05, now + 6);
+  const formant1 = audioCtx.createBiquadFilter();
+  formant1.type = 'bandpass'; formant1.frequency.value = 700; formant1.Q.value = 5;
+  const formant2 = audioCtx.createBiquadFilter();
+  formant2.type = 'bandpass'; formant2.frequency.value = 1150; formant2.Q.value = 5;
+  formant1.connect(choirGain);
+  formant2.connect(choirGain);
+  choirGain.connect(padPanner);
+
+  [-14, -5, 5, 14].forEach(det => {
+    const osc = audioCtx.createOscillator();
+    osc.type = 'triangle';
+    osc.frequency.value = midiToFreq(keyNotes.root8);
+    osc.detune.value = det;
+    const og = audioCtx.createGain();
+    og.gain.value = 0.5;
+    osc.connect(og);
+    og.connect(formant1);
+    og.connect(formant2);
+    osc.start();
+    voices.push({ osc, role: 'root8' });
+  });
+
+  // sehr langsames "Atmen" der Chor-Lautstärke über mehrere Minuten
+  const macroLfo = audioCtx.createOscillator();
+  macroLfo.type = 'sine';
+  macroLfo.frequency.value = 1 / 100;
+  const macroDepth = audioCtx.createGain();
+  macroDepth.gain.value = 0.035;
+  macroLfo.connect(macroDepth);
+  macroDepth.connect(choirGain.gain);
+  macroLfo.start();
+
+  // Wind-/Luftschicht aus gefiltertem Rauschen
+  const noise = audioCtx.createBufferSource();
+  noise.buffer = noiseBuf;
+  noise.loop = true;
+  const noiseFilter = audioCtx.createBiquadFilter();
+  noiseFilter.type = 'bandpass';
+  noiseFilter.frequency.value = 500;
+  noiseFilter.Q.value = 0.5;
+  const noiseSweepLfo = audioCtx.createOscillator();
+  noiseSweepLfo.type = 'sine';
+  noiseSweepLfo.frequency.value = 0.03;
+  const noiseSweepGain = audioCtx.createGain();
+  noiseSweepGain.gain.value = 260;
+  noiseSweepLfo.connect(noiseSweepGain);
+  noiseSweepGain.connect(noiseFilter.frequency);
+  noiseSweepLfo.start();
+  const noiseGain = audioCtx.createGain();
+  noiseGain.gain.setValueAtTime(0, now);
+  noiseGain.gain.linearRampToValueAtTime(0.045, now + 5);
+  noise.connect(noiseFilter);
+  noiseFilter.connect(noiseGain);
+  noiseGain.connect(dryGain);
+  noiseGain.connect(reverbSend);
+  noise.start();
+
+  master.gain.linearRampToValueAtTime(vol, audioCtx.currentTime + 1.2);
+
+  droneNodes = {
+    master, dryGain, wetGain, reverbSend, filter, lfo, lfoGain, lfoSlow, voices, keyNotes,
+    shimmerTimeout: null, leadTimeout: null, pingPong: ppd, padPanner, panLfo, pulseLfo, subGain,
+    noise, noiseFilter, noiseSweepLfo, noiseGain, macroLfo, choirGain
+  };
+  droneOn = true;
+  scheduleShimmer();
+  playLeadPhrase();
+
+  const btn = document.getElementById('droneBtn');
+  btn.textContent = '■';
+  btn.classList.add('playing');
+  document.getElementById('droneStatus').textContent = 'An — ' + rootSel.value + ' ' + modeSel.value;
+}
+
+function stopDroneV1() {
+  if (!droneNodes) return;
+  const {
+    master, lfo, lfoSlow, voices, shimmerTimeout, leadTimeout, panLfo, pulseLfo,
+    noise, noiseSweepLfo, pingPong: ppd, macroLfo
+  } = droneNodes;
+  if (shimmerTimeout) clearTimeout(shimmerTimeout);
+  if (leadTimeout) clearTimeout(leadTimeout);
+  master.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.8);
+  setTimeout(() => {
+    voices.forEach(v => { try { v.osc.stop(); } catch (e) {} });
+    [lfo, lfoSlow, panLfo, pulseLfo, noiseSweepLfo, macroLfo].forEach(o => { try { o.stop(); } catch (e) {} });
+    try { noise.stop(); } catch (e) {}
+    try { ppd.output.disconnect(); } catch (e) {}
+  }, 900);
+  droneNodes = null;
+  droneOn = false;
+
+  const btn = document.getElementById('droneBtn');
+  btn.textContent = '▶';
+  btn.classList.remove('playing');
+  document.getElementById('droneStatus').textContent = 'Aus';
+}
+
+function updateDroneFreqV1() {
+  if (!droneOn || !droneNodes) return;
+  const keyNotes = keyMidiNotes();
+  droneNodes.keyNotes = keyNotes;
+  droneNodes.voices.forEach(v => {
+    v.osc.frequency.setTargetAtTime(midiToFreq(keyNotes[v.role]), audioCtx.currentTime, 0.3);
+  });
+  document.getElementById('droneStatus').textContent = 'An — ' + rootSel.value + ' ' + modeSel.value + ' (Pad & Chor)';
+}
+
+/* ---------- Drone-Stil II: Brass & Streicher, orchestral (episches Zweitthema) ---------- */
+
+function playPizzNote(midi, velocity) {
+  ensureAudio();
+  const t = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  osc.type = 'sawtooth';
+  osc.frequency.value = midiToFreq(midi);
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = 2000;
+  const g = audioCtx.createGain();
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(velocity, t + 0.003);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+  osc.connect(filter);
+  filter.connect(g);
+  g.connect(droneNodes.dryGain);
+  g.connect(droneNodes.reverbSend);
+  g.connect(droneNodes.pingPong.input);
+  osc.start(t);
+  osc.stop(t + 0.55);
+  vEnd(osc, [filter, g]);
+}
+
+function playHornStab(midi, velocity) {
+  ensureAudio();
+  const t = audioCtx.currentTime;
+  const osc1 = audioCtx.createOscillator(); osc1.type = 'sawtooth';
+  osc1.frequency.value = midiToFreq(midi);
+  const osc2 = audioCtx.createOscillator(); osc2.type = 'square';
+  osc2.frequency.value = midiToFreq(midi - 12);
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.value = midiToFreq(midi) * 1.5;
+  filter.Q.value = 2;
+  const g = audioCtx.createGain();
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(velocity, t + 0.05);
+  g.gain.exponentialRampToValueAtTime(0.0008, t + 1.6);
+  const g2 = audioCtx.createGain();
+  g2.gain.value = 0.4;
+  osc1.connect(filter);
+  osc2.connect(g2); g2.connect(filter);
+  filter.connect(g);
+  g.connect(droneNodes.dryGain);
+  g.connect(droneNodes.reverbSend);
+  g.connect(droneNodes.pingPong.input);
+  osc1.start(t); osc2.start(t);
+  osc1.stop(t + 1.7); osc2.stop(t + 1.7);
+  vEnd([osc1, osc2], [filter, g, g2]);
+}
+
+function playHarpGliss(baseMidi, velocity) {
+  ensureAudio();
+  const t0 = audioCtx.currentTime;
+  const intervals = MODES[modeSel.value];
+  const steps = [0, intervals[1], intervals[2], intervals[4], intervals[5], 12];
+  steps.forEach((st, i) => {
+    const t = t0 + i * 0.055;
+    const osc = audioCtx.createOscillator();
+    osc.type = 'triangle';
+    osc.frequency.value = midiToFreq(baseMidi + st);
+    const g = audioCtx.createGain();
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(velocity * (1 - i * 0.08), t + 0.005);
+    g.gain.exponentialRampToValueAtTime(0.0006, t + 1.2);
+    osc.connect(g);
+    g.connect(droneNodes.dryGain);
+    g.connect(droneNodes.reverbSend);
+    g.connect(droneNodes.pingPong.input);
+    osc.start(t);
+    osc.stop(t + 1.3);
+    vEnd(osc, [g]);
+  });
+}
+
+function scheduleShimmerV2() {
+  if (!droneOn || !droneNodes) return;
+  if (document.getElementById('pianoShimmer').checked) {
+    const chord = droneNodes.keyNotes.pianoChord;
+    const midi = chord[Math.floor(Math.random() * chord.length)];
+    const velocity = 0.1 + Math.random() * 0.08;
+    const roll = Math.random();
+    if (roll < 0.45) playPizzNote(midi, velocity);
+    else if (roll < 0.75) playHornStab(midi - 12, velocity * 1.1);
+    else playHarpGliss(midi, velocity * 0.9);
+  }
+  const delay = 2600 + Math.random() * 3600;
+  droneNodes.shimmerTimeout = setTimeout(scheduleShimmerV2, delay);
+}
+
+function playLeadPhraseV2() {
+  if (!droneOn || !droneNodes) return;
+  const proceed = document.getElementById('pianoShimmer').checked;
+  let phraseSpanMs = 0;
+
+  if (proceed) {
+    const rootIdx = NOTES.indexOf(rootSel.value);
+    const intervals = MODES[modeSel.value];
+    const leadBase = 36 + rootIdx + 12; // hornartige Mittellage, eine Oktave über dem Grundton
+    const chordDegrees = [0, intervals[2], intervals[4], intervals[5], 12];
+    const phraseLen = 2 + Math.floor(Math.random() * 3);
+    const notesSeq = [];
+    for (let i = 0; i < phraseLen; i++) {
+      const deg = chordDegrees[Math.floor(Math.random() * chordDegrees.length)];
+      notesSeq.push(leadBase + deg);
+    }
+
+    const t0 = audioCtx.currentTime;
+    const noteDur = 1.6 + Math.random() * 1.0; // getragener, legato — hornartig statt geigenartig
+
+    const osc1 = audioCtx.createOscillator(); osc1.type = 'sawtooth';
+    const osc2 = audioCtx.createOscillator(); osc2.type = 'square';
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'bandpass'; filter.frequency.value = 700; filter.Q.value = 1.6;
+    const vibrato = audioCtx.createOscillator(); vibrato.type = 'sine'; vibrato.frequency.value = 4.2;
+    const vibratoGain = audioCtx.createGain(); vibratoGain.gain.value = 3.5;
+    vibrato.connect(vibratoGain);
+    vibratoGain.connect(osc1.detune);
+    vibratoGain.connect(osc2.detune);
+
+    const g = audioCtx.createGain(); g.gain.setValueAtTime(0, t0);
+    const g2 = audioCtx.createGain(); g2.gain.value = 0.3;
+
+    osc1.frequency.setValueAtTime(midiToFreq(notesSeq[0]), t0);
+    osc2.frequency.setValueAtTime(midiToFreq(notesSeq[0]), t0);
+
+    osc1.connect(filter);
+    osc2.connect(g2); g2.connect(filter);
+    filter.connect(g);
+    g.connect(droneNodes.dryGain);
+    g.connect(droneNodes.reverbSend);
+    g.connect(droneNodes.pingPong.input);
+
+    osc1.start(t0); osc2.start(t0); vibrato.start(t0);
+    g.gain.linearRampToValueAtTime(0.09, t0 + 0.7);
+
+    let cursor = t0;
+    for (let i = 1; i < notesSeq.length; i++) {
+      cursor += noteDur;
+      osc1.frequency.setTargetAtTime(midiToFreq(notesSeq[i]), cursor, 0.16);
+      osc2.frequency.setTargetAtTime(midiToFreq(notesSeq[i]), cursor, 0.16);
+    }
+    const endTime = cursor + noteDur;
+    g.gain.exponentialRampToValueAtTime(0.0006, endTime + 2.8);
+    osc1.stop(endTime + 2.9); osc2.stop(endTime + 2.9); vibrato.stop(endTime + 2.9);
+    vEnd([osc1, osc2, vibrato], [vibratoGain, filter, g, g2]);
+
+    phraseSpanMs = (endTime - t0) * 1000;
+  }
+
+  const rest = 12000 + Math.random() * 14000;
+  droneNodes.leadTimeout = setTimeout(playLeadPhraseV2, phraseSpanMs + rest);
+}
+
+function playRiserHit() {
+  if (!droneOn || !droneNodes) return;
+  const t0 = audioCtx.currentTime;
+  const riseDur = 2.2;
+  const noise = audioCtx.createBufferSource();
+  noise.buffer = ensureNoiseBuffer();
+  noise.loop = true;
+  const rf = audioCtx.createBiquadFilter();
+  rf.type = 'bandpass';
+  rf.frequency.setValueAtTime(200, t0);
+  rf.frequency.exponentialRampToValueAtTime(3800, t0 + riseDur);
+  rf.Q.value = 0.8;
+  const rg = audioCtx.createGain();
+  rg.gain.setValueAtTime(0.0001, t0);
+  rg.gain.exponentialRampToValueAtTime(0.09, t0 + riseDur);
+  noise.connect(rf); rf.connect(rg);
+  rg.connect(droneNodes.dryGain);
+  rg.connect(droneNodes.reverbSend);
+  noise.start(t0);
+
+  const hitTime = t0 + riseDur;
+  rg.gain.exponentialRampToValueAtTime(0.0005, hitTime + 0.4);
+  noise.stop(hitTime + 0.5);
+  vEnd(noise, [rf, rg]);
+
+  const keyNotes = droneNodes.keyNotes;
+  const hitNotes = [keyNotes.sub, keyNotes.root, keyNotes.fifth, keyNotes.root8];
+  hitNotes.forEach(midi => {
+    const osc = audioCtx.createOscillator(); osc.type = 'sawtooth';
+    osc.frequency.value = midiToFreq(midi);
+    const g = audioCtx.createGain();
+    g.gain.setValueAtTime(0.0001, hitTime);
+    g.gain.exponentialRampToValueAtTime(0.22, hitTime + 0.03);
+    g.gain.exponentialRampToValueAtTime(0.0006, hitTime + 3.2);
+    osc.connect(g);
+    g.connect(droneNodes.dryGain);
+    g.connect(droneNodes.reverbSend);
+    g.connect(droneNodes.pingPong.input);
+    osc.start(hitTime);
+    osc.stop(hitTime + 3.3);
+    vEnd(osc, [g]);
+  });
+}
+
+function scheduleRiserV2() {
+  if (!droneOn || !droneNodes) return;
+  const delay = 24000 + Math.random() * 16000;
+  droneNodes.riserTimeout = setTimeout(() => { playRiserHit(); scheduleRiserV2(); }, delay);
+}
+
+function startDroneV2() {
+  ensureAudio();
+  ensureReverb();
+  const ppd = ensurePingPong();
+  const vol = parseInt(document.getElementById('droneVolume').value) / 100;
+  const keyNotes = keyMidiNotes();
+  const rootIdx = NOTES.indexOf(rootSel.value);
+  const intervals = MODES[modeSel.value];
+  const thirdMidi = 36 + rootIdx + intervals[2] + 12;
+  const now = audioCtx.currentTime;
+
+  const master = audioCtx.createGain();
+  master.gain.value = 0;
+  master.connect(ensureMasterBus());
+
+  const dryGain = audioCtx.createGain();
+  dryGain.gain.value = 0.8;
+  dryGain.connect(master);
+
+  const wetGain = audioCtx.createGain();
+  wetGain.gain.value = 0.5;
+  reverbNode.connect(wetGain);
+  wetGain.connect(master);
+
+  const reverbSend = audioCtx.createGain();
+  reverbSend.gain.value = 1;
+  reverbSend.connect(reverbNode);
+
+  ppd.output.connect(master);
+
+  const padPanner = audioCtx.createStereoPanner();
+  const panLfo = audioCtx.createOscillator();
+  panLfo.type = 'sine';
+  panLfo.frequency.value = 0.017;
+  const panLfoGain = audioCtx.createGain();
+  panLfoGain.gain.value = 0.3;
+  panLfo.connect(panLfoGain);
+  panLfoGain.connect(padPanner.pan);
+  panLfo.start();
+  padPanner.connect(dryGain);
+  padPanner.connect(reverbSend);
+
+  // Streicher-Filter — heller und offener als Stil I
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = 1500;
+  filter.Q.value = 0.6;
+  filter.connect(padPanner);
+
+  const lfoSlow = audioCtx.createOscillator();
+  lfoSlow.type = 'sine';
+  lfoSlow.frequency.value = 0.014;
+  const lfoSlowGain = audioCtx.createGain();
+  lfoSlowGain.gain.value = 420;
+  lfoSlow.connect(lfoSlowGain);
+  lfoSlowGain.connect(filter.frequency);
+  lfoSlow.start();
+
+  // feines Streicher-Tremolo (Bogenstrich)
+  const tremLfo = audioCtx.createOscillator();
+  tremLfo.type = 'sine';
+  tremLfo.frequency.value = 5.2;
+  const tremDepth = audioCtx.createGain();
+  tremDepth.gain.value = 0.02;
+
+  const voiceDefs = [
+    { role: 'root', midi: keyNotes.root, detunes: [-9, -3, 3, 9], gain: 0.085, type: 'sawtooth' },
+    { role: 'root8', midi: keyNotes.root8, detunes: [-6, 6], gain: 0.06, type: 'triangle' },
+    { role: 'fifth', midi: keyNotes.fifth, detunes: [-5, 5], gain: 0.05, type: 'sawtooth' },
+    { role: 'third', midi: thirdMidi, detunes: [-4, 4], gain: 0.04, type: 'triangle' },
+  ];
+  const voices = [];
+  voiceDefs.forEach(v => {
+    v.detunes.forEach(det => {
+      const osc = audioCtx.createOscillator();
+      osc.type = v.type;
+      osc.frequency.value = midiToFreq(v.midi);
+      osc.detune.value = det;
+      const g = audioCtx.createGain();
+      g.gain.setValueAtTime(0, now);
+      g.gain.linearRampToValueAtTime(v.gain, now + 4.5);
+      tremDepth.connect(g.gain);
+      osc.connect(g);
+      g.connect(filter);
+      osc.start();
+      voices.push({ osc, role: v.role });
+    });
+  });
+  tremLfo.connect(tremDepth);
+  tremLfo.start();
+
+  // Horn-Pad: sägezahn durch Bandpass, hornartige Formanten
+  const hornOsc = audioCtx.createOscillator();
+  hornOsc.type = 'sawtooth';
+  hornOsc.frequency.value = midiToFreq(keyNotes.root + 12);
+  const hornFilter = audioCtx.createBiquadFilter();
+  hornFilter.type = 'bandpass';
+  hornFilter.frequency.value = 800;
+  hornFilter.Q.value = 3;
+  const hornGain = audioCtx.createGain();
+  hornGain.gain.setValueAtTime(0, now);
+  hornGain.gain.linearRampToValueAtTime(0.05, now + 5);
+  hornOsc.connect(hornFilter);
+  hornFilter.connect(hornGain);
+  hornGain.connect(padPanner);
+  hornOsc.start();
+  voices.push({ osc: hornOsc, role: 'hornRoot8' });
+
+  // sehr langsames Schwellen des Horn-Pads (großer orchestraler Atem)
+  const macroLfo = audioCtx.createOscillator();
+  macroLfo.type = 'sine';
+  macroLfo.frequency.value = 1 / 90;
+  const macroDepth = audioCtx.createGain();
+  macroDepth.gain.value = 0.02;
+  macroLfo.connect(macroDepth);
+  macroDepth.connect(hornGain.gain);
+  macroLfo.start();
+  voices.push({ osc: macroLfo, role: '_macroLfo' });
+
+  master.gain.linearRampToValueAtTime(vol, audioCtx.currentTime + 1.2);
+
+  droneNodes = {
+    master, dryGain, wetGain, reverbSend, filter, lfoSlow, tremLfo, voices, keyNotes,
+    shimmerTimeout: null, leadTimeout: null, riserTimeout: null, timpaniTimeout: null,
+    pingPong: ppd, padPanner, panLfo
+  };
+  droneOn = true;
+
+  // Pauke: perkussiver Puls statt gleichmäßigem Sub-Bass
+  function timpaniHit() {
+    if (!droneOn || !droneNodes) return;
+    const t = audioCtx.currentTime;
+    const kn = droneNodes.keyNotes;
+    const osc = audioCtx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(midiToFreq(kn.sub) * 1.5, t);
+    osc.frequency.exponentialRampToValueAtTime(midiToFreq(kn.sub), t + 0.12);
+
+    const clickNoise = audioCtx.createBufferSource();
+    clickNoise.buffer = ensureNoiseBuffer();
+    const clickFilter = audioCtx.createBiquadFilter();
+    clickFilter.type = 'bandpass';
+    clickFilter.frequency.value = 200;
+    clickFilter.Q.value = 1.2;
+    const clickGain = audioCtx.createGain();
+    clickGain.gain.setValueAtTime(0.15, t);
+    clickGain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+    clickNoise.connect(clickFilter);
+    clickFilter.connect(clickGain);
+    clickGain.connect(droneNodes.dryGain);
+    clickGain.connect(droneNodes.reverbSend);
+
+    const g = audioCtx.createGain();
+    g.gain.setValueAtTime(0.001, t);
+    g.gain.exponentialRampToValueAtTime(0.28, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0008, t + 1.6);
+    osc.connect(g);
+    g.connect(droneNodes.dryGain);
+    g.connect(droneNodes.reverbSend);
+    g.connect(droneNodes.pingPong.input);
+    osc.start(t); osc.stop(t + 1.7);
+    clickNoise.start(t); clickNoise.stop(t + 0.1);
+    vEnd(osc, [g]); vEnd(clickNoise, [clickFilter, clickGain]);
+
+    droneNodes.timpaniTimeout = setTimeout(timpaniHit, 2200 + Math.random() * 1400);
+  }
+  timpaniHit();
+  scheduleShimmerV2();
+  playLeadPhraseV2();
+  scheduleRiserV2();
+
+  const btn = document.getElementById('droneBtn');
+  btn.textContent = '■';
+  btn.classList.add('playing');
+  document.getElementById('droneStatus').textContent = 'An — ' + rootSel.value + ' ' + modeSel.value + ' (Brass & Streicher)';
+}
+
+function stopDroneV2() {
+  if (!droneNodes) return;
+  const {
+    master, lfoSlow, tremLfo, panLfo, voices, shimmerTimeout, leadTimeout,
+    riserTimeout, timpaniTimeout, pingPong: ppd
+  } = droneNodes;
+  if (shimmerTimeout) clearTimeout(shimmerTimeout);
+  if (leadTimeout) clearTimeout(leadTimeout);
+  if (riserTimeout) clearTimeout(riserTimeout);
+  if (timpaniTimeout) clearTimeout(timpaniTimeout);
+  master.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.8);
+  setTimeout(() => {
+    voices.forEach(v => { try { v.osc.stop(); } catch (e) {} });
+    [lfoSlow, tremLfo, panLfo].forEach(o => { try { o.stop(); } catch (e) {} });
+    try { ppd.output.disconnect(); } catch (e) {}
+  }, 900);
+  droneNodes = null;
+  droneOn = false;
+
+  const btn = document.getElementById('droneBtn');
+  btn.textContent = '▶';
+  btn.classList.remove('playing');
+  document.getElementById('droneStatus').textContent = 'Aus';
+}
+
+function updateDroneFreqV2() {
+  if (!droneOn || !droneNodes) return;
+  const keyNotes = keyMidiNotes();
+  const rootIdx = NOTES.indexOf(rootSel.value);
+  const intervals = MODES[modeSel.value];
+  const thirdMidi = 36 + rootIdx + intervals[2] + 12;
+  droneNodes.keyNotes = keyNotes;
+  droneNodes.voices.forEach(v => {
+    if (v.role === '_macroLfo') return;
+    let target;
+    if (v.role === 'third') target = thirdMidi;
+    else if (v.role === 'hornRoot8') target = keyNotes.root + 12;
+    else target = keyNotes[v.role];
+    v.osc.frequency.setTargetAtTime(midiToFreq(target), audioCtx.currentTime, 0.3);
+  });
+  document.getElementById('droneStatus').textContent = 'An — ' + rootSel.value + ' ' + modeSel.value + ' (Brass & Streicher)';
+}
+
+function tick() {
+  const notesPerBeat = parseInt(document.getElementById('notesPerBeat').value);
+  if (!metronomeMuted && beatCounter % notesPerBeat === 0) {
+    clickSound(beatCounter % (notesPerBeat * 4) === 0);
+  }
+  beatCounter++;
+
+  if (seqPointer >= playSequence.length) seqPointer = 0;
+  const idx = playSequence[seqPointer];
+  renderBoard(idx);
+  const note = currentPattern[idx];
+  document.getElementById('statusLine').textContent =
+    'Ton ' + (seqPointer + 1) + ' / ' + playSequence.length + ' — Saite ' + (6 - note.string) + ', Bund ' + note.fret;
+  seqPointer++;
+}
+
+function startPlayback() {
+  ensureAudio();
+  const bpm = parseInt(document.getElementById('bpm').value);
+  const notesPerBeat = parseInt(document.getElementById('notesPerBeat').value);
+  const intervalMs = (60000 / bpm) / notesPerBeat;
+  beatCounter = 0;
+  sessionStartMs = Date.now();
+  tick();
+  intervalId = setInterval(tick, intervalMs);
+  isPlaying = true;
+  const btn = document.getElementById('playBtn');
+  btn.textContent = '❚❚';
+  btn.classList.add('playing');
+}
+
+function stopPlayback() {
+  if (intervalId) clearInterval(intervalId);
+  intervalId = null;
+  isPlaying = false;
+  const btn = document.getElementById('playBtn');
+  btn.textContent = '▶';
+  btn.classList.remove('playing');
+  renderBoard(-1);
+
+  if (sessionStartMs) {
+    const elapsedSec = (Date.now() - sessionStartMs) / 1000;
+    sessionStartMs = null;
+    if (elapsedSec >= 5) saveSession(elapsedSec);
+  }
+}
+
+async function saveSession(elapsedSec) {
+  if (!dbApi) return;
+  try {
+    await dbApi.collection('sessions').add({
+      ts: Date.now(),
+      dateStr: new Date().toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }),
+      root: rootSel.value,
+      mode: modeSel.value,
+      position: parseInt(posSel.value),
+      pattern: patternSel.value,
+      bpm: parseInt(document.getElementById('bpm').value),
+      durationSec: Math.round(elapsedSec)
+    });
+  } catch (e) {
+    console.error('Konnte Übungseinheit nicht speichern:', e);
+  }
+}
+
+function computeStats(entries) {
+  const todayKey = new Date().toDateString();
+  let todaySec = 0;
+  const days = new Set();
+  entries.forEach(e => {
+    const d = new Date(e.ts);
+    const key = d.toDateString();
+    days.add(key);
+    if (key === todayKey) todaySec += (e.durationSec || 0);
+  });
+  let streak = 0;
+  let cursor = new Date();
+  while (days.has(cursor.toDateString())) {
+    streak++;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  return { todayMin: Math.round(todaySec / 60), streak, total: entries.length };
+}
+
+function renderLog(entries) {
+  const stats = computeStats(entries);
+  document.getElementById('statToday').textContent = stats.todayMin;
+  document.getElementById('statStreak').textContent = stats.streak;
+  document.getElementById('statTotal').textContent = stats.total;
+
+  const list = document.getElementById('logList');
+  if (!entries.length) {
+    list.innerHTML = '<p class="pattern-desc">Noch keine Übungseinheiten gespeichert — starte das Metronom für mindestens 5 Sekunden.</p>';
+    return;
+  }
+  const sorted = [...entries].sort((a, b) => b.ts - a.ts).slice(0, 12);
+  const h = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  list.innerHTML = sorted.map(e => {
+    const mins = Math.floor((+e.durationSec || 0) / 60);
+    const secs = (+e.durationSec || 0) % 60;
+    const dur = mins > 0 ? mins + ' min ' + secs + ' s' : secs + ' s';
+    return `<div class="log-row">
+      <span class="log-main">${h(e.root)} ${h(e.mode)} · Pos. ${h(e.position)} · ${h(PATTERN_LABEL[e.pattern] || e.pattern)}</span>
+      <span class="log-meta">${h(e.dateStr)}<br>${h(e.bpm)} BPM · ${h(dur)}</span>
+    </div>`;
+  }).join('');
+}
+
+async function initDb() {
+  if (!(window.claude && window.claude.use)) {
+    document.getElementById('logList').innerHTML = '<p class="pattern-desc">Verlauf ist in dieser Ansicht nicht verfügbar.</p>';
+    return;
+  }
+  try {
+    dbApi = await window.claude.use('db');
+  } catch (e) {
+    dbApi = null;
+  }
+  if (!dbApi) {
+    document.getElementById('logList').innerHTML = '<p class="pattern-desc">Verlauf ist in dieser Ansicht nicht verfügbar.</p>';
+    return;
+  }
+  dbApi.collection('sessions').orderBy('ts', 'desc').limit(60).onSnapshot(
+    snap => renderLog(snap.docs.map(d => d.data())),
+    err => {
+      console.error(err);
+      document.getElementById('logList').innerHTML = '<p class="pattern-desc">Verlauf konnte nicht geladen werden.</p>';
+    }
+  );
+}
+
+/* ---------- Eigene Musik: Laden, Abspielen, automatische Tonart-Erkennung ---------- */
+
+// Einfache iterative Radix-2-FFT (n muss Zweierpotenz sein)
+function fft(signal) {
+  const n = signal.length;
+  const re = Float64Array.from(signal);
+  const im = new Float64Array(n);
+  for (let i = 1, j = 0; i < n; i++) {
+    let bit = n >> 1;
+    for (; j & bit; bit >>= 1) j ^= bit;
+    j ^= bit;
+    if (i < j) {
+      const tr = re[i]; re[i] = re[j]; re[j] = tr;
+      const ti = im[i]; im[i] = im[j]; im[j] = ti;
+    }
+  }
+  for (let len = 2; len <= n; len <<= 1) {
+    const ang = -2 * Math.PI / len;
+    const wr = Math.cos(ang), wi = Math.sin(ang);
+    for (let i = 0; i < n; i += len) {
+      let curWr = 1, curWi = 0;
+      const half = len / 2;
+      for (let k = 0; k < half; k++) {
+        const ur = re[i + k], ui = im[i + k];
+        const vr = re[i + k + half] * curWr - im[i + k + half] * curWi;
+        const vi = re[i + k + half] * curWi + im[i + k + half] * curWr;
+        re[i + k] = ur + vr; im[i + k] = ui + vi;
+        re[i + k + half] = ur - vr; im[i + k + half] = ui - vi;
+        const nwr = curWr * wr - curWi * wi;
+        const nwi = curWr * wi + curWi * wr;
+        curWr = nwr; curWi = nwi;
+      }
+    }
+  }
+  return { re, im };
+}
+
+// Chroma-Vektor (12 Tonklassen-Energien) aus dekodiertem Audio-Buffer berechnen
+function computeChroma(buffer) {
+  const sr = buffer.sampleRate;
+  const numCh = buffer.numberOfChannels;
+  const chData = [];
+  for (let c = 0; c < numCh; c++) chData.push(buffer.getChannelData(c));
+  const maxSamples = Math.min(buffer.length, sr * 60); // max. 60s analysieren
+  const frameSize = 4096;
+  const hop = 2048;
+  const chroma = new Array(12).fill(0);
+  const win = new Float32Array(frameSize);
+  for (let i = 0; i < frameSize; i++) win[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / (frameSize - 1));
+  const frame = new Float64Array(frameSize);
+
+  for (let start = 0; start + frameSize <= maxSamples; start += hop) {
+    for (let i = 0; i < frameSize; i++) {
+      let s = 0;
+      for (let c = 0; c < numCh; c++) s += chData[c][start + i];
+      frame[i] = (s / numCh) * win[i];
+    }
+    const { re, im } = fft(frame);
+    for (let bin = 1; bin < frameSize / 2; bin++) {
+      const freq = bin * sr / frameSize;
+      if (freq < 55 || freq > 1300) continue; // grob A1–E6, Grundtöne & Basslinien
+      const mag = Math.sqrt(re[bin] * re[bin] + im[bin] * im[bin]);
+      const midi = 69 + 12 * Math.log2(freq / 440);
+      const pc = ((Math.round(midi) % 12) + 12) % 12;
+      chroma[pc] += mag;
+    }
+  }
+  return chroma;
+}
+
+function pearsonCorrelate(x, y) {
+  const n = x.length;
+  const mx = x.reduce((a, b) => a + b, 0) / n;
+  const my = y.reduce((a, b) => a + b, 0) / n;
+  let num = 0, dx = 0, dy = 0;
+  for (let i = 0; i < n; i++) {
+    const a = x[i] - mx, b = y[i] - my;
+    num += a * b; dx += a * a; dy += b * b;
+  }
+  return num / (Math.sqrt(dx * dy) || 1);
+}
+
+// Krumhansl-Schmuckler Tonart-Erkennung: Chroma gegen Dur-/Moll-Profile für alle 12 Grundtöne korrelieren
+function detectKeyFromChroma(chroma) {
+  const MAJOR_PROFILE = [6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88];
+  const MINOR_PROFILE = [6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17];
+  let best = { score: -Infinity, pc: 0, major: true };
+  for (let r = 0; r < 12; r++) {
+    const testVec = [];
+    for (let i = 0; i < 12; i++) testVec.push(chroma[(r + i) % 12]);
+    const majScore = pearsonCorrelate(testVec, MAJOR_PROFILE);
+    const minScore = pearsonCorrelate(testVec, MINOR_PROFILE);
+    if (majScore > best.score) best = { score: majScore, pc: r, major: true };
+    if (minScore > best.score) best = { score: minScore, pc: r, major: false };
+  }
+  return best;
+}
+
+function formatTime(s) {
+  if (!isFinite(s) || s < 0) return '0:00';
+  const m = Math.floor(s / 60);
+  const sec = Math.floor(s % 60);
+  return m + ':' + (sec < 10 ? '0' : '') + sec;
+}
+
+const fileInput = document.getElementById('audioFile');
+const fileNameEl = document.getElementById('fileName');
+const musicControlsRow = document.getElementById('musicControlsRow');
+const musicStatus = document.getElementById('musicStatus');
+const musicPlayBtn = document.getElementById('musicPlayBtn');
+const musicSeek = document.getElementById('musicSeek');
+const musicTime = document.getElementById('musicTime');
+const musicVolume = document.getElementById('musicVolume');
+const musicLoop = document.getElementById('musicLoop');
+
+let musicAudio = null;
+let musicSeeking = false;
+
+fileInput.addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  fileNameEl.textContent = file.name;
+  musicControlsRow.style.display = 'flex';
+  musicStatus.textContent = 'Analysiere Tonart …';
+
+  if (musicAudio) { musicAudio.pause(); }
+  const url = URL.createObjectURL(file);
+  musicAudio = new Audio(url);
+  musicAudio.volume = musicVolume.value / 100;
+  musicAudio.loop = musicLoop.checked;
+  musicPlayBtn.textContent = '▶';
+  musicPlayBtn.classList.remove('playing');
+
+  // Über die Web-Audio-Masterbus führen (gemeinsamer Limiter mit Drone/Beat/Metronom) —
+  // so übersteuert nichts, wenn Song + Übungssounds gleichzeitig laufen
+  try {
+    ensureAudio();
+    const musicSource = audioCtx.createMediaElementSource(musicAudio);
+    musicSource.connect(ensureMasterBus());
+  } catch (err) {
+    console.error('Musik konnte nicht in die Masterbus geroutet werden, spielt direkt ab:', err);
+  }
+
+  musicAudio.addEventListener('loadedmetadata', () => {
+    musicTime.textContent = formatTime(0) + ' / ' + formatTime(musicAudio.duration);
+  });
+  musicAudio.addEventListener('timeupdate', () => {
+    if (!musicSeeking && musicAudio.duration) {
+      musicSeek.value = (musicAudio.currentTime / musicAudio.duration) * 100;
+      musicTime.textContent = formatTime(musicAudio.currentTime) + ' / ' + formatTime(musicAudio.duration);
+    }
+  });
+  musicAudio.addEventListener('ended', () => {
+    if (!musicAudio.loop) {
+      musicPlayBtn.textContent = '▶';
+      musicPlayBtn.classList.remove('playing');
+    }
+  });
+  let playbackFailed = false;
+  musicAudio.addEventListener('error', () => {
+    playbackFailed = true;
+    musicStatus.textContent = 'Diese Datei (' + (file.type || 'unbekanntes Format') + ') kann in diesem Browser nicht abgespielt werden.';
+  });
+
+  musicStatus.textContent = 'Analysiere Tonart & Beat …';
+  let keyMsg = '';
+  let beatMsg = '';
+  let decoded = null;
+  try {
+    ensureAudio();
+    const arrBuf = await file.arrayBuffer();
+    decoded = await audioCtx.decodeAudioData(arrBuf);
+    const chroma = computeChroma(decoded);
+    const result = detectKeyFromChroma(chroma);
+    const detectedRoot = NOTES[result.pc];
+    const detectedMode = result.major ? 'Ionisch (Dur)' : 'Äolisch (Moll)';
+    rootSel.value = detectedRoot;
+    modeSel.value = detectedMode;
+    rebuild();
+    keyMsg = 'Tonart erkannt: ' + detectedRoot + (result.major ? '-Dur' : '-Moll') + '.';
+  } catch (err) {
+    console.error(err);
+    keyMsg = 'Tonart konnte nicht automatisch erkannt werden.';
+  }
+
+  if (decoded) {
+    try {
+      const beatResult = detectBeatFromBuffer(decoded);
+      GROOVE_STYLES.detected = beatResult.pattern;
+      const grooveStyleSel = document.getElementById('grooveStyle');
+      let opt = grooveStyleSel.querySelector('option[value="detected"]');
+      if (!opt) {
+        opt = new Option('', 'detected');
+        grooveStyleSel.appendChild(opt);
+      }
+      opt.textContent = 'Song-Erkannt (' + beatResult.bpm + ' BPM)';
+      grooveStyleSel.value = 'detected';
+      document.getElementById('bpm').value = beatResult.bpm;
+      document.getElementById('bpmVal').textContent = beatResult.bpm;
+      if (grooveNodes) {
+        document.getElementById('grooveStatus').textContent = 'Läuft — Stil: ' + grooveStyleSel.selectedOptions[0].text;
+      }
+      if (isPlaying) { stopPlayback(); startPlayback(); }
+      beatMsg = ' Beat erkannt (' + beatResult.bpm + ' BPM) — jetzt bei "Bass & Beat" als "Song-Erkannt" wählbar.';
+    } catch (err) {
+      console.error(err);
+      beatMsg = ' Beat konnte nicht automatisch erkannt werden.';
+    }
+  }
+
+  if (!playbackFailed) {
+    musicStatus.textContent = keyMsg + beatMsg +
+      ' (Näherungswerte — bei Bedarf oben bzw. bei Bass & Beat manuell korrigieren.)';
+  }
+});
+
+musicPlayBtn.addEventListener('click', () => {
+  if (!musicAudio) return;
+  if (musicAudio.paused) {
+    musicAudio.play();
+    musicPlayBtn.textContent = '❚❚';
+    musicPlayBtn.classList.add('playing');
+  } else {
+    musicAudio.pause();
+    musicPlayBtn.textContent = '▶';
+    musicPlayBtn.classList.remove('playing');
+  }
+});
+
+musicSeek.addEventListener('input', () => { musicSeeking = true; });
+musicSeek.addEventListener('change', () => {
+  if (musicAudio && musicAudio.duration) {
+    musicAudio.currentTime = (musicSeek.value / 100) * musicAudio.duration;
+  }
+  musicSeeking = false;
+});
+musicVolume.addEventListener('input', () => {
+  if (musicAudio) musicAudio.volume = musicVolume.value / 100;
+});
+musicLoop.addEventListener('change', () => {
+  if (musicAudio) musicAudio.loop = musicLoop.checked;
+});
+
+document.getElementById('playBtn').addEventListener('click', () => {
+  if (isPlaying) {
+    stopPlayback();
+    document.getElementById('statusLine').textContent = 'Pausiert';
+  } else {
+    startPlayback();
+  }
+});
+
+document.getElementById('bpm').addEventListener('input', (e) => {
+  document.getElementById('bpmVal').textContent = e.target.value;
+  if (isPlaying) { stopPlayback(); startPlayback(); }
+});
+
+document.getElementById('notesPerBeat').addEventListener('change', () => {
+  if (isPlaying) { stopPlayback(); startPlayback(); }
+});
+
+document.getElementById('btnMuteClick').addEventListener('click', (e) => {
+  metronomeMuted = !metronomeMuted;
+  e.target.textContent = metronomeMuted ? 'Klick aus' : 'Klick an';
+  e.target.classList.toggle('active', !metronomeMuted);
+});
+
+document.getElementById('droneBtn').addEventListener('click', () => {
+  if (droneOn) stopDrone(); else startDrone();
+});
+
+document.getElementById('droneVolume').addEventListener('input', (e) => {
+  if (droneOn && droneNodes) {
+    const vol = parseInt(e.target.value) / 100;
+    droneNodes.master.gain.linearRampToValueAtTime(vol, audioCtx.currentTime + 0.08);
+  }
+});
+
+document.getElementById('droneStyle').addEventListener('change', () => {
+  if (droneOn) {
+    stopDrone();
+    setTimeout(startDrone, 950);
+  }
+});
+
+
+document.getElementById('btnBass').addEventListener('click', (e) => {
+  bassOn = !bassOn;
+  e.target.textContent = bassOn ? 'Bass an' : 'Bass aus';
+  e.target.classList.toggle('active', bassOn);
+  updateGrooveEngineState();
+});
+
+
+document.getElementById('grooveVolume').addEventListener('input', (e) => {
+  if (grooveNodes) {
+    const vol = parseInt(e.target.value) / 100;
+    grooveNodes.master.gain.linearRampToValueAtTime(vol, audioCtx.currentTime + 0.08);
+  }
+});
+
+document.getElementById('btnNotes').addEventListener('click', () => {
+  showFingers = false;
+  document.getElementById('btnNotes').classList.add('active');
+  document.getElementById('btnFingers').classList.remove('active');
+  renderLegend();
+  renderBoard(isPlaying ? playSequence[(seqPointer - 1 + playSequence.length) % playSequence.length] : -1);
+});
+document.getElementById('btnFingers').addEventListener('click', () => {
+  showFingers = true;
+  document.getElementById('btnFingers').classList.add('active');
+  document.getElementById('btnNotes').classList.remove('active');
+  renderLegend();
+  renderBoard(isPlaying ? playSequence[(seqPointer - 1 + playSequence.length) % playSequence.length] : -1);
+});
+
+rootSel.addEventListener('change', rebuild);
+modeSel.addEventListener('change', rebuild);
+posSel.addEventListener('change', rebuild);
+patternSel.addEventListener('change', rebuild);
+
+rebuild();
+initDb();
+loadBassSamples();
+</script>

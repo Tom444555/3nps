@@ -1,0 +1,186 @@
+  /* ===== Rost & Stahl: Hintergrund aus gerostetem Blech, darauf verschraubte Stahlplatten ===== */
+  :root {
+    --plate-hi: #3a3a40;
+    --plate-lo: #232327;
+    --well: #141416;
+    --rivet: radial-gradient(circle at 35% 35%, #cfcfd4 0 0.8px, #8a8a92 1.4px, #45454c 3px, #1a1a1d 4.2px, transparent 4.8px);
+  }
+  html {
+    min-height: 100%;
+    background: #15120f url("bg-metal.jpg") repeat;
+    background-size: 1024px 1024px;
+  }
+  body { background: transparent; min-height: 100vh; }
+  /* Licht und Tiefe: warmer Lichtkegel von oben, dunkle Ränder, staubiger Dunst */
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(ellipse 70% 45% at 50% 0%, rgba(255,190,120,.16) 0%, rgba(255,160,90,.05) 45%, transparent 70%),
+      radial-gradient(ellipse 150% 120% at 50% 35%, transparent 30%, rgba(8,4,2,.55) 75%, rgba(0,0,0,.85) 100%),
+      linear-gradient(180deg, rgba(0,0,0,0) 60%, rgba(30,14,4,.35) 100%);
+  }
+  .app, .control-bar { position: relative; z-index: 1; }
+  .control-bar { position: sticky; z-index: 20; }
+
+  /* Kontrollleiste: schwere, gebürstete Stahlschiene mit Schrauben */
+  .control-bar {
+    background:
+      var(--rivet) 10px 50% / 12px 12px no-repeat,
+      var(--rivet) calc(100% - 10px) 50% / 12px 12px no-repeat,
+      linear-gradient(180deg, rgba(255,255,255,.07) 0%, rgba(0,0,0,.1) 50%, rgba(0,0,0,.35) 100%),
+      url("panel.jpg") 0 0 / 512px 512px repeat;
+    border-bottom: 1px solid #000;
+    box-shadow: 0 1px 0 rgba(255,255,255,.12) inset, 0 -1px 0 rgba(0,0,0,.5) inset, 0 10px 24px rgba(0,0,0,.65);
+  }
+  .cb-inner { padding-inline: 30px; }
+  .lcd { box-shadow: 0 1px 0 rgba(255,255,255,.08), inset 0 3px 10px rgba(0,0,0,.85), inset 0 0 0 1px #000; }
+
+  /* Tabs: eingelassene Leiste */
+  .tabs {
+    background: linear-gradient(180deg, #0f0f11, #18181b);
+    border: 1px solid #000;
+    box-shadow: inset 0 2px 6px rgba(0,0,0,.8), 0 1px 0 rgba(255,255,255,.07);
+  }
+  .tab[aria-selected="true"] {
+    background: linear-gradient(180deg, #505057, #393940);
+    box-shadow: 0 1px 0 rgba(255,255,255,.14) inset, 0 2px 4px rgba(0,0,0,.6);
+  }
+
+  /* Platten: gebürsteter Stahl, vier Schrauben, Schlagschatten auf dem Rost */
+  .card, .stat-card {
+    position: relative;
+    background:
+      var(--rivet) 6px 6px / 12px 12px no-repeat,
+      var(--rivet) calc(100% - 6px) 6px / 12px 12px no-repeat,
+      var(--rivet) 6px calc(100% - 6px) / 12px 12px no-repeat,
+      var(--rivet) calc(100% - 6px) calc(100% - 6px) / 12px 12px no-repeat,
+      linear-gradient(180deg, rgba(255,255,255,.06) 0%, rgba(0,0,0,.08) 45%, rgba(0,0,0,.32) 100%),
+      url("panel.jpg") 0 0 / 512px 512px repeat;
+    background-color: #2a2a2e;
+    border: 1px solid #08080a;
+    border-radius: 6px;
+    padding: 18px 20px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.11) inset,
+      0 -2px 0 rgba(0,0,0,.45) inset,
+      1px 0 0 rgba(255,255,255,.04) inset,
+      inset 0 0 28px rgba(40,18,6,.45),
+      0 3px 4px rgba(0,0,0,.55),
+      0 14px 30px rgba(0,0,0,.6);
+  }
+  .stat-card { padding: 16px 18px; }
+  h2 { color: #b8b9c0; text-shadow: 0 -1px 0 rgba(0,0,0,.8); }
+
+  /* Spuren: tief in die Platte eingelassene Felder */
+  .track, .editor, .lane {
+    background: linear-gradient(180deg, rgba(0,0,0,.66), rgba(0,0,0,.58)), url("panel.jpg") 137px 91px / 512px 512px repeat;
+    background-color: #17171a;
+    border: 1px solid #000;
+    border-radius: 8px;
+    box-shadow: inset 0 3px 10px rgba(0,0,0,.85), inset 0 0 0 1px rgba(255,255,255,.02), 0 1px 0 rgba(255,255,255,.07);
+  }
+  .track-head { border-bottom-color: rgba(255,255,255,.05); }
+  .wave, .ed-wave-wrap canvas { box-shadow: inset 0 2px 6px rgba(0,0,0,.9); }
+
+  /* Fußtaster: massiver Metallknopf */
+  .foot {
+    background: radial-gradient(ellipse at 50% 0%, rgba(255,255,255,.14), transparent 60%), linear-gradient(180deg, #55555c, #34343a 60%, #2a2a2f);
+    border: 1px solid #000;
+    box-shadow: 0 1px 0 rgba(255,255,255,.18) inset, 0 -2px 0 rgba(0,0,0,.4) inset, 0 4px 0 #0b0b0c, 0 6px 12px rgba(0,0,0,.6);
+  }
+  .foot:active { box-shadow: 0 1px 0 rgba(255,255,255,.12) inset, 0 1px 0 #0b0b0c, 0 2px 4px rgba(0,0,0,.6); }
+
+  /* Schalter und Felder */
+  .toggle-btn, .mini button, .file-mini, .tbtn {
+    background: linear-gradient(180deg, #4c4c53, #36363c);
+    border: 1px solid #050506;
+    box-shadow: 0 1px 0 rgba(255,255,255,.13) inset, 0 2px 3px rgba(0,0,0,.5);
+  }
+  .toggle-btn.active { background: linear-gradient(180deg, #e2b56a 0%, #b9813b 55%, #8e5c24 100%); color: #1c1006; border-color: #3a2208; box-shadow: 0 1px 0 rgba(255,236,190,.55) inset, 0 -1px 0 rgba(0,0,0,.35) inset, 0 0 12px rgba(226,160,80,.28), 0 2px 3px rgba(0,0,0,.55); text-shadow: 0 1px 0 rgba(255,230,180,.35); }
+  select, .text-in { background-color: #121214; border: 1px solid #000; box-shadow: inset 0 2px 5px rgba(0,0,0,.8), 0 1px 0 rgba(255,255,255,.06); }
+  .status-line { border-top-color: rgba(255,255,255,.06); }
+  .fretboard { box-shadow: inset 0 0 0 1px rgba(0,0,0,.5), 0 6px 14px rgba(0,0,0,.55); }
+
+  @media (max-width: 520px) { .card { padding: 16px 14px; } .cb-inner { padding-inline: 24px; } }
+
+  .tabs { background: linear-gradient(180deg, rgba(0,0,0,.72), rgba(0,0,0,.6)), url("panel.jpg") 0 0 / 512px 512px repeat; }
+  .ed-group { background: rgba(255,255,255,.03); }
+
+  /* ===== Wikinger & Kelten: Eckbeschläge mit Dreipass, Runenband, Unziale ===== */
+  .card, .stat-card {
+    background:
+      url("corner-tl.png") 2px 2px / 34px 34px no-repeat,
+      url("corner-tr.png") calc(100% - 2px) 2px / 34px 34px no-repeat,
+      url("corner-bl.png") 2px calc(100% - 2px) / 34px 34px no-repeat,
+      url("corner-br.png") calc(100% - 2px) calc(100% - 2px) / 34px 34px no-repeat,
+      linear-gradient(180deg, rgba(255,255,255,.06) 0%, rgba(0,0,0,.08) 45%, rgba(0,0,0,.32) 100%),
+      url("panel.jpg") 0 0 / 512px 512px repeat;
+    background-color: #2a2a2e;
+    padding: 22px 28px;
+  }
+  .stat-card { padding: 18px 26px; }
+  h2, .brand { font-family: "Uncial Antiqua", "Iowan Old Style", Georgia, serif; }
+  h2 {
+    font-size: 0.86rem; font-weight: 400; letter-spacing: .05em; text-transform: none;
+    color: #d2b98d; text-shadow: 0 1px 0 rgba(255,255,255,.08), 0 -1px 0 rgba(0,0,0,.9), 0 0 12px rgba(255,170,80,.12);
+  }
+  .brand { font-weight: 400; font-size: 1.05rem; letter-spacing: .02em; color: #e7d3ae; text-shadow: 0 -1px 0 #000, 0 0 14px rgba(255,150,60,.18); display: inline-flex; align-items: center; gap: 9px; }
+  .brand::before { content: ""; width: 30px; height: 30px; flex: 0 0 30px; background: url("emblem.png") center / contain no-repeat; filter: drop-shadow(0 2px 3px rgba(0,0,0,.7)); }
+  .control-bar::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 17px; pointer-events: none;
+    background: url("runes.png") 0 50% / auto 15px repeat-x, linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.15) 40%, rgba(0,0,0,.4));
+    border-top: 1px solid rgba(0,0,0,.6); box-shadow: 0 1px 0 rgba(255,255,255,.06) inset;
+  }
+  .cb-inner { padding-bottom: 24px; }
+  @media (max-width: 520px) {
+    .card { padding: 18px 18px; }
+    .card, .stat-card { background-size: 26px 26px, 26px 26px, 26px 26px, 26px 26px, auto, 512px 512px; }
+  }
+
+  /* ===== v13: dunklere Fenster mit Struktur und kräftiger Tiefe ===== */
+  .card, .stat-card {
+    background:
+      url("corner-tl.png") 2px 2px / 34px 34px no-repeat,
+      url("corner-tr.png") calc(100% - 2px) 2px / 34px 34px no-repeat,
+      url("corner-bl.png") 2px calc(100% - 2px) / 34px 34px no-repeat,
+      url("corner-br.png") calc(100% - 2px) calc(100% - 2px) / 34px 34px no-repeat,
+      radial-gradient(ellipse 120% 70% at 50% 0%, rgba(255,210,160,.05), transparent 60%),
+      linear-gradient(180deg, rgba(0,0,0,.12) 0%, rgba(0,0,0,.3) 60%, rgba(0,0,0,.5) 100%),
+      url("panel-dark.jpg") 0 0 / 512px 512px repeat;
+    background-color: #151517;
+    border: 1px solid #000;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.14) inset,
+      1px 0 0 rgba(255,255,255,.05) inset,
+      0 -2px 0 rgba(0,0,0,.7) inset,
+      inset 0 0 0 1px rgba(0,0,0,.6),
+      inset 0 24px 48px -24px rgba(0,0,0,.6),
+      inset 0 0 60px rgba(20,8,2,.55),
+      0 2px 0 rgba(0,0,0,.8),
+      0 10px 18px rgba(0,0,0,.7),
+      0 28px 60px rgba(0,0,0,.75);
+  }
+  .card::after {
+    content: ""; position: absolute; inset: 7px; border-radius: 4px; pointer-events: none;
+    border: 1px solid rgba(0,0,0,.65);
+    box-shadow: 0 1px 0 rgba(255,255,255,.07), inset 0 1px 0 rgba(255,255,255,.04);
+  }
+  .card > * { position: relative; z-index: 1; }
+  .modal-card::after { display: none; }
+  .track, .editor, .lane {
+    background: linear-gradient(180deg, rgba(0,0,0,.72), rgba(0,0,0,.62)), url("panel-dark.jpg") 137px 91px / 512px 512px repeat;
+    background-color: #0c0c0e;
+    border: 1px solid #000;
+    box-shadow: inset 0 8px 22px rgba(0,0,0,.95), inset 0 -1px 0 rgba(255,255,255,.04), inset 0 0 0 1px rgba(255,255,255,.015), 0 1px 0 rgba(255,255,255,.09), 0 -1px 0 rgba(0,0,0,.6);
+  }
+  .control-bar {
+    background:
+      var(--rivet) 10px 50% / 12px 12px no-repeat,
+      var(--rivet) calc(100% - 10px) 50% / 12px 12px no-repeat,
+      linear-gradient(180deg, rgba(255,255,255,.05) 0%, rgba(0,0,0,.2) 50%, rgba(0,0,0,.5) 100%),
+      url("panel-dark.jpg") 0 0 / 512px 512px repeat;
+  }
+  .tabs { background: linear-gradient(180deg, rgba(0,0,0,.8), rgba(0,0,0,.68)), url("panel-dark.jpg") 0 0 / 512px 512px repeat; }
+  .ed-group { background: rgba(0,0,0,.28); border-color: rgba(255,255,255,.035); box-shadow: inset 0 2px 8px rgba(0,0,0,.5); }
+  .dg-cell { background: #121215; }
+  @media (max-width: 520px) { .card::after { inset: 5px; } }

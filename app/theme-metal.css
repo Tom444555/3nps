@@ -1,0 +1,115 @@
+
+  /* ===== Optik „Metal“: schwarzer Stahl, Riffelblech, Pyramiden-Nieten, Chrom, Glut und Blutrot ===== */
+  :root { --neon-rec: #ff2d55; --neon-dub: #ffe14a; --neon-bar1: #ff8a1a; }
+  :root[data-theme="metal"] {
+    --bg: #0c0c0d; --surface: #18181a; --surface-2: #222225; --raised: #2c2c30;
+    --ink: #f1f1f3; --muted: #a29e9c; --line: #3a3536; --line-soft: #29252a;
+    --accent: #ff3b30; --accent-ink: #1a0303; --active-color: #ff8a2a;
+    --t1: #c9d1dd; --t2: #ff7a1a; --t3: #e0b040;
+    --neon-rec: #ff2433; --neon-dub: #ffd84a; --neon-bar1: #fff6e6;
+    --dub: #ffd84a;
+    --lcd-bg: #120505; --lcd-ink: #ff4a3a; --lcd-dim: #7d3730;
+    --board: #1f1c1c; --board-edge: #0e0c0c; --fretwire: #c9ced6;
+    background: #0a0a0b url("bg-iron.jpg") repeat;
+    background-size: 1024px 1024px;
+  }
+  :root[data-theme="metal"] body::before {
+    background:
+      radial-gradient(ellipse 70% 42% at 50% 0%, rgba(225,232,255,.10) 0%, rgba(200,210,255,.03) 45%, transparent 70%),
+      radial-gradient(ellipse 150% 120% at 50% 35%, transparent 28%, rgba(0,0,0,.6) 74%, rgba(0,0,0,.9) 100%),
+      radial-gradient(ellipse 90% 38% at 50% 106%, rgba(170,12,10,.32), transparent 70%);
+  }
+
+  /* Schrift: Marke in Metal-Lettern mit Chrom, Überschriften und Tabs als Schablonenschrift */
+  :root[data-theme="metal"] .brand {
+    font-family: "Metal Mania", "Avenir Next Condensed", Impact, sans-serif; font-weight: 400; font-size: 1.45rem; letter-spacing: .05em; line-height: 1;
+    background: linear-gradient(180deg, #ffffff 0%, #d9dce2 40%, #6c707a 52%, #eef0f3 70%, #9aa0aa 100%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
+    text-shadow: none; filter: drop-shadow(0 2px 0 #000) drop-shadow(0 0 7px rgba(255,36,40,.35));
+  }
+  :root[data-theme="metal"] .brand span { font: 600 .66rem var(--f-body); letter-spacing: .08em; -webkit-text-fill-color: #8f8a8a; color: #8f8a8a; text-transform: uppercase; }
+  :root[data-theme="metal"] .brand::before { width: 36px; height: 36px; flex-basis: 36px; background-image: url("emblem-iron.png"); filter: drop-shadow(0 2px 3px rgba(0,0,0,.85)); }
+  :root[data-theme="metal"] h2 {
+    font-family: "Black Ops One", "Avenir Next Condensed", Impact, sans-serif; font-weight: 400; font-size: .9rem;
+    text-transform: uppercase; letter-spacing: .07em; color: #dde1e7;
+    text-shadow: 0 -1px 0 #000, 0 1px 0 rgba(255,255,255,.06), 0 0 12px rgba(255,40,30,.28);
+  }
+  :root[data-theme="metal"] .tab { font-family: "Black Ops One", "Avenir Next Condensed", Impact, sans-serif; font-weight: 400; text-transform: uppercase; letter-spacing: .05em; color: #8e8a8a; }
+  :root[data-theme="metal"] .tab[aria-selected="true"] {
+    background: linear-gradient(180deg, #d01a22 0%, #9c0d13 55%, #6e070b 100%); color: #fff;
+    box-shadow: 0 1px 0 rgba(255,170,160,.4) inset, 0 -1px 0 rgba(0,0,0,.4) inset, 0 0 14px rgba(255,30,24,.35);
+    text-shadow: 0 1px 0 rgba(0,0,0,.6);
+  }
+
+  /* Kontrollleiste: Riffelblech, darunter ein Nietenband */
+  :root[data-theme="metal"] .control-bar {
+    background:
+      var(--rivet) 10px 50% / 12px 12px no-repeat,
+      var(--rivet) calc(100% - 10px) 50% / 12px 12px no-repeat,
+      linear-gradient(180deg, rgba(255,255,255,.05) 0%, rgba(0,0,0,.25) 50%, rgba(0,0,0,.55) 100%),
+      url("panel-iron.jpg") 0 0 / 512px 512px repeat;
+    background-color: #111113;
+  }
+  :root[data-theme="metal"] .control-bar::after {
+    height: 18px; background: url("studs-iron.png") 0 50% / auto 18px repeat-x, #151213;
+    border-top: 1px solid #000; box-shadow: 0 1px 0 rgba(255,255,255,.05) inset, 0 3px 6px rgba(0,0,0,.6);
+  }
+  :root[data-theme="metal"] .lcd { box-shadow: 0 1px 0 rgba(255,255,255,.07), inset 0 3px 10px rgba(0,0,0,.9), inset 0 0 0 1px #000, inset 0 0 18px rgba(255,30,20,.12); }
+  :root[data-theme="metal"] .lcd .v { text-shadow: 0 0 6px rgba(255,60,40,.55); }
+  :root[data-theme="metal"] .tabs { background: linear-gradient(180deg, rgba(0,0,0,.82), rgba(0,0,0,.7)), url("panel-iron.jpg") 0 0 / 512px 512px repeat; }
+
+  /* Platten: Riffelblech mit Pyramiden-Nieten in den Ecken */
+  :root[data-theme="metal"] .card, :root[data-theme="metal"] .stat-card {
+    background:
+      url("stud-iron.png") 5px 5px / 22px 22px no-repeat,
+      url("stud-iron.png") calc(100% - 5px) 5px / 22px 22px no-repeat,
+      url("stud-iron.png") 5px calc(100% - 5px) / 22px 22px no-repeat,
+      url("stud-iron.png") calc(100% - 5px) calc(100% - 5px) / 22px 22px no-repeat,
+      radial-gradient(ellipse 120% 70% at 50% 0%, rgba(230,236,255,.05), transparent 60%),
+      linear-gradient(180deg, rgba(0,0,0,.06) 0%, rgba(0,0,0,.26) 60%, rgba(26,0,0,.5) 100%),
+      url("panel-iron.jpg") 0 0 / 512px 512px repeat;
+    background-color: #111113;
+    border: 1px solid #000; border-top-color: #34343a;
+  }
+  :root[data-theme="metal"] .card::after { border-color: rgba(0,0,0,.75); box-shadow: 0 1px 0 rgba(255,255,255,.06), inset 0 0 0 1px rgba(150,12,12,.16); }
+  :root[data-theme="metal"] .track, :root[data-theme="metal"] .editor, :root[data-theme="metal"] .lane {
+    background: linear-gradient(180deg, rgba(0,0,0,.76), rgba(0,0,0,.68)), url("panel-iron.jpg") 137px 91px / 512px 512px repeat;
+    background-color: #0a0a0b;
+  }
+  :root[data-theme="metal"] .track.rec-live { border-color: rgba(255,36,51,.65) !important; box-shadow: inset 0 3px 10px rgba(0,0,0,.85), 0 0 0 1px rgba(255,36,51,.5), 0 0 22px rgba(255,36,51,.28) !important; }
+
+  /* Taster und Schalter: dunkler Stahl, aktiv in Blutrot */
+  :root[data-theme="metal"] .toggle-btn, :root[data-theme="metal"] .mini button, :root[data-theme="metal"] .file-mini, :root[data-theme="metal"] .tbtn {
+    background: linear-gradient(180deg, #3e3e44, #232326); border-color: #000;
+  }
+  :root[data-theme="metal"] .toggle-btn.active {
+    background: linear-gradient(180deg, #ff4a3d 0%, #c8141c 55%, #840a0f 100%); color: #fff; border-color: #2a0204;
+    box-shadow: 0 1px 0 rgba(255,190,180,.5) inset, 0 -1px 0 rgba(0,0,0,.35) inset, 0 0 12px rgba(255,40,30,.32), 0 2px 3px rgba(0,0,0,.55);
+    text-shadow: 0 1px 0 rgba(0,0,0,.5);
+  }
+  :root[data-theme="metal"] #playBtn.playing { background: linear-gradient(180deg, #c8141c, #7a0a0f); }
+  :root[data-theme="metal"] .foot {
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(255,255,255,.2), transparent 60%),
+      repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 2px, rgba(0,0,0,.09) 2px 4px),
+      linear-gradient(180deg, #5b5d64, #36373c 60%, #26272b);
+  }
+  :root[data-theme="metal"] .export-btn { background: linear-gradient(180deg, #ff8a3a, #c2410c) !important; border-color: #3a1200 !important; }
+  :root[data-theme="metal"] select, :root[data-theme="metal"] .text-in { background-color: #0d0d0e; }
+
+  /* Pegel: Stahl → Chrom → Glut → Rot */
+  :root[data-theme="metal"] #loopMeter, :root[data-theme="metal"] .meter.st #loopMeterR {
+    background-image: linear-gradient(90deg, #4c5059 0%, #b8bfca 40%, #f4f6f9 62%, #ff8a1a 82%, #ff1e1e 100%);
+    box-shadow: 0 0 6px rgba(255,255,255,.35), 0 0 14px rgba(255,90,40,.22);
+  }
+  :root[data-theme="metal"] #loopMeter.hot, :root[data-theme="metal"] .meter.st #loopMeterR.hot { box-shadow: 0 0 6px rgba(255,36,51,.95), 0 0 16px rgba(255,36,51,.5); }
+  :root[data-theme="metal"] .track { --tcd: #5a606b; --tcg: rgba(220,228,240,.42); }
+  :root[data-theme="metal"] .track.t2 { --tcd: #8f2a05; --tcg: rgba(255,122,26,.55); }
+  :root[data-theme="metal"] .track.t3 { --tcd: #7a5510; --tcg: rgba(224,176,64,.5); }
+  :root[data-theme="metal"] .tmeter { background: linear-gradient(0deg, rgba(200,200,210,.06) 0%, rgba(200,200,210,.06) 64%, rgba(255,138,26,.09) 83%, rgba(255,30,30,.12) 100%), #070708; }
+  :root[data-theme="metal"] .chan-info { color: #c9d1dd; }
+
+  @media (max-width: 520px) {
+    :root[data-theme="metal"] .card, :root[data-theme="metal"] .stat-card { background-size: 18px 18px, 18px 18px, 18px 18px, 18px 18px, auto, auto, 512px 512px; }
+    :root[data-theme="metal"] .brand { font-size: 1.25rem; }
+  }

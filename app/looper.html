@@ -1,0 +1,358 @@
+  <!-- Looper -->
+  <section class="panel" id="panel-looper" role="tabpanel" aria-labelledby="tab-looper" hidden>
+    <div class="card looper-card">
+      <div class="card-head"><h2>Looper</h2><span class="caption" id="loopInfo">Kein Loop</span></div>
+      <div class="looper-top">
+        <label class="field bars-field"><span>Loop-Länge</span>
+          <select id="loopBars">
+            <option value="free">Frei (Taster) · ganze Datei</option>
+            <option value="1">1 Takt</option>
+            <option value="2">2 Takte</option>
+            <option value="4">4 Takte</option>
+            <option value="8">8 Takte</option>
+            <option value="16">16 Takte</option>
+            <option value="32">32 Takte</option>
+            <option value="64">64 Takte</option>
+          </select>
+        </label>
+        <div class="field meter-field"><span>Eingang <em class="chan-info" id="inChanInfo"></em></span>
+          <div class="meter-row">
+            <div class="meter" id="loopMeterBox" aria-hidden="true"><div id="loopMeter"></div><div id="loopMeterR"></div><div class="thresh" id="loopThreshMark"></div></div>
+            <button class="toggle-btn" id="loopMonitor">Eingang öffnen</button>
+          </div>
+        </div>
+      </div>
+      <div class="tracks">
+        <div class="track t1" data-state="empty">
+          <div class="track-head"><span class="chip"></span><span class="tname">Spur 1</span><span class="chb" id="chb0" hidden></span><button class="keybadge" id="key0" hidden></button></div>
+          <div class="ring-row">
+            <canvas class="ring" id="ring0" aria-label="Taktkreis Spur 1"></canvas>
+            <div class="tmeter" id="tmeter0" aria-hidden="true"><div class="tm-ch l"><div class="tm-fill"></div><div class="tm-pk"></div></div><div class="tm-ch r"><div class="tm-fill"></div><div class="tm-pk"></div></div><div class="tm-th"></div></div>
+          </div>
+          <canvas class="wave" id="wave0" aria-label="Wellenform Spur 1"></canvas>
+          <div class="chordbar" id="chords0" hidden aria-label="Akkorde Spur 1"></div>
+          <button class="foot" id="foot0" data-state="empty"><span class="led"></span><span class="lbl">REC</span></button>
+          <div class="mini">
+            <button id="stop0" aria-label="Spur 1 stoppen" title="Stopp">■</button>
+            <button id="undo0" aria-label="Spur 1 rückgängig" title="Rückgängig">↶</button>
+            <button id="clear0" aria-label="Spur 1 löschen" title="Löschen">✕</button>
+            <button id="edit0" aria-label="Spur 1 bearbeiten" title="Schneiden und synchronisieren">✂</button>
+            <label class="file-mini" title="Audiodatei laden" aria-label="Audiodatei auf Spur 1 laden">♫<input type="file" id="file0" accept="AUDIO_ACCEPT"></label>
+          </div>
+          <div class="fader"><span>Pegel</span><input type="range" id="vol0" min="0" max="100" step="5" value="90" aria-label="Lautstärke Spur 1"><b class="fv" id="volv0">90</b></div>
+          <div class="fader in"><span>Eingang</span><input type="range" id="ing0" min="-12" max="24" step="1" value="0" aria-label="Eingangsverstärkung Spur 1"><b class="fv" id="ingv0">0 dB</b></div>
+          <button class="eq-btn" id="eqb0" aria-expanded="false" title="7-Band-Equalizer für Spur 1">EQ</button>
+          <div id="eqp0" hidden></div>
+        </div>
+        <div class="track t2" data-state="empty">
+          <div class="track-head"><span class="chip"></span><span class="tname">Spur 2</span><span class="chb" id="chb1" hidden></span><button class="keybadge" id="key1" hidden></button></div>
+          <div class="ring-row">
+            <canvas class="ring" id="ring1" aria-label="Taktkreis Spur 2"></canvas>
+            <div class="tmeter" id="tmeter1" aria-hidden="true"><div class="tm-ch l"><div class="tm-fill"></div><div class="tm-pk"></div></div><div class="tm-ch r"><div class="tm-fill"></div><div class="tm-pk"></div></div><div class="tm-th"></div></div>
+          </div>
+          <canvas class="wave" id="wave1" aria-label="Wellenform Spur 2"></canvas>
+          <div class="chordbar" id="chords1" hidden aria-label="Akkorde Spur 2"></div>
+          <button class="foot" id="foot1" data-state="empty"><span class="led"></span><span class="lbl">REC</span></button>
+          <div class="mini">
+            <button id="stop1" aria-label="Spur 2 stoppen" title="Stopp">■</button>
+            <button id="undo1" aria-label="Spur 2 rückgängig" title="Rückgängig">↶</button>
+            <button id="clear1" aria-label="Spur 2 löschen" title="Löschen">✕</button>
+            <button id="edit1" aria-label="Spur 2 bearbeiten" title="Schneiden und synchronisieren">✂</button>
+            <label class="file-mini" title="Audiodatei laden" aria-label="Audiodatei auf Spur 2 laden">♫<input type="file" id="file1" accept="AUDIO_ACCEPT"></label>
+          </div>
+          <div class="fader"><span>Pegel</span><input type="range" id="vol1" min="0" max="100" step="5" value="90" aria-label="Lautstärke Spur 2"><b class="fv" id="volv1">90</b></div>
+          <div class="fader in"><span>Eingang</span><input type="range" id="ing1" min="-12" max="24" step="1" value="0" aria-label="Eingangsverstärkung Spur 2"><b class="fv" id="ingv1">0 dB</b></div>
+          <button class="eq-btn" id="eqb1" aria-expanded="false" title="7-Band-Equalizer für Spur 2">EQ</button>
+          <div id="eqp1" hidden></div>
+        </div>
+        <div class="track t3" data-state="empty">
+          <div class="track-head"><span class="chip"></span><span class="tname">Spur 3</span><span class="chb" id="chb2" hidden></span><button class="keybadge" id="key2" hidden></button></div>
+          <div class="ring-row">
+            <canvas class="ring" id="ring2" aria-label="Taktkreis Spur 3"></canvas>
+            <div class="tmeter" id="tmeter2" aria-hidden="true"><div class="tm-ch l"><div class="tm-fill"></div><div class="tm-pk"></div></div><div class="tm-ch r"><div class="tm-fill"></div><div class="tm-pk"></div></div><div class="tm-th"></div></div>
+          </div>
+          <canvas class="wave" id="wave2" aria-label="Wellenform Spur 3"></canvas>
+          <div class="chordbar" id="chords2" hidden aria-label="Akkorde Spur 3"></div>
+          <button class="foot" id="foot2" data-state="empty"><span class="led"></span><span class="lbl">REC</span></button>
+          <div class="mini">
+            <button id="stop2" aria-label="Spur 3 stoppen" title="Stopp">■</button>
+            <button id="undo2" aria-label="Spur 3 rückgängig" title="Rückgängig">↶</button>
+            <button id="clear2" aria-label="Spur 3 löschen" title="Löschen">✕</button>
+            <button id="edit2" aria-label="Spur 3 bearbeiten" title="Schneiden und synchronisieren">✂</button>
+            <label class="file-mini" title="Audiodatei laden" aria-label="Audiodatei auf Spur 3 laden">♫<input type="file" id="file2" accept="AUDIO_ACCEPT"></label>
+          </div>
+          <div class="fader"><span>Pegel</span><input type="range" id="vol2" min="0" max="100" step="5" value="90" aria-label="Lautstärke Spur 3"><b class="fv" id="volv2">90</b></div>
+          <div class="fader in"><span>Eingang</span><input type="range" id="ing2" min="-12" max="24" step="1" value="0" aria-label="Eingangsverstärkung Spur 3"><b class="fv" id="ingv2">0 dB</b></div>
+          <button class="eq-btn" id="eqb2" aria-expanded="false" title="7-Band-Equalizer für Spur 3">EQ</button>
+          <div id="eqp2" hidden></div>
+        </div>
+      </div>
+      <div class="editor" id="loopEditor" hidden>
+        <div class="editor-head">
+          <span class="chip"></span><strong id="edTitle">Spur bearbeiten</strong>
+          <span class="caption" id="edInfo"></span>
+          <button class="toggle-btn" id="edClose">Fertig</button>
+        </div>
+        <div class="ed-zoom">
+          <button class="toggle-btn" id="edZoomOut" aria-label="Herauszoomen">−</button>
+          <button class="toggle-btn" id="edZoomIn" aria-label="Hineinzoomen">+</button>
+          <button class="toggle-btn" id="edZoomSel">Auswahl zeigen</button>
+          <button class="toggle-btn" id="edZoomAll">Alles</button>
+          <span class="caption" id="edZoomInfo">1×</span>
+          <button class="toggle-btn ed-play" id="edPlayFrom">▶ ab Auswahl</button>
+        </div>
+        <div class="ed-wave-wrap"><canvas id="edWave" aria-label="Wellenform zum Schneiden"></canvas></div>
+        <div class="ed-over-wrap"><canvas id="edOver" aria-label="Übersicht: ziehen zum Blättern"></canvas></div>
+        <p class="pattern-desc ed-hint">Oben in der Zeitleiste tippen = dorthin springen. Griffe ziehen = Auswahl. Mit zwei Fingern oder +/− zoomen, unten in der Übersicht blättern.</p>
+        <div class="ed-groups">
+          <div class="ed-group ed-check">
+            <span class="ed-label">Loop prüfen</span>
+            <div class="ed-row">
+              <button class="toggle-btn" id="edCheck">Prüfen</button>
+              <button class="toggle-btn active" id="edFix">Nacharbeiten</button>
+            </div>
+            <ul class="check-list" id="edCheckRes"><li>Prüft, ob der Loop ganze Takte hat, Takt 1 am Anfang liegt und der Übergang sauber ist.</li></ul>
+          </div>
+          <div class="ed-group" id="edSrc" hidden>
+            <span class="ed-label">Ausschnitt aus Datei</span>
+            <span class="caption" id="edSrcInfo"></span>
+            <div class="ed-row">
+              <label class="field ed-grid"><span>Ab Takt</span><select id="edFrom"></select></label>
+              <label class="field ed-grid"><span>Länge</span><select id="edBars"></select></label>
+              <button class="toggle-btn active" id="edTake">Übernehmen</button>
+            </div>
+            <div class="ed-row">
+              <span class="ed-label ed-inline">Takt-Eins falsch?</span>
+              <button class="toggle-btn" id="edDownL">◀ 1 Schlag</button>
+              <button class="toggle-btn" id="edDownR">1 Schlag ▶</button>
+            </div>
+            <p class="pattern-desc">Die ganze Datei bleibt gespeichert. Wähle hier jederzeit einen anderen Teil des Songs. Liegt die Eins daneben, verschiebe das Taktraster um einen Schlag – der Ausschnitt wird sofort neu geschnitten.</p>
+          </div>
+          <div class="ed-group">
+            <span class="ed-label">Schneiden</span>
+            <div class="ed-row">
+              <label class="field ed-grid"><span>Raster</span>
+                <select id="edGrid">
+                  <option value="bar">Takt</option>
+                  <option value="beat" selected>Schlag</option>
+                  <option value="eighth">Achtel</option>
+                  <option value="free">Frei</option>
+                </select>
+              </label>
+              <button class="toggle-btn active" id="edTrim">Zuschneiden</button>
+              <button class="toggle-btn" id="edHalf">Halbieren</button>
+              <button class="toggle-btn" id="edDouble">Verdoppeln</button>
+            </div>
+            <p class="pattern-desc">Zieh die orangen Griffe auf Anfang und Ende, dann „Zuschneiden“. Jeder Schritt lässt sich mit ↶ zurücknehmen.</p>
+          </div>
+          <div class="ed-group">
+            <span class="ed-label">Synchronisieren</span>
+            <div class="nudge-grid">
+              <button class="toggle-btn" data-nudge="-beat">◀ Schlag</button>
+              <button class="toggle-btn" data-nudge="beat">Schlag ▶</button>
+              <button class="toggle-btn" data-nudge="-10">◀ 10 ms</button>
+              <button class="toggle-btn" data-nudge="10">10 ms ▶</button>
+            </div>
+            <span class="caption" id="edOffset">Versatz 0 ms</span>
+            <div class="ed-row">
+              <button class="toggle-btn active" id="edAlign">Feinabgleich</button>
+              <button class="toggle-btn" id="edAuto">Erster Ton auf Takt 1</button>
+              <button class="toggle-btn" id="edFit">An Loop-Länge anpassen</button>
+              <button class="toggle-btn" id="edTempo">Tempo aus dieser Spur</button>
+            </div>
+            <div class="ed-row">
+              <button class="toggle-btn" id="edTempoHalf">½ Tempo</button>
+              <button class="toggle-btn" id="edTempoDouble">2× Tempo</button>
+            </div>
+          </div>
+          <div class="ed-group">
+            <span class="ed-label">Tonart und Akkorde</span>
+            <div class="ed-row">
+              <button class="toggle-btn" id="edKey">Erkennen</button>
+              <span class="ed-keyres" id="edKeyRes">–</span>
+              <button class="toggle-btn active" id="edKeyApply" hidden>Übernehmen</button>
+            </div>
+            <div class="ed-chords" id="edChords">Akkorde: –</div>
+            <p class="pattern-desc">Die Akkorde werden je Schlag erkannt und stehen über der Wellenform. Antippen eines Akkords springt dorthin. Beim Export für Logic kommen sie als Marker in die MIDI-Datei.</p>
+          </div>
+        </div>
+      </div>
+      <div class="lanes">
+        <div id="loopDrumsHome">
+        <div class="lane lane-drums">
+          <div class="lane-head">
+            <span class="chip"></span><span class="tname">Drums</span>
+            <button class="toggle-btn lane-on" id="loopDrums">Drums aus</button>
+            <select id="loopDrumStyle" aria-label="Groove-Vorlage"></select>
+            <label class="lane-fader"><span>Pegel</span><input type="range" id="loopDrumVol" min="0" max="100" step="5" value="70" aria-label="Drum-Lautstärke"></label>
+            <button class="toggle-btn" id="drumEditBtn" aria-expanded="false">Designer</button>
+            <button class="toggle-btn" id="drumEqBtn" aria-expanded="false" title="7-Band-Equalizer für die Drums">EQ</button>
+          </div>
+          <div id="drumEqPanel" class="drum-eq" hidden></div>
+          <div class="drum-designer" id="drumDesigner" hidden>
+            <div class="dg-tools">
+              <label class="field dg-sel"><span>Raster</span>
+                <select id="drumRes"><option value="16">16tel (gerade)</option><option value="12">Triolen (Shuffle, 12/8)</option></select>
+              </label>
+              <label class="field dg-sel"><span>Fills</span>
+                <select id="drumFills"><option value="0">aus</option><option value="4">alle 4 Takte</option><option value="8">alle 8 Takte</option><option value="12">alle 12 Takte (Blues)</option></select>
+              </label>
+              <label class="lane-fader"><span>Swing</span><input type="range" id="drumSwing" min="0" max="100" step="5" value="0" aria-label="Swing"><b id="drumSwingVal">0 %</b></label>
+              <label class="lane-fader"><span>Gefühl</span><input type="range" id="drumHuman" min="0" max="100" step="5" value="35" aria-label="Menschliches Timing"><b id="drumHumanVal">35 %</b></label>
+              <button class="toggle-btn" id="drumPreview">Vorhören</button>
+              <button class="toggle-btn" id="drumClear">Leeren</button>
+            </div>
+            <div class="dg-tools dg-save">
+              <input type="text" id="drumSaveName" class="text-in" maxlength="40" placeholder="Name, z. B. Mein Shuffle">
+              <button class="toggle-btn active" id="drumSaveBtn">Muster speichern</button>
+              <button class="toggle-btn" id="drumDelBtn" hidden>Muster löschen</button>
+              <span class="caption" id="drumNote" hidden></span>
+            </div>
+            <div class="dg-grid" id="drumGrid"></div>
+            <p class="caption">Feld antippen: an → betont → leise (Ghost) → aus. Instrument antippen: stumm. „Gefühl“ = kleine menschliche Schwankungen in Timing und Lautstärke. Änderungen an einer Vorlage landen im „Entwurf“ – mit „Muster speichern“ bekommt dein Groove einen eigenen Namen unter „Meine Muster“. Änderungen an einem eigenen Muster werden direkt dort gespeichert.</p>
+          </div>
+        </div>
+        </div>
+        <div class="lane lane-drone">
+          <div class="lane-head">
+            <span class="chip"></span><span class="tname">Drone</span>
+            <button class="toggle-btn lane-on" id="laneDrone">Drone aus</button>
+            <select id="laneDroneRoot" aria-label="Grundton der Drone">
+              <option value="">Tonart wie Skala</option>
+              <option>C</option><option>C#</option><option>D</option><option>D#</option><option>E</option><option>F</option>
+              <option>F#</option><option>G</option><option>G#</option><option>A</option><option>A#</option><option>B</option>
+            </select>
+            <select id="laneDroneMode" aria-label="Tongeschlecht der Drone">
+              <option value="">Modus wie Skala</option>
+              <option value="Ionisch (Dur)">Dur</option>
+              <option value="Äolisch (Moll)">Moll</option>
+              <option value="Dorisch">Dorisch</option>
+              <option value="Mixolydisch">Mixolydisch</option>
+            </select>
+            <button class="toggle-btn" id="laneDroneFromTrack" title="Erkannte Tonart der Spuren übernehmen">Tonart aus Spur</button>
+            <select id="laneDroneStyle" aria-label="Drone-Klang">
+              <option value="v1">Pad &amp; Chor</option>
+              <option value="v2">Brass &amp; Streicher</option>
+              <option value="v3">Nordmeer – Wikinger</option>
+              <option value="v4">Nordlicht – Eis &amp; Glas</option>
+              <option value="v5">Elbenküste – Meer &amp; Chor</option>
+              <option value="v6">Waldesruh – Elbenwald</option>
+              <option value="v7">Nachtbrandung – Küste & Fläche</option>
+              <option value="v8">Maschinenhalle – Stahl & Takt</option>
+            </select>
+            <label class="check lane-sync"><input type="checkbox" id="laneDroneOrn"> Verzierungen</label>
+            <label class="lane-fader"><span>Pegel</span><input type="range" id="laneDroneVol" min="0" max="100" step="5" value="40" aria-label="Drone-Lautstärke"></label>
+            <label class="check lane-sync"><input type="checkbox" id="laneDroneSync"> startet mit „Alle starten“</label>
+          </div>
+          <div class="lane-status caption" id="laneDroneStatus">Aus</div>
+        </div>
+      </div>
+      <div class="global-row">
+        <button class="toggle-btn all-btn" id="loopAll">Alle starten</button>
+        <button class="toggle-btn" id="loopFlash">Blitz: jeder Takt</button>
+        <button class="toggle-btn export-btn" id="loopExport">Für Logic exportieren</button>
+        <label class="lane-fader master-fader"><span>Gesamt</span><input type="range" id="loopMaster" min="0" max="150" step="5" value="100" aria-label="Gesamtlautstärke"><b id="loopMasterV">100 %</b></label>
+        <button class="toggle-btn" id="loopLimiter" title="Begrenzer gegen Übersteuern im Gesamtmix">Limiter an</button>
+      </div>
+      <div class="restore-bar" id="restoreBar" hidden>
+        <span id="restoreText">Letzte Sitzung gefunden.</span>
+        <button class="toggle-btn active" id="restoreYes">Wiederherstellen</button>
+        <button class="toggle-btn" id="restoreNo">Verwerfen</button>
+      </div>
+      <div class="status-line" id="loopStatus">Tippe auf REC von Spur 1 und spiel deine Idee ein. Nochmal tippen: Loop läuft. Nochmal: Overdub. Mit ✂ schneidest und synchronisierst du eine Spur.</div>
+    </div>
+
+    <div class="card-grid">
+      <div class="card">
+        <h2>Aufnahme</h2>
+        <label class="check"><input type="checkbox" id="loopTrigger"> Aufnahme startet mit dem ersten Ton</label>
+        <div class="row" id="threshRow"><span class="lbl">Empfindlichkeit</span><input type="range" id="loopThresh" min="0" max="100" step="1"></div>
+        <div class="row"><span class="lbl">Vorzähler</span>
+          <select id="loopCountIn" aria-label="Vorzähler">
+            <option value="0">Aus</option>
+            <option value="1">1 Takt</option>
+            <option value="2">2 Takte</option>
+            <option value="4">4 Takte</option>
+            <option value="8">8 Takte</option>
+          </select>
+        </div>
+        <label class="check"><input type="checkbox" id="loopCountInPlay"> Vorzähler auch vor dem Abspielen des Loops</label>
+        <label class="check"><input type="checkbox" id="loopSnap"> Freie Länge auf ganze Takte runden</label>
+        <label class="check"><input type="checkbox" id="loopAutoAlign" checked> Neue Spuren automatisch an Spur 1 angleichen (Timing, ±60 ms)</label>
+        <div class="row"><span class="lbl">Latenz</span><input type="range" id="loopLatency" min="0" max="300" step="5"><span class="caption" id="loopLatencyVal" style="min-width:52px;text-align:right">–</span></div>
+        <p class="pattern-desc">Die orange Marke im Eingangspegel ist die Auslöseschwelle. Klingen Aufnahmen zu spät, schieb die Latenz nach rechts. Mit Kopfhörern landet der Loop nicht mit in der Aufnahme.</p>
+        <label class="field"><span>Leistung</span>
+          <select id="perfMode">
+            <option value="auto">Automatisch (schaltet bei Ruckeln auf sparsam)</option>
+            <option value="high">Hohe Qualität</option>
+            <option value="lite">Sparsam (z. B. beim Laden, ältere iPads)</option>
+          </select>
+        </label>
+        <p class="pattern-desc" id="perfInfo">Sparsam: ruhigere Anzeige und größerer Audio-Puffer (nach einem Neustart der App) – der Klang bleibt gleich, nur die Verzögerung wird etwas größer.</p>
+      </div>
+
+      <div class="card">
+        <h2>Fußpedal</h2>
+        <label class="field"><span>Belegung</span>
+          <select id="pedalPreset">
+            <option value="auto">M-VAVE Chocolate · Automatisch (Keyboard A und B)</option>
+            <option value="a">M-VAVE Chocolate · Keyboard A (Pfeiltasten)</option>
+            <option value="b">M-VAVE Chocolate · Keyboard B (Bild, Leertaste, Enter)</option>
+            <option value="custom">Eigene Belegung anlernen</option>
+          </select>
+        </label>
+        <div class="pedal-map" id="pedalMap"></div>
+        <label class="check"><input type="checkbox" id="pedalHold"> Taster halten = Rückgängig</label>
+        <label class="check"><input type="checkbox" id="pedalRecv" checked> Pedal-Empfang (nötig auf dem iPad) · <b id="pedalRecvStat" class="recv-stat">–</b></label>
+        <div class="row"><span class="lbl">Zuletzt</span><kbd id="pedalLast">noch keine Taste empfangen</kbd></div>
+        <p class="pattern-desc">Das Pedal muss im Tastatur-Modus sein (in der App CubeSuite „Keyboard A“ oder „Keyboard B“ wählen) und in den iPad-Einstellungen unter Bluetooth verbunden sein. MIDI-Modi kann Safari auf dem iPad nicht empfangen. Bei jedem Tritt zeigt „Zuletzt“, welche Taste ankommt – bleibt es leer, sendet das Pedal noch MIDI.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Ideen</h2>
+      <div class="row">
+        <input type="text" id="ideaName" class="text-in" placeholder="Name (optional)" maxlength="60">
+        <button class="toggle-btn active" id="ideaSave">Speichern</button>
+      </div>
+      <div class="toggle-row idea-opts">
+        <label class="check"><input type="checkbox" id="ideaWithDrums" checked> Drums mitspeichern</label>
+        <label class="check"><input type="checkbox" id="ideaWithDrone" checked> Drone mitspeichern</label>
+      </div>
+      <div class="log-list" id="ideaList"><p class="pattern-desc">Wird geladen …</p></div>
+    </div>
+
+    <div class="card app-card">
+      <h2>App · Optik und Sicherung</h2>
+      <label class="field"><span>Optik</span>
+        <select id="appTheme">
+          <option value="nordic">Nordisch – Eis, Rost und Runen</option>
+          <option value="metal">Metal – Stahl, Nieten und Blutrot</option>
+          <option value="amp">Verstärker – Tolex, Alu-Front und Röhrenglühen</option>
+          <option value="ice">Eiswand – raues Gletschereis und Frost</option>
+        </select>
+      </label>
+      <div class="row install-row" id="installRow" hidden>
+        <button class="toggle-btn active" id="appInstall">Als App installieren</button>
+      </div>
+      <p class="pattern-desc mac-hint" id="macHint" hidden></p>
+      <div class="row backup-row">
+        <button class="toggle-btn" id="backupSave">Alles sichern</button>
+        <button class="toggle-btn" id="backupLoad">Sicherung laden</button>
+        <input type="file" id="backupFile" hidden>
+      </div>
+      <p class="pattern-desc" id="backupInfo">„Alles sichern“ packt Ideen, eigene Drum-Muster, das Übungslog und alle Einstellungen in eine Datei – z. B. in Dateien oder iCloud ablegen. Vor dem Löschen oder Neu-Hinzufügen der App sichern, danach hier „Sicherung laden“.</p>
+    </div>
+  
+    <div class="modal" id="impDlg" hidden role="dialog" aria-modal="true" aria-labelledby="impTitle">
+      <div class="modal-card card">
+        <h2 id="impTitle">Datei auf Spur 1</h2>
+        <div class="imp-name" id="impName"></div>
+        <div class="imp-ana caption" id="impAna">Analysiere Takt und Tempo …</div>
+        <label class="imp-opt"><input type="radio" name="impMode" value="all" checked><span><b>Ganze Datei</b><em id="impAllInfo">komplett als Loop</em></span></label>
+        <label class="imp-opt"><input type="radio" name="impMode" value="part"><span><b>Ausschnitt</b><em>ab <select id="impFrom" aria-label="ab Takt"><option value="1">Takt 1</option></select> für <select id="impBars" aria-label="Anzahl Takte"></select></em></span></label>
+        <div class="imp-btns"><button class="toggle-btn" id="impCancel">Abbrechen</button><button class="toggle-btn active" id="impOk">Laden</button></div>
+        <p class="pattern-desc">Die ganze Datei bleibt gespeichert – im Editor (✂) kannst du später jederzeit einen anderen Teil wählen.</p>
+      </div>
+    </div>
+  </section>

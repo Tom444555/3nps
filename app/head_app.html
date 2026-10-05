@@ -1,0 +1,343 @@
+<style>
+  /* Layout: DAW-Arbeitsfläche – oben eine feste Kontrollleiste mit Transport und LCD, darunter Bereichs-Tabs und Panels im Kanalzug-Stil. Bewusst nur dunkel, wie ein Studio-Programm. */
+  :root {
+    --bg: #1b1b1d;
+    --surface: #252528;
+    --surface-2: #2f2f33;
+    --raised: #3a3a3f;
+    --ink: #ececef;
+    --muted: #9a9ba2;
+    --line: #3b3b40;
+    --line-soft: #2c2c30;
+    --accent: #4cc38a;
+    --accent-ink: #0c1a12;
+    --t1: #e4f2ff;
+    --t2: #2de2ff;
+    --t3: #86a8ff;
+    --board: #3b2a21;
+    --board-edge: #2a1d17;
+    --fretwire: #b9bcb6;
+    --string: #cfc3a9;
+    --root-color: #ff5a4f;
+    --scale-color: #efe6d2;
+    --finger-color: #8fbde3;
+    --active-color: #4cc38a;
+    --dub: #f5c542;
+    --dot-ink: #1b1512;
+    --lcd-bg: #0e1317;
+    --lcd-ink: #dff3ff;
+    --lcd-dim: #5d7280;
+    --shadow: 0 1px 0 rgba(255,255,255,.04) inset, 0 1px 2px rgba(0,0,0,.5);
+
+    --f-display: -apple-system, "SF Pro Display", "Segoe UI", system-ui, sans-serif;
+    --f-body: -apple-system, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+    --f-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.45; -webkit-font-smoothing: antialiased; }
+
+  /* Kontrollleiste */
+  .control-bar {
+    position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+    background: linear-gradient(180deg, #2c2c30, #232326); border-bottom: 1px solid #111;
+    box-shadow: 0 1px 0 rgba(255,255,255,.04) inset, 0 4px 14px rgba(0,0,0,.35);
+  }
+  .cb-inner { max-width: 1100px; margin: 0 auto; padding: 10px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .brand { font: 700 0.95rem var(--f-display); letter-spacing: -0.01em; white-space: nowrap; }
+  .brand span { color: var(--muted); font-weight: 500; }
+  .transport { display: flex; gap: 6px; }
+  .tbtn {
+    appearance: none; width: 44px; height: 36px; border-radius: 7px; border: 1px solid #141416; cursor: pointer; position: relative;
+    background: linear-gradient(180deg, #45454b, #37373c); box-shadow: 0 1px 0 rgba(255,255,255,.08) inset; color: var(--ink);
+  }
+  .tbtn:active { background: linear-gradient(180deg, #333338, #3d3d42); }
+  #playBtn { font-size: 0; }
+  #playBtn::before { content: ""; position: absolute; left: 50%; top: 50%; transform: translate(-35%, -50%); border-style: solid; border-width: 7px 0 7px 12px; border-color: transparent transparent transparent var(--ink); }
+  #playBtn.playing { background: linear-gradient(180deg, #2f7d57, #256546); }
+  #playBtn.playing::before { width: 11px; height: 11px; border: 0; background: var(--ink); border-radius: 1px; transform: translate(-50%, -50%); }
+  .lcd {
+    flex: 1 1 360px; min-width: 0; display: grid; grid-template-columns: auto auto auto auto 1fr; gap: 2px 18px; align-items: end;
+    background: var(--lcd-bg); border: 1px solid #070a0c; border-radius: 8px; padding: 6px 14px;
+    box-shadow: 0 1px 0 rgba(255,255,255,.05), inset 0 2px 6px rgba(0,0,0,.6);
+    font-family: var(--f-mono); color: var(--lcd-ink); font-variant-numeric: tabular-nums;
+  }
+  .lcd .cell { display: flex; flex-direction: column; min-width: 0; }
+  .lcd .k { font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--lcd-dim); }
+  .lcd .v { font-size: 1.15rem; font-weight: 600; line-height: 1.2; white-space: nowrap; }
+  .lcd .v.small { font-size: 0.95rem; }
+  #lcdPos.rec { color: var(--root-color); }
+  #statusMirror { grid-column: 1 / -1; font-size: 0.66rem; color: var(--lcd-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tempo-ctl { display: flex; align-items: center; gap: 8px; flex: 0 1 220px; min-width: 150px; }
+  .tempo-ctl .lbl { font: 600 0.66rem var(--f-body); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .bpm-display { display: none; }
+  @media (max-width: 640px) {
+    .lcd { grid-template-columns: repeat(2, minmax(0, 1fr)); flex-basis: 100%; order: 3; }
+    .tempo-ctl { flex: 1 1 160px; }
+  }
+
+  .app { max-width: 1100px; margin: 0 auto; padding-inline: 16px; padding-block: 14px 60px; }
+
+  /* Tabs als Segment-Leiste */
+  .tabs {
+    display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px;
+    margin-block: 0 16px; padding: 2px; border-radius: 8px; background: #141416; border: 1px solid #111;
+  }
+  .tab {
+    appearance: none; border: 0; background: transparent; color: var(--muted); cursor: pointer; min-width: 0;
+    font: 600 0.82rem var(--f-body); padding: 8px 4px; border-radius: 6px;
+  }
+  .tab[aria-selected="true"] { background: linear-gradient(180deg, #4a4a50, #3c3c41); color: var(--ink); box-shadow: 0 1px 0 rgba(255,255,255,.08) inset; }
+  .tab:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--t2); outline-offset: 2px; }
+
+  .panel { display: flex; flex-direction: column; gap: 14px; }
+  [hidden]:not([hidden=until-found i]) { display: none !important; }
+
+  /* Panels */
+  .card { background: var(--surface); border: 1px solid var(--line-soft); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 1px 0 rgba(255,255,255,.03) inset; }
+  .card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  h2 { font: 700 0.7rem var(--f-body); text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); margin: 0; }
+  .caption { font: 500 0.74rem var(--f-mono); color: var(--muted); margin: 0; font-variant-numeric: tabular-nums; }
+  .fields { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+  .fields.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  @media (max-width: 560px) { .fields { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+  .field > span { font-size: 0.7rem; font-weight: 600; color: var(--muted); letter-spacing: 0.03em; }
+  select {
+    width: 100%; min-width: 0; appearance: none; -webkit-appearance: none;
+    background: #1a1a1c url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%239a9ba2' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat right 10px center;
+    color: var(--ink); border: 1px solid var(--line); border-radius: 7px;
+    padding: 8px 28px 8px 10px; font: 500 0.86rem var(--f-body); text-overflow: ellipsis;
+  }
+  .pattern-desc { font-size: 0.8rem; color: var(--muted); margin: 0; line-height: 1.45; }
+
+  .seg { display: inline-flex; background: #141416; border: 1px solid #111; border-radius: 7px; padding: 2px; gap: 2px; }
+  .toggle-btn {
+    appearance: none; cursor: pointer; margin: 0; color: var(--ink);
+    background: linear-gradient(180deg, #45454b, #38383d); border: 1px solid #141416; box-shadow: 0 1px 0 rgba(255,255,255,.07) inset;
+    font: 600 0.8rem var(--f-body); padding: 7px 13px; border-radius: 7px;
+  }
+  .toggle-btn:disabled { opacity: .4; cursor: default; }
+  .seg .toggle-btn { background: transparent; border-color: transparent; box-shadow: none; color: var(--muted); padding: 5px 13px; }
+  .seg .toggle-btn.active { background: linear-gradient(180deg, #4a4a50, #3c3c41); color: var(--ink); }
+  .toggle-btn.active { background: linear-gradient(180deg, #3c9a6e, #2f7d57); border-color: #1d4d36; color: #fff; }
+  .toggle-row { display: flex; gap: 8px; }
+  .toggle-row .toggle-btn { flex: 1; }
+
+  /* Griffbrett */
+  .board-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .fretboard-wrap { overflow-x: auto; margin-inline: -4px; padding: 2px 4px 4px; -webkit-overflow-scrolling: touch; }
+  .fretboard { background: linear-gradient(180deg, var(--board) 0%, var(--board-edge) 100%); border-radius: 6px; padding: 10px 6px; min-width: 560px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.4); }
+  .string-row { display: flex; align-items: center; background: linear-gradient(to bottom, transparent calc(50% - 1px), var(--string) calc(50% - 1px), var(--string) calc(50% + 1px), transparent calc(50% + 1px)); }
+  .string-row:nth-child(-n+3) { background: linear-gradient(to bottom, transparent calc(50% - 0.5px), var(--string) calc(50% - 0.5px), var(--string) calc(50% + 0.5px), transparent calc(50% + 0.5px)); }
+  .fret-cell { flex: 1; min-width: 42px; height: 34px; border-right: 3px solid var(--fretwire); display: flex; align-items: center; justify-content: center; }
+  .fret-cell.nut { border-right: 7px solid #e8e2d4; }
+  .note-dot { width: 25px; height: 25px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font: 700 0.66rem var(--f-mono); color: var(--dot-ink); box-shadow: 0 1px 2px rgba(0,0,0,.5); transition: transform .08s ease, box-shadow .08s ease; }
+  .note-dot.scale { background: var(--scale-color); }
+  .note-dot.root { background: var(--root-color); color: #fff; }
+  .note-dot.finger-mode.scale { background: var(--finger-color); }
+  .note-dot.finger-mode.root { background: var(--root-color); color: #fff; }
+  .note-dot.active { transform: scale(1.3); box-shadow: 0 0 0 3px var(--active-color), 0 0 12px var(--active-color); }
+  .fret-numbers { display: flex; min-width: 560px; padding-inline: 6px; margin-top: 4px; }
+  .fret-numbers span { flex: 1; min-width: 42px; text-align: center; font: 500 0.68rem var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+  .legend { display: flex; gap: 14px; font-size: 0.76rem; color: var(--muted); flex-wrap: wrap; }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .swatch { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
+
+  .row { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .row > .lbl { font-size: 0.76rem; font-weight: 600; color: var(--muted); min-width: 82px; }
+  input[type="range"] { flex: 1; min-width: 0; accent-color: var(--t2); }
+  .check { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--ink); cursor: pointer; }
+  .check input { accent-color: var(--t2); width: 18px; height: 18px; margin: 0; }
+  .status-line { font: 500 0.72rem var(--f-mono); color: var(--muted); padding-top: 10px; border-top: 1px solid var(--line-soft); }
+
+  .play-btn { position: relative; flex-shrink: 0; width: 48px; height: 48px; border-radius: 50%; border: 1px solid #141416; cursor: pointer; background: linear-gradient(180deg, #45454b, #37373c); color: transparent; font-size: 0; box-shadow: 0 1px 0 rgba(255,255,255,.08) inset; }
+  .play-btn::before { content: ""; position: absolute; left: 50%; top: 50%; transform: translate(-35%, -50%); border-style: solid; border-width: 8px 0 8px 13px; border-color: transparent transparent transparent var(--ink); }
+  .play-btn.playing { background: linear-gradient(180deg, #3c9a6e, #2f7d57); }
+  .play-btn.playing::before { width: 13px; height: 13px; border: 0; background: #fff; border-radius: 2px; transform: translate(-50%, -50%); }
+  .play-btn.small { width: 42px; height: 42px; }
+
+  .file-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .file-btn { display: inline-flex; align-items: center; cursor: pointer; }
+  .file-btn input { display: none; }
+  #fileName { font-size: 0.82rem; color: var(--muted); flex: 1; min-width: 120px; overflow-wrap: anywhere; }
+  #musicTime { font: 500 0.72rem var(--f-mono); color: var(--muted); min-width: 84px; text-align: right; font-variant-numeric: tabular-nums; }
+
+  .stats-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--line-soft); border-radius: 10px; padding: 12px; }
+  .stat-card .num { font: 600 1.6rem var(--f-mono); color: var(--accent); font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .stat-card .lbl { font-size: 0.72rem; color: var(--muted); margin-top: 4px; }
+  .log-list { display: flex; flex-direction: column; }
+  .log-row { display: flex; justify-content: space-between; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line-soft); font-size: 0.82rem; }
+  .log-row:last-child { border-bottom: 0; }
+  .log-main { min-width: 0; }
+  .log-meta { color: var(--muted); text-align: right; white-space: nowrap; font: 500 0.72rem/1.5 var(--f-mono); }
+
+  @media (prefers-reduced-motion: reduce) { .note-dot { transition: none; } }
+</style>
+
+<header class="control-bar">
+  <div class="cb-inner">
+    <div class="brand">Looper <span>3nps · v20</span></div>
+    <div class="transport">
+      <button class="tbtn" id="playBtn" aria-label="Metronom starten oder stoppen">▶</button>
+    </div>
+    <div class="lcd" aria-live="off">
+      <div class="cell"><span class="k">Takt</span><span class="v" id="lcdPos">1.1</span></div>
+      <div class="cell"><span class="k">Tempo</span><span class="v"><span id="bpmVal">80</span></span></div>
+      <div class="cell"><span class="k">Taktart</span><span class="v small">4/4</span></div>
+      <div class="cell"><span class="k">Tonart</span><span class="v small" id="lcdKey">G Ionisch</span></div>
+      <div id="statusMirror"></div>
+    </div>
+    <div class="tempo-ctl">
+      <span class="lbl">Tempo</span>
+      <input type="range" id="bpm" min="40" max="200" step="1" value="80" aria-label="Tempo in BPM">
+    </div>
+  </div>
+</header>
+
+<div class="app">
+  <p class="caption" id="caption" style="margin-bottom:10px"></p>
+
+  <nav class="tabs" role="tablist" aria-label="Bereiche">
+    <button class="tab" role="tab" id="tab-griffbrett" data-tab="griffbrett" aria-selected="true">Griffbrett</button>
+    <button class="tab" role="tab" id="tab-begleitung" data-tab="begleitung" aria-selected="false">Begleitung</button>
+    <button class="tab" role="tab" id="tab-song" data-tab="song" aria-selected="false">Song</button>
+    <button class="tab" role="tab" id="tab-looper" data-tab="looper" aria-selected="false">Looper</button>
+    <button class="tab" role="tab" id="tab-log" data-tab="log" aria-selected="false">Log</button>
+  </nav>
+
+  <!-- Griffbrett -->
+  <section class="panel" id="panel-griffbrett" role="tabpanel" aria-labelledby="tab-griffbrett">
+    <div class="card">
+      <div class="fields">
+        <label class="field"><span>Grundton</span><select id="root"></select></label>
+        <label class="field"><span>Modus</span><select id="mode"></select></label>
+        <label class="field"><span>Position</span><select id="position"></select></label>
+        <label class="field"><span>Übungsmuster</span>
+          <select id="pattern">
+            <option value="updown">Rauf &amp; Runter</option>
+            <option value="seq3">3er-Sequenz</option>
+            <option value="thirds">Terzsprünge</option>
+          </select>
+        </label>
+      </div>
+      <p class="pattern-desc" id="patternDesc"></p>
+    </div>
+
+    <div class="card">
+      <div class="board-top">
+        <h2>Griffbild</h2>
+        <div class="seg" role="group" aria-label="Beschriftung">
+          <button class="toggle-btn active" id="btnNotes">Noten</button>
+          <button class="toggle-btn" id="btnFingers">Finger</button>
+        </div>
+      </div>
+      <div class="fretboard-wrap">
+        <div class="fretboard" id="fretboard"></div>
+        <div class="fret-numbers" id="fretNumbers"></div>
+      </div>
+      <div class="legend" id="legend"></div>
+    </div>
+
+    <div class="card">
+      <h2>Metronom</h2>
+      <div class="fields two">
+        <label class="field"><span>Töne pro Schlag</span>
+          <select id="notesPerBeat">
+            <option value="1">1 (Viertel)</option>
+            <option value="2">2 (Achtel)</option>
+          </select>
+        </label>
+        <div class="field"><span>Klick</span>
+          <button class="toggle-btn active" id="btnMuteClick">Klick an</button>
+        </div>
+      </div>
+      <div class="status-line" id="statusLine">Bereit</div>
+    </div>
+  </section>
+
+  <!-- Begleitung -->
+  <section class="panel" id="panel-begleitung" role="tabpanel" aria-labelledby="tab-begleitung" hidden>
+    <div class="card">
+      <h2>Grundton-Drone</h2>
+      <label class="field"><span>Klangfarbe</span>
+        <select id="droneStyle">
+          <option value="v1">Cineastisch I – Pad &amp; Chor</option>
+          <option value="v2">Cineastisch II – Brass &amp; Streicher</option>
+          <option value="v3">Nordmeer – Wikinger (Wind, Wellen, Trommeln)</option>
+          <option value="v4">Nordlicht – Eis &amp; Glas</option>
+          <option value="v5">Elbenküste – Meer &amp; Chor (Meeresrauschen, Harfe)</option>
+          <option value="v6">Waldesruh – Elbenwald (Vögel, Bach, Flöte)</option>
+          <option value="v7">Nachtbrandung – Küste & Fläche (Meer im Hintergrund, E-Piano)</option>
+          <option value="v8">Maschinenhalle – Stahl & Takt (Presse, Ventile, Turbine)</option>
+        </select>
+      </label>
+      <div class="row">
+        <button class="play-btn" id="droneBtn" aria-label="Drone starten oder stoppen">▶</button>
+        <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:10px;">
+          <div class="row"><span class="lbl">Lautstärke</span><input type="range" id="droneVolume" min="0" max="100" step="5" value="40"></div>
+          <label class="check"><input type="checkbox" id="pianoShimmer" checked> Verzierungen einstreuen (Klavier, Rufe, Trommeln, Glas)</label>
+        </div>
+      </div>
+      <div class="status-line" id="droneStatus">Aus</div>
+    </div>
+
+    <div class="card begl-drums">
+      <h2>Drums &amp; Designer</h2>
+      <div id="beglDrumsHome"></div>
+      <p class="pattern-desc">Dasselbe Schlagzeug wie im Looper – läuft hier frei im Tempo oben, im Looper im Takt deiner Loops.</p>
+    </div>
+
+    <div class="card">
+      <h2>Bass</h2>
+      <div class="toggle-row">
+        <button class="toggle-btn" id="btnBass">Bass aus</button>
+      </div>
+      <div class="row"><span class="lbl">Lautstärke</span><input type="range" id="grooveVolume" min="0" max="100" step="5" value="70"></div>
+      <div class="status-line" id="grooveStatus">Aus – spielt mit der Kick der Drums, im Grundton der Skala</div>
+    </div>
+  </section>
+
+  <!-- Song -->
+  <section class="panel" id="panel-song" role="tabpanel" aria-labelledby="tab-song" hidden>
+    <div class="card" id="musicPlayer">
+      <h2>Über einen Song üben</h2>
+      <div class="file-row">
+        <label class="toggle-btn active file-btn" id="fileLabel">
+          Audiodatei wählen
+          <input type="file" id="audioFile" accept="AUDIO_ACCEPT">
+        </label>
+        <span id="fileName">Keine Datei geladen</span>
+      </div>
+      <div class="row" id="musicControlsRow" style="display:none;">
+        <button class="play-btn small" id="musicPlayBtn" aria-label="Song abspielen oder pausieren">▶</button>
+        <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:10px;">
+          <div class="row"><input type="range" id="musicSeek" min="0" max="100" step="0.1" value="0"><span id="musicTime">0:00 / 0:00</span></div>
+          <div class="row">
+            <span class="lbl">Lautstärke</span><input type="range" id="musicVolume" min="0" max="100" step="5" value="80">
+            <label class="check"><input type="checkbox" id="musicLoop"> Loop</label>
+          </div>
+        </div>
+      </div>
+      <div class="status-line" id="musicStatus">MP3, WAV, AIFF, M4A/AAC, Apple Lossless, FLAC, CAF und Videos mit Tonspur. Tonart und Tempo werden erkannt, Skala und Begleitung passen sich an.</div>
+    </div>
+  </section>
+
+LOOPER_PANEL
+
+  <!-- Log -->
+  <section class="panel" id="panel-log" role="tabpanel" aria-labelledby="tab-log" hidden>
+    <div class="stats-row">
+      <div class="stat-card"><div class="num" id="statToday">0</div><div class="lbl">Minuten heute</div></div>
+      <div class="stat-card"><div class="num" id="statStreak">0</div><div class="lbl">Tage in Folge</div></div>
+      <div class="stat-card"><div class="num" id="statTotal">0</div><div class="lbl">Einheiten gesamt</div></div>
+    </div>
+    <div class="card">
+      <h2>Letzte Einheiten</h2>
+      <div class="log-list" id="logList"><p class="pattern-desc">Verlauf wird geladen …</p></div>
+    </div>
+  </section>
+</div>
+
