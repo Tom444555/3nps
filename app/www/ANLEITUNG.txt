@@ -243,7 +243,7 @@ Alles geht direkt auf dem iPad, ohne Computer.
    - Der Bass wird beim Start der App selbst erzeugt (gezupfte Saite, im Hintergrund). Es stecken keine
      fremden Aufnahmen mehr in der App, und der Bass setzt pünktlich mit der Kick ein.
 
-23. Reiter: Looper · Quintenzirkel · Solo Finder · Griffbrett
+23. Reiter: Looper · Quintenzirkel · Solo Finder · Jam · Üben · Griffbrett
    - Looper steht ganz links und ist beim Start offen.
    - Griffbrett enthält wieder alles für die Griffbrett-Übung untereinander: Griffbild, Metronom,
      Begleitung (Drone, Drums, Bass), Song und das Übungslog.
@@ -275,6 +275,39 @@ Alles geht direkt auf dem iPad, ohne Computer.
      Anhören); „Ins Griffbrett“ übernimmt Kirchentonleitern in die Griffbrett-Übung.
    - Nächster Wechsel: gemeinsame Töne, Halbton-Leittöne und der Zielton (Terz) des nächsten Akkords.
    - Ideen-Würfel: kurze Übungsaufgaben passend zum Akkord, wenn dir nichts einfällt.
+   - Griffbild „Tonleiter | Griffe“: Tippst du einen Akkord an (Leiste, mögliche Akkorde, Färbungen), zeigt das
+     Griffbild die Griffe dazu – offen und als E-, A- und D-Form (CAGED), mit Lage. Darunter die Griffe zur Auswahl
+     und „▶ Anschlagen“. Läuft der Loop, wechseln die Griffe mit dem klingenden Akkord.
+   - „🎤 Mithören“ (am Griffbild, standardmäßig aus): erkennt über den Eingang, welchen Ton du spielst. Er leuchtet
+     im Griffbild an allen Stellen auf und wird eingeordnet: Grundton, Akkordton, Tonleiter oder Reibung – mit
+     Abweichung in Cent und einem Zähler. Nutzt denselben Eingang wie der Looper.
+
+25. Jam – Akkordfolge eintippen, Begleitung spielt
+   - Tonart wählen, dann eine Vorlage (z. B. Pop I–V–vi–IV, Blues 12 Takte, Andalusisch) oder Akkorde antippen
+     bzw. eintippen: „Am F C G“, „Am7:2 D7“ (2 Takte), „C:½ G:½“. H wird als B gelesen, b/♭ und #/♯ gehen beide.
+   - Akkord in der Folge antippen: Länge (½, 1, 2, 4 Takte), verschieben, verdoppeln, entfernen.
+   - ▶ startet Drums, Bass und Fläche. Der Bass spielt Grundton und Quinte des jeweiligen Akkords und wechselt
+     genau mit ihm. Drum-Stil und Designer stehen unten im Reiter.
+   - Tempo-Trainer: Start, Ziel, Schritt und „alle … Durchläufe“ – das Tempo steigt ohne Holpern im Groove.
+   - Solo Finder und Quintenzirkel folgen dem Jam. Der Looper hat Vorrang: Läuft er, startet der Jam erst beim
+     zweiten Tippen (und stoppt den Looper); startest du den Looper, stoppt der Jam.
+
+26. Üben
+   - Tagesübung: jeden Tag ein neuer Plan (ca. 15 Minuten) mit Tonart des Tages: Griffbrett aufwärmen, Lick des
+     Tages, Solo über einen Jam, Gehörbildung. Jeder Block öffnet das Passende und hat einen Timer; erledigte
+     Blöcke landen im Übungslog. „Neu würfeln“ für einen anderen Plan.
+   - Gehörbildung: Intervalle (leicht/alle), Akkordtypen, Stufen in Dur und Moll – mit Serie und Bestwert.
+   - Licks: 16 Licks (Pentatonik, Blues, Dur-Pentatonik, Dorisch, Mixolydisch, Äolisch, Harmonisch Moll,
+     Arpeggios) als Tabulatur und im Griffbild, in jede Tonart versetzt, abspielbar (auch halbes Tempo).
+     „Eigenen Lick aufnehmen“: Töne ins Griffbild tippen, benennen, speichern – er wird ebenfalls versetzt.
+   - Solo-Auswertung: Akkorde auf einer Spur, Solo auf einer anderen einspielen, dann „Auswerten“: Töne,
+     Anteil Akkordtöne/Reibung, Phrasenenden auf Akkordton, Zieltöne bei den Wechseln, Timing (früh/spät in ms,
+     Anteil innerhalb ±20 ms) und Tonumfang – mit Verlauf und Tipps.
+
+27. Stabile Fassung
+   - Unter https://tom444555.github.io/3nps/stabil/ liegt die Version 24 als Rückfall-Fassung, mit eigenem
+     Offline-Speicher („Looper stabil“, auch als eigenes Icon auf dem Home-Bildschirm möglich). Beide Fassungen
+     teilen sich Einstellungen, Sitzungen und Übungslog.
 
 Gut zu wissen
    - Übungslog und Ideen werden nur auf diesem iPad gespeichert. Eine neue Installation

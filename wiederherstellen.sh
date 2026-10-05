@@ -22,6 +22,7 @@ python3 gen_long.py >/dev/null
 python3 gen_chords.py >/dev/null
 python3 gen_align.py >/dev/null
 python3 gen_keys.py >/dev/null
+python3 gen_v25.py >/dev/null
 # App bauen und Testserver starten
 python3 "$ZIEL/app/build.py"
 sh "$ZIEL/test/srv.sh"
