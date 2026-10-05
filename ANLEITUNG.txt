@@ -74,7 +74,7 @@ Alles geht direkt auf dem iPad, ohne Computer.
      und eine „LIES MICH“ mit den Schritten für Logic.
    - Der Name im Feld „Ideen“ wird zum Namen des Pakets.
 
-7. Drums und Drum Designer (im Looper und im Tab „Begleitung“)
+7. Drums und Drum Designer (im Looper und im Griffbrett unter „Begleitung“)
    - „Drums an“ startet den Groove – im Looper immer im Takt des Loops, in der Begleitung frei im Tempo.
    - Über 30 Vorlagen, gruppiert: Blues (Texas/Chicago Shuffle, Slow Blues 12/8, Half-Time Shuffle,
      Boogie, Jump Blues, Train Beat, Funky Blues, Delta Stomp …), Rock & Pop, Funk & Soul,
@@ -88,7 +88,7 @@ Alles geht direkt auf dem iPad, ohne Computer.
      „Muster löschen“ entfernt es). Beim Logic-Export geht das Muster als MIDI-Drumspur mit.
    - In der Begleitung spielt der Bass jetzt mit der Kick der Drums.
 
-8. Drone-Spur (im Looper und im Tab „Begleitung“)
+8. Drone-Spur (im Looper und im Griffbrett unter „Begleitung“)
    - „Drone an“ legt den Drone-Klang unter den Loop, ein- und ausschaltbar mit einem Tipp.
    - Grundton und Dur/Moll frei wählbar oder „wie Skala“. „Tonart aus Spur“ übernimmt
      die erkannte Tonart einer Spur.
@@ -232,6 +232,7 @@ Alles geht direkt auf dem iPad, ohne Computer.
    - Für jede Spur erkennt die App die Akkorde je Schlag (Dur, Moll, 7, maj7, m7, 6, sus2, sus4, dim, Powerchord),
      auch bei verstimmter Gitarre. Sie stehen unter der kleinen Wellenform; der klingende Akkord leuchtet,
      ein Tipp auf einen Akkord springt dorthin.
+   - Beim Abspielen steht der klingende Akkord zusätzlich groß im Spurfenster, links neben der Tonart.
    - Im Editor (✂) stehen sie über der Wellenform und unter „Tonart und Akkorde“ als Zeile je Takt.
    - Beim Export für Logic landen sie als Marker in der MIDI-Datei und im Text „LIES MICH“.
    - Bei Riffs ohne Terz (Boogie, Powerchords) zeigt die App z. B. „A5“ oder „A6“ – das ist richtig.
@@ -239,6 +240,16 @@ Alles geht direkt auf dem iPad, ohne Computer.
 22. Bass der Begleitung
    - Der Bass wird beim Start der App selbst erzeugt (gezupfte Saite, im Hintergrund). Es stecken keine
      fremden Aufnahmen mehr in der App, und der Bass setzt pünktlich mit der Kick ein.
+
+23. Drei Reiter: Looper · Griffbrett · Quintenzirkel
+   - Looper steht ganz links und ist beim Start offen.
+   - Griffbrett enthält wieder alles für die Griffbrett-Übung untereinander: Griffbild, Metronom,
+     Begleitung (Drone, Drums, Bass), Song und das Übungslog.
+   - Quintenzirkel: außen Dur, in der Mitte Moll, innen verminderte Akkorde. Antippen wählt die Tonart
+     und spielt den Akkord an. Die sieben Akkorde der Tonart sind markiert (mit Stufen I–vii°), rechts
+     stehen Vorzeichen, Tonleiter und die Akkorde zum Anhören. „Ins Griffbrett übernehmen“ stellt
+     Grundton und Modus ein (Drone folgt). Rot gestrichelt: die Tonart im Griffbrett.
+     Läuft der Looper, leuchtet der gerade klingende Akkord gelb im Zirkel mit.
 
 Gut zu wissen
    - Übungslog und Ideen werden nur auf diesem iPad gespeichert. Eine neue Installation
