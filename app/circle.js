@@ -173,7 +173,7 @@
     return { ring: 'maj', k: kOfMajorPc(pc) };
   }
   function renderChord() {
-    const b = document.querySelector('.chdbadge:not([hidden]) b'), name = b ? b.textContent : '';
+    const nc = typeof Looper !== 'undefined' && Looper.nowChord ? Looper.nowChord() : null, name = nc ? nc.name : '';
     if (name === renderChord._cur) return; renderChord._cur = name;
     const p = name && name !== '–' ? parseChord(name) : null;
     if (!p) { live.setAttribute('d', ''); cLive.textContent = ''; return; }

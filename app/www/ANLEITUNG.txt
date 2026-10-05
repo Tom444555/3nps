@@ -230,9 +230,9 @@ Alles geht direkt auf dem iPad, ohne Computer.
 
 21. Akkorde
    - Für jede Spur erkennt die App die Akkorde je Schlag (Dur, Moll, 7, maj7, m7, 6, sus2, sus4, dim, Powerchord),
-     auch bei verstimmter Gitarre. Sie stehen unter der kleinen Wellenform; der klingende Akkord leuchtet,
-     ein Tipp auf einen Akkord springt dorthin.
-   - Beim Abspielen steht der klingende Akkord zusätzlich groß im Spurfenster, links neben der Tonart.
+     auch bei verstimmter Gitarre.
+   - Im Spurfenster steht die Tonart unter „Spur 1/2/3“. Beim Abspielen stehen rechts daneben der
+     klingende Akkord (groß) und der nächste („Danach“).
    - Im Editor (✂) stehen sie über der Wellenform und unter „Tonart und Akkorde“ als Zeile je Takt.
    - Beim Export für Logic landen sie als Marker in der MIDI-Datei und im Text „LIES MICH“.
    - Bei Riffs ohne Terz (Boogie, Powerchords) zeigt die App z. B. „A5“ oder „A6“ – das ist richtig.

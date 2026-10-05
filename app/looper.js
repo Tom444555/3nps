@@ -65,7 +65,7 @@ const Looper = (() => {
     chB: $('chb' + i), meter: $('tmeter' + i), mL: $('tmeter' + i).querySelector('.tm-ch.l'), mR: $('tmeter' + i).querySelector('.tm-ch.r'), pkL: 0, pkR: 0,
     ring: $('ring' + i), wave: $('wave' + i), foot: $('foot' + i), stopB: $('stop' + i), undoB: $('undo' + i),
     clearB: $('clear' + i), fileIn: $('file' + i), vol: $('vol' + i), editB: $('edit' + i), keyB: $('key' + i),
-    ing: $('ing' + i), ingV: $('ingv' + i), volV: $('volv' + i), inGain: 1, chordEl: $('chords' + i), chords: null, chOn: -1, chdB: $('chd' + i), chdName: null
+    ing: $('ing' + i), ingV: $('ingv' + i), volV: $('volv' + i), inGain: 1, chords: null, thC: $('thc' + i), chdB: $('chd' + i), chnB: $('chn' + i), chdName: null
   }));
   // ---- Stereo: jedes Audio-Stück ist { l, r, length } (bei Mono-Quellen zeigen l und r auf dasselbe Feld) ----
   const S = n => ({ l: new Float32Array(n), r: new Float32Array(n), length: n });
@@ -1268,20 +1268,17 @@ const Looper = (() => {
       lastDraw = nowMs;
       const C = css || (css = colors());
       tracks.forEach(t => { drawRing(t, C); drawWave(t, C); });
-      tracks.forEach(t => {                       // klingender Akkord im Spurkopf (links neben der Tonart)
+      tracks.forEach(t => {                       // Spurkopf rechts: klingender und kommender Akkord
         const c = t.chords, has = !!(t.src && c && c.L === t.L && c.segs.some(q => q.name !== '–'));
         const i = has ? chordAt(t, mod(playFrame() - anchor, t.L)) : -1;
         const nm = i >= 0 ? c.segs[i].name : null;
         if (nm === t.chdName) return;
-        t.chdName = nm; if (!t.chdB) return;
-        t.chdB.hidden = nm == null;
-        if (nm != null) { t.chdB.lastChild.textContent = nm; t.chdB.classList.toggle('rest', nm === '–'); }
-      });
-      tracks.forEach(t => {                       // klingenden Akkord hervorheben
-        if (!t.chords || t.chordEl.hidden) return;
-        const i = t.src ? chordAt(t, mod(playFrame() - anchor, t.L)) : -1;
-        if (i === t.chOn) return;
-        const bs = t.chordEl.children; if (t.chOn >= 0 && bs[t.chOn]) bs[t.chOn].classList.remove('on'); if (i >= 0 && bs[i]) bs[i].classList.add('on'); t.chOn = i;
+        t.chdName = nm; if (!t.thC) return;
+        t.thC.hidden = nm == null;
+        if (nm == null) return;
+        t.chdB.lastChild.textContent = nm; t.chdB.classList.toggle('rest', nm === '–');
+        const nx = nextChord(c, i);
+        t.chnB.hidden = !nx; if (nx) t.chnB.lastChild.textContent = nx;
       });
       drawEditor(C);
       const bgS = (meterEl.parentNode.clientWidth || 200) + 'px 100%', hot = !!rec && !rec.armed;
@@ -1833,13 +1830,16 @@ const Looper = (() => {
     out.forEach(q => { if (q.e - q.a < 1) return; const l = m[m.length - 1]; if (l && l.name === q.name && Math.abs(l.e - q.a) < 4) l.e = q.e; else m.push(Object.assign({}, q)); });
     return { segs: m, L };
   }
-  const chordName = n => n === '–' ? '' : n;
   function chordAt(t, f) { const c = t.chords; if (!c) return -1; for (let i = 0; i < c.segs.length; i++) if (f >= c.segs[i].a && f < c.segs[i].e) return i; return -1; }
+  // nächster anderer Akkord nach Abschnitt i (über das Loop-Ende hinweg)
+  function nextChord(c, i) {
+    const n = c.segs.length, cur = c.segs[i].name;
+    for (let k = 1; k < n; k++) { const q = c.segs[(i + k) % n].name; if (q !== '–' && q !== cur) return q; }
+    return '';
+  }
   function showChords(t) {
-    const el = t.chordEl; if (!el) return;
-    const c = t.chords, ok = !!(c && c.L === t.L && c.segs.some(q => q.name !== '–'));
-    el.hidden = !ok; t.chOn = -1;
-    el.innerHTML = ok ? c.segs.map((q, i) => '<button class="ch' + (q.name === '–' ? ' rest' : '') + '" data-i="' + i + '" style="flex-grow:' + Math.max(1, q.e - q.a) + '" title="' + (q.name === '–' ? 'kein Akkord' : q.name) + '">' + chordName(q.name) + '</button>').join('') : '';
+    t.chdName = undefined;                       // Spurkopf beim nächsten Bild neu setzen
+    if (t.thC && !(t.chords && t.chords.L === t.L)) t.thC.hidden = true;
     if (ed.t === t) showEdChords();
   }
   // Im Editor: Akkorde je Takt als Zeile („Am | F | C G | …“)
@@ -1855,10 +1855,6 @@ const Looper = (() => {
     }
     el.innerHTML = 'Akkorde: <b>' + bars.join('</b> | <b>') + '</b>' + (Math.abs(c.tune || 0) >= 8 ? ' <span class="caption">(Stimmung ' + (c.tune > 0 ? '+' : '') + c.tune + ' Cent)</span>' : '');
   }
-  tracks.forEach(t => {
-    if (!t.chordEl) return;
-    t.chordEl.addEventListener('click', e => { const b = e.target.closest('.ch'); if (!b || !t.chords || rec) return; const q = t.chords.segs[+b.dataset.i]; if (q) seekTo(t, q.a); });
-  });
   $('edKey').addEventListener('click', async () => {
     if (!ed.t) return;
     $('edKeyRes').textContent = 'analysiere …'; $('edChords').textContent = 'Akkorde: werden erkannt …';
@@ -2495,6 +2491,15 @@ const Looper = (() => {
     _stereo: i => { const t = tracks[i]; if (!t || !t.mix) return null; const x = t.mix; let a = 0, b = 0, ab = 0; for (let k = 0; k < x.length; k += 4) { a += x.l[k] * x.l[k]; b += x.r[k] * x.r[k]; ab += x.l[k] * x.r[k]; } const n = Math.ceil(x.length / 4); return { L: t.L, shared: x.r === x.l, rmsL: Math.sqrt(a / n), rmsR: Math.sqrt(b / n), corr: ab / Math.sqrt(a * b + 1e-20), layers: t.layers.map(ly => ly.r === ly.l ? 1 : 2), inInfo: ($('inChanInfo') || {}).textContent, stereoSeen, inChans }; },
     debug: () => ({ mic: micReady, sr, baseL, anchor, now: nowFrame(), countEnd, bpm: bpm(), drums: Object.assign({}, Rhythm.debug(), { on: Rhythm.on() }), level, drone: droneOn, tracks: tracks.map(t => ({ L: t.L, state: t.state, origPos: t.origPos, layers: t.layers.length, orig: t.orig ? { bars: t.orig.bars, downs: t.orig.downs.slice(0, 64), loopFile: t.orig.loopFile, bpm: t.orig.bpm } : null, key: t.key ? Analyzer.label(t.key) : null })) }),
     undo: i => undoTrack(tracks[i]),
+    // klingender Akkord der ersten laufenden Spur mit erkannten Akkorden (für den Quintenzirkel)
+    nowChord: () => {
+      for (const t of tracks) {
+        const c = t.chords; if (!t.src || !c || c.L !== t.L || !c.segs.some(q => q.name !== '–')) continue;
+        const i = chordAt(t, mod(playFrame() - anchor, t.L)); if (i < 0) continue;
+        return { name: c.segs[i].name, next: nextChord(c, i), track: t.i };
+      }
+      return null;
+    },
     _chords: i => tracks[i].chords ? { segs: tracks[i].chords.segs.map(q => ({ name: q.name, a: q.a, e: q.e })), L: tracks[i].chords.L, tune: tracks[i].chords.tune } : null,
     _detectChords: i => detectTrackChords(tracks[i]).then(() => tracks[i].chords && tracks[i].chords.segs.map(q => q.name)),
     _shift: (i, ms) => rotateTrack(tracks[i], Math.round(ms / 1000 * sr)),

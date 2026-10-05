@@ -39,17 +39,11 @@ async def main():
             c = await pg.evaluate('Looper._chords(0)')
             if c: names = [s['name'] for s in c['segs']]; break
         check('Akkorde erkannt (C G Am F)', names == ['C', 'G', 'Am', 'F'], f'{names} · {st[:80]}')
-        vis = await pg.is_visible('#chords0'); btns = await pg.evaluate("[...document.querySelectorAll('#chords0 .ch')].map(b => b.textContent)")
-        check('Akkordleiste unter der Spur', vis and btns == ['C', 'G', 'Am', 'F'], btns)
         await pg.click('#loopAll'); await pg.wait_for_timeout(300)
         if not await pg.evaluate("Looper.debug().tracks[0].state === 'playing'"): await pg.click('#loopAll')
         await pg.wait_for_timeout(2700)
-        on = await pg.evaluate("[...document.querySelectorAll('#chords0 .ch')].findIndex(b => b.classList.contains('on'))")
-        check('Klingender Akkord leuchtet mit', on >= 0, on)
-        # Antippen springt zum Akkord
-        await pg.click('#chords0 .ch:nth-child(3)'); await pg.wait_for_timeout(250)
-        on2 = await pg.evaluate("[...document.querySelectorAll('#chords0 .ch')].findIndex(b => b.classList.contains('on'))")
-        check('Akkord antippen springt dorthin', on2 == 2, on2)
+        hd = await pg.evaluate("[!document.getElementById('thc0').hidden, document.querySelector('#chd0 b').textContent]")
+        check('Klingender Akkord im Spurkopf', hd[0] and hd[1] in ('C', 'G', 'Am', 'F'), hd)
         # Editor zeigt Akkorde je Takt
         if not await pg.is_visible('#loopEditor'): await pg.click('#edit0')
         await pg.wait_for_timeout(400)

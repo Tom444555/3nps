@@ -25,7 +25,11 @@
     box-shadow: 0 1px 0 rgba(255,255,255,.04) inset;
   }
   .track.t2 { --tc: var(--t2); } .track.t3 { --tc: var(--t3); }
-  .track-head { display: flex; align-items: center; gap: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--line-soft); }
+  .track-head { display: flex; align-items: center; gap: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--line-soft); min-height: 52px; }
+  .th-left { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-width: 0; }
+  .th-name { display: flex; align-items: center; gap: 8px; }
+  .th-chords { margin-left: auto; display: flex; gap: 6px; align-items: stretch; }
+  .th-chords[hidden] { display: none; }
   .chip { width: 10px; height: 10px; border-radius: 3px; background: var(--tc); box-shadow: 0 0 6px var(--tc); }
   .tname { font: 600 0.8rem var(--f-body); }
   .ring { width: 100%; aspect-ratio: 1; max-width: 100%; display: block; }
@@ -216,17 +220,19 @@
     color: #08090b; box-shadow: 0 0 14px var(--tc), 0 1px 0 rgba(255,255,255,.45) inset, 0 -2px 0 rgba(0,0,0,.2) inset;
   }
   .keybadge small { font: 700 0.52rem var(--f-body); letter-spacing: .14em; text-transform: uppercase; opacity: .7; }
-  /* klingender Akkord links neben der Tonart */
+  /* Spurkopf rechts: klingender und kommender Akkord */
+  .track-head .keybadge { margin-left: 0; }
   .chdbadge {
-    margin-left: auto; display: inline-flex; flex-direction: column; align-items: center; line-height: 1.05;
-    min-width: 3.4em; padding: 4px 10px 5px; border-radius: 9px; border: 1px solid var(--tc);
+    display: inline-flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.05;
+    min-width: 3.6em; padding: 4px 10px 5px; border-radius: 9px; border: 1px solid var(--tc);
     background: rgba(0,0,0,.45); color: var(--tc); box-shadow: 0 0 10px color-mix(in srgb, var(--tc) 45%, transparent), inset 0 2px 6px rgba(0,0,0,.6);
   }
-  .chdbadge[hidden] { display: none; }
-  .chdbadge b { font: 800 1.08rem var(--f-mono); letter-spacing: .01em; white-space: nowrap; }
+  .chdbadge b { font: 800 1.3rem var(--f-mono); letter-spacing: .01em; white-space: nowrap; }
   .chdbadge small { font: 700 0.52rem var(--f-body); letter-spacing: .14em; text-transform: uppercase; opacity: .7; color: var(--muted); }
   .chdbadge.rest b { color: var(--muted); }
-  .chdbadge:not([hidden]) + .keybadge { margin-left: 0; }
+  .chdbadge.next { border-color: var(--line); box-shadow: inset 0 2px 6px rgba(0,0,0,.6); color: var(--ink); opacity: .8; }
+  .chdbadge.next b { font-size: 1.05rem; }
+  .chdbadge.next[hidden] { display: none; }
   .master-fader { flex: 1 1 170px; }
   .master-fader b { font: 600 0.72rem var(--f-mono); color: var(--muted); min-width: 44px; text-align: right; }
   .modal { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(4,3,2,.72); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
@@ -359,11 +365,5 @@
 
 
   /* Akkordleiste unter der Wellenform: Breite je Akkord = Dauer, der klingende Akkord leuchtet */
-  .chordbar { display: flex; height: 20px; margin-top: -4px; border-radius: 4px; overflow: hidden; background: rgba(0,0,0,.28); border: 1px solid rgba(255,255,255,.05); }
-  .chordbar .ch { flex: 1 1 0; min-width: 0; appearance: none; border: 0; border-left: 1px solid rgba(255,255,255,.1); background: transparent; color: var(--muted);
-    font: 700 0.7rem var(--f-mono); padding: 0 3px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: clip; cursor: pointer; touch-action: manipulation; }
-  .chordbar .ch:first-child { border-left: 0; }
-  .chordbar .ch.rest { color: rgba(255,255,255,.18); }
-  .chordbar .ch.on { color: #0b0b0c; background: var(--tc); box-shadow: 0 0 10px color-mix(in srgb, var(--tc) 60%, transparent); }
   .ed-chords { font: 700 0.86rem var(--f-mono); color: var(--ink); line-height: 1.5; word-break: break-word; }
   .ed-chords b { color: var(--tc); font-weight: 700; }
