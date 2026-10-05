@@ -4,12 +4,12 @@ Looper (3nps-Übungsprogramm) als App aufs iPad
 Alles geht direkt auf dem iPad, ohne Computer.
 
 1. ZIP entpacken
-   In der Dateien-App auf die ZIP tippen. Es entsteht ein Ordner mit 33 Dateien.
+   In der Dateien-App auf die ZIP tippen. Es entsteht ein Ordner mit 34 Dateien.
 
 2. Kostenlos online stellen (GitHub Pages)
    - Auf github.com ein kostenloses Konto anlegen.
    - Oben rechts „+“ → „New repository“, Name z. B. 3nps, „Public“ lassen, „Create repository“.
-   - Auf „uploading an existing file“ tippen und alle 33 Dateien aus dem Ordner auswählen
+   - Auf „uploading an existing file“ tippen und alle 34 Dateien aus dem Ordner auswählen
      (index.html, sw.js, manifest.webmanifest, die PNG- und JPG-Bilder). „Commit changes“.
    - „Settings“ → links „Pages“ → bei „Branch“ „main“ und „/ (root)“ wählen → „Save“.
    - Nach 1–2 Minuten erscheint dort die Adresse, z. B. https://DEINNAME.github.io/3nps/
@@ -157,7 +157,7 @@ Alles geht direkt auf dem iPad, ohne Computer.
    - Neues Symbol und Name „Looper“: iPadOS übernimmt beides erst, wenn die App neu zum
      Home-Bildschirm hinzugefügt wird. Beim Entfernen des alten Symbols löscht iPadOS aber
      die gespeicherten Daten. Darum in dieser Reihenfolge:
-       1. Neue Dateien auf GitHub hochladen (alle 33, vorhandene ersetzen).
+       1. Neue Dateien auf GitHub hochladen (alle 34, vorhandene ersetzen).
        2. Die alte App öffnen, zweimal neu starten, bis oben „Looper · v16“ steht.
        3. Looper → „Alles sichern“ → „In Dateien sichern“.
        4. Altes Symbol lange drücken → „App entfernen“.
@@ -188,6 +188,26 @@ Alles geht direkt auf dem iPad, ohne Computer.
      „Druckvoll“, „Weniger Becken“).
    - Steht „EQ ●“ auf dem Knopf, ist der EQ aktiv. Die Einstellungen bleiben gespeichert, kommen
      mit in Ideen und wirken auch auf den Logic-Export und den geteilten Mix (so, wie du es hörst).
+
+17. Absturzschutz und Speicher
+   - Die App sichert die aktuellen Spuren (mit EQ, Tempo und Tonart) ein paar Sekunden nach jeder
+     Änderung automatisch. Wird sie neu geladen – etwa nach einem Absturz –, erscheint im Looper
+     „Letzte Sitzung gefunden“: „Wiederherstellen“ holt alles zurück, „Verwerfen“ löscht die Sicherung.
+     Drums und Drone sind danach aus und lassen sich wieder einschalten.
+   - Sehr lange Loops (ganze Songs) brauchen viel Arbeitsspeicher. Die App verwirft dann ältere
+     Rückgängig-Schritte von selbst; ab sehr großen Spuren pausiert die automatische Sicherung
+     (Hinweis in der Statuszeile) – dann wichtige Loops unter „Ideen“ speichern.
+   - Doppeltippen zoomt die Seite nicht mehr.
+
+18. Sicherheit
+   - Die App hat keinen Server und kein Konto. Aufnahmen, Ideen und Einstellungen bleiben auf dem
+     Gerät. Sie baut keine Verbindungen zu fremden Diensten auf – die Schriften sind eingebaut
+     (Lizenz siehe SCHRIFTEN-LIZENZ.txt). Das Mikrofon wird nur im Gerät verarbeitet.
+   - Wer das GitHub-Repository ändern kann, ändert die App für alle, die sie nutzen. Darum das
+     GitHub-Konto mit starkem Passwort und Zwei-Faktor-Anmeldung schützen und Zugänge nur für
+     dieses eine Repository vergeben.
+   - Sicherungsdateien von anderen kann die App gefahrlos laden: Namen werden nur als Text angezeigt,
+     und eine Sicherheitsregel (Content Security Policy) verbietet Verbindungen zu fremden Servern.
 
 Gut zu wissen
    - Übungslog und Ideen werden nur auf diesem iPad gespeichert. Die bisherigen
