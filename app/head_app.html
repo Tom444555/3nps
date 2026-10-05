@@ -81,7 +81,7 @@
 
   /* Tabs als Segment-Leiste */
   .tabs {
-    display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px;
+    display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 2px;
     margin-block: 0 16px; padding: 2px; border-radius: 8px; background: #141416; border: 1px solid #111;
   }
   .tab {
@@ -206,6 +206,7 @@
     <button class="tab" role="tab" id="tab-quinten" data-tab="quinten" aria-selected="false">Quinten<wbr>zirkel</button>
     <button class="tab" role="tab" id="tab-solo" data-tab="solo" aria-selected="false">Solo Finder</button>
     <button class="tab" role="tab" id="tab-jam" data-tab="jam" aria-selected="false">Jam</button>
+    <button class="tab" role="tab" id="tab-ueben" data-tab="ueben" aria-selected="false">Üben</button>
     <button class="tab" role="tab" id="tab-griffbrett" data-tab="griffbrett" aria-selected="false">Griffbrett</button>
   </nav>
 
@@ -345,6 +346,9 @@ SOLO_PANEL
 
   <!-- Jam -->
 JAM_PANEL
+
+  <!-- Üben -->
+UEBEN_PANEL
 
 
 </div>

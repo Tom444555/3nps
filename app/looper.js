@@ -2529,6 +2529,11 @@ const Looper = (() => {
       return extAnalyser;
     },
     releaseAnalyser: () => { if (extAnalyser) { try { if (micSource) micSource.disconnect(extAnalyser); extAnalyser.disconnect(); } catch (e) {} extAnalyser = null; } },
+    // Solo-Auswertung (Üben): Audio einer Spur (nur lesen), Schläge und Takte im Loop
+    soloData: i => {
+      const t = tracks[i]; if (!t || !t.L || !t.mix) return null;
+      return { l: t.mix.l, r: t.mix.r, L: t.L, sr, beats: trackBeats(t).filter(b => b.f > -2 && b.f < t.L + 2).map(b => b.f), downs: trackDowns(t).filter(x => x > -2 && x < t.L - 2), state: t.state };
+    },
     busy: () => !!rec || tracks.some(t => !!t.src),     // spielt oder nimmt gerade etwas auf (für den Jam)
     stopAll: () => { const b = $('loopAll'); if (b && tracks.some(t => !!t.src) && !rec) b.click(); },
     seek: (i, f) => { const t = tracks[i]; if (t && t.L && !rec) seekTo(t, f); },
@@ -2546,6 +2551,8 @@ const Looper = (() => {
     _align: i => { const r = fineAlign(tracks[i], tracks[0] !== tracks[i] && tracks[0].L ? [tracks[0]] : null); return r && { ms: r.lagF / sr * 1000, ncc: r.ncc, gain: r.gain, edge: r.edge, ok: alignOk(r) }; },
     _alignNew: i => alignNewTake(tracks[i]),
     _beats: i => trackBeats(tracks[i]).map(b => b.f),
+    // Test: Mono-Audio als fertige Aufnahme in Spur i legen (Länge = Loop-Länge, keine Import-Anpassung)
+    _setTrack: (i, arr) => { const t = tracks[i]; if (!t || !baseL) return false; const x = new Float32Array(baseL); x.set(arr.length > baseL ? arr.slice(0, baseL) : arr); t.L = baseL; t.layers = [SP(x)]; rebuildMix(t); t.state = 'stopped'; update(); return true; },
     _playFrame: () => ({ play: playFrame(), now: audioCtx ? nowFrame() : 0 }),
     all: allStartStop
   };

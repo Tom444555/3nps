@@ -1,0 +1,79 @@
+  <section class="panel" id="panel-ueben" role="tabpanel" aria-labelledby="tab-ueben" hidden>
+    <div class="ub-nav seg" id="ubNav" role="group" aria-label="Üben">
+      <button class="toggle-btn active" data-s="tag">Tagesübung</button><button class="toggle-btn" data-s="ohr">Gehörbildung</button><button class="toggle-btn" data-s="lick">Licks</button><button class="toggle-btn" data-s="solo">Solo-Auswertung</button>
+    </div>
+
+    <!-- Tagesübung -->
+    <div class="ub-sec" data-s="tag">
+      <div class="card">
+        <div class="card-head"><h2 id="ubDayTitle">Tagesübung</h2><button class="toggle-btn" id="ubReroll">🎲 Neu würfeln</button></div>
+        <p class="ub-daykey" id="ubDayKey"></p>
+        <div class="ub-progress"><div id="ubProgBar"></div></div>
+        <div class="ub-blocks" id="ubBlocks"></div>
+        <p class="pattern-desc">Jeder Block hat einen Timer. Läuft er ab, ist der Block erledigt und landet im Übungslog (Griffbrett → Übungslog).</p>
+      </div>
+    </div>
+
+    <!-- Gehörbildung -->
+    <div class="ub-sec" data-s="ohr" hidden>
+      <div class="card">
+        <div class="ub-ohr-top">
+          <label class="field"><span>Übung</span><select id="ubEarMode">
+            <option value="int1">Intervalle – leicht</option><option value="int2">Intervalle – alle</option>
+            <option value="chd">Akkordtypen</option><option value="degM">Stufen in Dur</option><option value="degm">Stufen in Moll</option>
+          </select></label>
+          <button class="toggle-btn active" id="ubEarNew">▶ Neue Aufgabe</button>
+          <button class="toggle-btn" id="ubEarAgain">↺ Nochmal hören</button>
+        </div>
+        <p class="ub-q" id="ubEarQ">Tippe auf „Neue Aufgabe“ und hör genau hin.</p>
+        <div class="ub-ans" id="ubEarAns"></div>
+        <div class="ub-score" id="ubEarScore"></div>
+      </div>
+    </div>
+
+    <!-- Licks -->
+    <div class="ub-sec" data-s="lick" hidden>
+      <div class="card">
+        <div class="ub-lick-top">
+          <label class="field"><span>Tonart</span><select id="ubLickKey"></select></label>
+          <label class="field ub-lick-sel"><span>Lick</span><select id="ubLickSel"></select></label>
+          <button class="play-btn small" id="ubLickPlay" aria-label="Lick abspielen">▶</button>
+          <label class="check"><input type="checkbox" id="ubLickSlow"> halbes Tempo</label>
+        </div>
+        <div class="ub-lick-info" id="ubLickInfo"></div>
+        <div class="sf-neckscroll"><svg id="ubTab" class="ub-tab" aria-label="Tabulatur"></svg></div>
+        <div class="sf-neckscroll"><svg id="ubLickNeck" class="sf-neck" aria-label="Griffbild des Licks"></svg></div>
+        <div class="ub-own">
+          <button class="toggle-btn" id="ubRec">● Eigenen Lick aufnehmen</button>
+          <span class="ub-own-rec" id="ubRecBar" hidden>
+            <span id="ubRecInfo">Tippe die Töne nacheinander ins Griffbild.</span>
+            <button class="toggle-btn" data-r="len">Länge: ♪</button>
+            <button class="toggle-btn" data-r="undo">↶</button>
+            <input type="text" id="ubRecName" placeholder="Name" maxlength="40" autocomplete="off" aria-label="Name des Licks">
+            <button class="toggle-btn active" data-r="save">Speichern</button>
+            <button class="toggle-btn" data-r="cancel">Abbrechen</button>
+          </span>
+          <button class="toggle-btn" id="ubDel" hidden>Eigenen Lick löschen</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Solo-Auswertung -->
+    <div class="ub-sec" data-s="solo" hidden>
+      <div class="card">
+        <div class="ub-solo-top">
+          <label class="field"><span>Solo auf</span><select id="ubSoloTr"><option value="1">Spur 2</option><option value="2">Spur 3</option><option value="0">Spur 1</option></select></label>
+          <label class="field"><span>Akkorde von</span><select id="ubChordTr"><option value="auto">automatisch</option><option value="0">Spur 1</option><option value="1">Spur 2</option><option value="2">Spur 3</option></select></label>
+          <label class="field"><span>Raster</span><select id="ubGrid"><option value="2">Achtel</option><option value="4">Sechzehntel</option><option value="3">Triolen</option></select></label>
+          <button class="toggle-btn active" id="ubAnalyse">Auswerten</button>
+        </div>
+        <p class="pattern-desc" id="ubSoloHint">Nimm im Looper Akkorde auf einer Spur auf (oder lade einen Loop) und spiel dein Solo als Overdub-Spur ein. Dann hier auswerten.</p>
+        <div class="ub-solo-res" id="ubSoloRes" hidden>
+          <div class="ub-tiles" id="ubTiles"></div>
+          <div class="sf-neckscroll"><svg id="ubSoloTl" class="ub-tl" aria-label="Verlauf des Solos"></svg></div>
+          <div class="sf-leg ub-tl-leg"><i class="root"></i>Grundton <i class="ct"></i>Akkordton <i class="sc"></i>Tonleiter <i class="out"></i>Reibung <span>· Ring = Phrasenende</span></div>
+          <ul class="ub-tips" id="ubTips"></ul>
+        </div>
+      </div>
+    </div>
+  </section>

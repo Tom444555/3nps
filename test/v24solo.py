@@ -12,7 +12,7 @@ async def main():
         pg.on('pageerror', lambda e: errs.append(str(e)))
         await pg.goto('http://localhost:8765/index.html'); await pg.wait_for_timeout(800)
         tabs = await pg.evaluate("[...document.querySelectorAll('.tab')].map(t => t.textContent)")
-        check('Reiter: Looper · Quintenzirkel · Solo Finder · Griffbrett', tabs == ['Looper', 'Quintenzirkel', 'Solo Finder', 'Griffbrett'], tabs)
+        check('Reiter: Looper · Quintenzirkel · Solo Finder · Jam · Üben · Griffbrett', tabs == ['Looper', 'Quintenzirkel', 'Solo Finder', 'Jam', 'Üben', 'Griffbrett'], tabs)
         # ohne Loop: Hinweis, Tonart vom Griffbrett, trotzdem bedienbar
         await pg.click('#tab-solo'); await pg.wait_for_timeout(400)
         e0 = await pg.inner_text('#sfStrip'); k0 = await pg.inner_text('#sfKeySrc')

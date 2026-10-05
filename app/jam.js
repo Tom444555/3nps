@@ -284,6 +284,9 @@
     },
     nowChord: () => { const n = now(); if (!n) return null; const c = st.seq[n.idx]; return c ? { name: SHARP[c.r].replace('♯', '#') + c.t } : null; },
     start, stop, parse, state: () => st, setSeq: (text) => { const r = parse(text); st.seq = r.seq; save(); paintSeq(); return r; },
+    // Tonart und Vorlage setzen (Tagesübung): presetIdx aus der Dur- bzw. Moll-Liste
+    load: (key, presetIdx) => { if (run) stop(); st.key = { pc: md(key.pc), major: !!key.major }; const list = st.key.major ? PRE.maj : PRE.min; const p = list[Math.max(0, Math.min(list.length - 1, presetIdx | 0))]; st.seq = fromPreset(st.key, p[1]); selIdx = -1; save(); paintSeq(); return p[0]; },
+    presets: () => ({ maj: PRE.maj.map(p => p[0]), min: PRE.min.map(p => p[0]) }),
     debug: () => run ? { pending: run.pending, idx: run.idx, pass: run.pass, beat: run.beat, cur: run.cur, ownDrums: run.ownDrums } : null
   };
 })();

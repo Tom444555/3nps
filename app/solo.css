@@ -87,7 +87,7 @@
   #sfMove ul { margin: 6px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 5px; font: 500 .88rem var(--f-body); line-height: 1.4; }
   .sf-idea { margin: 0; font: 600 1.05rem var(--f-body); line-height: 1.5; min-height: 3em; }
   @media (max-width: 520px) { .sf-ctrl { margin-left: 0; align-items: flex-start; } .sf-seg b { font-size: 1.15rem; } .sf-now b { font-size: 1.8rem; } }
-  @media (max-width: 520px) { .tabs .tab { font-size: .74rem; padding-left: 2px; padding-right: 2px; white-space: normal; line-height: 1.15; } }
+  @media (max-width: 560px) { .tabs { grid-auto-flow: row; grid-template-columns: repeat(3, minmax(0, 1fr)); } .tabs .tab { font-size: .76rem; padding-left: 2px; padding-right: 2px; white-space: normal; line-height: 1.15; } }
   /* Akkordgriffe im Griffbild */
   .sf-nh-l { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   .sf-nh-l .seg .toggle-btn { padding: 5px 12px; font-size: .8rem; }
