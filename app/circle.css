@@ -43,6 +43,10 @@
   .qz-act { display: flex; gap: 8px; flex-wrap: wrap; }
   .qz-act .toggle-btn { flex: 1 1 auto; }
   .qz-board b { color: var(--root-color); }
+  .qz-tmark { fill: none; stroke-width: 2.5; pointer-events: none; }
+  .qz-act .toggle-btn[hidden] { display: none; }
+  .qz-track::before { content: ''; display: inline-block; width: 14px; height: 10px; margin-right: 6px; border: 2px solid var(--muted); border-radius: 2px; vertical-align: -1px; }
+  .qz-track:empty::before { display: none; }
   .qz-board::before { content: ''; display: inline-block; width: 14px; height: 10px; margin-right: 6px; border: 2px dashed var(--root-color); border-radius: 2px; vertical-align: -1px; }
   .qz-board:empty::before { display: none; }
   @media (max-width: 520px) { .qz-chords { grid-template-columns: repeat(4, minmax(0, 1fr)); } }

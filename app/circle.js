@@ -72,6 +72,7 @@
   });
   const live = el('path', { class: 'qz-live', d: '' }, svg);
   const mark = el('path', { class: 'qz-mark', d: '' }, svg);
+  const tmark = el('path', { class: 'qz-tmark', d: '' }, svg);
   const cTitle = el('text', { x: C, y: C - 10, class: 'qz-c1' }, svg);
   const cSub = el('text', { x: C, y: C + 12, class: 'qz-c2' }, svg);
   const cLive = el('text', { x: C, y: C + 32, class: 'qz-c3' }, svg);
@@ -103,7 +104,7 @@
     const same = gk && gk.k === sel.k && gk.minor === sel.minor && !gk.mode;
     $('qzApply').disabled = !!same;
     $('qzApply').textContent = same ? '✓ Im Griffbrett' : 'Ins Griffbrett übernehmen';
-    showBoard(gk); renderChord._cur = null;
+    showBoard(gk); showTrack(); renderChord._cur = null;
     $('qzChords').querySelectorAll('.qz-ch').forEach(b => b.addEventListener('click', () => {
       const c = info.chords[+b.dataset.i]; playChord(c.pc, c.q); flashBtn(b);
     }));
@@ -126,6 +127,22 @@
     const [r0, r1] = gk.minor ? RING.min : RING.maj; mark.setAttribute('d', arc(r0 + 3, r1 - 3, gk.k));
     t.innerHTML = 'Griffbrett: <b>' + (gk.mode ? gk.root.replace('#', '♯') + ' ' + gk.mode + '</b> (Töne von ' + MAJ[gk.k] + '-Dur)' : keyLabel(gk) + '</b>');
   }
+  // ---- zuletzt erkannte Tonart einer Spur (Datei geladen oder eingespielt) ----
+  let trackKey = null;                       // { i, k, minor }
+  const keyFromPc = (pc, major) => major ? { k: kOfMajorPc(pc), minor: false } : { k: kOfMajorPc(pc + 3), minor: true };
+  function showTrack() {
+    const t = $('qzTrack'), b = $('qzFromTrack');
+    if (!trackKey) { t.textContent = ''; b.hidden = true; tmark.setAttribute('d', ''); return; }
+    const [r0, r1] = trackKey.minor ? RING.min : RING.maj;
+    tmark.setAttribute('d', arc(r0 + 7, r1 - 7, trackKey.k)); tmark.style.stroke = 'var(--t' + (trackKey.i + 1) + ')';
+    t.innerHTML = 'Spur ' + (trackKey.i + 1) + ': <b style="color:var(--t' + (trackKey.i + 1) + ')">' + keyLabel(trackKey) + '</b>';
+    b.hidden = false; b.textContent = 'Tonart von Spur ' + (trackKey.i + 1);
+  }
+  document.addEventListener('trackkey', e => {
+    const d = e.detail || {};
+    if (d.key) { trackKey = Object.assign({ i: d.track }, keyFromPc(d.key.pc, d.key.major)); select({ k: trackKey.k, minor: trackKey.minor }, false); }
+    else if (trackKey && trackKey.i === d.track) { trackKey = null; render(); }
+  });
   function select(s2, play) {
     sel = s2; render();
     if (play) { const info = keyInfo(sel); playChord(info.tonicPc, sel.minor ? 'm' : ''); }
@@ -144,6 +161,7 @@
     render();
   });
   $('qzSync').addEventListener('click', () => { const gk = boardKey(); if (gk) select({ k: gk.k, minor: gk.minor }, false); });
+  $('qzFromTrack').addEventListener('click', () => { if (trackKey) select({ k: trackKey.k, minor: trackKey.minor }, false); });
 
   // ---- Akkord anspielen (kurz angeschlagen, über den Master-Bus) ----
   function playChord(rootPc, q) {
@@ -184,11 +202,15 @@
   function onTab(name) {
     clearInterval(timer); timer = null;
     if (name !== 'quinten') return;
-    const gk = boardKey(); if (gk) select({ k: gk.k, minor: gk.minor }, false); else render();
+    render();
     renderChord._cur = null; renderChord(); timer = setInterval(renderChord, 120);
   }
   document.addEventListener('tabchange', e => onTab(e.detail));
-  if (typeof rootSel !== 'undefined') { rootSel.addEventListener('change', () => { if (!panel.hidden) render(); }); modeSel.addEventListener('change', () => { if (!panel.hidden) render(); }); }
+  if (typeof rootSel !== 'undefined') {
+    const follow = () => { const gk = boardKey(); if (gk) select({ k: gk.k, minor: gk.minor }, false); else render(); };
+    rootSel.addEventListener('change', follow); modeSel.addEventListener('change', follow);
+  }
+  { const gk = boardKey(); if (gk) sel = { k: gk.k, minor: gk.minor }; }
   render();
-  window.Quinten = { select: (k, minor) => select({ k, minor: !!minor }, false), sel: () => Object.assign({}, sel), info: () => keyInfo(sel), parseChord };
+  window.Quinten = { trackKey: () => trackKey && Object.assign({}, trackKey), select: (k, minor) => select({ k, minor: !!minor }, false), sel: () => Object.assign({}, sel), info: () => keyInfo(sel), parseChord };
 })();

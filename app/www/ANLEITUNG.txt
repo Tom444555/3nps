@@ -241,7 +241,7 @@ Alles geht direkt auf dem iPad, ohne Computer.
    - Der Bass wird beim Start der App selbst erzeugt (gezupfte Saite, im Hintergrund). Es stecken keine
      fremden Aufnahmen mehr in der App, und der Bass setzt pünktlich mit der Kick ein.
 
-23. Drei Reiter: Looper · Griffbrett · Quintenzirkel
+23. Drei Reiter: Looper · Quintenzirkel · Griffbrett
    - Looper steht ganz links und ist beim Start offen.
    - Griffbrett enthält wieder alles für die Griffbrett-Übung untereinander: Griffbild, Metronom,
      Begleitung (Drone, Drums, Bass), Song und das Übungslog.
@@ -250,6 +250,14 @@ Alles geht direkt auf dem iPad, ohne Computer.
      stehen Vorzeichen, Tonleiter und die Akkorde zum Anhören. „Ins Griffbrett übernehmen“ stellt
      Grundton und Modus ein (Drone folgt). Rot gestrichelt: die Tonart im Griffbrett.
      Läuft der Looper, leuchtet der gerade klingende Akkord gelb im Zirkel mit.
+   - Lädst du eine Datei in eine Spur oder spielst etwas ein, springt der Zirkel sofort auf die erkannte
+     Tonart (in Spurfarbe umrandet, „Spur 1: …“). Ändert sich das Griffbrett (auch durch einen Song oder den
+     Tonart-Knopf einer Spur), folgt der Zirkel ebenfalls. Die Knöpfe „Tonart vom Griffbrett“ und
+     „Tonart von Spur …“ holen die jeweilige Tonart zurück.
+   - Lädst du eine Datei in eine Spur oder spielst etwas ein, springt der Zirkel sofort auf die erkannte
+     Tonart (in Spurfarbe umrandet, „Spur 1: …“). Ändert sich das Griffbrett (auch durch einen Song oder den
+     Tonart-Knopf einer Spur), folgt der Zirkel ebenfalls. Die Knöpfe „Tonart vom Griffbrett“ und
+     „Tonart von Spur …“ holen die jeweilige Tonart zurück.
 
 Gut zu wissen
    - Übungslog und Ideen werden nur auf diesem iPad gespeichert. Eine neue Installation

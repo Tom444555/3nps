@@ -718,7 +718,7 @@ const Looper = (() => {
     if (cap && cap.t === t) cap = null;
     stopSrc(t);
     t.layers = []; t.L = 0; t.mix = null; t.peaks = null; t.state = 'empty'; t.hist = []; t.key = null; t.orig = null; t.origPos = null; t.buf = null; t.bufFor = null;
-    clearTimeout(t.chTimer); t.chords = null; showChords(t);
+    clearTimeout(t.chTimer); t.chords = null; showChords(t); showKey();
     if (!anyContent()) baseL = 0;
     markDirty();
     if (ed.t === t) closeEditor();
@@ -1792,6 +1792,9 @@ const Looper = (() => {
   }
   function showKey() {
     tracks.forEach(t => {
+      // neue oder geänderte Tonart melden (Quintenzirkel folgt sofort)
+      const ks = t.key ? t.key.pc + (t.key.major ? 'M' : 'm') : '';
+      if (ks !== (t.keySent || '')) { t.keySent = ks; document.dispatchEvent(new CustomEvent('trackkey', { detail: { track: t.i, key: t.key ? { pc: t.key.pc, major: !!t.key.major } : null } })); }
       t.keyB.hidden = !t.key;
       if (t.key) { t.keyB.innerHTML = '<small>Tonart</small>' + Analyzer.label(t.key).replace('-', ' '); t.keyB.title = 'Tonart ' + Analyzer.label(t.key) + ' für Griffbrett und Drone übernehmen'; }
     });

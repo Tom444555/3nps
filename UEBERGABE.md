@@ -1,6 +1,6 @@
 # Looper – Übergabe für die nächste Sitzung
 
-Stand: 5. Oktober 2026 · Version **v22** ist live unter https://tom444555.github.io/3nps/
+Stand: 5. Oktober 2026 · Version **v23** ist live unter https://tom444555.github.io/3nps/
 Repository: `Tom444555/3nps` · Branch `main` = fertige App (GitHub Pages) · Branch `entwicklung` = dieser Quellcode.
 
 ## So geht es in einem neuen Chat weiter
@@ -51,9 +51,9 @@ Testaudio neu, baut die App, startet den Testserver auf Port 8765).
    Danach den Branch `entwicklung` mit den Quellen aktualisieren (diese Datei mitpflegen).
 6. Auf dem iPad: App zweimal öffnen, dann ist die neue Version aktiv.
 
-## Tests und erwartete Ergebnisse (v22)
+## Tests und erwartete Ergebnisse (v23)
 
-- Browser: `v21test.py` 8/8 (Spurkopf) · `v21tabs.py` 18/18 (Reiter, Quintenzirkel) · `v20test.py` 14/14 · `suite.py` 81/81 · `stereotest.py` 16/16 · `eqtest.py` 9/9 · `restoretest.py` 7/7 ·
+- Browser: `v22key.py` 7/7 (Zirkel folgt Spur-Tonart) · `v21test.py` 8/8 (Spurkopf) · `v21tabs.py` 18/18 (Reiter, Quintenzirkel) · `v20test.py` 14/14 · `suite.py` 81/81 · `stereotest.py` 16/16 · `eqtest.py` 9/9 · `restoretest.py` 7/7 ·
   `backuptest.py` 7/7 · `csptest.py` (keine fremden Anfragen) · `crashtest.py`, `taptest.py` (Speicher stabil) ·
   `rec_fit.py 1` 10/10 · `importall.py` 57/63 (bekannte Fälle: Eins bei Shuffles) · `synctest.py`, `firsthit.py`,
   `drone78.py`, `mono_rec.py`, `sesstest.py`, `droptest.py`, `pedaltest2.py` ohne Fehler.
@@ -64,14 +64,15 @@ Testaudio neu, baut die App, startet den Testserver auf Port 8765).
 
 ## Technische Eckpunkte
 
-- **Reiter (seit v21):** Looper (links, Start) · Griffbrett · Quintenzirkel. Begleitung (Drone, Drums, Bass), Song und
+- **Reiter (seit v21, Reihenfolge v23):** Looper (links, Start) · Quintenzirkel · Griffbrett. Begleitung (Drone, Drums, Bass), Song und
   Übungslog sind Karten im Griffbrett (Zwischenüberschriften `.sub-head`). `tabs.js` leitet alte gespeicherte Reiter
   (`begleitung`, `song`, `log`) aufs Griffbrett um; die Drum-Spur wandert bei `tabchange` = `griffbrett` in `#beglDrumsHome`.
 - **Spurkopf (v22):** links Name + Tonart (`.th-left`), rechts `#thc0–2` mit klingendem (`#chd`) und nächstem Akkord (`#chn`),
   nur beim Abspielen, aktualisiert in `tick()`. Die Akkordleiste unter der Wellenform gibt es nicht mehr (Editor zeigt Akkorde je Takt).
   `Looper.nowChord()` liefert den klingenden Akkord auch, wenn der Looper-Reiter nicht sichtbar ist (Quintenzirkel).
 - **Quintenzirkel:** SVG, englische Tonnamen wie im übrigen Programm (B = H), Schreibweise je Tonart (E♯ in F♯-Dur usw.);
-  liest den klingenden Akkord über `Looper.nowChord()`; `window.Quinten` für Tests.
+  liest den klingenden Akkord über `Looper.nowChord()`; folgt dem Ereignis `trackkey`
+  (aus `showKey()` in looper.js, sobald sich die erkannte Tonart einer Spur ändert) und jeder Änderung von Grundton/Modus; `window.Quinten` für Tests.
 
 - **Stereo-Modell:** Audio-Stücke sind `{l, r, length}`; Mono-Quellen teilen ein Feld (`r === l`). iPadOS liefert über
   getUserMedia nur Mono – Stereo-Aufnahme geht dort erst mit nativer Hülle.
