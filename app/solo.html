@@ -30,10 +30,16 @@
       <h2 id="sfScaleTitle">Was passt drüber</h2>
       <div class="sf-scales" id="sfScales"></div>
       <div class="sf-neckwrap">
-        <div class="sf-neckhead"><span class="sf-nh-l"><span class="seg" id="sfNeckMode" role="group" aria-label="Griffbild zeigt"><button class="toggle-btn active" data-m="scale">Tonleiter</button><button class="toggle-btn" data-m="grip">Griffe</button></span><span id="sfNeckTitle">Griffbild</span></span>
+        <div class="sf-neckhead"><span class="sf-nh-l"><span class="seg" id="sfNeckMode" role="group" aria-label="Griffbild zeigt"><button class="toggle-btn active" data-m="scale">Tonleiter</button><button class="toggle-btn" data-m="grip">Griffe</button></span><span id="sfNeckTitle">Griffbild</span><button class="toggle-btn sf-listen" id="sfListen" aria-pressed="false" title="Gespielte Töne über den Eingang erkennen">🎤 Mithören</button></span>
           <span class="sf-leg"><i class="root"></i>Grundton <i class="ct"></i>Akkordton <i class="char"></i>Charakterton <i class="sc"></i>Tonleiter <i class="out"></i>Reibung</span></div>
         <div class="sf-neckscroll"><svg id="sfNeck" class="sf-neck" aria-label="Griffbild"></svg></div>
         <div class="sf-grips" id="sfGrips" hidden></div>
+        <div class="sf-live" id="sfLive" hidden>
+          <div class="sf-live-n"><span class="lbl">Gespielt</span><b id="sfLiveNote">–</b><span id="sfLiveCents"></span></div>
+          <span class="sf-live-tag" id="sfLiveTag"></span>
+          <div class="sf-live-stats" id="sfLiveStats"></div>
+          <button class="toggle-btn" id="sfLiveReset">Zähler zurücksetzen</button>
+        </div>
       </div>
     </div>
 

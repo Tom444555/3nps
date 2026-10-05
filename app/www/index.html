@@ -717,6 +717,25 @@
   .nk-x { fill: var(--muted); font: 700 16px var(--f-body); text-anchor: middle; dominant-baseline: middle; }
   .nk-n.open circle { fill: var(--bg); stroke: var(--t2); stroke-width: 2; } .nk-n.open text { fill: var(--ink); }
   .nk-n.open.root circle { stroke: var(--root-color); } .nk-n.third:not(.open) circle { fill: color-mix(in srgb, var(--t2) 70%, #fff); }
+  /* Mithören */
+  .sf-listen { padding: 5px 12px; font-size: .8rem; margin-left: 4px; }
+  .sf-listen.active { background: var(--root-color); color: #fff; border-color: var(--root-color); }
+  .sf-live { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 8px 10px; border-radius: 10px; background: rgba(0,0,0,.3); border: 1px solid var(--line-soft); }
+  .sf-live[hidden] { display: none; }
+  .sf-live-n { display: flex; align-items: baseline; gap: 8px; min-width: 150px; }
+  .sf-live-n .lbl { font: 600 .62rem var(--f-body); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .sf-live-n b { font: 800 1.9rem var(--f-mono); min-width: 2.4em; }
+  .sf-live-n span:last-child { font: 600 .8rem var(--f-mono); color: var(--muted); }
+  .sf-live-tag { font: 800 .85rem var(--f-body); padding: 4px 12px; border-radius: 999px; border: 2px solid var(--line); color: var(--muted); }
+  .sf-live-tag.root { border-color: var(--root-color); color: var(--root-color); } .sf-live-tag.ct { border-color: var(--t2); color: var(--t2); }
+  .sf-live-tag.sc { border-color: var(--scale-color); color: var(--scale-color); } .sf-live-tag.out { border-color: #ff7a59; color: #ff7a59; }
+  .sf-live-stats { display: flex; flex-wrap: wrap; gap: 4px 12px; font: 500 .8rem var(--f-body); color: var(--muted); flex: 1 1 260px; }
+  .sf-live-stats b { color: var(--ink); } .sf-live-stats .ct b { color: var(--t2); } .sf-live-stats .out b { color: #ff7a59; }
+  .sf-live .toggle-btn { padding: 5px 10px; font-size: .75rem; }
+  .nk-hit { fill: none; stroke-width: 4; pointer-events: none; animation: nkhit .5s ease-out; }
+  .nk-hit.root { stroke: var(--root-color); } .nk-hit.ct { stroke: var(--t2); } .nk-hit.sc { stroke: var(--scale-color); } .nk-hit.out { stroke: #ff7a59; }
+  @keyframes nkhit { from { stroke-width: 9; opacity: .4; } to { stroke-width: 4; opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .nk-hit { animation: none; } }
   /* ---- Jam ---- */
   .jam-top { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: flex-end; }
   .jam-tempo { display: flex; flex-direction: column; gap: 3px; }
@@ -1842,10 +1861,16 @@
       <h2 id="sfScaleTitle">Was passt drüber</h2>
       <div class="sf-scales" id="sfScales"></div>
       <div class="sf-neckwrap">
-        <div class="sf-neckhead"><span class="sf-nh-l"><span class="seg" id="sfNeckMode" role="group" aria-label="Griffbild zeigt"><button class="toggle-btn active" data-m="scale">Tonleiter</button><button class="toggle-btn" data-m="grip">Griffe</button></span><span id="sfNeckTitle">Griffbild</span></span>
+        <div class="sf-neckhead"><span class="sf-nh-l"><span class="seg" id="sfNeckMode" role="group" aria-label="Griffbild zeigt"><button class="toggle-btn active" data-m="scale">Tonleiter</button><button class="toggle-btn" data-m="grip">Griffe</button></span><span id="sfNeckTitle">Griffbild</span><button class="toggle-btn sf-listen" id="sfListen" aria-pressed="false" title="Gespielte Töne über den Eingang erkennen">🎤 Mithören</button></span>
           <span class="sf-leg"><i class="root"></i>Grundton <i class="ct"></i>Akkordton <i class="char"></i>Charakterton <i class="sc"></i>Tonleiter <i class="out"></i>Reibung</span></div>
         <div class="sf-neckscroll"><svg id="sfNeck" class="sf-neck" aria-label="Griffbild"></svg></div>
         <div class="sf-grips" id="sfGrips" hidden></div>
+        <div class="sf-live" id="sfLive" hidden>
+          <div class="sf-live-n"><span class="lbl">Gespielt</span><b id="sfLiveNote">–</b><span id="sfLiveCents"></span></div>
+          <span class="sf-live-tag" id="sfLiveTag"></span>
+          <div class="sf-live-stats" id="sfLiveStats"></div>
+          <button class="toggle-btn" id="sfLiveReset">Zähler zurücksetzen</button>
+        </div>
       </div>
     </div>
 
@@ -6298,6 +6323,7 @@ const Looper = (() => {
 
   let sr = 48000;
   let micReady = false, tapNode = null, sinkNode = null, micSource = null, stream = null;
+  let extAnalyser = null;                         // Abgriff für „Mithören“ im Solo Finder (nur solange benutzt)
   let baseL = 0;       // Länge des ersten Loops (Frames) – alle Spuren sind Vielfache davon
   let anchor = 0;      // Frame, an dem Phase 0 aller Spuren liegt
   let rec = null;      // {t, kind: first|new|overdub, start, end, chunks, n, layer, armed, Lt}
@@ -6548,6 +6574,7 @@ const Looper = (() => {
       tapNode.onaudioprocess = e => { const ib = e.inputBuffer; handleChunk(Math.round(e.playbackTime * sr) - 2048, SP(new Float32Array(ib.getChannelData(0)), new Float32Array(ib.getChannelData(ib.numberOfChannels > 1 ? 1 : 0)))); };
     }
     micSource.connect(tapNode); tapNode.connect(sinkNode); sinkNode.connect(audioCtx.destination);
+    if (extAnalyser) { try { micSource.connect(extAnalyser); extAnalyser.connect(sinkNode); } catch (e) {} }   // Mithören (Solo Finder) nach Neuverbindung weiter versorgen
     if (latEl.value === '') {
       const est = ((audioCtx.baseLatency || 0) + (audioCtx.outputLatency || 0)) * 1000 + 15;
       latEl.value = Math.min(250, Math.max(10, Math.round(est / 5) * 5));
@@ -8810,6 +8837,14 @@ const Looper = (() => {
       return { tracks: list, track: t.i, segs: t.chords.segs.map(q => ({ name: q.name, a: q.a, e: q.e })), L: t.L, pos, downs, sr,
         key: t.key ? { pc: t.key.pc, major: !!t.key.major } : null, playing: !!t.src };
     },
+    // Eingang für „Mithören“: öffnet ihn bei Bedarf (gleicher Zugriff wie der Looper), liefert einen Analyser
+    openInput: () => ensureMic(),
+    inputAnalyser: () => {
+      if (!micReady || !micSource) return null;
+      if (!extAnalyser) { extAnalyser = audioCtx.createAnalyser(); extAnalyser.fftSize = 4096; extAnalyser.smoothingTimeConstant = 0; micSource.connect(extAnalyser); extAnalyser.connect(sinkNode); }
+      return extAnalyser;
+    },
+    releaseAnalyser: () => { if (extAnalyser) { try { if (micSource) micSource.disconnect(extAnalyser); extAnalyser.disconnect(); } catch (e) {} extAnalyser = null; } },
     busy: () => !!rec || tracks.some(t => !!t.src),     // spielt oder nimmt gerade etwas auf (für den Jam)
     stopAll: () => { const b = $('loopAll'); if (b && tracks.some(t => !!t.src) && !rec) b.click(); },
     seek: (i, f) => { const t = tracks[i]; if (t && t.L && !rec) seekTo(t, f); },
@@ -9537,6 +9572,52 @@ const Voicings = (() => {
 if (typeof window !== 'undefined') window.Voicings = Voicings;
 if (typeof module !== 'undefined') module.exports = Voicings;
 
+// ---- Tonhöhe erkennen (YIN), für „Mithören“ im Solo Finder ----
+// Eingabe: Zeitsignal (Float32Array) und Abtastrate. Rechnet auf halber Rate (schnell genug für das iPad),
+// Bereich ca. 70–1400 Hz (tiefes E bis hoch über Bund 20). Ergebnis: { f, midi, cents, conf, rms } oder null.
+const Pitch = (() => {
+  let work = null, dbuf = null;
+  function detect(x, sr, opts) {
+    opts = opts || {};
+    const half = sr > 30000, s2 = half ? sr / 2 : sr, n0 = half ? x.length >> 1 : x.length;
+    if (!work || work.length !== n0) { work = new Float32Array(n0); }
+    let mean = 0;
+    if (half) for (let i = 0; i < n0; i++) { work[i] = (x[2 * i] + x[2 * i + 1]) * 0.5; mean += work[i]; }
+    else for (let i = 0; i < n0; i++) { work[i] = x[i]; mean += work[i]; }
+    mean /= n0;
+    let e = 0; for (let i = 0; i < n0; i++) { work[i] -= mean; e += work[i] * work[i]; }
+    const rms = Math.sqrt(e / n0);
+    if (rms < (opts.gate || 0.008)) return null;
+    const minLag = Math.max(2, Math.floor(s2 / (opts.fmax || 1400))), maxLag = Math.min(Math.floor(n0 / 2), Math.ceil(s2 / (opts.fmin || 70)));
+    const W = n0 - maxLag;
+    if (!dbuf || dbuf.length < maxLag + 2) dbuf = new Float32Array(maxLag + 2);
+    // Differenzfunktion und kumulativ normierte Differenz (YIN)
+    dbuf[0] = 1; let run = 0;
+    for (let tau = 1; tau <= maxLag; tau++) {
+      let s = 0;
+      for (let j = 0; j < W; j++) { const d = work[j] - work[j + tau]; s += d * d; }
+      run += s; dbuf[tau] = run > 0 ? s * tau / run : 1;
+    }
+    const thr = opts.thr || 0.15;
+    let tau = -1;
+    for (let t = minLag; t < maxLag; t++) {
+      if (dbuf[t] < thr) { while (t + 1 < maxLag && dbuf[t + 1] < dbuf[t]) t++; tau = t; break; }
+    }
+    if (tau < 0) {                                   // kein klares Minimum unter der Schwelle: bestes nehmen, wenn ordentlich
+      let b = minLag; for (let t = minLag; t < maxLag; t++) if (dbuf[t] < dbuf[b]) b = t;
+      if (dbuf[b] > 0.3) return null; tau = b;
+    }
+    // parabolische Verfeinerung
+    let tt = tau;
+    if (tau > 1 && tau < maxLag) { const a = dbuf[tau - 1], b = dbuf[tau], c = dbuf[tau + 1], den = a + c - 2 * b; if (Math.abs(den) > 1e-12) tt = tau + 0.5 * (a - c) / den; }
+    const f = s2 / tt, m = 69 + 12 * Math.log2(f / 440), midi = Math.round(m);
+    return { f, midi, cents: Math.round((m - midi) * 100), conf: 1 - dbuf[tau], rms };
+  }
+  return { detect };
+})();
+if (typeof window !== 'undefined') window.Pitch = Pitch;
+if (typeof module !== 'undefined') module.exports = Pitch;
+
 // ---- Solo Finder: was passt über den gerade klingenden Akkord? ----
 // Oben die Akkordfolge des Loops (klingender Akkord eingerahmt), darunter Tonart, mögliche Akkorde,
 // passende Tonleitern (Kirchentonleitern, Pentatonik, Blues, Akkordtöne) mit Griffbild, Wechsel zum
@@ -9814,6 +9895,7 @@ if (typeof module !== 'undefined') module.exports = Voicings;
     $('sfGrips').hidden = !grip;
     $('sfNeck').closest('.sf-neckwrap').classList.toggle('grip', grip);
     if (grip) renderGrip(state.gripC || x.c, x.k); else renderNeck(x.s, x.c, x.k);
+    if (L.on) drawHit();
   }
   function neckFrame() {
     const W = 760, H = 168, x0 = 34, fw = (W - x0 - 8) / FR, y0 = 18, sh = (H - y0 - 22) / 5;
@@ -9852,6 +9934,73 @@ if (typeof module !== 'undefined') module.exports = Voicings;
     const v = state.voicing; if (!v || !window.Quinten) return;
     Voicings.notes(v).forEach((m, i) => setTimeout(() => Quinten.playNote(m), i * 28));
   }
+  // ---- Mithören: gespielten Ton erkennen, im Griffbild zeigen und einordnen ----
+  const L = { on: false, timer: null, buf: null, last: -1, cnt: 0, quiet: 0, cur: null, st: { ct: 0, sc: 0, out: 0 } };
+  function classify(midi) {
+    const x = state.ctx; if (!x) return null;
+    const p = md(midi), ct = x.c.iv.map(i => md(x.c.r + i));
+    if (p === x.c.r) return { cls: 'root', txt: 'Grundton', k: 'ct' };
+    if (ct.includes(p)) return { cls: 'ct', txt: 'Akkordton', k: 'ct' };
+    const sp = state.neck === 'scale' && x.s ? x.s.pcs : keyPcs(x.k);
+    if (sp.includes(p)) return { cls: 'sc', txt: 'Tonleiter', k: 'sc' };
+    return { cls: 'out', txt: 'Reibung', k: 'out' };
+  }
+  function drawHit() {
+    const svg = $('sfNeck'), old = svg.querySelector('#sfHit'); if (old) old.remove();
+    if (!L.on || !L.cur) return;
+    const g = neckFrame(), OP = [64, 59, 55, 50, 45, 40];
+    let h = '';
+    OP.forEach((o, st) => { const f = L.cur.midi - o; if (f < 0 || f > FR) return; h += '<circle cx="' + g.fx(f) + '" cy="' + (g.y0 + st * g.sh) + '" r="15" class="nk-hit ' + L.cur.c.cls + '"/>'; });
+    const gg = document.createElementNS('http://www.w3.org/2000/svg', 'g'); gg.id = 'sfHit'; gg.innerHTML = h; svg.appendChild(gg);
+  }
+  function showLive() {
+    const n = L.cur, k = state.k;
+    $('sfLiveNote').textContent = n ? nn(n.midi, k) + (Math.floor(n.midi / 12) - 1) : '–';
+    $('sfLiveCents').textContent = n ? (n.cents > 0 ? '+' : '') + n.cents + ' ct' : '';
+    const tg = $('sfLiveTag'); tg.className = 'sf-live-tag' + (n ? ' ' + n.c.cls : ''); tg.textContent = n ? n.c.txt : (L.msg || 'Spiel etwas …');
+    const t = L.st.ct + L.st.sc + L.st.out, pc = v => t ? Math.round(v / t * 100) + ' %' : '–';
+    $('sfLiveStats').innerHTML = '<span>Gezählt <b>' + t + '</b></span><span class="ct">Akkordton <b>' + pc(L.st.ct) + '</b></span><span class="sc">Tonleiter <b>' + pc(L.st.sc) + '</b></span><span class="out">Reibung <b>' + pc(L.st.out) + '</b></span>';
+    drawHit();
+  }
+  function listenTick() {
+    if (!L.on || panel.hidden) return;
+    const an = typeof Looper !== 'undefined' && Looper.inputAnalyser ? Looper.inputAnalyser() : null;
+    if (!an) { if (L.msg !== 'Eingang geschlossen – tippe nochmal auf „Mithören“.') { L.msg = 'Eingang geschlossen – tippe nochmal auf „Mithören“.'; L.cur = null; showLive(); } return; }
+    if (!L.buf || L.buf.length !== an.fftSize) L.buf = new Float32Array(an.fftSize);
+    an.getFloatTimeDomainData(L.buf);
+    const r = Pitch.detect(L.buf, audioCtx.sampleRate, { gate: 0.005 });
+    if (r && r.conf > 0.8 && r.midi >= 38 && r.midi <= 90) {
+      L.quiet = 0;
+      if (r.midi === L.last) L.cnt++; else { L.last = r.midi; L.cnt = 1; }
+      if (L.cnt === 2) {                               // zwei gleiche Messungen hintereinander: neuer Ton
+        const c = classify(r.midi); if (!c) return;
+        L.st[c.k]++; L.cur = { midi: r.midi, cents: r.cents, c }; L.msg = ''; showLive();
+      } else if (L.cnt > 2 && L.cur && L.cur.midi === r.midi) { L.cur.cents = r.cents; $('sfLiveCents').textContent = (r.cents > 0 ? '+' : '') + r.cents + ' ct'; }
+    } else if (++L.quiet >= 6) {                         // ca. 0,4 s Ruhe: Anzeige leeren, gleicher Ton zählt wieder neu
+      L.last = -1; L.cnt = 0; if (L.cur) { L.cur = null; showLive(); }
+    }
+  }
+  function listenRun() { clearInterval(L.timer); L.timer = null; if (L.on && !panel.hidden) L.timer = setInterval(listenTick, 60); }
+  async function setListen(v) {
+    const b = $('sfListen');
+    if (v) {
+      if (typeof Looper === 'undefined' || !Looper.openInput || typeof Pitch === 'undefined') return;
+      b.disabled = true; L.msg = 'Eingang wird geöffnet …'; $('sfLive').hidden = false; showLive();
+      let ok = false; try { ok = await Looper.openInput(); } catch (e) { ok = false; }
+      b.disabled = false;
+      if (!ok) { L.on = false; L.msg = 'Kein Zugriff auf den Eingang – erlaube das Mikrofon und tippe nochmal.'; showLive(); b.classList.remove('active'); b.setAttribute('aria-pressed', 'false'); return; }
+      L.on = true; L.msg = ''; L.cur = null;
+    } else {
+      L.on = false; L.cur = null;
+      if (typeof Looper !== 'undefined' && Looper.releaseAnalyser) Looper.releaseAnalyser();
+    }
+    b.classList.toggle('active', L.on); b.setAttribute('aria-pressed', L.on ? 'true' : 'false');
+    $('sfLive').hidden = !L.on; showLive(); listenRun();
+  }
+  $('sfListen').addEventListener('click', () => setListen(!L.on));
+  $('sfLiveReset').addEventListener('click', () => { L.st = { ct: 0, sc: 0, out: 0 }; showLive(); });
+  document.addEventListener('tabchange', () => setTimeout(listenRun, 0));
+
   // ---- Ideen-Würfel ----
   function idea() {
     const f = state.focus, k = state.k; if (!f || !k) return;
@@ -9957,7 +10106,7 @@ if (typeof module !== 'undefined') module.exports = Voicings;
     timer = setInterval(() => update(false), 100);
   });
   window.addEventListener('resize', () => { if (!panel.hidden) { bandSig = ''; update(true); } });
-  window.SoloFinder = { state: () => state, drawNeck, suggestions: (r, t, pc, major) => suggestions({ r, t, iv: CH[t] }, { pc, major }), roman: (r, t, pc, major) => roman({ r, t, iv: CH[t] }, { pc, major }), update };
+  window.SoloFinder = { state: () => state, drawNeck, listen: () => ({ on: L.on, cur: L.cur, st: Object.assign({}, L.st) }), setListen, suggestions: (r, t, pc, major) => suggestions({ r, t, iv: CH[t] }, { pc, major }), roman: (r, t, pc, major) => roman({ r, t, iv: CH[t] }, { pc, major }), update };
 })();
 
 </script>

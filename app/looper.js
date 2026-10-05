@@ -7,6 +7,7 @@ const Looper = (() => {
 
   let sr = 48000;
   let micReady = false, tapNode = null, sinkNode = null, micSource = null, stream = null;
+  let extAnalyser = null;                         // Abgriff für „Mithören“ im Solo Finder (nur solange benutzt)
   let baseL = 0;       // Länge des ersten Loops (Frames) – alle Spuren sind Vielfache davon
   let anchor = 0;      // Frame, an dem Phase 0 aller Spuren liegt
   let rec = null;      // {t, kind: first|new|overdub, start, end, chunks, n, layer, armed, Lt}
@@ -257,6 +258,7 @@ const Looper = (() => {
       tapNode.onaudioprocess = e => { const ib = e.inputBuffer; handleChunk(Math.round(e.playbackTime * sr) - 2048, SP(new Float32Array(ib.getChannelData(0)), new Float32Array(ib.getChannelData(ib.numberOfChannels > 1 ? 1 : 0)))); };
     }
     micSource.connect(tapNode); tapNode.connect(sinkNode); sinkNode.connect(audioCtx.destination);
+    if (extAnalyser) { try { micSource.connect(extAnalyser); extAnalyser.connect(sinkNode); } catch (e) {} }   // Mithören (Solo Finder) nach Neuverbindung weiter versorgen
     if (latEl.value === '') {
       const est = ((audioCtx.baseLatency || 0) + (audioCtx.outputLatency || 0)) * 1000 + 15;
       latEl.value = Math.min(250, Math.max(10, Math.round(est / 5) * 5));
@@ -2519,6 +2521,14 @@ const Looper = (() => {
       return { tracks: list, track: t.i, segs: t.chords.segs.map(q => ({ name: q.name, a: q.a, e: q.e })), L: t.L, pos, downs, sr,
         key: t.key ? { pc: t.key.pc, major: !!t.key.major } : null, playing: !!t.src };
     },
+    // Eingang für „Mithören“: öffnet ihn bei Bedarf (gleicher Zugriff wie der Looper), liefert einen Analyser
+    openInput: () => ensureMic(),
+    inputAnalyser: () => {
+      if (!micReady || !micSource) return null;
+      if (!extAnalyser) { extAnalyser = audioCtx.createAnalyser(); extAnalyser.fftSize = 4096; extAnalyser.smoothingTimeConstant = 0; micSource.connect(extAnalyser); extAnalyser.connect(sinkNode); }
+      return extAnalyser;
+    },
+    releaseAnalyser: () => { if (extAnalyser) { try { if (micSource) micSource.disconnect(extAnalyser); extAnalyser.disconnect(); } catch (e) {} extAnalyser = null; } },
     busy: () => !!rec || tracks.some(t => !!t.src),     // spielt oder nimmt gerade etwas auf (für den Jam)
     stopAll: () => { const b = $('loopAll'); if (b && tracks.some(t => !!t.src) && !rec) b.click(); },
     seek: (i, f) => { const t = tracks[i]; if (t && t.L && !rec) seekTo(t, f); },

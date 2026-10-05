@@ -100,3 +100,22 @@
   .nk-x { fill: var(--muted); font: 700 16px var(--f-body); text-anchor: middle; dominant-baseline: middle; }
   .nk-n.open circle { fill: var(--bg); stroke: var(--t2); stroke-width: 2; } .nk-n.open text { fill: var(--ink); }
   .nk-n.open.root circle { stroke: var(--root-color); } .nk-n.third:not(.open) circle { fill: color-mix(in srgb, var(--t2) 70%, #fff); }
+  /* Mithören */
+  .sf-listen { padding: 5px 12px; font-size: .8rem; margin-left: 4px; }
+  .sf-listen.active { background: var(--root-color); color: #fff; border-color: var(--root-color); }
+  .sf-live { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 8px 10px; border-radius: 10px; background: rgba(0,0,0,.3); border: 1px solid var(--line-soft); }
+  .sf-live[hidden] { display: none; }
+  .sf-live-n { display: flex; align-items: baseline; gap: 8px; min-width: 150px; }
+  .sf-live-n .lbl { font: 600 .62rem var(--f-body); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .sf-live-n b { font: 800 1.9rem var(--f-mono); min-width: 2.4em; }
+  .sf-live-n span:last-child { font: 600 .8rem var(--f-mono); color: var(--muted); }
+  .sf-live-tag { font: 800 .85rem var(--f-body); padding: 4px 12px; border-radius: 999px; border: 2px solid var(--line); color: var(--muted); }
+  .sf-live-tag.root { border-color: var(--root-color); color: var(--root-color); } .sf-live-tag.ct { border-color: var(--t2); color: var(--t2); }
+  .sf-live-tag.sc { border-color: var(--scale-color); color: var(--scale-color); } .sf-live-tag.out { border-color: #ff7a59; color: #ff7a59; }
+  .sf-live-stats { display: flex; flex-wrap: wrap; gap: 4px 12px; font: 500 .8rem var(--f-body); color: var(--muted); flex: 1 1 260px; }
+  .sf-live-stats b { color: var(--ink); } .sf-live-stats .ct b { color: var(--t2); } .sf-live-stats .out b { color: #ff7a59; }
+  .sf-live .toggle-btn { padding: 5px 10px; font-size: .75rem; }
+  .nk-hit { fill: none; stroke-width: 4; pointer-events: none; animation: nkhit .5s ease-out; }
+  .nk-hit.root { stroke: var(--root-color); } .nk-hit.ct { stroke: var(--t2); } .nk-hit.sc { stroke: var(--scale-color); } .nk-hit.out { stroke: #ff7a59; }
+  @keyframes nkhit { from { stroke-width: 9; opacity: .4; } to { stroke-width: 4; opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .nk-hit { animation: none; } }

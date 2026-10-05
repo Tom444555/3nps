@@ -275,6 +275,7 @@
     $('sfGrips').hidden = !grip;
     $('sfNeck').closest('.sf-neckwrap').classList.toggle('grip', grip);
     if (grip) renderGrip(state.gripC || x.c, x.k); else renderNeck(x.s, x.c, x.k);
+    if (L.on) drawHit();
   }
   function neckFrame() {
     const W = 760, H = 168, x0 = 34, fw = (W - x0 - 8) / FR, y0 = 18, sh = (H - y0 - 22) / 5;
@@ -313,6 +314,73 @@
     const v = state.voicing; if (!v || !window.Quinten) return;
     Voicings.notes(v).forEach((m, i) => setTimeout(() => Quinten.playNote(m), i * 28));
   }
+  // ---- Mithören: gespielten Ton erkennen, im Griffbild zeigen und einordnen ----
+  const L = { on: false, timer: null, buf: null, last: -1, cnt: 0, quiet: 0, cur: null, st: { ct: 0, sc: 0, out: 0 } };
+  function classify(midi) {
+    const x = state.ctx; if (!x) return null;
+    const p = md(midi), ct = x.c.iv.map(i => md(x.c.r + i));
+    if (p === x.c.r) return { cls: 'root', txt: 'Grundton', k: 'ct' };
+    if (ct.includes(p)) return { cls: 'ct', txt: 'Akkordton', k: 'ct' };
+    const sp = state.neck === 'scale' && x.s ? x.s.pcs : keyPcs(x.k);
+    if (sp.includes(p)) return { cls: 'sc', txt: 'Tonleiter', k: 'sc' };
+    return { cls: 'out', txt: 'Reibung', k: 'out' };
+  }
+  function drawHit() {
+    const svg = $('sfNeck'), old = svg.querySelector('#sfHit'); if (old) old.remove();
+    if (!L.on || !L.cur) return;
+    const g = neckFrame(), OP = [64, 59, 55, 50, 45, 40];
+    let h = '';
+    OP.forEach((o, st) => { const f = L.cur.midi - o; if (f < 0 || f > FR) return; h += '<circle cx="' + g.fx(f) + '" cy="' + (g.y0 + st * g.sh) + '" r="15" class="nk-hit ' + L.cur.c.cls + '"/>'; });
+    const gg = document.createElementNS('http://www.w3.org/2000/svg', 'g'); gg.id = 'sfHit'; gg.innerHTML = h; svg.appendChild(gg);
+  }
+  function showLive() {
+    const n = L.cur, k = state.k;
+    $('sfLiveNote').textContent = n ? nn(n.midi, k) + (Math.floor(n.midi / 12) - 1) : '–';
+    $('sfLiveCents').textContent = n ? (n.cents > 0 ? '+' : '') + n.cents + ' ct' : '';
+    const tg = $('sfLiveTag'); tg.className = 'sf-live-tag' + (n ? ' ' + n.c.cls : ''); tg.textContent = n ? n.c.txt : (L.msg || 'Spiel etwas …');
+    const t = L.st.ct + L.st.sc + L.st.out, pc = v => t ? Math.round(v / t * 100) + ' %' : '–';
+    $('sfLiveStats').innerHTML = '<span>Gezählt <b>' + t + '</b></span><span class="ct">Akkordton <b>' + pc(L.st.ct) + '</b></span><span class="sc">Tonleiter <b>' + pc(L.st.sc) + '</b></span><span class="out">Reibung <b>' + pc(L.st.out) + '</b></span>';
+    drawHit();
+  }
+  function listenTick() {
+    if (!L.on || panel.hidden) return;
+    const an = typeof Looper !== 'undefined' && Looper.inputAnalyser ? Looper.inputAnalyser() : null;
+    if (!an) { if (L.msg !== 'Eingang geschlossen – tippe nochmal auf „Mithören“.') { L.msg = 'Eingang geschlossen – tippe nochmal auf „Mithören“.'; L.cur = null; showLive(); } return; }
+    if (!L.buf || L.buf.length !== an.fftSize) L.buf = new Float32Array(an.fftSize);
+    an.getFloatTimeDomainData(L.buf);
+    const r = Pitch.detect(L.buf, audioCtx.sampleRate, { gate: 0.005 });
+    if (r && r.conf > 0.8 && r.midi >= 38 && r.midi <= 90) {
+      L.quiet = 0;
+      if (r.midi === L.last) L.cnt++; else { L.last = r.midi; L.cnt = 1; }
+      if (L.cnt === 2) {                               // zwei gleiche Messungen hintereinander: neuer Ton
+        const c = classify(r.midi); if (!c) return;
+        L.st[c.k]++; L.cur = { midi: r.midi, cents: r.cents, c }; L.msg = ''; showLive();
+      } else if (L.cnt > 2 && L.cur && L.cur.midi === r.midi) { L.cur.cents = r.cents; $('sfLiveCents').textContent = (r.cents > 0 ? '+' : '') + r.cents + ' ct'; }
+    } else if (++L.quiet >= 6) {                         // ca. 0,4 s Ruhe: Anzeige leeren, gleicher Ton zählt wieder neu
+      L.last = -1; L.cnt = 0; if (L.cur) { L.cur = null; showLive(); }
+    }
+  }
+  function listenRun() { clearInterval(L.timer); L.timer = null; if (L.on && !panel.hidden) L.timer = setInterval(listenTick, 60); }
+  async function setListen(v) {
+    const b = $('sfListen');
+    if (v) {
+      if (typeof Looper === 'undefined' || !Looper.openInput || typeof Pitch === 'undefined') return;
+      b.disabled = true; L.msg = 'Eingang wird geöffnet …'; $('sfLive').hidden = false; showLive();
+      let ok = false; try { ok = await Looper.openInput(); } catch (e) { ok = false; }
+      b.disabled = false;
+      if (!ok) { L.on = false; L.msg = 'Kein Zugriff auf den Eingang – erlaube das Mikrofon und tippe nochmal.'; showLive(); b.classList.remove('active'); b.setAttribute('aria-pressed', 'false'); return; }
+      L.on = true; L.msg = ''; L.cur = null;
+    } else {
+      L.on = false; L.cur = null;
+      if (typeof Looper !== 'undefined' && Looper.releaseAnalyser) Looper.releaseAnalyser();
+    }
+    b.classList.toggle('active', L.on); b.setAttribute('aria-pressed', L.on ? 'true' : 'false');
+    $('sfLive').hidden = !L.on; showLive(); listenRun();
+  }
+  $('sfListen').addEventListener('click', () => setListen(!L.on));
+  $('sfLiveReset').addEventListener('click', () => { L.st = { ct: 0, sc: 0, out: 0 }; showLive(); });
+  document.addEventListener('tabchange', () => setTimeout(listenRun, 0));
+
   // ---- Ideen-Würfel ----
   function idea() {
     const f = state.focus, k = state.k; if (!f || !k) return;
@@ -418,5 +486,5 @@
     timer = setInterval(() => update(false), 100);
   });
   window.addEventListener('resize', () => { if (!panel.hidden) { bandSig = ''; update(true); } });
-  window.SoloFinder = { state: () => state, drawNeck, suggestions: (r, t, pc, major) => suggestions({ r, t, iv: CH[t] }, { pc, major }), roman: (r, t, pc, major) => roman({ r, t, iv: CH[t] }, { pc, major }), update };
+  window.SoloFinder = { state: () => state, drawNeck, listen: () => ({ on: L.on, cur: L.cur, st: Object.assign({}, L.st) }), setListen, suggestions: (r, t, pc, major) => suggestions({ r, t, iv: CH[t] }, { pc, major }), roman: (r, t, pc, major) => roman({ r, t, iv: CH[t] }, { pc, major }), update };
 })();
