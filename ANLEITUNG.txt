@@ -243,7 +243,7 @@ Alles geht direkt auf dem iPad, ohne Computer.
    - Der Bass wird beim Start der App selbst erzeugt (gezupfte Saite, im Hintergrund). Es stecken keine
      fremden Aufnahmen mehr in der App, und der Bass setzt pünktlich mit der Kick ein.
 
-23. Reiter: Looper · Quintenzirkel · Improvisation · Backing Track · Training · Technik
+23. Reiter: Looper · Quintenzirkel · Improvisation · Backing Track · Songwriting · Training · Technik
    (bis v25 hießen sie Solo Finder, Jam, Üben und Griffbrett)
    - Looper steht ganz links und ist beim Start offen.
    - Technik enthält alles für die Griffbrett-Übung untereinander: Griffbild, Metronom,
@@ -322,6 +322,31 @@ Alles geht direkt auf dem iPad, ohne Computer.
    - Unter https://tom444555.github.io/3nps/stabil/ liegt die Version 24 als Rückfall-Fassung, mit eigenem
      Offline-Speicher („Looper stabil“, auch als eigenes Icon auf dem Home-Bildschirm möglich). Beide Fassungen
      teilen sich Einstellungen, Sitzungen und Übungslog.
+
+29. Songwriting – vom Loop zum Song
+   - Im Looper etwas einspielen oder laden. Passt es: unten auf „→ Song“ tippen. Gespeichert werden der Mix aller
+     Spuren (eine volle Runde), die erkannten Akkorde, Tonart und Tempo. Du wählst den Song (oder legst einen neuen
+     an), die Art des Teils (Intro, Strophe, Pre-Chorus, Refrain, Bridge, Solo, Outro) und ob ein neuer Teil
+     entsteht oder ein vorhandener ersetzt wird.
+   - Im Reiter Songwriting:
+     · Ablauf: Teile antippen → verschieben, Wiederholungen, verdoppeln, entfernen, „▶ ab hier“. „Teil einfügen“
+       hängt Teile an. Der Song spielt am Stück mit deinen Aufnahmen, Drums, Bass (folgt den Akkorden) und auf
+       Wunsch Fläche; der laufende Abschnitt leuchtet. Improvisation und Quintenzirkel folgen dem Song.
+     · Teile: Name und Art ändern, Akkorde antippen und korrigieren (wie im Backing Track: „Am F C G“, „Am7:2“).
+       Ändern sich die Akkorde, passt die Aufnahme nicht mehr und wird stumm – neu einspielen und mit „→ Song“
+       ersetzen. „▶ Teil“ spielt ihn in Schleife, „→ Backing Track“ übernimmt die Akkorde zum Üben.
+     · Tonart ♭/♯ und Tempo: Tempo ändern spielt die Aufnahmen passend schneller/langsamer (Tonhöhe ändert sich mit).
+     · Versionen: Jede übernommene Variante und jede Transposition wird eine neue Version (V1, V2 …). Über
+       „Version“ kommst du jederzeit zurück; „Als neue Version sichern“ hält einen Zwischenstand fest.
+   - „Song prüfen“: Rückmeldung zu Länge, Refrain-Häufigkeit, Bridge, Kontrast Strophe/Refrain, Übergängen
+     (z. B. Dominante → Tonika), Akkorden außerhalb der Tonart, Vielfalt und Schluss. Darunter Varianten zum
+     Anhören und Übernehmen: Refrain auf IV/vi beginnen, Strophe mit der Dominante enden, geliehener Akkord
+     (iv, ♭VI, Dur-Dominante in Moll), Strophe einfärben, Pre-Chorus, Bridge, letzter Refrain einen Ganzton
+     höher, Refrain breiter, Outro auf der Tonika.
+   - Gesang: Stimmlage wählen oder tiefsten/höchsten Ton direkt einsingen („🎤“). Die App sagt, ob die Tonart
+     zu deiner Stimme passt, schlägt die nächstbessere vor (mit Kapodaster-Hinweis) und zeigt je Akkord die
+     Zieltöne in deinem Umfang (Terz hervorgehoben, antippen zum Anhören).
+   - Songs und Aufnahmen werden auf dem iPad gespeichert und mit „Alles sichern“ mitgesichert.
 
 Gut zu wissen
    - Übungslog und Ideen werden nur auf diesem iPad gespeichert. Eine neue Installation
