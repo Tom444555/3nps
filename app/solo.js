@@ -490,7 +490,8 @@
   function quick(name, k) {
     const c = parseChord(name); if (!c) return null;
     const sg = suggestions(c, k), best = sg[0], pent = sg.find(x => x.id === 'pmin' || x.id === 'pmaj');
-    return { c, chord: chordName(c, k), roman: roman(c, k), func: func(c, k), best, pent, scaleName: id => SC[id].n, nn: p => nn(p, k), ct: c.iv.map(x => md(c.r + x)) };
+    return { c, chord: chordName(c, k), roman: roman(c, k), func: func(c, k), best, pent, sugg: sg, scaleName: id => SC[id].n, mood: id => SC[id].mood,
+      ivLong: x => IVLONG[md(x)], keyLabel: keyLabel(k), keyNotes: keyPcs(k), nn: p => nn(p, k), ct: c.iv.map(x => md(c.r + x)) };
   }
   window.SoloFinder = { quick, parseChord, state: () => state, drawNeck, listen: () => ({ on: L.on, cur: L.cur, st: Object.assign({}, L.st) }), setListen, suggestions: (r, t, pc, major) => suggestions({ r, t, iv: CH[t] }, { pc, major }), roman: (r, t, pc, major) => roman({ r, t, iv: CH[t] }, { pc, major }), update };
 })();

@@ -816,31 +816,62 @@
   .tl-pe { fill: none; stroke-width: 2; stroke: var(--scale-color); } .tl-pe.root { stroke: var(--root-color); } .tl-pe.ct { stroke: var(--t2); } .tl-pe.out { stroke: #ff7a59; }
   .ub-tl-leg { justify-content: flex-start; }
   .ub-tips { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font: 500 .9rem var(--f-body); line-height: 1.45; }
-  /* ---- „Was passt“-Box unter der aufnehmenden Spur ---- */
-  .passt { grid-column: var(--passt-col, 1); grid-row: 2; display: flex; flex-direction: column; gap: 6px; padding: 6px 8px 8px; border-radius: 8px;
-    background: rgba(0,0,0,.38); border: 1px solid var(--line-soft); min-width: 0; }
+  /* ---- „Was passt“ oben in der Looper-Karte, volle Breite ---- */
+  .passt { display: flex; flex-direction: column; gap: 10px; padding: 10px 12px 12px; margin-bottom: 4px; border-radius: 10px;
+    background: rgba(0,0,0,.42); border: 1px solid var(--line-soft); }
   .passt[hidden] { display: none; }
-  .passt.rec { border-color: color-mix(in srgb, var(--root-color) 70%, transparent); box-shadow: 0 0 10px color-mix(in srgb, var(--root-color) 30%, transparent); }
-  .passt-h { display: flex; align-items: baseline; gap: 6px; cursor: pointer; min-width: 0; user-select: none; -webkit-user-select: none; }
-  .passt-l { font: 700 .55rem var(--f-body); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
-  .passt-ch { font: 800 1.05rem var(--f-mono); color: var(--accent); white-space: nowrap; }
-  .passt-r { font: 700 .62rem var(--f-body); color: var(--muted); }
-  .passt-sc { font: 700 .78rem var(--f-body); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1; }
-  .passt-tg { color: var(--muted); font-size: .7rem; transition: transform .15s; }
+  .passt.rec { border-color: color-mix(in srgb, var(--root-color) 70%, transparent); box-shadow: 0 0 12px color-mix(in srgb, var(--root-color) 28%, transparent); }
+  .passt.held { border-color: var(--dub); }
+  .passt.stop .passt-b { opacity: .55; }
+  .passt-h { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; min-width: 0; }
+  .passt-tgl { appearance: none; background: none; border: 0; color: inherit; padding: 4px 2px; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  .passt-l { font: 700 .6rem var(--f-body); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+  .passt-tg { color: var(--muted); font-size: .75rem; transition: transform .15s; }
   .passt.zu .passt-tg { transform: rotate(-90deg); }
-  .passt-go { appearance: none; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); border-radius: 6px; font: 700 .9rem var(--f-body); width: 26px; height: 22px; padding: 0; cursor: pointer; align-self: center; }
-  .passt.zu .passt-b { display: none; }
-  .passt-b { display: flex; flex-direction: column; gap: 5px; }
-  .passt-notes { display: flex; flex-wrap: wrap; gap: 3px; }
-  .passt-n { font: 700 .78rem var(--f-mono); min-width: 24px; text-align: center; padding: 3px 3px; border-radius: 5px; background: var(--surface-2); border: 1px solid var(--line); }
+  .passt-hs { font: 600 .9rem var(--f-body); color: var(--muted); display: none; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .passt-hs b { font: 800 1.25rem var(--f-mono); color: var(--accent); }
+  .passt.zu .passt-hs { display: inline; }
+  .passt-sp { flex: 1; }
+  .passt-hold, .passt-go { padding: 6px 12px; font-size: .8rem; }
+  .passt-hold.active { background: var(--dub); color: #111; border-color: var(--dub); }
+  .passt-pick { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  .passt-pick[hidden] { display: none; }
+  .passt-pick .toggle-btn { padding: 6px 14px; font: 800 1rem var(--f-mono); }
+  .passt.zu .passt-b, .passt.zu .passt-pick { display: none; }
+  .passt-b { display: grid; grid-template-columns: minmax(150px, 0.8fr) minmax(0, 1.6fr) minmax(0, 1.2fr); gap: 14px; align-items: start; }
+  .passt-now { display: flex; flex-direction: column; gap: 3px; }
+  .passt-cap { font: 700 .6rem var(--f-body); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+  .passt.held .passt-cap { color: var(--dub); }
+  .passt-ch { font: 800 3rem var(--f-mono); line-height: 1; color: var(--accent); }
+  .passt-rom { font: 700 .95rem var(--f-body); }
+  .passt-ct, .passt-nx { font: 600 .82rem var(--f-body); color: var(--muted); }
+  .passt-ct b { font-family: var(--f-mono); color: var(--t2); } .passt-nx b { font: 800 1.15rem var(--f-mono); color: var(--ink); }
+  .passt-sc { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+  .passt-sch { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .passt-sch b { font: 800 1.15rem var(--f-display); }
+  .passt-notes { display: flex; flex-wrap: wrap; gap: 4px; }
+  .passt-n { font: 800 1.02rem var(--f-mono); min-width: 34px; text-align: center; padding: 5px 5px; border-radius: 7px; background: var(--surface-2); border: 1px solid var(--line); }
   .passt-n.ct { background: color-mix(in srgb, var(--t2) 22%, var(--surface-2)); border-color: var(--t2); }
   .passt-n.root { background: var(--root-color); border-color: var(--root-color); color: #fff; }
   .passt-n.char { border: 2px solid var(--dub); color: var(--dub); }
   .passt-n.out { border-style: dashed; border-color: #ff7a59; }
-  .passt-x { display: flex; flex-wrap: wrap; gap: 2px 12px; font: 600 .74rem var(--f-mono); }
-  .passt-x i { font: 600 .62rem var(--f-body); font-style: normal; color: var(--muted); letter-spacing: .04em; } .passt-x b { color: var(--accent); }
-  @media (max-width: 700px) { .passt { grid-column: 1 / -1; } }
+  .passt-d { margin: 0; font: 500 .84rem var(--f-body); color: var(--muted); line-height: 1.45; }
+  .passt-c { margin: 0; font: 500 .8rem var(--f-body); color: var(--muted); }
+  .passt-c:empty { display: none; }
+  .passt-c .y, .passt b.y { color: var(--dub); } .passt-c .o { color: #ff7a59; } .passt b.g { color: var(--accent); }
+  .passt-mv { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .passt-row { display: flex; flex-direction: column; gap: 3px; font: 500 .84rem var(--f-body); line-height: 1.4; }
+  .passt-row b { font-family: var(--f-mono); }
+  .passt-pn { font: 700 1rem var(--f-mono); letter-spacing: .06em; }
+  @media (max-width: 860px) { .passt-b { grid-template-columns: minmax(130px, 0.7fr) minmax(0, 1.5fr); } .passt-mv { grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; gap: 8px 24px; } }
+  @media (max-width: 560px) { .passt-b { grid-template-columns: 1fr; } .passt-now { flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; } .passt-cap { width: 100%; } .passt-ch { font-size: 2.4rem; } }
   @media (prefers-reduced-motion: reduce) { .passt-tg { transition: none; } }
+  @media (max-width: 560px) {
+    .tracks .th-chords { display: none !important; }
+    .tracks .track-head { flex-wrap: wrap; min-height: 0; }
+    .tracks .keybadge { font-size: .72rem; padding: 2px 7px 3px; border-radius: 7px; }
+    .tracks .keybadge small { font-size: .46rem; }
+  }
   /* ===== Rost & Stahl: Hintergrund aus gerostetem Blech, darauf verschraubte Stahlplatten ===== */
   :root {
     --plate-hi: #3a3a40;
@@ -1367,7 +1398,7 @@
 <body>
 <header class="control-bar">
   <div class="cb-inner">
-    <div class="brand">Looper <span>3nps · v26</span></div>
+    <div class="brand">Looper <span>3nps · v27</span></div>
     <div class="transport">
       <button class="tbtn" id="playBtn" aria-label="Metronom starten oder stoppen">▶</button>
     </div>
@@ -10284,79 +10315,148 @@ if (typeof module !== 'undefined') module.exports = Pitch;
   function quick(name, k) {
     const c = parseChord(name); if (!c) return null;
     const sg = suggestions(c, k), best = sg[0], pent = sg.find(x => x.id === 'pmin' || x.id === 'pmaj');
-    return { c, chord: chordName(c, k), roman: roman(c, k), func: func(c, k), best, pent, scaleName: id => SC[id].n, nn: p => nn(p, k), ct: c.iv.map(x => md(c.r + x)) };
+    return { c, chord: chordName(c, k), roman: roman(c, k), func: func(c, k), best, pent, sugg: sg, scaleName: id => SC[id].n, mood: id => SC[id].mood,
+      ivLong: x => IVLONG[md(x)], keyLabel: keyLabel(k), keyNotes: keyPcs(k), nn: p => nn(p, k), ct: c.iv.map(x => md(c.r + x)) };
   }
   window.SoloFinder = { quick, parseChord, state: () => state, drawNeck, listen: () => ({ on: L.on, cur: L.cur, st: Object.assign({}, L.st) }), setListen, suggestions: (r, t, pc, major) => suggestions({ r, t, iv: CH[t] }, { pc, major }), roman: (r, t, pc, major) => roman({ r, t, iv: CH[t] }, { pc, major }), update };
 })();
 
-// ---- „Was passt“-Box im Looper: kompakt unter der Spur, die gerade aufnimmt (sonst unter der nächsten freien) ----
-// Sichtbar nur, solange ein Loop mit erkannten Akkorden läuft. Zugeklappt: eine Zeile (Akkord + beste Tonleiter),
-// aufgeklappt: Töne der Tonleiter, Pentatonik und Zielton für den nächsten Akkord. Antippen von „›“ öffnet die Improvisation.
+// ---- „Was passt“ im Looper: oben in der Looper-Karte über die volle Breite (zwischen Titel und Loop-Länge) ----
+// Sichtbar, solange ein Loop mit erkannten Akkorden läuft. Links groß der klingende und der nächste Akkord,
+// Mitte die genau passende Tonleiter mit Beschreibung, rechts Pentatonik und der nächste Wechsel.
+// „Anhalten“ friert die Anzeige ein (zum Nachlesen); dann lässt sich jeder Akkord des Loops antippen.
 (function () {
   const $ = id => document.getElementById(id);
-  const host = document.querySelector('#panel-looper .tracks');
-  if (!host || typeof Looper === 'undefined' || !Looper.chordInfo) return;
+  const card = document.querySelector('#panel-looper .looper-card');
+  const top = card && card.querySelector('.looper-top');
+  if (!card || !top || typeof Looper === 'undefined' || !Looper.chordInfo) return;
   const KEY = '3nps-passt-auf';
   let open = true; try { open = localStorage.getItem(KEY) !== '0'; } catch (e) {}
+  const md = x => ((x % 12) + 12) % 12;
   const box = document.createElement('div');
   box.className = 'passt'; box.id = 'passtBox'; box.hidden = true;
-  box.innerHTML = '<div class="passt-h" role="button" tabindex="0" aria-expanded="true" id="passtHead">'
-    + '<span class="passt-l">Was passt</span><b class="passt-ch" id="passtCh"></b><span class="passt-r" id="passtRom"></span>'
-    + '<span class="passt-sc" id="passtSc"></span><span class="passt-tg" aria-hidden="true">▾</span>'
-    + '<button class="passt-go" id="passtGo" title="In der Improvisation öffnen" aria-label="In der Improvisation öffnen">›</button></div>'
-    + '<div class="passt-b" id="passtBody"><div class="passt-notes" id="passtNotes"></div><div class="passt-x" id="passtX"></div></div>';
-  host.appendChild(box);
+  box.innerHTML =
+    '<div class="passt-h">'
+    + '<button class="passt-tgl" id="passtHead" aria-expanded="true"><span class="passt-l">Was passt</span><span class="passt-tg" aria-hidden="true">▾</span></button>'
+    + '<span class="passt-hs" id="passtHs"></span>'
+    + '<span class="passt-sp"></span>'
+    + '<button class="toggle-btn passt-hold" id="passtHold" aria-pressed="false">⏸ Anhalten</button>'
+    + '<button class="toggle-btn passt-go" id="passtGo" title="In der Improvisation öffnen">Improvisation ›</button></div>'
+    + '<div class="passt-pick" id="passtPick" hidden></div>'
+    + '<div class="passt-b">'
+    +   '<div class="passt-now"><span class="passt-cap" id="passtCap">Klingt jetzt</span><b class="passt-ch" id="passtCh"></b><span class="passt-rom" id="passtRom"></span>'
+    +     '<span class="passt-ct" id="passtCt"></span><span class="passt-nx" id="passtNx"></span></div>'
+    +   '<div class="passt-sc"><div class="passt-sch"><b id="passtSc"></b><span class="sf-tag" id="passtTag"></span></div>'
+    +     '<div class="passt-notes" id="passtNotes"></div><p class="passt-d" id="passtDesc"></p><p class="passt-c" id="passtChar"></p></div>'
+    +   '<div class="passt-mv" id="passtMv"></div>'
+    + '</div>';
+  card.insertBefore(box, top);
+  const hold = { on: false, i: -1 };
   function setOpen(v) {
     open = v; try { localStorage.setItem(KEY, v ? '1' : '0'); } catch (e) {}
     box.classList.toggle('zu', !open); $('passtHead').setAttribute('aria-expanded', open ? 'true' : 'false');
   }
   setOpen(open);
-  $('passtHead').addEventListener('click', e => { if (e.target.closest('#passtGo')) return; setOpen(!open); });
-  $('passtHead').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen(!open); } });
+  $('passtHead').addEventListener('click', () => setOpen(!open));
   $('passtGo').addEventListener('click', () => { const t = $('tab-solo'); if (t) t.click(); });
+  $('passtHold').addEventListener('click', () => {
+    hold.on = !hold.on; hold.i = hold.on ? lastI : -1;
+    const b = $('passtHold'); b.classList.toggle('active', hold.on); b.setAttribute('aria-pressed', hold.on ? 'true' : 'false');
+    b.textContent = hold.on ? '▶ Weiter mitlaufen' : '⏸ Anhalten';
+    if (hold.on && !open) setOpen(true);
+    sig = ''; tick();
+  });
+  $('passtPick').addEventListener('click', e => {
+    const b = e.target.closest('[data-i]'); if (!b) return;
+    hold.i = +b.dataset.i; sig = ''; tick();
+    const q = lastCI && SoloFinder.quick(lastCI.segs[hold.i].name, lastCI.key || { pc: 0, major: true });
+    if (q && window.Quinten) Quinten.play(q.c.r, q.c.iv);
+  });
 
   const panel = $('panel-looper');
-  let sig = '', col = -1;
-  function nextName(ci, i) {
+  let sig = '', lastI = -1, lastCI = null, pickSig = '', shownOnce = false;
+  function nextIdx(ci, i) {
     const n = ci.segs.length, cur = ci.segs[i].name;
-    for (let k = 1; k < n; k++) { const q = ci.segs[(i + k) % n].name; if (q !== '–' && q !== cur) return q; }
-    return '';
+    for (let k = 1; k < n; k++) { const j = (i + k) % n, q = ci.segs[j].name; if (q !== '–' && q !== cur) return j; }
+    return -1;
   }
   function tick() {
     if (panel.hidden || document.hidden || !window.SoloFinder || !SoloFinder.quick) return;
     const ci = Looper.chordInfo(null);
-    let show = !!(ci && ci.segs && ci.playing && ci.pos != null);
+    const live = !!(ci && ci.segs && ci.playing && ci.pos != null);
     let i = -1;
-    if (show) { for (let q = 0; q < ci.segs.length; q++) if (ci.pos >= ci.segs[q].a && ci.pos < ci.segs[q].e) { i = q; break; } }
-    if (show && (i < 0 || ci.segs[i].name === '–')) show = false;
-    if (!show) { if (!box.hidden) { box.hidden = true; sig = ''; } return; }
-    const ft = Looper.focusTrack ? Looper.focusTrack() : { i: 0, rec: false };
-    if (ft.i !== col) { col = ft.i; box.style.setProperty('--passt-col', String(col + 1)); }
-    box.classList.toggle('rec', !!ft.rec);
-    const k = ci.key || { pc: 0, major: true }, name = ci.segs[i].name, nx = nextName(ci, i);
-    const s = name + '|' + nx + '|' + k.pc + k.major;
+    if (live) { for (let q = 0; q < ci.segs.length; q++) if (ci.pos >= ci.segs[q].a && ci.pos < ci.segs[q].e) { i = q; break; } }
+    // Einmal eingeblendet, bleibt die Box stehen, solange eine Spur Akkorde hat – auch bei gestopptem Loop
+    // (sonst rutscht beim Start/Stopp jedes Mal die ganze Seite und es ruckelt)
+    const has = !!(ci && ci.segs);
+    if (!has) { shownOnce = false; if (!box.hidden) { box.hidden = true; sig = ''; } if (hold.on) $('passtHold').click(); return; }
+    if (live && i >= 0 && ci.segs[i].name !== '–') shownOnce = true;
+    if (!shownOnce && !hold.on) { if (!box.hidden) { box.hidden = true; sig = ''; } return; }
+    box.classList.toggle('stop', !live && !hold.on);
+    lastCI = ci;
+    if (i >= 0 && ci.segs[i].name !== '–') lastI = i;
+    let shown = hold.on ? (hold.i >= 0 && hold.i < ci.segs.length ? hold.i : lastI) : i;
+    if (shown < 0 || ci.segs[shown].name === '–') shown = ci.segs.findIndex(s => s.name !== '–');
+    if (shown < 0) { box.hidden = true; return; }
     box.hidden = false;
+    box.classList.toggle('held', hold.on);
+    const ft = Looper.focusTrack ? Looper.focusTrack() : { rec: false };
+    box.classList.toggle('rec', !!ft.rec);
+    const k = ci.key || { pc: 0, major: true };
+    // Akkordwahl beim Anhalten
+    const ps = hold.on + '|' + ci.segs.map(s => s.name).join(',') + '|' + shown;
+    if (ps !== pickSig) {
+      pickSig = ps; const pk = $('passtPick'); pk.hidden = !hold.on;
+      if (hold.on) {
+        const seen = new Set();
+        pk.innerHTML = '<span class="passt-l">Akkord wählen</span>' + ci.segs.map((s, j) => {
+          if (s.name === '–' || seen.has(s.name)) return ''; seen.add(s.name);
+          const q = SoloFinder.quick(s.name, k);
+          return '<button class="toggle-btn' + (ci.segs[shown].name === s.name ? ' active' : '') + '" data-i="' + j + '">' + (q ? q.chord : s.name) + '</button>';
+        }).join('');
+      }
+    }
+    const nj = nextIdx(ci, shown), name = ci.segs[shown].name, nx = nj >= 0 ? ci.segs[nj].name : '';
+    const stopped = !live && !hold.on;
+    const s = name + '|' + nx + '|' + k.pc + k.major + '|' + hold.on + '|' + stopped;
     if (s === sig) return;
     sig = s;
     const q = SoloFinder.quick(name, k); if (!q || !q.best) { box.hidden = true; return; }
     const b = q.best;
+    $('passtCap').textContent = hold.on ? 'Angehalten' : stopped ? 'Gestoppt' : 'Klingt jetzt';
     $('passtCh').textContent = q.chord;
-    $('passtRom').textContent = q.roman;
+    $('passtRom').textContent = q.roman + (q.func ? ' · ' + q.func : '');
+    $('passtCt').innerHTML = 'Akkordtöne <b>' + q.ct.map(p => q.nn(p)).join(' ') + '</b>';
+    $('passtHs').innerHTML = '<b>' + q.chord + '</b> → ' + q.nn(b.root) + ' ' + q.scaleName(b.id) + ' · Tonart ' + q.keyLabel;
     $('passtSc').textContent = q.nn(b.root) + ' ' + q.scaleName(b.id);
+    $('passtTag').textContent = b.tag;
     $('passtNotes').innerHTML = b.iv.map(x => {
-      const p = (b.root + x) % 12, cls = [p === q.c.r ? 'root' : '', q.ct.includes(p) ? 'ct' : '', p === b.ch ? 'char' : '', b.outside.includes(p) ? 'out' : ''].join(' ');
+      const p = md(b.root + x), cls = [p === q.c.r ? 'root' : '', q.ct.includes(p) ? 'ct' : '', p === b.ch ? 'char' : '', b.outside.includes(p) ? 'out' : ''].join(' ');
       return '<span class="passt-n ' + cls + '">' + q.nn(p) + '</span>';
     }).join('');
-    let x = '';
-    if (q.pent) x += '<span><i>Pentatonik</i> ' + q.pent.iv.map(v => q.nn(q.pent.root + v)).join(' ') + '</span>';
+    $('passtDesc').textContent = b.why + ' ' + q.mood(b.id);
+    $('passtChar').innerHTML = (b.ch != null ? 'Charakterton <b class="y">' + q.nn(b.ch) + '</b> (' + q.ivLong(b.ch - b.root) + ')' : '')
+      + (b.outside.length ? (b.ch != null ? ' · ' : '') + 'Reibung mit der Tonart: <b class="o">' + b.outside.map(p => q.nn(p)).join(', ') + '</b>' : '');
+    // rechts: Pentatonik + nächster Wechsel
+    let mv = '';
+    if (q.pent) mv += '<div class="passt-row"><span class="passt-l">Pentatonik</span><b>' + q.nn(q.pent.root) + ' ' + q.scaleName(q.pent.id) + '</b><span class="passt-pn">' + q.pent.iv.map(v => q.nn(q.pent.root + v)).join(' ') + '</span></div>';
     if (nx) {
-      const n2 = SoloFinder.parseChord(nx);
-      if (n2) { const third = n2.iv.includes(4) ? 4 : n2.iv.includes(3) ? 3 : 7, q2 = SoloFinder.quick(nx, k); x += '<span><i>→ ' + (q2 ? q2.chord : nx) + '</i> Ziel <b>' + q.nn(n2.r + third) + '</b></span>'; }
-    }
-    $('passtX').innerHTML = x;
+      const n2 = SoloFinder.parseChord(nx), q2 = SoloFinder.quick(nx, k);
+      if (n2 && q2) {
+        const b2 = n2.iv.map(x => md(n2.r + x)), common = q.ct.filter(p => b2.includes(p)), lead = [];
+        b2.forEach(p => b.pcs.forEach(o => { if ((md(p - o) === 1 || md(o - p) === 1) && !b2.includes(o)) lead.push(q.nn(o) + '→' + q.nn(p)); }));
+        const third = n2.iv.includes(4) ? 4 : n2.iv.includes(3) ? 3 : 7;
+        $('passtNx').innerHTML = 'Danach <b>' + q2.chord + '</b>';
+        mv += '<div class="passt-row"><span class="passt-l">Nächster Wechsel → ' + q2.chord + '</span>'
+          + '<span>Zielton <b class="g">' + q.nn(n2.r + third) + '</b> (Terz) genau beim Wechsel</span>'
+          + (common.length ? '<span>Liegen lassen: <b>' + common.map(p => q.nn(p)).join(', ') + '</b></span>' : '')
+          + (lead.length ? '<span>Leittöne: <b>' + [...new Set(lead)].slice(0, 3).join(' · ') + '</b></span>' : '') + '</div>';
+      }
+    } else $('passtNx').textContent = '';
+    $('passtMv').innerHTML = mv;
   }
   setInterval(tick, 120);
-  window.PasstBox = { tick, state: () => ({ hidden: box.hidden, open, col, chord: $('passtCh').textContent, scale: $('passtSc').textContent }) };
+  window.PasstBox = { tick, hold: () => hold.on, state: () => ({ hidden: box.hidden, open, held: hold.on, chord: $('passtCh').textContent, scale: $('passtSc').textContent }) };
 })();
 
 </script>

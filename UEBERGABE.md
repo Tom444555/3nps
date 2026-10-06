@@ -1,6 +1,6 @@
 # Looper – Übergabe für die nächste Sitzung
 
-Stand: 5. Oktober 2026 · Version **v26** ist live unter https://tom444555.github.io/3nps/ · stabile Rückfall-Fassung **v24** unter https://tom444555.github.io/3nps/stabil/
+Stand: 6. Oktober 2026 · Version **v27** ist live unter https://tom444555.github.io/3nps/ · stabile Rückfall-Fassung **v24** unter https://tom444555.github.io/3nps/stabil/
 Repository: `Tom444555/3nps` · Branch `main` = fertige App (GitHub Pages, inkl. Ordner `stabil/`) · Branch `entwicklung` = dieser Quellcode.
 Sicherungen: Branch `stabil-v24` (App) und `stabil-v24-quellen` (Quellen) – Git-Tags lässt die Verbindung der Sitzung nicht zu.
 
@@ -29,7 +29,7 @@ Testaudio neu, baut die App, startet den Testserver auf Port 8765).
 | `app/jam.js`, `jam.html`, `jam.css` | Jam: Akkordfolge, Begleitung (Drums, Bass folgt Akkorden über `window.bassChordAt`, Fläche), Tempo-Trainer |
 | `app/uebung.js`, `uebung.html`, `uebung.css` | Üben: Tagesübung, Gehörbildung, Licks + eigene Licks, Solo-Auswertung |
 | `app/voicings.js`, `pitch.js`, `licks.js` | Akkordgriffe (CAGED), Tonhöhenerkennung (YIN), Lick-Bibliothek – je auch in Node prüfbar |
-| `app/passt.js`, `passt.css` | „Was passt“-Box im Looper (Zeile 2 des Spur-Rasters, Spalte = `Looper.focusTrack()`), nutzt `SoloFinder.quick()` |
+| `app/passt.js`, `passt.css` | „Was passt“-Box oben in der Looper-Karte (vor `.looper-top`), volle Breite, nutzt `SoloFinder.quick()`; bleibt nach dem ersten Einblenden stehen (kein Seitensprung beim Start/Stopp) |
 | `app/solo.js`, `solo.html`, `solo.css` | Solo Finder (Reiter „Solo Finder“): Akkordleiste, Tonart, mögliche Akkorde/Färbungen, Tonleitern mit Griffbild, nächster Wechsel, Ideen-Würfel |
 | `app/circle.js`, `circle.html`, `circle.css` | Quintenzirkel (Reiter „Quintenzirkel“): Tonart wählen, Akkorde anhören, ins Griffbrett übernehmen, klingender Looper-Akkord |
 | `app/beat.js` | Takterkennung: Tempo, Schlagraster, Feinbestimmung (~1 ms), Takt-Eins, freies Intro, Loop-Analyse |
@@ -57,9 +57,9 @@ Testaudio neu, baut die App, startet den Testserver auf Port 8765).
    Danach den Branch `entwicklung` mit den Quellen aktualisieren (diese Datei mitpflegen).
 6. Auf dem iPad: App zweimal öffnen, dann ist die neue Version aktiv.
 
-## Tests und erwartete Ergebnisse (v26)
+## Tests und erwartete Ergebnisse (v27)
 
-- Browser: `v26passt.py` 17/17 (Reiternamen, „Was passt“-Box) · `v25grips.py` 10/10 · `v25jam.py` 21/21 · `v25listen.py` 9/9 · `v25ueben.py` 28/28 · `v25stress.py` 6/6 · `tempotest.py` 3/3 ·
+- Browser: `v27passt.py` 17/17 („Was passt“-Box oben, Anhalten, Akkordwahl) · `v25grips.py` 10/10 · `v25jam.py` 21/21 · `v25listen.py` 9/9 · `v25ueben.py` 28/28 · `v25stress.py` 6/6 · `tempotest.py` 3/3 ·
   `swtest.py` 5/5 (Haupt- und stabile Fassung, braucht Pages-Nachbau auf Port 8790) · `tabcost.py` (Öffnen der Reiter, Vergleich mit v24) ·
   `v24solo.py` 22/22 (Solo Finder) · `v22key.py` 7/7 (Zirkel folgt Spur-Tonart) · `v21test.py` 8/8 (Spurkopf) · `v21tabs.py` 18/18 (Reiter, Quintenzirkel) · `v20test.py` 14/14 · `suite.py` 81/81 · `stereotest.py` 16/16 · `eqtest.py` 9/9 · `restoretest.py` 7/7 ·
   `backuptest.py` 7/7 · `csptest.py` (keine fremden Anfragen) · `crashtest.py`, `taptest.py` (Speicher stabil) ·
@@ -123,6 +123,14 @@ Testaudio neu, baut die App, startet den Testserver auf Port 8765).
 - Takt-Eins bei Shuffles/12/8-Blues manchmal einen Schlag daneben (Editor: „◀ / ▶ 1 Schlag“).
 - Langsame Balladen mit Achteln können doppelt so schnell erkannt werden („½ Tempo“).
 - Bei stark schwankendem Spiel ist die erste Aufnahme ±10–25 ms in der Länge ungenau.
+
+## Vergleichstests gegen die stabile v24
+
+- `vergleich.py URL gemeinsam|voll SEKUNDEN SEED` – gleiches Zufallsszenario (Overdubs, Rückgängig, Editor, Reiter, Tempo, Optik,
+  Drum-/Drone-Wechsel; „voll“ zusätzlich Backing Track, Training, Mithören, Anhalten). Ausgabe: JSON (Fehler, Speicher, Bildzeiten,
+  lange Tasks, späte Drum-Schläge, Tempo des Audio-Takts).
+- `aktionen.py URL` – Stocken je Bedienschritt (Summe der Bildzeit über 33 ms). `idle.py URL [zu]` – 60 s nur Abspielen.
+- Stabile v24 lokal: `3nps-main` unter Port 8790 bereitstellen (`…/3nps/stabil/index.html`).
 
 ## Bekannte Grenzen (v25)
 
