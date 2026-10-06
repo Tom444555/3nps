@@ -16,15 +16,17 @@
     '<div class="passt-h">'
     + '<button class="passt-tgl" id="passtHead" aria-expanded="true"><span class="passt-l">Was passt</span><span class="passt-tg" aria-hidden="true">▾</span></button>'
     + '<span class="passt-hs" id="passtHs"></span>'
+    + '<div class="passt-pick" id="passtPick" hidden></div>'
     + '<span class="passt-sp"></span>'
     + '<button class="toggle-btn passt-hold" id="passtHold" aria-pressed="false">⏸ Anhalten</button>'
     + '<button class="toggle-btn passt-go" id="passtGo" title="In der Improvisation öffnen">Improvisation ›</button></div>'
-    + '<div class="passt-pick" id="passtPick" hidden></div>'
     + '<div class="passt-b">'
-    +   '<div class="passt-now"><span class="passt-cap" id="passtCap">Klingt jetzt</span><b class="passt-ch" id="passtCh"></b><span class="passt-rom" id="passtRom"></span>'
-    +     '<span class="passt-ct" id="passtCt"></span><span class="passt-nx" id="passtNx"></span></div>'
-    +   '<div class="passt-sc"><div class="passt-sch"><b id="passtSc"></b><span class="sf-tag" id="passtTag"></span></div>'
-    +     '<div class="passt-notes" id="passtNotes"></div><p class="passt-d" id="passtDesc"></p><p class="passt-c" id="passtChar"></p></div>'
+    +   '<div class="passt-now"><span class="passt-cap" id="passtCap">Klingt jetzt</span>'
+    +     '<div class="passt-chr"><b class="passt-ch" id="passtCh"></b><div class="passt-chi"><span class="passt-rom" id="passtRom"></span><span class="passt-ct" id="passtCt"></span></div></div>'
+    +     '<span class="passt-nx" id="passtNx"></span></div>'
+    +   '<div class="passt-sc"><div class="passt-sch"><b id="passtSc"></b><span class="passt-o" id="passtOut"></span><span class="sf-tag" id="passtTag"></span></div>'
+    +     '<div class="passt-notes" id="passtNotes"></div>'
+    +     '<div class="passt-dr"><p class="passt-d" id="passtDesc"></p><div class="passt-c" id="passtChar"></div></div></div>'
     +   '<div class="passt-mv" id="passtMv"></div>'
     + '</div>';
   card.insertBefore(box, top);
@@ -111,12 +113,19 @@
       const p = md(b.root + x), cls = [p === q.c.r ? 'root' : '', q.ct.includes(p) ? 'ct' : '', p === b.ch ? 'char' : '', b.outside.includes(p) ? 'out' : ''].join(' ');
       return '<span class="passt-n ' + cls + '">' + q.nn(p) + '</span>';
     }).join('');
-    $('passtDesc').textContent = b.why + ' ' + q.mood(b.id);
-    $('passtChar').innerHTML = (b.ch != null ? 'Charakterton <b class="y">' + q.nn(b.ch) + '</b> (' + q.ivLong(b.ch - b.root) + ')' : '')
-      + (b.outside.length ? (b.ch != null ? ' · ' : '') + 'Reibung mit der Tonart: <b class="o">' + b.outside.map(p => q.nn(p)).join(', ') + '</b>' : '');
+    // Satz (Klang) mit dem Charakterton daneben; Reibung kurz in der Kopfzeile der Tonleiter
+    // der Satz über den Charakterton steht schon im Kästchen daneben → im Text weglassen
+    const ivn = b.ch != null ? q.ivLong(b.ch - b.root).replace(/ \/ .*/, '') : '';
+    let mood = q.mood(b.id) || b.why;
+    if (ivn) { const parts = mood.split(/(?<=\.)\s+/); if (parts.length > 1 && /charakterton|unterschied|färbt|glitzert/i.test(parts[parts.length - 1]) || parts.length > 1 && parts[parts.length - 1].includes(ivn)) mood = parts.slice(0, -1).join(' '); }
+    $('passtDesc').textContent = mood;
+    $('passtDesc').title = b.why + ' ' + q.mood(b.id);
+    $('passtChar').innerHTML = b.ch != null ? '<span class="passt-l">Charakterton</span><b class="y">' + q.nn(b.ch) + '</b><small>' + q.ivLong(b.ch - b.root).replace(/ \/ .*/, '') + '</small>' : '';
+    $('passtChar').hidden = b.ch == null;
+    $('passtOut').innerHTML = b.outside.length ? 'Reibung <b class="o">' + b.outside.map(p => q.nn(p)).join(', ') + '</b>' : '';
     // rechts: Pentatonik + nächster Wechsel
     let mv = '';
-    if (q.pent) mv += '<div class="passt-row"><span class="passt-l">Pentatonik</span><b>' + q.nn(q.pent.root) + ' ' + q.scaleName(q.pent.id) + '</b><span class="passt-pn">' + q.pent.iv.map(v => q.nn(q.pent.root + v)).join(' ') + '</span></div>';
+    if (q.pent) mv += '<div class="passt-row"><span class="passt-l">Pentatonik</span><span class="passt-ln"><b>' + q.nn(q.pent.root) + ' ' + q.scaleName(q.pent.id) + '</b> <span class="passt-pn">' + q.pent.iv.map(v => q.nn(q.pent.root + v)).join(' ') + '</span></span></div>';
     if (nx) {
       const n2 = SoloFinder.parseChord(nx), q2 = SoloFinder.quick(nx, k);
       if (n2 && q2) {
@@ -124,12 +133,12 @@
         b2.forEach(p => b.pcs.forEach(o => { if ((md(p - o) === 1 || md(o - p) === 1) && !b2.includes(o)) lead.push(q.nn(o) + '→' + q.nn(p)); }));
         const third = n2.iv.includes(4) ? 4 : n2.iv.includes(3) ? 3 : 7;
         $('passtNx').innerHTML = 'Danach <b>' + q2.chord + '</b>';
+        const l2 = (common.length ? 'Liegen lassen <b>' + common.map(p => q.nn(p)).join(', ') + '</b>' : '') + (common.length && lead.length ? ' · ' : '') + (lead.length ? 'Leitton <b>' + [...new Set(lead)].slice(0, 2).join(' · ') + '</b>' : '');
         mv += '<div class="passt-row"><span class="passt-l">Nächster Wechsel → ' + q2.chord + '</span>'
-          + '<span>Zielton <b class="g">' + q.nn(n2.r + third) + '</b> (Terz) genau beim Wechsel</span>'
-          + (common.length ? '<span>Liegen lassen: <b>' + common.map(p => q.nn(p)).join(', ') + '</b></span>' : '')
-          + (lead.length ? '<span>Leittöne: <b>' + [...new Set(lead)].slice(0, 3).join(' · ') + '</b></span>' : '') + '</div>';
+          + '<span class="passt-ln">Zielton <b class="g">' + q.nn(n2.r + third) + '</b> (Terz) genau beim Wechsel</span>'
+          + '<span class="passt-ln">' + (l2 || '&nbsp;') + '</span></div>';
       }
-    } else $('passtNx').textContent = '';
+    } else $('passtNx').textContent = '\u00a0';
     $('passtMv').innerHTML = mv;
   }
   setInterval(tick, 120);

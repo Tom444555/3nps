@@ -26,7 +26,7 @@ async def main():
         b1 = await pg.evaluate(BOX)
         check('Loop läuft: Box oben, volle Breite, zwischen Titel und Loop-Länge', not b1['hidden'] and b1['full'] and b1['between'], b1)
         check('Akkord groß (≥ 40 px)', b1['chFont'] >= 40, b1['chFont'])
-        check('Beschreibung, Pentatonik, nächster Wechsel', len(b1['desc']) > 40 and 'Pentatonik' in b1['mv'] and 'Zielton' in b1['mv'], b1['mv'][:80])
+        check('Beschreibung, Pentatonik, nächster Wechsel', len(b1['desc']) > 15 and 'Pentatonik' in b1['mv'] and 'Zielton' in b1['mv'], b1['mv'][:80])
         ok = 0; seen = set()
         for k in range(36):
             await pg.wait_for_timeout(250)

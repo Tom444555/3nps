@@ -59,9 +59,9 @@ Testaudio neu, baut die App, startet den Testserver auf Port 8765).
    Danach den Branch `entwicklung` mit den Quellen aktualisieren (diese Datei mitpflegen).
 6. Auf dem iPad: App zweimal öffnen, dann ist die neue Version aktiv.
 
-## Tests und erwartete Ergebnisse (v28)
+## Tests und erwartete Ergebnisse (v29)
 
-- Browser: `v28lied.py` 34/34 (Songwriting komplett) · `v28sync.py` 6/6 (Aufnahmen taktgenau geplant) · `v27passt.py` 17/17 („Was passt“-Box oben, Anhalten, Akkordwahl) · `v25grips.py` 10/10 · `v25jam.py` 21/21 · `v25listen.py` 9/9 · `v25ueben.py` 28/28 · `v25stress.py` 6/6 · `tempotest.py` 3/3 ·
+- Browser: `v28lied.py` 34/34 (Songwriting komplett) · `v28sync.py` 6/6 (Aufnahmen taktgenau geplant) · `v27passt.py` 17/17 · `passthoehe.py` 8/8 (feste Höhe der Box) („Was passt“-Box oben, Anhalten, Akkordwahl) · `v25grips.py` 10/10 · `v25jam.py` 21/21 · `v25listen.py` 9/9 · `v25ueben.py` 28/28 · `v25stress.py` 6/6 · `tempotest.py` 3/3 ·
   `swtest.py` 5/5 (Haupt- und stabile Fassung, braucht Pages-Nachbau auf Port 8790) · `tabcost.py` (Öffnen der Reiter, Vergleich mit v24) ·
   `v24solo.py` 22/22 (Solo Finder) · `v22key.py` 7/7 (Zirkel folgt Spur-Tonart) · `v21test.py` 8/8 (Spurkopf) · `v21tabs.py` 18/18 (Reiter, Quintenzirkel) · `v20test.py` 14/14 · `suite.py` 81/81 · `stereotest.py` 16/16 · `eqtest.py` 9/9 · `restoretest.py` 7/7 ·
   `backuptest.py` 7/7 · `csptest.py` (keine fremden Anfragen) · `crashtest.py`, `taptest.py` (Speicher stabil) ·
@@ -76,7 +76,7 @@ Testaudio neu, baut die App, startet den Testserver auf Port 8765).
 
 ## Technische Eckpunkte
 
-- **Reiter (v28):** Looper (links, Start) · Quintenzirkel · Improvisation · Backing Track · Songwriting · Training · Technik (Leiste: so viele Spalten wie Reiter, Handy 3×2).
+- **Reiter (v29):** Looper (links, Start) · Quintenzirkel · Improvisation · Backing Track · Songwriting · Training · Technik (Leiste: so viele Spalten wie Reiter, Handy 3×2).
   Intern heißen sie `looper`, `quinten`, `solo`, `jam`, `lied`, `ueben`, `griffbrett` (IDs `tab-…`/`panel-…`, Tests, gespeicherter Reiter). Begleitung (Drone, Drums, Bass), Song und
   Übungslog sind Karten im Griffbrett (Zwischenüberschriften `.sub-head`). `tabs.js` leitet alte gespeicherte Reiter
   (`begleitung`, `song`, `log`) aufs Griffbrett um; die Drum-Spur wandert bei `tabchange` = `griffbrett` in `#beglDrumsHome`.
@@ -102,7 +102,7 @@ Testaudio neu, baut die App, startet den Testserver auf Port 8765).
 - **Solo-Auswertung:** `Looper.soloData(i)`; Tonhöhe alle 10 ms, Anschläge über 1-ms-Energie (genau `sr/1000` Samples je ms),
   Raster aus den Schlägen der Akkord-Spur. Test legt das Solo mit `Looper._setTrack()` direkt in die Spur (Datei-Import
   passt Loops ans Tempo an und verschiebt minimal).
-- **Songwriting (v28):** Songs in localStorage `3nps-lieder` ({active, songs:[{id, name, voice, cur, versions:[{n, at, note, key, bpm,
+- **Songwriting (v29):** Songs in localStorage `3nps-lieder` ({active, songs:[{id, name, voice, cur, versions:[{n, at, note, key, bpm,
   parts:[{id, name, type, chords:[{r,t,beats}], audio, audioBpm, audioSig}], order:[{p, reps}]}]}]}). Aufnahmen als Int16 in IndexedDB
   Store `meta`, Schlüssel `lied-audio:<id>` – **kein neuer Store / keine DB-Version**, sonst kann die stabile v24 die Datenbank nicht mehr öffnen.
   `Looper.songCapture()` liefert Mix (volle Runde wie Logic-Export), Akkorde in Schlägen, Tonart, Tempo. Wiedergabe wie der Backing Track
