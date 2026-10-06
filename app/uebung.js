@@ -60,11 +60,11 @@
     return {
       key: k, root, mode, nm,
       blocks: [
-        { id: 'griff', min: 4, title: 'Griffbrett aufwärmen', text: nm + ' ' + mode.n + ', Position ' + pos + ', ' + pat[1] + ', ' + bpm + ' BPM.', btn: 'Im Griffbrett öffnen',
+        { id: 'griff', min: 4, title: 'Griffbrett aufwärmen', text: nm + ' ' + mode.n + ', Position ' + pos + ', ' + pat[1] + ', ' + bpm + ' BPM.', btn: 'In Technik öffnen',
           go: () => { rootSel.value = NOTES[root]; modeSel.value = mode.n; posSel.value = String(pos); patternSel.value = pat[0]; rootSel.dispatchEvent(new Event('change')); patternSel.dispatchEvent(new Event('change')); const b = $('bpm'); b.value = bpm; b.dispatchEvent(new Event('input')); $('tab-griffbrett').click(); } },
         { id: 'lick', min: 3, title: 'Lick des Tages', text: lick ? '„' + lick.name + '“ (' + Licks.SCALE[lick.scale].n + ') in ' + keyLabel(k) + ' – erst langsam, dann im Tempo, dann eigene Varianten.' : 'Ein Lick aus der Bibliothek.', btn: 'Lick zeigen',
           go: () => { lickKey = k.pc + ':' + (k.major ? 'M' : 'm'); lickId = lick ? lick.id : null; showSec('lick'); } },
-        { id: 'jam', min: 5, title: 'Solo über einen Jam', text: (mode.minor ? pres.min : pres.maj)[pIdx] + ' in ' + keyLabel(k) + '. Aufgabe: ' + task, btn: 'Jam vorbereiten',
+        { id: 'jam', min: 5, title: 'Solo über einen Backing Track', text: (mode.minor ? pres.min : pres.maj)[pIdx] + ' in ' + keyLabel(k) + '. Aufgabe: ' + task, btn: 'Backing Track vorbereiten',
           go: () => { if (window.Jam) Jam.load(k, pIdx); $('tab-jam').click(); } },
         { id: 'ohr', min: 3, title: 'Gehörbildung', text: ear[1] + ': zehn Aufgaben, Ziel acht richtig.', btn: 'Gehörbildung starten',
           go: () => { $('ubEarMode').value = ear[0]; showSec('ohr'); earNew(); } }
@@ -394,11 +394,11 @@
     else {
       if (r.phraseOk < 0.5 && r.phrases >= 3) tips.push('Nur ' + pct(r.phraseOk) + ' deiner Phrasen enden auf einem Akkordton. Plane das Ende: Grundton oder Terz des klingenden Akkords.');
       else if (r.phrases >= 3) tips.push('Stark: ' + pct(r.phraseOk) + ' der Phrasen landen auf Akkordtönen – genau so klingt ein Solo „zu Hause“.');
-      if (r.targets >= 2 && r.targetHit / r.targets < 0.5) tips.push('Bei den Akkordwechseln triffst du ' + r.targetHit + ' von ' + r.targets + ' Zieltönen. Übe, auf der Eins des neuen Akkords seine Terz zu spielen (Solo Finder → „Nächster Wechsel“).');
+      if (r.targets >= 2 && r.targetHit / r.targets < 0.5) tips.push('Bei den Akkordwechseln triffst du ' + r.targetHit + ' von ' + r.targets + ' Zieltönen. Übe, auf der Eins des neuen Akkords seine Terz zu spielen (Improvisation → „Nächster Wechsel“).');
       if (r.out > 0.2) tips.push(pct(r.out) + ' Reibungstöne – bewusst eingesetzt gut, sonst hilft die Pentatonik der Tonart als sicherer Rahmen.');
       if (t.n >= 6) {
         if (Math.abs(t.median) > 15) tips.push('Du spielst im Schnitt ' + Math.abs(t.median) + ' ms ' + (t.median < 0 ? 'vor' : 'hinter') + ' dem Schlag. ' + (t.median < 0 ? 'Entspann dich in den Groove, lass den Ton kommen.' : 'Leicht hinter dem Schlag kann lässig klingen – wenn gewollt, prima.'));
-        if (t.spread > 18) tips.push('Die Anschläge streuen um ±' + t.spread + ' ms. Übe dieselbe Phrase mit dem Tempo-Trainer im Jam langsamer.');
+        if (t.spread > 18) tips.push('Die Anschläge streuen um ±' + t.spread + ' ms. Übe dieselbe Phrase mit dem Tempo-Trainer im Backing Track langsamer.');
         if (t.tight >= 0.7) tips.push(pct(t.tight) + ' deiner Anschläge sitzen auf ±20 ms – sehr sauberes Timing.');
       }
       if (r.range[1] - r.range[0] < 10 && r.N >= 8) tips.push('Dein Tonumfang ist eng (' + (r.range[1] - r.range[0]) + ' Halbtöne). Probier, eine Phrase eine Oktave höher zu wiederholen.');

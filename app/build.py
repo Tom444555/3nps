@@ -12,7 +12,7 @@ tabs = rd(D + 'tabs.js')
 storage = rd(A + 'storage.js')
 looper = rd(A + 'looper.js')
 lhtml = rd(A + 'looper.html')
-lcss = rd(A + 'looper.css') + rd(A + 'circle.css') + rd(A + 'solo.css') + rd(A + 'jam.css') + rd(A + 'uebung.css')
+lcss = rd(A + 'looper.css') + rd(A + 'circle.css') + rd(A + 'solo.css') + rd(A + 'jam.css') + rd(A + 'uebung.css') + rd(A + 'passt.css')
 # Früher wurde das persönliche Übungslog beim ersten Start eingespielt. Für die öffentliche App bleibt es leer.
 seeds = []
 
@@ -91,7 +91,7 @@ assert old_b in script
 script = script.replace(old_b, "  const ovc = typeof window.bassChordAt === 'function' ? window.bassChordAt(t) : null;\n  const rootIdx = ovc ? ovc.root : NOTES.indexOf(rootSel.value);\n  const intervals = MODES[modeSel.value];\n  const baseMidi = 36 + rootIdx;\n  const midi = deg === 'fifth' ? baseMidi + (ovc ? ovc.fifth : intervals[4]) : baseMidi;", 1)
 script = script.replace("'Aus – folgt dem Tempo unten'", "'Aus – folgt dem Tempo oben'")
 rhythm = rd(A + 'eq.js') + '\n' + rd(A + 'kit.js') + '\n' + rd(A + 'rhythm.js') + '\n' + rd(A + 'drones.js')
-body = head + script + '\n<script>\n' + rhythm + '\n</script>\n<script>\n' + looper + '\n</script>\n<script>\n' + appcfg + '\n</script>\n<script>\n' + rd(A + 'circle.js') + '\n</script>\n<script>\n' + rd(A + 'voicings.js') + '\n' + rd(A + 'pitch.js') + '\n' + rd(A + 'solo.js') + '\n</script>\n<script>\n' + rd(A + 'jam.js') + '\n</script>\n<script>\n' + rd(A + 'licks.js') + '\n' + rd(A + 'uebung.js') + '\n</script>\n' + tabs
+body = head + script + '\n<script>\n' + rhythm + '\n</script>\n<script>\n' + looper + '\n</script>\n<script>\n' + appcfg + '\n</script>\n<script>\n' + rd(A + 'circle.js') + '\n</script>\n<script>\n' + rd(A + 'voicings.js') + '\n' + rd(A + 'pitch.js') + '\n' + rd(A + 'solo.js') + '\n' + rd(A + 'passt.js') + '\n</script>\n<script>\n' + rd(A + 'jam.js') + '\n</script>\n<script>\n' + rd(A + 'licks.js') + '\n' + rd(A + 'uebung.js') + '\n</script>\n' + tabs
 
 top = '''<!doctype html>
 <html lang="de">

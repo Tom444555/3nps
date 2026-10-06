@@ -1,6 +1,6 @@
 # Looper – Übergabe für die nächste Sitzung
 
-Stand: 5. Oktober 2026 · Version **v25** ist live unter https://tom444555.github.io/3nps/ · stabile Rückfall-Fassung **v24** unter https://tom444555.github.io/3nps/stabil/
+Stand: 5. Oktober 2026 · Version **v26** ist live unter https://tom444555.github.io/3nps/ · stabile Rückfall-Fassung **v24** unter https://tom444555.github.io/3nps/stabil/
 Repository: `Tom444555/3nps` · Branch `main` = fertige App (GitHub Pages, inkl. Ordner `stabil/`) · Branch `entwicklung` = dieser Quellcode.
 Sicherungen: Branch `stabil-v24` (App) und `stabil-v24-quellen` (Quellen) – Git-Tags lässt die Verbindung der Sitzung nicht zu.
 
@@ -29,6 +29,7 @@ Testaudio neu, baut die App, startet den Testserver auf Port 8765).
 | `app/jam.js`, `jam.html`, `jam.css` | Jam: Akkordfolge, Begleitung (Drums, Bass folgt Akkorden über `window.bassChordAt`, Fläche), Tempo-Trainer |
 | `app/uebung.js`, `uebung.html`, `uebung.css` | Üben: Tagesübung, Gehörbildung, Licks + eigene Licks, Solo-Auswertung |
 | `app/voicings.js`, `pitch.js`, `licks.js` | Akkordgriffe (CAGED), Tonhöhenerkennung (YIN), Lick-Bibliothek – je auch in Node prüfbar |
+| `app/passt.js`, `passt.css` | „Was passt“-Box im Looper (Zeile 2 des Spur-Rasters, Spalte = `Looper.focusTrack()`), nutzt `SoloFinder.quick()` |
 | `app/solo.js`, `solo.html`, `solo.css` | Solo Finder (Reiter „Solo Finder“): Akkordleiste, Tonart, mögliche Akkorde/Färbungen, Tonleitern mit Griffbild, nächster Wechsel, Ideen-Würfel |
 | `app/circle.js`, `circle.html`, `circle.css` | Quintenzirkel (Reiter „Quintenzirkel“): Tonart wählen, Akkorde anhören, ins Griffbrett übernehmen, klingender Looper-Akkord |
 | `app/beat.js` | Takterkennung: Tempo, Schlagraster, Feinbestimmung (~1 ms), Takt-Eins, freies Intro, Loop-Analyse |
@@ -56,9 +57,9 @@ Testaudio neu, baut die App, startet den Testserver auf Port 8765).
    Danach den Branch `entwicklung` mit den Quellen aktualisieren (diese Datei mitpflegen).
 6. Auf dem iPad: App zweimal öffnen, dann ist die neue Version aktiv.
 
-## Tests und erwartete Ergebnisse (v25)
+## Tests und erwartete Ergebnisse (v26)
 
-- Browser: `v25grips.py` 10/10 · `v25jam.py` 21/21 · `v25listen.py` 9/9 · `v25ueben.py` 28/28 · `v25stress.py` 6/6 · `tempotest.py` 3/3 ·
+- Browser: `v26passt.py` 17/17 (Reiternamen, „Was passt“-Box) · `v25grips.py` 10/10 · `v25jam.py` 21/21 · `v25listen.py` 9/9 · `v25ueben.py` 28/28 · `v25stress.py` 6/6 · `tempotest.py` 3/3 ·
   `swtest.py` 5/5 (Haupt- und stabile Fassung, braucht Pages-Nachbau auf Port 8790) · `tabcost.py` (Öffnen der Reiter, Vergleich mit v24) ·
   `v24solo.py` 22/22 (Solo Finder) · `v22key.py` 7/7 (Zirkel folgt Spur-Tonart) · `v21test.py` 8/8 (Spurkopf) · `v21tabs.py` 18/18 (Reiter, Quintenzirkel) · `v20test.py` 14/14 · `suite.py` 81/81 · `stereotest.py` 16/16 · `eqtest.py` 9/9 · `restoretest.py` 7/7 ·
   `backuptest.py` 7/7 · `csptest.py` (keine fremden Anfragen) · `crashtest.py`, `taptest.py` (Speicher stabil) ·
@@ -73,7 +74,8 @@ Testaudio neu, baut die App, startet den Testserver auf Port 8765).
 
 ## Technische Eckpunkte
 
-- **Reiter (v25):** Looper (links, Start) · Quintenzirkel · Solo Finder · Jam · Üben · Griffbrett (Leiste: so viele Spalten wie Reiter, Handy 3×2). Begleitung (Drone, Drums, Bass), Song und
+- **Reiter (v26):** Looper (links, Start) · Quintenzirkel · Improvisation · Backing Track · Training · Technik (Leiste: so viele Spalten wie Reiter, Handy 3×2).
+  Nur die Beschriftungen sind neu; intern heißen sie weiter `solo`, `jam`, `ueben`, `griffbrett` (IDs `tab-…`/`panel-…`, Tests, gespeicherter Reiter). Begleitung (Drone, Drums, Bass), Song und
   Übungslog sind Karten im Griffbrett (Zwischenüberschriften `.sub-head`). `tabs.js` leitet alte gespeicherte Reiter
   (`begleitung`, `song`, `log`) aufs Griffbrett um; die Drum-Spur wandert bei `tabchange` = `griffbrett` in `#beglDrumsHome`.
 - **Spurkopf (v22):** links Name + Tonart (`.th-left`), rechts `#thc0–2` mit klingendem (`#chd`) und nächstem Akkord (`#chn`),

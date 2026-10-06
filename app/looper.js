@@ -7,6 +7,7 @@ const Looper = (() => {
 
   let sr = 48000;
   let micReady = false, tapNode = null, sinkNode = null, micSource = null, stream = null;
+  let lastRecI = -1;                              // zuletzt aufgenommene Spur (für die „Was passt“-Box)
   let extAnalyser = null;                         // Abgriff für „Mithören“ im Solo Finder (nur solange benutzt)
   let baseL = 0;       // Länge des ersten Loops (Frames) – alle Spuren sind Vielfache davon
   let anchor = 0;      // Frame, an dem Phase 0 aller Spuren liegt
@@ -459,6 +460,7 @@ const Looper = (() => {
 
   // ---- Aufnahme ----
   function beginRec(t, kind, start) {
+    lastRecI = t.i;
     rec = { t, kind, start, end: null, chunks: [], n: 0, armed: false, Lt: 0,
       bpm0: bpm(), hadRef: countBars() > 0 || drumsOnF() || (typeof isPlaying !== 'undefined' && isPlaying) };
     cap = kind === 'first' ? { t, list: hist.slice(), until: 0, onDone: null } : null;
@@ -2533,6 +2535,13 @@ const Looper = (() => {
     soloData: i => {
       const t = tracks[i]; if (!t || !t.L || !t.mix) return null;
       return { l: t.mix.l, r: t.mix.r, L: t.L, sr, beats: trackBeats(t).filter(b => b.f > -2 && b.f < t.L + 2).map(b => b.f), downs: trackDowns(t).filter(x => x > -2 && x < t.L - 2), state: t.state };
+    },
+    // welche Spur nimmt auf / ist dran (für die „Was passt“-Box): aufnehmende Spur, sonst nächste leere, sonst zuletzt aufgenommene
+    focusTrack: () => {
+      if (rec && rec.t) return { i: rec.t.i, rec: true };
+      const e = tracks.find(t => !t.L && t.state === 'empty');
+      if (e && anyContent()) return { i: e.i, rec: false };
+      return { i: lastRecI >= 0 ? lastRecI : 0, rec: false };
     },
     busy: () => !!rec || tracks.some(t => !!t.src),     // spielt oder nimmt gerade etwas auf (für den Jam)
     stopAll: () => { const b = $('loopAll'); if (b && tracks.some(t => !!t.src) && !rec) b.click(); },

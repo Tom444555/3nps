@@ -13,7 +13,7 @@ async def main():
         pg.on('pageerror', lambda e: errs.append(str(e)))
         await pg.goto('http://localhost:8765/index.html'); await pg.wait_for_timeout(800)
         tabs = await pg.evaluate("[...document.querySelectorAll('.tab')].map(t => t.textContent)")
-        check('Reiter Jam vorhanden', 'Jam' in tabs, tabs)
+        check('Reiter Backing Track vorhanden', 'Backing Track' in tabs, tabs)
         await pg.click('#tab-jam'); await pg.wait_for_timeout(300)
         check('Drum-Spur wandert in den Jam', await pg.evaluate("!!document.querySelector('#jamDrumsHome .lane-drums')"))
         # Eingabe

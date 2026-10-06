@@ -816,6 +816,31 @@
   .tl-pe { fill: none; stroke-width: 2; stroke: var(--scale-color); } .tl-pe.root { stroke: var(--root-color); } .tl-pe.ct { stroke: var(--t2); } .tl-pe.out { stroke: #ff7a59; }
   .ub-tl-leg { justify-content: flex-start; }
   .ub-tips { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font: 500 .9rem var(--f-body); line-height: 1.45; }
+  /* ---- „Was passt“-Box unter der aufnehmenden Spur ---- */
+  .passt { grid-column: var(--passt-col, 1); grid-row: 2; display: flex; flex-direction: column; gap: 6px; padding: 6px 8px 8px; border-radius: 8px;
+    background: rgba(0,0,0,.38); border: 1px solid var(--line-soft); min-width: 0; }
+  .passt[hidden] { display: none; }
+  .passt.rec { border-color: color-mix(in srgb, var(--root-color) 70%, transparent); box-shadow: 0 0 10px color-mix(in srgb, var(--root-color) 30%, transparent); }
+  .passt-h { display: flex; align-items: baseline; gap: 6px; cursor: pointer; min-width: 0; user-select: none; -webkit-user-select: none; }
+  .passt-l { font: 700 .55rem var(--f-body); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+  .passt-ch { font: 800 1.05rem var(--f-mono); color: var(--accent); white-space: nowrap; }
+  .passt-r { font: 700 .62rem var(--f-body); color: var(--muted); }
+  .passt-sc { font: 700 .78rem var(--f-body); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1; }
+  .passt-tg { color: var(--muted); font-size: .7rem; transition: transform .15s; }
+  .passt.zu .passt-tg { transform: rotate(-90deg); }
+  .passt-go { appearance: none; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); border-radius: 6px; font: 700 .9rem var(--f-body); width: 26px; height: 22px; padding: 0; cursor: pointer; align-self: center; }
+  .passt.zu .passt-b { display: none; }
+  .passt-b { display: flex; flex-direction: column; gap: 5px; }
+  .passt-notes { display: flex; flex-wrap: wrap; gap: 3px; }
+  .passt-n { font: 700 .78rem var(--f-mono); min-width: 24px; text-align: center; padding: 3px 3px; border-radius: 5px; background: var(--surface-2); border: 1px solid var(--line); }
+  .passt-n.ct { background: color-mix(in srgb, var(--t2) 22%, var(--surface-2)); border-color: var(--t2); }
+  .passt-n.root { background: var(--root-color); border-color: var(--root-color); color: #fff; }
+  .passt-n.char { border: 2px solid var(--dub); color: var(--dub); }
+  .passt-n.out { border-style: dashed; border-color: #ff7a59; }
+  .passt-x { display: flex; flex-wrap: wrap; gap: 2px 12px; font: 600 .74rem var(--f-mono); }
+  .passt-x i { font: 600 .62rem var(--f-body); font-style: normal; color: var(--muted); letter-spacing: .04em; } .passt-x b { color: var(--accent); }
+  @media (max-width: 700px) { .passt { grid-column: 1 / -1; } }
+  @media (prefers-reduced-motion: reduce) { .passt-tg { transition: none; } }
   /* ===== Rost & Stahl: Hintergrund aus gerostetem Blech, darauf verschraubte Stahlplatten ===== */
   :root {
     --plate-hi: #3a3a40;
@@ -1342,7 +1367,7 @@
 <body>
 <header class="control-bar">
   <div class="cb-inner">
-    <div class="brand">Looper <span>3nps · v25</span></div>
+    <div class="brand">Looper <span>3nps · v26</span></div>
     <div class="transport">
       <button class="tbtn" id="playBtn" aria-label="Metronom starten oder stoppen">▶</button>
     </div>
@@ -1366,10 +1391,10 @@
   <nav class="tabs" role="tablist" aria-label="Bereiche">
     <button class="tab" role="tab" id="tab-looper" data-tab="looper" aria-selected="true">Looper</button>
     <button class="tab" role="tab" id="tab-quinten" data-tab="quinten" aria-selected="false">Quinten<wbr>zirkel</button>
-    <button class="tab" role="tab" id="tab-solo" data-tab="solo" aria-selected="false">Solo Finder</button>
-    <button class="tab" role="tab" id="tab-jam" data-tab="jam" aria-selected="false">Jam</button>
-    <button class="tab" role="tab" id="tab-ueben" data-tab="ueben" aria-selected="false">Üben</button>
-    <button class="tab" role="tab" id="tab-griffbrett" data-tab="griffbrett" aria-selected="false">Griffbrett</button>
+    <button class="tab" role="tab" id="tab-solo" data-tab="solo" aria-selected="false">Improvisation</button>
+    <button class="tab" role="tab" id="tab-jam" data-tab="jam" aria-selected="false">Backing<wbr> Track</button>
+    <button class="tab" role="tab" id="tab-ueben" data-tab="ueben" aria-selected="false">Training</button>
+    <button class="tab" role="tab" id="tab-griffbrett" data-tab="griffbrett" aria-selected="false">Technik</button>
   </nav>
 
   <!-- Griffbrett -->
@@ -1942,7 +1967,7 @@
   <section class="panel" id="panel-jam" role="tabpanel" aria-labelledby="tab-jam" hidden>
     <div class="card">
       <div class="jam-top">
-        <button class="play-btn" id="jamPlay" aria-label="Jam starten">▶</button>
+        <button class="play-btn" id="jamPlay" aria-label="Backing Track starten">▶</button>
         <div class="jam-tempo">
           <span class="lbl">Tempo</span>
           <div class="jam-bpmrow"><button class="toggle-btn" id="jamBpmDown" aria-label="langsamer">−</button><b id="jamBpm">80</b><span class="jam-unit">BPM</span><button class="toggle-btn" id="jamBpmUp" aria-label="schneller">+</button></div>
@@ -2016,7 +2041,7 @@
         <p class="ub-daykey" id="ubDayKey"></p>
         <div class="ub-progress"><div id="ubProgBar"></div></div>
         <div class="ub-blocks" id="ubBlocks"></div>
-        <p class="pattern-desc">Jeder Block hat einen Timer. Läuft er ab, ist der Block erledigt und landet im Übungslog (Griffbrett → Übungslog).</p>
+        <p class="pattern-desc">Jeder Block hat einen Timer. Läuft er ab, ist der Block erledigt und landet im Übungslog (Technik → Übungslog).</p>
       </div>
     </div>
 
@@ -6456,6 +6481,7 @@ const Looper = (() => {
 
   let sr = 48000;
   let micReady = false, tapNode = null, sinkNode = null, micSource = null, stream = null;
+  let lastRecI = -1;                              // zuletzt aufgenommene Spur (für die „Was passt“-Box)
   let extAnalyser = null;                         // Abgriff für „Mithören“ im Solo Finder (nur solange benutzt)
   let baseL = 0;       // Länge des ersten Loops (Frames) – alle Spuren sind Vielfache davon
   let anchor = 0;      // Frame, an dem Phase 0 aller Spuren liegt
@@ -6908,6 +6934,7 @@ const Looper = (() => {
 
   // ---- Aufnahme ----
   function beginRec(t, kind, start) {
+    lastRecI = t.i;
     rec = { t, kind, start, end: null, chunks: [], n: 0, armed: false, Lt: 0,
       bpm0: bpm(), hadRef: countBars() > 0 || drumsOnF() || (typeof isPlaying !== 'undefined' && isPlaying) };
     cap = kind === 'first' ? { t, list: hist.slice(), until: 0, onDone: null } : null;
@@ -8983,6 +9010,13 @@ const Looper = (() => {
       const t = tracks[i]; if (!t || !t.L || !t.mix) return null;
       return { l: t.mix.l, r: t.mix.r, L: t.L, sr, beats: trackBeats(t).filter(b => b.f > -2 && b.f < t.L + 2).map(b => b.f), downs: trackDowns(t).filter(x => x > -2 && x < t.L - 2), state: t.state };
     },
+    // welche Spur nimmt auf / ist dran (für die „Was passt“-Box): aufnehmende Spur, sonst nächste leere, sonst zuletzt aufgenommene
+    focusTrack: () => {
+      if (rec && rec.t) return { i: rec.t.i, rec: true };
+      const e = tracks.find(t => !t.L && t.state === 'empty');
+      if (e && anyContent()) return { i: e.i, rec: false };
+      return { i: lastRecI >= 0 ? lastRecI : 0, rec: false };
+    },
     busy: () => !!rec || tracks.some(t => !!t.src),     // spielt oder nimmt gerade etwas auf (für den Jam)
     stopAll: () => { const b = $('loopAll'); if (b && tracks.some(t => !!t.src) && !rec) b.click(); },
     seek: (i, f) => { const t = tracks[i]; if (t && t.L && !rec) seekTo(t, f); },
@@ -10246,7 +10280,83 @@ if (typeof module !== 'undefined') module.exports = Pitch;
     timer = setInterval(() => update(false), 100);
   });
   window.addEventListener('resize', () => { if (!panel.hidden) { bandSig = ''; update(true); } });
-  window.SoloFinder = { state: () => state, drawNeck, listen: () => ({ on: L.on, cur: L.cur, st: Object.assign({}, L.st) }), setListen, suggestions: (r, t, pc, major) => suggestions({ r, t, iv: CH[t] }, { pc, major }), roman: (r, t, pc, major) => roman({ r, t, iv: CH[t] }, { pc, major }), update };
+  // für die „Was passt“-Box im Looper: gleiche Logik wie hier, nur kompakt
+  function quick(name, k) {
+    const c = parseChord(name); if (!c) return null;
+    const sg = suggestions(c, k), best = sg[0], pent = sg.find(x => x.id === 'pmin' || x.id === 'pmaj');
+    return { c, chord: chordName(c, k), roman: roman(c, k), func: func(c, k), best, pent, scaleName: id => SC[id].n, nn: p => nn(p, k), ct: c.iv.map(x => md(c.r + x)) };
+  }
+  window.SoloFinder = { quick, parseChord, state: () => state, drawNeck, listen: () => ({ on: L.on, cur: L.cur, st: Object.assign({}, L.st) }), setListen, suggestions: (r, t, pc, major) => suggestions({ r, t, iv: CH[t] }, { pc, major }), roman: (r, t, pc, major) => roman({ r, t, iv: CH[t] }, { pc, major }), update };
+})();
+
+// ---- „Was passt“-Box im Looper: kompakt unter der Spur, die gerade aufnimmt (sonst unter der nächsten freien) ----
+// Sichtbar nur, solange ein Loop mit erkannten Akkorden läuft. Zugeklappt: eine Zeile (Akkord + beste Tonleiter),
+// aufgeklappt: Töne der Tonleiter, Pentatonik und Zielton für den nächsten Akkord. Antippen von „›“ öffnet die Improvisation.
+(function () {
+  const $ = id => document.getElementById(id);
+  const host = document.querySelector('#panel-looper .tracks');
+  if (!host || typeof Looper === 'undefined' || !Looper.chordInfo) return;
+  const KEY = '3nps-passt-auf';
+  let open = true; try { open = localStorage.getItem(KEY) !== '0'; } catch (e) {}
+  const box = document.createElement('div');
+  box.className = 'passt'; box.id = 'passtBox'; box.hidden = true;
+  box.innerHTML = '<div class="passt-h" role="button" tabindex="0" aria-expanded="true" id="passtHead">'
+    + '<span class="passt-l">Was passt</span><b class="passt-ch" id="passtCh"></b><span class="passt-r" id="passtRom"></span>'
+    + '<span class="passt-sc" id="passtSc"></span><span class="passt-tg" aria-hidden="true">▾</span>'
+    + '<button class="passt-go" id="passtGo" title="In der Improvisation öffnen" aria-label="In der Improvisation öffnen">›</button></div>'
+    + '<div class="passt-b" id="passtBody"><div class="passt-notes" id="passtNotes"></div><div class="passt-x" id="passtX"></div></div>';
+  host.appendChild(box);
+  function setOpen(v) {
+    open = v; try { localStorage.setItem(KEY, v ? '1' : '0'); } catch (e) {}
+    box.classList.toggle('zu', !open); $('passtHead').setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  setOpen(open);
+  $('passtHead').addEventListener('click', e => { if (e.target.closest('#passtGo')) return; setOpen(!open); });
+  $('passtHead').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen(!open); } });
+  $('passtGo').addEventListener('click', () => { const t = $('tab-solo'); if (t) t.click(); });
+
+  const panel = $('panel-looper');
+  let sig = '', col = -1;
+  function nextName(ci, i) {
+    const n = ci.segs.length, cur = ci.segs[i].name;
+    for (let k = 1; k < n; k++) { const q = ci.segs[(i + k) % n].name; if (q !== '–' && q !== cur) return q; }
+    return '';
+  }
+  function tick() {
+    if (panel.hidden || document.hidden || !window.SoloFinder || !SoloFinder.quick) return;
+    const ci = Looper.chordInfo(null);
+    let show = !!(ci && ci.segs && ci.playing && ci.pos != null);
+    let i = -1;
+    if (show) { for (let q = 0; q < ci.segs.length; q++) if (ci.pos >= ci.segs[q].a && ci.pos < ci.segs[q].e) { i = q; break; } }
+    if (show && (i < 0 || ci.segs[i].name === '–')) show = false;
+    if (!show) { if (!box.hidden) { box.hidden = true; sig = ''; } return; }
+    const ft = Looper.focusTrack ? Looper.focusTrack() : { i: 0, rec: false };
+    if (ft.i !== col) { col = ft.i; box.style.setProperty('--passt-col', String(col + 1)); }
+    box.classList.toggle('rec', !!ft.rec);
+    const k = ci.key || { pc: 0, major: true }, name = ci.segs[i].name, nx = nextName(ci, i);
+    const s = name + '|' + nx + '|' + k.pc + k.major;
+    box.hidden = false;
+    if (s === sig) return;
+    sig = s;
+    const q = SoloFinder.quick(name, k); if (!q || !q.best) { box.hidden = true; return; }
+    const b = q.best;
+    $('passtCh').textContent = q.chord;
+    $('passtRom').textContent = q.roman;
+    $('passtSc').textContent = q.nn(b.root) + ' ' + q.scaleName(b.id);
+    $('passtNotes').innerHTML = b.iv.map(x => {
+      const p = (b.root + x) % 12, cls = [p === q.c.r ? 'root' : '', q.ct.includes(p) ? 'ct' : '', p === b.ch ? 'char' : '', b.outside.includes(p) ? 'out' : ''].join(' ');
+      return '<span class="passt-n ' + cls + '">' + q.nn(p) + '</span>';
+    }).join('');
+    let x = '';
+    if (q.pent) x += '<span><i>Pentatonik</i> ' + q.pent.iv.map(v => q.nn(q.pent.root + v)).join(' ') + '</span>';
+    if (nx) {
+      const n2 = SoloFinder.parseChord(nx);
+      if (n2) { const third = n2.iv.includes(4) ? 4 : n2.iv.includes(3) ? 3 : 7, q2 = SoloFinder.quick(nx, k); x += '<span><i>→ ' + (q2 ? q2.chord : nx) + '</i> Ziel <b>' + q.nn(n2.r + third) + '</b></span>'; }
+    }
+    $('passtX').innerHTML = x;
+  }
+  setInterval(tick, 120);
+  window.PasstBox = { tick, state: () => ({ hidden: box.hidden, open, col, chord: $('passtCh').textContent, scale: $('passtSc').textContent }) };
 })();
 
 </script>
@@ -10404,7 +10514,7 @@ if (typeof module !== 'undefined') module.exports = Pitch;
     run.unlisten = Rhythm.addListener(onStep, true);
     if (st.drums && !Rhythm.on()) { Rhythm.setOn(true); run.ownDrums = true; }
     Rhythm.setJam(true);
-    paintPlay(); status('Läuft – Solo Finder und Quintenzirkel folgen dem Jam.');
+    paintPlay(); status('Läuft – Improvisation und Quintenzirkel folgen dem Backing Track.');
     watch = setInterval(() => { if (run && typeof Looper !== 'undefined' && Looper.busy && Looper.busy()) { stop(); status('Gestoppt, weil der Looper gestartet wurde.'); } }, 300);
   }
   let watch = null;
@@ -10432,7 +10542,7 @@ if (typeof module !== 'undefined') module.exports = Pitch;
 
   // ---- Oberfläche ----
   function status(t) { $('jamStatus').textContent = t; }
-  function paintPlay() { const b = $('jamPlay'); b.classList.toggle('playing', !!run); b.setAttribute('aria-label', run ? 'Jam stoppen' : 'Jam starten'); }
+  function paintPlay() { const b = $('jamPlay'); b.classList.toggle('playing', !!run); b.setAttribute('aria-label', run ? 'Backing Track stoppen' : 'Backing Track starten'); }
   let selIdx = -1;
   function paintSeq() {
     const k = st.key, tot = totalBeats();
@@ -10671,11 +10781,11 @@ if (typeof module !== 'undefined') module.exports = Licks;
     return {
       key: k, root, mode, nm,
       blocks: [
-        { id: 'griff', min: 4, title: 'Griffbrett aufwärmen', text: nm + ' ' + mode.n + ', Position ' + pos + ', ' + pat[1] + ', ' + bpm + ' BPM.', btn: 'Im Griffbrett öffnen',
+        { id: 'griff', min: 4, title: 'Griffbrett aufwärmen', text: nm + ' ' + mode.n + ', Position ' + pos + ', ' + pat[1] + ', ' + bpm + ' BPM.', btn: 'In Technik öffnen',
           go: () => { rootSel.value = NOTES[root]; modeSel.value = mode.n; posSel.value = String(pos); patternSel.value = pat[0]; rootSel.dispatchEvent(new Event('change')); patternSel.dispatchEvent(new Event('change')); const b = $('bpm'); b.value = bpm; b.dispatchEvent(new Event('input')); $('tab-griffbrett').click(); } },
         { id: 'lick', min: 3, title: 'Lick des Tages', text: lick ? '„' + lick.name + '“ (' + Licks.SCALE[lick.scale].n + ') in ' + keyLabel(k) + ' – erst langsam, dann im Tempo, dann eigene Varianten.' : 'Ein Lick aus der Bibliothek.', btn: 'Lick zeigen',
           go: () => { lickKey = k.pc + ':' + (k.major ? 'M' : 'm'); lickId = lick ? lick.id : null; showSec('lick'); } },
-        { id: 'jam', min: 5, title: 'Solo über einen Jam', text: (mode.minor ? pres.min : pres.maj)[pIdx] + ' in ' + keyLabel(k) + '. Aufgabe: ' + task, btn: 'Jam vorbereiten',
+        { id: 'jam', min: 5, title: 'Solo über einen Backing Track', text: (mode.minor ? pres.min : pres.maj)[pIdx] + ' in ' + keyLabel(k) + '. Aufgabe: ' + task, btn: 'Backing Track vorbereiten',
           go: () => { if (window.Jam) Jam.load(k, pIdx); $('tab-jam').click(); } },
         { id: 'ohr', min: 3, title: 'Gehörbildung', text: ear[1] + ': zehn Aufgaben, Ziel acht richtig.', btn: 'Gehörbildung starten',
           go: () => { $('ubEarMode').value = ear[0]; showSec('ohr'); earNew(); } }
@@ -11005,11 +11115,11 @@ if (typeof module !== 'undefined') module.exports = Licks;
     else {
       if (r.phraseOk < 0.5 && r.phrases >= 3) tips.push('Nur ' + pct(r.phraseOk) + ' deiner Phrasen enden auf einem Akkordton. Plane das Ende: Grundton oder Terz des klingenden Akkords.');
       else if (r.phrases >= 3) tips.push('Stark: ' + pct(r.phraseOk) + ' der Phrasen landen auf Akkordtönen – genau so klingt ein Solo „zu Hause“.');
-      if (r.targets >= 2 && r.targetHit / r.targets < 0.5) tips.push('Bei den Akkordwechseln triffst du ' + r.targetHit + ' von ' + r.targets + ' Zieltönen. Übe, auf der Eins des neuen Akkords seine Terz zu spielen (Solo Finder → „Nächster Wechsel“).');
+      if (r.targets >= 2 && r.targetHit / r.targets < 0.5) tips.push('Bei den Akkordwechseln triffst du ' + r.targetHit + ' von ' + r.targets + ' Zieltönen. Übe, auf der Eins des neuen Akkords seine Terz zu spielen (Improvisation → „Nächster Wechsel“).');
       if (r.out > 0.2) tips.push(pct(r.out) + ' Reibungstöne – bewusst eingesetzt gut, sonst hilft die Pentatonik der Tonart als sicherer Rahmen.');
       if (t.n >= 6) {
         if (Math.abs(t.median) > 15) tips.push('Du spielst im Schnitt ' + Math.abs(t.median) + ' ms ' + (t.median < 0 ? 'vor' : 'hinter') + ' dem Schlag. ' + (t.median < 0 ? 'Entspann dich in den Groove, lass den Ton kommen.' : 'Leicht hinter dem Schlag kann lässig klingen – wenn gewollt, prima.'));
-        if (t.spread > 18) tips.push('Die Anschläge streuen um ±' + t.spread + ' ms. Übe dieselbe Phrase mit dem Tempo-Trainer im Jam langsamer.');
+        if (t.spread > 18) tips.push('Die Anschläge streuen um ±' + t.spread + ' ms. Übe dieselbe Phrase mit dem Tempo-Trainer im Backing Track langsamer.');
         if (t.tight >= 0.7) tips.push(pct(t.tight) + ' deiner Anschläge sitzen auf ±20 ms – sehr sauberes Timing.');
       }
       if (r.range[1] - r.range[0] < 10 && r.N >= 8) tips.push('Dein Tonumfang ist eng (' + (r.range[1] - r.range[0]) + ' Halbtöne). Probier, eine Phrase eine Oktave höher zu wiederholen.');

@@ -74,7 +74,7 @@ Alles geht direkt auf dem iPad, ohne Computer.
      und eine „LIES MICH“ mit den Schritten für Logic.
    - Der Name im Feld „Ideen“ wird zum Namen des Pakets.
 
-7. Drums und Drum Designer (im Looper und im Griffbrett unter „Begleitung“)
+7. Drums und Drum Designer (im Looper und im Reiter Technik unter „Begleitung“)
    - „Drums an“ startet den Groove – im Looper immer im Takt des Loops, in der Begleitung frei im Tempo.
    - Über 30 Vorlagen, gruppiert: Blues (Texas/Chicago Shuffle, Slow Blues 12/8, Half-Time Shuffle,
      Boogie, Jump Blues, Train Beat, Funky Blues, Delta Stomp …), Rock & Pop, Funk & Soul,
@@ -88,7 +88,7 @@ Alles geht direkt auf dem iPad, ohne Computer.
      „Muster löschen“ entfernt es). Beim Logic-Export geht das Muster als MIDI-Drumspur mit.
    - In der Begleitung spielt der Bass jetzt mit der Kick der Drums.
 
-8. Drone-Spur (im Looper und im Griffbrett unter „Begleitung“)
+8. Drone-Spur (im Looper und im Reiter Technik unter „Begleitung“)
    - „Drone an“ legt den Drone-Klang unter den Loop, ein- und ausschaltbar mit einem Tipp.
    - Grundton und Dur/Moll frei wählbar oder „wie Skala“. „Tonart aus Spur“ übernimmt
      die erkannte Tonart einer Spur.
@@ -243,9 +243,10 @@ Alles geht direkt auf dem iPad, ohne Computer.
    - Der Bass wird beim Start der App selbst erzeugt (gezupfte Saite, im Hintergrund). Es stecken keine
      fremden Aufnahmen mehr in der App, und der Bass setzt pünktlich mit der Kick ein.
 
-23. Reiter: Looper · Quintenzirkel · Solo Finder · Jam · Üben · Griffbrett
+23. Reiter: Looper · Quintenzirkel · Improvisation · Backing Track · Training · Technik
+   (bis v25 hießen sie Solo Finder, Jam, Üben und Griffbrett)
    - Looper steht ganz links und ist beim Start offen.
-   - Griffbrett enthält wieder alles für die Griffbrett-Übung untereinander: Griffbild, Metronom,
+   - Technik enthält alles für die Griffbrett-Übung untereinander: Griffbild, Metronom,
      Begleitung (Drone, Drums, Bass), Song und das Übungslog.
    - Quintenzirkel: außen Dur, in der Mitte Moll, innen verminderte Akkorde. Antippen wählt die Tonart
      und spielt den Akkord an. Die sieben Akkorde der Tonart sind markiert (mit Stufen I–vii°), rechts
@@ -261,7 +262,7 @@ Alles geht direkt auf dem iPad, ohne Computer.
      Tonart-Knopf einer Spur), folgt der Zirkel ebenfalls. Die Knöpfe „Tonart vom Griffbrett“ und
      „Tonart von Spur …“ holen die jeweilige Tonart zurück.
 
-24. Solo Finder – was passt über den Akkord?
+24. Improvisation – was passt über den Akkord?
    - Oben die Akkordfolge des Loops über alle Takte (Taktnummern, Stufen wie I, IV, V). Der klingende Akkord ist
      leuchtend eingerahmt, ein Strich zeigt die Position. Antippen springt im laufenden Loop dorthin; steht der
      Loop, wird der Akkord ausgewählt.
@@ -282,17 +283,17 @@ Alles geht direkt auf dem iPad, ohne Computer.
      im Griffbild an allen Stellen auf und wird eingeordnet: Grundton, Akkordton, Tonleiter oder Reibung – mit
      Abweichung in Cent und einem Zähler. Nutzt denselben Eingang wie der Looper.
 
-25. Jam – Akkordfolge eintippen, Begleitung spielt
+25. Backing Track – Akkordfolge eintippen, Begleitung spielt
    - Tonart wählen, dann eine Vorlage (z. B. Pop I–V–vi–IV, Blues 12 Takte, Andalusisch) oder Akkorde antippen
      bzw. eintippen: „Am F C G“, „Am7:2 D7“ (2 Takte), „C:½ G:½“. H wird als B gelesen, b/♭ und #/♯ gehen beide.
    - Akkord in der Folge antippen: Länge (½, 1, 2, 4 Takte), verschieben, verdoppeln, entfernen.
    - ▶ startet Drums, Bass und Fläche. Der Bass spielt Grundton und Quinte des jeweiligen Akkords und wechselt
      genau mit ihm. Drum-Stil und Designer stehen unten im Reiter.
    - Tempo-Trainer: Start, Ziel, Schritt und „alle … Durchläufe“ – das Tempo steigt ohne Holpern im Groove.
-   - Solo Finder und Quintenzirkel folgen dem Jam. Der Looper hat Vorrang: Läuft er, startet der Jam erst beim
-     zweiten Tippen (und stoppt den Looper); startest du den Looper, stoppt der Jam.
+   - Improvisation und Quintenzirkel folgen dem Backing Track. Der Looper hat Vorrang: Läuft er, startet der
+     Backing Track erst beim zweiten Tippen (und stoppt den Looper); startest du den Looper, stoppt er.
 
-26. Üben
+26. Training
    - Tagesübung: jeden Tag ein neuer Plan (ca. 15 Minuten) mit Tonart des Tages: Griffbrett aufwärmen, Lick des
      Tages, Solo über einen Jam, Gehörbildung. Jeder Block öffnet das Passende und hat einen Timer; erledigte
      Blöcke landen im Übungslog. „Neu würfeln“ für einen anderen Plan.
@@ -304,7 +305,14 @@ Alles geht direkt auf dem iPad, ohne Computer.
      Anteil Akkordtöne/Reibung, Phrasenenden auf Akkordton, Zieltöne bei den Wechseln, Timing (früh/spät in ms,
      Anteil innerhalb ±20 ms) und Tonumfang – mit Verlauf und Tipps.
 
-27. Stabile Fassung
+27. „Was passt“ im Looper
+   - Läuft ein Loop mit erkannten Akkorden, steht direkt unter der Spur, die gerade aufnimmt (sonst unter der
+     nächsten freien Spur), eine kleine Box: klingender Akkord, die Tonleiter, die genau passt (Grundton rot,
+     Akkordtöne blau, Charakterton gelb), die Pentatonik und der Zielton für den nächsten Akkord.
+   - Beim Aufnehmen ist sie rot umrandet. Kopfzeile antippen = auf eine Zeile zuklappen (bleibt gespeichert),
+     „›“ öffnet die Improvisation mit allen Details. Auf dem iPhone steht sie über die ganze Breite.
+
+28. Stabile Fassung
    - Unter https://tom444555.github.io/3nps/stabil/ liegt die Version 24 als Rückfall-Fassung, mit eigenem
      Offline-Speicher („Looper stabil“, auch als eigenes Icon auf dem Home-Bildschirm möglich). Beide Fassungen
      teilen sich Einstellungen, Sitzungen und Übungslog.

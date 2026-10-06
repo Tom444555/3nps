@@ -151,7 +151,7 @@
     run.unlisten = Rhythm.addListener(onStep, true);
     if (st.drums && !Rhythm.on()) { Rhythm.setOn(true); run.ownDrums = true; }
     Rhythm.setJam(true);
-    paintPlay(); status('Läuft – Solo Finder und Quintenzirkel folgen dem Jam.');
+    paintPlay(); status('Läuft – Improvisation und Quintenzirkel folgen dem Backing Track.');
     watch = setInterval(() => { if (run && typeof Looper !== 'undefined' && Looper.busy && Looper.busy()) { stop(); status('Gestoppt, weil der Looper gestartet wurde.'); } }, 300);
   }
   let watch = null;
@@ -179,7 +179,7 @@
 
   // ---- Oberfläche ----
   function status(t) { $('jamStatus').textContent = t; }
-  function paintPlay() { const b = $('jamPlay'); b.classList.toggle('playing', !!run); b.setAttribute('aria-label', run ? 'Jam stoppen' : 'Jam starten'); }
+  function paintPlay() { const b = $('jamPlay'); b.classList.toggle('playing', !!run); b.setAttribute('aria-label', run ? 'Backing Track stoppen' : 'Backing Track starten'); }
   let selIdx = -1;
   function paintSeq() {
     const k = st.key, tot = totalBeats();

@@ -1,0 +1,25 @@
+  /* ---- „Was passt“-Box unter der aufnehmenden Spur ---- */
+  .passt { grid-column: var(--passt-col, 1); grid-row: 2; display: flex; flex-direction: column; gap: 6px; padding: 6px 8px 8px; border-radius: 8px;
+    background: rgba(0,0,0,.38); border: 1px solid var(--line-soft); min-width: 0; }
+  .passt[hidden] { display: none; }
+  .passt.rec { border-color: color-mix(in srgb, var(--root-color) 70%, transparent); box-shadow: 0 0 10px color-mix(in srgb, var(--root-color) 30%, transparent); }
+  .passt-h { display: flex; align-items: baseline; gap: 6px; cursor: pointer; min-width: 0; user-select: none; -webkit-user-select: none; }
+  .passt-l { font: 700 .55rem var(--f-body); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+  .passt-ch { font: 800 1.05rem var(--f-mono); color: var(--accent); white-space: nowrap; }
+  .passt-r { font: 700 .62rem var(--f-body); color: var(--muted); }
+  .passt-sc { font: 700 .78rem var(--f-body); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1; }
+  .passt-tg { color: var(--muted); font-size: .7rem; transition: transform .15s; }
+  .passt.zu .passt-tg { transform: rotate(-90deg); }
+  .passt-go { appearance: none; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); border-radius: 6px; font: 700 .9rem var(--f-body); width: 26px; height: 22px; padding: 0; cursor: pointer; align-self: center; }
+  .passt.zu .passt-b { display: none; }
+  .passt-b { display: flex; flex-direction: column; gap: 5px; }
+  .passt-notes { display: flex; flex-wrap: wrap; gap: 3px; }
+  .passt-n { font: 700 .78rem var(--f-mono); min-width: 24px; text-align: center; padding: 3px 3px; border-radius: 5px; background: var(--surface-2); border: 1px solid var(--line); }
+  .passt-n.ct { background: color-mix(in srgb, var(--t2) 22%, var(--surface-2)); border-color: var(--t2); }
+  .passt-n.root { background: var(--root-color); border-color: var(--root-color); color: #fff; }
+  .passt-n.char { border: 2px solid var(--dub); color: var(--dub); }
+  .passt-n.out { border-style: dashed; border-color: #ff7a59; }
+  .passt-x { display: flex; flex-wrap: wrap; gap: 2px 12px; font: 600 .74rem var(--f-mono); }
+  .passt-x i { font: 600 .62rem var(--f-body); font-style: normal; color: var(--muted); letter-spacing: .04em; } .passt-x b { color: var(--accent); }
+  @media (max-width: 700px) { .passt { grid-column: 1 / -1; } }
+  @media (prefers-reduced-motion: reduce) { .passt-tg { transition: none; } }
