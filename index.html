@@ -975,6 +975,39 @@
   @media (max-width: 560px) { .ld-tog { margin-left: 0; } .ld-pname { width: 130px; } }
   .ld-ph select.ld-ptype { width: auto; flex: 0 0 auto; min-width: 0; max-width: 150px; }
   .ld-ph input.ld-pname { flex: 0 1 200px; }
+  /* ---- Text ---- */
+  .ld-theme { display: block; } .ld-theme input { width: 100%; box-sizing: border-box; }
+  .ld-txhint b { color: var(--ink); }
+  .ld-texts { display: flex; flex-direction: column; gap: 10px; }
+  .ld-tx { border: 1px solid var(--line); border-left: 5px solid var(--tc, var(--muted)); border-radius: 9px; padding: 8px 10px; background: rgba(0,0,0,.18); display: flex; flex-direction: column; gap: 6px; }
+  .ld-txh { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+  .ld-txh > b { font: 800 1rem var(--f-body); }
+  .ld-txc { font: 700 .82rem var(--f-mono); color: var(--accent); }
+  .ld-txs { font: 600 .74rem var(--f-body); color: var(--muted); margin-left: auto; }
+  .ld-txb { display: flex; align-items: stretch; border: 1px solid var(--line); border-radius: 7px; background: var(--surface-2); overflow: hidden; }
+  .ld-txb:focus-within { border-color: var(--dub); }
+  .ld-gut { flex: none; width: 50px; padding: 8px 0; border-right: 1px solid var(--line); background: rgba(0,0,0,.25); }
+  .ld-gut div { height: 1.55rem; line-height: 1.55rem; font: 700 .72rem var(--f-mono); display: flex; justify-content: space-between; padding: 0 6px; color: var(--muted); }
+  .ld-gut div b { font: 800 .8rem var(--f-mono); color: var(--dub); }
+  .ld-gut div b.near { color: var(--t2); } .ld-gut div b.alone { color: var(--muted); opacity: .6; }
+  .ld-txt { flex: 1; min-width: 0; border: 0; outline: 0; resize: none; padding: 8px 10px; background: transparent; color: var(--ink); font: 500 1rem/1.55rem var(--f-body); white-space: pre; overflow-x: auto; overflow-y: hidden; }
+  .ld-txt::placeholder { color: var(--muted); opacity: .7; }
+  .ld-same { font: 500 .85rem var(--f-body); color: var(--muted); }
+  /* ---- Claude ---- */
+  .ld-steps { margin: 0 0 6px; padding-left: 20px; font: 500 .88rem var(--f-body); line-height: 1.55; }
+  .ld-aigoal { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; } .ld-aigoal .field { flex: 1 1 220px; }
+  .ld-aigoal .toggle-btn, .ld-impb .toggle-btn { padding: 7px 12px; font-size: .84rem; }
+  .ld-area { width: 100%; box-sizing: border-box; margin-top: 8px; font: 500 .9rem var(--f-body); padding: 8px 10px; border-radius: 7px; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); resize: vertical; }
+  .ld-area[hidden] { display: none; }
+  #ldPaste { font-family: var(--f-mono); font-size: .8rem; }
+  .ld-impb { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+  .ld-imr:empty { display: none; }
+  .ld-imr { margin-top: 10px; border: 1px solid var(--line); border-radius: 9px; padding: 10px 12px; background: rgba(0,0,0,.22); display: flex; flex-direction: column; gap: 8px; }
+  .ld-imr h3 { margin: 0; font: 800 .95rem var(--f-display); }
+  .ld-imr ul { margin: 0; padding-left: 18px; font: 500 .86rem var(--f-body); line-height: 1.5; }
+  .ld-imr .err li { color: #ff7a59; } .ld-imr .wrn li { color: var(--muted); }
+  .ld-imr .note { font: 500 .86rem var(--f-body); color: var(--muted); } .ld-imr .note b { color: var(--ink); }
+  .ld-imr .ld-vact { flex-wrap: wrap; }
   /* ===== Rost & Stahl: Hintergrund aus gerostetem Blech, darauf verschraubte Stahlplatten ===== */
   :root {
     --plate-hi: #3a3a40;
@@ -1501,7 +1534,7 @@
 <body>
 <header class="control-bar">
   <div class="cb-inner">
-    <div class="brand">Looper <span>3nps · v29</span></div>
+    <div class="brand">Looper <span>3nps · v30</span></div>
     <div class="transport">
       <button class="tbtn" id="playBtn" aria-label="Metronom starten oder stoppen">▶</button>
     </div>
@@ -2172,7 +2205,7 @@
       </div>
       <div class="ld-empty" id="ldEmpty">
         <b>So entsteht ein Song</b>
-        <ol><li>Im <b>Looper</b> etwas einspielen oder laden.</li><li>Passt es: unten im Looper auf <b>„→ Song“</b> tippen und festlegen, ob es Strophe, Refrain, Bridge … ist.</li><li>Hier den <b>Ablauf</b> bauen, am Stück anhören, <b>prüfen</b> und Varianten ausprobieren – jede Übernahme wird eine neue Version.</li></ol>
+        <ol><li>Im <b>Looper</b> etwas einspielen oder laden.</li><li>Passt es: unten im Looper auf <b>„→ Song“</b> tippen und festlegen, ob es Strophe, Refrain, Bridge … ist.</li><li>Hier den <b>Ablauf</b> bauen, am Stück anhören, <b>prüfen</b> und Varianten ausprobieren – jede Übernahme wird eine neue Version.</li><li>Text schreiben, Leadsheet als PDF – und mit <b>„Mit Claude weiterarbeiten“</b> (ganz unten) Ideen holen. Das geht auch ganz ohne Aufnahme.</li></ol>
       </div>
       <div class="ld-main" id="ldMain" hidden>
         <div class="ld-info" id="ldInfo"></div>
@@ -2212,6 +2245,13 @@
       <div class="ld-parts" id="ldParts"></div>
     </div>
 
+    <div class="card" id="ldTextCard" hidden>
+      <div class="card-head"><h2>Text</h2><button class="toggle-btn" id="ldPdf">Leadsheet (PDF)</button></div>
+      <label class="field ld-theme"><span>Thema / Idee</span><input type="text" id="ldTheme" maxlength="200" autocomplete="off" placeholder="Worum geht es? Bild, Gefühl, kleine Geschichte …"></label>
+      <p class="caption ld-txhint">Links neben jeder Zeile: <b>Silben</b> und <b>Reim</b> (gleicher Buchstabe = reimt, ~ = unrein, grau = reimt mit nichts). Akkordwechsel kannst du mit <b>[Am]</b> direkt vor die Silbe schreiben – sonst verteilt das Leadsheet die Akkorde gleichmäßig.</p>
+      <div class="ld-texts" id="ldTexts"></div>
+    </div>
+
     <div class="card" id="ldCheckCard" hidden>
       <div class="card-head"><h2>Prüfen &amp; Varianten</h2><button class="toggle-btn active" id="ldCheck">Song prüfen</button></div>
       <ul class="ld-find" id="ldFind"></ul>
@@ -2228,6 +2268,19 @@
       </div>
       <div class="ld-voiceres" id="ldVoiceRes"></div>
       <div class="ld-targets" id="ldTargets"></div>
+    </div>
+
+    <div class="card" id="ldAiCard">
+      <div class="card-head"><h2>Mit Claude weiterarbeiten</h2><span class="caption">Song-Code hin und zurück</span></div>
+      <ol class="ld-steps"><li>Aufgabe wählen, <b>Song-Code kopieren</b> (oder teilen).</li><li>In einen Chat mit Claude einfügen und senden.</li><li>Claudes Antwort kopieren, unten einfügen, <b>Einlesen</b> – anhören und als neue Version übernehmen.</li></ol>
+      <div class="ld-aigoal">
+        <label class="field"><span>Aufgabe</span><select id="ldGoal" aria-label="Aufgabe für Claude"></select></label>
+        <button class="toggle-btn active" id="ldCopy">Song-Code kopieren</button><button class="toggle-btn" id="ldShare" hidden>Teilen …</button>
+      </div>
+      <textarea class="ld-area" id="ldOwn" rows="2" hidden placeholder="Was soll Claude tun? z. B. „Schreib eine zweite Strophe über den Morgen danach“"></textarea>
+      <textarea class="ld-area" id="ldPaste" rows="4" placeholder="Claudes Antwort hier einfügen (ganz oder nur den Song-Code) …" autocapitalize="off" spellcheck="false"></textarea>
+      <div class="ld-impb"><button class="toggle-btn" id="ldClip">Aus Zwischenablage einfügen</button><button class="toggle-btn active" id="ldRead">Einlesen</button></div>
+      <div class="ld-imr" id="ldImRes"></div>
     </div>
   </section>
 
@@ -11674,6 +11727,466 @@ const LiedCore = (() => {
 if (typeof window !== 'undefined') window.LiedCore = LiedCore;
 if (typeof module !== 'undefined') module.exports = LiedCore;
 
+// ---- Songwriting, Text und Song-Code: Silben, Reime, Textprüfung, Leadsheet-Modell, Austausch mit Claude. Ohne Oberfläche, in Node testbar. ----
+// Text liegt am Teil: part.lyrics = [Text beim 1. Spielen, beim 2. Spielen, …]; im Text sind Akkordmarken wie „[Am]“ erlaubt.
+// Thema/Idee des Songs: version.theme.
+const LiedText = (() => {
+  const C = (typeof LiedCore !== 'undefined') ? LiedCore : require('./lied-core.js');
+  const md = C.md;
+
+  // ================= Akkorde als Text =================
+  const BASE = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11, H: 11 };
+  function parseChords(text) {
+    const out = [], bad = [];
+    (text || '').replace(/[|;]|,(?!\d)/g, ' ').split(/\s+/).filter(Boolean).forEach(tok => {
+      const m = /^([A-Ha-h])([#♯b♭]?)([^:*]*)(?:[:*]([0-9.,½¼/]+))?$/.exec(tok.trim());
+      if (!m) { bad.push(tok); return; }
+      const acc = m[2] === '#' || m[2] === '♯' ? 1 : (m[2] === 'b' || m[2] === '♭') ? -1 : 0;
+      const t = m[3].replace('♭', 'b').replace(/^min/, 'm').replace(/^-/, 'm').replace('Δ', 'maj7').replace(/^M7$/, 'maj7').replace(/^°$/, 'dim').replace(/^ø$/, 'm7b5').replace(/^m7-5$/, 'm7b5').replace(/^sus$/, 'sus4');
+      if (!(t in C.CH)) { bad.push(tok); return; }
+      let bars = 1;
+      if (m[4]) {
+        const s = m[4]; let v = s === '½' ? 0.5 : s === '¼' ? 0.25 : /^\d+\/\d+$/.test(s) ? +s.split('/')[0] / +s.split('/')[1] : parseFloat(s.replace(',', '.'));
+        if (!(v > 0 && v <= 16)) { bad.push(tok); return; } bars = v;
+      }
+      out.push({ r: md(BASE[m[1].toUpperCase()] + acc), t, beats: Math.max(1, Math.round(bars * 4)) });
+    });
+    return { seq: out, bad };
+  }
+  const ascii = s => s.replace(/♯/g, '#').replace(/♭/g, 'b').replace('°', 'dim').replace('m7♭5', 'm7b5');
+  const barsTxt = b => b === 4 ? '' : ':' + (b % 4 === 0 ? String(b / 4) : b === 2 ? '½' : b === 1 ? '¼' : String(b / 4).replace('.', ','));
+  const chordName = (c, k) => ascii(C.cname(c, k));
+  const chordText = (cs, k) => cs.map(c => chordName(c, k) + barsTxt(c.beats)).join(' ');
+
+  // ================= Silben und Reime =================
+  const EN = new Set(['the', 'and', 'you', 'i', 'my', 'me', 'your', 'is', 'it', 'to', 'of', 'in', 'on', 'we', 'love', 'night', 'heart', 'be', 'all', 'with', 'when', 'what', 'don\'t', 'i\'m', 'can', 'just', 'this', 'that', 'so', 'oh', 'baby', 'will', 'are']);
+  const DE = new Set(['der', 'die', 'das', 'und', 'ich', 'du', 'nicht', 'ist', 'ein', 'eine', 'mein', 'dein', 'wir', 'mit', 'auf', 'in', 'zu', 'es', 'sie', 'wie', 'was', 'noch', 'nur', 'mich', 'dich', 'uns', 'den', 'dem', 'bin', 'bist', 'hab', 'kein', 'wenn']);
+  const words = s => (stripChords(s).toLowerCase().match(/[a-zäöüßéèàáíóúâêôû']+/g) || []).map(w => w.replace(/^'+|'+$/g, '')).filter(Boolean);
+  const stripChords = s => String(s || '').replace(/\[[^\]]*\]/g, '');
+  function lang(texts) {
+    let en = 0, de = 0;
+    texts.forEach(t => words(t).forEach(w => { if (EN.has(w)) en++; if (DE.has(w)) de++; if (/[äöüß]/.test(w)) de += 2; }));
+    return en > de * 1.3 && en >= 2 ? 'en' : 'de';
+  }
+  function sylWord(w, lg) {
+    if (lg === 'en') {
+      w = w.replace(/'/g, '');
+      if (w.length <= 3) return Math.max(1, (w.match(/[aeiouy]+/g) || []).length);
+      let n = (w.match(/[aeiouy]+/g) || []).length;
+      if (/[^aeiouy]e$/.test(w) && !/[^aeiouy]le$/.test(w) && n > 1) n--;
+      else if (/[^aeiouytd]ed$/.test(w) && n > 1) n--;
+      else if (/[^aeiouysxzcg]es$/.test(w) && n > 1) n--;
+      if (/^y[aeiou]/.test(w)) n = Math.max(1, n);
+      return Math.max(1, n);
+    }
+    const n = (w.match(/(aa|ee|oo|ie|ei|ai|au|eu|äu|ey|ay|[aeiouyäöüéèàáíóú])/g) || []).length;
+    return Math.max(1, n);
+  }
+  const syllables = (line, lg) => words(line).reduce((a, w) => a + sylWord(w, lg || 'de'), 0);
+  function rhymeKey(word, lg) {
+    let w = String(word || '').toLowerCase().replace(/[^a-zäöüß]/g, '');
+    if (!w) return null;
+    if (lg === 'en') {
+      w = w.replace(/([^aeiou])y$/, '$1i').replace(/([^aeiou])y([^aeiou])/g, '$1i$2').replace(/ph/g, 'f').replace(/ck/g, 'k');
+      const groups = [...w.matchAll(/[aeiou]+/g)];
+      if (!groups.length) return w;
+      let g = groups[groups.length - 1];
+      if (groups.length > 1 && /[^aeiou]e$/.test(w) && g.index === w.length - 1) g = groups[groups.length - 2];   // stummes e
+      else if (groups.length > 1 && /[^aeiou]e[sd]$/.test(w) && g.index === w.length - 2) g = groups[groups.length - 2];
+      return w.slice(g.index).replace(/e$/, '').replace(/es$|ed$/, '');
+    }
+    w = w.replace(/ß/g, 'ss').replace(/ph/g, 'f').replace(/ck/g, 'k').replace(/tz/g, 'z').replace(/dt$/, 't').replace(/äu/g, 'eu').replace(/ai/g, 'ei')
+      .replace(/ie/g, 'I').replace(/([aeiouäöü])h(?![aeiouäöü])/g, '$1').replace(/aa/g, 'a').replace(/ee/g, 'e').replace(/oo/g, 'o')
+      .replace(/d$/, 't').replace(/([aeiouäöüI])b$/, '$1p').replace(/([aeiouäöüIrln])g$/, '$1k').replace(/v/g, 'f');
+    const groups = [...w.matchAll(/(ei|eu|au|[aeiouäöüyI])/g)];
+    if (!groups.length) return w;
+    let i = groups.length - 1;
+    // unbetonte Endsilbe (-e, -en, -er, -el, -em, -es) → ab der Silbe davor
+    const tail = w.slice(groups[i].index);
+    if (i > 0 && groups[i][0] === 'e' && /^e(n|r|l|m|s|nd|rn|ns)?$/.test(tail)) i--;
+    return w.slice(groups[i].index);
+  }
+  const rhymes = (a, b, lg) => !!a && !!b && (a === b || (lg === 'en' && a.length >= 3 && b.length >= 3 && a.slice(-3) === b.slice(-3) && /[aeiou]/.test(a.slice(-3))));
+  const vowelsOf = k => (k || '').replace(/[^aeiouäöüyI]/g, '');
+  const lastWord = line => { const ws = words(line); return ws.length ? ws[ws.length - 1] : ''; };
+  // je Zeile: Silben, Reimbuchstabe (A, B, …), ob der Reim nur unrein (gleiche Vokale) ist
+  function lines(text, lg) {
+    const L = String(text || '').split('\n'), out = [], keys = [];
+    let letter = 0;
+    L.forEach(raw => {
+      const t = stripChords(raw).trim();
+      if (!t) { out.push({ raw, empty: true }); return; }
+      const lw = lastWord(t), k = rhymeKey(lw, lg), vk = vowelsOf(k);
+      let hit = keys.find(x => rhymes(x.k, k, lg) && x.w !== lw) || keys.find(x => rhymes(x.k, k, lg));
+      let near = false;
+      if (!hit && vk && k.length > 1) { const h2 = keys.find(x => x.k && x.k.length > 1 && vowelsOf(x.k) === vk); if (h2) { hit = h2; near = true; } }
+      const L2 = hit ? hit.L : String.fromCharCode(65 + (letter++ % 26));
+      keys.push({ k, w: lw, L: L2 });
+      out.push({ raw, text: t, syl: syllables(t, lg), letter: L2, near, word: lw, same: !!(hit && hit.w === lw) });
+    });
+    // Buchstaben ohne Partner markieren
+    const cnt = {}; out.forEach(x => { if (x.letter) cnt[x.letter] = (cnt[x.letter] || 0) + 1; });
+    out.forEach(x => { if (x.letter) x.alone = cnt[x.letter] === 1; });
+    return out;
+  }
+  const scheme = ls => ls.filter(x => !x.empty).map(x => x.letter).join('');
+
+  // ================= Text am Ablauf =================
+  const REPEATS = new Set(['chorus', 'pre', 'intro', 'outro', 'solo']);
+  // Vorkommen jedes Teils im Ablauf: n = wievieltes Mal dieser Teil gespielt wird
+  function occurrences(v) {
+    const seen = {}; return C.flat(v).map(x => { const n = seen[x.p.id] = (seen[x.p.id] == null ? 0 : seen[x.p.id] + 1); return { p: x.p, oi: x.oi, rep: x.rep, n }; });
+  }
+  // Text eines Vorkommens: eigener Text, sonst (bei Refrain & Co.) der vom ersten Mal
+  function lyricsOf(p, n) {
+    const L = p.lyrics || [];
+    if (L[n] && L[n].trim()) return { text: L[n], own: true };
+    if (n > 0 && REPEATS.has(p.type) && L[0] && L[0].trim()) return { text: L[0], own: false, same: true };
+    return { text: '', own: false };
+  }
+  function allTexts(v) { const t = []; v.parts.forEach(p => (p.lyrics || []).forEach(x => { if (x) t.push(x); })); return t; }
+  const hasText = v => allTexts(v).some(x => x.trim());
+
+  // ================= Textprüfung =================
+  function analyse(v, title) {
+    const F = [], add = (lvl, text, part) => F.push({ lvl, text, part: part || null });
+    if (!hasText(v)) { if (v.parts.length) add('tip', 'Noch kein Text. Schreib im Bereich „Text“ erste Zeilen – oder lass dir mit „Mit Claude weiterarbeiten“ helfen.'); return F; }
+    const lg = lang(allTexts(v)), occ = occurrences(v);
+    // fehlende Texte
+    const miss = [];
+    occ.forEach(o => { const l = lyricsOf(o.p, o.n); if (!l.text.trim() && o.p.type !== 'solo' && o.p.type !== 'intro' && o.p.type !== 'outro') miss.push(o.p.name + (o.n ? ' (' + (o.n + 1) + '. Mal)' : '')); });
+    const uniq = [...new Set(miss)];
+    if (uniq.length) add('tip', 'Ohne Text: ' + uniq.slice(0, 5).join(', ') + (uniq.length > 5 ? ' …' : '') + '.');
+    else add('ok', 'Jeder gesungene Teil hat Text.');
+    // Silben: gleiche Zeile in Strophe 1 und 2 sollte etwa gleich lang sein (gleiche Melodie)
+    v.parts.forEach(p => {
+      const L = (p.lyrics || []).map(t => lines(t, lg).filter(x => !x.empty));
+      if (L.length < 2 || !L[0].length) return;
+      for (let n = 1; n < L.length; n++) {
+        const bad = []; L[n].forEach((x, i) => { const a = L[0][i]; if (a && Math.abs(a.syl - x.syl) > 2) bad.push(i + 1); });
+        if (bad.length) add('tip', '„' + p.name + '“, ' + (n + 1) + '. Mal: Zeile ' + bad.join(', ') + ' hat deutlich mehr oder weniger Silben als beim 1. Mal – auf dieselbe Melodie wird es eng. Kürzen oder Füllwörter ergänzen.', p.id);
+        if (L[n].length && L[n].length !== L[0].length) add('info', '„' + p.name + '“: beim ' + (n + 1) + '. Mal ' + L[n].length + ' Zeilen, beim 1. Mal ' + L[0].length + '.', p.id);
+      }
+    });
+    // Dichte und Zeilen je Takt
+    v.parts.forEach(p => {
+      const t = lyricsOf(p, 0).text; if (!t.trim()) return;
+      const ls = lines(t, lg).filter(x => !x.empty), bars = C.beatsOf(p) / 4, syl = ls.reduce((a, x) => a + x.syl, 0);
+      if (bars && syl / bars > 11) add('tip', '„' + p.name + '“ ist sehr textreich (' + Math.round(syl / bars) + ' Silben je Takt). Bei ' + Math.round(v.bpm) + ' BPM wird das schnell gesungen – kürzen oder den Teil verlängern.', p.id);
+      if (bars && ls.length && bars % ls.length && ls.length % bars) add('info', '„' + p.name + '“: ' + ls.length + ' Zeilen auf ' + bars + ' Takte – teilt sich nicht gleichmäßig. Üblich sind 1, 2 oder 4 Takte je Zeile.', p.id);
+      const sch = scheme(lines(t, lg));
+      if (ls.length >= 4 && new Set(sch).size === sch.length) add('info', '„' + p.name + '“ reimt sich nirgends (' + sch + '). Gewollt? Ein Reim am Zeilenende (z. B. ABAB oder AABB) macht Text leichter merkbar.', p.id);
+    });
+    // Titel im Refrain
+    const ch = v.parts.find(p => p.type === 'chorus' && lyricsOf(p, 0).text.trim());
+    if (ch && title && !/^Song \d+$/.test(title)) {
+      const tw = words(title).filter(w => w.length > 2), txt = words(lyricsOf(ch, 0).text).join(' ');
+      if (tw.length && !tw.some(w => txt.includes(w))) add('tip', 'Der Songtitel „' + title + '“ kommt im Refrain nicht vor. Meist steht er in der Hook-Zeile – so merkt man sich den Song.', ch.id);
+      else if (tw.length) add('ok', 'Der Titel steckt im Refrain.');
+    }
+    // Refrain-Hook: wiederholte Zeile?
+    if (ch) {
+      const ls = lines(lyricsOf(ch, 0).text, lg).filter(x => !x.empty), c2 = {};
+      ls.forEach(x => { const k = x.text.toLowerCase(); c2[k] = (c2[k] || 0) + 1; });
+      if (ls.length >= 4 && !Object.values(c2).some(n => n > 1) && !(title && ls.some(x => x.text.toLowerCase().includes(title.toLowerCase())))) add('info', 'Im Refrain wiederholt sich keine Zeile. Eine wiederkehrende Hook-Zeile (Anfang und Ende des Refrains) bleibt besser hängen.', ch.id);
+    }
+    return F;
+  }
+
+  // ================= Leadsheet-Modell =================
+  // Zeile = { text, chords: [{ i (Zeichen), n (Name) }] }; Abschnitt = { head, rows } oder { head, grid } (nur Akkorde)
+  function inlineChords(raw) {
+    const ch = []; let text = '';
+    String(raw).replace(/\[([^\]]*)\]|([^[]+)/g, (m, c, t) => { if (c != null) ch.push({ i: text.length, n: c.trim() }); else text += t; return ''; });
+    return { text, chords: ch };
+  }
+  function gridOf(p, k) {
+    const bars = []; let beat = 0;
+    p.chords.forEach(c => { const b = Math.floor(beat / 4); (bars[b] = bars[b] || []).push(chordName(c, k)); beat += c.beats; });
+    const nb = Math.ceil(beat / 4); for (let i = 0; i < nb; i++) if (!bars[i]) bars[i] = ['%'];
+    return bars.map(b => b.join(' '));
+  }
+  // Akkorde ohne Marken: gleichmäßig über die Zeilen verteilen, am Wortanfang
+  function autoRows(text, p, k) {
+    const raw = String(text).split('\n'), ls = raw.map(r => r.trim()), idx = ls.map((l, i) => l ? i : -1).filter(i => i >= 0);
+    const rows = ls.map(t => ({ text: t, chords: [] }));
+    if (!idx.length || !p.chords.length) return rows;
+    const B = C.beatsOf(p), span = B / idx.length;
+    let beat = 0;
+    p.chords.forEach(c => {
+      const li = Math.min(idx.length - 1, Math.floor(beat / span + 1e-6)), row = rows[idx[li]], frac = (beat - li * span) / span;
+      let pos = Math.round(frac * row.text.length);
+      if (pos > 0) { const s = row.text.lastIndexOf(' ', pos); const n2 = row.text.indexOf(' ', pos); pos = s < 0 ? 0 : (n2 >= 0 && n2 - pos < pos - s ? n2 + 1 : s + 1); }
+      if (pos >= row.text.length && row.text.length) pos = Math.max(0, row.text.lastIndexOf(' ') + 1);
+      row.chords.push({ i: pos, n: chordName(c, k) });
+      beat += c.beats;
+    });
+    return rows;
+  }
+  function leadsheet(song, v) {
+    const k = v.key, occ = occurrences(v), secs = [], cnt = {}, printed = {};
+    occ.forEach((o, j) => {
+      const p = o.p, l = lyricsOf(p, o.n), prev = secs[secs.length - 1];
+      const multi = occ.filter(x => x.p === p).length > 1, tname = !REPEATS.has(p.type) && multi ? p.name + ' ' + (o.n + 1) : p.name;
+      // gleicher Teil direkt wiederholt mit gleichem Text → „×2“
+      if (prev && prev.pid === p.id && prev.txt === l.text) { prev.times++; prev.head = prev.base + ' ×' + prev.times; return; }
+      const s = { pid: p.id, txt: l.text, base: tname, head: tname, times: 1, type: p.type };
+      if (!l.text.trim()) s.grid = gridOf(p, k);
+      else if (printed[p.id + '|' + l.text]) { s.head = tname + ' (wie oben)'; s.base = s.head; s.same = true; s.grid = null; s.rows = []; }
+      else {
+        printed[p.id + '|' + l.text] = true;
+        s.rows = /\[[^\]]+\]/.test(l.text) ? String(l.text).split('\n').map(r => { const x = inlineChords(r.trim()); return { text: x.text, chords: x.chords }; }) : autoRows(l.text, p, k);
+        s.chordLine = chordText(p.chords, k);
+      }
+      secs.push(s); cnt[p.id] = (cnt[p.id] || 0) + 1;
+    });
+    const L = C.totals(v), order = v.order.map(o => { const p = C.partById(v, o.p); return p ? p.name + (o.reps > 1 ? ' ×' + o.reps : '') : ''; }).filter(Boolean).join(' – ');
+    return { title: song.name, info: C.keyLabel(k).replace(/♯/g, '#').replace(/♭/g, 'b') + ' · ' + Math.round(v.bpm) + ' BPM · ' + C.mmss(L.secs) + ' · Version ' + v.n, theme: v.theme || '', order, sections: secs };
+  }
+
+  // ================= Song-Code (Austausch mit Claude) =================
+  const HEAD = '=== 3NPS SONG-CODE v1 ===', END = '=== ENDE ===';
+  const TNAME = { intro: 'Intro', verse: 'Strophe', pre: 'Pre-Chorus', chorus: 'Refrain', bridge: 'Bridge', solo: 'Solo', outro: 'Outro', other: 'Teil' };
+  const TFIND = [['intro', /^intro/i], ['pre', /^pre|vorrefrain|pre-?chorus/i], ['chorus', /^(refrain|chorus|hook|ref)/i], ['verse', /^(strophe|verse|vers)/i], ['bridge', /^(bridge|zwischenteil|mittelteil)/i], ['solo', /^(solo|instrumental)/i], ['outro', /^(outro|schluss|ende)/i], ['other', /^(teil|part|other)/i]];
+  const typeOf = s => { s = String(s || '').trim(); for (const [k, re] of TFIND) if (re.test(s)) return k; return null; };
+  function labels(v) {
+    const used = {}, m = {};
+    v.parts.forEach(p => { let n = (p.name || 'Teil').replace(/[\[\]|#]/g, '').trim() || 'Teil'; const base = n; let i = 2; while (used[n.toLowerCase()]) n = base + ' ' + i++; used[n.toLowerCase()] = 1; m[p.id] = n; });
+    return m;
+  }
+  function keyText(k) { return C.keyLabel(k).replace(/♯/g, '#').replace(/♭/g, 'b'); }
+  function parseKey(s) {
+    const m = /^\s*([A-Ha-h])\s*([#♯b♭]?)\s*-?\s*(dur|moll|major|minor|maj|min|m)?\b/i.exec(String(s || '')); if (!m) return null;
+    const pc = md(BASE[m[1].toUpperCase()] + (m[2] === '#' || m[2] === '♯' ? 1 : m[2] === 'b' || m[2] === '♭' ? -1 : 0));
+    const q = (m[3] || '').toLowerCase(); return { pc, major: !(q === 'moll' || q === 'minor' || q === 'min' || q === 'm') };
+  }
+  const GOALS = {
+    feedback: { n: 'Feedback zum ganzen Song', t: 'Gib mir ehrliches, konkretes Feedback zu Aufbau, Akkorden und Text – was trägt, was schwächelt – und mach Verbesserungsvorschläge. Ändere den Song-Code nur dort, wo du dir sicher bist, dass es besser wird.' },
+    text: { n: 'Text weiterschreiben', t: 'Schreib den Text weiter: Fülle leere Textstellen (fehlende Strophen, Refrain, Bridge) passend zu Thema, Stimmung und Silbenzahl der vorhandenen Zeilen. Vorhandene Zeilen nur ändern, wenn es nötig ist.' },
+    reime: { n: 'Reime und Silben glätten', t: 'Verbessere Reime und Sprachrhythmus: Parallele Zeilen (z. B. Strophe 1 und 2) sollen etwa gleich viele Silben haben, das Reimschema soll sauber sein, Betonungen sollen natürlich auf die Takte fallen. Inhalt und Bilder beibehalten.' },
+    hook: { n: 'Refrain stärker machen', t: 'Mach den Refrain stärker: eine einprägsame Hook-Zeile (am besten mit dem Titel), klare Wiederholung. Wenn es hilft, die Akkorde des Refrains so ändern, dass er sich deutlich von der Strophe abhebt.' },
+    akkorde: { n: 'Akkorde interessanter', t: 'Mach die Akkorde interessanter (z. B. geliehene Akkorde, Septimen, Sus-Akkorde, bessere Übergänge zwischen den Teilen), aber bleib im Stil und in der Tonart. Text unverändert lassen.' },
+    bridge: { n: 'Bridge schreiben', t: 'Schreib eine Bridge (Akkorde und Text), die Kontrast bringt – neue Akkorde, neue Perspektive im Text – und setz sie vor den letzten Refrain in den Ablauf.' },
+    eigen: { n: 'Eigener Wunsch …', t: '' }
+  };
+  function toCode(song, v, opts) {
+    opts = opts || {};
+    const lab = labels(v), k = v.key, out = [HEAD];
+    out.push('Titel: ' + (song && song.name || 'Ohne Titel'));
+    out.push('Tonart: ' + keyText(k));
+    out.push('Tempo: ' + Math.round(v.bpm));
+    out.push('Thema: ' + String(v.theme || '').replace(/\s*\n\s*/g, ' '));
+    if (opts.voice) out.push('Stimme: ' + opts.voice);
+    out.push('Ablauf: ' + v.order.map(o => lab[o.p] ? lab[o.p] + (o.reps > 1 ? ' x' + o.reps : '') : '').filter(Boolean).join(' | '));
+    const occ = occurrences(v), times = {}; occ.forEach(o => { times[o.p.id] = (times[o.p.id] || 0) + 1; });
+    v.parts.forEach(p => {
+      out.push(''); out.push('## ' + lab[p.id] + ' [' + TNAME[p.type] + ']');
+      out.push('Akkorde: ' + chordText(p.chords, k));
+      const L = p.lyrics || [], n = Math.max(L.length, REPEATS.has(p.type) ? 1 : (times[p.id] || 1), 1);
+      for (let i = 0; i < n; i++) {
+        const t = String(L[i] || '').replace(/\s+$/, '');
+        if (i > 0 && !t && REPEATS.has(p.type)) continue;
+        out.push('Text ' + (i + 1) + ':'); out.push(t || '(leer)');
+      }
+    });
+    out.push(''); out.push('Notiz:'); out.push(END);
+    return out.join('\n');
+  }
+  function prompt(song, v, goal, own, voice) {
+    const g = GOALS[goal] || GOALS.feedback, task = goal === 'eigen' ? (own || '').trim() || GOALS.feedback.t : g.t;
+    return 'Ich schreibe einen Song mit meiner Gitarren-App „3nps“ und singe ihn selbst.\n\n'
+      + 'Aufgabe: ' + task + '\n\n'
+      + 'Bitte antworte mit dem vollständigen Song-Code (von „' + HEAD + '“ bis „' + END + '“) in einem Codeblock, damit ich ihn direkt in die App einfügen kann. Erklärungen gern außerhalb des Codeblocks.\n'
+      + 'Regeln für den Song-Code:\n'
+      + '- Akkorde eines Teils in einer Zeile; ein Akkord = 1 Takt (4/4). „Am:2“ = 2 Takte, „C:½“ = halber Takt. Namen wie C, Am, F#m, Bb, G7, Cmaj7, Am7, Dsus4, Bdim, Bm7b5, Cadd9.\n'
+      + '- Jeder Teil beginnt mit „## Name [Typ]“. Typen: Intro, Strophe, Pre-Chorus, Refrain, Bridge, Solo, Outro, Teil. Neue Teile sind erlaubt.\n'
+      + '- „Ablauf:“ nennt die Teile genau mit ihren Namen, getrennt durch „|“, Wiederholung direkt hintereinander mit „x2“.\n'
+      + '- „Text 1:“ ist der Text beim ersten Spielen des Teils, „Text 2:“ beim zweiten usw. Beim Refrain genügt meist „Text 1“. „(leer)“ = noch kein Text. Akkordwechsel darfst du mit [Am] direkt vor der Silbe markieren.\n'
+      + '- Unter „Notiz:“ in einer Zeile kurz zusammenfassen, was du geändert hast.\n\n'
+      + toCode(song, v, { voice }) + '\n';
+  }
+  // Song-Code einlesen; base = bisherige Version (Teile mit gleichem Namen behalten ihre Aufnahme)
+  function fromCode(text, base) {
+    const errs = [], warn = [];
+    let s = String(text || '').replace(/\r/g, '');
+    const a = s.search(/=+\s*3NPS\s+SONG-CODE/i);
+    if (a < 0) return { ok: false, errs: ['Kein Song-Code gefunden. Er beginnt mit „' + HEAD + '“ – kopiere Claudes Antwort komplett (oder nur den Codeblock).'] };
+    s = s.slice(a); s = s.slice(s.indexOf('\n') + 1);
+    const e = s.search(/^\s*=+\s*ENDE\s*=*\s*$/m); if (e >= 0) s = s.slice(0, e); else warn.push('Das Ende „' + END + '“ fehlt – gelesen bis zum Schluss.');
+    const L = s.split('\n').map(x => x.replace(/^\s*```.*$/, '').replace(/\*\*/g, ''));
+    const head = {}, parts = []; let cur = null, txt = null, note = '', inNote = false;
+    const flush = () => { if (cur && txt) { cur.texts[txt.n] = txt.lines.join('\n').replace(/^\s+|\s+$/g, ''); } txt = null; };
+    for (const raw of L) {
+      const line = raw.replace(/\s+$/, '');
+      const ph = /^\s*#{2,3}\s*(.+?)\s*(?:\[([^\]]*)\])?\s*$/.exec(line);
+      if (ph) { flush(); inNote = false; cur = { label: ph[1].trim(), typ: ph[2] || '', chords: null, texts: [] }; parts.push(cur); continue; }
+      const nm = /^\s*Notiz\s*:\s*(.*)$/i.exec(line);
+      if (nm) { flush(); inNote = true; note = nm[1].trim(); continue; }
+      if (inNote) { if (line.trim() && !note) note = line.trim(); continue; }
+      if (!cur) { const hm = /^\s*([A-Za-zÄÖÜäöü]+)\s*:\s*(.*)$/.exec(line); if (hm) head[hm[1].toLowerCase()] = hm[2].trim(); continue; }
+      const am = /^\s*(Akkorde|Chords)\s*:\s*(.*)$/i.exec(line);
+      if (am && !txt) { cur.chords = am[2]; continue; }
+      if (am && txt) { flush(); cur.chords = am[2]; continue; }
+      const tm = /^\s*(Text|Lyrics)\s*(\d+)?\s*:\s*(.*)$/i.exec(line);
+      if (tm) { flush(); txt = { n: Math.max(0, (+tm[2] || 1) - 1), lines: tm[3].trim() ? [tm[3].trim()] : [] }; continue; }
+      if (txt) txt.lines.push(line.trim());
+    }
+    flush();
+    if (!parts.length) return { ok: false, errs: ['Im Song-Code stehen keine Teile („## Name [Typ]“).'] };
+    const key = parseKey(head.tonart || head.key) || (base && base.key) || { pc: 0, major: true };
+    if (!parseKey(head.tonart || head.key)) warn.push('Tonart nicht erkannt – ' + C.keyLabel(key) + ' übernommen.');
+    let bpm = parseFloat(String(head.tempo || head.bpm || '').replace(',', '.'));
+    if (!(bpm >= 40 && bpm <= 240)) { bpm = base ? base.bpm : 90; if (head.tempo) warn.push('Tempo nicht erkannt – ' + Math.round(bpm) + ' BPM behalten.'); }
+    const baseLab = base ? labels(base) : {}, byLab = {};
+    if (base) base.parts.forEach(p => { byLab[baseLab[p.id].toLowerCase()] = p; });
+    const v = { key, bpm: Math.round(bpm * 10) / 10, theme: head.thema || head.theme || '', parts: [], order: [] };
+    if (/^\(?leer\)?$/i.test(v.theme)) v.theme = '';
+    const nameMap = {};
+    parts.forEach(pp => {
+      const old = byLab[pp.label.toLowerCase()];
+      const type = typeOf(pp.typ) || typeOf(pp.label) || (old && old.type) || 'other';
+      const r = parseChords(pp.chords || '');
+      if (r.bad.length) errs.push('„' + pp.label + '“: Akkorde nicht verstanden: ' + r.bad.join(' '));
+      if (!r.seq.length && pp.chords != null && !r.bad.length) warn.push('„' + pp.label + '“ hat keine Akkorde.');
+      const chords = r.seq.length ? r.seq : (old ? C.clone(old.chords) : []);
+      const lyrics = []; pp.texts.forEach((t, i) => { lyrics[i] = /^\(?leer\)?$/i.test(t || '') ? '' : (t || ''); });
+      for (let i = 0; i < lyrics.length; i++) if (lyrics[i] == null) lyrics[i] = '';
+      while (lyrics.length && !lyrics[lyrics.length - 1]) lyrics.pop();
+      const p = old ? Object.assign(C.clone(old), { name: pp.label, type, chords, lyrics }) : { id: C.newId('p'), name: pp.label, type, chords, lyrics, audio: null };
+      if (nameMap[pp.label.toLowerCase()]) { errs.push('Teil „' + pp.label + '“ kommt doppelt vor.'); return; }
+      nameMap[pp.label.toLowerCase()] = p; v.parts.push(p);
+    });
+    // Ablauf
+    const ab = String(head.ablauf || head.order || '');
+    const items = (ab.includes('|') ? ab.split('|') : ab.split(/[,–→>]/)).map(x => x.trim()).filter(Boolean);
+    items.forEach(it => {
+      const m = /^(.*?)\s*(?:[x×]\s*(\d+)|\((\d+)\s*[x×]\)|(\d+)\s*[x×])\s*$/i.exec(it), nm2 = (m ? m[1] : it).trim(), reps = m ? +(m[2] || m[3] || m[4]) : 1;
+      const p = nameMap[nm2.toLowerCase()];
+      if (!p) { errs.push('Ablauf: Teil „' + nm2 + '“ gibt es nicht.'); return; }
+      v.order.push({ p: p.id, reps: Math.max(1, Math.min(8, reps || 1)) });
+    });
+    if (!items.length) { warn.push('Kein Ablauf angegeben – Teile in der Reihenfolge des Codes.'); v.parts.forEach(p => v.order.push({ p: p.id, reps: 1 })); }
+    if (!v.order.length && !errs.length) errs.push('Der Ablauf ist leer.');
+    return { ok: !errs.length, errs, warn, v, title: (head.titel || head.title || '').trim(), note: note.slice(0, 120) };
+  }
+  // Was hat sich geändert? (für die Vorschau vor dem Übernehmen)
+  function diff(a, b, ta, tb) {
+    const out = [], k = b.key;
+    if (tb && ta !== tb) out.push('Titel: „' + ta + '“ → „' + tb + '“');
+    if (a.key.pc !== b.key.pc || a.key.major !== b.key.major) out.push('Tonart: ' + C.keyLabel(a.key) + ' → ' + C.keyLabel(b.key));
+    if (Math.round(a.bpm) !== Math.round(b.bpm)) out.push('Tempo: ' + Math.round(a.bpm) + ' → ' + Math.round(b.bpm) + ' BPM');
+    if ((a.theme || '') !== (b.theme || '')) out.push('Thema geändert');
+    const lab = labels(a), ord = v => v.order.map(o => (C.partById(v, o.p) || {}).name + (o.reps > 1 ? ' ×' + o.reps : '')).join(' – ');
+    if (ord(a) !== ord(b)) out.push('Ablauf: ' + ord(b));
+    b.parts.forEach(p => {
+      const o = a.parts.find(x => x.id === p.id);
+      if (!o) { out.push('Neuer Teil „' + p.name + '“: ' + chordText(p.chords, k) + ((p.lyrics || []).some(x => x) ? ' · mit Text' : '')); return; }
+      const ch = [];
+      if (o.name !== p.name) ch.push('umbenannt');
+      if (o.type !== p.type) ch.push('jetzt ' + TNAME[p.type]);
+      if (C.sig(o.chords) !== C.sig(p.chords)) ch.push('Akkorde ' + chordText(o.chords, a.key) + ' → ' + chordText(p.chords, k) + (p.audio ? ' (Aufnahme wird stumm)' : ''));
+      const lo = (o.lyrics || []).join('\n§\n').trim(), ln = (p.lyrics || []).join('\n§\n').trim();
+      if (lo !== ln) { const cl = (ln.split('\n').filter(x => x.trim() && x !== '§').length) - (lo.split('\n').filter(x => x.trim() && x !== '§').length); ch.push(!lo ? 'Text neu' : 'Text geändert' + (cl ? ' (' + (cl > 0 ? '+' : '') + cl + ' Zeilen)' : '')); }
+      if (ch.length) out.push('„' + (lab[o.id] || o.name) + '“: ' + ch.join(', '));
+    });
+    a.parts.forEach(o => { if (!b.parts.some(p => p.id === o.id)) out.push('Teil „' + o.name + '“ entfernt'); });
+    return out;
+  }
+  return { rhymes, parseChords, chordText, chordName, syllables, rhymeKey, lines, scheme, lang, occurrences, lyricsOf, hasText, analyse, leadsheet, inlineChords, toCode, prompt, fromCode, diff, labels, GOALS, HEAD, END, parseKey, stripChords };
+})();
+if (typeof window !== 'undefined') window.LiedText = LiedText;
+if (typeof module !== 'undefined') module.exports = LiedText;
+
+// ---- Leadsheet als PDF (A4, Helvetica, Akkorde über dem Text). Eigener kleiner PDF-Schreiber, keine fremden Bibliotheken. ----
+const LiedPdf = (() => {
+  const PDFW = {"H":[278,278,355,556,556,889,667,191,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,278,278,584,584,584,556,1015,667,667,722,722,667,611,778,722,278,500,667,556,833,722,778,667,778,722,667,611,722,667,944,667,667,611,278,278,278,469,556,333,556,556,500,556,556,278,556,556,222,222,500,222,833,556,556,556,556,333,500,278,556,500,722,500,500,500,334,260,334,584,761,556,761,222,556,333,1000,556,556,333,1000,667,333,1000,761,611,761,761,222,222,333,333,350,556,1000,333,1000,500,333,944,761,500,667,278,333,556,556,556,556,260,556,333,737,370,556,584,333,737,333,400,584,333,333,333,556,537,278,333,333,365,556,834,834,834,611,667,667,667,667,667,667,1000,722,667,667,667,667,278,278,278,278,722,722,778,778,778,778,778,584,778,722,722,722,722,667,667,611,556,556,556,556,556,556,889,500,556,556,556,556,278,278,278,278,556,556,556,556,556,556,556,584,611,556,556,556,556,500,556,500],"B":[278,333,474,556,556,889,722,238,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,333,333,584,584,584,611,975,722,722,722,722,667,611,778,722,278,556,722,611,833,722,778,667,778,722,667,611,722,667,944,667,667,611,333,278,333,584,556,333,556,611,556,611,556,333,611,611,278,278,556,278,889,611,611,611,611,389,556,333,611,556,778,556,556,500,389,280,389,584,761,556,761,278,556,500,1000,556,556,333,1000,667,333,1000,761,611,761,761,278,278,500,500,350,556,1000,333,1000,556,333,944,761,500,667,278,333,556,556,556,556,280,556,333,737,370,556,584,333,737,333,400,584,333,333,333,611,556,278,333,333,365,556,834,834,834,611,722,722,722,722,722,722,1000,722,667,667,667,667,278,278,278,278,722,722,778,778,778,778,778,584,778,722,722,722,722,667,667,611,556,556,556,556,556,556,889,556,556,556,556,556,278,278,278,278,611,611,611,611,611,611,611,584,611,611,611,611,611,556,611,556]};
+  // Unicode → Windows-1252 (Standardkodierung der PDF-Grundschriften)
+  const SPEC = { '€': 128, '‚': 130, 'ƒ': 131, '„': 132, '…': 133, '†': 134, '‡': 135, 'ˆ': 136, '‰': 137, 'Š': 138, '‹': 139, 'Œ': 140, 'Ž': 142, '‘': 145, '’': 146, '“': 147, '”': 148, '•': 149, '–': 150, '—': 151, '˜': 152, '™': 153, 'š': 154, '›': 155, 'œ': 156, 'ž': 158, 'Ÿ': 159 };
+  const REPL = { '♭': 'b', '♯': '#', '→': '->', '×': 'x', '½': '1/2' };
+  function codes(s) {
+    const out = [];
+    for (const ch of String(s)) {
+      if (REPL[ch] && ch !== '×' && ch !== '½') { for (const c of REPL[ch]) out.push(c.charCodeAt(0)); continue; }
+      const u = ch.codePointAt(0);
+      if (u >= 32 && u < 127) out.push(u); else if (SPEC[ch]) out.push(SPEC[ch]); else if (u >= 160 && u < 256) out.push(u);
+      else if (REPL[ch]) for (const c of REPL[ch]) out.push(c.charCodeAt(0)); else out.push(63);
+    }
+    return out;
+  }
+  const width = (s, f, size) => codes(s).reduce((a, c) => a + (PDFW[f][c - 32] || 556), 0) * size / 1000;
+  const pstr = s => '(' + codes(s).map(c => c === 40 || c === 41 || c === 92 ? '\\' + String.fromCharCode(c) : c < 127 ? String.fromCharCode(c) : '\\' + c.toString(8).padStart(3, '0')).join('') + ')';
+  // Zeile umbrechen; Akkord-Positionen (Zeichenindex) wandern mit
+  function wrapRow(row, maxW, size) {
+    const out = []; let text = row.text, chords = row.chords.slice(), off = 0;
+    while (width(text, 'H', size) > maxW && text.includes(' ')) {
+      let cut = text.length; while (cut > 0 && width(text.slice(0, cut), 'H', size) > maxW) cut = text.lastIndexOf(' ', cut - 1);
+      if (cut <= 0) break;
+      out.push({ text: text.slice(0, cut), chords: chords.filter(c => c.i - off < cut).map(c => ({ i: c.i - off, n: c.n })) });
+      chords = chords.filter(c => c.i - off >= cut); off += cut + 1; text = text.slice(cut + 1);
+    }
+    out.push({ text, chords: chords.map(c => ({ i: Math.max(0, c.i - off), n: c.n })) });
+    return out;
+  }
+  function build(ls) {
+    const PW = 595.28, PH = 841.89, M = 54, maxW = PW - 2 * M, pages = []; let ops = [], y = PH - M;
+    const T = (x, yy, s, f, size, rgb) => ops.push((rgb ? rgb.join(' ') + ' rg ' : '0 0 0 rg ') + 'BT /' + f + ' ' + size + ' Tf ' + x.toFixed(2) + ' ' + yy.toFixed(2) + ' Td ' + pstr(s) + ' Tj ET');
+    const Ln = (x1, yy, x2, rgb) => ops.push((rgb || [0.75, 0.75, 0.75]).join(' ') + ' RG 0.6 w ' + x1.toFixed(2) + ' ' + yy.toFixed(2) + ' m ' + x2.toFixed(2) + ' ' + yy.toFixed(2) + ' l S');
+    const page = () => { if (ops.length) pages.push(ops); ops = []; y = PH - M; T(M, M - 24, ls.title + ' – Seite ' + (pages.length + 1), 'H', 8, [0.5, 0.5, 0.5]); };
+    const need = h => { if (y - h < M) page(); };
+    page();
+    // Kopf
+    T(M, y - 22, ls.title, 'B', 22); y -= 34;
+    T(M, y - 10, ls.info, 'H', 10, [0.3, 0.3, 0.3]); y -= 16;
+    if (ls.theme) { wrapRow({ text: 'Thema: ' + ls.theme, chords: [] }, maxW, 10).forEach(r => { T(M, y - 10, r.text, 'H', 10, [0.3, 0.3, 0.3]); y -= 14; }); }
+    wrapRow({ text: 'Ablauf: ' + ls.order, chords: [] }, maxW, 10).forEach(r => { T(M, y - 10, r.text, 'H', 10, [0.3, 0.3, 0.3]); y -= 14; });
+    y -= 6; Ln(M, y, PW - M, [0.2, 0.2, 0.2]); y -= 14;
+    const CS = 10.5, TS = 11.5, ACC = [0.75, 0.25, 0.05];
+    ls.sections.forEach(s => {
+      const rows = s.rows ? [].concat(...s.rows.map(r => r.text ? wrapRow(r, maxW, TS) : [r])) : [];
+      const h = 22 + (s.grid ? 18 : 0) + rows.reduce((a, r) => a + (r.text ? (r.chords.length ? 28 : 16) : 8), 0);
+      need(Math.min(h, 22 + 3 * 28)); // Überschrift nie allein unten
+      T(M, y - 12, s.head, 'B', 12.5, [0.1, 0.2, 0.45]);
+      if (s.chordLine && !s.same) { const w = width(s.chordLine, 'H', 9); T(PW - M - w, y - 12, s.chordLine, 'H', 9, [0.5, 0.5, 0.5]); }
+      y -= 22;
+      if (s.grid) {
+        need(18); let x = M; const bw = Math.min(110, maxW / Math.min(8, s.grid.length));
+        s.grid.forEach((b, i) => { if (i && i % 8 === 0) { y -= 18; need(18); x = M; } T(x, y - 11, '|', 'H', 11, [0.6, 0.6, 0.6]); T(x + 8, y - 11, b, 'B', CS, ACC); x += bw; });
+        T(x, y - 11, '|', 'H', 11, [0.6, 0.6, 0.6]); y -= 22;
+      }
+      rows.forEach(r => {
+        if (!r.text && !r.chords.length) { y -= 8; return; }
+        need(r.chords.length ? 28 : 16);
+        if (r.chords.length) {
+          let end = -1e9;
+          r.chords.forEach(c => { let x = M + width(r.text.slice(0, c.i), 'H', TS); x = Math.max(x, end + 5); T(x, y - 10, c.n, 'B', CS, ACC); end = x + width(c.n, 'B', CS); });
+          y -= 12;
+        }
+        if (r.text) T(M, y - 12, r.text, 'H', TS);
+        y -= 16;
+      });
+      y -= 8;
+    });
+    pages.push(ops);
+    // Datei zusammensetzen
+    const objs = [], add = s => { objs.push(s); return objs.length; };
+    const cat = add(''), pgs = add(''), f1 = add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>'), f2 = add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>');
+    const kids = pages.map(o => { const st = o.join('\n'); const c = add('<< /Length ' + st.length + ' >>\nstream\n' + st + '\nendstream'); return add('<< /Type /Page /Parent ' + pgs + ' 0 R /MediaBox [0 0 ' + PW + ' ' + PH + '] /Resources << /Font << /H ' + f1 + ' 0 R /B ' + f2 + ' 0 R >> >> /Contents ' + c + ' 0 R >>'); });
+    objs[cat - 1] = '<< /Type /Catalog /Pages ' + pgs + ' 0 R >>';
+    objs[pgs - 1] = '<< /Type /Pages /Kids [' + kids.map(k => k + ' 0 R').join(' ') + '] /Count ' + kids.length + ' >>';
+    const info = add('<< /Title ' + pstr(ls.title) + ' /Producer (3nps) >>');
+    let out = '%PDF-1.4\n', offs = [];
+    objs.forEach((o, i) => { offs.push(out.length); out += (i + 1) + ' 0 obj\n' + o + '\nendobj\n'; });
+    const xref = out.length;
+    out += 'xref\n0 ' + (objs.length + 1) + '\n0000000000 65535 f \n' + offs.map(o => String(o).padStart(10, '0') + ' 00000 n \n').join('');
+    out += 'trailer\n<< /Size ' + (objs.length + 1) + ' /Root ' + cat + ' 0 R /Info ' + info + ' 0 R >>\nstartxref\n' + xref + '\n%%EOF\n';
+    const bytes = new Uint8Array(out.length); for (let i = 0; i < out.length; i++) bytes[i] = out.charCodeAt(i);
+    return { bytes, pages: pages.length };
+  }
+  return { build, width, codes };
+})();
+if (typeof window !== 'undefined') window.LiedPdf = LiedPdf;
+if (typeof module !== 'undefined') module.exports = LiedPdf;
+
 // ---- Songwriting: Songs aus Looper-Teilen bauen, abspielen, prüfen, Varianten als Versionen, Gesangs-Hilfe ----
 // Speicher: Songs (klein) in localStorage „3nps-lieder“, Aufnahmen der Teile in IndexedDB (Store „meta“, Schlüssel „lied-audio:…“)
 // – kein neuer Datenbank-Store, damit die stabile Fassung dieselbe Datenbank weiter öffnen kann. Sicherung nimmt beides mit.
@@ -11757,7 +12270,12 @@ if (typeof module !== 'undefined') module.exports = LiedCore;
     m.add(new Option('Neuen Teil anlegen (' + C.TYPES[t] + (cnt ? ' ' + (cnt + 1) : '') + ')', 'new'));
     if (v) v.parts.forEach(p => m.add(new Option('Ersetzt „' + p.name + '“', p.id)));
   }
-  $('ldDSong').addEventListener('change', fillDlgModes); $('ldDType').addEventListener('change', fillDlgModes);
+  // Vorschlag: erster Teil Strophe, dann Refrain, dann Bridge
+  function suggestType() {
+    const sel = $('ldDSong'), so = sel.value !== 'new' ? db.songs.find(s => s.id === sel.value) : null, v0 = so ? so.versions[so.cur] : null;
+    $('ldDType').value = !v0 || !v0.parts.some(p => p.type === 'verse') ? 'verse' : !v0.parts.some(p => p.type === 'chorus') ? 'chorus' : !v0.parts.some(p => p.type === 'bridge') ? 'bridge' : 'other';
+  }
+  $('ldDSong').addEventListener('change', () => { suggestType(); fillDlgModes(); }); $('ldDType').addEventListener('change', fillDlgModes);
   $('ldDCancel').addEventListener('click', () => { dlg.hidden = true; cap = null; });
   function openCapture() {
     if (typeof Looper === 'undefined' || !Looper.songCapture) return;
@@ -11770,10 +12288,7 @@ if (typeof module !== 'undefined') module.exports = LiedCore;
     db.songs.forEach(s => sel.add(new Option(s.name, s.id))); sel.add(new Option('+ Neuer Song …', 'new'));
     sel.value = db.active && db.songs.some(s => s.id === db.active) ? db.active : 'new';
     $('ldDNew').value = 'Song ' + (db.songs.length + 1);
-    // Vorschlag: erster Teil Strophe, dann Refrain
-    const v0 = sel.value !== 'new' ? db.songs.find(s => s.id === sel.value).versions.slice(-1)[0] : null;
-    $('ldDType').value = !v0 || !v0.parts.some(p => p.type === 'verse') ? 'verse' : !v0.parts.some(p => p.type === 'chorus') ? 'chorus' : !v0.parts.some(p => p.type === 'bridge') ? 'bridge' : 'other';
-    fillDlgModes(); dlg.hidden = false;
+    suggestType(); fillDlgModes(); dlg.hidden = false;
   }
   $('ldDOk').addEventListener('click', async () => {
     if (!cap) return;
@@ -11927,7 +12442,7 @@ if (typeof module !== 'undefined') module.exports = LiedCore;
     ['ldRename', 'ldDel'].forEach(id => { $(id).disabled = !s; });
     const v = ver(), has = !!(v && v.parts.length);
     $('ldEmpty').hidden = has; $('ldMain').hidden = !s;
-    ['ldOrderCard', 'ldPartsCard', 'ldCheckCard', 'ldVoiceCard'].forEach(id => { $(id).hidden = !has; });
+    ['ldOrderCard', 'ldPartsCard', 'ldTextCard', 'ldCheckCard', 'ldVoiceCard'].forEach(id => { $(id).hidden = !has; });
     if (!s) return;
     const L = C.totals(v);
     $('ldInfo').innerHTML = '<b>' + C.keyLabel(v.key) + '</b> · ' + Math.round(v.bpm) + ' BPM · ' + L.bars + ' Takte · ' + C.mmss(L.secs)
@@ -11939,7 +12454,7 @@ if (typeof module !== 'undefined') module.exports = LiedCore;
     const vs = $('ldVer'); vs.innerHTML = '';
     s.versions.forEach((x, i) => vs.add(new Option('V' + x.n + ' · ' + new Date(x.at).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) + ' · ' + x.note, i)));
     vs.value = s.cur;
-    renderOrder(v); renderParts(v); renderVoice(v);
+    renderOrder(v); renderParts(v); renderText(v); renderVoice(v);
     $('ldFind').innerHTML = ''; $('ldVar').innerHTML = ''; varCache = null;
   }
   const TCLS = t => 't-' + t;
@@ -12034,7 +12549,7 @@ if (typeof module !== 'undefined') module.exports = LiedCore;
   const ICON = { ok: '✓', tip: '➜', warn: '!', info: 'i' };
   $('ldCheck').addEventListener('click', () => {
     const v = ver(); if (!v) return;
-    const F = C.analyse(v);
+    const F = C.analyse(v).concat(window.LiedText ? LiedText.analyse(v, song().name) : []);
     $('ldFind').innerHTML = F.map(f => '<li class="' + f.lvl + '"><span>' + ICON[f.lvl] + '</span>' + esc(f.text) + '</li>').join('');
     varCache = C.variants(v);
     $('ldVar').innerHTML = varCache.length ? '<div class="ld-varh">Varianten – anhören, dann übernehmen (wird eine neue Version)</div>' + varCache.map((x, i) => '<div class="ld-vc" data-i="' + i + '"><b>' + esc(x.title) + '</b><p>' + esc(x.desc) + '</p><div class="ld-vact"><button class="toggle-btn" data-a="hear">▶ Anhören</button><button class="toggle-btn active" data-a="take">Übernehmen</button></div></div>').join('') : '';
@@ -12096,6 +12611,125 @@ if (typeof module !== 'undefined') module.exports = LiedCore;
   $('ldMeasLo').addEventListener('click', () => measure('lo'));
   $('ldMeasHi').addEventListener('click', () => measure('hi'));
 
+  // ================= Text =================
+  const X = window.LiedText;
+  let saveT = null;
+  const saveSoon = () => { clearTimeout(saveT); saveT = setTimeout(save, 450); };
+  // Eingabefelder: je Teil so viele, wie er (mit eigenem Text) gespielt wird; Refrain & Co. nur einmal, außer es gibt schon mehr Texte
+  function textSlots(v) {
+    const occ = X.occurrences(v), times = {}, first = [];
+    occ.forEach(o => { times[o.p.id] = (times[o.p.id] || 0) + 1; if (!first.includes(o.p)) first.push(o.p); });
+    v.parts.forEach(p => { if (!first.includes(p)) first.push(p); });
+    const REP = ['chorus', 'pre', 'intro', 'outro', 'solo'], out = [];
+    first.forEach(p => {
+      const L = p.lyrics || [], filled = L.reduce((a, t, i) => t && t.trim() ? i + 1 : a, 0);
+      const n = REP.includes(p.type) ? Math.max(1, filled) : Math.max(1, times[p.id] || 0, filled);
+      for (let i = 0; i < n; i++) out.push({ p, n: i, multi: n > 1 });
+    });
+    return out;
+  }
+  function gutterHtml(ls) { return ls.map(x => x.empty ? '<div></div>' : '<div><span>' + x.syl + '</span><b class="' + (x.near ? 'near' : x.alone ? 'alone' : '') + '">' + x.letter + (x.near ? '~' : '') + '</b></div>').join('') + '<div></div>'; }
+  function statsText(ls, p) {
+    const f = ls.filter(x => !x.empty); if (!f.length) return C.beatsOf(p) / 4 + ' Takte';
+    return f.length + ' Zeilen · ' + C.beatsOf(p) / 4 + ' Takte · Reim ' + X.scheme(ls) + ' · Silben ' + f.map(x => x.syl).join('/');
+  }
+  function curLang(v) { const t = []; v.parts.forEach(p => (p.lyrics || []).forEach(x => { if (x) t.push(x); })); return X.lang(t); }
+  function renderText(v) {
+    if (!X) return;
+    $('ldTheme').value = v.theme || '';
+    const lg = curLang(v);
+    $('ldTexts').innerHTML = textSlots(v).map(sl => {
+      const p = sl.p, t = (p.lyrics || [])[sl.n] || '', ls = X.lines(t, lg), rows = Math.max(3, t.split('\n').length + 1);
+      const ph = sl.n === 0 ? 'Text für „' + p.name + '“ …' : 'Text beim ' + (sl.n + 1) + '. Mal …';
+      return '<div class="ld-tx ' + TCLS(p.type) + '" data-id="' + p.id + '" data-n="' + sl.n + '"><div class="ld-txh"><b>' + esc(p.name) + (sl.multi ? ' · ' + (sl.n + 1) + '. Mal' : '') + '</b>'
+        + '<span class="ld-txc">' + esc(X.chordText(p.chords, v.key)) + '</span><span class="ld-txs">' + esc(statsText(ls, p)) + '</span></div>'
+        + '<div class="ld-txb"><div class="ld-gut">' + gutterHtml(ls) + '</div><textarea class="ld-txt" rows="' + rows + '" wrap="off" autocapitalize="sentences" placeholder="' + esc(ph) + '" aria-label="Text ' + esc(p.name) + '">' + esc(t) + '</textarea></div></div>';
+    }).join('');
+  }
+  $('ldTexts').addEventListener('input', e => {
+    const ta = e.target; if (!ta.classList.contains('ld-txt')) return;
+    const box = ta.closest('.ld-tx'), v = ver(), p = C.partById(v, box.dataset.id), n = +box.dataset.n; if (!p) return;
+    const L = (p.lyrics || []).slice(); while (L.length < n) L.push(''); L[n] = ta.value;
+    while (L.length && !(L[L.length - 1] || '').trim() && L.length > 1) L.pop();
+    p.lyrics = L;
+    const ls = X.lines(ta.value, curLang(v));
+    ta.rows = Math.max(3, ta.value.split('\n').length + 1);
+    box.querySelector('.ld-gut').innerHTML = gutterHtml(ls); box.querySelector('.ld-txs').textContent = statsText(ls, p);
+    saveSoon();
+  });
+  $('ldTheme').addEventListener('input', e => { const v = ver(); if (!v) return; v.theme = e.target.value.slice(0, 200); saveSoon(); });
+  async function shareFile(file, okMsg) {
+    if (navigator.canShare && navigator.canShare({ files: [file] })) { try { await navigator.share({ files: [file], title: file.name }); status(okMsg); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = file.name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 30000); status(okMsg);
+  }
+  $('ldPdf').addEventListener('click', async () => {
+    const s = song(), v = ver(); if (!s || !v || !window.LiedPdf) return;
+    try {
+      const r = LiedPdf.build(X.leadsheet(s, v));
+      const nm = (s.name || 'Song').replace(/[\\/:*?"<>|]+/g, ' ').trim() + ' – Leadsheet V' + v.n + '.pdf';
+      await shareFile(new File([r.bytes], nm, { type: 'application/pdf' }), 'Leadsheet erstellt (' + r.pages + (r.pages === 1 ? ' Seite' : ' Seiten') + ').');
+    } catch (e) { status('Leadsheet fehlgeschlagen: ' + (e && e.message || e)); }
+  });
+
+  // ================= Mit Claude (Song-Code) =================
+  Object.entries(X ? X.GOALS : {}).forEach(([k, g]) => $('ldGoal').add(new Option(g.n, k)));
+  $('ldGoal').value = 'text';
+  $('ldGoal').addEventListener('change', e => { $('ldOwn').hidden = e.target.value !== 'eigen'; if (!$('ldOwn').hidden) $('ldOwn').focus(); });
+  if (navigator.share) $('ldShare').hidden = false;
+  function voiceLabel(s) { const vo = voiceOf(s), pr = C.VOICES.find(x => x.id === vo.preset); return (pr ? pr.n + ' ' : '') + C.noteName(vo.lo, { pc: 0, major: true }) + '–' + C.noteName(vo.hi, { pc: 0, major: true }); }
+  function promptText() {
+    let s = song(), v = ver();
+    if (!s || !v) { s = { name: 'Neuer Song', voice: null }; v = { n: 1, key: { pc: 0, major: true }, bpm: 90, theme: '', parts: [{ id: 'p1', name: 'Strophe', type: 'verse', chords: [], lyrics: [] }, { id: 'p2', name: 'Refrain', type: 'chorus', chords: [], lyrics: [] }], order: [{ p: 'p1', reps: 1 }, { p: 'p2', reps: 1 }] }; }
+    return X.prompt(s, v, $('ldGoal').value, $('ldOwn').value, voiceLabel(s));
+  }
+  async function copyText(t) {
+    try { await navigator.clipboard.writeText(t); return true; } catch (e) {}
+    const ta = document.createElement('textarea'); ta.value = t; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, t.length);
+    let ok = false; try { ok = document.execCommand('copy'); } catch (e) {} ta.remove(); return ok;
+  }
+  $('ldCopy').addEventListener('click', async () => {
+    if ($('ldGoal').value === 'eigen' && !$('ldOwn').value.trim()) { status('Schreib kurz deinen Wunsch an Claude ins Feld.'); $('ldOwn').focus(); return; }
+    const t = promptText(); window.__lastPrompt = t;
+    status(await copyText(t) ? 'Kopiert – jetzt in einen Chat mit Claude einfügen und senden.' : 'Kopieren ging nicht – nutze „Teilen …“.');
+  });
+  $('ldShare').addEventListener('click', async () => { const t = promptText(); window.__lastPrompt = t; try { await navigator.share({ text: t, title: (song() || { name: 'Song' }).name }); } catch (e) {} });
+  $('ldClip').addEventListener('click', async () => {
+    try { const t = await navigator.clipboard.readText(); if (t) { $('ldPaste').value = t; readCode(); } else status('Die Zwischenablage ist leer.'); }
+    catch (e) { status('Kein Zugriff auf die Zwischenablage – lange ins Feld tippen und „Einsetzen“ wählen.'); $('ldPaste').focus(); }
+  });
+  let imp = null;
+  function readCode() {
+    const base = ver(), r = X.fromCode($('ldPaste').value, base), box = $('ldImRes');
+    imp = null;
+    if (!r.ok) { box.innerHTML = '<h3>Konnte den Song-Code nicht übernehmen</h3><ul class="err">' + r.errs.map(e => '<li>' + esc(e) + '</li>').join('') + '</ul>' + (r.warn && r.warn.length ? '<ul class="wrn">' + r.warn.map(e => '<li>' + esc(e) + '</li>').join('') + '</ul>' : '') + '<p class="note">Tipp: Claude bitten, „den vollständigen Song-Code im selben Format“ zu schicken.</p>'; return; }
+    imp = r;
+    const s = song(), d = base ? X.diff(base, r.v, s.name, r.title) : ['Neuer Song mit ' + r.v.parts.length + ' Teilen'];
+    box.innerHTML = '<h3>Vorschlag von Claude' + (r.title ? ' – „' + esc(r.title) + '“' : '') + '</h3>'
+      + (r.note ? '<p class="note"><b>Notiz:</b> ' + esc(r.note) + '</p>' : '')
+      + (d.length ? '<ul>' + d.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul>' : '<p class="note">Keine Änderungen gegenüber der aktuellen Version.</p>')
+      + (r.warn.length ? '<ul class="wrn">' + r.warn.map(e => '<li>' + esc(e) + '</li>').join('') + '</ul>' : '')
+      + '<div class="ld-vact"><button class="toggle-btn" data-a="hear">▶ Anhören</button>' + (base ? '<button class="toggle-btn active" data-a="take"' + (d.length ? '' : ' disabled') + '>Als neue Version übernehmen</button>' : '') + '<button class="toggle-btn" data-a="new">Als neuer Song</button><button class="toggle-btn" data-a="drop">Verwerfen</button></div>';
+  }
+  $('ldRead').addEventListener('click', readCode);
+  $('ldImRes').addEventListener('click', e => {
+    const b = e.target.closest('[data-a]'); if (!b || !imp) return; const a = b.dataset.a;
+    if (a === 'hear') { if (P && P.label === 'Vorschlag von Claude') { stop(); return; } play(imp.v, { label: 'Vorschlag von Claude' }); return; }
+    if (a === 'drop') { imp = null; $('ldImRes').innerHTML = ''; $('ldPaste').value = ''; return; }
+    if (P) stop();
+    const note = 'Claude: ' + (imp.note || X.GOALS[$('ldGoal').value].n).slice(0, 70);
+    if (a === 'take') {
+      const s = song(); if (imp.title && imp.title !== s.name) s.name = imp.title.slice(0, 60);
+      pushVersion(imp.v, note); status('Übernommen – neue Version V' + ver().n + '. Mit „Version“ kommst du jederzeit zurück.');
+    } else {
+      const old = song(), s = newSong((imp.title || (old ? old.name + ' (Claude)' : 'Song von Claude')).slice(0, 60));
+      if (old && old.voice) s.voice = C.clone(old.voice);
+      s.versions[0] = Object.assign(C.clone(imp.v), { n: 1, at: Date.now(), note }); save();
+      status('Als neuer Song „' + s.name + '“ angelegt.');
+    }
+    imp = null; $('ldImRes').innerHTML = ''; $('ldPaste').value = ''; selOrd = -1; render();
+  });
+
   let ui = null;
   document.addEventListener('tabchange', e => {
     clearInterval(ui); ui = null;
@@ -12114,7 +12748,7 @@ if (typeof module !== 'undefined') module.exports = LiedCore;
     },
     nowChord: () => { const n = now(); return n ? { name: ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'][n.chord.r] + n.chord.t } : null; },
     log: () => P ? P.log.slice() : [], grid: () => P ? P.events.filter(e => e.inChord === 0).map(e => e.t) : [],
-    db: () => db, song, ver, play, stop, openCapture, render, now: () => { const n = now(); return n ? { part: n.entry.p.name, oi: n.entry.oi, chord: n.chord, beat: n.beat } : null; },
+    db: () => db, song, ver, play, prompt: () => promptText(), readCode, imp: () => imp, stop, openCapture, render, now: () => { const n = now(); return n ? { part: n.entry.p.name, oi: n.entry.oi, chord: n.chord, beat: n.beat } : null; },
     _reload: () => { db = load(); render(); }
   };
 })();
