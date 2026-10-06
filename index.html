@@ -816,55 +816,79 @@
   .tl-pe { fill: none; stroke-width: 2; stroke: var(--scale-color); } .tl-pe.root { stroke: var(--root-color); } .tl-pe.ct { stroke: var(--t2); } .tl-pe.out { stroke: #ff7a59; }
   .ub-tl-leg { justify-content: flex-start; }
   .ub-tips { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font: 500 .9rem var(--f-body); line-height: 1.45; }
-  /* ---- „Was passt“ oben in der Looper-Karte, volle Breite ---- */
-  .passt { display: flex; flex-direction: column; gap: 10px; padding: 10px 12px 12px; margin-bottom: 4px; border-radius: 10px;
+  /* ---- „Was passt“ oben in der Looper-Karte, volle Breite – feste Höhe, damit beim Mitlaufen nichts springt ---- */
+  .passt { display: flex; flex-direction: column; gap: 8px; padding: 8px 12px 10px; margin-bottom: 4px; border-radius: 10px;
     background: rgba(0,0,0,.42); border: 1px solid var(--line-soft); }
   .passt[hidden] { display: none; }
   .passt.rec { border-color: color-mix(in srgb, var(--root-color) 70%, transparent); box-shadow: 0 0 12px color-mix(in srgb, var(--root-color) 28%, transparent); }
   .passt.held { border-color: var(--dub); }
   .passt.stop .passt-b { opacity: .55; }
-  .passt-h { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; min-width: 0; }
-  .passt-tgl { appearance: none; background: none; border: 0; color: inherit; padding: 4px 2px; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  .passt-h { display: flex; align-items: center; gap: 10px; flex-wrap: nowrap; min-width: 0; height: 32px; }
+  .passt-tgl { appearance: none; background: none; border: 0; color: inherit; padding: 4px 2px; display: flex; align-items: center; gap: 6px; cursor: pointer; flex: none; }
   .passt-l { font: 700 .6rem var(--f-body); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
   .passt-tg { color: var(--muted); font-size: .75rem; transition: transform .15s; }
   .passt.zu .passt-tg { transform: rotate(-90deg); }
   .passt-hs { font: 600 .9rem var(--f-body); color: var(--muted); display: none; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .passt-hs b { font: 800 1.25rem var(--f-mono); color: var(--accent); }
+  .passt-hs b { font: 800 1.2rem var(--f-mono); color: var(--accent); }
   .passt.zu .passt-hs { display: inline; }
   .passt-sp { flex: 1; }
-  .passt-hold, .passt-go { padding: 6px 12px; font-size: .8rem; }
+  .passt-hold, .passt-go { padding: 5px 12px; font-size: .8rem; flex: none; white-space: nowrap; }
   .passt-hold.active { background: var(--dub); color: #111; border-color: var(--dub); }
-  .passt-pick { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  /* Akkordwahl beim Anhalten: in der Kopfzeile, seitlich wischbar – ändert die Höhe nicht */
+  .passt-pick { display: flex; flex-wrap: nowrap; align-items: center; gap: 5px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+  .passt-pick::-webkit-scrollbar { display: none; }
   .passt-pick[hidden] { display: none; }
-  .passt-pick .toggle-btn { padding: 6px 14px; font: 800 1rem var(--f-mono); }
+  .passt-pick .toggle-btn { padding: 3px 11px; font: 800 .95rem var(--f-mono); flex: none; }
   .passt.zu .passt-b, .passt.zu .passt-pick { display: none; }
-  .passt-b { display: grid; grid-template-columns: minmax(150px, 0.8fr) minmax(0, 1.6fr) minmax(0, 1.2fr); gap: 14px; align-items: start; }
-  .passt-now { display: flex; flex-direction: column; gap: 3px; }
-  .passt-cap { font: 700 .6rem var(--f-body); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+  .passt-b { display: grid; grid-template-columns: minmax(150px, 0.75fr) minmax(0, 1.6fr) minmax(0, 1.25fr); gap: 14px; align-items: start; height: 108px; overflow: hidden; }
+  .passt-b > div { min-width: 0; }
+  .passt-now { display: flex; flex-direction: column; gap: 2px; }
+  .passt-cap { font: 700 .6rem var(--f-body); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); height: 14px; }
   .passt.held .passt-cap { color: var(--dub); }
-  .passt-ch { font: 800 3rem var(--f-mono); line-height: 1; color: var(--accent); }
-  .passt-rom { font: 700 .95rem var(--f-body); }
-  .passt-ct, .passt-nx { font: 600 .82rem var(--f-body); color: var(--muted); }
-  .passt-ct b { font-family: var(--f-mono); color: var(--t2); } .passt-nx b { font: 800 1.15rem var(--f-mono); color: var(--ink); }
-  .passt-sc { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
-  .passt-sch { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-  .passt-sch b { font: 800 1.15rem var(--f-display); }
-  .passt-notes { display: flex; flex-wrap: wrap; gap: 4px; }
-  .passt-n { font: 800 1.02rem var(--f-mono); min-width: 34px; text-align: center; padding: 5px 5px; border-radius: 7px; background: var(--surface-2); border: 1px solid var(--line); }
+  .passt-chr { display: flex; align-items: center; gap: 10px; height: 52px; min-width: 0; }
+  .passt-ch { font: 800 2.6rem var(--f-mono); line-height: 1; color: var(--accent); white-space: nowrap; }
+  .passt-chi { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .passt-rom { font: 700 .85rem var(--f-body); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .passt-ct, .passt-nx { font: 600 .78rem var(--f-body); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .passt-ct b { font-family: var(--f-mono); color: var(--t2); } .passt-nx { height: 24px; line-height: 24px; } .passt-nx b { font: 800 1.1rem var(--f-mono); color: var(--ink); }
+  .passt-sc { display: flex; flex-direction: column; gap: 6px; }
+  .passt-sch { display: flex; align-items: center; gap: 10px; height: 22px; white-space: nowrap; min-width: 0; }
+  .passt-sch b { font: 800 1.1rem var(--f-display); overflow: hidden; text-overflow: ellipsis; }
+  .passt-sch .sf-tag { margin-left: auto; flex: none; }
+  .passt-o { font: 600 .74rem var(--f-body); color: var(--muted); flex: none; }
+  .passt-notes { display: flex; flex-wrap: nowrap; gap: 4px; height: 30px; overflow: hidden; }
+  .passt-n { font: 800 .98rem var(--f-mono); min-width: 32px; text-align: center; padding: 4px 4px; border-radius: 7px; background: var(--surface-2); border: 1px solid var(--line); box-sizing: border-box; height: 30px; }
   .passt-n.ct { background: color-mix(in srgb, var(--t2) 22%, var(--surface-2)); border-color: var(--t2); }
   .passt-n.root { background: var(--root-color); border-color: var(--root-color); color: #fff; }
   .passt-n.char { border: 2px solid var(--dub); color: var(--dub); }
   .passt-n.out { border-style: dashed; border-color: #ff7a59; }
-  .passt-d { margin: 0; font: 500 .84rem var(--f-body); color: var(--muted); line-height: 1.45; }
-  .passt-c { margin: 0; font: 500 .8rem var(--f-body); color: var(--muted); }
-  .passt-c:empty { display: none; }
-  .passt-c .y, .passt b.y { color: var(--dub); } .passt-c .o { color: #ff7a59; } .passt b.g { color: var(--accent); }
-  .passt-mv { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
-  .passt-row { display: flex; flex-direction: column; gap: 3px; font: 500 .84rem var(--f-body); line-height: 1.4; }
+  .passt-dr { display: flex; gap: 12px; align-items: flex-start; height: 38px; }
+  .passt-d { flex: 1; margin: 0; font: 500 .82rem var(--f-body); color: var(--muted); line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .passt-c { flex: none; display: grid; grid-template-columns: auto auto; column-gap: 6px; align-items: baseline; padding: 2px 8px; border-left: 2px solid var(--dub); max-width: 46%; }
+  .passt-c[hidden] { display: none; }
+  .passt-c .passt-l { grid-column: 1 / -1; color: var(--dub); }
+  .passt-c b { font: 800 1.05rem var(--f-mono); color: var(--dub); } .passt-c small { font: 600 .74rem var(--f-body); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .passt b.y { color: var(--dub); } .passt b.o { color: #ff7a59; font-family: var(--f-mono); } .passt b.g { color: var(--accent); }
+  .passt-mv { display: flex; flex-direction: column; gap: 8px; }
+  .passt-row { display: flex; flex-direction: column; gap: 2px; font: 500 .8rem var(--f-body); line-height: 1.35; min-width: 0; }
+  .passt-row .passt-l { overflow: hidden; text-overflow: ellipsis; }
+  .passt-ln { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .passt-row b { font-family: var(--f-mono); }
-  .passt-pn { font: 700 1rem var(--f-mono); letter-spacing: .06em; }
-  @media (max-width: 860px) { .passt-b { grid-template-columns: minmax(130px, 0.7fr) minmax(0, 1.5fr); } .passt-mv { grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; gap: 8px 24px; } }
-  @media (max-width: 560px) { .passt-b { grid-template-columns: 1fr; } .passt-now { flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; } .passt-cap { width: 100%; } .passt-ch { font-size: 2.4rem; } }
+  .passt-pn { margin-left: 4px; font: 700 .9rem var(--f-mono); letter-spacing: .05em; color: var(--muted); }
+  @media (max-width: 860px) {
+    .passt-b { grid-template-columns: minmax(140px, 0.7fr) minmax(0, 1.5fr); grid-template-rows: 108px 58px; height: 180px; row-gap: 12px; }
+    .passt-mv { grid-column: 1 / -1; flex-direction: row; gap: 24px; }
+    .passt-mv .passt-row { flex: 1 1 0; }
+  }
+  @media (max-width: 560px) {
+    .passt-h { gap: 6px; } .passt-go { display: none; }
+    .passt-b { grid-template-columns: 1fr; grid-template-rows: 56px 108px; height: 176px; row-gap: 8px; }
+    .passt-now { display: grid; grid-template-columns: auto 1fr; column-gap: 10px; }
+    .passt-cap { grid-column: 1 / -1; } .passt-chr { height: 40px; } .passt-ch { font-size: 2.1rem; }
+    .passt-nx { align-self: center; height: auto; }
+    .passt-mv { display: none; }
+    .passt-c small { display: none; } .passt-c { max-width: none; }
+  }
   @media (prefers-reduced-motion: reduce) { .passt-tg { transition: none; } }
   @media (max-width: 560px) {
     .tracks .th-chords { display: none !important; }
@@ -1477,7 +1501,7 @@
 <body>
 <header class="control-bar">
   <div class="cb-inner">
-    <div class="brand">Looper <span>3nps · v28</span></div>
+    <div class="brand">Looper <span>3nps · v29</span></div>
     <div class="transport">
       <button class="tbtn" id="playBtn" aria-label="Metronom starten oder stoppen">▶</button>
     </div>
@@ -10516,15 +10540,17 @@ if (typeof module !== 'undefined') module.exports = Pitch;
     '<div class="passt-h">'
     + '<button class="passt-tgl" id="passtHead" aria-expanded="true"><span class="passt-l">Was passt</span><span class="passt-tg" aria-hidden="true">▾</span></button>'
     + '<span class="passt-hs" id="passtHs"></span>'
+    + '<div class="passt-pick" id="passtPick" hidden></div>'
     + '<span class="passt-sp"></span>'
     + '<button class="toggle-btn passt-hold" id="passtHold" aria-pressed="false">⏸ Anhalten</button>'
     + '<button class="toggle-btn passt-go" id="passtGo" title="In der Improvisation öffnen">Improvisation ›</button></div>'
-    + '<div class="passt-pick" id="passtPick" hidden></div>'
     + '<div class="passt-b">'
-    +   '<div class="passt-now"><span class="passt-cap" id="passtCap">Klingt jetzt</span><b class="passt-ch" id="passtCh"></b><span class="passt-rom" id="passtRom"></span>'
-    +     '<span class="passt-ct" id="passtCt"></span><span class="passt-nx" id="passtNx"></span></div>'
-    +   '<div class="passt-sc"><div class="passt-sch"><b id="passtSc"></b><span class="sf-tag" id="passtTag"></span></div>'
-    +     '<div class="passt-notes" id="passtNotes"></div><p class="passt-d" id="passtDesc"></p><p class="passt-c" id="passtChar"></p></div>'
+    +   '<div class="passt-now"><span class="passt-cap" id="passtCap">Klingt jetzt</span>'
+    +     '<div class="passt-chr"><b class="passt-ch" id="passtCh"></b><div class="passt-chi"><span class="passt-rom" id="passtRom"></span><span class="passt-ct" id="passtCt"></span></div></div>'
+    +     '<span class="passt-nx" id="passtNx"></span></div>'
+    +   '<div class="passt-sc"><div class="passt-sch"><b id="passtSc"></b><span class="passt-o" id="passtOut"></span><span class="sf-tag" id="passtTag"></span></div>'
+    +     '<div class="passt-notes" id="passtNotes"></div>'
+    +     '<div class="passt-dr"><p class="passt-d" id="passtDesc"></p><div class="passt-c" id="passtChar"></div></div></div>'
     +   '<div class="passt-mv" id="passtMv"></div>'
     + '</div>';
   card.insertBefore(box, top);
@@ -10611,12 +10637,19 @@ if (typeof module !== 'undefined') module.exports = Pitch;
       const p = md(b.root + x), cls = [p === q.c.r ? 'root' : '', q.ct.includes(p) ? 'ct' : '', p === b.ch ? 'char' : '', b.outside.includes(p) ? 'out' : ''].join(' ');
       return '<span class="passt-n ' + cls + '">' + q.nn(p) + '</span>';
     }).join('');
-    $('passtDesc').textContent = b.why + ' ' + q.mood(b.id);
-    $('passtChar').innerHTML = (b.ch != null ? 'Charakterton <b class="y">' + q.nn(b.ch) + '</b> (' + q.ivLong(b.ch - b.root) + ')' : '')
-      + (b.outside.length ? (b.ch != null ? ' · ' : '') + 'Reibung mit der Tonart: <b class="o">' + b.outside.map(p => q.nn(p)).join(', ') + '</b>' : '');
+    // Satz (Klang) mit dem Charakterton daneben; Reibung kurz in der Kopfzeile der Tonleiter
+    // der Satz über den Charakterton steht schon im Kästchen daneben → im Text weglassen
+    const ivn = b.ch != null ? q.ivLong(b.ch - b.root).replace(/ \/ .*/, '') : '';
+    let mood = q.mood(b.id) || b.why;
+    if (ivn) { const parts = mood.split(/(?<=\.)\s+/); if (parts.length > 1 && /charakterton|unterschied|färbt|glitzert/i.test(parts[parts.length - 1]) || parts.length > 1 && parts[parts.length - 1].includes(ivn)) mood = parts.slice(0, -1).join(' '); }
+    $('passtDesc').textContent = mood;
+    $('passtDesc').title = b.why + ' ' + q.mood(b.id);
+    $('passtChar').innerHTML = b.ch != null ? '<span class="passt-l">Charakterton</span><b class="y">' + q.nn(b.ch) + '</b><small>' + q.ivLong(b.ch - b.root).replace(/ \/ .*/, '') + '</small>' : '';
+    $('passtChar').hidden = b.ch == null;
+    $('passtOut').innerHTML = b.outside.length ? 'Reibung <b class="o">' + b.outside.map(p => q.nn(p)).join(', ') + '</b>' : '';
     // rechts: Pentatonik + nächster Wechsel
     let mv = '';
-    if (q.pent) mv += '<div class="passt-row"><span class="passt-l">Pentatonik</span><b>' + q.nn(q.pent.root) + ' ' + q.scaleName(q.pent.id) + '</b><span class="passt-pn">' + q.pent.iv.map(v => q.nn(q.pent.root + v)).join(' ') + '</span></div>';
+    if (q.pent) mv += '<div class="passt-row"><span class="passt-l">Pentatonik</span><span class="passt-ln"><b>' + q.nn(q.pent.root) + ' ' + q.scaleName(q.pent.id) + '</b> <span class="passt-pn">' + q.pent.iv.map(v => q.nn(q.pent.root + v)).join(' ') + '</span></span></div>';
     if (nx) {
       const n2 = SoloFinder.parseChord(nx), q2 = SoloFinder.quick(nx, k);
       if (n2 && q2) {
@@ -10624,12 +10657,12 @@ if (typeof module !== 'undefined') module.exports = Pitch;
         b2.forEach(p => b.pcs.forEach(o => { if ((md(p - o) === 1 || md(o - p) === 1) && !b2.includes(o)) lead.push(q.nn(o) + '→' + q.nn(p)); }));
         const third = n2.iv.includes(4) ? 4 : n2.iv.includes(3) ? 3 : 7;
         $('passtNx').innerHTML = 'Danach <b>' + q2.chord + '</b>';
+        const l2 = (common.length ? 'Liegen lassen <b>' + common.map(p => q.nn(p)).join(', ') + '</b>' : '') + (common.length && lead.length ? ' · ' : '') + (lead.length ? 'Leitton <b>' + [...new Set(lead)].slice(0, 2).join(' · ') + '</b>' : '');
         mv += '<div class="passt-row"><span class="passt-l">Nächster Wechsel → ' + q2.chord + '</span>'
-          + '<span>Zielton <b class="g">' + q.nn(n2.r + third) + '</b> (Terz) genau beim Wechsel</span>'
-          + (common.length ? '<span>Liegen lassen: <b>' + common.map(p => q.nn(p)).join(', ') + '</b></span>' : '')
-          + (lead.length ? '<span>Leittöne: <b>' + [...new Set(lead)].slice(0, 3).join(' · ') + '</b></span>' : '') + '</div>';
+          + '<span class="passt-ln">Zielton <b class="g">' + q.nn(n2.r + third) + '</b> (Terz) genau beim Wechsel</span>'
+          + '<span class="passt-ln">' + (l2 || '&nbsp;') + '</span></div>';
       }
-    } else $('passtNx').textContent = '';
+    } else $('passtNx').textContent = '\u00a0';
     $('passtMv').innerHTML = mv;
   }
   setInterval(tick, 120);
