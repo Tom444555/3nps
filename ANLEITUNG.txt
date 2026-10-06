@@ -306,11 +306,17 @@ Alles geht direkt auf dem iPad, ohne Computer.
      Anteil innerhalb ±20 ms) und Tonumfang – mit Verlauf und Tipps.
 
 27. „Was passt“ im Looper
-   - Läuft ein Loop mit erkannten Akkorden, steht direkt unter der Spur, die gerade aufnimmt (sonst unter der
-     nächsten freien Spur), eine kleine Box: klingender Akkord, die Tonleiter, die genau passt (Grundton rot,
-     Akkordtöne blau, Charakterton gelb), die Pentatonik und der Zielton für den nächsten Akkord.
-   - Beim Aufnehmen ist sie rot umrandet. Kopfzeile antippen = auf eine Zeile zuklappen (bleibt gespeichert),
-     „›“ öffnet die Improvisation mit allen Details. Auf dem iPhone steht sie über die ganze Breite.
+   - Läuft ein Loop mit erkannten Akkorden, erscheint oben in der Looper-Karte (zwischen „Looper“ und der
+     Loop-Länge) über die volle Breite eine Box: links groß der klingende Akkord mit Stufe und Funktion,
+     Akkordtönen und dem nächsten Akkord; in der Mitte die Tonleiter, die genau passt, mit Tönen (Grundton rot,
+     Akkordtöne blau, Charakterton gelb, Reibung gestrichelt) und Beschreibung; rechts die Pentatonik und der
+     nächste Wechsel (Zielton, liegen lassen, Leittöne).
+   - „⏸ Anhalten“ friert die Anzeige zum Nachlesen ein – dann lässt sich jeder Akkord des Loops antippen
+     (klingt kurz an). Die Box bleibt angehalten auch bei gestopptem Loop. „▶ Weiter mitlaufen“ folgt wieder.
+   - Beim Aufnehmen ist sie rot umrandet, angehalten gelb. „Was passt ▾“ klappt sie auf eine Zeile zu
+     (bleibt gespeichert), „Improvisation ›“ öffnet den Reiter mit Griffbild und allen Tonleitern.
+   - Auf dem iPhone stehen die Bereiche untereinander; die kleinen Akkordfelder im Spurkopf sind dort aus,
+     weil die Box den Akkord groß zeigt.
 
 28. Stabile Fassung
    - Unter https://tom444555.github.io/3nps/stabil/ liegt die Version 24 als Rückfall-Fassung, mit eigenem
