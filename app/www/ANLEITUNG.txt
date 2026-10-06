@@ -348,6 +348,32 @@ Alles geht direkt auf dem iPad, ohne Computer.
      Zieltöne in deinem Umfang (Terz hervorgehoben, antippen zum Anhören).
    - Songs und Aufnahmen werden auf dem iPad gespeichert und mit „Alles sichern“ mitgesichert.
 
+30. Songwriting – Text, Leadsheet und Claude
+   - Text: Unter „Text“ hat jeder Teil ein Feld; eine Strophe, die mehrmals kommt, bekommt je Durchgang ein eigenes
+     Feld (1. Mal, 2. Mal …), der Refrain eines für alle. Links neben jeder Zeile stehen Silbenzahl und
+     Reimbuchstabe (gleicher Buchstabe = reimt, ~ = unreiner Reim, grau = reimt mit nichts), oben Zeilen, Takte,
+     Reimschema (z. B. ABAB) und Silben je Zeile. „Thema / Idee“ hält fest, worum es geht.
+   - Akkordwechsel im Text: [Am] direkt vor die Silbe schreiben („[Am]Ich fahr durch die [F]Nacht“). Ohne Marken
+     verteilt das Leadsheet die Akkorde gleichmäßig über die Zeilen.
+   - „Song prüfen“ prüft jetzt auch den Text: fehlende Texte, Silbenzahl von Strophe 2 gegenüber Strophe 1 (gleiche
+     Melodie), sehr viel Text je Takt, Zeilen je Takt, fehlende Reime, Titel im Refrain, wiederkehrende Hook-Zeile.
+   - „Leadsheet (PDF)“: Titel, Tonart, Tempo, Ablauf und alle Teile mit Akkorden über dem Text, Teile ohne Text als
+     Taktraster. Über „Teilen“ in Dateien sichern, drucken oder verschicken.
+   - Mit Claude weiterarbeiten:
+     1. Aufgabe wählen (Feedback, Text weiterschreiben, Reime und Silben glätten, Refrain stärker machen, Akkorde
+        interessanter, Bridge schreiben oder eigener Wunsch) und „Song-Code kopieren“ (oder „Teilen …“ direkt an
+        die Claude-App).
+     2. In einen Chat mit Claude einfügen und senden. Der Song-Code enthält Titel, Tonart, Tempo, Thema, deine
+        Stimmlage, Ablauf, Akkorde und Text – und die Regeln, wie Claude antworten soll.
+     3. Claudes Antwort kopieren (ganz oder nur den Codeblock), „Aus Zwischenablage einfügen“ oder ins Feld
+        einsetzen, „Einlesen“. Die App zeigt, was sich ändert (Tempo, Ablauf, Akkorde, Text, neue Teile) und
+        Claudes Notiz. „▶ Anhören“ spielt den Vorschlag, „Als neue Version übernehmen“ macht daraus V…,
+        „Als neuer Song“ legt eine Kopie an. Mit „Version“ geht es jederzeit zurück.
+   - Teile mit gleichem Namen behalten ihre Aufnahme. Ändert Claude die Akkorde eines Teils, sagt die Vorschau
+     „Aufnahme wird stumm“ – dann neu einspielen und mit „→ Song“ ersetzen.
+   - Ein Song kann auch ganz ohne Aufnahme starten: ohne Song „Song-Code kopieren“ schickt eine leere Vorlage,
+     Claudes Antwort wird „Als neuer Song“ angelegt.
+
 Gut zu wissen
    - Übungslog und Ideen werden nur auf diesem iPad gespeichert. Eine neue Installation
      startet mit leerem Log.

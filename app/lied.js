@@ -81,7 +81,12 @@
     m.add(new Option('Neuen Teil anlegen (' + C.TYPES[t] + (cnt ? ' ' + (cnt + 1) : '') + ')', 'new'));
     if (v) v.parts.forEach(p => m.add(new Option('Ersetzt „' + p.name + '“', p.id)));
   }
-  $('ldDSong').addEventListener('change', fillDlgModes); $('ldDType').addEventListener('change', fillDlgModes);
+  // Vorschlag: erster Teil Strophe, dann Refrain, dann Bridge
+  function suggestType() {
+    const sel = $('ldDSong'), so = sel.value !== 'new' ? db.songs.find(s => s.id === sel.value) : null, v0 = so ? so.versions[so.cur] : null;
+    $('ldDType').value = !v0 || !v0.parts.some(p => p.type === 'verse') ? 'verse' : !v0.parts.some(p => p.type === 'chorus') ? 'chorus' : !v0.parts.some(p => p.type === 'bridge') ? 'bridge' : 'other';
+  }
+  $('ldDSong').addEventListener('change', () => { suggestType(); fillDlgModes(); }); $('ldDType').addEventListener('change', fillDlgModes);
   $('ldDCancel').addEventListener('click', () => { dlg.hidden = true; cap = null; });
   function openCapture() {
     if (typeof Looper === 'undefined' || !Looper.songCapture) return;
@@ -94,10 +99,7 @@
     db.songs.forEach(s => sel.add(new Option(s.name, s.id))); sel.add(new Option('+ Neuer Song …', 'new'));
     sel.value = db.active && db.songs.some(s => s.id === db.active) ? db.active : 'new';
     $('ldDNew').value = 'Song ' + (db.songs.length + 1);
-    // Vorschlag: erster Teil Strophe, dann Refrain
-    const v0 = sel.value !== 'new' ? db.songs.find(s => s.id === sel.value).versions.slice(-1)[0] : null;
-    $('ldDType').value = !v0 || !v0.parts.some(p => p.type === 'verse') ? 'verse' : !v0.parts.some(p => p.type === 'chorus') ? 'chorus' : !v0.parts.some(p => p.type === 'bridge') ? 'bridge' : 'other';
-    fillDlgModes(); dlg.hidden = false;
+    suggestType(); fillDlgModes(); dlg.hidden = false;
   }
   $('ldDOk').addEventListener('click', async () => {
     if (!cap) return;
@@ -251,7 +253,7 @@
     ['ldRename', 'ldDel'].forEach(id => { $(id).disabled = !s; });
     const v = ver(), has = !!(v && v.parts.length);
     $('ldEmpty').hidden = has; $('ldMain').hidden = !s;
-    ['ldOrderCard', 'ldPartsCard', 'ldCheckCard', 'ldVoiceCard'].forEach(id => { $(id).hidden = !has; });
+    ['ldOrderCard', 'ldPartsCard', 'ldTextCard', 'ldCheckCard', 'ldVoiceCard'].forEach(id => { $(id).hidden = !has; });
     if (!s) return;
     const L = C.totals(v);
     $('ldInfo').innerHTML = '<b>' + C.keyLabel(v.key) + '</b> · ' + Math.round(v.bpm) + ' BPM · ' + L.bars + ' Takte · ' + C.mmss(L.secs)
@@ -263,7 +265,7 @@
     const vs = $('ldVer'); vs.innerHTML = '';
     s.versions.forEach((x, i) => vs.add(new Option('V' + x.n + ' · ' + new Date(x.at).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) + ' · ' + x.note, i)));
     vs.value = s.cur;
-    renderOrder(v); renderParts(v); renderVoice(v);
+    renderOrder(v); renderParts(v); renderText(v); renderVoice(v);
     $('ldFind').innerHTML = ''; $('ldVar').innerHTML = ''; varCache = null;
   }
   const TCLS = t => 't-' + t;
@@ -358,7 +360,7 @@
   const ICON = { ok: '✓', tip: '➜', warn: '!', info: 'i' };
   $('ldCheck').addEventListener('click', () => {
     const v = ver(); if (!v) return;
-    const F = C.analyse(v);
+    const F = C.analyse(v).concat(window.LiedText ? LiedText.analyse(v, song().name) : []);
     $('ldFind').innerHTML = F.map(f => '<li class="' + f.lvl + '"><span>' + ICON[f.lvl] + '</span>' + esc(f.text) + '</li>').join('');
     varCache = C.variants(v);
     $('ldVar').innerHTML = varCache.length ? '<div class="ld-varh">Varianten – anhören, dann übernehmen (wird eine neue Version)</div>' + varCache.map((x, i) => '<div class="ld-vc" data-i="' + i + '"><b>' + esc(x.title) + '</b><p>' + esc(x.desc) + '</p><div class="ld-vact"><button class="toggle-btn" data-a="hear">▶ Anhören</button><button class="toggle-btn active" data-a="take">Übernehmen</button></div></div>').join('') : '';
@@ -420,6 +422,125 @@
   $('ldMeasLo').addEventListener('click', () => measure('lo'));
   $('ldMeasHi').addEventListener('click', () => measure('hi'));
 
+  // ================= Text =================
+  const X = window.LiedText;
+  let saveT = null;
+  const saveSoon = () => { clearTimeout(saveT); saveT = setTimeout(save, 450); };
+  // Eingabefelder: je Teil so viele, wie er (mit eigenem Text) gespielt wird; Refrain & Co. nur einmal, außer es gibt schon mehr Texte
+  function textSlots(v) {
+    const occ = X.occurrences(v), times = {}, first = [];
+    occ.forEach(o => { times[o.p.id] = (times[o.p.id] || 0) + 1; if (!first.includes(o.p)) first.push(o.p); });
+    v.parts.forEach(p => { if (!first.includes(p)) first.push(p); });
+    const REP = ['chorus', 'pre', 'intro', 'outro', 'solo'], out = [];
+    first.forEach(p => {
+      const L = p.lyrics || [], filled = L.reduce((a, t, i) => t && t.trim() ? i + 1 : a, 0);
+      const n = REP.includes(p.type) ? Math.max(1, filled) : Math.max(1, times[p.id] || 0, filled);
+      for (let i = 0; i < n; i++) out.push({ p, n: i, multi: n > 1 });
+    });
+    return out;
+  }
+  function gutterHtml(ls) { return ls.map(x => x.empty ? '<div></div>' : '<div><span>' + x.syl + '</span><b class="' + (x.near ? 'near' : x.alone ? 'alone' : '') + '">' + x.letter + (x.near ? '~' : '') + '</b></div>').join('') + '<div></div>'; }
+  function statsText(ls, p) {
+    const f = ls.filter(x => !x.empty); if (!f.length) return C.beatsOf(p) / 4 + ' Takte';
+    return f.length + ' Zeilen · ' + C.beatsOf(p) / 4 + ' Takte · Reim ' + X.scheme(ls) + ' · Silben ' + f.map(x => x.syl).join('/');
+  }
+  function curLang(v) { const t = []; v.parts.forEach(p => (p.lyrics || []).forEach(x => { if (x) t.push(x); })); return X.lang(t); }
+  function renderText(v) {
+    if (!X) return;
+    $('ldTheme').value = v.theme || '';
+    const lg = curLang(v);
+    $('ldTexts').innerHTML = textSlots(v).map(sl => {
+      const p = sl.p, t = (p.lyrics || [])[sl.n] || '', ls = X.lines(t, lg), rows = Math.max(3, t.split('\n').length + 1);
+      const ph = sl.n === 0 ? 'Text für „' + p.name + '“ …' : 'Text beim ' + (sl.n + 1) + '. Mal …';
+      return '<div class="ld-tx ' + TCLS(p.type) + '" data-id="' + p.id + '" data-n="' + sl.n + '"><div class="ld-txh"><b>' + esc(p.name) + (sl.multi ? ' · ' + (sl.n + 1) + '. Mal' : '') + '</b>'
+        + '<span class="ld-txc">' + esc(X.chordText(p.chords, v.key)) + '</span><span class="ld-txs">' + esc(statsText(ls, p)) + '</span></div>'
+        + '<div class="ld-txb"><div class="ld-gut">' + gutterHtml(ls) + '</div><textarea class="ld-txt" rows="' + rows + '" wrap="off" autocapitalize="sentences" placeholder="' + esc(ph) + '" aria-label="Text ' + esc(p.name) + '">' + esc(t) + '</textarea></div></div>';
+    }).join('');
+  }
+  $('ldTexts').addEventListener('input', e => {
+    const ta = e.target; if (!ta.classList.contains('ld-txt')) return;
+    const box = ta.closest('.ld-tx'), v = ver(), p = C.partById(v, box.dataset.id), n = +box.dataset.n; if (!p) return;
+    const L = (p.lyrics || []).slice(); while (L.length < n) L.push(''); L[n] = ta.value;
+    while (L.length && !(L[L.length - 1] || '').trim() && L.length > 1) L.pop();
+    p.lyrics = L;
+    const ls = X.lines(ta.value, curLang(v));
+    ta.rows = Math.max(3, ta.value.split('\n').length + 1);
+    box.querySelector('.ld-gut').innerHTML = gutterHtml(ls); box.querySelector('.ld-txs').textContent = statsText(ls, p);
+    saveSoon();
+  });
+  $('ldTheme').addEventListener('input', e => { const v = ver(); if (!v) return; v.theme = e.target.value.slice(0, 200); saveSoon(); });
+  async function shareFile(file, okMsg) {
+    if (navigator.canShare && navigator.canShare({ files: [file] })) { try { await navigator.share({ files: [file], title: file.name }); status(okMsg); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = file.name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 30000); status(okMsg);
+  }
+  $('ldPdf').addEventListener('click', async () => {
+    const s = song(), v = ver(); if (!s || !v || !window.LiedPdf) return;
+    try {
+      const r = LiedPdf.build(X.leadsheet(s, v));
+      const nm = (s.name || 'Song').replace(/[\\/:*?"<>|]+/g, ' ').trim() + ' – Leadsheet V' + v.n + '.pdf';
+      await shareFile(new File([r.bytes], nm, { type: 'application/pdf' }), 'Leadsheet erstellt (' + r.pages + (r.pages === 1 ? ' Seite' : ' Seiten') + ').');
+    } catch (e) { status('Leadsheet fehlgeschlagen: ' + (e && e.message || e)); }
+  });
+
+  // ================= Mit Claude (Song-Code) =================
+  Object.entries(X ? X.GOALS : {}).forEach(([k, g]) => $('ldGoal').add(new Option(g.n, k)));
+  $('ldGoal').value = 'text';
+  $('ldGoal').addEventListener('change', e => { $('ldOwn').hidden = e.target.value !== 'eigen'; if (!$('ldOwn').hidden) $('ldOwn').focus(); });
+  if (navigator.share) $('ldShare').hidden = false;
+  function voiceLabel(s) { const vo = voiceOf(s), pr = C.VOICES.find(x => x.id === vo.preset); return (pr ? pr.n + ' ' : '') + C.noteName(vo.lo, { pc: 0, major: true }) + '–' + C.noteName(vo.hi, { pc: 0, major: true }); }
+  function promptText() {
+    let s = song(), v = ver();
+    if (!s || !v) { s = { name: 'Neuer Song', voice: null }; v = { n: 1, key: { pc: 0, major: true }, bpm: 90, theme: '', parts: [{ id: 'p1', name: 'Strophe', type: 'verse', chords: [], lyrics: [] }, { id: 'p2', name: 'Refrain', type: 'chorus', chords: [], lyrics: [] }], order: [{ p: 'p1', reps: 1 }, { p: 'p2', reps: 1 }] }; }
+    return X.prompt(s, v, $('ldGoal').value, $('ldOwn').value, voiceLabel(s));
+  }
+  async function copyText(t) {
+    try { await navigator.clipboard.writeText(t); return true; } catch (e) {}
+    const ta = document.createElement('textarea'); ta.value = t; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, t.length);
+    let ok = false; try { ok = document.execCommand('copy'); } catch (e) {} ta.remove(); return ok;
+  }
+  $('ldCopy').addEventListener('click', async () => {
+    if ($('ldGoal').value === 'eigen' && !$('ldOwn').value.trim()) { status('Schreib kurz deinen Wunsch an Claude ins Feld.'); $('ldOwn').focus(); return; }
+    const t = promptText(); window.__lastPrompt = t;
+    status(await copyText(t) ? 'Kopiert – jetzt in einen Chat mit Claude einfügen und senden.' : 'Kopieren ging nicht – nutze „Teilen …“.');
+  });
+  $('ldShare').addEventListener('click', async () => { const t = promptText(); window.__lastPrompt = t; try { await navigator.share({ text: t, title: (song() || { name: 'Song' }).name }); } catch (e) {} });
+  $('ldClip').addEventListener('click', async () => {
+    try { const t = await navigator.clipboard.readText(); if (t) { $('ldPaste').value = t; readCode(); } else status('Die Zwischenablage ist leer.'); }
+    catch (e) { status('Kein Zugriff auf die Zwischenablage – lange ins Feld tippen und „Einsetzen“ wählen.'); $('ldPaste').focus(); }
+  });
+  let imp = null;
+  function readCode() {
+    const base = ver(), r = X.fromCode($('ldPaste').value, base), box = $('ldImRes');
+    imp = null;
+    if (!r.ok) { box.innerHTML = '<h3>Konnte den Song-Code nicht übernehmen</h3><ul class="err">' + r.errs.map(e => '<li>' + esc(e) + '</li>').join('') + '</ul>' + (r.warn && r.warn.length ? '<ul class="wrn">' + r.warn.map(e => '<li>' + esc(e) + '</li>').join('') + '</ul>' : '') + '<p class="note">Tipp: Claude bitten, „den vollständigen Song-Code im selben Format“ zu schicken.</p>'; return; }
+    imp = r;
+    const s = song(), d = base ? X.diff(base, r.v, s.name, r.title) : ['Neuer Song mit ' + r.v.parts.length + ' Teilen'];
+    box.innerHTML = '<h3>Vorschlag von Claude' + (r.title ? ' – „' + esc(r.title) + '“' : '') + '</h3>'
+      + (r.note ? '<p class="note"><b>Notiz:</b> ' + esc(r.note) + '</p>' : '')
+      + (d.length ? '<ul>' + d.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul>' : '<p class="note">Keine Änderungen gegenüber der aktuellen Version.</p>')
+      + (r.warn.length ? '<ul class="wrn">' + r.warn.map(e => '<li>' + esc(e) + '</li>').join('') + '</ul>' : '')
+      + '<div class="ld-vact"><button class="toggle-btn" data-a="hear">▶ Anhören</button>' + (base ? '<button class="toggle-btn active" data-a="take"' + (d.length ? '' : ' disabled') + '>Als neue Version übernehmen</button>' : '') + '<button class="toggle-btn" data-a="new">Als neuer Song</button><button class="toggle-btn" data-a="drop">Verwerfen</button></div>';
+  }
+  $('ldRead').addEventListener('click', readCode);
+  $('ldImRes').addEventListener('click', e => {
+    const b = e.target.closest('[data-a]'); if (!b || !imp) return; const a = b.dataset.a;
+    if (a === 'hear') { if (P && P.label === 'Vorschlag von Claude') { stop(); return; } play(imp.v, { label: 'Vorschlag von Claude' }); return; }
+    if (a === 'drop') { imp = null; $('ldImRes').innerHTML = ''; $('ldPaste').value = ''; return; }
+    if (P) stop();
+    const note = 'Claude: ' + (imp.note || X.GOALS[$('ldGoal').value].n).slice(0, 70);
+    if (a === 'take') {
+      const s = song(); if (imp.title && imp.title !== s.name) s.name = imp.title.slice(0, 60);
+      pushVersion(imp.v, note); status('Übernommen – neue Version V' + ver().n + '. Mit „Version“ kommst du jederzeit zurück.');
+    } else {
+      const old = song(), s = newSong((imp.title || (old ? old.name + ' (Claude)' : 'Song von Claude')).slice(0, 60));
+      if (old && old.voice) s.voice = C.clone(old.voice);
+      s.versions[0] = Object.assign(C.clone(imp.v), { n: 1, at: Date.now(), note }); save();
+      status('Als neuer Song „' + s.name + '“ angelegt.');
+    }
+    imp = null; $('ldImRes').innerHTML = ''; $('ldPaste').value = ''; selOrd = -1; render();
+  });
+
   let ui = null;
   document.addEventListener('tabchange', e => {
     clearInterval(ui); ui = null;
@@ -438,7 +559,7 @@
     },
     nowChord: () => { const n = now(); return n ? { name: ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'][n.chord.r] + n.chord.t } : null; },
     log: () => P ? P.log.slice() : [], grid: () => P ? P.events.filter(e => e.inChord === 0).map(e => e.t) : [],
-    db: () => db, song, ver, play, stop, openCapture, render, now: () => { const n = now(); return n ? { part: n.entry.p.name, oi: n.entry.oi, chord: n.chord, beat: n.beat } : null; },
+    db: () => db, song, ver, play, prompt: () => promptText(), readCode, imp: () => imp, stop, openCapture, render, now: () => { const n = now(); return n ? { part: n.entry.p.name, oi: n.entry.oi, chord: n.chord, beat: n.beat } : null; },
     _reload: () => { db = load(); render(); }
   };
 })();

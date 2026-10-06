@@ -6,7 +6,7 @@
       </div>
       <div class="ld-empty" id="ldEmpty">
         <b>So entsteht ein Song</b>
-        <ol><li>Im <b>Looper</b> etwas einspielen oder laden.</li><li>Passt es: unten im Looper auf <b>„→ Song“</b> tippen und festlegen, ob es Strophe, Refrain, Bridge … ist.</li><li>Hier den <b>Ablauf</b> bauen, am Stück anhören, <b>prüfen</b> und Varianten ausprobieren – jede Übernahme wird eine neue Version.</li></ol>
+        <ol><li>Im <b>Looper</b> etwas einspielen oder laden.</li><li>Passt es: unten im Looper auf <b>„→ Song“</b> tippen und festlegen, ob es Strophe, Refrain, Bridge … ist.</li><li>Hier den <b>Ablauf</b> bauen, am Stück anhören, <b>prüfen</b> und Varianten ausprobieren – jede Übernahme wird eine neue Version.</li><li>Text schreiben, Leadsheet als PDF – und mit <b>„Mit Claude weiterarbeiten“</b> (ganz unten) Ideen holen. Das geht auch ganz ohne Aufnahme.</li></ol>
       </div>
       <div class="ld-main" id="ldMain" hidden>
         <div class="ld-info" id="ldInfo"></div>
@@ -46,6 +46,13 @@
       <div class="ld-parts" id="ldParts"></div>
     </div>
 
+    <div class="card" id="ldTextCard" hidden>
+      <div class="card-head"><h2>Text</h2><button class="toggle-btn" id="ldPdf">Leadsheet (PDF)</button></div>
+      <label class="field ld-theme"><span>Thema / Idee</span><input type="text" id="ldTheme" maxlength="200" autocomplete="off" placeholder="Worum geht es? Bild, Gefühl, kleine Geschichte …"></label>
+      <p class="caption ld-txhint">Links neben jeder Zeile: <b>Silben</b> und <b>Reim</b> (gleicher Buchstabe = reimt, ~ = unrein, grau = reimt mit nichts). Akkordwechsel kannst du mit <b>[Am]</b> direkt vor die Silbe schreiben – sonst verteilt das Leadsheet die Akkorde gleichmäßig.</p>
+      <div class="ld-texts" id="ldTexts"></div>
+    </div>
+
     <div class="card" id="ldCheckCard" hidden>
       <div class="card-head"><h2>Prüfen &amp; Varianten</h2><button class="toggle-btn active" id="ldCheck">Song prüfen</button></div>
       <ul class="ld-find" id="ldFind"></ul>
@@ -62,5 +69,18 @@
       </div>
       <div class="ld-voiceres" id="ldVoiceRes"></div>
       <div class="ld-targets" id="ldTargets"></div>
+    </div>
+
+    <div class="card" id="ldAiCard">
+      <div class="card-head"><h2>Mit Claude weiterarbeiten</h2><span class="caption">Song-Code hin und zurück</span></div>
+      <ol class="ld-steps"><li>Aufgabe wählen, <b>Song-Code kopieren</b> (oder teilen).</li><li>In einen Chat mit Claude einfügen und senden.</li><li>Claudes Antwort kopieren, unten einfügen, <b>Einlesen</b> – anhören und als neue Version übernehmen.</li></ol>
+      <div class="ld-aigoal">
+        <label class="field"><span>Aufgabe</span><select id="ldGoal" aria-label="Aufgabe für Claude"></select></label>
+        <button class="toggle-btn active" id="ldCopy">Song-Code kopieren</button><button class="toggle-btn" id="ldShare" hidden>Teilen …</button>
+      </div>
+      <textarea class="ld-area" id="ldOwn" rows="2" hidden placeholder="Was soll Claude tun? z. B. „Schreib eine zweite Strophe über den Morgen danach“"></textarea>
+      <textarea class="ld-area" id="ldPaste" rows="4" placeholder="Claudes Antwort hier einfügen (ganz oder nur den Song-Code) …" autocapitalize="off" spellcheck="false"></textarea>
+      <div class="ld-impb"><button class="toggle-btn" id="ldClip">Aus Zwischenablage einfügen</button><button class="toggle-btn active" id="ldRead">Einlesen</button></div>
+      <div class="ld-imr" id="ldImRes"></div>
     </div>
   </section>

@@ -59,9 +59,9 @@ Testaudio neu, baut die App, startet den Testserver auf Port 8765).
    Danach den Branch `entwicklung` mit den Quellen aktualisieren (diese Datei mitpflegen).
 6. Auf dem iPad: App zweimal öffnen, dann ist die neue Version aktiv.
 
-## Tests und erwartete Ergebnisse (v29)
+## Tests und erwartete Ergebnisse (v30)
 
-- Browser: `v28lied.py` 34/34 (Songwriting komplett) · `v28sync.py` 6/6 (Aufnahmen taktgenau geplant) · `v27passt.py` 17/17 · `passthoehe.py` 8/8 (feste Höhe der Box) („Was passt“-Box oben, Anhalten, Akkordwahl) · `v25grips.py` 10/10 · `v25jam.py` 21/21 · `v25listen.py` 9/9 · `v25ueben.py` 28/28 · `v25stress.py` 6/6 · `tempotest.py` 3/3 ·
+- Browser: `v30text.py` 27/27 (Text, Leadsheet-PDF, Song-Code mit Claude) · `v28lied.py` 34/34 (Songwriting komplett) · `v28sync.py` 6/6 (Aufnahmen taktgenau geplant) · `v27passt.py` 17/17 · `passthoehe.py` 8/8 (feste Höhe der Box) („Was passt“-Box oben, Anhalten, Akkordwahl) · `v25grips.py` 10/10 · `v25jam.py` 21/21 · `v25listen.py` 9/9 · `v25ueben.py` 28/28 · `v25stress.py` 6/6 · `tempotest.py` 3/3 ·
   `swtest.py` 5/5 (Haupt- und stabile Fassung, braucht Pages-Nachbau auf Port 8790) · `tabcost.py` (Öffnen der Reiter, Vergleich mit v24) ·
   `v24solo.py` 22/22 (Solo Finder) · `v22key.py` 7/7 (Zirkel folgt Spur-Tonart) · `v21test.py` 8/8 (Spurkopf) · `v21tabs.py` 18/18 (Reiter, Quintenzirkel) · `v20test.py` 14/14 · `suite.py` 81/81 · `stereotest.py` 16/16 · `eqtest.py` 9/9 · `restoretest.py` 7/7 ·
   `backuptest.py` 7/7 · `csptest.py` (keine fremden Anfragen) · `crashtest.py`, `taptest.py` (Speicher stabil) ·
@@ -70,7 +70,7 @@ Testaudio neu, baut die App, startet den Testserver auf Port 8765).
   `glitchtest.py` vergleicht mit einer alten Version auf Port 8766 (optional).
 - Takterkennung (Node): `node precision.js` → Tempo 49/52, Eins 47/52, Schlagfehler Median 1,0 ms ·
   `node longeval.js` → 5/6 (Ballade 74 BPM wird als 148 erkannt) · `sh evalall.sh` (Loops 102/112 + 11/11).
-- Prüfskripte (Node): `node liedcheck.js` 26/26 (Prüfen, Varianten in 24 Tonarten, Gesang) · `node voicingcheck.js` (547 Griffe fehlerfrei) · `node pitchcheck.js` (292/294) · `node lickcheck.js` (384 Platzierungen fehlerfrei)
+- Prüfskripte (Node): `node liedcheck.js` 26/26 (Prüfen, Varianten in 24 Tonarten, Gesang) · `node liedtext.js` 54/54 (Silben, Reime, Textprüfung, Leadsheet, Song-Code, PDF) · `node voicingcheck.js` (547 Griffe fehlerfrei) · `node pitchcheck.js` (292/294) · `node lickcheck.js` (384 Platzierungen fehlerfrei)
 - Tonart (Node): `node keyeval.js` → bisher (nur Chroma) 36/59, neu (Chroma + Akkordfolge) 52/59; Korpus `test/keys` aus `gen_keys.py`.
 - Akkorde (Node): `node chordeval.js` → Grundton 95,5 %, exakt 91,5 % · `node chordsong.js` → 82,8 % (Riffs ohne Terz schwerer).
 
@@ -109,6 +109,11 @@ Testaudio neu, baut die App, startet den Testserver auf Port 8765).
   über `Rhythm.addListener(fn, true)` + `window.bassChordAt`; Aufnahmen per `AudioBufferSource.start(t)` genau am Akkordwechsel,
   `playbackRate = Song-BPM / Aufnahme-BPM`. Aufnahme gilt als veraltet, sobald `sig(chords) !== audioSig` (dann stumm).
   Looper/Backing Track/Song schließen sich gegenseitig aus (jeweils `stop()` des anderen).
+- **Songwriting Text + Claude (v30):** `lied-text.js` (ohne Oberfläche): `part.lyrics = [Text 1. Mal, 2. Mal …]` (Refrain & Co. fallen auf Text 1
+  zurück), `version.theme`; Silben/Reime (DE/EN-Heuristik, Sprache je Song erkannt), `analyse()` ergänzt „Song prüfen“, `leadsheet()` (Akkordmarken
+  `[Am]` im Text oder gleichmäßig verteilt), Song-Code `toCode/prompt/fromCode/diff` – Teile werden über den Namen zugeordnet und behalten so ihre
+  Aufnahme (stumm, sobald sich die Akkorde ändern). `lied-pdf.js`: eigener PDF-Schreiber (A4, Helvetica/WinAnsi, Breitentabelle eingebettet).
+  Laufende Browser-Tests nicht parallel starten – Zeit-Tests (v25jam, v25listen, v28lied) schlagen sonst wegen CPU-Last fehl.
 - **Quintenzirkel:** SVG, englische Tonnamen wie im übrigen Programm (B = H), Schreibweise je Tonart (E♯ in F♯-Dur usw.);
   liest den klingenden Akkord über `Looper.nowChord()`; folgt dem Ereignis `trackkey`
   (aus `showKey()` in looper.js, sobald sich die erkannte Tonart einer Spur ändert) und jeder Änderung von Grundton/Modus; `window.Quinten` für Tests.
