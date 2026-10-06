@@ -1,0 +1,66 @@
+  <section class="panel" id="panel-lied" role="tabpanel" aria-labelledby="tab-lied" hidden>
+    <div class="card">
+      <div class="ld-top">
+        <label class="field ld-songsel"><span>Song</span><select id="ldSong" aria-label="Song wählen"></select></label>
+        <div class="ld-topbtn"><button class="toggle-btn" id="ldNew">+ Neuer Song</button><button class="toggle-btn" id="ldRename">Umbenennen</button><button class="toggle-btn" id="ldDel">Löschen</button></div>
+      </div>
+      <div class="ld-empty" id="ldEmpty">
+        <b>So entsteht ein Song</b>
+        <ol><li>Im <b>Looper</b> etwas einspielen oder laden.</li><li>Passt es: unten im Looper auf <b>„→ Song“</b> tippen und festlegen, ob es Strophe, Refrain, Bridge … ist.</li><li>Hier den <b>Ablauf</b> bauen, am Stück anhören, <b>prüfen</b> und Varianten ausprobieren – jede Übernahme wird eine neue Version.</li></ol>
+      </div>
+      <div class="ld-main" id="ldMain" hidden>
+        <div class="ld-info" id="ldInfo"></div>
+        <div class="ld-ver">
+          <label class="field"><span>Version</span><select id="ldVer" aria-label="Version"></select></label>
+          <button class="toggle-btn" id="ldVerSave">Als neue Version sichern</button>
+        </div>
+        <div class="ld-trans">
+          <button class="play-btn" id="ldPlay" aria-label="Song abspielen">▶</button>
+          <div class="ld-pos"><span class="lbl" id="ldPosL">Bereit</span><b id="ldPosP"></b><span id="ldPosC"></span></div>
+          <div class="ld-tog">
+            <label class="check"><input type="checkbox" id="ldTA" checked> Aufnahmen</label>
+            <label class="check"><input type="checkbox" id="ldTD" checked> Drums</label>
+            <label class="check"><input type="checkbox" id="ldTB" checked> Bass</label>
+            <label class="check"><input type="checkbox" id="ldTP"> Fläche</label>
+            <label class="check"><input type="checkbox" id="ldTL"> Wiederholen</label>
+          </div>
+        </div>
+      </div>
+      <div class="status-line" id="ldStatus">Bereit</div>
+    </div>
+
+    <div class="card" id="ldOrderCard" hidden>
+      <div class="card-head"><h2>Ablauf</h2><span class="caption" id="ldOrderInfo"></span></div>
+      <div class="ld-order" id="ldOrder"></div>
+      <div class="ld-ordedit" id="ldOrdEdit" hidden>
+        <button class="toggle-btn" data-a="left" aria-label="nach vorne">◀</button><button class="toggle-btn" data-a="right" aria-label="nach hinten">▶</button>
+        <span class="lbl">Wiederholungen</span><button class="toggle-btn" data-a="minus">−</button><b id="ldReps">1</b><button class="toggle-btn" data-a="plus">+</button>
+        <button class="toggle-btn" data-a="dup">Verdoppeln</button><button class="toggle-btn" data-a="del">Entfernen</button>
+        <button class="toggle-btn active" data-a="playfrom">▶ ab hier</button>
+      </div>
+      <div class="ld-add"><label class="field"><span>Teil einfügen</span><select id="ldAdd" aria-label="Teil einfügen"></select></label></div>
+    </div>
+
+    <div class="card" id="ldPartsCard" hidden>
+      <div class="card-head"><h2>Teile</h2><span class="caption">Akkorde antippen zum Korrigieren</span></div>
+      <div class="ld-parts" id="ldParts"></div>
+    </div>
+
+    <div class="card" id="ldCheckCard" hidden>
+      <div class="card-head"><h2>Prüfen &amp; Varianten</h2><button class="toggle-btn active" id="ldCheck">Song prüfen</button></div>
+      <ul class="ld-find" id="ldFind"></ul>
+      <div class="ld-var" id="ldVar"></div>
+    </div>
+
+    <div class="card" id="ldVoiceCard" hidden>
+      <div class="card-head"><h2>Gesang</h2><span class="caption" id="ldVoiceInfo"></span></div>
+      <div class="ld-voice">
+        <label class="field"><span>Stimmlage</span><select id="ldVoice" aria-label="Stimmlage"></select></label>
+        <label class="field"><span>Tiefster Ton</span><select id="ldLo" aria-label="Tiefster Ton"></select></label>
+        <label class="field"><span>Höchster Ton</span><select id="ldHi" aria-label="Höchster Ton"></select></label>
+        <div class="ld-meas"><button class="toggle-btn" id="ldMeasLo">🎤 Tiefsten singen</button><button class="toggle-btn" id="ldMeasHi">🎤 Höchsten singen</button></div>
+      </div>
+      <div class="ld-voiceres" id="ldVoiceRes"></div>
+      <div class="ld-targets" id="ldTargets"></div>
+    </div>
+  </section>

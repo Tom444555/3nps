@@ -2543,6 +2543,33 @@ const Looper = (() => {
       if (e && anyContent()) return { i: e.i, rec: false };
       return { i: lastRecI >= 0 ? lastRecI : 0, rec: false };
     },
+    // „→ Song“: aktuellen Loop als Teil übernehmen – Mix aller Spuren über eine volle Runde, Akkorde in Schlägen, Tonart, Tempo
+    songCapture: () => {
+      const used = tracks.filter(t => t.L); if (!used.length || !baseL) return null;
+      const gcd = (a, b) => b ? gcd(b, a % b) : a;
+      let mult = 1; used.forEach(t => { const n = Math.max(1, Math.round(t.L / baseL)); mult = mult * n / gcd(mult, n); });
+      mult = Math.min(mult, 16);
+      const total = baseL * mult, out = S(total);
+      used.forEach(t => { const g = parseInt(t.vol.value) / 100, ml = t.mix.l, mr = t.mix.r; for (let i = 0; i < total; i++) { const j = i % t.L; out.l[i] += ml[j] * g; out.r[i] += mr[j] * g; } });
+      const tempo = bpm(), barF = sr * 240 / tempo, bars = Math.max(1, Math.round(total / barF)), beatF = total / (bars * 4);
+      const ct = tracks.find(t => t.chords && t.chords.L === t.L && t.L && t.chords.segs.some(q => q.name !== '–'));
+      const chords = [];
+      if (ct) {
+        const reps = Math.max(1, Math.round(total / ct.L));
+        for (let r = 0; r < reps; r++) ct.chords.segs.forEach(q => {
+          const nm = q.name === '–' ? (chords.length ? chords[chords.length - 1].name : null) : q.name; if (!nm) return;
+          const b = (q.e - q.a) / beatF; const last = chords[chords.length - 1];
+          if (last && last.name === nm) last.f += b; else chords.push({ name: nm, f: b });
+        });
+        // auf ganze Schläge runden, Summe = Takte × 4
+        let acc = 0, prev = 0; chords.forEach(c => { acc += c.f; const e = Math.round(acc); c.beats = Math.max(0, e - prev); prev = e; });
+        for (let i = chords.length - 1; i >= 0; i--) if (!chords[i].beats) chords.splice(i, 1);
+        const sum = chords.reduce((a, c) => a + c.beats, 0); if (chords.length && sum !== bars * 4) chords[chords.length - 1].beats += bars * 4 - sum;
+        if (chords.length > 1 && chords[0].name === chords[chords.length - 1].name && reps === 1) { /* Loop beginnt mitten im Akkord: so lassen, damit Audio und Akkorde übereinstimmen */ }
+      }
+      const kt = ct && ct.key ? ct : tracks.find(t => t.key);
+      return { l: out.l, r: out.r, sr, frames: total, bpm: tempo, bars, chords: chords.map(c => ({ name: c.name, beats: c.beats })), key: kt && kt.key ? { pc: kt.key.pc, major: !!kt.key.major } : null };
+    },
     busy: () => !!rec || tracks.some(t => !!t.src),     // spielt oder nimmt gerade etwas auf (für den Jam)
     stopAll: () => { const b = $('loopAll'); if (b && tracks.some(t => !!t.src) && !rec) b.click(); },
     seek: (i, f) => { const t = tracks[i]; if (t && t.L && !rec) seekTo(t, f); },

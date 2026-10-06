@@ -134,11 +134,12 @@
     const L = typeof Looper !== 'undefined' && Looper.chordInfo ? Looper.chordInfo(state.track) : { tracks: [], track: -1 };
     // Läuft der Jam (und kein Loop), zeigt der Solo Finder dessen Akkordfolge
     if (window.Jam && Jam.active() && !(L && L.playing)) { const j = Jam.chordInfo(); if (j) { j.tracks = L.tracks || []; return j; } }
+    if (window.Lied && Lied.active() && !(L && L.playing)) { const j = Lied.chordInfo(); if (j) { j.tracks = L.tracks || []; return j; } }
     return L;
   }
   function currentKey(ci) {
     if (state.keyOv !== 'auto') { const [p, m] = state.keyOv.split(':'); return { k: { pc: +p, major: m === 'M' }, src: 'manuell' }; }
-    if (ci && ci.key) return { k: ci.key, src: ci.jam ? 'aus dem Jam' : 'erkannt in Spur ' + (ci.track + 1) };
+    if (ci && ci.key) return { k: ci.key, src: ci.lied ? 'aus dem Song' : ci.jam ? 'aus dem Backing Track' : 'erkannt in Spur ' + (ci.track + 1) };
     return { k: boardKey(), src: 'vom Griffbrett' };
   }
   const segAt = (ci, f) => { if (!ci.segs) return -1; for (let i = 0; i < ci.segs.length; i++) if (f >= ci.segs[i].a && f < ci.segs[i].e) return i; return -1; };

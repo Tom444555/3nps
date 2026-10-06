@@ -1,6 +1,6 @@
 # Looper – Übergabe für die nächste Sitzung
 
-Stand: 6. Oktober 2026 · Version **v27** ist live unter https://tom444555.github.io/3nps/ · stabile Rückfall-Fassung **v24** unter https://tom444555.github.io/3nps/stabil/
+Stand: 6. Oktober 2026 · Version **v28** ist live unter https://tom444555.github.io/3nps/ · stabile Rückfall-Fassung **v24** unter https://tom444555.github.io/3nps/stabil/
 Repository: `Tom444555/3nps` · Branch `main` = fertige App (GitHub Pages, inkl. Ordner `stabil/`) · Branch `entwicklung` = dieser Quellcode.
 Sicherungen: Branch `stabil-v24` (App) und `stabil-v24-quellen` (Quellen) – Git-Tags lässt die Verbindung der Sitzung nicht zu.
 
@@ -29,6 +29,8 @@ Testaudio neu, baut die App, startet den Testserver auf Port 8765).
 | `app/jam.js`, `jam.html`, `jam.css` | Jam: Akkordfolge, Begleitung (Drums, Bass folgt Akkorden über `window.bassChordAt`, Fläche), Tempo-Trainer |
 | `app/uebung.js`, `uebung.html`, `uebung.css` | Üben: Tagesübung, Gehörbildung, Licks + eigene Licks, Solo-Auswertung |
 | `app/voicings.js`, `pitch.js`, `licks.js` | Akkordgriffe (CAGED), Tonhöhenerkennung (YIN), Lick-Bibliothek – je auch in Node prüfbar |
+| `app/lied-core.js` | Songwriting-Logik ohne Oberfläche: Prüfen, Varianten, Transponieren, Gesang (in Node prüfbar) |
+| `app/lied.js`, `lied.html`, `lied.css` | Reiter Songwriting, „→ Song“-Knopf/-Dialog im Looper, Song-Wiedergabe am Taktgeber |
 | `app/passt.js`, `passt.css` | „Was passt“-Box oben in der Looper-Karte (vor `.looper-top`), volle Breite, nutzt `SoloFinder.quick()`; bleibt nach dem ersten Einblenden stehen (kein Seitensprung beim Start/Stopp) |
 | `app/solo.js`, `solo.html`, `solo.css` | Solo Finder (Reiter „Solo Finder“): Akkordleiste, Tonart, mögliche Akkorde/Färbungen, Tonleitern mit Griffbild, nächster Wechsel, Ideen-Würfel |
 | `app/circle.js`, `circle.html`, `circle.css` | Quintenzirkel (Reiter „Quintenzirkel“): Tonart wählen, Akkorde anhören, ins Griffbrett übernehmen, klingender Looper-Akkord |
@@ -57,9 +59,9 @@ Testaudio neu, baut die App, startet den Testserver auf Port 8765).
    Danach den Branch `entwicklung` mit den Quellen aktualisieren (diese Datei mitpflegen).
 6. Auf dem iPad: App zweimal öffnen, dann ist die neue Version aktiv.
 
-## Tests und erwartete Ergebnisse (v27)
+## Tests und erwartete Ergebnisse (v28)
 
-- Browser: `v27passt.py` 17/17 („Was passt“-Box oben, Anhalten, Akkordwahl) · `v25grips.py` 10/10 · `v25jam.py` 21/21 · `v25listen.py` 9/9 · `v25ueben.py` 28/28 · `v25stress.py` 6/6 · `tempotest.py` 3/3 ·
+- Browser: `v28lied.py` 34/34 (Songwriting komplett) · `v28sync.py` 6/6 (Aufnahmen taktgenau geplant) · `v27passt.py` 17/17 („Was passt“-Box oben, Anhalten, Akkordwahl) · `v25grips.py` 10/10 · `v25jam.py` 21/21 · `v25listen.py` 9/9 · `v25ueben.py` 28/28 · `v25stress.py` 6/6 · `tempotest.py` 3/3 ·
   `swtest.py` 5/5 (Haupt- und stabile Fassung, braucht Pages-Nachbau auf Port 8790) · `tabcost.py` (Öffnen der Reiter, Vergleich mit v24) ·
   `v24solo.py` 22/22 (Solo Finder) · `v22key.py` 7/7 (Zirkel folgt Spur-Tonart) · `v21test.py` 8/8 (Spurkopf) · `v21tabs.py` 18/18 (Reiter, Quintenzirkel) · `v20test.py` 14/14 · `suite.py` 81/81 · `stereotest.py` 16/16 · `eqtest.py` 9/9 · `restoretest.py` 7/7 ·
   `backuptest.py` 7/7 · `csptest.py` (keine fremden Anfragen) · `crashtest.py`, `taptest.py` (Speicher stabil) ·
@@ -68,14 +70,14 @@ Testaudio neu, baut die App, startet den Testserver auf Port 8765).
   `glitchtest.py` vergleicht mit einer alten Version auf Port 8766 (optional).
 - Takterkennung (Node): `node precision.js` → Tempo 49/52, Eins 47/52, Schlagfehler Median 1,0 ms ·
   `node longeval.js` → 5/6 (Ballade 74 BPM wird als 148 erkannt) · `sh evalall.sh` (Loops 102/112 + 11/11).
-- Prüfskripte (Node): `node voicingcheck.js` (547 Griffe fehlerfrei) · `node pitchcheck.js` (292/294) · `node lickcheck.js` (384 Platzierungen fehlerfrei)
+- Prüfskripte (Node): `node liedcheck.js` 26/26 (Prüfen, Varianten in 24 Tonarten, Gesang) · `node voicingcheck.js` (547 Griffe fehlerfrei) · `node pitchcheck.js` (292/294) · `node lickcheck.js` (384 Platzierungen fehlerfrei)
 - Tonart (Node): `node keyeval.js` → bisher (nur Chroma) 36/59, neu (Chroma + Akkordfolge) 52/59; Korpus `test/keys` aus `gen_keys.py`.
 - Akkorde (Node): `node chordeval.js` → Grundton 95,5 %, exakt 91,5 % · `node chordsong.js` → 82,8 % (Riffs ohne Terz schwerer).
 
 ## Technische Eckpunkte
 
-- **Reiter (v26):** Looper (links, Start) · Quintenzirkel · Improvisation · Backing Track · Training · Technik (Leiste: so viele Spalten wie Reiter, Handy 3×2).
-  Nur die Beschriftungen sind neu; intern heißen sie weiter `solo`, `jam`, `ueben`, `griffbrett` (IDs `tab-…`/`panel-…`, Tests, gespeicherter Reiter). Begleitung (Drone, Drums, Bass), Song und
+- **Reiter (v28):** Looper (links, Start) · Quintenzirkel · Improvisation · Backing Track · Songwriting · Training · Technik (Leiste: so viele Spalten wie Reiter, Handy 3×2).
+  Intern heißen sie `looper`, `quinten`, `solo`, `jam`, `lied`, `ueben`, `griffbrett` (IDs `tab-…`/`panel-…`, Tests, gespeicherter Reiter). Begleitung (Drone, Drums, Bass), Song und
   Übungslog sind Karten im Griffbrett (Zwischenüberschriften `.sub-head`). `tabs.js` leitet alte gespeicherte Reiter
   (`begleitung`, `song`, `log`) aufs Griffbrett um; die Drum-Spur wandert bei `tabchange` = `griffbrett` in `#beglDrumsHome`.
 - **Spurkopf (v22):** links Name + Tonart (`.th-left`), rechts `#thc0–2` mit klingendem (`#chd`) und nächstem Akkord (`#chn`),
@@ -100,6 +102,13 @@ Testaudio neu, baut die App, startet den Testserver auf Port 8765).
 - **Solo-Auswertung:** `Looper.soloData(i)`; Tonhöhe alle 10 ms, Anschläge über 1-ms-Energie (genau `sr/1000` Samples je ms),
   Raster aus den Schlägen der Akkord-Spur. Test legt das Solo mit `Looper._setTrack()` direkt in die Spur (Datei-Import
   passt Loops ans Tempo an und verschiebt minimal).
+- **Songwriting (v28):** Songs in localStorage `3nps-lieder` ({active, songs:[{id, name, voice, cur, versions:[{n, at, note, key, bpm,
+  parts:[{id, name, type, chords:[{r,t,beats}], audio, audioBpm, audioSig}], order:[{p, reps}]}]}]}). Aufnahmen als Int16 in IndexedDB
+  Store `meta`, Schlüssel `lied-audio:<id>` – **kein neuer Store / keine DB-Version**, sonst kann die stabile v24 die Datenbank nicht mehr öffnen.
+  `Looper.songCapture()` liefert Mix (volle Runde wie Logic-Export), Akkorde in Schlägen, Tonart, Tempo. Wiedergabe wie der Backing Track
+  über `Rhythm.addListener(fn, true)` + `window.bassChordAt`; Aufnahmen per `AudioBufferSource.start(t)` genau am Akkordwechsel,
+  `playbackRate = Song-BPM / Aufnahme-BPM`. Aufnahme gilt als veraltet, sobald `sig(chords) !== audioSig` (dann stumm).
+  Looper/Backing Track/Song schließen sich gegenseitig aus (jeweils `stop()` des anderen).
 - **Quintenzirkel:** SVG, englische Tonnamen wie im übrigen Programm (B = H), Schreibweise je Tonart (E♯ in F♯-Dur usw.);
   liest den klingenden Akkord über `Looper.nowChord()`; folgt dem Ereignis `trackkey`
   (aus `showKey()` in looper.js, sobald sich die erkannte Tonart einer Spur ändert) und jeder Änderung von Grundton/Modus; `window.Quinten` für Tests.

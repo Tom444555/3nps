@@ -143,6 +143,7 @@
     if (!st.seq.length) { status('Erst eine Akkordfolge eingeben.'); return; }
     if (typeof Looper !== 'undefined' && Looper.busy && Looper.busy()) { status('Der Looper läuft gerade – stoppe ihn zuerst (oder tippe nochmal auf ▶, dann stoppe ich ihn).'); if (start.warned) { Looper.stopAll(); } start.warned = !start.warned; if (!start.warned) setTimeout(start, 120); return; }
     start.warned = false;
+    if (window.Lied && Lied.stop) Lied.stop();          // nur eine Begleitung gleichzeitig
     ensureAudio();
     if (st.trainer.on) { const b = $('bpm'); b.value = st.trainer.start; b.dispatchEvent(new Event('input')); }
     lastVoicing = null;

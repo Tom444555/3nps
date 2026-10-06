@@ -69,7 +69,7 @@ async def main():
             await pg.wait_for_timeout(250)
             a = await pg.evaluate("[document.querySelector('#sfStrip .sf-seg.on b')?.textContent, Jam.nowChord()?.name]")
             if a[0] and a[1] and a[0] == a[1]: ok2 += 1
-        check('Solo Finder zeigt die Jam-Folge, Tonart „aus dem Jam“', segs == ['Am', 'F', 'C', 'G'] and src == 'aus dem Jam' and ok2 >= 10, f'{segs} · {src} · {ok2}/12')
+        check('Solo Finder zeigt die Jam-Folge, Tonart „aus dem Backing Track“', segs == ['Am', 'F', 'C', 'G'] and src == 'aus dem Backing Track' and ok2 >= 10, f'{segs} · {src} · {ok2}/12')
         await pg.click('#tab-quinten'); await pg.wait_for_timeout(500)
         c3 = await pg.evaluate("document.querySelector('.qz-c3').textContent")
         check('Quintenzirkel zeigt den Jam-Akkord', c3.startswith('♪'), c3)

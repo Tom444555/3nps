@@ -42,7 +42,7 @@ async def main():
         start = time.time(); k = 0
         while time.time() - start < SECS:
             names = ['tab', 'drumstil', 'droneton', 'dronestil', 'spur', 'alle', 'overdub', 'undo', 'editor', 'tempo', 'optik', 'blitz']
-            if MODE == 'voll': names += ['jam', 'training', 'improvisation', 'wpanhalten']
+            if MODE == 'voll': names += ['jam', 'training', 'improvisation', 'wpanhalten', 'song']
             a = random.choice(names)
             try:
                 if a == 'tab': await open_tab(random.choice(use_tabs)); await pg.wait_for_timeout(random.choice([200, 600, 1200])); await open_tab('looper')
@@ -74,6 +74,15 @@ async def main():
                 elif a == 'improvisation':
                     await open_tab('solo'); await pg.click(random.choice(['#sfListen', '#sfNeckMode button[data-m="grip"]', '#sfNeckMode button[data-m="scale"]', '.sf-sc >> nth=1']))
                     await pg.wait_for_timeout(1000); await open_tab('looper')
+                elif a == 'song':
+                    await pg.click('#tab-looper'); await pg.click('#loopSong'); await pg.wait_for_timeout(200)
+                    if await pg.is_visible('#ldDOk'): await pg.click('#ldDOk'); await pg.wait_for_timeout(600)
+                    await open_tab('lied'); await pg.click('#ldPlay'); await pg.wait_for_timeout(150)
+                    if not await pg.evaluate("document.getElementById('ldPlay').classList.contains('playing')"): await pg.click('#ldPlay')
+                    await pg.wait_for_timeout(2500); await pg.click('#ldCheck'); await pg.wait_for_timeout(300)
+                    if await pg.evaluate("document.getElementById('ldPlay').classList.contains('playing')"): await pg.click('#ldPlay')
+                    await open_tab('looper'); await pg.click('#loopAll'); await pg.wait_for_timeout(300)
+                    if not await pg.evaluate("Looper.busy()"): await pg.click('#loopAll')
                 elif a == 'wpanhalten':
                     await pg.click('#tab-looper')
                     if await pg.is_visible('#passtHold'): await pg.click('#passtHold'); await pg.wait_for_timeout(1500); await pg.click('#passtHold')
