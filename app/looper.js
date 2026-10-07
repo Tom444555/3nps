@@ -187,18 +187,23 @@ const Looper = (() => {
   // ---- Leistung: „sparsam“ entlastet das iPad (z. B. beim Laden, wenn es warm wird) ----
   const perfEl = $('perfMode');
   perfEl.value = loadPref('3nps-perf', 'auto');
-  if (!['auto', 'high', 'lite'].includes(perfEl.value)) perfEl.value = 'auto';
+  if (!['auto', 'high', 'lite', 'stable'].includes(perfEl.value)) perfEl.value = 'auto';
   window.__lite = perfEl.value === 'lite';
   let autoLite = false;
   function applyLite(v, why) {
     window.__lite = v;
     if (typeof Rhythm !== 'undefined') Rhythm.setLite(v);
     document.documentElement.classList.toggle('lite', v);
-    $('perfInfo').textContent = v ? 'Sparsam aktiv' + (why ? ' – ' + why : '') + '. Ruhigere Anzeige; der größere Audio-Puffer greift nach dem nächsten Start der App. Der Klang bleibt gleich.'
+    $('perfInfo').textContent = perfEl.value === 'stable' && !v ? 'Stabil: großer Audio-Puffer (greift nach dem nächsten Start der App) – hilft, wenn die Wiedergabe über ein USB-Gerät ab und zu stockt. Den Gitarrenton hörst du direkt aus dem Verstärker; der Latenz-Ausgleich passt sich beim nächsten „Eingang öffnen“ an.'
+      : v ? 'Sparsam aktiv' + (why ? ' – ' + why : '') + '. Ruhigere Anzeige; der größere Audio-Puffer greift nach dem nächsten Start der App. Der Klang bleibt gleich.'
       : 'Sparsam: ruhigere Anzeige und größerer Audio-Puffer (nach einem Neustart der App) – der Klang bleibt gleich, nur die Verzögerung wird etwas größer.';
     kick();
   }
-  perfEl.addEventListener('change', () => { savePref('3nps-perf', perfEl.value); autoLite = false; applyLite(perfEl.value === 'lite'); });
+  perfEl.addEventListener('change', () => {
+    savePref('3nps-perf', perfEl.value); autoLite = false; applyLite(perfEl.value === 'lite');
+    const big = perfEl.value === 'lite' || perfEl.value === 'stable', now = window.__audioHint === 'playback';
+    if (audioCtx && big !== now) setStatus('Der Audio-Puffer ändert sich beim nächsten Start der App: App schließen (im App-Umschalter nach oben wischen) und neu öffnen.');
+  });
   // Ruckel-Erkennung: viele lange Pausen zwischen den Bildern → automatisch sparsam
   const jank = { last: 0, n: 0, bad: 0, t0: 0 };
   function watchJank(nowMs) {
@@ -290,10 +295,26 @@ const Looper = (() => {
     }
     micSource.connect(tapNode); tapNode.connect(sinkNode); sinkNode.connect(audioCtx.destination);
     if (extAnalyser) { try { micSource.connect(extAnalyser); extAnalyser.connect(sinkNode); } catch (e) {} }   // Mithören (Solo Finder) nach Neuverbindung weiter versorgen
-    if (latEl.value === '') {
+    {
       const est = ((audioCtx.baseLatency || 0) + (audioCtx.outputLatency || 0)) * 1000 + 15;
-      latEl.value = Math.min(250, Math.max(10, Math.round(est / 5) * 5));
-      savePref('3nps-latency', latEl.value);
+      const prev = parseFloat(loadPref('3nps-lat-est', ''));
+      // Nur nachziehen, wenn sich die Ursache geändert hat (anderes Eingangsgerät oder anderer Audio-Puffer) –
+      // die gemeldete Latenz schwankt sonst von Start zu Start, und die eigene Feineinstellung soll ruhig bleiben.
+      let devName = ''; try { devName = (stream.getAudioTracks()[0].label || '').slice(0, 80); } catch (e) {}
+      const why = (window.__audioHint || '') + '|' + devName, whyPrev = loadPref('3nps-lat-why', null);
+      if (latEl.value === '') {
+        latEl.value = Math.min(250, Math.max(10, Math.round(est / 5) * 5));
+        savePref('3nps-latency', latEl.value);
+      } else if (whyPrev !== null && whyPrev !== why && isFinite(prev) && Math.abs(est - prev) >= 10) {
+        // Anderes Gerät oder anderer Audio-Puffer: Ausgleich um die Differenz verschieben (eigene Feineinstellung bleibt)
+        const v = Math.min(300, Math.max(0, Math.round((parseInt(latEl.value) + est - prev) / 5) * 5));
+        if (v !== parseInt(latEl.value)) {
+          latEl.value = v; savePref('3nps-latency', latEl.value);
+          setTimeout(() => setStatus('Audio-Gerät oder Puffer hat sich geändert – Latenz-Ausgleich automatisch auf ' + v + ' ms angepasst.'), 1200);
+        }
+      }
+      if (whyPrev === null || whyPrev !== why || !isFinite(prev)) savePref('3nps-lat-est', String(Math.round(est)));
+      savePref('3nps-lat-why', why);
     }
     latVal.textContent = latEl.value + ' ms';
     micReady = true; perfIn.next = -1; perfIn.n = 0; lastMicError = ''; monBtn.disabled = false;

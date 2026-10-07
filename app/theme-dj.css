@@ -93,7 +93,7 @@
   :root[data-theme="dj"] #loopMeter, :root[data-theme="dj"] .meter.st #loopMeterR {
     background-image: linear-gradient(90deg, #12e05c 0%, #12e05c 62%, #ffcf2e 80%, #ff2338 100%);
     -webkit-mask-image: repeating-linear-gradient(90deg, #000 0 6px, transparent 6px 8px); mask-image: repeating-linear-gradient(90deg, #000 0 6px, transparent 6px 8px);
-    box-shadow: none; filter: drop-shadow(0 0 4px rgba(18,224,92,.6));
+    box-shadow: none;   /* bewusst kein Leuchtfilter: der Pegel ändert sich in jedem Bild */
   }
   :root[data-theme="dj"] .track { --tcd: #3a4250; --tcg: rgba(255,255,255,.35); }
   :root[data-theme="dj"] .track.t2 { --tcd: #005b75; --tcg: rgba(0,200,255,.55); }

@@ -41,7 +41,7 @@ async def main():
         hh = s3['h']; await pg.click('#pfCompact'); await pg.wait_for_timeout(150)
         s4 = await pg.evaluate(STATE)
         vis = await pg.evaluate("[...document.querySelectorAll('#perfPop .pf-row')].filter(e=>e.offsetParent).map(e=>e.firstElementChild.textContent)")
-        check('Kompakt: nur Kernwerte', s4['compact'] and s4['h'] < hh and vis == ['Bedienung', 'Audio', 'Aussetzer', 'Spuren', 'Eingang → Ohr'], vis)
+        check('Kompakt: nur Kernwerte', s4['compact'] and s4['h'] < hh and vis == ['Bedienung', 'Audio', 'Aussetzer', 'Audio-Hänger', 'Spuren', 'Eingang → Ohr'], vis)
         # Pedal und Bedienung gehen weiter
         await pg.keyboard.press('ArrowUp'); await pg.wait_for_timeout(250)
         check('Pedal mit angeheftetem Fenster', 'Spur 1' in await pg.inner_text('#pedalLast'))
@@ -60,7 +60,7 @@ async def main():
         # Schließen: löst auch das Anheften
         await pg.click('#pfClose'); await pg.wait_for_timeout(150)
         s6 = await pg.evaluate(STATE)
-        st = await pg.evaluate("JSON.parse(localStorage.getItem('3nps-perf'))")
+        st = await pg.evaluate("JSON.parse(localStorage.getItem('3nps-perfwin'))")
         check('Schließen löst Anheften', s6['hidden'] and not s6['pinned'] and not s6['inBody'] and st['pin'] is False, (s6, st))
         await pg.reload(); await pg.wait_for_timeout(600)
         check('Nach Schließen bleibt es zu', await pg.evaluate("document.getElementById('perfPop').hidden"))

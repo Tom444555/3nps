@@ -43,7 +43,7 @@ script = script[:a1] + song + script[b1:]
 old = "  input.connect(airShelf);\n  airShelf.connect(saturator);\n  saturator.connect(limiter);"
 assert old in script
 script = script.replace(old, "  input.connect(airShelf);\n  airShelf.connect(limiter);")
-script = script.replace("{ latencyHint: 'interactive' }", "{ latencyHint: (function () { try { return localStorage.getItem('3nps-perf') === 'lite' ? 'playback' : 'balanced'; } catch (e) { return 'balanced'; } })() }")
+script = script.replace("{ latencyHint: 'interactive' }", "{ latencyHint: window.__audioHint = (function () { try { return /^(lite|stable)$/.test(localStorage.getItem('3nps-perf')) ? 'playback' : 'balanced'; } catch (e) { return 'balanced'; } })() }")
 assert "'playback' : 'balanced'" in script
 old_k = "function keyMidiNotes() {\n  const rootIdx = NOTES.indexOf(rootSel.value);\n  const intervals = MODES[modeSel.value];"
 assert old_k in script

@@ -138,6 +138,7 @@ const Rhythm = (() => {
   // Das Kit wird gleich beim Start der App im Hintergrund erzeugt (fest 48 kHz – der Browser rechnet bei Bedarf um).
   // So klingt schon der allererste Schlag richtig; vorher sprangen kurz Ersatzstimmen ein, die knisterten.
   let kit = null, kitRaw = null, kitBusy = false, kitFailed = false, bus = null, wantOn = false;
+  let roomOn = true; try { roomOn = localStorage.getItem('3nps-drumroom') !== '0'; } catch (e) {}   // Raumhall der Drums
   // 7-Band-EQ für die Drums
   let drumEq = EQ7.flat();
   try { drumEq = EQ7.norm(JSON.parse(localStorage.getItem('3nps-eq-drums') || 'null')); } catch (e) {}
@@ -204,8 +205,18 @@ const Rhythm = (() => {
     });
     // Fallback-Stimmen, solange das Kit noch erzeugt wird (erste Sekunde nach dem Start)
     bus = { master, sum, ch, open: null, dryGain: sum, reverbSend: room, room, wet, eq, linked: true };
+    if (!roomOn) { try { wet.disconnect(); } catch (e) {} }
     return bus;
   }
+  // ---- Raumhall an/aus (aus: Hall-Berechnung entfällt – hilft bei Aussetzern mit kleinem USB-Puffer) ----
+  const roomBtn = document.getElementById('drumRoomBtn');
+  function setRoom(v) {
+    roomOn = !!v;
+    try { localStorage.setItem('3nps-drumroom', roomOn ? '1' : '0'); } catch (e) {}
+    if (roomBtn) { roomBtn.classList.toggle('active', roomOn); roomBtn.setAttribute('aria-pressed', String(roomOn)); roomBtn.textContent = roomOn ? 'Raum' : 'Raum aus'; }
+    if (bus) { try { if (roomOn) bus.wet.connect(bus.sum); else bus.wet.disconnect(); } catch (e) {} }
+  }
+  if (roomBtn) { roomBtn.addEventListener('click', () => setRoom(!roomOn)); setRoom(roomOn); }
   function connectBus(v) {
     if (!bus || bus.linked === v) return;
     try { if (v) bus.eq.output.connect(ensureMasterBus()); else bus.eq.output.disconnect(); bus.linked = v; } catch (e) {}
@@ -510,7 +521,7 @@ const Rhythm = (() => {
   }
   return {
     getState, setState, setLite, setEq: v => setDrumEq(v, false), getEq: () => drumEq.slice(),
-    INSTR, on: () => on, setOn, setGrid: fn => { gridFn = fn; },
+    INSTR, on: () => on, setOn, setRoom, roomOn: () => roomOn, setGrid: fn => { gridFn = fn; },
     setBass: v => { bassNeed = !!v; clock(); },
     // Jam: hält den Taktgeber am Laufen und bekommt jeden Schritt vor dem Bass gemeldet (Akkordwechsel zuerst)
     setJam: v => { jamNeed = !!v; clock(); },

@@ -26,9 +26,22 @@
     if (now - fpsT >= 1000) { fps = frames * 1000 / (now - fpsT); frames = 0; fpsT = now; }
     raf = requestAnimationFrame(loop);
   }
+  // Audio-Hänger: In Fenstern von 1 s muss die Audio-Uhr so weit laufen wie die echte Uhr.
+  // Bleibt sie > 30 ms zurück, hat die Audioausgabe gestockt (Puffer leer, Gerät/Takt).
+  const au = { t: 0, a: 0, n: 0, ms: 0, late0: null };
+  function audioCheck(now) {
+    const ctx = typeof audioCtx !== 'undefined' ? audioCtx : null;
+    if (!ctx || ctx.state !== 'running') { au.t = 0; return; }
+    if (!au.t) { au.t = now; au.a = ctx.currentTime; return; }
+    if (now - au.t < 1000) return;
+    const wall = now - au.t, aud = (ctx.currentTime - au.a) * 1000, lag = wall - aud;
+    if (lag > 30 && wall < 3000) { au.n++; au.ms += lag; }          // längere Lücken = Tab im Hintergrund, nicht zählen
+    au.t = now; au.a = ctx.currentTime;
+  }
   function step() {
     const now = performance.now(), dt = now - lastT; lastT = now;
     span += dt; busy += Math.max(0, dt - STEP - 2);
+    audioCheck(now);
     if (span >= 2000) { cpu = busy / span; busy = 0; span = 0; }
     if (++tick % 20 === 0) show();
   }
@@ -42,6 +55,12 @@
     else if (L && L.mic) { const lag = Math.max(0, L.lagMs); set('pfAud', 'Rückstand ' + fmt(lag) + ' ms'); bar('pfAudBar', lag / 250, 0.4, 0.8); }
     else { set('pfAud', 'Eingang zu'); bar('pfAudBar', 0, 1, 1); }
     set('pfGaps', L && L.mic ? String(L.gaps) : '–');
+    const ctx0 = typeof audioCtx !== 'undefined' ? audioCtx : null;
+    set('pfStall', ctx0 && ctx0.state === 'running' ? (au.n ? au.n + ' × (' + fmt(au.ms) + ' ms)' : '0') : 'Audio aus');
+    let late = null; try { if (typeof Rhythm !== 'undefined' && Rhythm.debug) { const l = Rhythm.debug().late || 0; if (au.late0 == null) au.late0 = l; late = l - au.late0; } } catch (e) {}
+    set('pfLate', late == null ? '–' : String(late));
+    const appSr = ctx0 ? ctx0.sampleRate : null, devSr = L && L.mic ? L.inSr : null;
+    set('pfRate', appSr ? fmt(appSr / 1000, 1) + (devSr && devSr !== appSr ? ' / Gerät ' + fmt(devSr / 1000, 1) : '') + ' kHz' : '–');
 
     // Arbeitsspeicher
     if (L) {
@@ -67,13 +86,16 @@
     if (out != null && out > 60) note = 'Ausgang über 60 ms – vermutlich Bluetooth-Kopfhörer/-Box. Zum Spielen besser Kabel oder das Interface. ';
     else if (!L || !L.mic) note += 'Für Eingangswerte im Looper „Eingang öffnen“. ';
     else note += 'Was du beim Spielen direkt hörst, kommt über den Direkt-Ausgang des Interfaces ohne diese Verzögerung. ';
-    if (L && L.gaps) note += 'Aussetzer: das iPad kam mit dem Eingang nicht hinterher.';
+    if (L && L.gaps) note += 'Aussetzer: das iPad kam mit dem Eingang nicht hinterher. ';
+    if (au.n) note = 'Audio-Hänger: Die Wiedergabe hat ' + au.n + '× kurz gestockt. ' + note;
+    if (L && L.mic && L.inSr && ctx0 && L.inSr !== ctx0.sampleRate) note = 'Gerät und App laufen mit verschiedener Abtastrate – Safari muss umrechnen, das kann stocken. ' + note;
     if (L && !L.mic && L.micErr) note = 'Eingang ließ sich nicht öffnen – Ursache: ' + L.micErr + '. ' + note;
     set('pfNote', note.trim());
   }
 
   function start() {
     if (timer) return;                                   // läuft schon
+    au.t = 0; au.n = 0; au.ms = 0; au.late0 = null;
     lastT = performance.now(); busy = 0; span = 0; frames = 0; fpsT = lastT;
     timer = setInterval(step, STEP); raf = requestAnimationFrame(loop);
     try {
@@ -93,8 +115,17 @@
   // ---- Anheften, Verschieben, Kompakt (gespeichert in 3nps-perf) ----
   const home = pop.parentNode, homeNext = pop.nextSibling;
   let st = { pin: false, compact: false, x: null, y: null };
-  try { Object.assign(st, JSON.parse(localStorage.getItem('3nps-perf') || '{}')); } catch (e) {}
-  const saveSt = () => { try { localStorage.setItem('3nps-perf', JSON.stringify(st)); } catch (e) {} };
+  // Eigener Schlüssel 3nps-perfwin (3nps-perf gehört der Einstellung „Leistung“ im Looper).
+  // v35/v36 schrieben versehentlich nach 3nps-perf → einmalig umziehen und die Einstellung reparieren.
+  try {
+    const old = localStorage.getItem('3nps-perf');
+    if (old && old.charAt(0) === '{') {
+      if (!localStorage.getItem('3nps-perfwin')) localStorage.setItem('3nps-perfwin', old);
+      localStorage.setItem('3nps-perf', 'auto');
+    }
+    Object.assign(st, JSON.parse(localStorage.getItem('3nps-perfwin') || '{}'));
+  } catch (e) {}
+  const saveSt = () => { try { localStorage.setItem('3nps-perfwin', JSON.stringify(st)); } catch (e) {} };
   const pinBtn = $('pfPin'), cmpBtn = $('pfCompact'), closeBtn = $('pfClose'), head = $('pfHead');
   function clamp() {
     if (!st.pin) return;
@@ -161,5 +192,26 @@
   });
   applyPin();
   if (st.pin) setTimeout(() => setOpen(true), 0);     // angeheftet bleibt es auch nach dem Neustart offen
+  // ---- Wächter im Hintergrund (auch bei geschlossenem Fenster, 1× pro Sekunde, nur bei laufenden Drums) ----
+  // Bleibt die Audio-Uhr wiederholt hinter der echten Zeit zurück, stockt die Wiedergabe → einmal einen Rat geben.
+  const wd = { t: 0, a: 0, hits: [], told: false };
+  setInterval(() => {
+    const ctx = typeof audioCtx !== 'undefined' ? audioCtx : null, now = performance.now();
+    const drums = typeof Rhythm !== 'undefined' && Rhythm.on && Rhythm.on();
+    if (!ctx || ctx.state !== 'running' || !drums || document.hidden) { wd.t = 0; return; }
+    if (!wd.t) { wd.t = now; wd.a = ctx.currentTime; return; }
+    const wall = now - wd.t, lag = wall - (ctx.currentTime - wd.a) * 1000;
+    wd.t = now; wd.a = ctx.currentTime;
+    if (wall > 3000 || lag <= 30) return;
+    wd.hits.push(now); while (wd.hits.length && now - wd.hits[0] > 60000) wd.hits.shift();
+    if (wd.hits.length < 3 || wd.told) return;
+    wd.told = true;
+    const big = window.__audioHint === 'playback';
+    const msg = big
+      ? 'Die Wiedergabe stockt ab und zu, obwohl der große Audio-Puffer aktiv ist. Probier bei den Drums „Raum“ auszuschalten.'
+      : 'Die Wiedergabe stockt ab und zu (häufig mit USB-Verstärkern). Abhilfe: unter „Leistung“ „Stabil – großer Audio-Puffer“ wählen und die App neu starten, oder bei den Drums „Raum“ ausschalten.';
+    const el = document.getElementById('loopStatus'); if (el) el.textContent = msg;
+  }, 1000);
+
   window.PerfView = { open: () => setOpen(true), close: () => setOpen(false), pin: setPin, state: () => Object.assign({ open }, st) };
 })();

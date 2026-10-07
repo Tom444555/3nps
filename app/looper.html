@@ -184,6 +184,7 @@
             <label class="lane-fader"><span>Pegel</span><input type="range" id="loopDrumVol" min="0" max="100" step="5" value="70" aria-label="Drum-Lautstärke"></label>
             <button class="toggle-btn" id="drumEditBtn" aria-expanded="false">Designer</button>
             <button class="toggle-btn" id="drumEqBtn" aria-expanded="false" title="7-Band-Equalizer für die Drums">EQ</button>
+            <button class="toggle-btn active" id="drumRoomBtn" aria-pressed="true" title="Raumhall der Drums – aus spart Rechenzeit, falls die Wiedergabe über ein USB-Gerät stockt">Raum</button>
           </div>
           <div id="drumEqPanel" class="drum-eq" hidden></div>
           <div class="drum-designer" id="drumDesigner" hidden>
@@ -283,6 +284,7 @@
             <option value="auto">Automatisch (schaltet bei Ruckeln auf sparsam)</option>
             <option value="high">Hohe Qualität</option>
             <option value="lite">Sparsam (z. B. beim Laden, ältere iPads)</option>
+            <option value="stable">Stabil – großer Audio-Puffer (USB-Verstärker/-Interfaces)</option>
           </select>
         </label>
         <p class="pattern-desc" id="perfInfo">Sparsam: ruhigere Anzeige und größerer Audio-Puffer (nach einem Neustart der App) – der Klang bleibt gleich, nur die Verzögerung wird etwas größer.</p>
