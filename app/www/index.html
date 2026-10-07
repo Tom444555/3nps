@@ -193,6 +193,15 @@
   .log-main { min-width: 0; }
   .log-meta { color: var(--muted); text-align: right; white-space: nowrap; font: 500 0.72rem/1.5 var(--f-mono); }
 
+  /* v32: App-Optik als kleiner Knopf unter dem Schriftzug, klappt eine Auswahl auf */
+  .brand-col { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+  .optik-btn { font: 600 .62rem/1 var(--f-body); letter-spacing: .1em; text-transform: uppercase; padding: 5px 9px; min-height: 0;
+    border-radius: 6px; border: 1px solid rgba(255,255,255,.22); background: rgba(0,0,0,.35); color: #d7dde3; cursor: pointer; }
+  .optik-btn[aria-expanded="true"] { border-color: rgba(255,255,255,.5); }
+  .optik-pop { position: absolute; top: 100%; left: 0; margin-top: 6px; z-index: 60; padding: 10px; border-radius: 10px;
+    background: rgba(12,14,18,.96); border: 1px solid rgba(255,255,255,.18); box-shadow: 0 10px 30px rgba(0,0,0,.6); width: min(340px, calc(100vw - 32px)); }
+  .optik-pop[hidden] { display: none; }
+  .optik-pop select { width: 100%; min-height: 40px; }
   @media (prefers-reduced-motion: reduce) { .note-dot { transition: none; } }
   .looper-top { display: grid; grid-template-columns: minmax(150px, 220px) 1fr; gap: 12px; align-items: end; }
   .meter { position: relative; height: 20px; border-radius: 10px; background: #0b0b0d; border: 1px solid #000; box-shadow: inset 0 1px 3px rgba(0,0,0,.8); }
@@ -564,10 +573,6 @@
   .ed-chords { font: 700 0.86rem var(--f-mono); color: var(--ink); line-height: 1.5; word-break: break-word; }
   .ed-chords b { color: var(--tc); font-weight: 700; }
 
-/* v32: kleines Fenster „App · Optik“ ganz oben im Looper-Reiter – eine flache Zeile */
-.optik-card { display: flex; flex-direction: row; align-items: center; justify-content: flex-start; gap: 12px; flex-wrap: nowrap; padding-top: 8px; padding-bottom: 8px; }
-.optik-card h2 { margin: 0; font-size: 0.95rem; white-space: nowrap; text-align: left; flex: 0 0 auto; }
-.optik-card select { flex: 1 1 0; text-overflow: ellipsis; width: auto; min-width: 0; max-width: 420px; height: 40px; min-height: 40px; }
   /* ---- Quintenzirkel ---- */
   .qz-card { flex-direction: row; flex-wrap: wrap; align-items: flex-start; gap: 18px; }
   .qz-wrap { flex: 1 1 380px; max-width: 560px; margin: 0 auto; }
@@ -1539,7 +1544,18 @@
 <body>
 <header class="control-bar">
   <div class="cb-inner">
-    <div class="brand">Looper <span>3nps · v32</span></div>
+    <div class="brand-col">
+      <div class="brand">Looper <span>3nps · v33</span></div>
+      <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
+      <div class="optik-pop" id="optikPop" hidden>
+        <select id="appTheme" aria-label="App-Optik">
+          <option value="nordic">Nordisch – Eis, Rost und Runen</option>
+          <option value="metal">Metal – Stahl, Nieten und Blutrot</option>
+          <option value="amp">Verstärker – Tolex, Alu-Front und Röhrenglühen</option>
+          <option value="ice">Eiswand – raues Gletschereis und Frost</option>
+        </select>
+      </div>
+    </div>
     <div class="transport">
       <button class="tbtn" id="playBtn" aria-label="Metronom starten oder stoppen">▶</button>
     </div>
@@ -1698,16 +1714,6 @@
 
   <!-- Looper -->
   <section class="panel" id="panel-looper" role="tabpanel" aria-labelledby="tab-looper" hidden>
-    <div class="card optik-card">
-      <h2>App · Optik</h2>
-        <select id="appTheme" aria-label="App-Optik">
-          <option value="nordic">Nordisch – Eis, Rost und Runen</option>
-          <option value="metal">Metal – Stahl, Nieten und Blutrot</option>
-          <option value="amp">Verstärker – Tolex, Alu-Front und Röhrenglühen</option>
-          <option value="ice">Eiswand – raues Gletschereis und Frost</option>
-        </select>
-    </div>
-
     <div class="card looper-card">
       <div class="card-head"><h2>Looper</h2><span class="caption" id="loopInfo">Kein Loop</span></div>
       <div class="looper-top">
@@ -9637,6 +9643,15 @@ const AppCfg = (() => {
   try { cur = localStorage.getItem('3nps-theme') || 'nordic'; } catch (e) {}
   if (themeSel) { themeSel.value = THEME_BG[cur] ? cur : 'nordic'; themeSel.addEventListener('change', () => applyTheme(themeSel.value)); }
   applyTheme(cur);
+  const oBtn = $('optikBtn'), oPop = $('optikPop');
+  function optikOpen(on) { if (!oBtn || !oPop) return; oPop.hidden = !on; oBtn.setAttribute('aria-expanded', on ? 'true' : 'false'); }
+  if (oBtn && oPop) {
+    oBtn.addEventListener('click', e => { e.stopPropagation(); optikOpen(oPop.hidden); });
+    oPop.addEventListener('click', e => e.stopPropagation());
+    document.addEventListener('click', () => optikOpen(false));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') optikOpen(false); });
+    if (themeSel) themeSel.addEventListener('change', () => setTimeout(() => optikOpen(false), 150));
+  }
 
   // ---- Sicherung: eine ZIP-Datei mit sicherung.json und den Audiodaten als Binärteile ----
   const info = $('backupInfo'), say = t => { if (info) info.textContent = t; };

@@ -27,7 +27,7 @@ async def main():
             await pg.click('#loopExport')
         d = await dl.value
         for th in ['metal', 'amp', 'ice']:
-            await pg.select_option('#appTheme', th); await pg.wait_for_timeout(300)
+            await pg.evaluate("(()=>{const p=document.getElementById('optikPop'); if(p) p.hidden=false;})()"); await pg.select_option('#appTheme', th); await pg.wait_for_timeout(300)
         fonts = await pg.evaluate("Promise.all(['Metal Mania', 'Black Ops One', 'Russo One', 'Michroma', 'Cinzel', 'Uncial Antiqua'].map(f => document.fonts.load('700 20px \"' + f + '\"').then(r => f + ':' + r.length)))")
         print('Analyse:', st[:70]); print('Eingang Pegel', round(lvl, 3), '| Drums', drums['kit'], drums['on'], '| Export', d.suggested_filename)
         print('Schriften geladen:', fonts)

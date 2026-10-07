@@ -58,7 +58,7 @@ async def main():
                 elif a == 'undo': await pg.click('#tab-looper'); i = random.randrange(3); await pg.click(f'#undo{i}')
                 elif a == 'editor': await pg.click('#tab-looper'); i = random.randrange(3); await pg.click(f'#edit{i}'); await pg.wait_for_timeout(800); await pg.click('#edClose')
                 elif a == 'tempo': await pg.evaluate("(() => { const e = document.getElementById('bpm'); e.value = %d; e.dispatchEvent(new Event('input')); })()" % random.randrange(70, 131))
-                elif a == 'optik': await pg.select_option('#appTheme', random.choice(['nordic', 'metal', 'amp', 'ice']))
+                elif a == 'optik': await pg.evaluate("(()=>{const p=document.getElementById('optikPop'); if(p) p.hidden=false;})()"); await pg.select_option('#appTheme', random.choice(['nordic', 'metal', 'amp', 'ice']))
                 elif a == 'blitz': await pg.click('#tab-looper'); await pg.click('#loopFlash')
                 elif a == 'jam':
                     await open_tab('jam'); await pg.click('#jamPlay'); await pg.wait_for_timeout(150)

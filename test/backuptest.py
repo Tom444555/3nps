@@ -13,7 +13,7 @@ async def main():
         await pg.goto('http://localhost:8765/index.html'); await pg.wait_for_timeout(800)
         await pg.click('#tab-looper'); await pg.select_option('#loopCountIn', '0')
         # Optik umschalten, bleibt nach Neuladen
-        await pg.select_option('#appTheme', 'metal'); await pg.wait_for_timeout(200)
+        await pg.evaluate("(()=>{const p=document.getElementById('optikPop'); if(p) p.hidden=false;})()"); await pg.select_option('#appTheme', 'metal'); await pg.wait_for_timeout(200)
         t1 = await pg.evaluate("[document.documentElement.dataset.theme, getComputedStyle(document.documentElement).getPropertyValue('--t2').trim(), document.querySelector('meta[name=theme-color]').content]")
         await pg.reload(); await pg.wait_for_timeout(800)
         t2 = await pg.evaluate("[document.documentElement.dataset.theme, document.getElementById('appTheme').value]")
@@ -50,7 +50,7 @@ async def main():
         # Falsche Datei
         await pg.set_input_files('#backupFile', T + 'stereo/mic_st.wav'); await pg.wait_for_timeout(800)
         check('Fremde Datei wird abgelehnt', 'keine Looper-Sicherung' in await pg.inner_text('#backupInfo'), await pg.inner_text('#backupInfo'))
-        await pg.select_option('#appTheme', 'nordic'); await pg.wait_for_timeout(200)
+        await pg.evaluate("(()=>{const p=document.getElementById('optikPop'); if(p) p.hidden=false;})()"); await pg.select_option('#appTheme', 'nordic'); await pg.wait_for_timeout(200)
         check('Zurück auf Nordisch', await pg.evaluate("!document.documentElement.dataset.theme && getComputedStyle(document.documentElement).getPropertyValue('--t2').trim() === '#2de2ff'"), '')
         check('Keine Skriptfehler', not errs, errs[:3])
         await b.close()

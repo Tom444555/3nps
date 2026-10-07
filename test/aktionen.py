@@ -37,7 +37,7 @@ async def main():
         for t in ['quinten', 'solo', 'griffbrett']:
             async def tab(i, t=t): await pg.click('#tab-' + t) if i % 2 == 0 else await pg.click('#tab-looper')
             out.append(await measure('Reiter ' + t + '/Looper', tab))
-        async def th(i): await pg.select_option('#appTheme', ['metal', 'nordic'][i % 2])
+        async def th(i): await pg.evaluate("(()=>{const p=document.getElementById('optikPop'); if(p) p.hidden=false;})()"); await pg.select_option('#appTheme', ['metal', 'nordic'][i % 2])
         out.append(await measure('Optik wechseln', th, 6))
         print(json.dumps(out, ensure_ascii=False))
         await b.close()

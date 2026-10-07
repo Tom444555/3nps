@@ -18,6 +18,15 @@ const AppCfg = (() => {
   try { cur = localStorage.getItem('3nps-theme') || 'nordic'; } catch (e) {}
   if (themeSel) { themeSel.value = THEME_BG[cur] ? cur : 'nordic'; themeSel.addEventListener('change', () => applyTheme(themeSel.value)); }
   applyTheme(cur);
+  const oBtn = $('optikBtn'), oPop = $('optikPop');
+  function optikOpen(on) { if (!oBtn || !oPop) return; oPop.hidden = !on; oBtn.setAttribute('aria-expanded', on ? 'true' : 'false'); }
+  if (oBtn && oPop) {
+    oBtn.addEventListener('click', e => { e.stopPropagation(); optikOpen(oPop.hidden); });
+    oPop.addEventListener('click', e => e.stopPropagation());
+    document.addEventListener('click', () => optikOpen(false));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') optikOpen(false); });
+    if (themeSel) themeSel.addEventListener('change', () => setTimeout(() => optikOpen(false), 150));
+  }
 
   // ---- Sicherung: eine ZIP-Datei mit sicherung.json und den Audiodaten als Binärteile ----
   const info = $('backupInfo'), say = t => { if (info) info.textContent = t; };

@@ -175,12 +175,32 @@
   .log-main { min-width: 0; }
   .log-meta { color: var(--muted); text-align: right; white-space: nowrap; font: 500 0.72rem/1.5 var(--f-mono); }
 
+  /* v32: App-Optik als kleiner Knopf unter dem Schriftzug, klappt eine Auswahl auf */
+  .brand-col { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+  .optik-btn { font: 600 .62rem/1 var(--f-body); letter-spacing: .1em; text-transform: uppercase; padding: 5px 9px; min-height: 0;
+    border-radius: 6px; border: 1px solid rgba(255,255,255,.22); background: rgba(0,0,0,.35); color: #d7dde3; cursor: pointer; }
+  .optik-btn[aria-expanded="true"] { border-color: rgba(255,255,255,.5); }
+  .optik-pop { position: absolute; top: 100%; left: 0; margin-top: 6px; z-index: 60; padding: 10px; border-radius: 10px;
+    background: rgba(12,14,18,.96); border: 1px solid rgba(255,255,255,.18); box-shadow: 0 10px 30px rgba(0,0,0,.6); width: min(340px, calc(100vw - 32px)); }
+  .optik-pop[hidden] { display: none; }
+  .optik-pop select { width: 100%; min-height: 40px; }
   @media (prefers-reduced-motion: reduce) { .note-dot { transition: none; } }
 </style>
 
 <header class="control-bar">
   <div class="cb-inner">
-    <div class="brand">Looper <span>3nps · v32</span></div>
+    <div class="brand-col">
+      <div class="brand">Looper <span>3nps · v33</span></div>
+      <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
+      <div class="optik-pop" id="optikPop" hidden>
+        <select id="appTheme" aria-label="App-Optik">
+          <option value="nordic">Nordisch – Eis, Rost und Runen</option>
+          <option value="metal">Metal – Stahl, Nieten und Blutrot</option>
+          <option value="amp">Verstärker – Tolex, Alu-Front und Röhrenglühen</option>
+          <option value="ice">Eiswand – raues Gletschereis und Frost</option>
+        </select>
+      </div>
+    </div>
     <div class="transport">
       <button class="tbtn" id="playBtn" aria-label="Metronom starten oder stoppen">▶</button>
     </div>

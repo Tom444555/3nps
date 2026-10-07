@@ -1,6 +1,6 @@
 # 3nps Looper – Übergabe (vollständiger Stand)
 
-Stand: **7. Oktober 2026 · Version v32** – live unter https://tom444555.github.io/3nps/ ·
+Stand: **7. Oktober 2026 · Version v33** – live unter https://tom444555.github.io/3nps/ ·
 stabile Rückfall-Fassung **v24** unter https://tom444555.github.io/3nps/stabil/
 
 Diese Datei ist das Gedächtnis des Projekts. Alles, was ein neuer Chat wissen muss, steht hier –
@@ -69,8 +69,9 @@ Reihenfolge der Reiter (intern `id`): **Looper** (`looper`) · **Quintenzirkel**
 **Backing Track** (`jam`) · **Songwriting** (`lied`) · **Training** (`ueben`) · **Technik** (`griffbrett`).
 IDs `tab-…`/`panel-…`. Begleitung (Drone, Drums, Bass), alter Song-Player und Übungslog sind Karten im Reiter Technik.
 
-- **„App · Optik“** (v32): kleines, flaches Fenster ganz oben im Reiter Looper (über der Looper-Karte), Auswahl `#appTheme`.
-  „Alles sichern“/„Sicherung laden“ stehen weiter unten in der Karte „App · Sicherung“.
+- **App-Optik** (v33): kleiner Knopf „App-Optik ▾“ im Kopf unter dem Schriftzug (`#optikBtn`), klappt `#optikPop` mit der Auswahl
+  `#appTheme` auf; schließt nach der Wahl, bei Klick daneben und mit Esc. Tests klappen vor `select_option` auf.
+  „Alles sichern“/„Sicherung laden“ stehen weiter unten im Looper in der Karte „App · Sicherung“.
 - **Looper:** 3 Stereo-Spuren, Aufnahme/Overdub per Fußtaster, Rückgängig, Editor (Auswahl, Takt-Eins verschieben, ½/2× Tempo),
   Datei laden (Loop- oder Song-Erkennung mit Takt/Tempo), Drums/Drone, EQ, Sitzungen, Autosicherung, „Für Logic exportieren“
   (Loop), **„→ Song“** (Loop als Teil in einen Song, unten in der Zeile mit „Alle starten“). Spurkopf: Tonart unter „Spur N“,
@@ -100,7 +101,7 @@ IDs `tab-…`/`panel-…`. Begleitung (Drone, Drums, Bass), alter Song-Player un
 | `app/beat.js` | Takterkennung: Tempo, Oktav-Prüfungen, Schlagraster, Feinbestimmung (~1 ms), Takt-Eins, freies Intro, `loopAnalyse` |
 | `app/chords.js`, `analysis.js` | Akkorderkennung je Schlag; Analyse-Worker (Funktionen werden als Text in den Worker kopiert), Tonart |
 | `app/rhythm.js`, `kit.js`, `bass.js`, `drones.js`, `eq.js` | Taktgeber/Drums (+ `midiEvents`), Kit-Synthese, Bass, Drones, 7-Band-EQ |
-| `app/appcfg.js` | Optik, Sicherung/Wiederherstellung |
+| `app/appcfg.js` | Optik (inkl. Auf-/Zuklappen des Kopf-Knopfs), Sicherung/Wiederherstellung |
 | `app/circle.*` | Quintenzirkel |
 | `app/solo.*`, `voicings.js`, `pitch.js` | Improvisation, Akkordgriffe, Tonhöhe (YIN) |
 | `app/passt.js`, `passt.css` | „Was passt“-Box |
@@ -150,7 +151,7 @@ IDs `tab-…`/`panel-…`. Begleitung (Drone, Drums, Bass), alter Song-Player un
 - **Anzeige:** `playFrame()` = hörbare Position; „Was passt“-Box mit fester Höhe (iPad 168 px, schmal 240 px, iPhone 236 px) –
   nichts darf beim Mitlaufen springen.
 
-## 8. Tests und erwartete Ergebnisse (v32)
+## 8. Tests und erwartete Ergebnisse (v33)
 
 Browser (Playwright, Testserver 8765, **nacheinander**):
 `v31export.py` 14/14 (prüft Versionsmarke – bei jeder Version anpassen) · `v30text.py` 27/27 · `v28lied.py` 34/34 · `v28sync.py` 6/6 · `v27passt.py` 17/17 · `passthoehe.py` 8/8 ·
@@ -186,7 +187,8 @@ Testaudio-Generatoren (alle deterministisch, von `wiederherstellen.sh` aufgerufe
 | v29 | „Was passt“-Box flacher, feste Höhe, Charakterton neben dem Satz |
 | v30 | Songwriting Schritt 3–4: Text (Silben/Reime), Leadsheet-PDF, Song-Code mit Claude |
 | v31 | Schritt 5: ganzer Song für Logic (WAV, MIDI mit Abschnitten/Akkorden/Bass/Drums/Text); langsame Dateien nicht mehr doppelt |
-| v32 | Optik-Auswahl als kleines Fenster „App · Optik“ ganz oben im Looper (eine Zeile, auch auf dem iPhone) |
+| v32 | Optik-Auswahl als eigenes Fenster oben im Looper (vom Nutzer verworfen: zu viel Platz) |
+| v33 | Optik als kleiner aufklappbarer Knopf „App-Optik ▾“ im Kopf unter dem Schriftzug |
 
 ## 10. Bekannte Grenzen
 
