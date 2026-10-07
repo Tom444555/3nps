@@ -374,6 +374,24 @@ Alles geht direkt auf dem iPad, ohne Computer.
    - Ein Song kann auch ganz ohne Aufnahme starten: ohne Song „Song-Code kopieren“ schickt eine leere Vorlage,
      Claudes Antwort wird „Als neuer Song“ angelegt.
 
+31. Songwriting – ganzer Song für Logic Pro
+   - Im Reiter Songwriting oben „Für Logic exportieren“: ein ZIP mit
+     · „01 Aufnahmen – ganzer Song“ (WAV, 24 Bit): alle Aufnahmen im Ablauf an der richtigen Stelle, auf Songtempo,
+     · „Teile einzeln“: jeder Teil mit Aufnahme einmal als WAV – zum Umbauen in Logic,
+     · „02 Tempo, Abschnitte, Akkorde, Bass, Drums“ (MIDI): Tempo, 4/4, Tonart, Abschnitte als Marker (Strophe 1,
+       Refrain …), eine Akkord-Spur (Noten und Namen), eine Bass-Spur, die Drums des Rhythmus-Teils (wenn „Drums“
+       angehakt ist) und der Text als Liedtext-Ereignisse,
+     · „03 Leadsheet.pdf“, „04 Text.txt“, „05 Song-Code (für Claude)“ und „LIES MICH“ mit den Takten jedes Abschnitts.
+   - In Logic: leeres Projekt, MIDI-Datei hineinziehen (Tempo übernehmen: Ja), dann die Song-WAV auf Takt 1.
+     Den MIDI-Spuren Instrumente geben (E-Piano, Bass, Drum Kit). Smart Tempo: Projekttempo beibehalten.
+   - Teile, deren Akkorde geändert wurden, sind ohne Aufnahme (wie beim Abspielen). Songs bis 10 Minuten.
+
+32. Tempo beim Laden (v31)
+   - Langsame Stücke ohne Backbeat (Arpeggio, Schlaggitarre, Balladen mit Rimshot) wurden oft mit doppeltem Tempo
+     erkannt (z. B. 132 statt 66). Die Erkennung prüft jetzt, ob die vermeintlichen Schläge eigentlich Achtel sind,
+     und nimmt dann das halbe Tempo. Schnelle Stücke mit Backbeat oder Four-on-the-floor bleiben schnell.
+   - Liegt es trotzdem daneben: im Editor „½ Tempo“ bzw. „2× Tempo“.
+
 Gut zu wissen
    - Übungslog und Ideen werden nur auf diesem iPad gespeichert. Eine neue Installation
      startet mit leerem Log.
