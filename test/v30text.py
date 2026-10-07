@@ -49,7 +49,7 @@ async def main():
         pg = await ctx.new_page(); errs = []
         pg.on('pageerror', lambda e: errs.append(str(e)))
         await pg.goto('http://localhost:8765/index.html'); await pg.wait_for_timeout(800)
-        check('Version v30', 'v30' in await pg.inner_text('.brand'), await pg.inner_text('.brand'))
+        check('Version ab v30', any(x in await pg.inner_text('.brand') for x in ('v30', 'v31', 'v32', 'v33')), await pg.inner_text('.brand'))
         await pg.click('#tab-lied'); await pg.wait_for_timeout(200)
         check('Ohne Song: Claude-Karte sichtbar, Text-Karte nicht', await pg.is_visible('#ldAiCard') and not await pg.is_visible('#ldTextCard'))
         # 1) Ohne Song: Vorlage kopieren

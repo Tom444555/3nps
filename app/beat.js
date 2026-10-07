@@ -135,14 +135,15 @@ function beatAnalyse(x, sr, opts) {
   //  doppeltes Tempo  → Bass und Höhen wechseln gemeinsam zwischen geraden/ungeraden Schlägen
   //  halbes Tempo     → auf den Achteln liegt so viel Bass wie auf den Schlägen
   function roles(g) {
-    let le = 0, lo = 0, he = 0, ho = 0, l8 = 0, h8 = 0, k = 0;
+    let le = 0, lo = 0, he = 0, ho = 0, l8 = 0, h8 = 0, k = 0, m1 = 0, m8 = 0;
     for (let t = g.ph; t + g.p < nF - 1; t += g.p, k++) {
       const L = peakAt(OL, t, 1.5), H = peakAt(OH, t, 1.5);
       if (k % 2) { lo += L; ho += H; } else { le += L; he += H; }
       l8 += peakAt(OL, t + g.p / 2, 1.5); h8 += peakAt(OH, t + g.p / 2, 1.5);
+      m1 += peakAt(OM, t, 1.5); m8 += peakAt(OM, t + g.p / 2, 1.5);
     }
     if (le < lo) { [le, lo] = [lo, le]; [he, ho] = [ho, he]; }
-    return { aL: (le - lo) / (le + lo + 1e-9), aH: (he - ho) / (he + ho + 1e-9), L8: l8 / (le + lo + 1e-9), H8: h8 / (he + ho + 1e-9) };
+    return { aL: (le - lo) / (le + lo + 1e-9), aH: (he - ho) / (he + ho + 1e-9), L8: l8 / (le + lo + 1e-9), H8: h8 / (he + ho + 1e-9), M8: m8 / (m1 + 1e-9) };
   }
   // Backbeat-Probe mit fester Zählung: Kick/Bass auf der einen, Snare (Mitten/Höhen) auf der anderen Schlaggruppe
   function backbeat(g) {
@@ -168,13 +169,25 @@ function beatAnalyse(x, sr, opts) {
     } else if (chosen.bpm * 2 <= 220) {
       const g2 = fit(chosen.g.p / 2), r2 = roles(g2);
       // Bass auf den Achteln (Kick zwischen den Schlägen) oder Snare auf den Achteln bei leerem Doppel-Raster
-      // …aber nicht, wenn im jetzigen Tempo schon ein klarer Backbeat liegt (Snare auf 2 und 4, Kick synkopiert)
+      // …aber nicht, wenn im jetzigen Tempo schon ein klarer Backbeat liegt (Snare auf 2 und 4, Kick synkopiert),
+      // und nicht bei gleichmäßigen Achteln (Becken/Arpeggio) mit Snare/Rimshot auf den Schlägen (langsame Ballade)
       const bb0 = backbeat(chosen.g);
-      if (((r0.L8 > 1.4 && r0.H8 > 0.45) || (r0.H8 > 0.7 && r0.L8 > 0.8 && r2.H8 < 0.4)) && !(opts.keepBB !== false && bb0.ok && Math.abs(bb0.aM) > 0.2)) chosen = { bpm: 60 * fps / g2.p, g: g2, octave: 'verdoppelt' };
+      if (((r0.L8 > 1.4 && r0.H8 > 0.45) || (r0.H8 > 0.7 && r0.L8 > 0.8 && r2.H8 < 0.4 && (r0.M8 > 0.6 || r0.H8 > 1.2))) && !(opts.keepBB !== false && bb0.ok && Math.abs(bb0.aM) > 0.12)) chosen = { bpm: 60 * fps / g2.p, g: g2, octave: 'verdoppelt' };
       if (opts.debug) console.log('  Oktave', JSON.stringify({ r0, bb0 }, (k, v) => typeof v === 'number' ? +v.toFixed(2) : v), chosen.octave || '');
     }
   } else {                                      // vom Benutzer vorgegeben (½ / 2×)
     const g = fit(60 * fps / opts.forceBpm); chosen = { bpm: 60 * fps / g.p, g };
+  }
+  // Langsame Stücke ohne Backbeat (Arpeggio, Schlaggitarre, Rimshot-Balladen): die Achtel wirken wie Schläge und das Tempo
+  // landet doppelt so hoch. Halbieren, wenn im gewählten Tempo nichts Feineres als Achtel (im halben Tempo) liegt, die
+  // geraden Schläge betont sind und im halben Tempo deutliche, aber schwächere Achtel liegen – wie eine echte Unterteilung.
+  // Liegen im gewählten Tempo selbst kräftige Achtel (r8C), braucht es eine deutliche Betonung (Achtel-Arpeggio bei 116 bleibt 116).
+  if (!opts.forceBpm && !opts.hintStrong && opts.slowCheck !== false && chosen.octave !== 'verdoppelt' && !(opts.hintBpm && Math.abs(chosen.bpm / opts.hintBpm - 1) < 0.04) && chosen.bpm >= 108 && chosen.bpm / 2 >= 54) {
+    const mC = metric(chosen.g), gH = fit(chosen.g.p * 2), mH = metric(gH), bbC = backbeat(chosen.g);
+    const r8C = mC.off8 / Math.max(1e-6, mC.on), r16C = mC.off16 / Math.max(1e-6, mC.on), r8H = mH.off8 / Math.max(1e-6, mH.on), L8H = roles(gH).L8, aHC = roles(chosen.g).aH;
+    if (opts.debug) console.log('  Langsam-Prüfung', JSON.stringify({ r16C, r8H, alt: mC.alt, bb: bbC.ok, L8H, aHC, r8C }, (k, v) => typeof v === 'number' ? +v.toFixed(2) : v));
+    // aHC: Clap/Snare/Becken auf jedem zweiten Schlag (echter Backbeat im gewählten Tempo) spricht fürs schnelle Tempo
+    if (r16C < 0.18 && r8H >= 0.45 && r8H <= 0.88 && ((r8C < 0.5 && mC.alt >= 1.17) || mC.alt >= 1.4) && mC.alt <= 2.2 && Math.abs(aHC) < 0.15) chosen = { bpm: 60 * fps / gH.p, g: gH, m: mH, octave: 'langsam' };
   }
   const P = chosen.g.p;
 

@@ -541,6 +541,28 @@
     imp = null; $('ldImRes').innerHTML = ''; $('ldPaste').value = ''; selOrd = -1; render();
   });
 
+  // ================= Ganzer Song für Logic =================
+  $('ldExport').addEventListener('click', async () => {
+    const s = song(), v = ver(), b = $('ldExport'); if (!s || !v || !window.LiedExport) return;
+    if (!v.order.length) { status('Im Ablauf ist noch nichts – erst Teile einfügen.'); return; }
+    const secs = C.totals(v).secs; if (secs > 600) { status('Der Song ist länger als 10 Minuten – das wird für das iPad zu groß.'); return; }
+    if (P) stop();
+    b.disabled = true; status('Erstelle das Logic-Paket … (' + C.mmss(secs) + ')');
+    await new Promise(r => setTimeout(r, 30));
+    try {
+      const beats = C.totals(v).beats, useDrums = $('ldTD').checked && typeof Rhythm !== 'undefined' && Rhythm.midiEvents;
+      let pdf = null; try { pdf = LiedPdf.build(X.leadsheet(s, v)).bytes; } catch (e) {}
+      const r = await LiedExport.build(s, v, {
+        getRec: id => AppDB.get('meta', 'lied-audio:' + id), sr: (typeof audioCtx !== 'undefined' && audioCtx && audioCtx.sampleRate) || 48000,
+        drums: useDrums ? Rhythm.midiEvents(Math.ceil(beats / 4), LiedExport.PPQ) : null, drumsName: useDrums ? Rhythm.name() : '', pdf, voice: voiceLabel(s), blob: true
+      });
+      window.__lastExport = { name: r.name, size: r.size, files: r.files, audio: r.audio };
+      const mb = (r.size / 1048576).toFixed(1).replace('.', ',');
+      await shareFile(new File([r.data], r.name, { type: 'application/zip' }), 'Logic-Paket fertig: ' + (r.audio ? 'Aufnahmen als WAV, ' : 'ohne Aufnahmen, ') + 'MIDI mit Abschnitten, Akkorden, Bass' + (useDrums ? ', Drums' : '') + ' und Text, Leadsheet · ' + Math.round(v.bpm) + ' BPM · ' + mb + ' MB. Anleitung liegt bei (LIES MICH).');
+    } catch (e) { status('Export fehlgeschlagen: ' + (e && e.message || e)); }
+    b.disabled = false;
+  });
+
   let ui = null;
   document.addEventListener('tabchange', e => {
     clearInterval(ui); ui = null;

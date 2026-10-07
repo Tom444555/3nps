@@ -67,6 +67,17 @@ DRUMS = {
     'ballad': (16, {'kick': 'X.........x.....', 'rim': '....X.......X...', 'hhc': 'x.x.x.x.x.x.x.x.'}),
     'delta': (16, {'kick': 'X...X...X...X...', 'clap': '....X.......X...', 'shaker': 'x.x.x.x.x.x.x.x.'}),
     'pop16': (16, {'kick': 'X......xX.x.....', 'snare': '....X.......X...', 'hhc': 'XxxxXxxxXxxxXxxx'}),
+    # langsame Grooves mit dichten Becken (Oktav-Fallen: Sechzehntel klingen wie Achtel)
+    'hiphop': (16, {'kick': 'X.......x.X.....', 'snare': '....X.......X...', 'hhc': 'XgxgXgxgXgxgXgxg'}),
+    'rnb': (16, {'kick': 'X..x....x.....x.', 'snare': '....X.......X...', 'hhc': 'x.xxx.xxx.xxx.xx'}),
+    'ballad8': (16, {'kick': 'X.......x.......', 'snare': '....X.......X...', 'hhc': 'x.x.x.x.x.x.x.x.'}),
+    'ballad16': (16, {'kick': 'X.......x.x.....', 'snare': '....X.......X...', 'hhc': 'xgxgxgxgxgxgxgxg'}),
+    'tamb': (16, {'kick': 'X.......X.......', 'clap': '....X.......X...', 'shaker': 'xxxxxxxxxxxxxxxx'}),
+    'ride16': (16, {'kick': 'X.....x...x.....', 'snare': '....X.......X...', 'ride': 'XxxxXxxxXxxxXxxx'}),
+    'disco': (16, {'kick': 'X...X...X...X...', 'clap': '....X.......X...', 'hho': '..X...X...X...X.', 'hhc': 'x.x.x.x.x.x.x.x.'}),
+    'punk': (16, {'kick': 'X.X.X.X.X.X.X.X.', 'snare': '....X.......X...', 'hhc': 'X.X.X.X.X.X.X.X.'}),
+    'quarters': (16, {'kick': 'X.......X.......', 'snare': '....X.......X...', 'hhc': 'X...X...X...X...'}),
+    'softpop': (16, {'kick': 'X.........X.....', 'rim': '....X.......X...', 'hhc': 'xgxgxgxgxgxgxgxg', 'shaker': '..x...x...x...x.'}),
 }
 
 def song(name, bpm, bars, seed, feel='straight', drums='rock', guitar='strum8', prog='blues', bass=True, lead=0.5,
@@ -151,6 +162,19 @@ def song(name, bpm, bars, seed, feel='straight', drums='rock', guitar='strum8', 
             for k in range(12):
                 m = ch[[0, 2, 3, 4, 3, 2][k % 6]]
                 add(buf, pluck(m, 0.9, 0.45), at(b0, k, 12) + J(1.2), (0.17 if k % 3 == 0 else 0.11) * (1.2 if k == 0 else 1) * fade_g)
+        elif guitar == 'arp8':        # Klavier-/Gitarren-Arpeggio in Achteln
+            for k in range(8):
+                m = ch[[0, 2, 3, 4, 3, 2, 1, 2][k]]
+                add(buf, pluck(m, 0.9, 0.45), at(b0, k * 2, 16) + J(1.2), (0.17 if k % 2 == 0 else 0.13) * (1.2 if k == 0 else 1) * fade_g)
+        elif guitar == 'arp16':       # Fingerpicking in Sechzehnteln
+            for k in range(16):
+                m = ch[[0, 3, 2, 4][k % 4]] + (0 if k % 4 else 0)
+                add(buf, pluck(m, 0.7, 0.5), at(b0, k, 16) + J(1.2), (0.16 if k % 4 == 0 else 0.1) * fade_g)
+        elif guitar == 'strum16b':    # typischer Schlag „D DU UDU“ in Sechzehnteln
+            for k in (0, 4, 6, 10, 12, 14):
+                down = k % 4 == 0 or k == 6 and False
+                for i, m in enumerate(ch if k % 4 == 0 else ch[1:]):
+                    add(buf, pluck(m, 0.45, 0.6), at(b0, k, 16) + J(1.5) + i * (0.006 if k % 4 == 0 else -0.004), (0.11 if k % 4 == 0 else 0.075) * fade_g)
         elif guitar == 'slide':       # langsame Slide-Töne, kaum Anschläge
             for k in (0, 6):
                 add(buf, pluck(52 + root + (3 if k else 0), 1.6, 0.3), at(b0, k, 12 if sub == 3 else 16) + J(2), 0.15 * fade_g)
