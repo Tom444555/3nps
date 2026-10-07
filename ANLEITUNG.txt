@@ -150,6 +150,11 @@ Alles geht direkt auf dem iPad, ohne Computer.
    - „Verstärker“: Tolex, gebürstete Alu-Front, Lautsprecherbespannung, Röhren-Orange.
    - „Matrix“: schwarzer Bildschirm, grüner Zeichenregen, Schreibmaschinenschrift.
      Der Regen ist ein festes Bild und kostet keine Rechenleistung.
+   - „DJ-Pult“: schwarz eloxiertes Alu, weiße Beschriftung, hinterleuchtete Tasten in Cyan,
+     Pegel als LED-Kette, Schieberegler als Fader.
+   - „Hell“: helles, ruhiges Weiß mit Blau. Die Spuren bleiben dunkle Anzeigefenster.
+   - „Präzision“: hell wie ein Messgerät – kantig, Haarlinien, Eckmarken, Ziffern in
+     Festbreite, Pegel mit Skalenstrichen, Signal-Orange. Spuren als dunkle Anzeigefenster.
    - Die Wahl bleibt gespeichert. Klang und Funktionen sind in allen Optiken gleich.
    - Daneben der Knopf „Leistung ▾“: Rechenlast, Arbeitsspeicher und Latenz live (siehe Abschnitt 33).
 
@@ -411,3 +416,6 @@ Gut zu wissen
      „Eingang → Ohr“. Bluetooth-Kopfhörer erhöhen die Latenz stark (dann erscheint ein Hinweis).
      Was du beim Spielen direkt hörst, kommt über den Direkt-Ausgang des Interfaces ohne Verzögerung.
    - Gemessen wird nur, solange das Fenster offen ist.
+   - „Anheften“: Das Fenster bleibt offen (auch nach Neustart) und lässt sich an der Titelzeile
+     (⠿ Leistung) mit dem Finger frei verschieben – Ziehen heftet es automatisch an. Die Stelle
+     wird gespeichert. „Kompakt“ zeigt nur die fünf wichtigsten Werte. ✕ schließt und löst das Anheften.
