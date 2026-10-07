@@ -266,7 +266,7 @@ const Looper = (() => {
       savePref('3nps-latency', latEl.value);
     }
     latVal.textContent = latEl.value + ' ms';
-    micReady = true;
+    micReady = true; perfIn.next = -1; perfIn.n = 0;
     try { const st = stream.getAudioTracks()[0].getSettings(); inChans = st.channelCount || 0; } catch (e) { inChans = 0; }
     showInChans();
     $('panel-looper').classList.add('mic-on');
@@ -339,7 +339,11 @@ const Looper = (() => {
     el.title = micReady && !stereoSeen && inChans < 2 ? 'Safari und Web-Apps bekommen auf dem iPad nur einen Eingangskanal. Für echte Stereo-Aufnahmen in einer anderen App aufnehmen und die Datei hier laden.' : '';
     const box = $('loopMeterBox'); if (box) box.classList.toggle('st', micReady && stereoSeen);
   }
+  // Leistungsanzeige: Lücken im Eingangsstrom und wie spät die Blöcke ankommen (nur Zählen, keine Arbeit)
+  const perfIn = { next: -1, gaps: 0, lagMs: 0, lagMax: 0, n: 0 };
   function handleChunk(startFrame, data) {
+    { const len = data.l.length; if (perfIn.next >= 0 && perfIn.n > 25 && startFrame - perfIn.next > 128) perfIn.gaps++; perfIn.next = startFrame + len;
+      if (audioCtx) { const lag = (audioCtx.currentTime * sr - perfIn.next) / sr * 1000; perfIn.lagMs = perfIn.lagMs * 0.9 + lag * 0.1; if (lag > perfIn.lagMax) perfIn.lagMax = lag; perfIn.n++; } }
     let pk = 0, pkR = 0; const L = data.l, R = data.r;
     for (let i = 0; i < L.length; i++) { const a = L[i] < 0 ? -L[i] : L[i]; if (a > pk) pk = a; }
     const pkL = pk;
@@ -2507,7 +2511,10 @@ const Looper = (() => {
     exportLogic: () => exportLogic(),
     _micDrop: () => { if (stream) stream.getAudioTracks()[0].dispatchEvent(new Event('ended')); },
     themeChanged: () => readNeon(), _zip: files => makeZip(files),
-    _mem: () => memState(), autosaveNow: () => doAutosave(), autosaveOn: v => { autoReady = v !== false; },
+    _mem: () => memState(),
+    perf: () => { let inLat = null, inSr = null; try { const st = stream && stream.getAudioTracks()[0].getSettings(); if (st) { inLat = typeof st.latency === 'number' ? st.latency : null; inSr = st.sampleRate || null; } } catch (e) {}
+      const m = memState(); const r = { mic: micReady, sr, inLat, inSr, inChans, comp: parseInt(latEl.value || '0'), curMB: m.curMB, histMB: m.histMB, histMax: HIST_MB, gaps: perfIn.gaps, lagMs: perfIn.lagMs, lagMax: perfIn.lagMax };
+      perfIn.lagMax = 0; return r; }, autosaveNow: () => doAutosave(), autosaveOn: v => { autoReady = v !== false; },
     _stereo: i => { const t = tracks[i]; if (!t || !t.mix) return null; const x = t.mix; let a = 0, b = 0, ab = 0; for (let k = 0; k < x.length; k += 4) { a += x.l[k] * x.l[k]; b += x.r[k] * x.r[k]; ab += x.l[k] * x.r[k]; } const n = Math.ceil(x.length / 4); return { L: t.L, shared: x.r === x.l, rmsL: Math.sqrt(a / n), rmsR: Math.sqrt(b / n), corr: ab / Math.sqrt(a * b + 1e-20), layers: t.layers.map(ly => ly.r === ly.l ? 1 : 2), inInfo: ($('inChanInfo') || {}).textContent, stereoSeen, inChans }; },
     debug: () => ({ mic: micReady, sr, baseL, anchor, now: nowFrame(), countEnd, bpm: bpm(), drums: Object.assign({}, Rhythm.debug(), { on: Rhythm.on() }), level, drone: droneOn, tracks: tracks.map(t => ({ L: t.L, state: t.state, origPos: t.origPos, layers: t.layers.length, orig: t.orig ? { bars: t.orig.bars, downs: t.orig.downs.slice(0, 64), loopFile: t.orig.loopFile, bpm: t.orig.bpm } : null, key: t.key ? Analyzer.label(t.key) : null })) }),
     undo: i => undoTrack(tracks[i]),

@@ -1,0 +1,81 @@
+
+  /* ===== Optik „Matrix“: schwarzer Bildschirm, Phosphorgrün, Zeichenregen (festes Bild), Monospace, feine Bildschirmzeilen ===== */
+  :root[data-theme="matrix"] {
+    --bg: #000400; --surface: #020a03; --surface-2: #041206; --raised: #08200c;
+    --ink: #b8ffc8; --muted: #3fae5a; --line: #0f4a1c; --line-soft: #0a2e12;
+    --accent: #00ff41; --accent-ink: #001a06; --active-color: #00ff41;
+    --t1: #d7ffe0; --t2: #00ff41; --t3: #7dffa0;
+    --neon-rec: #ff2a2a; --neon-dub: #e6ff3a; --neon-bar1: #d7ffe0;
+    --lcd-bg: #000300; --lcd-ink: #00ff41; --lcd-dim: #1d6b31;
+    --board: #021006; --board-edge: #000500; --fretwire: #2bd25a;
+    --string: #7dffa0; --scale-color: #b8ffc8; --root-color: #ff3b3b;
+    --f-display: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    background: #000400 url("bg-matrix.jpg") repeat; background-size: 1024px 1024px;
+  }
+  :root[data-theme="matrix"] body { font-family: var(--f-mono); }
+  /* Bildschirmzeilen + dunkle Ränder (statisch, keine Animation) */
+  :root[data-theme="matrix"] body::before {
+    display: block;
+    background:
+      repeating-linear-gradient(180deg, rgba(0,0,0,.28) 0px, rgba(0,0,0,.28) 1px, transparent 1px, transparent 3px),
+      radial-gradient(ellipse 140% 110% at 50% 40%, transparent 35%, rgba(0,0,0,.7) 85%, rgba(0,0,0,.92) 100%);
+  }
+
+  :root[data-theme="matrix"] h2, :root[data-theme="matrix"] .brand, :root[data-theme="matrix"] .tab {
+    font-family: var(--f-mono); -webkit-text-fill-color: currentColor; background: none; filter: none;
+  }
+  :root[data-theme="matrix"] .brand { font-weight: 700; font-size: 1.15rem; letter-spacing: .12em; text-transform: uppercase; color: #00ff41; text-shadow: 0 0 8px rgba(0,255,65,.6); }
+  :root[data-theme="matrix"] .brand span { font: 600 .64rem var(--f-mono); letter-spacing: .1em; text-transform: uppercase; color: #3fae5a; -webkit-text-fill-color: #3fae5a; text-shadow: none; }
+  :root[data-theme="matrix"] .brand::before { display: none; }
+  :root[data-theme="matrix"] h2 { font-weight: 700; font-size: .78rem; letter-spacing: .14em; text-transform: uppercase; color: #00ff41; text-shadow: 0 0 6px rgba(0,255,65,.45); }
+  :root[data-theme="matrix"] h2::before { content: "> "; color: #3fae5a; }
+  :root[data-theme="matrix"] .tab { font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: #3fae5a; text-shadow: none; }
+  :root[data-theme="matrix"] .tab[aria-selected="true"] { background: #00ff41; color: #001a06; box-shadow: 0 0 14px rgba(0,255,65,.45); text-shadow: none; }
+  :root[data-theme="matrix"] .tabs { background: rgba(0,8,2,.92); border: 1px solid #0f4a1c; box-shadow: none; margin-top: 12px; }
+
+  :root[data-theme="matrix"] .control-bar { background: rgba(0,6,2,.94); border-bottom: 1px solid #00ff41; box-shadow: 0 0 18px rgba(0,255,65,.18); }
+  :root[data-theme="matrix"] .control-bar::after { display: none; }
+  :root[data-theme="matrix"] .cb-inner { padding-bottom: 10px; padding-inline: 16px; }
+  :root[data-theme="matrix"] .lcd { background: #000300; border: 1px solid #0f4a1c; box-shadow: inset 0 0 18px rgba(0,255,65,.08); }
+  :root[data-theme="matrix"] .lcd .v { text-shadow: 0 0 8px rgba(0,255,65,.7); }
+
+  /* Fenster: fast deckendes Schwarz über dem Regen, damit alles lesbar bleibt */
+  :root[data-theme="matrix"] .card, :root[data-theme="matrix"] .stat-card {
+    background: rgba(1,8,3,.94); border: 1px solid #0f4a1c; border-radius: 4px;
+    box-shadow: 0 0 0 1px rgba(0,255,65,.05) inset, 0 0 24px rgba(0,0,0,.8);
+  }
+  :root[data-theme="matrix"] .card::after { display: none; }
+  :root[data-theme="matrix"] .track, :root[data-theme="matrix"] .editor, :root[data-theme="matrix"] .lane {
+    background: #000300; border: 1px solid #0a2e12; border-radius: 3px; box-shadow: inset 0 0 16px rgba(0,255,65,.04);
+  }
+  :root[data-theme="matrix"] .track-head { border-bottom-color: #0a2e12; }
+  :root[data-theme="matrix"] .wave, :root[data-theme="matrix"] .ed-wave-wrap canvas { box-shadow: none; }
+  :root[data-theme="matrix"] .track.rec-live { border-color: #ff2a2a !important; box-shadow: 0 0 0 1px #ff2a2a, 0 0 18px rgba(255,42,42,.35) !important; }
+  :root[data-theme="matrix"] .ed-group { background: #010a03; border-color: #0a2e12; box-shadow: none; }
+  :root[data-theme="matrix"] .dg-cell { background: #010a03; }
+  :root[data-theme="matrix"] .fretboard { box-shadow: 0 0 0 1px #0f4a1c; }
+
+  :root[data-theme="matrix"] .toggle-btn, :root[data-theme="matrix"] .mini button, :root[data-theme="matrix"] .file-mini, :root[data-theme="matrix"] .tbtn {
+    background: #010a03; border: 1px solid #136b28; color: #7dffa0; box-shadow: none; text-shadow: none; font-family: var(--f-mono);
+  }
+  :root[data-theme="matrix"] .toggle-btn.active { background: #00ff41; color: #001a06; border-color: #00ff41; box-shadow: 0 0 12px rgba(0,255,65,.5); text-shadow: none; }
+  :root[data-theme="matrix"] #playBtn.playing { background: #00ff41; color: #001a06; }
+  :root[data-theme="matrix"] .foot { background: #021006; border: 1px solid #136b28; box-shadow: 0 0 10px rgba(0,255,65,.12); }
+  :root[data-theme="matrix"] .foot:active { background: #04200b; box-shadow: none; }
+  :root[data-theme="matrix"] .export-btn { background: #00ff41 !important; border-color: #00ff41 !important; color: #001a06 !important; box-shadow: none !important; }
+  :root[data-theme="matrix"] select, :root[data-theme="matrix"] .text-in { background-color: #000300; border: 1px solid #136b28; color: #b8ffc8; box-shadow: none; font-family: var(--f-mono); }
+  :root[data-theme="matrix"] .status-line { border-top-color: #0a2e12; }
+
+  :root[data-theme="matrix"] #loopMeter, :root[data-theme="matrix"] .meter.st #loopMeterR {
+    background-image: linear-gradient(90deg, #0a5a1e 0%, #00ff41 60%, #e6ff3a 84%, #ff2a2a 100%); box-shadow: 0 0 8px rgba(0,255,65,.5);
+  }
+  :root[data-theme="matrix"] .track { --tcd: #1d6b31; --tcg: rgba(0,255,65,.4); }
+  :root[data-theme="matrix"] .track.t2 { --tcd: #0f8a34; --tcg: rgba(0,255,65,.55); }
+  :root[data-theme="matrix"] .track.t3 { --tcd: #3a9a5c; --tcg: rgba(125,255,160,.45); }
+  :root[data-theme="matrix"] .chan-info { color: #7dffa0; }
+
+  :root[data-theme="matrix"] .optik-btn { background: #000300; border-color: #136b28; color: #00ff41; font-family: var(--f-mono); border-radius: 3px; }
+  :root[data-theme="matrix"] .optik-pop { background: rgba(0,6,2,.97); border-color: #136b28; box-shadow: 0 0 24px rgba(0,255,65,.15); }
+  :root[data-theme="matrix"] .perf-pop, :root[data-theme="matrix"] .pf-row b { font-family: var(--f-mono); color: #7dffa0; }
+  :root[data-theme="matrix"] .pf-bar i:not(.warn):not(.hot) { background: #00ff41; }
+  @media (max-width: 520px) { :root[data-theme="matrix"] .brand { font-size: 1rem; } }

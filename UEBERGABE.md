@@ -1,6 +1,6 @@
 # 3nps Looper – Übergabe (vollständiger Stand)
 
-Stand: **7. Oktober 2026 · Version v33** – live unter https://tom444555.github.io/3nps/ ·
+Stand: **7. Oktober 2026 · Version v34** – live unter https://tom444555.github.io/3nps/ ·
 stabile Rückfall-Fassung **v24** unter https://tom444555.github.io/3nps/stabil/
 
 Diese Datei ist das Gedächtnis des Projekts. Alles, was ein neuer Chat wissen muss, steht hier –
@@ -69,8 +69,11 @@ Reihenfolge der Reiter (intern `id`): **Looper** (`looper`) · **Quintenzirkel**
 **Backing Track** (`jam`) · **Songwriting** (`lied`) · **Training** (`ueben`) · **Technik** (`griffbrett`).
 IDs `tab-…`/`panel-…`. Begleitung (Drone, Drums, Bass), alter Song-Player und Übungslog sind Karten im Reiter Technik.
 
-- **App-Optik** (v33): kleiner Knopf „App-Optik ▾“ im Kopf unter dem Schriftzug (`#optikBtn`), klappt `#optikPop` mit der Auswahl
-  `#appTheme` auf; schließt nach der Wahl, bei Klick daneben und mit Esc. Tests klappen vor `select_option` auf.
+- **Kopf-Knöpfe** unter dem Schriftzug: „App-Optik ▾“ (`#optikBtn` → `#optikPop` mit `#appTheme`) und „Leistung ▾“ (`#perfBtn` → `#perfPop`).
+  Schließen nach der Wahl, bei Klick daneben, mit Esc und gegenseitig (Ereignis `hdrpop`). Tests klappen vor `select_option` auf.
+- **Leistung** (v34, `perf.js`): Rechenlast Bedienung (Verspätung eines 25-ms-Taktgebers), Bildrate, Audio (`renderCapacity` wo vorhanden,
+  sonst Rückstand der Eingangsblöcke), Aussetzer (Lücken im Eingangsstrom), Speicher (`Looper.perf()`: Spuren, Rückgängig/160 MB,
+  JS-Heap nur in Chrome), Latenz (Track-`latency`, `baseLatency`, `outputLatency`, Summe, eingestellter Ausgleich). Misst nur bei offenem Fenster.
   „Alles sichern“/„Sicherung laden“ stehen weiter unten im Looper in der Karte „App · Sicherung“.
 - **Looper:** 3 Stereo-Spuren, Aufnahme/Overdub per Fußtaster, Rückgängig, Editor (Auswahl, Takt-Eins verschieben, ½/2× Tempo),
   Datei laden (Loop- oder Song-Erkennung mit Takt/Tempo), Drums/Drone, EQ, Sitzungen, Autosicherung, „Für Logic exportieren“
@@ -88,7 +91,8 @@ IDs `tab-…`/`panel-…`. Begleitung (Drone, Drums, Bass), alter Song-Player un
   zurück, Vorschau der Änderungen, als Version oder neuer Song), **Für Logic exportieren** (ganzer Song).
 - **Training:** Tagesübung, Gehörbildung, Licks (+ eigene), Solo-Auswertung.
 - **Technik:** Griffbrett/3nps-Skalen, Begleitung, Übungslog.
-- Optiken: nordic, metal, amp, ice. „Alles sichern“ sichert localStorage `3nps-*` und IndexedDB (sessions, ideas, meta).
+- Optiken (v34, Reihenfolge der Auswahl): **Klar** `clean` (flach, Graphit, Systemschrift), **Kühl** `ice`, **Nordisch** `nordic`, **Metal** `metal`,
+  **Verstärker** `amp`, **Matrix** `matrix` (Zeichenregen als festes Bild `bg-matrix.jpg`, Monospace, Bildschirmzeilen). „Alles sichern“ sichert localStorage `3nps-*` und IndexedDB (sessions, ideas, meta).
 
 ## 6. Quellcode
 
@@ -102,6 +106,8 @@ IDs `tab-…`/`panel-…`. Begleitung (Drone, Drums, Bass), alter Song-Player un
 | `app/chords.js`, `analysis.js` | Akkorderkennung je Schlag; Analyse-Worker (Funktionen werden als Text in den Worker kopiert), Tonart |
 | `app/rhythm.js`, `kit.js`, `bass.js`, `drones.js`, `eq.js` | Taktgeber/Drums (+ `midiEvents`), Kit-Synthese, Bass, Drones, 7-Band-EQ |
 | `app/appcfg.js` | Optik (inkl. Auf-/Zuklappen des Kopf-Knopfs), Sicherung/Wiederherstellung |
+| `app/perf.js` | Leistungsanzeige im Kopf (wird in `build.py` an `appcfg.js` gehängt) |
+| `app/theme-*.css` | Optiken metal, amp, ice, clean, matrix (Nordisch = Grundstil `metal.css`) |
 | `app/circle.*` | Quintenzirkel |
 | `app/solo.*`, `voicings.js`, `pitch.js` | Improvisation, Akkordgriffe, Tonhöhe (YIN) |
 | `app/passt.js`, `passt.css` | „Was passt“-Box |
@@ -114,13 +120,16 @@ IDs `tab-…`/`panel-…`. Begleitung (Drone, Drums, Bass), alter Song-Player un
 | `app/lied.js`, `lied.html`, `lied.css` | Reiter Songwriting, „→ Song“-Dialog, Song-Player |
 | `app/build.py` | baut alles zu `app/www/index.html` |
 | `app/www/` | `sw.js`, `ANLEITUNG.txt` (Abschnitte 1–32), Bilder/Icons, Manifest |
-| `app/tex/*.py` | erzeugen Texturen/Icons der Optiken |
+| `app/tex/*.py` | erzeugen Texturen/Icons der Optiken (`matrix.py` → `www/bg-matrix.jpg`, neue Bilder auch in `sw.js` eintragen) |
 | `test/` | Tests, Generatoren, Auswertungen (Abschnitt 8) |
 
 ## 7. Technische Eckpunkte und Regeln
 
 - **Kompatibilität mit der stabilen v24 (wichtig):** beide teilen localStorage und IndexedDB. Speicherformate nur erweitern,
   nie ändern; **keine neue DB-Version / kein neuer Store**. `sw.js` löscht nur eigene `3nps-…`-Caches, `/stabil/` bleibt unberührt.
+- **Optik-Speicher:** `3nps-theme` enthält nur, was die v24 kennt (nordic/metal/amp/ice; für clean/matrix steht dort „nordic“),
+  die echte Wahl in `3nps-theme2`. Diese gilt nur, solange `3nps-theme` dazu passt – stellt man in der v24 um, gilt deren Wahl.
+  Gleiche Logik im Frühstart-Skript `EARLY` in `build.py`.
 - **Sicherheit/Recht:** CSP ohne fremde Quellen (Test `csptest.py`), keine Server, keine Datenerhebung, Schriften OFL eingebettet,
   keine fremden Samples/Logos.
 - **Audio:** gemeinsamer Taktgeber `Rhythm` (`addListener(fn, first)`, `setJam`), Bass folgt Akkorden über `window.bassChordAt`
@@ -151,10 +160,10 @@ IDs `tab-…`/`panel-…`. Begleitung (Drone, Drums, Bass), alter Song-Player un
 - **Anzeige:** `playFrame()` = hörbare Position; „Was passt“-Box mit fester Höhe (iPad 168 px, schmal 240 px, iPhone 236 px) –
   nichts darf beim Mitlaufen springen.
 
-## 8. Tests und erwartete Ergebnisse (v33)
+## 8. Tests und erwartete Ergebnisse (v34)
 
 Browser (Playwright, Testserver 8765, **nacheinander**):
-`v31export.py` 14/14 (prüft Versionsmarke – bei jeder Version anpassen) · `v30text.py` 27/27 · `v28lied.py` 34/34 · `v28sync.py` 6/6 · `v27passt.py` 17/17 · `passthoehe.py` 8/8 ·
+`v34perf.py` 12/12 · `v34optik.py` 16/16 (Pages-Nachbau Port 8790, prüft Wechsel mit v24) · `v31export.py` 14/14 (prüft Versionsmarke – bei jeder Version anpassen) · `v30text.py` 27/27 (Versionsprüfung seit v34 „ab v30“ numerisch) · `v28lied.py` 34/34 · `v28sync.py` 6/6 · `v27passt.py` 17/17 · `passthoehe.py` 8/8 ·
 `v25grips.py` 10/10 · `v25jam.py` 21/21 · `v25listen.py` 9/9 · `v25ueben.py` 28/28 · `v25stress.py` 6/6 · `tempotest.py` 3/3 ·
 `v24solo.py` 22/22 · `v22key.py` 7/7 · `v21test.py` 8/8 · `v21tabs.py` 18/18 · `v20test.py` 14/14 · `suite.py` 81/81 · `stereotest.py` 16/16 ·
 `eqtest.py` 9/9 · `restoretest.py` 7/7 · `backuptest.py` 7/7 · `csptest.py` (keine fremden Anfragen) · `rec_fit.py 1` 10/10 ·
@@ -169,7 +178,8 @@ Node:
 
 Vergleich mit der stabilen v24 / Vorversion (Pages-Nachbau: `ln -s /home/claude/3nps-main /tmp/claude-0/pages/3nps`, Server Port 8790):
 `vergleich.py URL gemeinsam|voll SEKUNDEN SEED` (Zufallsszenario, JSON mit Fehlern, Speicher, Bildzeiten, späten Drum-Schlägen) ·
-`aktionen.py URL` (Stocken je Bedienschritt) · `idle.py URL [zu]`. v31 = v29/v30: keine Fehler, kein Mehrspeicher, 0 späte Schläge.
+`aktionen.py URL` (Stocken je Bedienschritt) · `idle.py URL [zu]`. v34 = v24 (gemeinsam, 60 s, Seed 7): keine Fehler, Heap max 27,5 vs 26,4 MB, 0 späte Schläge.
+Pages-Nachbau mit neuer Fassung: `/home/claude/3nps-main` nach `/tmp/claude-0/pages/3nps` kopieren, `app/www/.` darüber, Server Port 8790.
 
 Testaudio-Generatoren (alle deterministisch, von `wiederherstellen.sh` aufgerufen): `gen_corpus.py` (corpus, valid), `gen_hard.py`,
 `gen_long.py`, `gen_chords.py`, `gen_align.py`, `gen_keys.py`, `gen_v25.py`, `gen_octave.py`, `gen_octave2.py`,
@@ -189,6 +199,7 @@ Testaudio-Generatoren (alle deterministisch, von `wiederherstellen.sh` aufgerufe
 | v31 | Schritt 5: ganzer Song für Logic (WAV, MIDI mit Abschnitten/Akkorden/Bass/Drums/Text); langsame Dateien nicht mehr doppelt |
 | v32 | Optik-Auswahl als eigenes Fenster oben im Looper (vom Nutzer verworfen: zu viel Platz) |
 | v33 | Optik als kleiner aufklappbarer Knopf „App-Optik ▾“ im Kopf unter dem Schriftzug |
+| v34 | Leistungsanzeige (Rechenlast, Speicher, Latenz), Optiken umbenannt + neu „Klar“ und „Matrix“, Pedal-Fenster für alle Bluetooth-Pedale. Vergleich mit v24: gleichwertig |
 
 ## 10. Bekannte Grenzen
 

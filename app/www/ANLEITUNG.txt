@@ -143,14 +143,15 @@ Alles geht direkt auf dem iPad, ohne Computer.
    - Mono-Dateien und Mono-Aufnahmen werden nur einmal gespeichert (spart Speicher).
 
 13. Optik (Knopf „App-Optik ▾“ oben links unter dem Schriftzug „Looper“ – antippen, Optik wählen)
-   - „Nordisch“: Eis, Rost und Runen (bisherige Optik).
+   - „Klar“: extrem schlicht – flaches Graphit, feine Linien, keine Texturen, kein Leuchten.
+   - „Kühl“: raues Gletschereis mit Rissen und Raureif, Eiszapfen unter der Leiste, kaltes Licht.
+   - „Nordisch“: Eis, Rost und Runen (die ursprüngliche Optik).
    - „Metal“: schwarzer Stahl, Riffelblech, Pyramiden-Nieten, Chrom und Blutrot.
-     Spurfarben Chrom, Glut und Messing; die Anzeige oben leuchtet rot wie ein Verstärker.
-   - „Verstärker“: Tolex, gebürstete Alu-Frontplatte mit Schrauben, Spuren wie Lautsprecher-
-     bespannung, rote Kontrolllampe, Pegel als LED-Kette grün → gelb → rot, Anzeige in Röhren-Orange.
-   - „Eiswand“: raues, geschichtetes Gletschereis mit Rissen und Raureif, Eiszapfen unter der
-     Leiste, vereiste Niete, kaltes Licht.
+   - „Verstärker“: Tolex, gebürstete Alu-Front, Lautsprecherbespannung, Röhren-Orange.
+   - „Matrix“: schwarzer Bildschirm, grüner Zeichenregen, Schreibmaschinenschrift.
+     Der Regen ist ein festes Bild und kostet keine Rechenleistung.
    - Die Wahl bleibt gespeichert. Klang und Funktionen sind in allen Optiken gleich.
+   - Daneben der Knopf „Leistung ▾“: Rechenlast, Arbeitsspeicher und Latenz live (siehe Abschnitt 33).
 
 14. Alles sichern und neues App-Symbol „Looper“
    - „Alles sichern“ packt Ideen, eigene Drum-Muster, das Übungslog und alle Einstellungen
@@ -399,3 +400,14 @@ Gut zu wissen
      denn beim Löschen der App gehen die Daten verloren.
    - Update einspielen: geänderte Dateien auf GitHub hochladen (ersetzen die alten; im Zweifel alle),
      in sw.js die Zeile CACHE = '3nps-v1' auf v2 erhöhen, App zweimal neu öffnen.
+
+33. Leistung (Knopf „Leistung ▾“ oben links neben „App-Optik“)
+   - Rechenlast: „Bedienung“ zeigt, wie stark die App gerade beschäftigt ist (geschätzt),
+     „Bildrate“ wie flüssig die Anzeige läuft (60 ist ideal). „Audio“ zeigt bei offenem Eingang,
+     wie schnell die Aufnahme verarbeitet wird. „Aussetzer“ zählt Lücken im Eingang – sollte 0 bleiben.
+   - Arbeitsspeicher: Audio der Spuren, Rückgängig-Speicher (höchstens 160 MB) und – wo der
+     Browser es meldet – das Programm selbst. Safari auf dem iPad meldet den Gesamtspeicher nicht.
+   - Latenz: Eingang, Audio-Puffer und Ausgang, wie das iPad sie meldet, und die Summe
+     „Eingang → Ohr“. Bluetooth-Kopfhörer erhöhen die Latenz stark (dann erscheint ein Hinweis).
+     Was du beim Spielen direkt hörst, kommt über den Direkt-Ausgang des Interfaces ohne Verzögerung.
+   - Gemessen wird nur, solange das Fenster offen ist.

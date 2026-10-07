@@ -2,24 +2,34 @@
 const AppCfg = (() => {
   const $ = id => document.getElementById(id);
   const root = document.documentElement;
-  const THEME_BG = { nordic: '#1b1b1d', metal: '#0a0a0b', amp: '#0b0b0b', ice: '#06121c' };
+  const THEME_BG = { nordic: '#1b1b1d', metal: '#0a0a0b', amp: '#0b0b0b', ice: '#06121c', clean: '#0f1012', matrix: '#000400' };
   const themeSel = $('appTheme');
+  const V24 = { nordic: 1, metal: 1, amp: 1, ice: 1 };
+  // Gilt 3nps-theme2 nur, solange 3nps-theme dazu passt (sonst wurde in der v24 umgestellt → die gilt)
+  function readTheme() {
+    const t1 = localStorage.getItem('3nps-theme') || 'nordic', t2 = localStorage.getItem('3nps-theme2');
+    if (t2 && THEME_BG[t2] && (V24[t2] ? t2 : 'nordic') === t1) return t2;
+    return t1;
+  }
 
   function applyTheme(v) {
     if (!THEME_BG[v]) v = 'nordic';
     if (v !== 'nordic') root.dataset.theme = v; else delete root.dataset.theme;
     const m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', THEME_BG[v]);
-    try { localStorage.setItem('3nps-theme', v); } catch (e) {}
+    // v24 (/stabil/) kennt nur nordic/metal/amp/ice: dort steht für neue Optiken „nordic“, die echte Wahl in 3nps-theme2
+    try { localStorage.setItem('3nps-theme', V24[v] ? v : 'nordic'); localStorage.setItem('3nps-theme2', v); } catch (e) {}
     if (themeSel && themeSel.value !== v) themeSel.value = v;
     try { if (typeof Looper !== 'undefined' && Looper.themeChanged) Looper.themeChanged(); } catch (e) {}
     document.dispatchEvent(new CustomEvent('themechange', { detail: v }));
   }
   let cur = 'nordic';
-  try { cur = localStorage.getItem('3nps-theme') || 'nordic'; } catch (e) {}
+  try { cur = readTheme(); } catch (e) {}
   if (themeSel) { themeSel.value = THEME_BG[cur] ? cur : 'nordic'; themeSel.addEventListener('change', () => applyTheme(themeSel.value)); }
   applyTheme(cur);
   const oBtn = $('optikBtn'), oPop = $('optikPop');
-  function optikOpen(on) { if (!oBtn || !oPop) return; oPop.hidden = !on; oBtn.setAttribute('aria-expanded', on ? 'true' : 'false'); }
+  function optikOpen(on) { if (!oBtn || !oPop) return; oPop.hidden = !on; oBtn.setAttribute('aria-expanded', on ? 'true' : 'false');
+    if (on) document.dispatchEvent(new CustomEvent('hdrpop', { detail: 'optik' })); }
+  document.addEventListener('hdrpop', e => { if (e.detail !== 'optik') optikOpen(false); });
   if (oBtn && oPop) {
     oBtn.addEventListener('click', e => { e.stopPropagation(); optikOpen(oPop.hidden); });
     oPop.addEventListener('click', e => e.stopPropagation());

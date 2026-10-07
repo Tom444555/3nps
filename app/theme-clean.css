@@ -1,0 +1,73 @@
+
+  /* ===== Optik „Klar“: extrem schlicht – flaches Graphit, Haarlinien, Systemschrift, keine Texturen, kein Leuchten ===== */
+  :root[data-theme="clean"] {
+    --bg: #0f1012; --surface: #17181b; --surface-2: #1e1f23; --raised: #26282c;
+    --ink: #f2f3f5; --muted: #8b8f97; --line: #2c2e33; --line-soft: #212327;
+    --accent: #ffffff; --accent-ink: #0f1012; --active-color: #ffffff;
+    --t1: #f2f3f5; --t2: #4fa3ff; --t3: #b58cff;
+    --neon-rec: #ff453a; --neon-dub: #ffd60a; --neon-bar1: #ffffff;
+    --lcd-bg: #0b0c0e; --lcd-ink: #f2f3f5; --lcd-dim: #5f646c;
+    --board: #1c1d21; --board-edge: #111214; --fretwire: #9aa0a8;
+    background: #0f1012;
+  }
+  :root[data-theme="clean"] body::before { display: none; }
+
+  /* Schrift: überall die Systemschrift, ruhig und klein gesetzt */
+  :root[data-theme="clean"] h2, :root[data-theme="clean"] .brand {
+    font-family: var(--f-display); text-shadow: none; filter: none; -webkit-text-fill-color: currentColor; background: none;
+  }
+  :root[data-theme="clean"] .brand { font-weight: 600; font-size: 1.1rem; letter-spacing: -0.01em; color: #f2f3f5; }
+  :root[data-theme="clean"] .brand span { font: 500 .66rem var(--f-body); letter-spacing: .02em; text-transform: none; color: #8b8f97; -webkit-text-fill-color: #8b8f97; }
+  :root[data-theme="clean"] .brand::before { display: none; }
+  :root[data-theme="clean"] h2 { font-weight: 600; font-size: .8rem; letter-spacing: .01em; text-transform: none; color: #c9ccd2; }
+  :root[data-theme="clean"] .tab { font-family: var(--f-body); font-weight: 500; text-transform: none; letter-spacing: 0; color: #8b8f97; text-shadow: none; }
+  :root[data-theme="clean"] .tab[aria-selected="true"] { background: #f2f3f5; color: #0f1012; box-shadow: none; text-shadow: none; }
+  :root[data-theme="clean"] .tabs { background: #17181b; border: 1px solid #2c2e33; box-shadow: none; margin-top: 12px; }
+
+  /* Kopf: flach, eine Haarlinie unten, keine Runen/Zapfen */
+  :root[data-theme="clean"] .control-bar { background: #0f1012; border-bottom: 1px solid #2c2e33; box-shadow: none; }
+  :root[data-theme="clean"] .control-bar::after { display: none; }
+  :root[data-theme="clean"] .cb-inner { padding-bottom: 10px; padding-inline: 16px; }
+  :root[data-theme="clean"] .lcd { background: #0b0c0e; border: 1px solid #2c2e33; box-shadow: none; }
+  :root[data-theme="clean"] .lcd .v { text-shadow: none; }
+
+  /* Fenster: flache Flächen, eine Linie, keine Schatten, keine Beschläge */
+  :root[data-theme="clean"] .card, :root[data-theme="clean"] .stat-card {
+    background: #17181b; border: 1px solid #2c2e33; border-radius: 12px; box-shadow: none;
+  }
+  :root[data-theme="clean"] .card::after { display: none; }
+  :root[data-theme="clean"] .track, :root[data-theme="clean"] .editor, :root[data-theme="clean"] .lane {
+    background: #111215; border: 1px solid #26282c; border-radius: 10px; box-shadow: none;
+  }
+  :root[data-theme="clean"] .track-head { border-bottom-color: #26282c; }
+  :root[data-theme="clean"] .wave, :root[data-theme="clean"] .ed-wave-wrap canvas { box-shadow: none; }
+  :root[data-theme="clean"] .track.rec-live { border-color: #ff453a !important; box-shadow: 0 0 0 1px #ff453a !important; }
+  :root[data-theme="clean"] .ed-group { background: #141518; border-color: #26282c; box-shadow: none; }
+  :root[data-theme="clean"] .dg-cell { background: #141518; }
+  :root[data-theme="clean"] .fretboard { box-shadow: none; }
+
+  /* Taster: flach, aktiv = weiß */
+  :root[data-theme="clean"] .toggle-btn, :root[data-theme="clean"] .mini button, :root[data-theme="clean"] .file-mini, :root[data-theme="clean"] .tbtn {
+    background: #1e1f23; border: 1px solid #2c2e33; color: #f2f3f5; box-shadow: none; text-shadow: none;
+  }
+  :root[data-theme="clean"] .toggle-btn.active { background: #f2f3f5; color: #0f1012; border-color: #f2f3f5; box-shadow: none; text-shadow: none; }
+  :root[data-theme="clean"] #playBtn.playing { background: #f2f3f5; color: #0f1012; }
+  :root[data-theme="clean"] .foot { background: #1e1f23; border: 1px solid #34363c; box-shadow: none; }
+  :root[data-theme="clean"] .foot:active { box-shadow: none; background: #26282c; }
+  :root[data-theme="clean"] .export-btn { background: #f2f3f5 !important; border-color: #f2f3f5 !important; color: #0f1012 !important; box-shadow: none !important; }
+  :root[data-theme="clean"] select, :root[data-theme="clean"] .text-in { background-color: #111215; border: 1px solid #2c2e33; box-shadow: none; }
+  :root[data-theme="clean"] .status-line { border-top-color: #26282c; }
+
+  /* Pegel: neutral, nur die Spitze wird farbig */
+  :root[data-theme="clean"] #loopMeter, :root[data-theme="clean"] .meter.st #loopMeterR {
+    background-image: linear-gradient(90deg, #8b8f97 0%, #f2f3f5 70%, #ffd60a 86%, #ff453a 100%); box-shadow: none;
+  }
+  :root[data-theme="clean"] .track { --tcd: #5f646c; --tcg: transparent; }
+  :root[data-theme="clean"] .track.t2 { --tcd: #2b5f99; --tcg: transparent; }
+  :root[data-theme="clean"] .track.t3 { --tcd: #6a529a; --tcg: transparent; }
+  :root[data-theme="clean"] .chan-info { color: #c9ccd2; }
+
+  /* Kopf-Knöpfe und Aufklapper passend */
+  :root[data-theme="clean"] .optik-btn { background: transparent; border-color: #34363c; color: #c9ccd2; border-radius: 6px; }
+  :root[data-theme="clean"] .optik-pop { background: #17181b; border-color: #2c2e33; box-shadow: 0 12px 32px rgba(0,0,0,.5); }
+  @media (max-width: 520px) { :root[data-theme="clean"] .brand { font-size: 1rem; } }

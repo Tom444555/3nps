@@ -183,6 +183,17 @@
   .optik-pop { position: absolute; top: 100%; left: 0; margin-top: 6px; z-index: 60; padding: 10px; border-radius: 10px;
     background: rgba(12,14,18,.96); border: 1px solid rgba(255,255,255,.18); box-shadow: 0 10px 30px rgba(0,0,0,.6); width: min(340px, calc(100vw - 32px)); }
   .optik-pop[hidden] { display: none; }
+  .hdr-btns { display: flex; gap: 6px; }
+  .perf-pop { width: min(380px, calc(100vw - 32px)); font: 500 .74rem/1.35 var(--f-body); color: #d7dde3; }
+  .pf-sec { font: 700 .6rem/1 var(--f-body); letter-spacing: .12em; text-transform: uppercase; color: #8fa0ae; margin: 8px 0 4px; }
+  .pf-sec:first-child { margin-top: 0; }
+  .pf-row { display: grid; grid-template-columns: 7.4em minmax(24px, 1fr) 8.4em; white-space: nowrap; align-items: center; gap: 8px; height: 20px; }
+  .pf-row b { font: 600 .74rem var(--f-mono); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .pf-sum b { color: #fff; }
+  .pf-bar { height: 6px; border-radius: 3px; background: rgba(255,255,255,.12); overflow: hidden; }
+  .pf-bar i { display: block; height: 100%; width: 0; background: #5fc27e; transition: width .3s; }
+  .pf-bar i.warn { background: #e0b341; } .pf-bar i.hot { background: #e2574c; }
+  .pf-note { margin: 8px 0 0; color: #8fa0ae; font-size: .68rem; line-height: 1.35; height: 5.4em; overflow: hidden; }
   .optik-pop select { width: 100%; min-height: 40px; }
   @media (prefers-reduced-motion: reduce) { .note-dot { transition: none; } }
 </style>
@@ -190,15 +201,38 @@
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v33</span></div>
-      <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
+      <div class="brand">Looper <span>3nps · v34</span></div>
+      <div class="hdr-btns">
+        <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
+        <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
+      </div>
       <div class="optik-pop" id="optikPop" hidden>
         <select id="appTheme" aria-label="App-Optik">
-          <option value="nordic">Nordisch – Eis, Rost und Runen</option>
-          <option value="metal">Metal – Stahl, Nieten und Blutrot</option>
-          <option value="amp">Verstärker – Tolex, Alu-Front und Röhrenglühen</option>
-          <option value="ice">Eiswand – raues Gletschereis und Frost</option>
+          <option value="clean">Klar</option>
+          <option value="ice">Kühl</option>
+          <option value="nordic">Nordisch</option>
+          <option value="metal">Metal</option>
+          <option value="amp">Verstärker</option>
+          <option value="matrix">Matrix</option>
         </select>
+      </div>
+      <div class="optik-pop perf-pop" id="perfPop" hidden aria-live="off">
+        <div class="pf-sec">Rechenlast</div>
+        <div class="pf-row"><span>Bedienung</span><span class="pf-bar"><i id="pfCpuBar"></i></span><b id="pfCpu">–</b></div>
+        <div class="pf-row"><span>Bildrate</span><span></span><b id="pfFps">–</b></div>
+        <div class="pf-row" id="pfAudioRow"><span>Audio</span><span class="pf-bar"><i id="pfAudBar"></i></span><b id="pfAud">–</b></div>
+        <div class="pf-row"><span>Aussetzer</span><span></span><b id="pfGaps">–</b></div>
+        <div class="pf-sec">Arbeitsspeicher</div>
+        <div class="pf-row"><span>Spuren</span><span></span><b id="pfMemCur">–</b></div>
+        <div class="pf-row"><span>Rückgängig</span><span class="pf-bar"><i id="pfHistBar"></i></span><b id="pfMemHist">–</b></div>
+        <div class="pf-row"><span>Programm</span><span></span><b id="pfHeap">–</b></div>
+        <div class="pf-sec">Latenz</div>
+        <div class="pf-row"><span>Eingang</span><span></span><b id="pfLatIn">–</b></div>
+        <div class="pf-row"><span>Audio-Puffer</span><span></span><b id="pfLatBase">–</b></div>
+        <div class="pf-row"><span>Ausgang</span><span></span><b id="pfLatOut">–</b></div>
+        <div class="pf-row pf-sum"><span>Eingang → Ohr</span><span></span><b id="pfLatSum">–</b></div>
+        <div class="pf-row"><span>Ausgleich</span><span></span><b id="pfLatComp">–</b></div>
+        <p class="pf-note" id="pfNote"></p>
       </div>
     </div>
     <div class="transport">

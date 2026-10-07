@@ -292,9 +292,9 @@
         <h2>Fußpedal</h2>
         <label class="field"><span>Belegung</span>
           <select id="pedalPreset">
-            <option value="auto">M-VAVE Chocolate · Automatisch (Keyboard A und B)</option>
-            <option value="a">M-VAVE Chocolate · Keyboard A (Pfeiltasten)</option>
-            <option value="b">M-VAVE Chocolate · Keyboard B (Bild, Leertaste, Enter)</option>
+            <option value="auto">Automatisch (Pfeiltasten, Bild ↑/↓, Leertaste, Enter)</option>
+            <option value="a">Nur Pfeiltasten (z. B. M-VAVE „Keyboard A“)</option>
+            <option value="b">Bild ↑/↓, Leertaste, Enter (z. B. M-VAVE „Keyboard B“)</option>
             <option value="custom">Eigene Belegung anlernen</option>
           </select>
         </label>
@@ -302,7 +302,8 @@
         <label class="check"><input type="checkbox" id="pedalHold"> Taster halten = Rückgängig</label>
         <label class="check"><input type="checkbox" id="pedalRecv" checked> Pedal-Empfang (nötig auf dem iPad) · <b id="pedalRecvStat" class="recv-stat">–</b></label>
         <div class="row"><span class="lbl">Zuletzt</span><kbd id="pedalLast">noch keine Taste empfangen</kbd></div>
-        <p class="pattern-desc">Das Pedal muss im Tastatur-Modus sein (in der App CubeSuite „Keyboard A“ oder „Keyboard B“ wählen) und in den iPad-Einstellungen unter Bluetooth verbunden sein. MIDI-Modi kann Safari auf dem iPad nicht empfangen. Bei jedem Tritt zeigt „Zuletzt“, welche Taste ankommt – bleibt es leer, sendet das Pedal noch MIDI.</p>
+        <p class="pattern-desc pedal-bt"><b>Bluetooth:</b> Jedes Pedal, das als Tastatur sendet, funktioniert – z. B. M-VAVE Chocolate, AirTurn, PageFlip oder iRig BlueTurn. Verbinden in den iPad-Einstellungen unter <b>Bluetooth</b>, das Pedal in den Tastatur-Modus stellen (beim M-VAVE in der App CubeSuite „Keyboard A“ oder „B“). Sendet dein Pedal andere Tasten: „Eigene Belegung anlernen“.</p>
+        <p class="pattern-desc">Bei jedem Tritt zeigt „Zuletzt“, welche Taste ankommt. Bleibt es leer, sendet das Pedal MIDI – das kann Safari auf dem iPad nicht empfangen. „Halten = Rückgängig“ braucht ein Pedal, das beim Halten gedrückt bleibt (manche Seitenwender senden nur kurze Tipps).</p>
       </div>
     </div>
 

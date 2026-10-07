@@ -1,3 +1,4 @@
+import re
 # v30: Songwriting Schritt 3 + 4 – Text mit Silben/Reimen, Leadsheet-PDF, Song-Code mit Claude hin und zurück
 import asyncio, json
 from playwright.async_api import async_playwright
@@ -49,7 +50,8 @@ async def main():
         pg = await ctx.new_page(); errs = []
         pg.on('pageerror', lambda e: errs.append(str(e)))
         await pg.goto('http://localhost:8765/index.html'); await pg.wait_for_timeout(800)
-        check('Version ab v30', any(x in await pg.inner_text('.brand') for x in ('v30', 'v31', 'v32', 'v33')), await pg.inner_text('.brand'))
+        _br = await pg.inner_text('.brand'); _m = re.search(r'v(\d+)', _br)
+        check('Version ab v30', bool(_m) and int(_m.group(1)) >= 30, _br)
         await pg.click('#tab-lied'); await pg.wait_for_timeout(200)
         check('Ohne Song: Claude-Karte sichtbar, Text-Karte nicht', await pg.is_visible('#ldAiCard') and not await pg.is_visible('#ldTextCard'))
         # 1) Ohne Song: Vorlage kopieren
