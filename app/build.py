@@ -67,7 +67,7 @@ for _f in ['panel-dark.jpg', 'runes.png', 'emblem.png', 'corner-tl.png', 'corner
            'bg-iron.jpg', 'panel-iron.jpg', 'stud-iron.png', 'studs-iron.png', 'emblem-iron.png',
            'tolex.jpg', 'alu.jpg', 'alu-dark.jpg', 'grille.jpg', 'screw.png', 'jewel.png',
            'bg-ice.jpg', 'panel-ice.jpg', 'icicles.png', 'rivet-ice.png', 'emblem-ice.png']: shutil.copy(A + 'tex/' + _f, A + 'www/' + _f)
-themecss = rd(A + 'theme-metal.css') + rd(A + 'theme-amp.css') + rd(A + 'theme-ice.css') + rd(A + 'theme-clean.css') + rd(A + 'theme-matrix.css')
+themecss = rd(A + 'theme-metal.css') + rd(A + 'theme-amp.css') + rd(A + 'theme-ice.css') + rd(A + 'theme-clean.css') + rd(A + 'theme-matrix.css') + rd(A + 'theme-dj.css') + rd(A + 'theme-light.css')
 appcfg = rd(A + 'appcfg.js') + '\n' + rd(A + 'perf.js')
 def _ff(fam, fn, w='400'):
     b = base64.b64encode(open(A + 'fonts/' + fn, 'rb').read()).decode()
@@ -76,7 +76,7 @@ def _ff(fam, fn, w='400'):
 FONTS = '<style>' + ''.join([_ff('Uncial Antiqua', 'uncial.woff'), _ff('Metal Mania', 'metalmania.woff'), _ff('Black Ops One', 'blackopsone.woff'),
                              _ff('Russo One', 'russoone.woff'), _ff('Michroma', 'michroma.woff'), _ff('Cinzel', 'cinzel700.woff', '600 700')]) + '</style>'
 CSP = '<meta http-equiv="Content-Security-Policy" content="default-src \'self\'; script-src \'self\' \'unsafe-inline\' blob:; worker-src \'self\' blob:; style-src \'self\' \'unsafe-inline\'; img-src \'self\' data: blob:; font-src \'self\' data:; media-src \'self\' blob: data:; connect-src \'self\' blob: data:; manifest-src \'self\'; object-src \'none\'; base-uri \'none\'; form-action \'none\'">'
-EARLY = "<script>try{var t=localStorage.getItem('3nps-theme')||'nordic',u=localStorage.getItem('3nps-theme2');if(u&&/^(nordic|metal|amp|ice|clean|matrix)$/.test(u)&&(/^(metal|amp|ice|nordic)$/.test(u)?u:'nordic')===t)t=u;if(t!=='nordic'&&/^(metal|amp|ice|clean|matrix)$/.test(t)){document.documentElement.dataset.theme=t;}}catch(e){}</script>\n"
+EARLY = "<script>try{var t=localStorage.getItem('3nps-theme')||'nordic',u=localStorage.getItem('3nps-theme2');if(u&&/^(nordic|metal|amp|ice|clean|matrix|dj|light|precise)$/.test(u)&&(/^(metal|amp|ice|nordic)$/.test(u)?u:'nordic')===t)t=u;if(t!=='nordic'&&/^(metal|amp|ice|clean|matrix|dj|light|precise)$/.test(t)){document.documentElement.dataset.theme=t;}}catch(e){}</script>\n"
 
 # --- Kopf/Markup ---
 ACCEPT = 'audio/*,video/*,.mp3,.wav,.wave,.aif,.aiff,.aifc,.m4a,.m4b,.aac,.caf,.flac,.alac,.ogg,.oga,.opus,.mp4,.mov,.3gp,.webm,.amr'

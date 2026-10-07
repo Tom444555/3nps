@@ -21,7 +21,7 @@ async def main():
         ctx = await b.new_context(viewport={'width': 1024, 'height': 1366}, accept_downloads=True); await ctx.grant_permissions(['microphone'])
         pg = await ctx.new_page(); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)))
         await pg.goto('http://localhost:8765/index.html'); await pg.wait_for_timeout(800)
-        check('Version v34', 'v34' in await pg.inner_text('.brand'))
+        check('Version v35', 'v35' in await pg.inner_text('.brand'))
         # 1) Langsame Dateien: Tempo nicht doppelt
         for f, want in [('oktave/o_arp8_66.wav', 66), ('oktave/o_strum16_70.wav', 70), ('oktave2/p_softpop_61.wav', 61), ('long/L_ballad_live_74.wav', 74)]:
             await pg.evaluate("Looper.stopAll && Looper.stopAll()")

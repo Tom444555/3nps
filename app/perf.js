@@ -72,6 +72,7 @@
   }
 
   function start() {
+    if (timer) return;                                   // läuft schon
     lastT = performance.now(); busy = 0; span = 0; frames = 0; fpsT = lastT;
     timer = setInterval(step, STEP); raf = requestAnimationFrame(loop);
     try {
@@ -88,16 +89,76 @@
     clearInterval(timer); timer = 0; cancelAnimationFrame(raf); raf = 0;
     try { if (rc) rc.stop(); } catch (e) {}
   }
+  // ---- Anheften, Verschieben, Kompakt (gespeichert in 3nps-perf) ----
+  const home = pop.parentNode, homeNext = pop.nextSibling;
+  let st = { pin: false, compact: false, x: null, y: null };
+  try { Object.assign(st, JSON.parse(localStorage.getItem('3nps-perf') || '{}')); } catch (e) {}
+  const saveSt = () => { try { localStorage.setItem('3nps-perf', JSON.stringify(st)); } catch (e) {} };
+  const pinBtn = $('pfPin'), cmpBtn = $('pfCompact'), closeBtn = $('pfClose'), head = $('pfHead');
+  function clamp() {
+    if (!st.pin) return;
+    const w = pop.offsetWidth || 300, h = pop.offsetHeight || 200;
+    const maxX = Math.max(4, innerWidth - w - 4), maxY = Math.max(4, innerHeight - 44);
+    st.x = Math.min(Math.max(4, st.x == null ? 16 : st.x), maxX);
+    st.y = Math.min(Math.max(4, st.y == null ? 90 : st.y), maxY);
+    pop.style.left = st.x + 'px'; pop.style.top = st.y + 'px';
+  }
+  function applyPin() {
+    // Position vor dem Umschalten messen (danach gilt position: fixed, und top: 100% würde nach unten springen)
+    if (st.pin && st.x == null && pop.parentNode !== document.body && !pop.hidden) { const r = pop.getBoundingClientRect(); st.x = r.left; st.y = r.top; }
+    pop.classList.toggle('pinned', st.pin); pop.classList.toggle('compact', st.compact);
+    pinBtn.setAttribute('aria-pressed', st.pin ? 'true' : 'false'); cmpBtn.setAttribute('aria-pressed', st.compact ? 'true' : 'false');
+    pinBtn.textContent = st.pin ? 'Angeheftet' : 'Anheften';
+    if (st.pin) {
+      if (pop.parentNode !== document.body) {
+        document.body.appendChild(pop);              // eigene Ebene: liegt über allem, unabhängig von der Kopfleiste
+      }
+      clamp();
+    } else {
+      if (pop.parentNode !== home) home.insertBefore(pop, homeNext);
+      pop.style.left = pop.style.top = '';
+    }
+  }
+  function setPin(on) { st.pin = on; saveSt(); applyPin(); }
+  pinBtn.addEventListener('click', () => setPin(!st.pin));
+  cmpBtn.addEventListener('click', () => { st.compact = !st.compact; saveSt(); applyPin(); });
+  closeBtn.addEventListener('click', () => { if (st.pin) setPin(false); setOpen(false); });
+  // Ziehen an der Titelzeile (Finger, Stift oder Maus). Ziehen heftet automatisch an.
+  let drag = null;
+  head.addEventListener('pointerdown', e => {
+    if (e.target.closest('button')) return;
+    e.preventDefault();
+    if (!st.pin) setPin(true);
+    const r = pop.getBoundingClientRect();
+    drag = { id: e.pointerId, dx: e.clientX - r.left, dy: e.clientY - r.top };
+    try { head.setPointerCapture(e.pointerId); } catch (er) {}
+    pop.classList.add('dragging');
+  });
+  head.addEventListener('pointermove', e => {
+    if (!drag || e.pointerId !== drag.id) return;
+    st.x = e.clientX - drag.dx; st.y = e.clientY - drag.dy; clamp();
+  });
+  const endDrag = e => { if (!drag || e.pointerId !== drag.id) return; drag = null; pop.classList.remove('dragging'); saveSt(); };
+  head.addEventListener('pointerup', endDrag); head.addEventListener('pointercancel', endDrag);
+  window.addEventListener('resize', () => { if (st.pin) clamp(); });
+
   function setOpen(on) {
     if (on === open) return;
     open = on; pop.hidden = !on; btn.setAttribute('aria-expanded', on ? 'true' : 'false');
-    if (on) { document.dispatchEvent(new CustomEvent('hdrpop', { detail: 'perf' })); start(); } else stop();
+    if (on) { applyPin(); if (!st.pin) document.dispatchEvent(new CustomEvent('hdrpop', { detail: 'perf' })); start(); } else stop();
   }
-  btn.addEventListener('click', e => { e.stopPropagation(); setOpen(!open); });
+  btn.addEventListener('click', e => { e.stopPropagation(); if (open && st.pin) { clamp(); return; } setOpen(!open); });
   pop.addEventListener('click', e => e.stopPropagation());
-  document.addEventListener('click', () => setOpen(false));
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') setOpen(false); });
-  document.addEventListener('hdrpop', e => { if (e.detail !== 'perf') setOpen(false); });
-  document.addEventListener('visibilitychange', () => { if (document.hidden) setOpen(false); });
-  window.PerfView = { open: () => setOpen(true), close: () => setOpen(false) };
+  // Zuklappen durch Tipp daneben, Esc oder den anderen Kopf-Knopf – nur, solange nicht angeheftet
+  document.addEventListener('click', () => { if (!st.pin) setOpen(false); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !st.pin) setOpen(false); });
+  document.addEventListener('hdrpop', e => { if (e.detail !== 'perf' && !st.pin) setOpen(false); });
+  // Im Hintergrund nicht messen; angeheftet beim Zurückkommen weitermessen
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { if (open) { if (st.pin) stop(); else setOpen(false); } }
+    else if (open && st.pin) start();
+  });
+  applyPin();
+  if (st.pin) setTimeout(() => setOpen(true), 0);     // angeheftet bleibt es auch nach dem Neustart offen
+  window.PerfView = { open: () => setOpen(true), close: () => setOpen(false), pin: setPin, state: () => Object.assign({ open }, st) };
 })();

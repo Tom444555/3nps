@@ -184,6 +184,16 @@
     background: rgba(12,14,18,.96); border: 1px solid rgba(255,255,255,.18); box-shadow: 0 10px 30px rgba(0,0,0,.6); width: min(340px, calc(100vw - 32px)); }
   .optik-pop[hidden] { display: none; }
   .hdr-btns { display: flex; gap: 6px; }
+  .pf-head { display: flex; align-items: center; gap: 6px; margin: -4px -4px 6px; padding: 2px 4px 6px; border-bottom: 1px solid rgba(255,255,255,.1);
+    cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; }
+  .pf-grip { opacity: .55; font-size: .9rem; } .pf-title { flex: 1; font: 700 .62rem/1 var(--f-body); letter-spacing: .12em; text-transform: uppercase; opacity: .8; }
+  .pf-hbtn { font: 600 .6rem/1 var(--f-body); letter-spacing: .06em; text-transform: uppercase; padding: 5px 7px; min-height: 0; border-radius: 5px;
+    border: 1px solid rgba(255,255,255,.2); background: transparent; color: inherit; cursor: pointer; }
+  .pf-hbtn[aria-pressed="true"] { background: rgba(255,255,255,.88); color: #111; border-color: transparent; }
+  .perf-pop.pinned { position: fixed; margin: 0; z-index: 70; top: 90px; left: 16px; }
+  .perf-pop.dragging { opacity: .92; } .perf-pop.dragging .pf-head { cursor: grabbing; }
+  .perf-pop.compact .pf-more, .perf-pop.compact .pf-sec, .perf-pop.compact .pf-note { display: none; }
+  .perf-pop.compact { width: min(300px, calc(100vw - 32px)); }
   .perf-pop { width: min(380px, calc(100vw - 32px)); font: 500 .74rem/1.35 var(--f-body); color: #d7dde3; }
   .pf-sec { font: 700 .6rem/1 var(--f-body); letter-spacing: .12em; text-transform: uppercase; color: #8fa0ae; margin: 8px 0 4px; }
   .pf-sec:first-child { margin-top: 0; }
@@ -201,7 +211,7 @@
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v34</span></div>
+      <div class="brand">Looper <span>3nps · v35</span></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -214,24 +224,33 @@
           <option value="metal">Metal</option>
           <option value="amp">Verstärker</option>
           <option value="matrix">Matrix</option>
+          <option value="dj">DJ-Pult</option>
+          <option value="light">Hell</option>
+          <option value="precise">Präzision</option>
         </select>
       </div>
       <div class="optik-pop perf-pop" id="perfPop" hidden aria-live="off">
+        <div class="pf-head" id="pfHead" title="Ziehen zum Verschieben">
+          <span class="pf-grip" aria-hidden="true">⠿</span><span class="pf-title">Leistung</span>
+          <button class="pf-hbtn" id="pfCompact" aria-pressed="false" title="Nur die wichtigsten Werte">Kompakt</button>
+          <button class="pf-hbtn" id="pfPin" aria-pressed="false" title="Fenster bleibt offen und lässt sich verschieben">Anheften</button>
+          <button class="pf-hbtn pf-x" id="pfClose" aria-label="Schließen">✕</button>
+        </div>
         <div class="pf-sec">Rechenlast</div>
         <div class="pf-row"><span>Bedienung</span><span class="pf-bar"><i id="pfCpuBar"></i></span><b id="pfCpu">–</b></div>
-        <div class="pf-row"><span>Bildrate</span><span></span><b id="pfFps">–</b></div>
+        <div class="pf-row pf-more"><span>Bildrate</span><span></span><b id="pfFps">–</b></div>
         <div class="pf-row" id="pfAudioRow"><span>Audio</span><span class="pf-bar"><i id="pfAudBar"></i></span><b id="pfAud">–</b></div>
         <div class="pf-row"><span>Aussetzer</span><span></span><b id="pfGaps">–</b></div>
         <div class="pf-sec">Arbeitsspeicher</div>
         <div class="pf-row"><span>Spuren</span><span></span><b id="pfMemCur">–</b></div>
-        <div class="pf-row"><span>Rückgängig</span><span class="pf-bar"><i id="pfHistBar"></i></span><b id="pfMemHist">–</b></div>
-        <div class="pf-row"><span>Programm</span><span></span><b id="pfHeap">–</b></div>
+        <div class="pf-row pf-more"><span>Rückgängig</span><span class="pf-bar"><i id="pfHistBar"></i></span><b id="pfMemHist">–</b></div>
+        <div class="pf-row pf-more"><span>Programm</span><span></span><b id="pfHeap">–</b></div>
         <div class="pf-sec">Latenz</div>
-        <div class="pf-row"><span>Eingang</span><span></span><b id="pfLatIn">–</b></div>
-        <div class="pf-row"><span>Audio-Puffer</span><span></span><b id="pfLatBase">–</b></div>
-        <div class="pf-row"><span>Ausgang</span><span></span><b id="pfLatOut">–</b></div>
+        <div class="pf-row pf-more"><span>Eingang</span><span></span><b id="pfLatIn">–</b></div>
+        <div class="pf-row pf-more"><span>Audio-Puffer</span><span></span><b id="pfLatBase">–</b></div>
+        <div class="pf-row pf-more"><span>Ausgang</span><span></span><b id="pfLatOut">–</b></div>
         <div class="pf-row pf-sum"><span>Eingang → Ohr</span><span></span><b id="pfLatSum">–</b></div>
-        <div class="pf-row"><span>Ausgleich</span><span></span><b id="pfLatComp">–</b></div>
+        <div class="pf-row pf-more"><span>Ausgleich</span><span></span><b id="pfLatComp">–</b></div>
         <p class="pf-note" id="pfNote"></p>
       </div>
     </div>

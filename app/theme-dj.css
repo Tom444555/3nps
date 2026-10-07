@@ -1,0 +1,121 @@
+
+  /* ===== Optik „DJ-Pult“: schwarz eloxiertes Alu, Siebdruck-Beschriftung, hinterleuchtete Gummitasten, LED-Ketten, Fader ===== */
+  :root[data-theme="dj"] {
+    --bg: #0b0c0f; --surface: #15171b; --surface-2: #1b1d22; --raised: #23262c;
+    --ink: #eef1f6; --muted: #848c9a; --line: #2a2e35; --line-soft: #1e2126;
+    --accent: #00c8ff; --accent-ink: #00141b; --active-color: #00c8ff;
+    --t1: #f4f7fb; --t2: #00c8ff; --t3: #ff3fd2;
+    --neon-rec: #ff2338; --neon-dub: #ffcf2e; --neon-bar1: #ffffff;
+    --lcd-bg: #050a12; --lcd-ink: #d8f4ff; --lcd-dim: #3f6a85;
+    --board: #16181c; --board-edge: #0b0c0f; --fretwire: #aab3c0;
+    --dj-screw: radial-gradient(circle at 40% 35%, #5a5f68 0 1px, #2a2d33 2px, #111316 3.6px, transparent 4.2px);
+    background: #0b0c0f url("bg-dj.jpg") repeat; background-size: 1024px 1024px;
+  }
+  :root[data-theme="dj"] body::before {
+    background: radial-gradient(ellipse 80% 45% at 50% 0%, rgba(0,200,255,.07), transparent 70%),
+                radial-gradient(ellipse 150% 120% at 50% 35%, transparent 35%, rgba(0,0,0,.6) 85%, rgba(0,0,0,.85) 100%);
+  }
+  /* Siebdruck: kleine, weit gesperrte Versalien */
+  :root[data-theme="dj"] h2, :root[data-theme="dj"] .brand, :root[data-theme="dj"] .tab {
+    font-family: var(--f-display); -webkit-text-fill-color: currentColor; background: none; filter: none; text-shadow: none;
+  }
+  :root[data-theme="dj"] .brand { font-weight: 800; font-size: 1.12rem; letter-spacing: .2em; text-transform: uppercase; color: #ffffff; }
+  :root[data-theme="dj"] .brand span { font: 700 .6rem var(--f-body); letter-spacing: .16em; text-transform: uppercase; color: #00c8ff; -webkit-text-fill-color: #00c8ff; }
+  :root[data-theme="dj"] .brand::before {
+    width: 26px; height: 26px; flex-basis: 26px; border-radius: 50%; filter: none;
+    background: radial-gradient(circle, #001a22 0 38%, #00c8ff 40% 46%, #0b0c0f 48% 58%, #2a2e35 60% 100%);
+    box-shadow: 0 0 10px rgba(0,200,255,.45);
+  }
+  :root[data-theme="dj"] h2 { font-weight: 800; font-size: .7rem; letter-spacing: .22em; text-transform: uppercase; color: #eef1f6; }
+  :root[data-theme="dj"] h2::after { content: ""; display: block; width: 28px; height: 2px; margin-top: 5px; background: #00c8ff; box-shadow: 0 0 6px rgba(0,200,255,.7); }
+  :root[data-theme="dj"] .card-head h2::after { display: none; }
+
+  /* Tabs: hinterleuchtete Gummitasten */
+  :root[data-theme="dj"] .tabs { background: #08090b; border: 1px solid #000; box-shadow: inset 0 2px 6px rgba(0,0,0,.8); margin-top: 12px; }
+  :root[data-theme="dj"] .tab { font-weight: 700; font-size: .74rem; letter-spacing: .14em; text-transform: uppercase; color: #848c9a; }
+  :root[data-theme="dj"] .tab[aria-selected="true"] {
+    background: linear-gradient(180deg, #0f3442, #0a2430); color: #c8f3ff; border: 1px solid #00c8ff;
+    box-shadow: 0 0 12px rgba(0,200,255,.45), inset 0 0 10px rgba(0,200,255,.25); text-shadow: 0 0 6px rgba(0,200,255,.8);
+  }
+
+  /* Kopf: Frontplatte mit Schrauben, cyanfarbene Lichtkante */
+  :root[data-theme="dj"] .control-bar {
+    background: var(--dj-screw) 10px 50% / 12px 12px no-repeat, var(--dj-screw) calc(100% - 10px) 50% / 12px 12px no-repeat,
+      linear-gradient(180deg, rgba(255,255,255,.05), rgba(0,0,0,.25)), url("panel-dj.jpg") 0 0 / 512px 512px;
+    background-color: #121418; border-bottom: 1px solid #000; box-shadow: 0 1px 0 rgba(0,200,255,.35), 0 10px 24px rgba(0,0,0,.7);
+  }
+  :root[data-theme="dj"] .control-bar::after { display: none; }
+  :root[data-theme="dj"] .cb-inner { padding-bottom: 12px; }
+  :root[data-theme="dj"] .lcd { background: #050a12; border: 1px solid #000; box-shadow: inset 0 0 0 1px #12202c, inset 0 0 22px rgba(0,120,200,.18); }
+  :root[data-theme="dj"] .lcd .v { color: #d8f4ff; text-shadow: 0 0 8px rgba(0,200,255,.55); }
+
+  /* Platten: gebürstetes Alu, vier Schrauben, scharfe Kante */
+  :root[data-theme="dj"] .card, :root[data-theme="dj"] .stat-card {
+    background:
+      var(--dj-screw) 7px 7px / 10px 10px no-repeat, var(--dj-screw) calc(100% - 7px) 7px / 10px 10px no-repeat,
+      var(--dj-screw) 7px calc(100% - 7px) / 10px 10px no-repeat, var(--dj-screw) calc(100% - 7px) calc(100% - 7px) / 10px 10px no-repeat,
+      linear-gradient(180deg, rgba(255,255,255,.035) 0%, rgba(0,0,0,.18) 100%), url("panel-dj.jpg") 0 0 / 512px 512px;
+    background-color: #15171b; border: 1px solid #000; border-radius: 6px;
+    box-shadow: 0 1px 0 rgba(255,255,255,.08) inset, 0 -1px 0 rgba(0,0,0,.6) inset, 0 8px 20px rgba(0,0,0,.6);
+  }
+  :root[data-theme="dj"] .card::after { display: none; }
+  /* Kanalzüge: tief eingelassen */
+  :root[data-theme="dj"] .track, :root[data-theme="dj"] .editor, :root[data-theme="dj"] .lane {
+    background: #08090b; border: 1px solid #000; border-radius: 4px;
+    box-shadow: inset 0 3px 10px rgba(0,0,0,.9), 0 1px 0 rgba(255,255,255,.05);
+  }
+  :root[data-theme="dj"] .track-head { border-bottom-color: #1a1d22; }
+  :root[data-theme="dj"] .track.rec-live { border-color: #ff2338 !important; box-shadow: 0 0 0 1px #ff2338, 0 0 18px rgba(255,35,56,.35) !important; }
+  :root[data-theme="dj"] .ed-group { background: rgba(0,0,0,.35); border-color: #1a1d22; box-shadow: inset 0 2px 6px rgba(0,0,0,.6); }
+  :root[data-theme="dj"] .dg-cell { background: #0d0f12; }
+
+  /* Gummitasten; aktiv = hinterleuchtet */
+  :root[data-theme="dj"] .toggle-btn, :root[data-theme="dj"] .mini button, :root[data-theme="dj"] .file-mini, :root[data-theme="dj"] .tbtn {
+    background: linear-gradient(180deg, #2a2d33, #1c1e23); border: 1px solid #000; color: #d7dce4;
+    box-shadow: 0 1px 0 rgba(255,255,255,.08) inset, 0 2px 0 #000; text-shadow: none; font-weight: 600;
+  }
+  :root[data-theme="dj"] .toggle-btn.active {
+    background: linear-gradient(180deg, #0f3442, #0a2430); border-color: #00c8ff; color: #c8f3ff;
+    box-shadow: 0 0 12px rgba(0,200,255,.45), inset 0 0 10px rgba(0,200,255,.25); text-shadow: 0 0 6px rgba(0,200,255,.7);
+  }
+  :root[data-theme="dj"] #playBtn.playing { background: linear-gradient(180deg, #0f3442, #0a2430); color: #c8f3ff; box-shadow: 0 0 12px rgba(0,200,255,.5); }
+  /* Fußtaster als Performance-Pad */
+  :root[data-theme="dj"] .foot {
+    background: radial-gradient(ellipse at 50% 20%, rgba(255,255,255,.08), transparent 60%), linear-gradient(180deg, #2b2e35, #1a1c21);
+    border: 1px solid #000; border-radius: 8px; box-shadow: 0 1px 0 rgba(255,255,255,.1) inset, 0 3px 0 #000, 0 0 0 1px rgba(0,200,255,.12);
+  }
+  :root[data-theme="dj"] .foot:active { box-shadow: 0 1px 0 #000, 0 0 14px rgba(0,200,255,.35); }
+  :root[data-theme="dj"] .export-btn { background: linear-gradient(180deg, #0f3442, #0a2430) !important; border-color: #00c8ff !important; color: #c8f3ff !important; box-shadow: 0 0 10px rgba(0,200,255,.35) !important; }
+  :root[data-theme="dj"] select, :root[data-theme="dj"] .text-in { background-color: #0a0b0e; border: 1px solid #000; box-shadow: inset 0 2px 5px rgba(0,0,0,.8), 0 1px 0 rgba(255,255,255,.05); color: #eef1f6; }
+
+  /* Pegel: LED-Kette aus einzelnen Segmenten (grün → gelb → rot) */
+  :root[data-theme="dj"] .meter { background: repeating-linear-gradient(90deg, #14171b 0 6px, #08090b 6px 8px); box-shadow: inset 0 0 0 1px #000; }
+  :root[data-theme="dj"] #loopMeter, :root[data-theme="dj"] .meter.st #loopMeterR {
+    background-image: linear-gradient(90deg, #12e05c 0%, #12e05c 62%, #ffcf2e 80%, #ff2338 100%);
+    -webkit-mask-image: repeating-linear-gradient(90deg, #000 0 6px, transparent 6px 8px); mask-image: repeating-linear-gradient(90deg, #000 0 6px, transparent 6px 8px);
+    box-shadow: none; filter: drop-shadow(0 0 4px rgba(18,224,92,.6));
+  }
+  :root[data-theme="dj"] .track { --tcd: #3a4250; --tcg: rgba(255,255,255,.35); }
+  :root[data-theme="dj"] .track.t2 { --tcd: #005b75; --tcg: rgba(0,200,255,.55); }
+  :root[data-theme="dj"] .track.t3 { --tcd: #7a1d66; --tcg: rgba(255,63,210,.5); }
+  :root[data-theme="dj"] .chan-info { color: #8fe6ff; }
+
+  /* Schieberegler als Fader: Schlitz + gerippte Kappe mit weißer Markierung */
+  :root[data-theme="dj"] input[type="range"] { -webkit-appearance: none; appearance: none; height: 30px;
+    background: repeating-linear-gradient(90deg, rgba(200,210,225,.35) 0 1px, transparent 1px 10%) 0 50% / 100% 14px no-repeat; }
+  :root[data-theme="dj"] input[type="range"]::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; background: #000; box-shadow: 0 0 0 1px #3a3f47, 0 1px 0 1px rgba(255,255,255,.06); }
+  :root[data-theme="dj"] input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 18px; height: 28px; margin-top: -11px; border-radius: 3px; border: 1px solid #000;
+    background: linear-gradient(90deg, transparent 7px, #ffffff 7px 10px, transparent 10px),
+                repeating-linear-gradient(180deg, #4a4f58 0 2px, #2c3037 2px 4px);
+    box-shadow: 0 2px 3px rgba(0,0,0,.7);
+  }
+  :root[data-theme="dj"] input[type="range"]::-moz-range-track { height: 4px; background: #000; border-radius: 2px; }
+  :root[data-theme="dj"] input[type="range"]::-moz-range-thumb { width: 18px; height: 28px; border-radius: 3px; border: 1px solid #000; background: #3a3f47; }
+
+  :root[data-theme="dj"] .optik-btn { background: #0a0b0e; border-color: #2a2e35; color: #c8d0dc; letter-spacing: .14em; }
+  :root[data-theme="dj"] .optik-btn[aria-expanded="true"] { border-color: #00c8ff; color: #c8f3ff; box-shadow: 0 0 8px rgba(0,200,255,.4); }
+  :root[data-theme="dj"] .optik-pop { background: rgba(14,16,20,.97); border-color: #2a2e35; box-shadow: 0 12px 30px rgba(0,0,0,.7), 0 0 0 1px rgba(0,200,255,.12); }
+  :root[data-theme="dj"] .pf-bar i:not(.warn):not(.hot) { background: #12e05c; }
+  :root[data-theme="dj"] .pf-bar { background: repeating-linear-gradient(90deg, #14171b 0 5px, #08090b 5px 6px); }
+  @media (max-width: 520px) { :root[data-theme="dj"] .brand { font-size: .96rem; letter-spacing: .14em; } }

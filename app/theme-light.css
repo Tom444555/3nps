@@ -1,0 +1,147 @@
+
+  /* ===== Helle Optiken „Hell“ (light) und „Präzision“ (precise) =====
+     Prinzip Messgerät: helles Gehäuse, die Anzeigefenster (Spuren, Editor, Display oben, EQ) bleiben dunkel –
+     dort zeichnen Wellenform und Taktkreis, und dort muss es auch bei Sonne/Bühnenlicht klar ablesbar sein. */
+  :root:is([data-theme="light"], [data-theme="precise"]) {
+    color-scheme: light;
+    --lcd-bg: #111214; --lcd-ink: #f4f5f7; --lcd-dim: #7b818a;
+    --board: #2b2b2e; --board-edge: #1b1b1d; --fretwire: #c9ccd2;
+    --neon-rec: #e5251b; --neon-dub: #f2b400; --neon-bar1: #ffffff;
+  }
+  :root:is([data-theme="light"], [data-theme="precise"]) body::before,
+  :root:is([data-theme="light"], [data-theme="precise"]) .control-bar::after,
+  :root:is([data-theme="light"], [data-theme="precise"]) .brand::before,
+  :root:is([data-theme="light"], [data-theme="precise"]) .card::after { display: none; }
+  :root:is([data-theme="light"], [data-theme="precise"]) h2,
+  :root:is([data-theme="light"], [data-theme="precise"]) .brand { text-shadow: none; filter: none; background: none; -webkit-text-fill-color: currentColor; }
+
+  /* Dunkle Anzeigefenster: eigene (helle) Schriftfarben für alles darin */
+  :root:is([data-theme="light"], [data-theme="precise"]) :is(.track, .editor, .lane, .eq-panel) {
+    --ink: #f2f3f5; --muted: #9aa0a8; --line: #34363c; --line-soft: #26282c; color: var(--ink);
+    background: #141518; border: 1px solid #000; box-shadow: none;
+  }
+  :root:is([data-theme="light"], [data-theme="precise"]) .track-head { border-bottom-color: #26282c; }
+  :root:is([data-theme="light"], [data-theme="precise"]) :is(.track, .editor, .lane, .eq-panel) :is(.toggle-btn, .mini button, .file-mini, select, .text-in, .eq-btn) {
+    background: #222428; border: 1px solid #3a3d43; color: #f2f3f5; box-shadow: none; text-shadow: none;
+  }
+  :root:is([data-theme="light"], [data-theme="precise"]) :is(.track, .editor, .lane, .eq-panel) .toggle-btn.active { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  :root:is([data-theme="light"], [data-theme="precise"]) .ed-group { background: rgba(255,255,255,.04); border-color: #2a2c31; box-shadow: none; }
+  :root:is([data-theme="light"], [data-theme="precise"]) .wave, :root:is([data-theme="light"], [data-theme="precise"]) .ed-wave-wrap canvas { box-shadow: none; }
+  :root:is([data-theme="light"], [data-theme="precise"]) .track.rec-live { border-color: #e5251b !important; box-shadow: 0 0 0 1px #e5251b !important; }
+  :root:is([data-theme="light"], [data-theme="precise"]) .foot { background: #2a2c31; border: 1px solid #000; color: #f2f3f5; box-shadow: 0 2px 0 #000; }
+  :root:is([data-theme="light"], [data-theme="precise"]) .foot:active { box-shadow: none; transform: translateY(1px); }
+  :root:is([data-theme="light"], [data-theme="precise"]) .track { --tcg: transparent; }
+
+  /* Halbtransparente Schwarz-Flächen aus den dunklen Optiken → auf hellem Grund nur ein Hauch */
+  :root:is([data-theme="light"], [data-theme="precise"]) :is(.passt, .sf-band, .sf-sc, .sf-live, .jam-seq, .ld-order, .ld-part, .ld-vc, .ld-cap, .ld-tx, .ld-gut, .ld-imr, .ub-block, .ub-tile, .imp-ana, .imp-opt, .chb) {
+    background: rgba(0,0,0,.035);
+  }
+  :root:is([data-theme="light"], [data-theme="precise"]) .ub-progress { background: rgba(0,0,0,.1); }
+  :root:is([data-theme="light"], [data-theme="precise"]) .ld-pchords:hover { background: rgba(0,0,0,.04); }
+  :root:is([data-theme="light"], [data-theme="precise"]) .status-line { border-top-color: var(--line); }
+  :root:is([data-theme="light"], [data-theme="precise"]) .fretboard { box-shadow: none; }
+  :root:is([data-theme="light"], [data-theme="precise"]) .dg-cell { background: rgba(0,0,0,.04); }
+
+  /* Kopf-Knöpfe und Aufklapper hell */
+  :root:is([data-theme="light"], [data-theme="precise"]) .optik-btn { background: transparent; border-color: var(--line); color: var(--ink); }
+  :root:is([data-theme="light"], [data-theme="precise"]) .optik-pop { background: var(--surface); border-color: var(--line); color: var(--ink); box-shadow: 0 12px 32px rgba(0,0,0,.18); }
+  :root:is([data-theme="light"], [data-theme="precise"]) .pf-head { border-bottom-color: var(--line); }
+  :root:is([data-theme="light"], [data-theme="precise"]) .pf-hbtn { border-color: var(--line); }
+  :root:is([data-theme="light"], [data-theme="precise"]) .pf-hbtn[aria-pressed="true"] { background: var(--ink); color: var(--surface); }
+  :root:is([data-theme="light"], [data-theme="precise"]) .pf-sum b { color: var(--ink); }
+  :root:is([data-theme="light"], [data-theme="precise"]) .pf-bar { background: rgba(0,0,0,.1); }
+  :root:is([data-theme="light"], [data-theme="precise"]) .pf-sec, :root:is([data-theme="light"], [data-theme="precise"]) .pf-note { color: var(--muted); }
+
+  /* ---------- „Hell“: ruhiges Weiß, weiche Ecken, ein klares Blau ---------- */
+  :root[data-theme="light"] {
+    --bg: #f2f2f5; --surface: #ffffff; --surface-2: #f5f5f7; --raised: #e8e8ed;
+    --ink: #1d1d1f; --muted: #6e6e73; --line: #d2d2d7; --line-soft: #e5e5ea;
+    --accent: #0a66d8; --accent-ink: #ffffff; --active-color: #0a66d8;
+    --t1: #f2f3f5; --t2: #3a9bff; --t3: #b48cff;
+    --string: #8a8f98; --scale-color: #ffffff; --root-color: #e5251b;
+    background: #f2f2f5;
+  }
+  :root[data-theme="light"] .brand { font-family: var(--f-display); font-weight: 650; font-size: 1.1rem; color: #1d1d1f; letter-spacing: -0.01em; }
+  :root[data-theme="light"] .brand span { font: 500 .66rem var(--f-body); color: #6e6e73; -webkit-text-fill-color: #6e6e73; letter-spacing: .02em; text-transform: none; }
+  :root[data-theme="light"] h2 { font-family: var(--f-display); font-weight: 650; font-size: .82rem; letter-spacing: 0; text-transform: none; color: #1d1d1f; }
+  :root[data-theme="light"] .tab { font-family: var(--f-body); font-weight: 500; text-transform: none; letter-spacing: 0; color: #6e6e73; text-shadow: none; }
+  :root[data-theme="light"] .tab[aria-selected="true"] { background: #ffffff; color: #1d1d1f; box-shadow: 0 1px 3px rgba(0,0,0,.14); text-shadow: none; }
+  :root[data-theme="light"] .tabs { background: #e6e6eb; border: 0; box-shadow: none; margin-top: 12px; }
+  :root[data-theme="light"] .control-bar { background: rgba(250,250,252,.96); border-bottom: 1px solid #d2d2d7; box-shadow: none; }
+  :root[data-theme="light"] .cb-inner { padding-bottom: 10px; padding-inline: 16px; }
+  :root[data-theme="light"] .lcd { background: #111214; border: 1px solid #000; box-shadow: none; }
+  :root[data-theme="light"] .lcd .v { text-shadow: none; }
+  :root[data-theme="light"] .card, :root[data-theme="light"] .stat-card { background: #ffffff; border: 1px solid #e0e0e5; border-radius: 14px; box-shadow: 0 1px 2px rgba(0,0,0,.05); }
+  :root[data-theme="light"] .toggle-btn, :root[data-theme="light"] .mini button, :root[data-theme="light"] .file-mini, :root[data-theme="light"] .tbtn {
+    background: #f5f5f7; border: 1px solid #d2d2d7; color: #1d1d1f; box-shadow: none; text-shadow: none;
+  }
+  :root[data-theme="light"] .toggle-btn.active { background: #0a66d8; border-color: #0a66d8; color: #ffffff; box-shadow: none; text-shadow: none; }
+  :root[data-theme="light"] #playBtn.playing { background: #0a66d8; color: #fff; }
+  :root[data-theme="light"] .export-btn { background: #0a66d8 !important; border-color: #0a66d8 !important; color: #fff !important; box-shadow: none !important; }
+  :root[data-theme="light"] select, :root[data-theme="light"] .text-in { background-color: #ffffff; border: 1px solid #d2d2d7; color: #1d1d1f; box-shadow: none; }
+  :root[data-theme="light"] #loopMeter, :root[data-theme="light"] .meter.st #loopMeterR { background-image: linear-gradient(90deg, #2fb36a 0%, #2fb36a 65%, #f2b400 84%, #e5251b 100%); box-shadow: none; }
+  :root[data-theme="light"] .meter { background: #e6e6eb; box-shadow: none; }
+  :root[data-theme="light"] .chan-info { color: #6e6e73; }
+
+  /* ---------- „Präzision“: Messgerät – kantig, Haarlinien, Skalenstriche, Mono-Ziffern, Signal-Orange ---------- */
+  :root[data-theme="precise"] {
+    --bg: #e4e4df; --surface: #f6f6f2; --surface-2: #ececE6; --raised: #dcdcd5;
+    --ink: #121212; --muted: #5d5d58; --line: #b9b9b1; --line-soft: #d3d3cb;
+    --accent: #ff5a00; --accent-ink: #121212; --active-color: #ff5a00;
+    --t1: #f4f5f7; --t2: #ff7a26; --t3: #39c2ff;
+    --string: #9a9a92; --scale-color: #ffffff; --root-color: #ff5a00;
+    background: #e4e4df;
+  }
+  :root[data-theme="precise"] body { font-feature-settings: "tnum" 1; }
+  :root[data-theme="precise"] .brand { font-family: var(--f-mono); font-weight: 700; font-size: 1.05rem; letter-spacing: .14em; text-transform: uppercase; color: #121212; }
+  :root[data-theme="precise"] .brand span { font: 600 .62rem var(--f-mono); letter-spacing: .1em; text-transform: uppercase; color: #ff5a00; -webkit-text-fill-color: #ff5a00; }
+  :root[data-theme="precise"] h2 { font-family: var(--f-mono); font-weight: 700; font-size: .72rem; letter-spacing: .16em; text-transform: uppercase; color: #121212; }
+  :root[data-theme="precise"] h2::before { content: ""; display: inline-block; width: 8px; height: 8px; background: #ff5a00; margin-right: 8px; vertical-align: 0; }
+  :root[data-theme="precise"] .tab { font-family: var(--f-mono); font-weight: 600; font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; color: #5d5d58; text-shadow: none; }
+  :root[data-theme="precise"] .tab[aria-selected="true"] { background: #121212; color: #f6f6f2; box-shadow: inset 0 -3px 0 #ff5a00; text-shadow: none; border-radius: 0; }
+  :root[data-theme="precise"] .tabs { background: #f6f6f2; border: 1px solid #121212; border-radius: 0; box-shadow: none; margin-top: 12px; }
+  :root[data-theme="precise"] .control-bar { background: #f6f6f2; border-bottom: 2px solid #121212; box-shadow: none; }
+  :root[data-theme="precise"] .cb-inner { padding-bottom: 10px; padding-inline: 16px; }
+  :root[data-theme="precise"] .lcd { background: #0c0c0c; border: 1px solid #000; border-radius: 0; box-shadow: inset 0 0 0 1px #2a2a2a; }
+  :root[data-theme="precise"] .lcd .k { color: #ff7a26; }
+  :root[data-theme="precise"] .lcd .v { text-shadow: none; font-variant-numeric: tabular-nums; }
+  /* Fenster: Haarlinie + Eckmarken wie auf einer Messplatine */
+  :root[data-theme="precise"] .card, :root[data-theme="precise"] .stat-card {
+    background:
+      linear-gradient(#121212, #121212) 0 0 / 10px 2px no-repeat, linear-gradient(#121212, #121212) 0 0 / 2px 10px no-repeat,
+      linear-gradient(#121212, #121212) 100% 0 / 10px 2px no-repeat, linear-gradient(#121212, #121212) 100% 0 / 2px 10px no-repeat,
+      linear-gradient(#121212, #121212) 0 100% / 10px 2px no-repeat, linear-gradient(#121212, #121212) 0 100% / 2px 10px no-repeat,
+      linear-gradient(#121212, #121212) 100% 100% / 10px 2px no-repeat, linear-gradient(#121212, #121212) 100% 100% / 2px 10px no-repeat,
+      #f6f6f2;
+    border: 1px solid #b9b9b1; border-radius: 0; box-shadow: none;
+  }
+  :root[data-theme="precise"] :is(.track, .editor, .lane, .eq-panel) { border-radius: 0; background: #0c0c0c; }
+  :root[data-theme="precise"] .toggle-btn, :root[data-theme="precise"] .mini button, :root[data-theme="precise"] .file-mini, :root[data-theme="precise"] .tbtn {
+    background: #f6f6f2; border: 1px solid #121212; color: #121212; border-radius: 0; box-shadow: none; text-shadow: none; font-family: var(--f-mono);
+  }
+  :root[data-theme="precise"] :is(.track, .editor, .lane, .eq-panel) :is(.toggle-btn, .mini button, .file-mini, select, .eq-btn) { border-radius: 0; font-family: var(--f-mono); }
+  :root[data-theme="precise"] .toggle-btn.active { background: #121212; border-color: #121212; color: #ff7a26; box-shadow: inset 0 -3px 0 #ff5a00; }
+  :root[data-theme="precise"] #playBtn.playing { background: #ff5a00; color: #121212; }
+  :root[data-theme="precise"] .foot { border-radius: 0; background: #1c1c1c; }
+  :root[data-theme="precise"] .export-btn { background: #ff5a00 !important; border-color: #121212 !important; color: #121212 !important; box-shadow: none !important; border-radius: 0 !important; }
+  :root[data-theme="precise"] select, :root[data-theme="precise"] .text-in { background-color: #ffffff; border: 1px solid #121212; color: #121212; border-radius: 0; box-shadow: none; font-family: var(--f-mono); }
+  :root[data-theme="precise"] .chan-info { color: #5d5d58; }
+  :root[data-theme="precise"] .optik-btn, :root[data-theme="precise"] .optik-pop, :root[data-theme="precise"] .pf-hbtn { border-radius: 0; font-family: var(--f-mono); }
+  :root[data-theme="precise"] .optik-pop { border: 1px solid #121212; }
+  /* Präzise Anzeigen: Pegel mit dB-Skala (Striche alle 10 %, kräftig alle 50 %), Balken der Leistungsanzeige mit Skala */
+  :root[data-theme="precise"] .meter { background: #0c0c0c; border-radius: 0; box-shadow: inset 0 0 0 1px #000; position: relative; }
+  :root[data-theme="precise"] .meter::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 4;
+    background:
+      repeating-linear-gradient(90deg, rgba(255,255,255,.5) 0 1px, transparent 1px 10%) 0 0 / 100% 35% no-repeat,
+      repeating-linear-gradient(90deg, rgba(255,255,255,.9) 0 1px, transparent 1px 50%) 0 0 / 100% 60% no-repeat;
+  }
+  :root[data-theme="precise"] #loopMeter, :root[data-theme="precise"] .meter.st #loopMeterR { background-image: linear-gradient(90deg, #39c2ff 0%, #39c2ff 70%, #ffd400 85%, #ff2a00 100%); box-shadow: none; border-radius: 0; }
+  :root[data-theme="precise"] .pf-bar { border-radius: 0; background:
+      repeating-linear-gradient(90deg, rgba(0,0,0,.35) 0 1px, transparent 1px 10%), rgba(0,0,0,.08); height: 8px; }
+  :root[data-theme="precise"] .pf-bar i { background: #121212; }
+  :root[data-theme="precise"] .pf-bar i.warn { background: #ff9a00; } :root[data-theme="precise"] .pf-bar i.hot { background: #e5251b; }
+  :root[data-theme="precise"] .pf-row b { font-family: var(--f-mono); }
+  :root[data-theme="precise"] input[type="range"] { accent-color: #ff5a00; }
+  @media (max-width: 520px) { :root[data-theme="precise"] .brand, :root[data-theme="light"] .brand { font-size: .98rem; } }
+  :root:is([data-theme="light"], [data-theme="precise"]) .legend .swatch { box-shadow: 0 0 0 1px rgba(0,0,0,.45); }

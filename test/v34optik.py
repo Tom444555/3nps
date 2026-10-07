@@ -14,7 +14,7 @@ async def main():
         errs = []; pg = await ctx.new_page(); pg.on('pageerror', lambda e: errs.append(str(e)))
         await pg.goto(U + 'index.html'); await pg.wait_for_timeout(600)
         names = await pg.evaluate("[...document.querySelectorAll('#appTheme option')].map(o=>o.value+'='+o.textContent)")
-        check('Namen', names == ['clean=Klar', 'ice=Kühl', 'nordic=Nordisch', 'metal=Metal', 'amp=Verstärker', 'matrix=Matrix'], names)
+        check('Namen', names[:6] == ['clean=Klar', 'ice=Kühl', 'nordic=Nordisch', 'metal=Metal', 'amp=Verstärker', 'matrix=Matrix'], names)
         for v in ['clean', 'matrix', 'ice', 'metal', 'amp', 'nordic']:
             await pick(pg, v)
             st = await pg.evaluate("[document.documentElement.dataset.theme||'nordic', getComputedStyle(document.body).backgroundColor, getComputedStyle(document.querySelector('.card')).backgroundColor]")

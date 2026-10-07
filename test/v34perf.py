@@ -1,3 +1,4 @@
+import re
 # v34: Leistungsanzeige im Kopf (Rechenlast, Arbeitsspeicher, Latenz) + Pedal-Fenster allgemein + Kopf-Knöpfe schließen sich gegenseitig
 import asyncio
 from playwright.async_api import async_playwright
@@ -13,7 +14,8 @@ async def main():
             pg = await b.new_page(viewport={'width': w, 'height': h}); pg.on('pageerror', lambda e: errs.append(str(e)))
             await pg.goto('http://localhost:8765/index.html'); await pg.wait_for_timeout(800)
             if name == 'ipad':
-                check('Version v34', 'v34' in await pg.inner_text('.brand'))
+                _br = await pg.inner_text('.brand'); _m = re.search(r'v(\d+)', _br)
+                check('Version ab v34', bool(_m) and int(_m.group(1)) >= 34, _br)
                 check('Leistung zu: misst nicht', await pg.evaluate("document.getElementById('perfPop').hidden"))
                 await pg.click('#perfBtn'); await pg.wait_for_timeout(2600)
                 v = await pg.evaluate("['pfCpu','pfFps','pfMemCur','pfMemHist','pfHeap','pfLatBase','pfLatIn','pfAud'].map(i=>document.getElementById(i).textContent)")
