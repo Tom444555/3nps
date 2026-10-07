@@ -1,6 +1,6 @@
 # 3nps Looper – Übergabe (vollständiger Stand)
 
-Stand: **7. Oktober 2026 · Version v31** – live unter https://tom444555.github.io/3nps/ ·
+Stand: **7. Oktober 2026 · Version v32** – live unter https://tom444555.github.io/3nps/ ·
 stabile Rückfall-Fassung **v24** unter https://tom444555.github.io/3nps/stabil/
 
 Diese Datei ist das Gedächtnis des Projekts. Alles, was ein neuer Chat wissen muss, steht hier –
@@ -58,7 +58,8 @@ Danach als Kurzprüfung: `cd /home/claude/3nps/test && node liedcheck.js && pyth
 6. Branch `entwicklung` nachziehen: geänderte Dateien nach `/home/claude/3nps-src` kopieren (inkl. `app/www/index.html`,
    neue Tests/Generatoren, diese Datei), committen, pushen.
 
-Stolperfallen: `pkill -f` mit zu allgemeinem Muster beendet die eigene Shell → gezielt PIDs beenden.
+Stolperfallen: Karten sind im Grundstil senkrechte Flexboxen – für eine Zeile `flex-direction: row` setzen.
+Der Testserver stirbt zwischen den Zügen → vor jedem Test `sh test/srv.sh`. `pkill -f` mit zu allgemeinem Muster beendet die eigene Shell → gezielt PIDs beenden.
 `raw.githubusercontent.com` und fremde Seiten sind aus der Sitzung gesperrt, PyPI teils auch (z. B. `mido` fehlt) →
 eigene kleine Leser/Schreiber verwenden (MIDI-Leser steht in `test/liedexport.js`).
 
@@ -68,6 +69,8 @@ Reihenfolge der Reiter (intern `id`): **Looper** (`looper`) · **Quintenzirkel**
 **Backing Track** (`jam`) · **Songwriting** (`lied`) · **Training** (`ueben`) · **Technik** (`griffbrett`).
 IDs `tab-…`/`panel-…`. Begleitung (Drone, Drums, Bass), alter Song-Player und Übungslog sind Karten im Reiter Technik.
 
+- **„App · Optik“** (v32): kleines, flaches Fenster ganz oben im Reiter Looper (über der Looper-Karte), Auswahl `#appTheme`.
+  „Alles sichern“/„Sicherung laden“ stehen weiter unten in der Karte „App · Sicherung“.
 - **Looper:** 3 Stereo-Spuren, Aufnahme/Overdub per Fußtaster, Rückgängig, Editor (Auswahl, Takt-Eins verschieben, ½/2× Tempo),
   Datei laden (Loop- oder Song-Erkennung mit Takt/Tempo), Drums/Drone, EQ, Sitzungen, Autosicherung, „Für Logic exportieren“
   (Loop), **„→ Song“** (Loop als Teil in einen Song, unten in der Zeile mit „Alle starten“). Spurkopf: Tonart unter „Spur N“,
@@ -147,10 +150,10 @@ IDs `tab-…`/`panel-…`. Begleitung (Drone, Drums, Bass), alter Song-Player un
 - **Anzeige:** `playFrame()` = hörbare Position; „Was passt“-Box mit fester Höhe (iPad 168 px, schmal 240 px, iPhone 236 px) –
   nichts darf beim Mitlaufen springen.
 
-## 8. Tests und erwartete Ergebnisse (v31)
+## 8. Tests und erwartete Ergebnisse (v32)
 
 Browser (Playwright, Testserver 8765, **nacheinander**):
-`v31export.py` 14/14 · `v30text.py` 27/27 · `v28lied.py` 34/34 · `v28sync.py` 6/6 · `v27passt.py` 17/17 · `passthoehe.py` 8/8 ·
+`v31export.py` 14/14 (prüft Versionsmarke – bei jeder Version anpassen) · `v30text.py` 27/27 · `v28lied.py` 34/34 · `v28sync.py` 6/6 · `v27passt.py` 17/17 · `passthoehe.py` 8/8 ·
 `v25grips.py` 10/10 · `v25jam.py` 21/21 · `v25listen.py` 9/9 · `v25ueben.py` 28/28 · `v25stress.py` 6/6 · `tempotest.py` 3/3 ·
 `v24solo.py` 22/22 · `v22key.py` 7/7 · `v21test.py` 8/8 · `v21tabs.py` 18/18 · `v20test.py` 14/14 · `suite.py` 81/81 · `stereotest.py` 16/16 ·
 `eqtest.py` 9/9 · `restoretest.py` 7/7 · `backuptest.py` 7/7 · `csptest.py` (keine fremden Anfragen) · `rec_fit.py 1` 10/10 ·
@@ -183,6 +186,7 @@ Testaudio-Generatoren (alle deterministisch, von `wiederherstellen.sh` aufgerufe
 | v29 | „Was passt“-Box flacher, feste Höhe, Charakterton neben dem Satz |
 | v30 | Songwriting Schritt 3–4: Text (Silben/Reime), Leadsheet-PDF, Song-Code mit Claude |
 | v31 | Schritt 5: ganzer Song für Logic (WAV, MIDI mit Abschnitten/Akkorden/Bass/Drums/Text); langsame Dateien nicht mehr doppelt |
+| v32 | Optik-Auswahl als kleines Fenster „App · Optik“ ganz oben im Looper (eine Zeile, auch auf dem iPhone) |
 
 ## 10. Bekannte Grenzen
 
