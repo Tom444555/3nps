@@ -419,3 +419,13 @@ Gut zu wissen
    - „Anheften“: Das Fenster bleibt offen (auch nach Neustart) und lässt sich an der Titelzeile
      (⠿ Leistung) mit dem Finger frei verschieben – Ziehen heftet es automatisch an. Die Stelle
      wird gespeichert. „Kompakt“ zeigt nur die fünf wichtigsten Werte. ✕ schließt und löst das Anheften.
+
+34. Wenn der Eingang nicht aufgeht (v36)
+   - Die App sagt jetzt genau, woran es liegt:
+     „Kein Zugriff“ → Mikrofon für Safari/die App erlauben (iPad-Einstellungen → Datenschutz → Mikrofon).
+     „Kein Audio-Eingang gefunden“ → Interface anschließen/einschalten, dann erneut tippen.
+     „Gerade belegt“ → eine andere Audio-App (z. B. Logic Pro, GarageBand) hält den Eingang.
+       Diese App ganz schließen (App-Umschalter, nach oben wischen) und erneut tippen.
+   - Bei „belegt“ versucht die App es von selbst ein zweites Mal.
+   - Die letzte Ursache steht auch im Fenster „Leistung“ unten.
+   - Zum Vergleich: die stabile Fassung unter …/3nps/stabil/ öffnen und dort „Eingang öffnen“.
