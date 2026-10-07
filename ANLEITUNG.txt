@@ -429,3 +429,15 @@ Gut zu wissen
    - Bei „belegt“ versucht die App es von selbst ein zweites Mal.
    - Die letzte Ursache steht auch im Fenster „Leistung“ unten.
    - Zum Vergleich: die stabile Fassung unter …/3nps/stabil/ öffnen und dort „Eingang öffnen“.
+
+35. Wiedergabe stockt mit USB-Verstärker (z. B. Positive Grid Reactor 50) (v37)
+   - Typisch: Ohne Drums läuft alles rund, mit Drums hängt es ab und zu. Ursache ist meist ein
+     sehr kleiner Audio-Puffer, den iPadOS mit dem USB-Gerät aushandelt.
+   - Abhilfe 1: Looper → „Leistung“ → „Stabil – großer Audio-Puffer“ wählen, App ganz schließen
+     und neu öffnen. Den Gitarrenton hörst du weiter direkt aus dem Verstärker. Der Latenz-
+     Ausgleich zieht beim nächsten „Eingang öffnen“ automatisch nach.
+   - Abhilfe 2: bei den Drums „Raum“ ausschalten (der Raumhall ist das Rechenintensivste).
+   - Merkt die App mehrere Hänger bei laufenden Drums, schlägt sie das selbst vor.
+   - Im Fenster „Leistung“ zeigen „Audio-Hänger“ und „Drums zu spät“, ob es besser geworden ist.
+   - Wechselst du das Gerät (Spark LIVE ↔ Reactor) oder den Puffer, passt die App den
+     Latenz-Ausgleich um die Differenz an; deine eigene Feineinstellung bleibt erhalten.
