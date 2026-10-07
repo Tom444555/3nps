@@ -142,7 +142,7 @@ Alles geht direkt auf dem iPad, ohne Computer.
      nimmt (z. B. GarageBand oder Logic Pro), als WAV exportieren und hier in eine Spur laden.
    - Mono-Dateien und Mono-Aufnahmen werden nur einmal gespeichert (spart Speicher).
 
-13. Optik (Looper → Karte „App · Optik und Sicherung“)
+13. Optik (Looper → kleines Fenster „App · Optik“ ganz oben)
    - „Nordisch“: Eis, Rost und Runen (bisherige Optik).
    - „Metal“: schwarzer Stahl, Riffelblech, Pyramiden-Nieten, Chrom und Blutrot.
      Spurfarben Chrom, Glut und Messing; die Anzeige oben leuchtet rot wie ein Verstärker.

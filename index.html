@@ -563,6 +563,11 @@
   /* Akkordleiste unter der Wellenform: Breite je Akkord = Dauer, der klingende Akkord leuchtet */
   .ed-chords { font: 700 0.86rem var(--f-mono); color: var(--ink); line-height: 1.5; word-break: break-word; }
   .ed-chords b { color: var(--tc); font-weight: 700; }
+
+/* v32: kleines Fenster „App · Optik“ ganz oben im Looper-Reiter – eine flache Zeile */
+.optik-card { display: flex; flex-direction: row; align-items: center; justify-content: flex-start; gap: 12px; flex-wrap: nowrap; padding-top: 8px; padding-bottom: 8px; }
+.optik-card h2 { margin: 0; font-size: 0.95rem; white-space: nowrap; text-align: left; flex: 0 0 auto; }
+.optik-card select { flex: 1 1 0; text-overflow: ellipsis; width: auto; min-width: 0; max-width: 420px; height: 40px; min-height: 40px; }
   /* ---- Quintenzirkel ---- */
   .qz-card { flex-direction: row; flex-wrap: wrap; align-items: flex-start; gap: 18px; }
   .qz-wrap { flex: 1 1 380px; max-width: 560px; margin: 0 auto; }
@@ -1534,7 +1539,7 @@
 <body>
 <header class="control-bar">
   <div class="cb-inner">
-    <div class="brand">Looper <span>3nps · v31</span></div>
+    <div class="brand">Looper <span>3nps · v32</span></div>
     <div class="transport">
       <button class="tbtn" id="playBtn" aria-label="Metronom starten oder stoppen">▶</button>
     </div>
@@ -1693,6 +1698,16 @@
 
   <!-- Looper -->
   <section class="panel" id="panel-looper" role="tabpanel" aria-labelledby="tab-looper" hidden>
+    <div class="card optik-card">
+      <h2>App · Optik</h2>
+        <select id="appTheme" aria-label="App-Optik">
+          <option value="nordic">Nordisch – Eis, Rost und Runen</option>
+          <option value="metal">Metal – Stahl, Nieten und Blutrot</option>
+          <option value="amp">Verstärker – Tolex, Alu-Front und Röhrenglühen</option>
+          <option value="ice">Eiswand – raues Gletschereis und Frost</option>
+        </select>
+    </div>
+
     <div class="card looper-card">
       <div class="card-head"><h2>Looper</h2><span class="caption" id="loopInfo">Kein Loop</span></div>
       <div class="looper-top">
@@ -2013,15 +2028,7 @@
     </div>
 
     <div class="card app-card">
-      <h2>App · Optik und Sicherung</h2>
-      <label class="field"><span>Optik</span>
-        <select id="appTheme">
-          <option value="nordic">Nordisch – Eis, Rost und Runen</option>
-          <option value="metal">Metal – Stahl, Nieten und Blutrot</option>
-          <option value="amp">Verstärker – Tolex, Alu-Front und Röhrenglühen</option>
-          <option value="ice">Eiswand – raues Gletschereis und Frost</option>
-        </select>
-      </label>
+      <h2>App · Sicherung</h2>
       <div class="row install-row" id="installRow" hidden>
         <button class="toggle-btn active" id="appInstall">Als App installieren</button>
       </div>
