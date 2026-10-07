@@ -68,6 +68,7 @@
     else if (!L || !L.mic) note += 'Für Eingangswerte im Looper „Eingang öffnen“. ';
     else note += 'Was du beim Spielen direkt hörst, kommt über den Direkt-Ausgang des Interfaces ohne diese Verzögerung. ';
     if (L && L.gaps) note += 'Aussetzer: das iPad kam mit dem Eingang nicht hinterher.';
+    if (L && !L.mic && L.micErr) note = 'Eingang ließ sich nicht öffnen – Ursache: ' + L.micErr + '. ' + note;
     set('pfNote', note.trim());
   }
 

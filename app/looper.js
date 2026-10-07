@@ -219,21 +219,51 @@ const Looper = (() => {
     if (micReady) { setStatus('Der Eingang ist offen. Die Pegelanzeigen neben den Spuren zeigen dein Signal.'); return; }
     if (await ensureMic()) setStatus('Eingang offen: Die Pegelanzeigen neben den Spuren zeigen jetzt dein Signal.');
   });
-  async function ensureMic() {
+  // Öffnen läuft höchstens einmal gleichzeitig (Doppeltippen, REC während des Öffnens)
+  let micOpening = null;
+  function ensureMic() {
+    if (micReady) { ensureAudio(); sr = audioCtx.sampleRate; return Promise.resolve(true); }
+    if (micOpening) return micOpening;
+    micOpening = ensureMicInner().finally(() => { micOpening = null; if (!micReady) { monBtn.textContent = 'Eingang öffnen'; monBtn.disabled = false; } });
+    return micOpening;
+  }
+  // Wartet höchstens ms Millisekunden; danach gilt der Schritt als fehlgeschlagen
+  const within = (p, ms) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(Object.assign(new Error('Zeitüberschreitung'), { name: 'Timeout' })), ms))]);
+  async function ensureMicInner() {
     ensureAudio();
     sr = audioCtx.sampleRate;
     if (micReady) return true;
+    monBtn.textContent = 'Öffne …'; monBtn.disabled = true;
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       setStatus('Dieses Gerät erlaubt hier keine Aufnahme. Öffne die App über das Icon auf dem Home-Bildschirm.');
       return false;
     }
     try {
       if (navigator.audioSession) { try { navigator.audioSession.type = 'play-and-record'; } catch (e) {} }
-      stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: { ideal: 2 }, sampleRate: { ideal: audioCtx.sampleRate } } });
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: { ideal: 2 }, sampleRate: { ideal: audioCtx.sampleRate } } });
+      } catch (e1) {
+        // Gerät belegt oder Einstellungen passen nicht → einmal mit einfachsten Einstellungen nachfassen
+        if (!/^(NotReadableError|AbortError|OverconstrainedError|NotFoundError|ConstraintNotSatisfiedError|TrackStartError)$/.test(e1 && e1.name)) throw e1;
+        await new Promise(r => setTimeout(r, 600));
+        try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }); }
+        catch (e2) { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+      }
     } catch (e) {
-      setStatus('Kein Zugriff aufs Mikrofon. Erlaube ihn in den iPad-Einstellungen unter Datenschutz → Mikrofon bzw. für die Website in Safari.');
+      const n = (e && e.name) || '';
+      lastMicError = n || String(e);
+      if (/^(NotAllowedError|SecurityError|PermissionDeniedError)$/.test(n))
+        setStatus('Kein Zugriff aufs Mikrofon. Erlaube ihn in den iPad-Einstellungen unter Datenschutz → Mikrofon bzw. für die Website in Safari (aA → Website-Einstellungen → Mikrofon).');
+      else if (/^(NotFoundError|OverconstrainedError|ConstraintNotSatisfiedError|DevicesNotFoundError)$/.test(n))
+        setStatus('Kein Audio-Eingang gefunden. Ist das Interface (z. B. Spark LIVE) angeschlossen und eingeschaltet? Dann erneut „Eingang öffnen“.');
+      else if (/^(NotReadableError|AbortError|TrackStartError)$/.test(n))
+        setStatus('Der Eingang ist gerade belegt – meist von einer anderen Audio-App (z. B. Logic Pro, GarageBand) im Hintergrund. Diese App ganz schließen (im App-Umschalter nach oben wischen) und erneut „Eingang öffnen“.');
+      else
+        setStatus('Der Eingang ließ sich nicht öffnen (' + (n || 'unbekannt') + '). Tippe erneut auf „Eingang öffnen“; hilft das nicht, die App einmal ganz schließen und neu starten.');
       return false;
     }
+    // iPadOS hält Audio nach Anrufen/Siri/anderen Apps manchmal an („interrupted“) → wieder starten
+    if (audioCtx.state !== 'running') { try { await within(audioCtx.resume(), 2000); } catch (e) {} }
     stream.getAudioTracks().forEach(tr => tr.addEventListener('ended', () => micLost()));
     micSource = audioCtx.createMediaStreamSource(stream);
     sinkNode = audioCtx.createGain(); sinkNode.gain.value = 0;
@@ -247,7 +277,7 @@ const Looper = (() => {
           if(this.n+c.length>this.a.length)this.flush();return true;}}
           registerProcessor('tap',Tap);`;
         const url = URL.createObjectURL(new Blob([code], { type: 'application/javascript' }));
-        await audioCtx.audioWorklet.addModule(url);
+        await within(audioCtx.audioWorklet.addModule(url), 4000);   // hängt es, nimmt der Ausweichweg unten
         tapNode = new AudioWorkletNode(audioCtx, 'tap', { numberOfInputs: 1, numberOfOutputs: 1, channelCount: 2, channelCountMode: 'explicit', outputChannelCount: [1] });
         tapNode.port.onmessage = e => handleChunk(e.data.f, SP(e.data.l, e.data.r));
         workletOk = true;
@@ -266,7 +296,7 @@ const Looper = (() => {
       savePref('3nps-latency', latEl.value);
     }
     latVal.textContent = latEl.value + ' ms';
-    micReady = true; perfIn.next = -1; perfIn.n = 0;
+    micReady = true; perfIn.next = -1; perfIn.n = 0; lastMicError = ''; monBtn.disabled = false;
     try { const st = stream.getAudioTracks()[0].getSettings(); inChans = st.channelCount || 0; } catch (e) { inChans = 0; }
     showInChans();
     $('panel-looper').classList.add('mic-on');
@@ -341,6 +371,7 @@ const Looper = (() => {
   }
   // Leistungsanzeige: Lücken im Eingangsstrom und wie spät die Blöcke ankommen (nur Zählen, keine Arbeit)
   const perfIn = { next: -1, gaps: 0, lagMs: 0, lagMax: 0, n: 0 };
+  let lastMicError = '';
   function handleChunk(startFrame, data) {
     { const len = data.l.length; if (perfIn.next >= 0 && perfIn.n > 25 && startFrame - perfIn.next > 128) perfIn.gaps++; perfIn.next = startFrame + len;
       if (audioCtx) { const lag = (audioCtx.currentTime * sr - perfIn.next) / sr * 1000; perfIn.lagMs = perfIn.lagMs * 0.9 + lag * 0.1; if (lag > perfIn.lagMax) perfIn.lagMax = lag; perfIn.n++; } }
@@ -2513,7 +2544,7 @@ const Looper = (() => {
     themeChanged: () => readNeon(), _zip: files => makeZip(files),
     _mem: () => memState(),
     perf: () => { let inLat = null, inSr = null; try { const st = stream && stream.getAudioTracks()[0].getSettings(); if (st) { inLat = typeof st.latency === 'number' ? st.latency : null; inSr = st.sampleRate || null; } } catch (e) {}
-      const m = memState(); const r = { mic: micReady, sr, inLat, inSr, inChans, comp: parseInt(latEl.value || '0'), curMB: m.curMB, histMB: m.histMB, histMax: HIST_MB, gaps: perfIn.gaps, lagMs: perfIn.lagMs, lagMax: perfIn.lagMax };
+      const m = memState(); const r = { mic: micReady, sr, inLat, inSr, inChans, comp: parseInt(latEl.value || '0'), curMB: m.curMB, histMB: m.histMB, histMax: HIST_MB, gaps: perfIn.gaps, lagMs: perfIn.lagMs, lagMax: perfIn.lagMax, micErr: lastMicError };
       perfIn.lagMax = 0; return r; }, autosaveNow: () => doAutosave(), autosaveOn: v => { autoReady = v !== false; },
     _stereo: i => { const t = tracks[i]; if (!t || !t.mix) return null; const x = t.mix; let a = 0, b = 0, ab = 0; for (let k = 0; k < x.length; k += 4) { a += x.l[k] * x.l[k]; b += x.r[k] * x.r[k]; ab += x.l[k] * x.r[k]; } const n = Math.ceil(x.length / 4); return { L: t.L, shared: x.r === x.l, rmsL: Math.sqrt(a / n), rmsR: Math.sqrt(b / n), corr: ab / Math.sqrt(a * b + 1e-20), layers: t.layers.map(ly => ly.r === ly.l ? 1 : 2), inInfo: ($('inChanInfo') || {}).textContent, stereoSeen, inChans }; },
     debug: () => ({ mic: micReady, sr, baseL, anchor, now: nowFrame(), countEnd, bpm: bpm(), drums: Object.assign({}, Rhythm.debug(), { on: Rhythm.on() }), level, drone: droneOn, tracks: tracks.map(t => ({ L: t.L, state: t.state, origPos: t.origPos, layers: t.layers.length, orig: t.orig ? { bars: t.orig.bars, downs: t.orig.downs.slice(0, 64), loopFile: t.orig.loopFile, bpm: t.orig.bpm } : null, key: t.key ? Analyzer.label(t.key) : null })) }),

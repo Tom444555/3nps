@@ -122,7 +122,7 @@ open(A + 'www/index.html', 'w', encoding='utf8').write(app)
 # --- Vorschau für Claude ---
 pv = '<title>Looper-Vorschau</title>\n' + FONTS + '\n' + EARLY + '<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>\n' + body
 pv = pv.replace("let start = 'griffbrett';", "let start = 'looper';")
-old_mic = "setStatus('Kein Zugriff aufs Mikrofon. Erlaube ihn in den iPad-Einstellungen unter Datenschutz → Mikrofon bzw. für die Website in Safari.');"
+old_mic = "setStatus('Kein Zugriff aufs Mikrofon. Erlaube ihn in den iPad-Einstellungen unter Datenschutz → Mikrofon bzw. für die Website in Safari (aA → Website-Einstellungen → Mikrofon).');"
 assert old_mic in pv
 pv = pv.replace(old_mic, "setStatus('In der Vorschau ist das Mikrofon gesperrt. Nimm den Demo-Loop oben, in der App funktioniert die Aufnahme.');")
 banner = '''<div class="card preview-note">
