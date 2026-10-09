@@ -141,6 +141,6 @@
     } else $('passtNx').textContent = '\u00a0';
     $('passtMv').innerHTML = mv;
   }
-  setInterval(tick, 120);
+  setInterval(() => { if (!window.__live) tick(); }, 120);
   window.PasstBox = { tick, hold: () => hold.on, state: () => ({ hidden: box.hidden, open, held: hold.on, chord: $('passtCh').textContent, scale: $('passtSc').textContent }) };
 })();

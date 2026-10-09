@@ -184,6 +184,10 @@
     background: rgba(12,14,18,.96); border: 1px solid rgba(255,255,255,.18); box-shadow: 0 10px 30px rgba(0,0,0,.6); width: min(340px, calc(100vw - 32px)); }
   .optik-pop[hidden] { display: none; }
   .hdr-btns { display: flex; gap: 6px; }
+  .live-btn[aria-pressed="true"] { background: #e5251b !important; border-color: #e5251b !important; color: #fff !important; box-shadow: 0 0 10px rgba(229,37,27,.5) !important; }
+  .pf-logh { display: flex; align-items: center; gap: 6px; } .pf-logh .pf-hbtn { margin-left: auto; } .pf-logh .pf-hbtn + .pf-hbtn { margin-left: 0; }
+  .pf-log { margin: 4px 0 0; height: 7.6em; overflow: auto; font: 500 .66rem/1.35 var(--f-mono); white-space: pre-wrap; opacity: .9;
+    background: rgba(0,0,0,.25); border-radius: 4px; padding: 4px 6px; -webkit-user-select: text; user-select: text; }
   .pf-head { display: flex; align-items: center; gap: 6px; margin: -4px -4px 6px; padding: 2px 4px 6px; border-bottom: 1px solid rgba(255,255,255,.1);
     cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; }
   .pf-grip { opacity: .55; font-size: .9rem; } .pf-title { flex: 1; font: 700 .62rem/1 var(--f-body); letter-spacing: .12em; text-transform: uppercase; opacity: .8; }
@@ -211,10 +215,11 @@
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v37</span></div>
+      <div class="brand">Looper <span>3nps · v38</span></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
+        <button class="optik-btn live-btn" id="liveBtn" aria-pressed="false" title="Live: während des Loopens keine Analyse, keine Sicherung, ruhige Anzeigen – wird beim Ausschalten nachgeholt">Live</button>
       </div>
       <div class="optik-pop" id="optikPop" hidden>
         <select id="appTheme" aria-label="App-Optik">
@@ -255,6 +260,8 @@
         <div class="pf-row pf-sum"><span>Eingang → Ohr</span><span></span><b id="pfLatSum">–</b></div>
         <div class="pf-row pf-more"><span>Ausgleich</span><span></span><b id="pfLatComp">–</b></div>
         <p class="pf-note" id="pfNote"></p>
+        <div class="pf-sec pf-logh pf-more">Hänger-Protokoll <button class="pf-hbtn" id="pfCopy">Kopieren</button> <button class="pf-hbtn" id="pfClear">Leeren</button></div>
+        <pre class="pf-log pf-more" id="pfLog">noch keine Hänger</pre>
       </div>
     </div>
     <div class="transport">

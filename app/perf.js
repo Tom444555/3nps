@@ -106,7 +106,7 @@
         rc.start({ updateInterval: 1 });
       } else if (rc) rc.start({ updateInterval: 1 });
     } catch (e) { rc = null; }
-    show();
+    show(); showLog();
   }
   function stop() {
     clearInterval(timer); timer = 0; cancelAnimationFrame(raf); raf = 0;
@@ -198,11 +198,13 @@
   setInterval(() => {
     const ctx = typeof audioCtx !== 'undefined' ? audioCtx : null, now = performance.now();
     const drums = typeof Rhythm !== 'undefined' && Rhythm.on && Rhythm.on();
-    if (!ctx || ctx.state !== 'running' || !drums || document.hidden) { wd.t = 0; return; }
+    if (!ctx || ctx.state !== 'running' || document.hidden) { wd.t = 0; return; }
     if (!wd.t) { wd.t = now; wd.a = ctx.currentTime; return; }
-    const wall = now - wd.t, lag = wall - (ctx.currentTime - wd.a) * 1000;
+    const t0 = wd.t, wall = now - wd.t, lag = wall - (ctx.currentTime - wd.a) * 1000;
     wd.t = now; wd.a = ctx.currentTime;
     if (wall > 3000 || lag <= 30) return;
+    logHang(t0, now, lag, drums);
+    if (!drums) return;
     wd.hits.push(now); while (wd.hits.length && now - wd.hits[0] > 60000) wd.hits.shift();
     if (wd.hits.length < 3 || wd.told) return;
     wd.told = true;
@@ -212,6 +214,36 @@
       : 'Die Wiedergabe stockt ab und zu (häufig mit USB-Verstärkern). Abhilfe: unter „Leistung“ „Stabil – großer Audio-Puffer“ wählen und die App neu starten, oder bei den Drums „Raum“ ausschalten.';
     const el = document.getElementById('loopStatus'); if (el) el.textContent = msg;
   }, 1000);
+
+  // ---- Hänger-Protokoll: Uhrzeit, Dauer und was die App in dieser Sekunde tat (± 0,5 s) ----
+  const hangLog = [];
+  const two = n => (n < 10 ? '0' : '') + n;
+  function logHang(t0, t1, lag, drums) {
+    const evs = (window.__appEv || []).filter(e => e[0] >= t0 - 500 && e[0] <= t1 + 100).map(e => e[1]);
+    const d = new Date();
+    const state = [window.__live ? 'Live' : '', drums ? 'Drums' : '', (typeof Looper !== 'undefined' && Looper.debug && Looper.debug().mic) ? 'Eingang' : ''].filter(Boolean).join('+');
+    hangLog.push(two(d.getHours()) + ':' + two(d.getMinutes()) + ':' + two(d.getSeconds()) + '  ' + Math.round(lag) + ' ms  ' +
+      (evs.length ? 'App: ' + [...new Set(evs)].join(', ') : 'App: nichts') + (state ? '  [' + state + ']' : ''));
+    if (hangLog.length > 300) hangLog.splice(0, 100);
+    showLog();
+  }
+  const logEl = $('pfLog');
+  function logText() {
+    const n = hangLog.length, ext = hangLog.filter(l => l.includes('App: nichts')).length;
+    return n ? 'Hänger: ' + n + ' · davon ohne App-Ereignis: ' + ext + '\n' + hangLog.slice().reverse().join('\n') : 'noch keine Hänger';
+  }
+  function showLog() { if (logEl && open) logEl.textContent = logText(); }
+  const cpyBtn = $('pfCopy'), clrBtn = $('pfClear');
+  if (cpyBtn) cpyBtn.addEventListener('click', () => {
+    const txt = '3nps-Looper Hänger-Protokoll ' + new Date().toLocaleString('de-DE') + '\n' + logText();
+    const ok = () => { cpyBtn.textContent = 'Kopiert ✓'; setTimeout(() => { cpyBtn.textContent = 'Kopieren'; }, 1500); };
+    try { navigator.clipboard.writeText(txt).then(ok, () => { selectLog(); }); } catch (e) { selectLog(); }
+  });
+  function selectLog() { try { const r = document.createRange(); r.selectNodeContents(logEl); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); cpyBtn.textContent = 'markiert – kopieren'; } catch (e) {} }
+  if (clrBtn) clrBtn.addEventListener('click', () => { hangLog.length = 0; showLog(); });
+  document.addEventListener('tabchange', e => { if (window.__appEvent) window.__appEvent('Reiter ' + e.detail); });
+  document.addEventListener('rhythm', e => { if (window.__appEvent) window.__appEvent(e.detail && e.detail.on ? 'Drums an' : 'Drums aus'); });
+  document.addEventListener('visibilitychange', () => { if (window.__appEvent) window.__appEvent(document.hidden ? 'App im Hintergrund' : 'App vorne'); });
 
   window.PerfView = { open: () => setOpen(true), close: () => setOpen(false), pin: setPin, state: () => Object.assign({ open }, st) };
 })();

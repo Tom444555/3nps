@@ -202,6 +202,10 @@
     background: rgba(12,14,18,.96); border: 1px solid rgba(255,255,255,.18); box-shadow: 0 10px 30px rgba(0,0,0,.6); width: min(340px, calc(100vw - 32px)); }
   .optik-pop[hidden] { display: none; }
   .hdr-btns { display: flex; gap: 6px; }
+  .live-btn[aria-pressed="true"] { background: #e5251b !important; border-color: #e5251b !important; color: #fff !important; box-shadow: 0 0 10px rgba(229,37,27,.5) !important; }
+  .pf-logh { display: flex; align-items: center; gap: 6px; } .pf-logh .pf-hbtn { margin-left: auto; } .pf-logh .pf-hbtn + .pf-hbtn { margin-left: 0; }
+  .pf-log { margin: 4px 0 0; height: 7.6em; overflow: auto; font: 500 .66rem/1.35 var(--f-mono); white-space: pre-wrap; opacity: .9;
+    background: rgba(0,0,0,.25); border-radius: 4px; padding: 4px 6px; -webkit-user-select: text; user-select: text; }
   .pf-head { display: flex; align-items: center; gap: 6px; margin: -4px -4px 6px; padding: 2px 4px 6px; border-bottom: 1px solid rgba(255,255,255,.1);
     cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; }
   .pf-grip { opacity: .55; font-size: .9rem; } .pf-title { flex: 1; font: 700 .62rem/1 var(--f-body); letter-spacing: .12em; text-transform: uppercase; opacity: .8; }
@@ -1988,10 +1992,11 @@
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v37</span></div>
+      <div class="brand">Looper <span>3nps · v38</span></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
+        <button class="optik-btn live-btn" id="liveBtn" aria-pressed="false" title="Live: während des Loopens keine Analyse, keine Sicherung, ruhige Anzeigen – wird beim Ausschalten nachgeholt">Live</button>
       </div>
       <div class="optik-pop" id="optikPop" hidden>
         <select id="appTheme" aria-label="App-Optik">
@@ -2032,6 +2037,8 @@
         <div class="pf-row pf-sum"><span>Eingang → Ohr</span><span></span><b id="pfLatSum">–</b></div>
         <div class="pf-row pf-more"><span>Ausgleich</span><span></span><b id="pfLatComp">–</b></div>
         <p class="pf-note" id="pfNote"></p>
+        <div class="pf-sec pf-logh pf-more">Hänger-Protokoll <button class="pf-hbtn" id="pfCopy">Kopieren</button> <button class="pf-hbtn" id="pfClear">Leeren</button></div>
+        <pre class="pf-log pf-more" id="pfLog">noch keine Hänger</pre>
       </div>
     </div>
     <div class="transport">
@@ -7265,6 +7272,10 @@ const Looper = (() => {
   let level = 0, levelL = 0, levelR = 0, rafId = null, peakHold = 0;
   let cap = null;      // Mitschnitt rund um die erste Aufnahme (für das Eintakten)
 
+  // Ereignisse der App für das Hänger-Protokoll (Ringpuffer, nur Zeitstempel + Name)
+  const evLog = window.__appEv = window.__appEv || [];
+  const ev = name => { evLog.push([performance.now(), name]); if (evLog.length > 200) evLog.splice(0, 100); };
+  window.__appEvent = ev;
   function loadPref(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } }
   function savePref(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
   latEl.value = loadPref('3nps-latency', '');
@@ -7433,6 +7444,20 @@ const Looper = (() => {
   function droneFollow(start) { if (dSync.checked) setDrone(start); }
   applyDroneKey();
 
+  // ---- Live: während des Loopens nichts im Hintergrund (Analyse, Sicherung, mitlaufende Anzeigen) ----
+  const liveBtn = $('liveBtn');
+  function setLive(v) {
+    window.__live = !!v; savePref('3nps-live', v ? '1' : '0'); ev(v ? 'Live an' : 'Live aus');
+    if (liveBtn) { liveBtn.setAttribute('aria-pressed', String(!!v)); liveBtn.textContent = v ? '● Live' : 'Live'; }
+    document.documentElement.classList.toggle('live', !!v);
+    if (!v) {                                           // Nachholen: Analyse der geänderten Spuren, dann Sicherung
+      tracks.forEach(t => { if (t.livePend) { t.livePend = false; if (t.L) detectTrackKey(t); } });
+      if (livePendSave) { livePendSave = false; markDirty(); }
+    }
+    kick();
+  }
+  if (liveBtn) liveBtn.addEventListener('click', () => { setLive(!window.__live); setStatus(window.__live ? 'Live an: keine Analyse, keine Sicherung, ruhige Anzeigen. Beim Ausschalten wird alles nachgeholt.' : 'Live aus: Analyse und Sicherung nachgeholt.'); });
+  window.__live = loadPref('3nps-live', '0') === '1'; setTimeout(() => setLive(window.__live), 0);
   // ---- Leistung: „sparsam“ entlastet das iPad (z. B. beim Laden, wenn es warm wird) ----
   const perfEl = $('perfMode');
   perfEl.value = loadPref('3nps-perf', 'auto');
@@ -7566,7 +7591,7 @@ const Looper = (() => {
       savePref('3nps-lat-why', why);
     }
     latVal.textContent = latEl.value + ' ms';
-    micReady = true; perfIn.next = -1; perfIn.n = 0; lastMicError = ''; monBtn.disabled = false;
+    ev('Eingang offen'); micReady = true; perfIn.next = -1; perfIn.n = 0; lastMicError = ''; monBtn.disabled = false;
     try { const st = stream.getAudioTracks()[0].getSettings(); inChans = st.channelCount || 0; } catch (e) { inChans = 0; }
     showInChans();
     $('panel-looper').classList.add('mic-on');
@@ -7713,12 +7738,14 @@ const Looper = (() => {
   // ---- Automatische Sicherung der laufenden Sitzung (nach Absturz oder Neuladen wiederherstellbar) ----
   const AUTO_MAX_MB = 150;
   let autoTimer = null, autoBusy = false, autoReady = false;
-  function markDirty() { if (!autoReady) return; clearTimeout(autoTimer); autoTimer = setTimeout(doAutosave, 2500); }
+  let livePendSave = false;
+  function markDirty() { if (!autoReady) return; if (window.__live) { livePendSave = true; return; } clearTimeout(autoTimer); autoTimer = setTimeout(doAutosave, 2500); }
   async function doAutosave() {
     if (typeof AppDB === 'undefined') return;
     if (rec || autoBusy || ed.drag) { markDirty(); return; }
+    if (window.__live) { livePendSave = true; return; }
     try {
-      autoBusy = true;
+      autoBusy = true; ev('Sicherung');
       if (!anyContent()) { await AppDB.del('meta', 'autosave'); return; }
       const est = tracks.reduce((a, t) => a + (t.L && t.mix ? t.L * (t.mix.r === t.mix.l ? 1 : 2) * 3 : 0), 0) / 1048576;
       if (est > AUTO_MAX_MB) { if (!doAutosave.told) { doAutosave.told = true; setStatus('Hinweis: Die Spuren sind sehr lang – die automatische Sicherung pausiert. Speichere wichtige Loops unter „Ideen“.'); } return; }
@@ -7899,7 +7926,7 @@ const Looper = (() => {
       for (let j = 0; j < raw.length; j++) { const k = mod(r.start + j - anchor, t.L); out.l[k] += raw.l[j]; if (st) out.r[k] += raw.r[j]; }
       t.layers = [out];
     }
-    rebuildMix(t);
+    rebuildMix(t); ev('Aufnahme Ende Spur ' + (t.i + 1));
     const al = r.kind === 'new' ? alignNewTake(t) : '';
     detectTrackKey(t);
     if (r.stopAfter) {
@@ -8426,7 +8453,7 @@ const Looper = (() => {
         const frac = Math.max(0, Math.min(1, prog - k));
         if (frac > 0) {
           ctx.beginPath(); ctx.arc(cx, cy, R, a0, a0 + (a1 - a0) * frac);
-          if (!dim && !window.__lite) { // Neon-Schein als breite, transparente Striche
+          if (!dim && !window.__lite && !window.__live) { // Neon-Schein als breite, transparente Striche
             ctx.strokeStyle = c; ctx.globalAlpha = 0.16; ctx.lineWidth = lw * 2.0; ctx.stroke();
             ctx.globalAlpha = 0.32; ctx.lineWidth = lw * 1.5; ctx.stroke();
           }
@@ -8573,7 +8600,7 @@ const Looper = (() => {
     const nowMs = performance.now();
     const visible = !panelEl.hidden && !document.hidden;
     if (visible) watchJank(nowMs);
-    if (visible && nowMs - lastDraw >= (window.__lite ? 66 : 33)) {      // höchstens 30 (sparsam 15) Bilder pro Sekunde
+    if (visible && nowMs - lastDraw >= (window.__lite || window.__live ? 66 : 33)) {      // höchstens 30 (sparsam 15) Bilder pro Sekunde
       lastDraw = nowMs;
       const C = css || (css = colors());
       tracks.forEach(t => { drawRing(t, C); drawWave(t, C); });
@@ -9088,6 +9115,8 @@ const Looper = (() => {
   // Tonart
   async function detectTrackKey(t) {
     if (!t.L) return null;
+    if (window.__live) { t.livePend = true; return null; }
+    ev('Analyse Spur ' + (t.i + 1));
     scheduleChords(t);
     const xl = t.mix.l, xr = t.mix.r; let sum = 0, n = 0;
     for (let i = 0; i < xl.length; i += 16) { const v = (xl[i] + xr[i]) * 0.5; sum += v * v; n++; }
@@ -9126,6 +9155,7 @@ const Looper = (() => {
   // ---- Akkorde je Spur (im Hintergrund nach jeder Änderung, je Schlag erkannt) ----
   function scheduleChords(t, delay) {
     clearTimeout(t.chTimer);
+    if (window.__live) { t.livePend = true; return; }
     t.chTimer = setTimeout(() => { detectTrackChords(t).catch(() => {}); }, delay == null ? 300 : delay);
   }
   async function detectTrackChords(t) {
@@ -9812,7 +9842,7 @@ const Looper = (() => {
     exportLogic: () => exportLogic(),
     _micDrop: () => { if (stream) stream.getAudioTracks()[0].dispatchEvent(new Event('ended')); },
     themeChanged: () => readNeon(), _zip: files => makeZip(files),
-    _mem: () => memState(),
+    _mem: () => memState(), setLive: v => setLive(v),
     perf: () => { let inLat = null, inSr = null; try { const st = stream && stream.getAudioTracks()[0].getSettings(); if (st) { inLat = typeof st.latency === 'number' ? st.latency : null; inSr = st.sampleRate || null; } } catch (e) {}
       const m = memState(); const r = { mic: micReady, sr, inLat, inSr, inChans, comp: parseInt(latEl.value || '0'), curMB: m.curMB, histMB: m.histMB, histMax: HIST_MB, gaps: perfIn.gaps, lagMs: perfIn.lagMs, lagMax: perfIn.lagMax, micErr: lastMicError };
       perfIn.lagMax = 0; return r; }, autosaveNow: () => doAutosave(), autosaveOn: v => { autoReady = v !== false; },
@@ -10447,7 +10477,7 @@ const AppCfg = (() => {
         rc.start({ updateInterval: 1 });
       } else if (rc) rc.start({ updateInterval: 1 });
     } catch (e) { rc = null; }
-    show();
+    show(); showLog();
   }
   function stop() {
     clearInterval(timer); timer = 0; cancelAnimationFrame(raf); raf = 0;
@@ -10539,11 +10569,13 @@ const AppCfg = (() => {
   setInterval(() => {
     const ctx = typeof audioCtx !== 'undefined' ? audioCtx : null, now = performance.now();
     const drums = typeof Rhythm !== 'undefined' && Rhythm.on && Rhythm.on();
-    if (!ctx || ctx.state !== 'running' || !drums || document.hidden) { wd.t = 0; return; }
+    if (!ctx || ctx.state !== 'running' || document.hidden) { wd.t = 0; return; }
     if (!wd.t) { wd.t = now; wd.a = ctx.currentTime; return; }
-    const wall = now - wd.t, lag = wall - (ctx.currentTime - wd.a) * 1000;
+    const t0 = wd.t, wall = now - wd.t, lag = wall - (ctx.currentTime - wd.a) * 1000;
     wd.t = now; wd.a = ctx.currentTime;
     if (wall > 3000 || lag <= 30) return;
+    logHang(t0, now, lag, drums);
+    if (!drums) return;
     wd.hits.push(now); while (wd.hits.length && now - wd.hits[0] > 60000) wd.hits.shift();
     if (wd.hits.length < 3 || wd.told) return;
     wd.told = true;
@@ -10553,6 +10585,36 @@ const AppCfg = (() => {
       : 'Die Wiedergabe stockt ab und zu (häufig mit USB-Verstärkern). Abhilfe: unter „Leistung“ „Stabil – großer Audio-Puffer“ wählen und die App neu starten, oder bei den Drums „Raum“ ausschalten.';
     const el = document.getElementById('loopStatus'); if (el) el.textContent = msg;
   }, 1000);
+
+  // ---- Hänger-Protokoll: Uhrzeit, Dauer und was die App in dieser Sekunde tat (± 0,5 s) ----
+  const hangLog = [];
+  const two = n => (n < 10 ? '0' : '') + n;
+  function logHang(t0, t1, lag, drums) {
+    const evs = (window.__appEv || []).filter(e => e[0] >= t0 - 500 && e[0] <= t1 + 100).map(e => e[1]);
+    const d = new Date();
+    const state = [window.__live ? 'Live' : '', drums ? 'Drums' : '', (typeof Looper !== 'undefined' && Looper.debug && Looper.debug().mic) ? 'Eingang' : ''].filter(Boolean).join('+');
+    hangLog.push(two(d.getHours()) + ':' + two(d.getMinutes()) + ':' + two(d.getSeconds()) + '  ' + Math.round(lag) + ' ms  ' +
+      (evs.length ? 'App: ' + [...new Set(evs)].join(', ') : 'App: nichts') + (state ? '  [' + state + ']' : ''));
+    if (hangLog.length > 300) hangLog.splice(0, 100);
+    showLog();
+  }
+  const logEl = $('pfLog');
+  function logText() {
+    const n = hangLog.length, ext = hangLog.filter(l => l.includes('App: nichts')).length;
+    return n ? 'Hänger: ' + n + ' · davon ohne App-Ereignis: ' + ext + '\n' + hangLog.slice().reverse().join('\n') : 'noch keine Hänger';
+  }
+  function showLog() { if (logEl && open) logEl.textContent = logText(); }
+  const cpyBtn = $('pfCopy'), clrBtn = $('pfClear');
+  if (cpyBtn) cpyBtn.addEventListener('click', () => {
+    const txt = '3nps-Looper Hänger-Protokoll ' + new Date().toLocaleString('de-DE') + '\n' + logText();
+    const ok = () => { cpyBtn.textContent = 'Kopiert ✓'; setTimeout(() => { cpyBtn.textContent = 'Kopieren'; }, 1500); };
+    try { navigator.clipboard.writeText(txt).then(ok, () => { selectLog(); }); } catch (e) { selectLog(); }
+  });
+  function selectLog() { try { const r = document.createRange(); r.selectNodeContents(logEl); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); cpyBtn.textContent = 'markiert – kopieren'; } catch (e) {} }
+  if (clrBtn) clrBtn.addEventListener('click', () => { hangLog.length = 0; showLog(); });
+  document.addEventListener('tabchange', e => { if (window.__appEvent) window.__appEvent('Reiter ' + e.detail); });
+  document.addEventListener('rhythm', e => { if (window.__appEvent) window.__appEvent(e.detail && e.detail.on ? 'Drums an' : 'Drums aus'); });
+  document.addEventListener('visibilitychange', () => { if (window.__appEvent) window.__appEvent(document.hidden ? 'App im Hintergrund' : 'App vorne'); });
 
   window.PerfView = { open: () => setOpen(true), close: () => setOpen(false), pin: setPin, state: () => Object.assign({ open }, st) };
 })();
@@ -10775,7 +10837,7 @@ const AppCfg = (() => {
     clearInterval(timer); timer = null;
     if (name !== 'quinten') return;
     render();
-    renderChord._cur = null; renderChord(); timer = setInterval(renderChord, 120);
+    renderChord._cur = null; renderChord(); timer = setInterval(() => { if (!window.__live) renderChord(); }, 120);
   }
   document.addEventListener('tabchange', e => onTab(e.detail));
   if (typeof rootSel !== 'undefined') {
@@ -11532,7 +11594,7 @@ if (typeof module !== 'undefined') module.exports = Pitch;
     } else $('passtNx').textContent = '\u00a0';
     $('passtMv').innerHTML = mv;
   }
-  setInterval(tick, 120);
+  setInterval(() => { if (!window.__live) tick(); }, 120);
   window.PasstBox = { tick, hold: () => hold.on, state: () => ({ hidden: box.hidden, open, held: hold.on, chord: $('passtCh').textContent, scale: $('passtSc').textContent }) };
 })();
 

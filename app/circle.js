@@ -214,7 +214,7 @@
     clearInterval(timer); timer = null;
     if (name !== 'quinten') return;
     render();
-    renderChord._cur = null; renderChord(); timer = setInterval(renderChord, 120);
+    renderChord._cur = null; renderChord(); timer = setInterval(() => { if (!window.__live) renderChord(); }, 120);
   }
   document.addEventListener('tabchange', e => onTab(e.detail));
   if (typeof rootSel !== 'undefined') {

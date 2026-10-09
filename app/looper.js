@@ -16,6 +16,10 @@ const Looper = (() => {
   let level = 0, levelL = 0, levelR = 0, rafId = null, peakHold = 0;
   let cap = null;      // Mitschnitt rund um die erste Aufnahme (für das Eintakten)
 
+  // Ereignisse der App für das Hänger-Protokoll (Ringpuffer, nur Zeitstempel + Name)
+  const evLog = window.__appEv = window.__appEv || [];
+  const ev = name => { evLog.push([performance.now(), name]); if (evLog.length > 200) evLog.splice(0, 100); };
+  window.__appEvent = ev;
   function loadPref(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } }
   function savePref(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
   latEl.value = loadPref('3nps-latency', '');
@@ -184,6 +188,20 @@ const Looper = (() => {
   function droneFollow(start) { if (dSync.checked) setDrone(start); }
   applyDroneKey();
 
+  // ---- Live: während des Loopens nichts im Hintergrund (Analyse, Sicherung, mitlaufende Anzeigen) ----
+  const liveBtn = $('liveBtn');
+  function setLive(v) {
+    window.__live = !!v; savePref('3nps-live', v ? '1' : '0'); ev(v ? 'Live an' : 'Live aus');
+    if (liveBtn) { liveBtn.setAttribute('aria-pressed', String(!!v)); liveBtn.textContent = v ? '● Live' : 'Live'; }
+    document.documentElement.classList.toggle('live', !!v);
+    if (!v) {                                           // Nachholen: Analyse der geänderten Spuren, dann Sicherung
+      tracks.forEach(t => { if (t.livePend) { t.livePend = false; if (t.L) detectTrackKey(t); } });
+      if (livePendSave) { livePendSave = false; markDirty(); }
+    }
+    kick();
+  }
+  if (liveBtn) liveBtn.addEventListener('click', () => { setLive(!window.__live); setStatus(window.__live ? 'Live an: keine Analyse, keine Sicherung, ruhige Anzeigen. Beim Ausschalten wird alles nachgeholt.' : 'Live aus: Analyse und Sicherung nachgeholt.'); });
+  window.__live = loadPref('3nps-live', '0') === '1'; setTimeout(() => setLive(window.__live), 0);
   // ---- Leistung: „sparsam“ entlastet das iPad (z. B. beim Laden, wenn es warm wird) ----
   const perfEl = $('perfMode');
   perfEl.value = loadPref('3nps-perf', 'auto');
@@ -317,7 +335,7 @@ const Looper = (() => {
       savePref('3nps-lat-why', why);
     }
     latVal.textContent = latEl.value + ' ms';
-    micReady = true; perfIn.next = -1; perfIn.n = 0; lastMicError = ''; monBtn.disabled = false;
+    ev('Eingang offen'); micReady = true; perfIn.next = -1; perfIn.n = 0; lastMicError = ''; monBtn.disabled = false;
     try { const st = stream.getAudioTracks()[0].getSettings(); inChans = st.channelCount || 0; } catch (e) { inChans = 0; }
     showInChans();
     $('panel-looper').classList.add('mic-on');
@@ -464,12 +482,14 @@ const Looper = (() => {
   // ---- Automatische Sicherung der laufenden Sitzung (nach Absturz oder Neuladen wiederherstellbar) ----
   const AUTO_MAX_MB = 150;
   let autoTimer = null, autoBusy = false, autoReady = false;
-  function markDirty() { if (!autoReady) return; clearTimeout(autoTimer); autoTimer = setTimeout(doAutosave, 2500); }
+  let livePendSave = false;
+  function markDirty() { if (!autoReady) return; if (window.__live) { livePendSave = true; return; } clearTimeout(autoTimer); autoTimer = setTimeout(doAutosave, 2500); }
   async function doAutosave() {
     if (typeof AppDB === 'undefined') return;
     if (rec || autoBusy || ed.drag) { markDirty(); return; }
+    if (window.__live) { livePendSave = true; return; }
     try {
-      autoBusy = true;
+      autoBusy = true; ev('Sicherung');
       if (!anyContent()) { await AppDB.del('meta', 'autosave'); return; }
       const est = tracks.reduce((a, t) => a + (t.L && t.mix ? t.L * (t.mix.r === t.mix.l ? 1 : 2) * 3 : 0), 0) / 1048576;
       if (est > AUTO_MAX_MB) { if (!doAutosave.told) { doAutosave.told = true; setStatus('Hinweis: Die Spuren sind sehr lang – die automatische Sicherung pausiert. Speichere wichtige Loops unter „Ideen“.'); } return; }
@@ -650,7 +670,7 @@ const Looper = (() => {
       for (let j = 0; j < raw.length; j++) { const k = mod(r.start + j - anchor, t.L); out.l[k] += raw.l[j]; if (st) out.r[k] += raw.r[j]; }
       t.layers = [out];
     }
-    rebuildMix(t);
+    rebuildMix(t); ev('Aufnahme Ende Spur ' + (t.i + 1));
     const al = r.kind === 'new' ? alignNewTake(t) : '';
     detectTrackKey(t);
     if (r.stopAfter) {
@@ -1177,7 +1197,7 @@ const Looper = (() => {
         const frac = Math.max(0, Math.min(1, prog - k));
         if (frac > 0) {
           ctx.beginPath(); ctx.arc(cx, cy, R, a0, a0 + (a1 - a0) * frac);
-          if (!dim && !window.__lite) { // Neon-Schein als breite, transparente Striche
+          if (!dim && !window.__lite && !window.__live) { // Neon-Schein als breite, transparente Striche
             ctx.strokeStyle = c; ctx.globalAlpha = 0.16; ctx.lineWidth = lw * 2.0; ctx.stroke();
             ctx.globalAlpha = 0.32; ctx.lineWidth = lw * 1.5; ctx.stroke();
           }
@@ -1324,7 +1344,7 @@ const Looper = (() => {
     const nowMs = performance.now();
     const visible = !panelEl.hidden && !document.hidden;
     if (visible) watchJank(nowMs);
-    if (visible && nowMs - lastDraw >= (window.__lite ? 66 : 33)) {      // höchstens 30 (sparsam 15) Bilder pro Sekunde
+    if (visible && nowMs - lastDraw >= (window.__lite || window.__live ? 66 : 33)) {      // höchstens 30 (sparsam 15) Bilder pro Sekunde
       lastDraw = nowMs;
       const C = css || (css = colors());
       tracks.forEach(t => { drawRing(t, C); drawWave(t, C); });
@@ -1839,6 +1859,8 @@ const Looper = (() => {
   // Tonart
   async function detectTrackKey(t) {
     if (!t.L) return null;
+    if (window.__live) { t.livePend = true; return null; }
+    ev('Analyse Spur ' + (t.i + 1));
     scheduleChords(t);
     const xl = t.mix.l, xr = t.mix.r; let sum = 0, n = 0;
     for (let i = 0; i < xl.length; i += 16) { const v = (xl[i] + xr[i]) * 0.5; sum += v * v; n++; }
@@ -1877,6 +1899,7 @@ const Looper = (() => {
   // ---- Akkorde je Spur (im Hintergrund nach jeder Änderung, je Schlag erkannt) ----
   function scheduleChords(t, delay) {
     clearTimeout(t.chTimer);
+    if (window.__live) { t.livePend = true; return; }
     t.chTimer = setTimeout(() => { detectTrackChords(t).catch(() => {}); }, delay == null ? 300 : delay);
   }
   async function detectTrackChords(t) {
@@ -2563,7 +2586,7 @@ const Looper = (() => {
     exportLogic: () => exportLogic(),
     _micDrop: () => { if (stream) stream.getAudioTracks()[0].dispatchEvent(new Event('ended')); },
     themeChanged: () => readNeon(), _zip: files => makeZip(files),
-    _mem: () => memState(),
+    _mem: () => memState(), setLive: v => setLive(v),
     perf: () => { let inLat = null, inSr = null; try { const st = stream && stream.getAudioTracks()[0].getSettings(); if (st) { inLat = typeof st.latency === 'number' ? st.latency : null; inSr = st.sampleRate || null; } } catch (e) {}
       const m = memState(); const r = { mic: micReady, sr, inLat, inSr, inChans, comp: parseInt(latEl.value || '0'), curMB: m.curMB, histMB: m.histMB, histMax: HIST_MB, gaps: perfIn.gaps, lagMs: perfIn.lagMs, lagMax: perfIn.lagMax, micErr: lastMicError };
       perfIn.lagMax = 0; return r; }, autosaveNow: () => doAutosave(), autosaveOn: v => { autoReady = v !== false; },
