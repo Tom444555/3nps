@@ -2506,6 +2506,13 @@ const Looper = (() => {
       })
     };
   }
+  // Länge des gemeinsamen Durchlaufs in Sekunden – nur rechnen, nichts mischen (spart beim Speichern hunderte MB)
+  function sessionSecs(sess) {
+    const ts = sess.tracks.filter(Boolean); if (!ts.length) return 0;
+    const gcd = (a, b) => b ? gcd(b, a % b) : a; let mult = 1;
+    ts.forEach(t => { const n = Math.max(1, Math.round(t.L / sess.baseL)); mult = mult * n / gcd(mult, n); });
+    return sess.baseL * Math.min(mult, 16) / sess.sr;
+  }
   function sessionMix(sess) {
     const ts = sess.tracks.filter(Boolean); if (!ts.length) return null;
     const gcd = (a, b) => b ? gcd(b, a % b) : a; let mult = 1;
@@ -2596,7 +2603,7 @@ const Looper = (() => {
   }
 
   return {
-    getMix, loadSamples, update, position, getSession, sessionMix, sessionMixEq, loadSession, setTrackEq: (i, v) => setTrackEq(tracks[i], v, false), getTrackEq: i => tracks[i].eqVals.slice(), getDroneState, setDroneState,
+    getMix, loadSamples, update, position, getSession, sessionMix, sessionSecs, sessionMixEq, loadSession, setTrackEq: (i, v) => setTrackEq(tracks[i], v, false), getTrackEq: i => tracks[i].eqVals.slice(), getDroneState, setDroneState,
     isEmpty: () => !anyContent(),
     foot: i => foot(tracks[i]),
     exportLogic: () => exportLogic(),
@@ -2868,7 +2875,7 @@ const Pedal = (() => {
   withDrone.addEventListener('change', () => ps('3nps-idea-drone', withDrone.checked ? '1' : '0'));
   $('ideaSave').addEventListener('click', async () => {
     const sess = Looper.getSession(); if (!sess) return;
-    const m = Looper.sessionMix(sess);
+    const m = { secs: Looper.sessionSecs(sess) };                 // früher: kompletter Mix nur für die Länge → Speicherspitze
     const now = new Date();
     const name = nameEl.value.trim() || ('Idee ' + now.toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }));
     const drumState = withDrums.checked ? Rhythm.getState() : null, droneState = withDrone.checked ? Looper.getDroneState() : null;
