@@ -24,13 +24,18 @@ async def main():
         await pg.wait_for_timeout(5000)
         evs = await pg.evaluate("window.__appEv.map(e=>e[1])")
         key = await pg.evaluate("Looper.debug().tracks[0].key")
-        check('Live: keine Analyse, keine Sicherung', not any(e.startswith('Analyse') or e == 'Sicherung' for e in evs) and key is None, (evs, key))
+        check('Live: Laden wird sofort ausgewertet, aber nicht gesichert', any(e.startswith('Analyse Spur 1') for e in evs) and 'Sicherung' not in evs and key, (evs, key))
+        # eigene Aufnahme im Live-Modus: keine Analyse danach
+        await pg.click('#loopMonitor'); await pg.wait_for_timeout(1200)
+        await pg.evaluate("Looper.foot(1)"); await pg.wait_for_timeout(9000); await pg.evaluate("Looper.foot(1)"); await pg.wait_for_timeout(2500)
+        evs = await pg.evaluate("window.__appEv.map(e=>e[1])")
+        check('Live: nach Aufnahme keine Analyse', 'Aufnahme Ende Spur 2' in evs and 'Analyse Spur 2' not in evs, evs[-5:])
         await pg.click('#tab-quinten'); await pg.wait_for_timeout(300); await pg.click('#tab-looper')
         # Live aus → nachholen
         await pg.click('#liveBtn'); await pg.wait_for_timeout(5500)
         evs = await pg.evaluate("window.__appEv.map(e=>e[1])")
         key = await pg.evaluate("Looper.debug().tracks[0].key")
-        check('Live aus: Analyse + Sicherung nachgeholt', any(e.startswith('Analyse Spur 1') for e in evs) and 'Sicherung' in evs and key, (evs[-6:], key))
+        check('Live aus: Analyse + Sicherung nachgeholt', 'Analyse Spur 2' in evs and 'Sicherung' in evs and key, (evs[-6:], key))
         check('Ereignisse protokolliert', 'Live aus' in evs and 'Reiter quinten' in evs, evs[:8])
         # Neustart: Live-Zustand bleibt
         await pg.click('#liveBtn'); await pg.reload(); await pg.wait_for_timeout(600)

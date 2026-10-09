@@ -688,7 +688,8 @@ const Looper = (() => {
     }
     rebuildMix(t); ev('Aufnahme Ende Spur ' + (t.i + 1));
     const al = r.kind === 'new' ? alignNewTake(t) : '';
-    detectTrackKey(t);
+    // Live: nach eigenen Aufnahmen nichts analysieren (wird beim Ausschalten nachgeholt); Laden wertet immer sofort aus
+    if (window.__live) t.livePend = true; else detectTrackKey(t);
     if (r.stopAfter) {
       stopSrc(t); t.state = 'stopped';
       setStatus('Spur ' + (t.i + 1) + ' aufgenommen und gestoppt. Tippe auf Play zum Abspielen.' + al);
@@ -1875,7 +1876,6 @@ const Looper = (() => {
   // Tonart
   async function detectTrackKey(t) {
     if (!t.L) return null;
-    if (window.__live) { t.livePend = true; return null; }
     ev('Analyse Spur ' + (t.i + 1));
     scheduleChords(t);
     const xl = t.mix.l, xr = t.mix.r; let sum = 0, n = 0;
@@ -1915,7 +1915,6 @@ const Looper = (() => {
   // ---- Akkorde je Spur (im Hintergrund nach jeder Änderung, je Schlag erkannt) ----
   function scheduleChords(t, delay) {
     clearTimeout(t.chTimer);
-    if (window.__live) { t.livePend = true; return; }
     t.chTimer = setTimeout(() => { detectTrackChords(t).catch(() => {}); }, delay == null ? 300 : delay);
   }
   async function detectTrackChords(t) {
