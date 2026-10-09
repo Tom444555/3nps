@@ -1,6 +1,6 @@
 # 3nps Looper – Übergabe (vollständiger Stand)
 
-Stand: **7. Oktober 2026 · Version v38** – live unter https://tom444555.github.io/3nps/ ·
+Stand: **7. Oktober 2026 · Version v39** – live unter https://tom444555.github.io/3nps/ ·
 stabile Rückfall-Fassung **v24** unter https://tom444555.github.io/3nps/stabil/
 
 Diese Datei ist das Gedächtnis des Projekts. Alles, was ein neuer Chat wissen muss, steht hier –
@@ -180,10 +180,10 @@ IDs `tab-…`/`panel-…`. Begleitung (Drone, Drums, Bass), alter Song-Player un
 - **Anzeige:** `playFrame()` = hörbare Position; „Was passt“-Box mit fester Höhe (iPad 168 px, schmal 240 px, iPhone 236 px) –
   nichts darf beim Mitlaufen springen.
 
-## 8. Tests und erwartete Ergebnisse (v38)
+## 8. Tests und erwartete Ergebnisse (v39)
 
 Browser (Playwright, Testserver 8765, **nacheinander**):
-`v38live.py` 10/10 · `v37stall.py` 16/16 (Hänger-Erkennung per absichtlich überlastetem Audio-Modul, Wächter, Schlüssel-Umzug, „Stabil“, Latenz-Nachziehen, Raum) · `v36mic.py` 10/10 (Fehlerfälle beim Öffnen per gepatchtem getUserMedia) · `v35.py` 20/20 (Anheften/Ziehen/Kompakt/Neustart, Kontraste der neuen Optiken) · `v34perf.py` 12/12 · `v34optik.py` 16/16 (Pages-Nachbau Port 8790, prüft Wechsel mit v24) · `v31export.py` 14/14 (prüft Versionsmarke – bei jeder Version anpassen) · `v30text.py` 27/27 (Versionsprüfung seit v34 „ab v30“ numerisch) · `v28lied.py` 34/34 · `v28sync.py` 6/6 · `v27passt.py` 17/17 · `passthoehe.py` 8/8 ·
+`v39back.py` 7/7 (Hintergrund simuliert über document.hidden + _micDrop + hängendes getUserMedia) · `v38live.py` 10/10 · `v37stall.py` 16/16 (Hänger-Erkennung per absichtlich überlastetem Audio-Modul, Wächter, Schlüssel-Umzug, „Stabil“, Latenz-Nachziehen, Raum) · `v36mic.py` 10/10 (Fehlerfälle beim Öffnen per gepatchtem getUserMedia) · `v35.py` 20/20 (Anheften/Ziehen/Kompakt/Neustart, Kontraste der neuen Optiken) · `v34perf.py` 12/12 · `v34optik.py` 16/16 (Pages-Nachbau Port 8790, prüft Wechsel mit v24) · `v31export.py` 14/14 (prüft Versionsmarke – bei jeder Version anpassen) · `v30text.py` 27/27 (Versionsprüfung seit v34 „ab v30“ numerisch) · `v28lied.py` 34/34 · `v28sync.py` 6/6 · `v27passt.py` 17/17 · `passthoehe.py` 8/8 ·
 `v25grips.py` 10/10 · `v25jam.py` 21/21 · `v25listen.py` 9/9 · `v25ueben.py` 28/28 · `v25stress.py` 6/6 · `tempotest.py` 3/3 ·
 `v24solo.py` 22/22 · `v22key.py` 7/7 · `v21test.py` 8/8 · `v21tabs.py` 18/18 · `v20test.py` 14/14 · `suite.py` 81/81 · `stereotest.py` 16/16 (Prüfung „Pegel zeigt L/R“ liest einen Zufallsmoment, selten 15/16 – dann wiederholen) ·
 `eqtest.py` 9/9 · `restoretest.py` 7/7 · `backuptest.py` 7/7 · `csptest.py` (keine fremden Anfragen) · `rec_fit.py 1` 10/10 ·
@@ -221,6 +221,7 @@ Testaudio-Generatoren (alle deterministisch, von `wiederherstellen.sh` aufgerufe
 | v33 | Optik als kleiner aufklappbarer Knopf „App-Optik ▾“ im Kopf unter dem Schriftzug |
 | v34 | Leistungsanzeige (Rechenlast, Speicher, Latenz), Optiken umbenannt + neu „Klar“ und „Matrix“, Pedal-Fenster für alle Bluetooth-Pedale. Vergleich mit v24: gleichwertig |
 | v35 | Leistungsfenster anheftbar, verschiebbar, kompakt; Optiken „DJ-Pult“, „Hell“, „Präzision“ |
+| v39 | **Behoben (Fehler aus v36):** nach Rückkehr aus dem Hintergrund blieb „Eingang öffnen“ für immer auf „Öffne …“, wenn getUserMedia nicht antwortete. Jetzt `gum()` mit 6-s-Zeitlimit (spät gelieferte Ströme werden gestoppt), zweiter Versuch nach `resume()`, Rückkehr/Tippen öffnet neu (`reopenMic(true)` umgeht die Flacker-Sperre 3×/30 s), Hinweis „tippe einmal“ wenn der Ton nach 1,5 s nicht läuft |
 | v38 | Live-Schalter (`#liveBtn`, `window.__live`, `3nps-live`): keine Analyse (`detectTrackKey`/`scheduleChords` → `t.livePend`), keine Autosicherung (`livePendSave`), passt/circle-Ticker pausiert, Anzeige 15 fps ohne Neon; Nachholen beim Ausschalten. Hänger-Protokoll in `perf.js` (Wächter läuft jetzt immer, 1×/s) mit App-Ereignissen aus `window.__appEv` (Aufnahme Ende, Analyse, Sicherung, Eingang offen, Live, Reiter, Drums, Hintergrund). Anlass: Reactor 50 direkt am iPad 2 Hänger/h, über Hub viele → Ursache Hub/Laden |
 | v37 | Reactor 50 (USB): Stocken nur mit Drums. Neu: Leistung „Stabil“ (`3nps-perf`=`stable` → latencyHint playback), Drum-„Raum“ an/aus (`3nps-drumroom`), Hänger-Wächter mit Rat, Latenz-Ausgleich zieht bei Geräte-/Pufferwechsel nach. **Behoben:** Leistungsfenster schrieb seit v35 nach `3nps-perf` (Schlüssel der Einstellung „Leistung“) → jetzt `3nps-perfwin`, alter Wert wird umgezogen |
 | v36 | Eingang öffnen robuster: Meldung je Ursache, Nachfassen bei „belegt“, Zeitlimit Aufnahme-Modul (4 s → ScriptProcessor), kein Doppel-Öffnen. Anlass: Nutzer meldete „Eingang öffnet nicht“ (in Chromium nicht nachstellbar, WebKit hier nicht installierbar) |

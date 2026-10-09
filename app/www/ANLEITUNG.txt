@@ -450,3 +450,10 @@ Gut zu wissen
    - Hänger-Protokoll (Fenster „Leistung“, unten): jeder Audio-Hänger mit Uhrzeit, Dauer und
      dem, was die App in dieser Sekunde tat. „App: nichts“ heißt: Der Hänger kam von außen
      (USB, Hub, Gerät). „Kopieren“ legt die Liste in die Zwischenablage, z. B. zum Weiterschicken.
+
+37. Zurück in die App (v39)
+   - Beim Verlassen schließt iPadOS das Mikrofon und hält den Ton an. Beim Zurückkehren öffnet
+     die App den Eingang von selbst wieder; die Spuren laufen weiter.
+   - Steht „tippe einmal auf den Bildschirm“: einmal tippen – dann laufen Ton und Eingang wieder.
+   - Gibt das iPad den Eingang nicht frei, wird „Eingang öffnen“ nach wenigen Sekunden wieder
+     bedienbar (früher blieb der Knopf auf „Öffne …“ hängen).

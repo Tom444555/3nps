@@ -1992,7 +1992,7 @@
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v38</span></div>
+      <div class="brand">Looper <span>3nps · v39</span></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -7508,6 +7508,11 @@ const Looper = (() => {
   }
   // Wartet höchstens ms Millisekunden; danach gilt der Schritt als fehlgeschlagen
   const within = (p, ms) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(Object.assign(new Error('Zeitüberschreitung'), { name: 'Timeout' })), ms))]);
+  function gum(c, ms) {
+    let late = false;
+    const p = navigator.mediaDevices.getUserMedia(c).then(s => { if (late) { try { s.getTracks().forEach(tr => tr.stop()); } catch (e) {} } return s; });
+    return within(p, ms).catch(e => { if (e && e.name === 'Timeout') late = true; throw e; });
+  }
   async function ensureMicInner() {
     ensureAudio();
     sr = audioCtx.sampleRate;
@@ -7520,13 +7525,14 @@ const Looper = (() => {
     try {
       if (navigator.audioSession) { try { navigator.audioSession.type = 'play-and-record'; } catch (e) {} }
       try {
-        stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: { ideal: 2 }, sampleRate: { ideal: audioCtx.sampleRate } } });
+        stream = await gum({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: { ideal: 2 }, sampleRate: { ideal: audioCtx.sampleRate } } }, 6000);
       } catch (e1) {
         // Gerät belegt oder Einstellungen passen nicht → einmal mit einfachsten Einstellungen nachfassen
-        if (!/^(NotReadableError|AbortError|OverconstrainedError|NotFoundError|ConstraintNotSatisfiedError|TrackStartError)$/.test(e1 && e1.name)) throw e1;
+        if (!/^(NotReadableError|AbortError|OverconstrainedError|NotFoundError|ConstraintNotSatisfiedError|TrackStartError|Timeout)$/.test(e1 && e1.name)) throw e1;
+        if (audioCtx.state !== 'running') { try { await within(audioCtx.resume(), 1500); } catch (e) {} }
         await new Promise(r => setTimeout(r, 600));
-        try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }); }
-        catch (e2) { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+        try { stream = await gum({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }, 6000); }
+        catch (e2) { if (e2 && e2.name === 'Timeout') throw e2; stream = await gum({ audio: true }, 6000); }
       }
     } catch (e) {
       const n = (e && e.name) || '';
@@ -7535,6 +7541,8 @@ const Looper = (() => {
         setStatus('Kein Zugriff aufs Mikrofon. Erlaube ihn in den iPad-Einstellungen unter Datenschutz → Mikrofon bzw. für die Website in Safari (aA → Website-Einstellungen → Mikrofon).');
       else if (/^(NotFoundError|OverconstrainedError|ConstraintNotSatisfiedError|DevicesNotFoundError)$/.test(n))
         setStatus('Kein Audio-Eingang gefunden. Ist das Interface (z. B. Spark LIVE) angeschlossen und eingeschaltet? Dann erneut „Eingang öffnen“.');
+      else if (n === 'Timeout')
+        setStatus('Das iPad hat den Eingang nicht freigegeben (oft direkt nach dem Zurückkehren in die App). Tippe noch einmal auf „Eingang öffnen“.');
       else if (/^(NotReadableError|AbortError|TrackStartError)$/.test(n))
         setStatus('Der Eingang ist gerade belegt – meist von einer anderen Audio-App (z. B. Logic Pro, GarageBand) im Hintergrund. Diese App ganz schließen (im App-Umschalter nach oben wischen) und erneut „Eingang öffnen“.');
       else
@@ -7616,13 +7624,14 @@ const Looper = (() => {
     setTimeout(reopenMic, 900);
   }
   const reopenLog = [];
-  async function reopenMic() {
+  async function reopenMic(byUser) {
     if (micReady || document.hidden) return;
     const now = Date.now(); while (reopenLog.length && now - reopenLog[0] > 30000) reopenLog.shift();
-    if (reopenLog.length >= 3) { setStatus('Das Audio-Gerät verbindet sich immer wieder neu. Prüfe Adapter/Kabel, dann „Eingang öffnen“.'); return; }
-    reopenLog.push(now);
+    // Sperre nur gegen Geräte-Flackern (automatisch, ≥ 3× in 30 s) – nicht beim Zurückkehren oder nach einem Tippen
+    if (!byUser && reopenLog.length >= 3) { setStatus('Das Audio-Gerät verbindet sich immer wieder neu. Prüfe Adapter/Kabel, dann „Eingang öffnen“.'); return; }
+    if (!byUser) reopenLog.push(now);
     try { if (await ensureMic()) { setStatus('Eingang wieder offen – das Audio-Gerät wurde neu verbunden.'); return; } } catch (e) {}
-    setStatus('Eingang geschlossen. Tippe auf „Eingang öffnen“ oder REC, um weiterzumachen.');
+    if (lastMicError !== 'Timeout') setStatus('Eingang geschlossen. Tippe auf „Eingang öffnen“ oder REC, um weiterzumachen.');
   }
   // USB-Audio-Gerät oder Ladegerät an-/abgesteckt: Mikrofon neu verbinden, Ton fortsetzen
   if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) {
@@ -7645,14 +7654,21 @@ const Looper = (() => {
     });
   }
   setInterval(hookCtx, 1000);
-  ['pointerdown', 'keydown'].forEach(ev => window.addEventListener(ev, () => { if (audioCtx && audioCtx.state !== 'running') audioCtx.resume().catch(() => {}); }, true));
+  // Erstes Tippen nach einer Unterbrechung: Ton fortsetzen und – war der Eingang offen – ihn gleich wieder öffnen
+  ['pointerdown', 'keydown'].forEach(evn => window.addEventListener(evn, () => {
+    if (audioCtx && audioCtx.state !== 'running') audioCtx.resume().catch(() => {});
+    if (wasMic && !micReady && !micOpening && !document.hidden) setTimeout(() => reopenMic(true), 50);
+  }, true));
   let wasMic = false;
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) { wasMic = micReady; return; }
     if (!audioCtx) return;
     if (audioCtx.state !== 'running') audioCtx.resume().catch(() => {});
+    ev('App vorne, Ton ' + audioCtx.state);
     if (micReady && stream && stream.getAudioTracks().every(tr => tr.readyState === 'ended')) micLost();
-    else if (!micReady && wasMic) reopenMic();
+    else if (!micReady && wasMic) setTimeout(() => reopenMic(true), 500);
+    // Läuft der Ton nach 1,5 s noch nicht: klar sagen, dass ein Tippen ihn wieder startet
+    setTimeout(() => { if (audioCtx.state !== 'running') { needResume = true; setStatus('Willkommen zurück – tippe einmal auf den Bildschirm, dann läuft der Ton weiter.'); } }, 1500);
   });
 
   // Eingang: Stereo erkennen (unterschiedliche Kanäle) und anzeigen
