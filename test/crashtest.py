@@ -15,6 +15,7 @@ async def main():
             h = await cdp.send('Runtime.getHeapUsage')
             mb = lambda v: round(v / 1048576, 1)
             print(f"{tag:42s} JS {mb(h['usedSize']):7.1f} MB | Audio-Daten (ArrayBuffer) {mb(h.get('backingStorageSize', 0)):7.1f} MB")
+        await pg.add_init_script("localStorage.setItem('3nps-edfull','0')")   # Editor im Fenster (Vollbild deckt die Spuren ab)
         await pg.goto('http://localhost:8765/index.html'); await pg.wait_for_timeout(800)
         await pg.click('#tab-looper'); await pg.select_option('#loopCountIn', '0')
         await mem('Start')

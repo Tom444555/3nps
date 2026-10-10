@@ -88,6 +88,7 @@
         <div class="editor-head">
           <span class="chip"></span><strong id="edTitle">Spur bearbeiten</strong>
           <span class="caption" id="edInfo"></span>
+          <button class="toggle-btn" id="edFull" aria-pressed="false" title="Editor über den ganzen Bildschirm">Vollbild</button>
           <button class="toggle-btn" id="edClose">Fertig</button>
         </div>
         <div class="ed-zoom">
@@ -97,10 +98,19 @@
           <button class="toggle-btn" id="edZoomAll">Alles</button>
           <span class="caption" id="edZoomInfo">1×</span>
           <button class="toggle-btn ed-play" id="edPlayFrom">▶ ab Auswahl</button>
+          <button class="toggle-btn" id="edLoopSel" aria-pressed="false" title="Nur die Auswahl in Schleife hören (andere Spuren still)">↻ Auswahl hören</button>
         </div>
         <div class="ed-wave-wrap"><canvas id="edWave" aria-label="Wellenform zum Schneiden"></canvas></div>
         <div class="ed-over-wrap"><canvas id="edOver" aria-label="Übersicht: ziehen zum Blättern"></canvas></div>
-        <p class="pattern-desc ed-hint">Oben in der Zeitleiste tippen = dorthin springen. Griffe ziehen = Auswahl. Mit zwei Fingern oder +/− zoomen, unten in der Übersicht blättern.</p>
+        <div class="ed-fine">
+          <span class="ed-seg" role="group" aria-label="Griff"><button class="toggle-btn active" id="edHS">Anfang</button><button class="toggle-btn" id="edHE">Ende</button></span>
+          <button class="toggle-btn" id="edNmL" title="1 Millisekunde nach links">◀ 1 ms</button>
+          <button class="toggle-btn" id="edNsL" title="1 Abtastwert nach links">◀ 1</button>
+          <button class="toggle-btn" id="edNsR" title="1 Abtastwert nach rechts">1 ▶</button>
+          <button class="toggle-btn" id="edNmR" title="1 Millisekunde nach rechts">1 ms ▶</button>
+          <span class="caption ed-pos" id="edPos"></span>
+        </div>
+        <p class="pattern-desc ed-hint">Oben in der Zeitleiste tippen = dorthin springen. Griffe ziehen = Auswahl. Mit zwei Fingern oder +/− zoomen, unten in der Übersicht blättern. Feinschritte für den gewählten Griff; im Vollbild steuert das Fußpedal: ◀ 1 ms · 1 ms ▶ · Griff wechseln · Auswahl hören.</p>
         <div class="ed-groups">
           <div class="ed-group ed-check">
             <span class="ed-label">Loop prüfen</span>
@@ -133,8 +143,14 @@
                   <option value="bar">Takt</option>
                   <option value="beat" selected>Schlag</option>
                   <option value="eighth">Achtel</option>
+                  <option value="sixteenth">16tel</option>
+                  <option value="onset">Anschlag</option>
+                  <option value="zero">Nulldurchgang</option>
                   <option value="free">Frei</option>
                 </select>
+              </label>
+              <label class="field ed-grid"><span>Blende am Schnitt</span>
+                <select id="edFade"><option value="0">aus</option><option value="2">2 ms</option><option value="5" selected>5 ms</option><option value="10">10 ms</option></select>
               </label>
               <button class="toggle-btn active" id="edTrim">Zuschneiden</button>
               <button class="toggle-btn" id="edHalf">Halbieren</button>

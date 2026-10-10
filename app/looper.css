@@ -368,3 +368,17 @@
   .ed-chords { font: 700 0.86rem var(--f-mono); color: var(--ink); line-height: 1.5; word-break: break-word; }
   .ed-chords b { color: var(--tc); font-weight: 700; }
 
+
+/* ===== v43: Editor – Vollbild, Feinschritte ===== */
+.ed-fine { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.ed-fine .toggle-btn { padding: 6px 10px; min-width: 44px; font-variant-numeric: tabular-nums; }
+.ed-seg { display: inline-flex; } .ed-seg .toggle-btn { border-radius: 0; } .ed-seg .toggle-btn:first-child { border-radius: 6px 0 0 6px; } .ed-seg .toggle-btn:last-child { border-radius: 0 6px 6px 0; }
+.ed-pos { font: 600 .74rem var(--f-mono); margin-left: auto; white-space: nowrap; font-variant-numeric: tabular-nums; }
+#edFull[aria-pressed="true"], #edLoopSel[aria-pressed="true"] { border-color: var(--tc); box-shadow: 0 0 8px var(--tc); }
+.editor.ed-full { position: fixed; inset: 0; z-index: 85; margin: 0; border-radius: 0; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding: max(10px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(14px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  background: var(--bg); }
+.editor.ed-full #edWave { height: min(52vh, 460px); }
+.editor.ed-full #edOver { height: 42px; }
+html.ed-open, html.ed-open body { overflow: hidden; }
+.editor.ed-full > * { flex-shrink: 0; }
