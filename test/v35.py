@@ -81,7 +81,7 @@ async def main():
               return {theme:document.documentElement.dataset.theme, scheme:cs(document.documentElement).colorScheme,
                 card:lum(cs(card).backgroundColor||'rgb(0,0,0)'), cardInk:lum(cs(card).color), track:lum(cs(tr).backgroundColor), trackInk:lum(cs(tr.querySelector('.tname')).color)}})()""")
             if light:
-                good = r['theme'] == th and r['card'] > 0.8 and r['cardInk'] < 0.25 and r['track'] < 0.15 and r['trackInk'] > 0.8
+                good = r['theme'] == th and r['card'] > 0.6 and r['cardInk'] < 0.25 and r['card'] - r['cardInk'] > 0.5 and r['track'] < 0.15 and r['trackInk'] > 0.8
             else:
                 good = r['theme'] == th and r['cardInk'] > 0.8 and r['track'] < 0.1 and r['trackInk'] > 0.8
             check('Optik ' + th + ': Kontraste', good, r)

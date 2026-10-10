@@ -2,7 +2,7 @@
 const AppCfg = (() => {
   const $ = id => document.getElementById(id);
   const root = document.documentElement;
-  const THEME_BG = { nordic: '#1b1b1d', metal: '#0a0a0b', amp: '#0b0b0b', ice: '#06121c', clean: '#0f1012', matrix: '#000400', dj: '#0b0c0f', light: '#f2f2f5', precise: '#e4e4df' };
+  const THEME_BG = { nordic: '#1b1b1d', metal: '#0a0a0b', amp: '#0b0b0b', ice: '#06121c', clean: '#0f1012', matrix: '#000400', dj: '#0b0c0f', light: '#aeb3ba', precise: '#a8a9a2' };
   const themeSel = $('appTheme');
   const V24 = { nordic: 1, metal: 1, amp: 1, ice: 1 };
   // Gilt 3nps-theme2 nur, solange 3nps-theme dazu passt (sonst wurde in der v24 umgestellt → die gilt)
