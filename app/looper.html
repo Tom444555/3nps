@@ -132,23 +132,6 @@
             <span class="caption" id="edClipInfo"></span>
           </div>
         </div>
-        <div class="ed-group ed-quant">
-          <span class="ed-label">Quantisieren (Auswahl) · Anschläge aufs Raster ziehen, Tonhöhe bleibt</span>
-          <div class="ed-row">
-            <label class="field ed-grid"><span>Raster</span>
-              <select id="qGrid"><option value="4">1/4</option><option value="8">1/8</option><option value="16" selected>1/16</option><option value="12">1/8 Triolen</option><option value="24">1/16 Triolen</option></select>
-            </label>
-            <label class="lane-fader"><span>Stärke</span><input type="range" id="qStr" min="0" max="100" step="5" value="80" aria-label="Stärke"><b id="qStrV">80 %</b></label>
-            <label class="lane-fader"><span>Swing</span><input type="range" id="qSwing" min="0" max="100" step="5" value="0" aria-label="Swing"><b id="qSwingV">0 %</b></label>
-          </div>
-          <div class="ed-row">
-            <button class="toggle-btn" id="qAna">Analysieren</button>
-            <button class="toggle-btn" id="qHearB" aria-pressed="false">▶ vorher</button>
-            <button class="toggle-btn" id="qHearA" aria-pressed="false">▶ nachher</button>
-            <button class="toggle-btn active" id="qApply">Übernehmen</button>
-          </div>
-          <span class="caption" id="qInfo">Grün = genau (unter 10 ms), gelb = leicht daneben, rot = deutlich daneben (über 25 ms).</span>
-        </div>
         <div class="ed-groups">
           <div class="ed-group ed-check">
             <span class="ed-label">Loop prüfen</span>
@@ -330,6 +313,7 @@
         </div>
         <label class="check"><input type="checkbox" id="loopCountInPlay"> Vorzähler auch vor dem Abspielen des Loops</label>
         <label class="check"><input type="checkbox" id="loopSnap"> Freie Länge auf ganze Takte runden</label>
+        <label class="check"><input type="checkbox" id="loopLeadFix" checked> Pause am Anfang wegnehmen: erster Ton liegt auf Takt 1 (erste Spur, ohne laufende Drums)</label>
         <label class="check"><input type="checkbox" id="loopAutoAlign" checked> Neue Spuren automatisch an Spur 1 angleichen (Timing, ±60 ms)</label>
         <div class="row"><span class="lbl">Latenz</span><input type="range" id="loopLatency" min="0" max="300" step="5"><span class="caption" id="loopLatencyVal" style="min-width:52px;text-align:right">–</span></div>
         <p class="pattern-desc">Die orange Marke im Eingangspegel ist die Auslöseschwelle. Klingen Aufnahmen zu spät, schieb die Latenz nach rechts. Mit Kopfhörern landet der Loop nicht mit in der Aufnahme.</p>

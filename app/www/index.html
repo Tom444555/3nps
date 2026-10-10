@@ -614,7 +614,7 @@ html.ed-open, html.ed-open body { overflow: hidden; }
 .editor.ed-full > * { flex-shrink: 0; }
 .ed-edit .ed-row .toggle-btn { padding: 7px 10px; }
 #edUndo, #edRedo { min-width: 40px; font-size: 1rem; }
-#qHearA[aria-pressed="true"], #qHearB[aria-pressed="true"] { border-color: var(--tc); box-shadow: 0 0 8px var(--tc); }
+html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleiste würde sonst über dem Editor liegen */
   /* ---- Quintenzirkel ---- */
   .qz-card { flex-direction: row; flex-wrap: wrap; align-items: flex-start; gap: 18px; }
   .qz-wrap { flex: 1 1 380px; max-width: 560px; margin: 0 auto; }
@@ -2058,7 +2058,7 @@ html.ed-open, html.ed-open body { overflow: hidden; }
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v47</span></div>
+      <div class="brand">Looper <span>3nps · v48</span></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -2397,23 +2397,6 @@ html.ed-open, html.ed-open body { overflow: hidden; }
             <span class="caption" id="edClipInfo"></span>
           </div>
         </div>
-        <div class="ed-group ed-quant">
-          <span class="ed-label">Quantisieren (Auswahl) · Anschläge aufs Raster ziehen, Tonhöhe bleibt</span>
-          <div class="ed-row">
-            <label class="field ed-grid"><span>Raster</span>
-              <select id="qGrid"><option value="4">1/4</option><option value="8">1/8</option><option value="16" selected>1/16</option><option value="12">1/8 Triolen</option><option value="24">1/16 Triolen</option></select>
-            </label>
-            <label class="lane-fader"><span>Stärke</span><input type="range" id="qStr" min="0" max="100" step="5" value="80" aria-label="Stärke"><b id="qStrV">80 %</b></label>
-            <label class="lane-fader"><span>Swing</span><input type="range" id="qSwing" min="0" max="100" step="5" value="0" aria-label="Swing"><b id="qSwingV">0 %</b></label>
-          </div>
-          <div class="ed-row">
-            <button class="toggle-btn" id="qAna">Analysieren</button>
-            <button class="toggle-btn" id="qHearB" aria-pressed="false">▶ vorher</button>
-            <button class="toggle-btn" id="qHearA" aria-pressed="false">▶ nachher</button>
-            <button class="toggle-btn active" id="qApply">Übernehmen</button>
-          </div>
-          <span class="caption" id="qInfo">Grün = genau (unter 10 ms), gelb = leicht daneben, rot = deutlich daneben (über 25 ms).</span>
-        </div>
         <div class="ed-groups">
           <div class="ed-group ed-check">
             <span class="ed-label">Loop prüfen</span>
@@ -2595,6 +2578,7 @@ html.ed-open, html.ed-open body { overflow: hidden; }
         </div>
         <label class="check"><input type="checkbox" id="loopCountInPlay"> Vorzähler auch vor dem Abspielen des Loops</label>
         <label class="check"><input type="checkbox" id="loopSnap"> Freie Länge auf ganze Takte runden</label>
+        <label class="check"><input type="checkbox" id="loopLeadFix" checked> Pause am Anfang wegnehmen: erster Ton liegt auf Takt 1 (erste Spur, ohne laufende Drums)</label>
         <label class="check"><input type="checkbox" id="loopAutoAlign" checked> Neue Spuren automatisch an Spur 1 angleichen (Timing, ±60 ms)</label>
         <div class="row"><span class="lbl">Latenz</span><input type="range" id="loopLatency" min="0" max="300" step="5"><span class="caption" id="loopLatencyVal" style="min-width:52px;text-align:right">–</span></div>
         <p class="pattern-desc">Die orange Marke im Eingangspegel ist die Auslöseschwelle. Klingen Aufnahmen zu spät, schieb die Latenz nach rechts. Mit Kopfhörern landet der Loop nicht mit in der Aufnahme.</p>
@@ -8078,8 +8062,8 @@ const Looper = (() => {
       if (cap && cap.t === t && snapEl.checked) {
         r.provLayer = t.layers[0];
         cap.until = r.end + Math.round(1.5 * sr);
-        cap.onDone = c => refineFirst(t, r, c).catch(e => console.warn(e));
-      } else cap = null;
+        cap.onDone = c => refineFirst(t, r, c).catch(e => console.warn(e)).then(() => leadFix(t));
+      } else { cap = null; setTimeout(() => leadFix(t), 0); }
     } else if (r.kind === 'new') {
       if (r.Lt) t.L = r.Lt;
       else {
@@ -8874,7 +8858,7 @@ const Looper = (() => {
   function openEditor(t, byUser) {
     if (!t.L || (rec && rec.t === t)) return;
     ed.t = t; ed.s = 0; ed.e = t.L; ed.lastOp = null; ed.offMs = 0; ed.peaks = null; ed.zoom = 1; ed.v0 = 0; showZoom();
-    edEl.hidden = false; setEdFull(!!byUser && loadPref('3nps-edfull', '1') === '1'); setHandle('s'); ed.redo = []; ed.q = null; $('qInfo').textContent = 'Grün = genau (unter 10 ms), gelb = leicht daneben, rot = deutlich daneben (über 25 ms).'; edUR();   // Vollbild nur beim Antippen von ✂
+    edEl.hidden = false; setEdFull(!!byUser && loadPref('3nps-edfull', '1') === '1'); setHandle('s'); ed.redo = []; edUR();   // Vollbild nur beim Antippen von ✂
     edEl.style.setProperty('--tc', NEON.t[t.i]);
     $('edTitle').textContent = 'Spur ' + (t.i + 1) + ' bearbeiten';
     showKey(); showEdChords(); fillSrc(); edInfo(); update(); kick();
@@ -8944,114 +8928,6 @@ const Looper = (() => {
     for (const x of [t.mix.l, t.mix.r]) for (let i = ed.s; i < ed.e; i++) { const v = x[i] < 0 ? -x[i] : x[i]; if (v > p) p = v; }
     if (p < 1e-4) { setStatus('Die Auswahl ist still – nichts zu normalisieren.'); return; }
     gainSel(20 * Math.log10(Math.pow(10, -1 / 20) / p), 'normalisiert (−1 dBFS)');
-  });
-  // ---- Quantisieren: Anschläge aufs Raster, Zeit dazwischen per WSOLA verbiegen (Tonhöhe bleibt) ----
-  function qGridPts(t, sub, swing) {
-    const d = trackDowns(t), pts = [];
-    for (let i = 0; i + 1 < d.length; i++) {
-      const bl = d[i + 1] - d[i], sp = bl / sub, triplet = sub % 3 === 0;
-      for (let k = 0; k < sub; k++) pts.push(d[i] + k * sp + (!triplet && k % 2 ? swing * sp / 3 : 0));
-    }
-    pts.push(d[d.length - 1]);
-    return pts;
-  }
-  function qAnalyse() {
-    const t = ed.t; if (!t) return null;
-    const sub = parseInt($('qGrid').value), sw = parseInt($('qSwing').value) / 100, str = parseInt($('qStr').value) / 100;
-    const pts = qGridPts(t, sub, sw), margin = Math.round(sr * 0.02), list = [];
-    for (const o of trackOnsets(t)) {
-      if (o < ed.s + margin || o > ed.e - margin) continue;
-      let g = pts[0], bd = Infinity; for (const p of pts) { const q = Math.abs(p - o); if (q < bd) { bd = q; g = p; } }
-      list.push({ o, g: Math.round(g), dev: (o - g) / sr * 1000 });
-    }
-    // Zielpositionen streng steigend halten (zwei Anschläge nie auf denselben Punkt)
-    const anc = [{ x: ed.s, y: ed.s }], minGap = Math.round(sr * 0.012);
-    for (const q of list) { const y = Math.round(q.o + (q.g - q.o) * str), py = anc[anc.length - 1]; if (q.o - py.x > minGap && y - py.y > minGap) anc.push({ x: q.o, y }); }
-    if (ed.e - anc[anc.length - 1].x > minGap && ed.e - anc[anc.length - 1].y > minGap) anc.push({ x: ed.e, y: ed.e }); else anc[anc.length - 1] = { x: ed.e, y: ed.e };
-    const avg = list.length ? list.reduce((a, q) => a + Math.abs(q.dev), 0) / list.length : 0, mx = list.reduce((a, q) => Math.max(a, Math.abs(q.dev)), 0);
-    ed.q = { list, anc, sub, sw, str, s: ed.s, e: ed.e, forMix: t.mix, out: null };
-    $('qInfo').textContent = list.length ? list.length + ' Anschläge · Ø Abweichung ' + avg.toFixed(1).replace('.', ',') + ' ms · größte ' + Math.round(mx) + ' ms · Stärke ' + Math.round(str * 100) + ' %'
-      : 'In der Auswahl wurden keine Anschläge gefunden.';
-    kick();
-    return ed.q;
-  }
-  // Quantisieren wie Flex-Time: Jeder Anschlag landet exakt auf seinem Ziel; nur der Klang zwischen zwei Anschlägen
-  // wird per WSOLA gestreckt/gestaucht (Tonhöhe bleibt). Abschnittsgrenzen 5 ms vor dem Anschlag, dort 3 ms Überblendung.
-  function wsolaSeg(t, x0, srcLen, dstLen, extra) {
-    const N = 1024, H = N >> 1, tol = 160, L = t.L, M = t.mix.l, Rr = t.mix.r, mono = Rr === M, n = dstLen + extra;
-    const oL = new Float32Array(n + N), oR = mono ? null : new Float32Array(n + N), ws = new Float32Array(n + N);
-    const at = (x, i) => x[((i % L) + L) % L], mid = i => at(M, i) + (mono ? 0 : at(Rr, i)), rate = srcLen / Math.max(1, dstLen);
-    let prev = null;
-    for (let y = 0; y < n; y += H) {
-      let x = Math.round(x0 + y * rate);
-      if (prev != null && Math.abs(rate - 1) > 1e-4) {
-        const nat = prev + H; let best = 0, bv = -Infinity;
-        for (let d = -tol; d <= tol; d += 2) { let c = 0; for (let k = 0; k < H; k += 4) c += mid(nat + k) * mid(x + d + k); if (c > bv) { bv = c; best = d; } }
-        x += best;
-      } else if (prev != null) x = prev + H;
-      for (let k = 0; k < N && y + k < n + N; k++) { const w = 0.5 - 0.5 * Math.cos(2 * Math.PI * k / N); oL[y + k] += at(M, x + k) * w; if (oR) oR[y + k] += at(Rr, x + k) * w; ws[y + k] += w; }
-      prev = x;
-    }
-    // Anfang exakt: der erste Halbrahmen hat nur ein steigendes Fenster → direkt aus der Quelle übernehmen
-    const l = new Float32Array(n), r = mono ? l : new Float32Array(n);
-    for (let i = 0; i < n; i++) {
-      if (i < H) { l[i] = at(M, x0 + Math.round(i * rate)); if (!mono) r[i] = at(Rr, x0 + Math.round(i * rate)); continue; }
-      const w = ws[i] > 1e-3 ? ws[i] : 1; l[i] = oL[i] / w; if (!mono) r[i] = oR[i] / w;
-    }
-    // Übergang vom direkten Anfang in den WSOLA-Teil weich machen
-    const xf = 64; for (let i = 0; i < xf; i++) { const g = (i + 0.5) / xf, p = H + i, wl = ws[p] > 1e-3 ? oL[p] / ws[p] : l[p]; const dl = at(M, x0 + Math.round(p * rate)); l[p] = dl * (1 - g) + wl * g; if (!mono) { const wr = ws[p] > 1e-3 ? oR[p] / ws[p] : r[p], dr = at(Rr, x0 + Math.round(p * rate)); r[p] = dr * (1 - g) + wr * g; } }
-    return { l, r };
-  }
-  function wsolaWarp(t, s0, e0, anc) {
-    const pre = Math.round(sr * 0.005), XF = Math.max(32, Math.round(sr * 0.003)), len = e0 - s0, mono = t.mix.r === t.mix.l;
-    const l = new Float32Array(len), r = mono ? l : new Float32Array(len);
-    // Abschnitte: Start (Quelle/Ziel) je Anker, 5 ms vor dem Anschlag
-    const segs = anc.map((a, j) => ({ x: j === 0 ? a.x : a.x - pre, y: j === 0 ? a.y : a.y - pre }));
-    for (let j = 0; j + 1 < segs.length; j++) {
-      const A = segs[j], B = segs[j + 1], dst = B.y - A.y, src = B.x - A.x; if (dst <= 0) continue;
-      const part = wsolaSeg(t, A.x, src, dst, XF), o0 = A.y - s0;
-      for (let i = 0; i < dst + XF; i++) {
-        const p = o0 + i; if (p < 0 || p >= len) continue;
-        const g = j > 0 && i < XF ? (i + 0.5) / XF : 1;          // in den vorigen Abschnitt hineinblenden
-        if (g < 1) { const c = Math.sin(g * Math.PI / 2), d = Math.cos(g * Math.PI / 2); l[p] = l[p] * d + part.l[i] * c; if (!mono) r[p] = r[p] * d + part.r[i] * c; }
-        else if (i < dst || j + 1 === segs.length - 1) { l[p] = part.l[i]; if (!mono) r[p] = part.r[i]; }
-        else { l[p] = part.l[i]; if (!mono) r[p] = part.r[i]; }
-      }
-    }
-    return { l, r };
-  }
-  function qRender() {
-    const t = ed.t; if (!t || !ed.q || ed.q.forMix !== t.mix) qAnalyse();
-    const q = ed.q; if (!q || !q.list.length) return null;
-    if (q.out) return q.out;
-    const w = wsolaWarp(t, q.s, q.e, q.anc), n = Math.min(EDGE(), (q.e - q.s) >> 2);
-    const mk = (src, part) => { const o = src.slice(); o.set(part, q.s); xfadeEdge(o, src, q.s, n, true); xfadeEdge(o, src, q.e - n, n, false); return o; };
-    const l = mk(t.mix.l, w.l), r = t.mix.r === t.mix.l ? l : mk(t.mix.r, w.r);
-    q.out = { l, r };
-    return q.out;
-  }
-  function qParams() { $('qStrV').textContent = $('qStr').value + ' %'; $('qSwingV').textContent = $('qSwing').value + ' %'; if (ed.t && ed.q) { stopLoopSel(); qAnalyse(); } }
-  ['qGrid', 'qStr', 'qSwing'].forEach(id => $(id).addEventListener(id === 'qGrid' ? 'change' : 'input', qParams));
-  $('qAna').addEventListener('click', () => { if (ed.t) qAnalyse(); });
-  function qHear(after) {
-    const t = ed.t; if (!t) return;
-    const btn = after ? $('qHearA') : $('qHearB');
-    if (ed.loop && ed.loop.q === after) { stopLoopSel(); return; }
-    if (!ed.q || ed.q.forMix !== t.mix || ed.q.s !== ed.s || ed.q.e !== ed.e) qAnalyse();
-    let buf = null;
-    if (after) { const o = qRender(); if (!o) { setStatus('Keine Anschläge zum Quantisieren gefunden.'); return; } const mono = o.r === o.l; buf = audioCtx.createBuffer(mono ? 1 : 2, t.L, sr); buf.copyToChannel(o.l, 0); if (!mono) buf.copyToChannel(o.r, 1); }
-    startLoopSel(buf); if (ed.loop) ed.loop.q = after;
-    btn.setAttribute('aria-pressed', 'true');
-  }
-  $('qHearB').addEventListener('click', () => qHear(false));
-  $('qHearA').addEventListener('click', () => qHear(true));
-  $('qApply').addEventListener('click', () => {
-    const t = ed.t; if (!t) return;
-    if (!ed.q || ed.q.forMix !== t.mix || ed.q.s !== ed.s || ed.q.e !== ed.e) qAnalyse();
-    const o = qRender(); if (!o) { setStatus('Keine Anschläge zum Quantisieren gefunden.'); return; }
-    const n = ed.q.list.length, str = Math.round(ed.q.str * 100);
-    edApply('quantisiert (' + n + ' Anschläge, ' + str + ' %)', (dst, src, s0, e0, ch) => { const part = ch === 1 ? o.r : o.l; dst.set(part.subarray(s0, e0), s0); }, { keepKey: true });
-    ed.q = null; $('qInfo').textContent = 'Quantisiert. Mit ↶ zurücknehmen oder erneut „Analysieren“.';
   });
   // Editor-Rückgängig/Wiederholen (löscht die Spur nie)
   function edUndo() {
@@ -9255,7 +9131,6 @@ const Looper = (() => {
     ed.loop = null;
     if (!keepMute && audioCtx) { const now = audioCtx.currentTime; tracks.forEach(o => { if (o.gain) o.gain.gain.setTargetAtTime(parseInt(o.vol.value) / 100, now, 0.015); }); }
     $('edLoopSel').setAttribute('aria-pressed', 'false'); $('edLoopSel').textContent = '↻ Auswahl hören';
-    $('qHearA').setAttribute('aria-pressed', 'false'); $('qHearB').setAttribute('aria-pressed', 'false');
   }
   function restartLoopSel() { if (ed.loop && ed.loop.q == null) startLoopSel(); else if (ed.loop) stopLoopSel(); }
   $('edLoopSel').addEventListener('click', () => { if (ed.loop) stopLoopSel(); else startLoopSel(); });
@@ -9364,8 +9239,9 @@ const Looper = (() => {
     if (ms) setStatus('Spur ' + (t.i + 1) + ' fein angeglichen: ' + (ms > 0 ? Math.round(ms) + ' ms früher' : Math.round(-ms) + ' ms später') + ' – die Anschläge liegen jetzt auf denen der anderen Spuren.');
     kick();
   });
-  $('edAuto').addEventListener('click', () => {
-    const t = ed.t; if (!t) return;
+  // Erster Ton der Spur (Frame vor dem Loopanfang = negativ); null = zu leise
+  function firstTone(t) {
+    if (!t || !t.L || !t.mix) return null;
     const x = monoOf(t.mix), win = Math.max(1, Math.round(sr * 0.005)), env = [];
     let max = 0;
     for (let i = 0; i < x.length; i += win) {
@@ -9373,11 +9249,30 @@ const Looper = (() => {
       for (let j = i; j < end; j++) { const v = x[j] < 0 ? -x[j] : x[j]; if (v > p) p = v; }
       env.push(p); if (p > max) max = p;
     }
-    if (max < 1e-3) { setStatus('Die Spur ist zu leise für Auto-Sync.'); return; }
+    if (max < 1e-3) return null;
     let idx = env.findIndex(v => v > max * 0.3);
     while (idx > 0 && env[idx - 1] > max * 0.06) idx--;
     let first = idx <= 0 ? 0 : idx * win - Math.round(sr * 0.008);
     if (first > t.L / 2) first -= t.L;
+    return first;
+  }
+  // Nach der ersten Aufnahme: Pause am Anfang wegnehmen (Loop drehen, Abspielposition mitnehmen → kein Sprung)
+  function leadFix(t) {
+    if (!$('loopLeadFix').checked || !t.L || others(t).length || (typeof Rhythm !== 'undefined' && Rhythm.on())) return;
+    const first = firstTone(t);
+    if (first == null || first < sr * 0.04 || first > t.L / 2) return;
+    snapshot(t);
+    anchor += first;                                    // gleiche Stelle hörbar wie vorher
+    rotateTrack(t, -first);
+    detectTrackKey(t); update(); kick();
+    setStatus('Pause am Anfang weggenommen (' + Math.round(first / sr * 1000) + ' ms) – der erste Ton liegt jetzt auf Takt 1. ↶ nimmt es zurück.');
+  }
+  $('loopLeadFix').checked = loadPref('3nps-leadfix', '1') === '1';
+  $('loopLeadFix').addEventListener('change', () => savePref('3nps-leadfix', $('loopLeadFix').checked ? '1' : '0'));
+  $('edAuto').addEventListener('click', () => {
+    const t = ed.t; if (!t) return;
+    const first = firstTone(t);
+    if (first == null) { setStatus('Die Spur ist zu leise für Auto-Sync.'); return; }
     if (Math.abs(first) < sr * 0.003) { setStatus('Der erste Ton sitzt schon auf dem Loopanfang.'); return; }
     rotate(-first);
     setStatus('Spur ' + (t.i + 1) + ': erster Ton auf den Loopanfang geschoben (' + Math.round(-first / sr * 1000) + ' ms).');
@@ -9994,14 +9889,6 @@ const Looper = (() => {
     ctx.fillStyle = 'rgba(0,0,0,.5)';
     if (xs > 0) ctx.fillRect(0, top, Math.min(w, xs), h - top);
     if (xe < w) ctx.fillRect(Math.max(0, xe), top, w - Math.max(0, xe), h - top);
-    // Quantisieren: Anschläge farbig nach Abweichung, Linie zum Zielpunkt
-    if (ed.q && ed.q.forMix === t.mix) for (const q of ed.q.list) {
-      const xo = X(q.o), xg = X(q.g); if (Math.max(xo, xg) < -4 || Math.min(xo, xg) > w + 4) continue;
-      const a = Math.abs(q.dev), col = a < 10 ? '#34c759' : a < 25 ? '#ffcc00' : '#ff3b30';
-      ctx.fillStyle = col; ctx.globalAlpha = 0.85; ctx.fillRect(xo - 1, top + 10, 2, h - top - 22);
-      ctx.globalAlpha = 0.5; ctx.fillRect(Math.min(xo, xg), top + 12, Math.abs(xg - xo) || 1, 3);
-      ctx.globalAlpha = 1; ctx.beginPath(); ctx.arc(xg, top + 13.5, 3, 0, Math.PI * 2); ctx.fill();
-    }
     // Erkannte Anschläge als kleine Marken oben im Wellenbereich
     ctx.fillStyle = 'rgba(255,255,255,.7)';
     for (const o of trackOnsets(t)) { const xo = X(o); if (xo < -4) continue; if (xo > w + 4) break; ctx.beginPath(); ctx.moveTo(xo - 4, top + 2); ctx.lineTo(xo + 4, top + 2); ctx.lineTo(xo, top + 8); ctx.fill(); if (st < 40) ctx.fillRect(xo - 0.5, top + 8, 1, h - top - 8); }
@@ -10383,7 +10270,7 @@ const Looper = (() => {
     _micKill: () => { if (stream) stream.getTracks().forEach(tr => tr.stop()); },
     _micDrop: () => { if (stream) stream.getAudioTracks()[0].dispatchEvent(new Event('ended')); },
     themeChanged: () => readNeon(), _zip: files => makeZip(files),
-    _mem: () => memState(), setLive: v => setLive(v), edPedal: id => edPedal(id), _edClip: () => edClip, _q: () => ed.q ? { n: ed.q.list.length, devs: ed.q.list.map(q => q.dev), anc: ed.q.anc.length } : null, _setTrackRaw: (i, l) => { const t = tracks[i]; t.L = l.length; t.layers = [SP(l)]; rebuildMix(t); t.state = 'stopped'; update(); return true; }, _qPts: (i, sub, sw) => qGridPts(tracks[i], sub, sw), _edSel: (a, b) => { if (ed.t) { ed.s = a; ed.e = b; edInfo(); } }, _trim: () => ed.t && trimTo(ed.s, ed.e, 'zugeschnitten'), _mixOf: i => tracks[i].mix, _ed: () => ed.t ? { s: ed.s, e: ed.e, h: ed.h, L: ed.t.L, zoom: ed.zoom, full: edEl.classList.contains('ed-full'), loop: !!ed.loop, onsets: trackOnsets(ed.t).length } : null, _onsets: i => tracks[i] && tracks[i].L ? trackOnsets(tracks[i]) : [],
+    _mem: () => memState(), setLive: v => setLive(v), edPedal: id => edPedal(id), _edClip: () => edClip, _firstTone: i => firstTone(tracks[i]), _anchor: () => anchor, _setTrackRaw: (i, l) => { const t = tracks[i]; t.L = l.length; t.layers = [SP(l)]; rebuildMix(t); t.state = 'stopped'; update(); return true; }, _edSel: (a, b) => { if (ed.t) { ed.s = a; ed.e = b; edInfo(); } }, _trim: () => ed.t && trimTo(ed.s, ed.e, 'zugeschnitten'), _mixOf: i => tracks[i].mix, _ed: () => ed.t ? { s: ed.s, e: ed.e, h: ed.h, L: ed.t.L, zoom: ed.zoom, full: edEl.classList.contains('ed-full'), loop: !!ed.loop, onsets: trackOnsets(ed.t).length } : null, _onsets: i => tracks[i] && tracks[i].L ? trackOnsets(tracks[i]) : [],
     perf: () => { let inLat = null, inSr = null; try { const st = stream && stream.getAudioTracks()[0].getSettings(); if (st) { inLat = typeof st.latency === 'number' ? st.latency : null; inSr = st.sampleRate || null; } } catch (e) {}
       const m = memState(); const r = { mic: micReady, sr, inLat, inSr, inChans, comp: parseInt(latEl.value || '0'), curMB: m.curMB, histMB: m.histMB, histMax: HIST_MB, gaps: perfIn.gaps, lagMs: perfIn.lagMs, lagMax: perfIn.lagMax, micErr: lastMicError };
       perfIn.lagMax = 0; return r; }, autosaveNow: () => doAutosave(), autosaveOn: v => { autoReady = v !== false; },

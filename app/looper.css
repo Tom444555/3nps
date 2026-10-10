@@ -384,4 +384,4 @@ html.ed-open, html.ed-open body { overflow: hidden; }
 .editor.ed-full > * { flex-shrink: 0; }
 .ed-edit .ed-row .toggle-btn { padding: 7px 10px; }
 #edUndo, #edRedo { min-width: 40px; font-size: 1rem; }
-#qHearA[aria-pressed="true"], #qHearB[aria-pressed="true"] { border-color: var(--tc); box-shadow: 0 0 8px var(--tc); }
+html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleiste würde sonst über dem Editor liegen */
