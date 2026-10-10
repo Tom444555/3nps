@@ -343,7 +343,7 @@ const Looper = (() => {
       savePref('3nps-lat-why', why);
     }
     latVal.textContent = latEl.value + ' ms';
-    ev('Eingang offen'); micReady = true; perfIn.next = -1; perfIn.n = 0; lastMicError = ''; monBtn.disabled = false;
+    ev('Eingang offen'); micWanted = true; autoTries = 0; micReady = true; perfIn.next = -1; perfIn.n = 0; lastMicError = ''; monBtn.disabled = false;
     try { const st = stream.getAudioTracks()[0].getSettings(); inChans = st.channelCount || 0; } catch (e) { inChans = 0; }
     showInChans();
     $('panel-looper').classList.add('mic-on');
@@ -355,6 +355,7 @@ const Looper = (() => {
   // iPadOS beendet das Mikrofon z. B. beim Sperren oder App-Wechsel – dann beim nächsten Bedarf neu öffnen
   function micLost(reason) {
     if (!micReady) return;
+    ev('Eingang zu (' + (reason || 'Gerät beendet') + ')');
     micReady = false;
     try { micSource && micSource.disconnect(); tapNode && tapNode.disconnect(); } catch (e) {}
     try { stream && stream.getTracks().forEach(tr => tr.stop()); } catch (e) {}
@@ -401,7 +402,7 @@ const Looper = (() => {
   // Erstes Tippen nach einer Unterbrechung: Ton fortsetzen und – war der Eingang offen – ihn gleich wieder öffnen
   ['pointerdown', 'keydown'].forEach(evn => window.addEventListener(evn, () => {
     if (audioCtx && audioCtx.state !== 'running') audioCtx.resume().catch(() => {});
-    if (wasMic && !micReady && !micOpening && !document.hidden) setTimeout(() => reopenMic(true), 50);
+    if ((wasMic || micWanted) && !micReady && !micOpening && !document.hidden) { autoTries = 0; setTimeout(() => reopenMic(true), 50); }
   }, true));
   let wasMic = false;
   document.addEventListener('visibilitychange', () => {
@@ -427,6 +428,21 @@ const Looper = (() => {
   // Leistungsanzeige: Lücken im Eingangsstrom und wie spät die Blöcke ankommen (nur Zählen, keine Arbeit)
   const perfIn = { next: -1, gaps: 0, lagMs: 0, lagMax: 0, n: 0 };
   let lastMicError = '';
+  // Eingang soll offen sein (vom Nutzer geöffnet): unerwartet zu → von selbst wieder öffnen.
+  // Prüft jede Sekunde; ein stummgeschaltetes Mikrofon (iPadOS) zählt nach 1,5 s als zu.
+  let micWanted = false, mutedSince = 0, lastAuto = 0, autoTries = 0;
+  setInterval(() => {
+    if (!micWanted || document.hidden || rec) return;
+    const now = Date.now();
+    if (micReady && stream) {
+      const tr = stream.getAudioTracks()[0];
+      if (tr && (tr.readyState === 'ended' || tr.muted)) { if (!mutedSince) mutedSince = now; else if (now - mutedSince > 1500) { mutedSince = 0; micLost(tr.readyState === 'ended' ? 'beendet' : 'stumm geschaltet'); } }
+      else mutedSince = 0;
+      return;
+    }
+    // höchstens 2 automatische Versuche, dann wartet die App auf ein Tippen (iPad gibt den Eingang manchmal nur nach Berührung frei)
+    if (!micReady && !micOpening && autoTries < 2 && lastMicError !== 'Timeout' && now - lastAuto > 3000) { lastAuto = now; autoTries++; ev('Eingang wird neu geöffnet'); reopenMic(true); }
+  }, 1000);
   function handleChunk(startFrame, data) {
     { const len = data.l.length; if (perfIn.next >= 0 && perfIn.n > 25 && startFrame - perfIn.next > 128) perfIn.gaps++; perfIn.next = startFrame + len;
       if (audioCtx) { const lag = (audioCtx.currentTime * sr - perfIn.next) / sr * 1000; perfIn.lagMs = perfIn.lagMs * 0.9 + lag * 0.1; if (lag > perfIn.lagMax) perfIn.lagMax = lag; perfIn.n++; } }
@@ -2969,6 +2985,7 @@ const Looper = (() => {
     isEmpty: () => !anyContent(),
     foot: i => foot(tracks[i]),
     exportLogic: () => exportLogic(),
+    _micKill: () => { if (stream) stream.getTracks().forEach(tr => tr.stop()); },
     _micDrop: () => { if (stream) stream.getAudioTracks()[0].dispatchEvent(new Event('ended')); },
     themeChanged: () => readNeon(), _zip: files => makeZip(files),
     _mem: () => memState(), setLive: v => setLive(v), edPedal: id => edPedal(id), _edClip: () => edClip, _q: () => ed.q ? { n: ed.q.list.length, devs: ed.q.list.map(q => q.dev), anc: ed.q.anc.length } : null, _setTrackRaw: (i, l) => { const t = tracks[i]; t.L = l.length; t.layers = [SP(l)]; rebuildMix(t); t.state = 'stopped'; update(); return true; }, _qPts: (i, sub, sw) => qGridPts(tracks[i], sub, sw), _edSel: (a, b) => { if (ed.t) { ed.s = a; ed.e = b; edInfo(); } }, _trim: () => ed.t && trimTo(ed.s, ed.e, 'zugeschnitten'), _mixOf: i => tracks[i].mix, _ed: () => ed.t ? { s: ed.s, e: ed.e, h: ed.h, L: ed.t.L, zoom: ed.zoom, full: edEl.classList.contains('ed-full'), loop: !!ed.loop, onsets: trackOnsets(ed.t).length } : null, _onsets: i => tracks[i] && tracks[i].L ? trackOnsets(tracks[i]) : [],

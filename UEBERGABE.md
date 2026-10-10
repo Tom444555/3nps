@@ -1,6 +1,6 @@
 # 3nps Looper – Übergabe (vollständiger Stand)
 
-Stand: **7. Oktober 2026 · Version v46** – live unter https://tom444555.github.io/3nps/ ·
+Stand: **7. Oktober 2026 · Version v47** – live unter https://tom444555.github.io/3nps/ ·
 stabile Rückfall-Fassung **v24** unter https://tom444555.github.io/3nps/stabil/
 
 Diese Datei ist das Gedächtnis des Projekts. Alles, was ein neuer Chat wissen muss, steht hier –
@@ -180,10 +180,10 @@ IDs `tab-…`/`panel-…`. Begleitung (Drone, Drums, Bass), alter Song-Player un
 - **Anzeige:** `playFrame()` = hörbare Position; „Was passt“-Box mit fester Höhe (iPad 168 px, schmal 240 px, iPhone 236 px) –
   nichts darf beim Mitlaufen springen.
 
-## 8. Tests und erwartete Ergebnisse (v46)
+## 8. Tests und erwartete Ergebnisse (v47)
 
 Browser (Playwright, Testserver 8765, **nacheinander**):
-`v46jam.py` 7/7 · `v45quant.py` 13/13 (unsauberes 16tel-Spiel: Ø 11,7 → 1,5 ms, Tonhöhe gleich, < 1 s) · `v44edit.py` 15/15 · `v43edit.py` 16/16 · `v40idea.py` 7/7 · `v39back.py` 7/7 (Hintergrund simuliert über document.hidden + _micDrop + hängendes getUserMedia) · `v38live.py` 11/11 · `v41ideasolo.py` (Idee laden → Akkorde für Improvisation, mit/ohne Live; Ausgabe prüfen: Spur 0, has=True) · `v37stall.py` 16/16 (Hänger-Erkennung per absichtlich überlastetem Audio-Modul, Wächter, Schlüssel-Umzug, „Stabil“, Latenz-Nachziehen, Raum) · `v36mic.py` 10/10 (Fehlerfälle beim Öffnen per gepatchtem getUserMedia) · `v35.py` 20/20 (Anheften/Ziehen/Kompakt/Neustart, Kontraste der neuen Optiken) · `v34perf.py` 12/12 · `v34optik.py` 16/16 (Pages-Nachbau Port 8790, prüft Wechsel mit v24) · `v31export.py` 14/14 (prüft Versionsmarke – bei jeder Version anpassen) · `v30text.py` 27/27 (Versionsprüfung seit v34 „ab v30“ numerisch) · `v28lied.py` 34/34 · `v28sync.py` 6/6 · `v27passt.py` 17/17 · `passthoehe.py` 8/8 ·
+`v47mic.py` 6/6 · `v46jam.py` 7/7 · `v45quant.py` 13/13 (unsauberes 16tel-Spiel: Ø 11,7 → 1,5 ms, Tonhöhe gleich, < 1 s) · `v44edit.py` 15/15 · `v43edit.py` 16/16 · `v40idea.py` 7/7 · `v39back.py` 7/7 (Hintergrund simuliert über document.hidden + _micDrop + hängendes getUserMedia) · `v38live.py` 11/11 · `v41ideasolo.py` (Idee laden → Akkorde für Improvisation, mit/ohne Live; Ausgabe prüfen: Spur 0, has=True) · `v37stall.py` 16/16 (Hänger-Erkennung per absichtlich überlastetem Audio-Modul, Wächter, Schlüssel-Umzug, „Stabil“, Latenz-Nachziehen, Raum) · `v36mic.py` 10/10 (Fehlerfälle beim Öffnen per gepatchtem getUserMedia) · `v35.py` 20/20 (Anheften/Ziehen/Kompakt/Neustart, Kontraste der neuen Optiken) · `v34perf.py` 12/12 · `v34optik.py` 16/16 (Pages-Nachbau Port 8790, prüft Wechsel mit v24) · `v31export.py` 14/14 (prüft Versionsmarke – bei jeder Version anpassen) · `v30text.py` 27/27 (Versionsprüfung seit v34 „ab v30“ numerisch) · `v28lied.py` 34/34 · `v28sync.py` 6/6 · `v27passt.py` 17/17 · `passthoehe.py` 8/8 ·
 `v25grips.py` 10/10 · `v25jam.py` 21/21 · `v25listen.py` 9/9 · `v25ueben.py` 28/28 · `v25stress.py` 6/6 · `tempotest.py` 3/3 ·
 `v24solo.py` 22/22 · `v22key.py` 7/7 · `v21test.py` 8/8 · `v21tabs.py` 18/18 · `v20test.py` 14/14 · `suite.py` 81/81 · `stereotest.py` 16/16 (Prüfung „Pegel zeigt L/R“ liest einen Zufallsmoment, selten 15/16 – dann wiederholen) ·
 `eqtest.py` 9/9 · `restoretest.py` 7/7 · `backuptest.py` 7/7 · `csptest.py` (keine fremden Anfragen) · `rec_fit.py 1` 10/10 ·
@@ -221,6 +221,7 @@ Testaudio-Generatoren (alle deterministisch, von `wiederherstellen.sh` aufgerufe
 | v33 | Optik als kleiner aufklappbarer Knopf „App-Optik ▾“ im Kopf unter dem Schriftzug |
 | v34 | Leistungsanzeige (Rechenlast, Speicher, Latenz), Optiken umbenannt + neu „Klar“ und „Matrix“, Pedal-Fenster für alle Bluetooth-Pedale. Vergleich mit v24: gleichwertig |
 | v35 | Leistungsfenster anheftbar, verschiebbar, kompakt; Optiken „DJ-Pult“, „Hell“, „Präzision“ |
+| v47 | Eingang bleibt offen: `micWanted` + Wächter (1×/s): still beendete oder > 1,5 s stummgeschaltete Spur → `micLost` → bis zu 2 automatische Neuöffnungen (nicht nach Timeout, dann wartet es auf Tippen). Jedes Schließen mit Grund im Hänger-Protokoll (`Eingang zu (…)`). Anlass: iPad schloss den Eingang beim Reiterwechsel (in Chromium nicht nachstellbar) |
 | v46 | Backing Track: Beat-Auswahl `#jamStyle` (Spiegel von `#loopDrumStyle`), 9 neue Presets (house, techno, trap, lofi, synthwave, breakbeat, samba, cumbia, ballad68), Synth-Klänge `#jamSound`/`st.padSound` (pad, warm, strings, organ, epiano FM, bell FM, pluck/arp rhythmisch über `arpStep` im Taktgeber) |
 | v45 | Editor Block 3 Quantisieren: `qAnalyse` (Onsets in Auswahl → nächster Rasterpunkt aus `qGridPts`, Swing auf ungerade Teilungen, Anker streng steigend), `wsolaWarp` = Flex-Time-artig: Abschnitte je Anschlag (5 ms davor), `wsolaSeg` streckt nur den Ausklang (N 1024, Suche ±160), 3-ms-Überblendung; Vorher/Nachher über `startLoopSel(buf)`. `vergleich.py` setzt `3nps-edfull=0` |
 | v44 | Editor Block 2: `edApply` (Länge bleibt, 3-ms-Kanten `xfadeEdge`), Kopieren/Ausschneiden/Einfügen (`edClip`, spurübergreifend)/Duplizieren/Stille/Umkehren/Blenden/±3 dB/Normalisieren −1 dBFS; Editor-Undo/Redo (`edUndo`/`edRedo`, `ed.redo`, `applySnap` aus `undoTrack` herausgelöst; Editor-Undo löscht nie die Spur) |
