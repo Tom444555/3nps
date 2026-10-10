@@ -15,6 +15,7 @@ async def main():
         pg = await ctx.new_page()
         errs = []; pg.on('pageerror', lambda e: errs.append(str(e)[:160]))
         pg.on('console', lambda m: errs.append('console: ' + m.text[:160]) if m.type == 'error' else None)
+        await pg.add_init_script("localStorage.setItem('3nps-edfull','0')")   # Editor im Fenster (Vollbild deckt Reiter ab)
         t0 = time.time(); await pg.goto(URL); await pg.wait_for_load_state('load')
         out['start_ms'] = round((time.time() - t0) * 1000)
         out['ladezeit_ms'] = await pg.evaluate("Math.round(performance.getEntriesByType('navigation')[0].loadEventEnd)")

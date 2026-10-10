@@ -132,6 +132,23 @@
             <span class="caption" id="edClipInfo"></span>
           </div>
         </div>
+        <div class="ed-group ed-quant">
+          <span class="ed-label">Quantisieren (Auswahl) · Anschläge aufs Raster ziehen, Tonhöhe bleibt</span>
+          <div class="ed-row">
+            <label class="field ed-grid"><span>Raster</span>
+              <select id="qGrid"><option value="4">1/4</option><option value="8">1/8</option><option value="16" selected>1/16</option><option value="12">1/8 Triolen</option><option value="24">1/16 Triolen</option></select>
+            </label>
+            <label class="lane-fader"><span>Stärke</span><input type="range" id="qStr" min="0" max="100" step="5" value="80" aria-label="Stärke"><b id="qStrV">80 %</b></label>
+            <label class="lane-fader"><span>Swing</span><input type="range" id="qSwing" min="0" max="100" step="5" value="0" aria-label="Swing"><b id="qSwingV">0 %</b></label>
+          </div>
+          <div class="ed-row">
+            <button class="toggle-btn" id="qAna">Analysieren</button>
+            <button class="toggle-btn" id="qHearB" aria-pressed="false">▶ vorher</button>
+            <button class="toggle-btn" id="qHearA" aria-pressed="false">▶ nachher</button>
+            <button class="toggle-btn active" id="qApply">Übernehmen</button>
+          </div>
+          <span class="caption" id="qInfo">Grün = genau (unter 10 ms), gelb = leicht daneben, rot = deutlich daneben (über 25 ms).</span>
+        </div>
         <div class="ed-groups">
           <div class="ed-group ed-check">
             <span class="ed-label">Loop prüfen</span>

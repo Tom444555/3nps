@@ -1463,7 +1463,7 @@ const Looper = (() => {
   function openEditor(t, byUser) {
     if (!t.L || (rec && rec.t === t)) return;
     ed.t = t; ed.s = 0; ed.e = t.L; ed.lastOp = null; ed.offMs = 0; ed.peaks = null; ed.zoom = 1; ed.v0 = 0; showZoom();
-    edEl.hidden = false; setEdFull(!!byUser && loadPref('3nps-edfull', '1') === '1'); setHandle('s'); ed.redo = []; edUR();   // Vollbild nur beim Antippen von ✂
+    edEl.hidden = false; setEdFull(!!byUser && loadPref('3nps-edfull', '1') === '1'); setHandle('s'); ed.redo = []; ed.q = null; $('qInfo').textContent = 'Grün = genau (unter 10 ms), gelb = leicht daneben, rot = deutlich daneben (über 25 ms).'; edUR();   // Vollbild nur beim Antippen von ✂
     edEl.style.setProperty('--tc', NEON.t[t.i]);
     $('edTitle').textContent = 'Spur ' + (t.i + 1) + ' bearbeiten';
     showKey(); showEdChords(); fillSrc(); edInfo(); update(); kick();
@@ -1533,6 +1533,114 @@ const Looper = (() => {
     for (const x of [t.mix.l, t.mix.r]) for (let i = ed.s; i < ed.e; i++) { const v = x[i] < 0 ? -x[i] : x[i]; if (v > p) p = v; }
     if (p < 1e-4) { setStatus('Die Auswahl ist still – nichts zu normalisieren.'); return; }
     gainSel(20 * Math.log10(Math.pow(10, -1 / 20) / p), 'normalisiert (−1 dBFS)');
+  });
+  // ---- Quantisieren: Anschläge aufs Raster, Zeit dazwischen per WSOLA verbiegen (Tonhöhe bleibt) ----
+  function qGridPts(t, sub, swing) {
+    const d = trackDowns(t), pts = [];
+    for (let i = 0; i + 1 < d.length; i++) {
+      const bl = d[i + 1] - d[i], sp = bl / sub, triplet = sub % 3 === 0;
+      for (let k = 0; k < sub; k++) pts.push(d[i] + k * sp + (!triplet && k % 2 ? swing * sp / 3 : 0));
+    }
+    pts.push(d[d.length - 1]);
+    return pts;
+  }
+  function qAnalyse() {
+    const t = ed.t; if (!t) return null;
+    const sub = parseInt($('qGrid').value), sw = parseInt($('qSwing').value) / 100, str = parseInt($('qStr').value) / 100;
+    const pts = qGridPts(t, sub, sw), margin = Math.round(sr * 0.02), list = [];
+    for (const o of trackOnsets(t)) {
+      if (o < ed.s + margin || o > ed.e - margin) continue;
+      let g = pts[0], bd = Infinity; for (const p of pts) { const q = Math.abs(p - o); if (q < bd) { bd = q; g = p; } }
+      list.push({ o, g: Math.round(g), dev: (o - g) / sr * 1000 });
+    }
+    // Zielpositionen streng steigend halten (zwei Anschläge nie auf denselben Punkt)
+    const anc = [{ x: ed.s, y: ed.s }], minGap = Math.round(sr * 0.012);
+    for (const q of list) { const y = Math.round(q.o + (q.g - q.o) * str), py = anc[anc.length - 1]; if (q.o - py.x > minGap && y - py.y > minGap) anc.push({ x: q.o, y }); }
+    if (ed.e - anc[anc.length - 1].x > minGap && ed.e - anc[anc.length - 1].y > minGap) anc.push({ x: ed.e, y: ed.e }); else anc[anc.length - 1] = { x: ed.e, y: ed.e };
+    const avg = list.length ? list.reduce((a, q) => a + Math.abs(q.dev), 0) / list.length : 0, mx = list.reduce((a, q) => Math.max(a, Math.abs(q.dev)), 0);
+    ed.q = { list, anc, sub, sw, str, s: ed.s, e: ed.e, forMix: t.mix, out: null };
+    $('qInfo').textContent = list.length ? list.length + ' Anschläge · Ø Abweichung ' + avg.toFixed(1).replace('.', ',') + ' ms · größte ' + Math.round(mx) + ' ms · Stärke ' + Math.round(str * 100) + ' %'
+      : 'In der Auswahl wurden keine Anschläge gefunden.';
+    kick();
+    return ed.q;
+  }
+  // Quantisieren wie Flex-Time: Jeder Anschlag landet exakt auf seinem Ziel; nur der Klang zwischen zwei Anschlägen
+  // wird per WSOLA gestreckt/gestaucht (Tonhöhe bleibt). Abschnittsgrenzen 5 ms vor dem Anschlag, dort 3 ms Überblendung.
+  function wsolaSeg(t, x0, srcLen, dstLen, extra) {
+    const N = 1024, H = N >> 1, tol = 160, L = t.L, M = t.mix.l, Rr = t.mix.r, mono = Rr === M, n = dstLen + extra;
+    const oL = new Float32Array(n + N), oR = mono ? null : new Float32Array(n + N), ws = new Float32Array(n + N);
+    const at = (x, i) => x[((i % L) + L) % L], mid = i => at(M, i) + (mono ? 0 : at(Rr, i)), rate = srcLen / Math.max(1, dstLen);
+    let prev = null;
+    for (let y = 0; y < n; y += H) {
+      let x = Math.round(x0 + y * rate);
+      if (prev != null && Math.abs(rate - 1) > 1e-4) {
+        const nat = prev + H; let best = 0, bv = -Infinity;
+        for (let d = -tol; d <= tol; d += 2) { let c = 0; for (let k = 0; k < H; k += 4) c += mid(nat + k) * mid(x + d + k); if (c > bv) { bv = c; best = d; } }
+        x += best;
+      } else if (prev != null) x = prev + H;
+      for (let k = 0; k < N && y + k < n + N; k++) { const w = 0.5 - 0.5 * Math.cos(2 * Math.PI * k / N); oL[y + k] += at(M, x + k) * w; if (oR) oR[y + k] += at(Rr, x + k) * w; ws[y + k] += w; }
+      prev = x;
+    }
+    // Anfang exakt: der erste Halbrahmen hat nur ein steigendes Fenster → direkt aus der Quelle übernehmen
+    const l = new Float32Array(n), r = mono ? l : new Float32Array(n);
+    for (let i = 0; i < n; i++) {
+      if (i < H) { l[i] = at(M, x0 + Math.round(i * rate)); if (!mono) r[i] = at(Rr, x0 + Math.round(i * rate)); continue; }
+      const w = ws[i] > 1e-3 ? ws[i] : 1; l[i] = oL[i] / w; if (!mono) r[i] = oR[i] / w;
+    }
+    // Übergang vom direkten Anfang in den WSOLA-Teil weich machen
+    const xf = 64; for (let i = 0; i < xf; i++) { const g = (i + 0.5) / xf, p = H + i, wl = ws[p] > 1e-3 ? oL[p] / ws[p] : l[p]; const dl = at(M, x0 + Math.round(p * rate)); l[p] = dl * (1 - g) + wl * g; if (!mono) { const wr = ws[p] > 1e-3 ? oR[p] / ws[p] : r[p], dr = at(Rr, x0 + Math.round(p * rate)); r[p] = dr * (1 - g) + wr * g; } }
+    return { l, r };
+  }
+  function wsolaWarp(t, s0, e0, anc) {
+    const pre = Math.round(sr * 0.005), XF = Math.max(32, Math.round(sr * 0.003)), len = e0 - s0, mono = t.mix.r === t.mix.l;
+    const l = new Float32Array(len), r = mono ? l : new Float32Array(len);
+    // Abschnitte: Start (Quelle/Ziel) je Anker, 5 ms vor dem Anschlag
+    const segs = anc.map((a, j) => ({ x: j === 0 ? a.x : a.x - pre, y: j === 0 ? a.y : a.y - pre }));
+    for (let j = 0; j + 1 < segs.length; j++) {
+      const A = segs[j], B = segs[j + 1], dst = B.y - A.y, src = B.x - A.x; if (dst <= 0) continue;
+      const part = wsolaSeg(t, A.x, src, dst, XF), o0 = A.y - s0;
+      for (let i = 0; i < dst + XF; i++) {
+        const p = o0 + i; if (p < 0 || p >= len) continue;
+        const g = j > 0 && i < XF ? (i + 0.5) / XF : 1;          // in den vorigen Abschnitt hineinblenden
+        if (g < 1) { const c = Math.sin(g * Math.PI / 2), d = Math.cos(g * Math.PI / 2); l[p] = l[p] * d + part.l[i] * c; if (!mono) r[p] = r[p] * d + part.r[i] * c; }
+        else if (i < dst || j + 1 === segs.length - 1) { l[p] = part.l[i]; if (!mono) r[p] = part.r[i]; }
+        else { l[p] = part.l[i]; if (!mono) r[p] = part.r[i]; }
+      }
+    }
+    return { l, r };
+  }
+  function qRender() {
+    const t = ed.t; if (!t || !ed.q || ed.q.forMix !== t.mix) qAnalyse();
+    const q = ed.q; if (!q || !q.list.length) return null;
+    if (q.out) return q.out;
+    const w = wsolaWarp(t, q.s, q.e, q.anc), n = Math.min(EDGE(), (q.e - q.s) >> 2);
+    const mk = (src, part) => { const o = src.slice(); o.set(part, q.s); xfadeEdge(o, src, q.s, n, true); xfadeEdge(o, src, q.e - n, n, false); return o; };
+    const l = mk(t.mix.l, w.l), r = t.mix.r === t.mix.l ? l : mk(t.mix.r, w.r);
+    q.out = { l, r };
+    return q.out;
+  }
+  function qParams() { $('qStrV').textContent = $('qStr').value + ' %'; $('qSwingV').textContent = $('qSwing').value + ' %'; if (ed.t && ed.q) { stopLoopSel(); qAnalyse(); } }
+  ['qGrid', 'qStr', 'qSwing'].forEach(id => $(id).addEventListener(id === 'qGrid' ? 'change' : 'input', qParams));
+  $('qAna').addEventListener('click', () => { if (ed.t) qAnalyse(); });
+  function qHear(after) {
+    const t = ed.t; if (!t) return;
+    const btn = after ? $('qHearA') : $('qHearB');
+    if (ed.loop && ed.loop.q === after) { stopLoopSel(); return; }
+    if (!ed.q || ed.q.forMix !== t.mix || ed.q.s !== ed.s || ed.q.e !== ed.e) qAnalyse();
+    let buf = null;
+    if (after) { const o = qRender(); if (!o) { setStatus('Keine Anschläge zum Quantisieren gefunden.'); return; } const mono = o.r === o.l; buf = audioCtx.createBuffer(mono ? 1 : 2, t.L, sr); buf.copyToChannel(o.l, 0); if (!mono) buf.copyToChannel(o.r, 1); }
+    startLoopSel(buf); if (ed.loop) ed.loop.q = after;
+    btn.setAttribute('aria-pressed', 'true');
+  }
+  $('qHearB').addEventListener('click', () => qHear(false));
+  $('qHearA').addEventListener('click', () => qHear(true));
+  $('qApply').addEventListener('click', () => {
+    const t = ed.t; if (!t) return;
+    if (!ed.q || ed.q.forMix !== t.mix || ed.q.s !== ed.s || ed.q.e !== ed.e) qAnalyse();
+    const o = qRender(); if (!o) { setStatus('Keine Anschläge zum Quantisieren gefunden.'); return; }
+    const n = ed.q.list.length, str = Math.round(ed.q.str * 100);
+    edApply('quantisiert (' + n + ' Anschläge, ' + str + ' %)', (dst, src, s0, e0, ch) => { const part = ch === 1 ? o.r : o.l; dst.set(part.subarray(s0, e0), s0); }, { keepKey: true });
+    ed.q = null; $('qInfo').textContent = 'Quantisiert. Mit ↶ zurücknehmen oder erneut „Analysieren“.';
   });
   // Editor-Rückgängig/Wiederholen (löscht die Spur nie)
   function edUndo() {
@@ -1718,12 +1826,12 @@ const Looper = (() => {
   $('edFade').value = loadPref('3nps-edfade', '5');
   $('edFade').addEventListener('change', () => savePref('3nps-edfade', $('edFade').value));
   // ---- Auswahl in Schleife hören (andere Spuren leise, danach wieder wie vorher) ----
-  function startLoopSel() {
+  function startLoopSel(bufOver) {
     const t = ed.t; if (!t || !t.L || rec) return;
     ensureAudio(); sr = audioCtx.sampleRate; stopLoopSel(true);
-    if (!t.buf || t.bufFor !== t.mix || t.buf.length !== t.L) { const mono = t.mix.r === t.mix.l, b = audioCtx.createBuffer(mono ? 1 : 2, t.L, sr); b.copyToChannel(t.mix.l, 0); if (!mono) b.copyToChannel(t.mix.r, 1); t.buf = b; t.bufFor = t.mix; }
+    if (!bufOver && !t.buf || t.bufFor !== t.mix || t.buf.length !== t.L) { const mono = t.mix.r === t.mix.l, b = audioCtx.createBuffer(mono ? 1 : 2, t.L, sr); b.copyToChannel(t.mix.l, 0); if (!mono) b.copyToChannel(t.mix.r, 1); t.buf = b; t.bufFor = t.mix; }
     const s0 = audioCtx.createBufferSource(), g = audioCtx.createGain(), now = audioCtx.currentTime;
-    s0.buffer = t.buf; s0.loop = true; s0.loopStart = ed.s / sr; s0.loopEnd = ed.e / sr;
+    s0.buffer = bufOver || t.buf; s0.loop = true; s0.loopStart = ed.s / sr; s0.loopEnd = ed.e / sr;
     g.gain.value = parseInt(t.vol.value) / 100; s0.connect(g); g.connect(ensureTrackEq(t).input);
     tracks.forEach(o => { if (o.gain) o.gain.gain.setTargetAtTime(0, now, 0.015); });
     s0.start(now + 0.02, ed.s / sr);
@@ -1736,8 +1844,9 @@ const Looper = (() => {
     ed.loop = null;
     if (!keepMute && audioCtx) { const now = audioCtx.currentTime; tracks.forEach(o => { if (o.gain) o.gain.gain.setTargetAtTime(parseInt(o.vol.value) / 100, now, 0.015); }); }
     $('edLoopSel').setAttribute('aria-pressed', 'false'); $('edLoopSel').textContent = '↻ Auswahl hören';
+    $('qHearA').setAttribute('aria-pressed', 'false'); $('qHearB').setAttribute('aria-pressed', 'false');
   }
-  function restartLoopSel() { if (ed.loop) startLoopSel(); }
+  function restartLoopSel() { if (ed.loop && ed.loop.q == null) startLoopSel(); else if (ed.loop) stopLoopSel(); }
   $('edLoopSel').addEventListener('click', () => { if (ed.loop) stopLoopSel(); else startLoopSel(); });
   // Fußpedal im Vollbild-Editor: ◀ 1 ms · 1 ms ▶ · Griff wechseln · Auswahl hören
   function edPedal(id) {
@@ -2474,6 +2583,14 @@ const Looper = (() => {
     ctx.fillStyle = 'rgba(0,0,0,.5)';
     if (xs > 0) ctx.fillRect(0, top, Math.min(w, xs), h - top);
     if (xe < w) ctx.fillRect(Math.max(0, xe), top, w - Math.max(0, xe), h - top);
+    // Quantisieren: Anschläge farbig nach Abweichung, Linie zum Zielpunkt
+    if (ed.q && ed.q.forMix === t.mix) for (const q of ed.q.list) {
+      const xo = X(q.o), xg = X(q.g); if (Math.max(xo, xg) < -4 || Math.min(xo, xg) > w + 4) continue;
+      const a = Math.abs(q.dev), col = a < 10 ? '#34c759' : a < 25 ? '#ffcc00' : '#ff3b30';
+      ctx.fillStyle = col; ctx.globalAlpha = 0.85; ctx.fillRect(xo - 1, top + 10, 2, h - top - 22);
+      ctx.globalAlpha = 0.5; ctx.fillRect(Math.min(xo, xg), top + 12, Math.abs(xg - xo) || 1, 3);
+      ctx.globalAlpha = 1; ctx.beginPath(); ctx.arc(xg, top + 13.5, 3, 0, Math.PI * 2); ctx.fill();
+    }
     // Erkannte Anschläge als kleine Marken oben im Wellenbereich
     ctx.fillStyle = 'rgba(255,255,255,.7)';
     for (const o of trackOnsets(t)) { const xo = X(o); if (xo < -4) continue; if (xo > w + 4) break; ctx.beginPath(); ctx.moveTo(xo - 4, top + 2); ctx.lineTo(xo + 4, top + 2); ctx.lineTo(xo, top + 8); ctx.fill(); if (st < 40) ctx.fillRect(xo - 0.5, top + 8, 1, h - top - 8); }
@@ -2854,7 +2971,7 @@ const Looper = (() => {
     exportLogic: () => exportLogic(),
     _micDrop: () => { if (stream) stream.getAudioTracks()[0].dispatchEvent(new Event('ended')); },
     themeChanged: () => readNeon(), _zip: files => makeZip(files),
-    _mem: () => memState(), setLive: v => setLive(v), edPedal: id => edPedal(id), _edClip: () => edClip, _edSel: (a, b) => { if (ed.t) { ed.s = a; ed.e = b; edInfo(); } }, _trim: () => ed.t && trimTo(ed.s, ed.e, 'zugeschnitten'), _mixOf: i => tracks[i].mix, _ed: () => ed.t ? { s: ed.s, e: ed.e, h: ed.h, L: ed.t.L, zoom: ed.zoom, full: edEl.classList.contains('ed-full'), loop: !!ed.loop, onsets: trackOnsets(ed.t).length } : null, _onsets: i => tracks[i] && tracks[i].L ? trackOnsets(tracks[i]) : [],
+    _mem: () => memState(), setLive: v => setLive(v), edPedal: id => edPedal(id), _edClip: () => edClip, _q: () => ed.q ? { n: ed.q.list.length, devs: ed.q.list.map(q => q.dev), anc: ed.q.anc.length } : null, _setTrackRaw: (i, l) => { const t = tracks[i]; t.L = l.length; t.layers = [SP(l)]; rebuildMix(t); t.state = 'stopped'; update(); return true; }, _qPts: (i, sub, sw) => qGridPts(tracks[i], sub, sw), _edSel: (a, b) => { if (ed.t) { ed.s = a; ed.e = b; edInfo(); } }, _trim: () => ed.t && trimTo(ed.s, ed.e, 'zugeschnitten'), _mixOf: i => tracks[i].mix, _ed: () => ed.t ? { s: ed.s, e: ed.e, h: ed.h, L: ed.t.L, zoom: ed.zoom, full: edEl.classList.contains('ed-full'), loop: !!ed.loop, onsets: trackOnsets(ed.t).length } : null, _onsets: i => tracks[i] && tracks[i].L ? trackOnsets(tracks[i]) : [],
     perf: () => { let inLat = null, inSr = null; try { const st = stream && stream.getAudioTracks()[0].getSettings(); if (st) { inLat = typeof st.latency === 'number' ? st.latency : null; inSr = st.sampleRate || null; } } catch (e) {}
       const m = memState(); const r = { mic: micReady, sr, inLat, inSr, inChans, comp: parseInt(latEl.value || '0'), curMB: m.curMB, histMB: m.histMB, histMax: HIST_MB, gaps: perfIn.gaps, lagMs: perfIn.lagMs, lagMax: perfIn.lagMax, micErr: lastMicError };
       perfIn.lagMax = 0; return r; }, autosaveNow: () => doAutosave(), autosaveOn: v => { autoReady = v !== false; },
