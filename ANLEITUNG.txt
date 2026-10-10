@@ -488,3 +488,11 @@ Gut zu wissen
    - „Übernehmen“: Jeder Anschlag landet auf seinem Zielpunkt, nur der Ausklang dazwischen wird gestreckt
      oder gestaucht – die Tonhöhe bleibt, die Loop-Länge auch. Mit ↶ zurücknehmen.
    - Tipp: Bei dichtem, schnellem Spiel lieber 50–80 % Stärke; dann bleibt es lebendig und klingt natürlich.
+
+41. Backing Track: Beats und Synth-Klänge (v46)
+   - „Beat“ wählt den Schlagzeug-Stil direkt im Backing Track – dieselbe Liste wie bei den Looper-Drums
+     (beide stellen sich gegenseitig mit um). Neu: House, Techno, Trap, Lo-Fi Hip-Hop, Synthwave (80er),
+     Breakbeat, Samba, Cumbia, 6/8-Ballade.
+   - „Synth-Klang“ (Schalter „Synth“ = an/aus): Fläche, Warm, Streicher, Orgel, E-Piano, Glocke –
+     und rhythmisch Pluck (Achtel) und Arpeggio (16tel), die im Takt die Akkordtöne spielen.
+   - Alles wird in der App selbst erzeugt (keine Samples) und folgt den Akkorden und dem Tempo.
