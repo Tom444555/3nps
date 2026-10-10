@@ -478,16 +478,13 @@ Gut zu wissen
    - An den Kanten wird kurz (3 ms) übergeblendet, damit nichts knackt.
    - ↶ / ↷ oben im Editor: Schritte zurücknehmen und wiederholen. Im Editor löscht ↶ nie die ganze Spur.
 
-40. Editor: quantisieren (v45)
-   - Gruppe „Quantisieren“ wirkt auf die Auswahl (ganze Spur = ganze Auswahl).
-   - Raster (1/4, 1/8, 1/16, 1/8- oder 1/16-Triolen), Stärke (wie weit die Anschläge Richtung Raster
-     rücken, 100 % = genau drauf) und Swing (jede zweite Achtel bzw. 16tel nach hinten, 100 % = Triolen-Gefühl).
-   - „Analysieren“ zeigt jede erkannte Anschlagstelle farbig: grün unter 10 ms, gelb, rot über 25 ms daneben,
-     mit einem Punkt am Zielpunkt. Darunter steht die mittlere und größte Abweichung.
-   - „▶ vorher“ / „▶ nachher“: die Auswahl in Schleife im Original bzw. quantisiert anhören.
-   - „Übernehmen“: Jeder Anschlag landet auf seinem Zielpunkt, nur der Ausklang dazwischen wird gestreckt
-     oder gestaucht – die Tonhöhe bleibt, die Loop-Länge auch. Mit ↶ zurücknehmen.
-   - Tipp: Bei dichtem, schnellem Spiel lieber 50–80 % Stärke; dann bleibt es lebendig und klingt natürlich.
+40. Pause am Anfang wegnehmen (v48)
+   - Fängst du nach dem Drücken von REC erst kurz später an zu spielen, liegt der erste Ton nicht auf Takt 1.
+     Die App nimmt diese Pause nach der ersten Aufnahme von selbst weg: Der Loop wird so gedreht, dass der
+     erste Ton auf Takt 1 liegt – ohne hörbaren Sprung. Die Pause landet dabei am Ende des Loops.
+   - Gilt für die erste Spur, wenn keine Drums laufen (mit Drums bestimmen die Drums die Eins).
+   - Ausschalten: Looper → Einstellungen → „Pause am Anfang wegnehmen“. ↶ nimmt es zurück.
+   - (Das Quantisieren aus v45 wurde wieder entfernt.)
 
 41. Backing Track: Beats und Synth-Klänge (v46)
    - „Beat“ wählt den Schlagzeug-Stil direkt im Backing Track – dieselbe Liste wie bei den Looper-Drums
