@@ -457,3 +457,15 @@ Gut zu wissen
    - Steht „tippe einmal auf den Bildschirm“: einmal tippen – dann laufen Ton und Eingang wieder.
    - Gibt das iPad den Eingang nicht frei, wird „Eingang öffnen“ nach wenigen Sekunden wieder
      bedienbar (früher blieb der Knopf auf „Öffne …“ hängen).
+
+38. Editor: präzise schneiden (v43)
+   - ✂ öffnet den Editor als Vollbild („Fenster“ schaltet zurück; die Wahl bleibt gespeichert).
+   - Wellenform: hell = Lautheit, grau = Spitzen, rot = Übersteuerung, dB-Linien am Rand.
+     Oben Takt und Schlag (z. B. „2.3“), unten die Zeit, kleine Dreiecke = erkannte Anschläge.
+   - Raster zum Einrasten der Griffe: Takt, Schlag, Achtel, 16tel, Anschlag, Nulldurchgang, frei.
+   - Feinschritte: „Anfang“/„Ende“ wählen, dann ◀ 1 ms / 1 ms ▶ oder ◀ 1 / 1 ▶ (ein Abtastwert).
+     Rechts steht die genaue Position (Takt · Schlag + ms · Sekunden).
+   - „Blende am Schnitt“ (Standard 5 ms): Das Ende des Loops geht weich in den Anfang über – kein Knacken.
+   - „↻ Auswahl hören“: nur die Auswahl in Schleife, die anderen Spuren sind solange still.
+   - Fußpedal im Vollbild: Spur 1 = ◀ 1 ms, Spur 2 = 1 ms ▶, Spur 3 = Griff wechseln, Alle = Auswahl hören.
+     (Halten wiederholt den Schritt.) Im Fenster-Modus steuert das Pedal wie gewohnt die Spuren.

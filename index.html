@@ -598,6 +598,20 @@
   .ed-chords { font: 700 0.86rem var(--f-mono); color: var(--ink); line-height: 1.5; word-break: break-word; }
   .ed-chords b { color: var(--tc); font-weight: 700; }
 
+
+/* ===== v43: Editor – Vollbild, Feinschritte ===== */
+.ed-fine { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.ed-fine .toggle-btn { padding: 6px 10px; min-width: 44px; font-variant-numeric: tabular-nums; }
+.ed-seg { display: inline-flex; } .ed-seg .toggle-btn { border-radius: 0; } .ed-seg .toggle-btn:first-child { border-radius: 6px 0 0 6px; } .ed-seg .toggle-btn:last-child { border-radius: 0 6px 6px 0; }
+.ed-pos { font: 600 .74rem var(--f-mono); margin-left: auto; white-space: nowrap; font-variant-numeric: tabular-nums; }
+#edFull[aria-pressed="true"], #edLoopSel[aria-pressed="true"] { border-color: var(--tc); box-shadow: 0 0 8px var(--tc); }
+.editor.ed-full { position: fixed; inset: 0; z-index: 85; margin: 0; border-radius: 0; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding: max(10px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(14px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  background: var(--bg); }
+.editor.ed-full #edWave { height: min(52vh, 460px); }
+.editor.ed-full #edOver { height: 42px; }
+html.ed-open, html.ed-open body { overflow: hidden; }
+.editor.ed-full > * { flex-shrink: 0; }
   /* ---- Quintenzirkel ---- */
   .qz-card { flex-direction: row; flex-wrap: wrap; align-items: flex-start; gap: 18px; }
   .qz-wrap { flex: 1 1 380px; max-width: 560px; margin: 0 auto; }
@@ -2038,7 +2052,7 @@
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v42</span></div>
+      <div class="brand">Looper <span>3nps · v43</span></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -2333,6 +2347,7 @@
         <div class="editor-head">
           <span class="chip"></span><strong id="edTitle">Spur bearbeiten</strong>
           <span class="caption" id="edInfo"></span>
+          <button class="toggle-btn" id="edFull" aria-pressed="false" title="Editor über den ganzen Bildschirm">Vollbild</button>
           <button class="toggle-btn" id="edClose">Fertig</button>
         </div>
         <div class="ed-zoom">
@@ -2342,10 +2357,19 @@
           <button class="toggle-btn" id="edZoomAll">Alles</button>
           <span class="caption" id="edZoomInfo">1×</span>
           <button class="toggle-btn ed-play" id="edPlayFrom">▶ ab Auswahl</button>
+          <button class="toggle-btn" id="edLoopSel" aria-pressed="false" title="Nur die Auswahl in Schleife hören (andere Spuren still)">↻ Auswahl hören</button>
         </div>
         <div class="ed-wave-wrap"><canvas id="edWave" aria-label="Wellenform zum Schneiden"></canvas></div>
         <div class="ed-over-wrap"><canvas id="edOver" aria-label="Übersicht: ziehen zum Blättern"></canvas></div>
-        <p class="pattern-desc ed-hint">Oben in der Zeitleiste tippen = dorthin springen. Griffe ziehen = Auswahl. Mit zwei Fingern oder +/− zoomen, unten in der Übersicht blättern.</p>
+        <div class="ed-fine">
+          <span class="ed-seg" role="group" aria-label="Griff"><button class="toggle-btn active" id="edHS">Anfang</button><button class="toggle-btn" id="edHE">Ende</button></span>
+          <button class="toggle-btn" id="edNmL" title="1 Millisekunde nach links">◀ 1 ms</button>
+          <button class="toggle-btn" id="edNsL" title="1 Abtastwert nach links">◀ 1</button>
+          <button class="toggle-btn" id="edNsR" title="1 Abtastwert nach rechts">1 ▶</button>
+          <button class="toggle-btn" id="edNmR" title="1 Millisekunde nach rechts">1 ms ▶</button>
+          <span class="caption ed-pos" id="edPos"></span>
+        </div>
+        <p class="pattern-desc ed-hint">Oben in der Zeitleiste tippen = dorthin springen. Griffe ziehen = Auswahl. Mit zwei Fingern oder +/− zoomen, unten in der Übersicht blättern. Feinschritte für den gewählten Griff; im Vollbild steuert das Fußpedal: ◀ 1 ms · 1 ms ▶ · Griff wechseln · Auswahl hören.</p>
         <div class="ed-groups">
           <div class="ed-group ed-check">
             <span class="ed-label">Loop prüfen</span>
@@ -2378,8 +2402,14 @@
                   <option value="bar">Takt</option>
                   <option value="beat" selected>Schlag</option>
                   <option value="eighth">Achtel</option>
+                  <option value="sixteenth">16tel</option>
+                  <option value="onset">Anschlag</option>
+                  <option value="zero">Nulldurchgang</option>
                   <option value="free">Frei</option>
                 </select>
+              </label>
+              <label class="field ed-grid"><span>Blende am Schnitt</span>
+                <select id="edFade"><option value="0">aus</option><option value="2">2 ms</option><option value="5" selected>5 ms</option><option value="10">10 ms</option></select>
               </label>
               <button class="toggle-btn active" id="edTrim">Zuschneiden</button>
               <button class="toggle-btn" id="edHalf">Halbieren</button>
@@ -8378,7 +8408,7 @@ const Looper = (() => {
       update();
     });
     t.undoB.addEventListener('click', () => undoTrack(t));
-    t.editB.addEventListener('click', () => { if (ed.t === t) closeEditor(); else openEditor(t); });
+    t.editB.addEventListener('click', () => { if (ed.t === t) closeEditor(); else openEditor(t, true); });
     t.keyB.addEventListener('click', () => { if (t.key) { Analyzer.apply(t.key); setStatus('Tonart ' + Analyzer.label(t.key) + ' übernommen.'); } });
     let armed = null;
     t.clearB.addEventListener('click', () => {
@@ -8720,14 +8750,14 @@ const Looper = (() => {
       level *= 0.8; levelL *= 0.8; levelR *= 0.8;
     }
     tracks.forEach(t => { if (t.foot.dataset.state !== footState(t)) update(); });
-    const active = anyRunning() || rec || level > 0.001 || tracks.some(t => t.peakHold > 0.5) || ed.drag || countEnd > nowFrame();
+    const active = anyRunning() || rec || level > 0.001 || tracks.some(t => t.peakHold > 0.5) || ed.drag || ed.loop || countEnd > nowFrame();
     if (active) { if (visible) rafId = requestAnimationFrame(tick); else { rafId = 1; setTimeout(() => { rafId = null; tick(); }, 250); } }
   }
   tracks.forEach(t => { new ResizeObserver(kick).observe(t.ring); new ResizeObserver(kick).observe(t.wave); });
   new ResizeObserver(kick).observe($('edWave')); new ResizeObserver(kick).observe($('edOver'));
 
   // ---- Spur-Editor: Schneiden, Synchronisieren, Tonart ----
-  const ed = { t: null, s: 0, e: 0, drag: null, lastOp: null, offMs: 0, peaks: null, peaksFor: null, peaksW: 0, zoom: 1, v0: 0 };
+  const ed = { t: null, s: 0, e: 0, drag: null, lastOp: null, offMs: 0, peaks: null, peaksFor: null, peaksW: 0, zoom: 1, v0: 0, h: 's', loop: null };
   const edEl = $('loopEditor'), edCv = $('edWave');
   const others = t => tracks.filter(o => o !== t && o.L);
   // Speicher im Blick: Alles, was nur noch fürs Rückgängig gebraucht wird, darf höchstens HIST_MB belegen
@@ -8758,21 +8788,53 @@ const Looper = (() => {
     const bars = L / barFrames(), rb = Math.round(bars);
     return (L / sr).toFixed(2).replace('.', ',') + ' s · ' + (Math.abs(bars - rb) < 0.03 ? rb + ' Takt' + (rb === 1 ? '' : 'e') : bars.toFixed(2).replace('.', ',') + ' Takte');
   }
-  function openEditor(t) {
+  function openEditor(t, byUser) {
     if (!t.L || (rec && rec.t === t)) return;
     ed.t = t; ed.s = 0; ed.e = t.L; ed.lastOp = null; ed.offMs = 0; ed.peaks = null; ed.zoom = 1; ed.v0 = 0; showZoom();
-    edEl.hidden = false;
+    edEl.hidden = false; setEdFull(!!byUser && loadPref('3nps-edfull', '1') === '1'); setHandle('s');   // Vollbild nur beim Antippen von ✂
     edEl.style.setProperty('--tc', NEON.t[t.i]);
     $('edTitle').textContent = 'Spur ' + (t.i + 1) + ' bearbeiten';
     showKey(); showEdChords(); fillSrc(); edInfo(); update(); kick();
-    try { edEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (e) {}
+    if (!edEl.classList.contains('ed-full')) { try { edEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (e) {} }
   }
-  function closeEditor() { ed.t = null; ed.drag = null; edEl.hidden = true; update(); }
+  function closeEditor() { stopLoopSel(); ed.t = null; ed.drag = null; edEl.hidden = true; edEl.classList.remove('ed-full'); document.documentElement.classList.remove('ed-open'); update(); }
+  // ---- Vollbild ----
+  function setEdFull(on) {
+    edEl.classList.toggle('ed-full', !!on); document.documentElement.classList.toggle('ed-open', !!on && !edEl.hidden);
+    $('edFull').setAttribute('aria-pressed', String(!!on)); $('edFull').textContent = on ? 'Fenster' : 'Vollbild'; kick();
+  }
+  $('edFull').addEventListener('click', () => { const on = !edEl.classList.contains('ed-full'); savePref('3nps-edfull', on ? '1' : '0'); setEdFull(on); });
+  // ---- Aktiver Griff + Feinschritte (1 ms / 1 Abtastwert) ----
+  function setHandle(h) { ed.h = h; $('edHS').classList.toggle('active', h === 's'); $('edHE').classList.toggle('active', h === 'e'); edInfo(); }
+  $('edHS').addEventListener('click', () => setHandle('s'));
+  $('edHE').addEventListener('click', () => setHandle('e'));
+  function edNudge(df) {
+    if (!ed.t) return;
+    const minLen = Math.round(sr * 0.1);
+    if (ed.h === 's') ed.s = Math.max(0, Math.min(ed.e - minLen, ed.s + df));
+    else ed.e = Math.min(ed.t.L, Math.max(ed.s + minLen, ed.e + df));
+    const f = ed[ed.h], sp = span();                       // Griff im Blick behalten
+    if (f < ed.v0 || f > ed.v0 + sp) { ed.v0 = f - sp / 2; clampView(); }
+    if (ed.loop) restartLoopSel();
+    edInfo(); kick();
+  }
+  $('edNmL').addEventListener('click', () => edNudge(-Math.round(sr / 1000)));
+  $('edNmR').addEventListener('click', () => edNudge(Math.round(sr / 1000)));
+  $('edNsL').addEventListener('click', () => edNudge(-1));
+  $('edNsR').addEventListener('click', () => edNudge(1));
+  // Position als Takt · Schlag + ms und Sekunden
+  function posText(f) {
+    const d = trackDowns(ed.t); let i = 0; while (i + 1 < d.length && d[i + 1] <= f) i++;
+    const bl = (d[i + 1] != null ? d[i + 1] - d[i] : barFrames()), bt = bl / 4, k = Math.max(0, Math.floor((f - d[i]) / bt));
+    const ms = Math.round((f - d[i] - k * bt) / sr * 1000);
+    return 'Takt ' + (i + 1) + ' · Schlag ' + (k + 1) + (ms ? ' + ' + ms + ' ms' : '') + ' · ' + (f / sr).toFixed(3).replace('.', ',') + ' s';
+  }
   function edInfo() {
     if (!ed.t) return;
     $('edInfo').textContent = 'Auswahl ' + fmtLen(ed.e - ed.s) + ' von ' + fmtLen(ed.t.L);
     $('edOffset').textContent = 'Versatz ' + (ed.offMs > 0 ? '+' : '') + Math.round(ed.offMs) + ' ms';
     $('edTrim').disabled = ed.s === 0 && ed.e === ed.t.L;
+    $('edPos').textContent = (ed.h === 's' ? 'Anfang: ' : 'Ende: ') + posText(ed[ed.h]);
   }
   // Takt-Einsen der Spur in Loop-Koordinaten: aus dem erkannten Raster (folgt dem Gespielten), sonst aus dem Tempo
   function trackDowns(t) {
@@ -8816,10 +8878,51 @@ const Looper = (() => {
     pts.push(d[d.length - 1]);
     return pts;
   }
+  // Nächster Nulldurchgang (Summe L+R) innerhalb ±5 ms – Schnitt ohne Knacken
+  function zeroNear(t, f) {
+    const L = t.mix.l, R = t.mix.r, w = Math.round(sr * 0.005), v = i => L[i] + R[i];
+    f = Math.max(1, Math.min(t.L - 1, f));
+    for (let k = 0; k <= w; k++) for (const i of [f - k, f + k]) if (i > 0 && i < t.L && ((v(i - 1) <= 0 && v(i) > 0) || (v(i - 1) >= 0 && v(i) < 0))) return i;
+    return f;
+  }
+  // Anschläge (Onsets) der Spur: Anstieg der Hochton-Energie (Differenzsignal) in ~1,5-ms-Blöcken, gegen einen
+  // gleitenden lokalen Pegel (±150 ms) – gehaltene, pulsierende Töne lösen so nicht aus. Mindestabstand 50 ms, ~1 ms genau.
+  function trackOnsets(t) {
+    if (t._on && t._onFor === t.mix) return t._on;
+    const L = t.mix.l, R = t.mix.r, B = 64, n = Math.floor(t.L / B), e = new Float32Array(n), ea = new Float32Array(n);
+    let pv = 0;
+    for (let k = 0; k < n; k++) {
+      let q = 0, qa = 0;
+      for (let i = k * B, j = i + B; i < j; i++) { const v = L[i] + R[i], dv = v - pv; pv = v; q += dv * dv; qa += v * v; }
+      e[k] = Math.log(q / B + 1e-10); ea[k] = Math.log(qa / B + 1e-10);
+    }
+    const lag = Math.max(1, Math.round(0.01 * sr / B)), d = new Float32Array(n);
+    for (let k = 0; k < n; k++) { let mn = Infinity; for (let j = 1; j <= lag; j++) { const x = e[(k - j + n) % n]; if (x < mn) mn = x; } const x = e[k] - mn; d[k] = x > 0 ? x : 0; }
+    // gleitender Median-Ersatz: Mittel über ±150 ms als lokaler Grundpegel der Anstiege
+    const W = Math.round(0.15 * sr / B), cs = new Float64Array(n + 1);
+    for (let k = 0; k < n; k++) cs[k + 1] = cs[k] + d[k];
+    const so = Float32Array.from(ea).sort(), quiet = so[Math.floor(n * 0.1)] + 1.5;
+    const gap = Math.round(0.05 * sr / B), out = []; let last = -gap;
+    for (let k = 1; k < n - 1; k++) {
+      if (d[k] < d[k - 1] || d[k] < d[k + 1] || k - last < gap || ea[k] < quiet) continue;
+      const a0 = Math.max(0, k - W), a1 = Math.min(n, k + W + 1), loc = (cs[a1] - cs[a0]) / (a1 - a0);
+      if (d[k] < Math.max(2.3, loc * 2.2 + 0.8)) continue;                    // ≈ 10 dB über dem Grundrauschen der Anstiege
+      let a = k; while (a > 0 && k - a < lag && e[a - 1] > e[k] - 1.2) a--;  // Beginn: wo der Anstieg einsetzt
+      out.push(a * B); last = k;
+    }
+    t._on = out; t._onFor = t.mix;
+    return out;
+  }
   function snapF(f) {
     const g = $('edGrid').value, L = ed.t.L;
     if (g === 'free') return Math.round(f);
-    const pts = gridPoints(g === 'bar' ? 1 : g === 'beat' ? 4 : 8);
+    if (g === 'zero') return zeroNear(ed.t, Math.round(f));
+    if (g === 'onset') {
+      let best = Math.round(f), bd = Math.round(sr * 0.25);           // nur einrasten, wenn ein Anschlag nah ist
+      for (const o of trackOnsets(ed.t)) { const q = Math.abs(o - f); if (q < bd) { bd = q; best = o; } }
+      return Math.max(0, Math.min(L, best));
+    }
+    const pts = gridPoints(g === 'bar' ? 1 : g === 'beat' ? 4 : g === 'sixteenth' ? 16 : 8);
     let best = 0, bd = Infinity;
     for (const p of pts) { const q = Math.abs(p - f); if (q < bd) { bd = q; best = p; } }
     return Math.max(0, Math.min(L, Math.round(best)));
@@ -8834,17 +8937,30 @@ const Looper = (() => {
   function padTo(a, L) { if (a.length === L) return a; const o = new Float32Array(L); o.set(a.subarray(0, Math.min(L, a.length))); return o; }
   const padS = (x, L) => x.length === L ? x : smap(x, a => padTo(a, L));
   function afterEdit(t, restartFromTop) {
+    stopLoopSel();
     rebuildMix(t);
     if (t.src) { if (restartFromTop && !others(t).length) anchor = nowFrame(); startTrack(t); }
     ed.s = 0; ed.e = t.L; ed.zoom = 1; ed.v0 = 0; showZoom(); edInfo(); update(); kick();
   }
 
+  // Loop-Naht: Ende des neuen Loops mit dem Klang direkt vor dem Schnitt überblenden (gleiche Leistung),
+  // so geht das Ende nahtlos in den Anfang über. Ohne Material davor: kurze Ein-/Ausblende.
+  function seamFade(out, src, s0, Lc, n) {
+    if (!n || Lc < n * 4) return out;
+    if (s0 >= n && Lc === out.length) {
+      for (let i = 0; i < n; i++) { const g = (i + 0.5) / n, p = Lc - n + i; out[p] = out[p] * Math.cos(g * Math.PI / 2) + src[s0 - n + i] * Math.sin(g * Math.PI / 2); }
+    } else {
+      for (let i = 0; i < n; i++) { const g = (i + 0.5) / n; out[i] *= g; out[Lc - 1 - i] *= g; }
+    }
+    return out;
+  }
   function trimTo(s0, e0, label) {
     const t = ed.t, len = e0 - s0;
     if (len < sr * 0.1) { setStatus('Die Auswahl ist zu kurz.'); return; }
     const f = fitLength(t, len);
     edSnap('trim');
-    t.layers = [smap(t.mix, a => padTo(a.slice(s0, s0 + Math.min(len, f.L)), f.L))];
+    const fadeN = Math.round((parseInt($('edFade').value) || 0) / 1000 * sr), Lc = Math.min(len, f.L);
+    t.layers = [smap(t.mix, a => seamFade(padTo(a.slice(s0, s0 + Lc), f.L), a, s0, Lc, fadeN))];
     t.L = f.L; baseL = f.base;
     if (t.origPos != null) t.origPos += s0;
     afterEdit(t, true);
@@ -8852,6 +8968,39 @@ const Looper = (() => {
     detectTrackKey(t);
   }
   $('edTrim').addEventListener('click', () => ed.t && trimTo(ed.s, ed.e, 'zugeschnitten'));
+  $('edFade').value = loadPref('3nps-edfade', '5');
+  $('edFade').addEventListener('change', () => savePref('3nps-edfade', $('edFade').value));
+  // ---- Auswahl in Schleife hören (andere Spuren leise, danach wieder wie vorher) ----
+  function startLoopSel() {
+    const t = ed.t; if (!t || !t.L || rec) return;
+    ensureAudio(); sr = audioCtx.sampleRate; stopLoopSel(true);
+    if (!t.buf || t.bufFor !== t.mix || t.buf.length !== t.L) { const mono = t.mix.r === t.mix.l, b = audioCtx.createBuffer(mono ? 1 : 2, t.L, sr); b.copyToChannel(t.mix.l, 0); if (!mono) b.copyToChannel(t.mix.r, 1); t.buf = b; t.bufFor = t.mix; }
+    const s0 = audioCtx.createBufferSource(), g = audioCtx.createGain(), now = audioCtx.currentTime;
+    s0.buffer = t.buf; s0.loop = true; s0.loopStart = ed.s / sr; s0.loopEnd = ed.e / sr;
+    g.gain.value = parseInt(t.vol.value) / 100; s0.connect(g); g.connect(ensureTrackEq(t).input);
+    tracks.forEach(o => { if (o.gain) o.gain.gain.setTargetAtTime(0, now, 0.015); });
+    s0.start(now + 0.02, ed.s / sr);
+    ed.loop = { s: s0, g, t0: now + 0.02, a: ed.s, b: ed.e };
+    $('edLoopSel').setAttribute('aria-pressed', 'true'); $('edLoopSel').textContent = '■ Hören stoppen'; kick();
+  }
+  function stopLoopSel(keepMute) {
+    if (!ed.loop) return;
+    try { ed.loop.s.stop(); ed.loop.s.disconnect(); ed.loop.g.disconnect(); } catch (e) {}
+    ed.loop = null;
+    if (!keepMute && audioCtx) { const now = audioCtx.currentTime; tracks.forEach(o => { if (o.gain) o.gain.gain.setTargetAtTime(parseInt(o.vol.value) / 100, now, 0.015); }); }
+    $('edLoopSel').setAttribute('aria-pressed', 'false'); $('edLoopSel').textContent = '↻ Auswahl hören';
+  }
+  function restartLoopSel() { if (ed.loop) startLoopSel(); }
+  $('edLoopSel').addEventListener('click', () => { if (ed.loop) stopLoopSel(); else startLoopSel(); });
+  // Fußpedal im Vollbild-Editor: ◀ 1 ms · 1 ms ▶ · Griff wechseln · Auswahl hören
+  function edPedal(id) {
+    if (!ed.t || edEl.hidden || !edEl.classList.contains('ed-full')) return false;
+    if (id === 'foot0') edNudge(-Math.round(sr / 1000));
+    else if (id === 'foot1') edNudge(Math.round(sr / 1000));
+    else if (id === 'foot2') setHandle(ed.h === 's' ? 'e' : 's');
+    else if (id === 'all') { if (ed.loop) stopLoopSel(); else startLoopSel(); }
+    return true;
+  }
   $('edHalf').addEventListener('click', () => ed.t && trimTo(0, Math.round(ed.t.L / 2), 'halbiert'));
   $('edDouble').addEventListener('click', () => {
     const t = ed.t; if (!t) return;
@@ -9400,7 +9549,7 @@ const Looper = (() => {
     const r = edCv.getBoundingClientRect();
     if (e.clientY - r.top < 20) { ed.drag = 'seek'; seekTo(ed.t, edFrameAt(e.clientX)); return; }
     const f = edFrameAt(e.clientX);
-    ed.drag = Math.abs(f - ed.s) <= Math.abs(f - ed.e) ? 's' : 'e';
+    ed.drag = Math.abs(f - ed.s) <= Math.abs(f - ed.e) ? 's' : 'e'; setHandle(ed.drag);
     edMove(e);
   });
   function edMove(e) {
@@ -9422,7 +9571,7 @@ const Looper = (() => {
     else ed.e = Math.min(ed.t.L, Math.max(f, ed.s + minLen));
     edInfo(); kick();
   }
-  const edUp = e => { ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch = null; if (!ptrs.size) ed.drag = null; };
+  const edUp = e => { ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch = null; if (!ptrs.size) { if (ed.drag && ed.drag !== 'seek' && ed.loop) restartLoopSel(); ed.drag = null; } };
   edGrip.addEventListener('pointermove', edMove);
   edGrip.addEventListener('pointerup', edUp);
   edGrip.addEventListener('pointercancel', edUp);
@@ -9445,14 +9594,15 @@ const Looper = (() => {
   // Spitzenwerte je Kanal in Blöcken zu 64 Samples (links oben, rechts unten gezeichnet)
   function blockPeaks(t) {
     if (t.bp && t.bpFor === t.mix) return t.bp;
-    const B = 64, n = Math.ceil(t.L / B), bl = new Float32Array(n), br = new Float32Array(n); let max = 1e-4;
+    const B = 64, n = Math.ceil(t.L / B), bl = new Float32Array(n), br = new Float32Array(n), rl = new Float32Array(n), rr = new Float32Array(n), cl = new Uint8Array(n); let max = 1e-4;
     const L = t.mix.l, R = t.mix.r;
     for (let k = 0; k < n; k++) {
-      let p = 0, q = 0; const a = k * B, e = Math.min(t.L, a + B);
-      for (let i = a; i < e; i++) { const v = L[i] < 0 ? -L[i] : L[i], w = R[i] < 0 ? -R[i] : R[i]; if (v > p) p = v; if (w > q) q = w; }
-      bl[k] = p; br[k] = q; if (p > max) max = p; if (q > max) max = q;
+      let p = 0, q = 0, sl = 0, sq = 0; const a = k * B, e = Math.min(t.L, a + B);
+      for (let i = a; i < e; i++) { const x = L[i], y = R[i], v = x < 0 ? -x : x, w = y < 0 ? -y : y; if (v > p) p = v; if (w > q) q = w; sl += x * x; sq += y * y; }
+      bl[k] = p; br[k] = q; rl[k] = Math.sqrt(sl / Math.max(1, e - a)); rr[k] = Math.sqrt(sq / Math.max(1, e - a)); cl[k] = (p >= 0.989 || q >= 0.989) ? 1 : 0;
+      if (p > max) max = p; if (q > max) max = q;
     }
-    t.bp = { l: bl, r: br }; t.bpFor = t.mix; t.bpMax = max;
+    t.bp = { l: bl, r: br, rl, rr, clip: cl }; t.bpFor = t.mix; t.bpMax = max;
     return t.bp;
   }
   function peakRange(t, a, b, ch) {
@@ -9460,6 +9610,17 @@ const Looper = (() => {
     if (b <= a) return 0;
     if (b - a >= 256) { const bp = blockPeaks(t)[ch || 'l']; let p = 0; for (let k = Math.floor(a / 64); k < Math.ceil(b / 64); k++) if (bp[k] > p) p = bp[k]; return p; }
     const x = t.mix[ch || 'l']; let p = 0; for (let i = a; i < b; i++) { const v = x[i] < 0 ? -x[i] : x[i]; if (v > p) p = v; } return p;
+  }
+  // Lautheit (RMS, größter Blockwert) und Übersteuerung in einem Bereich
+  function rmsRange(t, a, b, ch) {
+    const bp = blockPeaks(t)[ch === 'r' ? 'rr' : 'rl']; let p = 0;
+    for (let k = Math.max(0, Math.floor(a / 64)), ke = Math.min(bp.length, Math.ceil(b / 64)); k < ke; k++) if (bp[k] > p) p = bp[k];
+    return p;
+  }
+  function clipRange(t, a, b) {
+    const c = blockPeaks(t).clip;
+    for (let k = Math.max(0, Math.floor(a / 64)), ke = Math.min(c.length, Math.ceil(b / 64)); k < ke; k++) if (c[k]) return true;
+    return false;
   }
   function drawOverview(t, tc) {
     const f = fit(edOv); if (!f) return;
@@ -9495,6 +9656,12 @@ const Looper = (() => {
     ctx.font = '600 10px ui-monospace, Menlo, monospace';
     const barPx = d.length > 1 ? (d[1] - d[0]) / sp * w : w, every = barPx < 22 ? Math.ceil(22 / barPx) : 1;
     if (barPx >= 24) bts.forEach(b => { if (b.bar) return; const xb = X(b.f); if (xb >= 0 && xb <= w) { ctx.fillStyle = 'rgba(255,255,255,.07)'; ctx.fillRect(Math.round(xb * dpr) / dpr, top, 1, h - top); } });
+    // 16tel-Linien und Schlag-Beschriftung „Takt.Schlag“, sobald genug Platz ist
+    if (barPx / 16 >= 9) for (let i = 0; i + 1 < d.length; i++) {
+      const x0 = X(d[i]), x1 = X(d[i + 1]); if (x1 < 0) continue; if (x0 > w) break;
+      for (let k = 1; k < 16; k++) { if (k % 4 === 0) continue; const xk = x0 + (x1 - x0) * k / 16; if (xk >= 0 && xk <= w) { ctx.fillStyle = 'rgba(255,255,255,.035)'; ctx.fillRect(Math.round(xk * dpr) / dpr, top, 1, h - top); } }
+    }
+    if (barPx / 4 >= 46) { ctx.font = '500 9px ui-monospace, Menlo, monospace'; ctx.fillStyle = C.muted; for (let i = 0; i + 1 < d.length; i++) { for (let k = 1; k < 4; k++) { const xk = X(d[i] + (d[i + 1] - d[i]) * k / 4); if (xk >= 0 && xk <= w - 20) ctx.fillText((i + 1) + '.' + (k + 1), xk + 3, 12); } } ctx.font = '600 10px ui-monospace, Menlo, monospace'; }
     for (let i = 0; i < d.length; i++) {
       const x = X(d[i]);
       if (x > w + 2) break;
@@ -9534,28 +9701,58 @@ const Looper = (() => {
       });
       ctx.globalAlpha = 0.35; ctx.fillRect(0, mid - 0.5, w, 1);
     } else {
+      const clips = [];
       for (let x = 0; x < n; x++) {
-        const cx = x * cw;
-        ctx.globalAlpha = (cx >= xs && cx <= xe) ? 0.9 : 0.25;
-        const pl = peakRange(t, v0 + x * st, v0 + (x + 1) * st, 'l') / t.bpMax, pr = peakRange(t, v0 + x * st, v0 + (x + 1) * st, 'r') / t.bpMax;
+        const cx = x * cw, a = v0 + x * st, b = v0 + (x + 1) * st, inSel = cx >= xs && cx <= xe;
+        const pl = peakRange(t, a, b, 'l') / t.bpMax, pr = peakRange(t, a, b, 'r') / t.bpMax;
         const up = Math.max(cw * 0.5, pl * amp), dn = Math.max(cw * 0.5, pr * amp);
-        ctx.fillRect(cx, mid - up, cw, up + dn);
+        ctx.globalAlpha = inSel ? 0.42 : 0.14; ctx.fillRect(cx, mid - up, cw, up + dn);           // Spitzen
+        const ql = Math.min(pl, rmsRange(t, a, b, 'l') / t.bpMax), qr = Math.min(pr, rmsRange(t, a, b, 'r') / t.bpMax);
+        ctx.globalAlpha = inSel ? 0.95 : 0.3; ctx.fillRect(cx, mid - ql * amp, cw, (ql + qr) * amp);  // Lautheit
+        if (clipRange(t, a, b)) clips.push(cx);
       }
+      if (clips.length) { ctx.globalAlpha = 1; ctx.fillStyle = '#ff3b30'; clips.forEach(cx => { ctx.fillRect(cx, top + 1, Math.max(cw, 1.5), 3); ctx.fillRect(cx, h - 4, Math.max(cw, 1.5), 3); }); ctx.fillStyle = tc; }
+      // dB-Linien bezogen auf Vollaussteuerung (nur sichtbare)
+      ctx.globalAlpha = 1; ctx.font = '500 9px ui-monospace, Menlo, monospace';
+      [0, -6, -12, -18, -24].forEach(db => {
+        const v = Math.pow(10, db / 20) / t.bpMax; if (v > 1.02 || v * amp < 6) return;
+        const y1 = mid - v * amp, y2 = mid + v * amp;
+        ctx.fillStyle = 'rgba(255,255,255,' + (db === 0 ? '.28' : '.09') + ')'; ctx.fillRect(0, Math.round(y1), w, 1); ctx.fillRect(0, Math.round(y2), w, 1);
+        ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.fillText(db + ' dB', w - 40, Math.round(y1) - 2);
+      });
+      ctx.fillStyle = tc;
     }
     ctx.globalAlpha = 1;
     // Außerhalb der Auswahl abdunkeln
     ctx.fillStyle = 'rgba(0,0,0,.5)';
     if (xs > 0) ctx.fillRect(0, top, Math.min(w, xs), h - top);
     if (xe < w) ctx.fillRect(Math.max(0, xe), top, w - Math.max(0, xe), h - top);
-    // Griffe
+    // Erkannte Anschläge als kleine Marken oben im Wellenbereich
+    ctx.fillStyle = 'rgba(255,255,255,.7)';
+    for (const o of trackOnsets(t)) { const xo = X(o); if (xo < -4) continue; if (xo > w + 4) break; ctx.beginPath(); ctx.moveTo(xo - 4, top + 2); ctx.lineTo(xo + 4, top + 2); ctx.lineTo(xo, top + 8); ctx.fill(); if (st < 40) ctx.fillRect(xo - 0.5, top + 8, 1, h - top - 8); }
+    // Zeitachse unten: Schrittweite so, dass Beschriftungen ≥ 70 px auseinander liegen
+    {
+      const msPx = w / (sp / sr * 1000), steps = [0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000];
+      const stp = steps.find(q => q * msPx >= 70) || 10000, t0 = Math.ceil(v0 / sr * 1000 / stp) * stp;
+      ctx.font = '500 9px ui-monospace, Menlo, monospace'; ctx.fillStyle = 'rgba(255,255,255,.5)';
+      for (let ms = t0; ms <= (v0 + sp) / sr * 1000; ms += stp) {
+        const xm = X(ms / 1000 * sr); ctx.fillRect(Math.round(xm), h - 7, 1, 7);
+        const lab = stp >= 1000 ? (ms / 1000).toFixed(0) + ' s' : stp >= 10 ? (ms / 1000).toFixed(2).replace('.', ',') + ' s' : (ms / 1000).toFixed(stp >= 1 ? 3 : 4).replace('.', ',') + ' s';
+        if (xm + 4 < w - 44) ctx.fillText(lab, xm + 3, h - 9);
+      }
+    }
+    // Griffe (aktiver Griff hervorgehoben)
     [[xs, 1], [xe, -1]].forEach(([x, dir]) => {
       if (x < -20 || x > w + 20) return;
-      ctx.fillStyle = NEON.bar1; ctx.globalAlpha = 0.3; ctx.fillRect(x - 4, top, 8, h - top); ctx.globalAlpha = 1;
+      ctx.fillStyle = NEON.bar1; ctx.globalAlpha = (dir === 1) === (ed.h === 's') ? 0.45 : 0.18; ctx.fillRect(x - 4, top, 8, h - top); ctx.globalAlpha = 1;
       ctx.fillRect(x - 1.5, top, 3, h - top);
       ctx.beginPath(); ctx.moveTo(x, h - 26); ctx.lineTo(x + 16 * dir, h - 18); ctx.lineTo(x, h - 10); ctx.closePath(); ctx.fill();
     });
     // Abspielposition (hörbar, Ausgabelatenz herausgerechnet)
-    if (t.src) { const p = X(mod(playFrame() - anchor, t.L)); if (p >= -2 && p <= w + 2) { ctx.fillStyle = '#ffffff'; ctx.fillRect(p - 1, 0, 2, h); ctx.beginPath(); ctx.moveTo(p - 6, 0); ctx.lineTo(p + 6, 0); ctx.lineTo(p, 8); ctx.fill(); } }
+    let pf = null;
+    if (ed.loop) { const el = Math.max(0, audioCtx.currentTime - (audioCtx.outputLatency || 0) - ed.loop.t0) * sr, ln = ed.loop.b - ed.loop.a; pf = ed.loop.a + (ln > 0 ? el % ln : 0); }
+    else if (t.src) pf = mod(playFrame() - anchor, t.L);
+    if (pf != null) { const p = X(pf); if (p >= -2 && p <= w + 2) { ctx.fillStyle = '#ffffff'; ctx.fillRect(p - 1, 0, 2, h); ctx.beginPath(); ctx.moveTo(p - 6, 0); ctx.lineTo(p + 6, 0); ctx.lineTo(p, 8); ctx.fill(); } }
     drawOverview(t, tc);
   }
 
@@ -9910,7 +10107,7 @@ const Looper = (() => {
     exportLogic: () => exportLogic(),
     _micDrop: () => { if (stream) stream.getAudioTracks()[0].dispatchEvent(new Event('ended')); },
     themeChanged: () => readNeon(), _zip: files => makeZip(files),
-    _mem: () => memState(), setLive: v => setLive(v),
+    _mem: () => memState(), setLive: v => setLive(v), edPedal: id => edPedal(id), _edSel: (a, b) => { if (ed.t) { ed.s = a; ed.e = b; edInfo(); } }, _trim: () => ed.t && trimTo(ed.s, ed.e, 'zugeschnitten'), _mixOf: i => tracks[i].mix, _ed: () => ed.t ? { s: ed.s, e: ed.e, h: ed.h, L: ed.t.L, zoom: ed.zoom, full: edEl.classList.contains('ed-full'), loop: !!ed.loop, onsets: trackOnsets(ed.t).length } : null, _onsets: i => tracks[i] && tracks[i].L ? trackOnsets(tracks[i]) : [],
     perf: () => { let inLat = null, inSr = null; try { const st = stream && stream.getAudioTracks()[0].getSettings(); if (st) { inLat = typeof st.latency === 'number' ? st.latency : null; inSr = st.sampleRate || null; } } catch (e) {}
       const m = memState(); const r = { mic: micReady, sr, inLat, inSr, inChans, comp: parseInt(latEl.value || '0'), curMB: m.curMB, histMB: m.histMB, histMax: HIST_MB, gaps: perfIn.gaps, lagMs: perfIn.lagMs, lagMax: perfIn.lagMax, micErr: lastMicError };
       perfIn.lagMax = 0; return r; }, autosaveNow: () => doAutosave(), autosaveOn: v => { autoReady = v !== false; },
@@ -10109,6 +10306,7 @@ const Pedal = (() => {
     lastEl.classList.add('hit'); clearTimeout(flashT); flashT = setTimeout(() => lastEl.classList.remove('hit'), 250);
     if (!a) return;
     e.preventDefault();
+    if (Looper.edPedal && Looper.edPedal(a.id)) return;     // Vollbild-Editor: Feinschritte statt Spuren
     if (e.repeat) return;
     down[key] = { t: performance.now(), a };
     a.run();
