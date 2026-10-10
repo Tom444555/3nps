@@ -38,10 +38,20 @@
         <div class="jam-mix">
           <label class="check"><input type="checkbox" id="jamDrums"> Drums</label>
           <button class="toggle-btn" id="jamBass">Bass aus</button>
-          <label class="check"><input type="checkbox" id="jamPad"> Fläche</label>
-          <div class="row"><span class="lbl">Fläche</span><input type="range" id="jamPadVol" min="0" max="100" step="5" value="45" aria-label="Lautstärke Fläche"></div>
+          <label class="check"><input type="checkbox" id="jamPad"> Synth</label>
+          <div class="row"><span class="lbl">Synth</span><input type="range" id="jamPadVol" min="0" max="100" step="5" value="45" aria-label="Lautstärke Synth"></div>
         </div>
-        <p class="pattern-desc">Der Bass spielt mit der Kick den Grundton und die Quinte des jeweiligen Akkords. Schlagzeug-Stil und Designer: unten.</p>
+        <div class="jam-sel">
+          <label class="field"><span>Beat</span><select id="jamStyle" aria-label="Schlagzeug-Stil"></select></label>
+          <label class="field"><span>Synth-Klang</span>
+            <select id="jamSound" aria-label="Synth-Klang">
+              <optgroup label="Flächen"><option value="pad">Fläche (Sägezahn, weich)</option><option value="warm">Warm (rund, dunkel)</option><option value="strings">Streicher</option><option value="organ">Orgel</option></optgroup>
+              <optgroup label="Tasten"><option value="epiano">E-Piano</option><option value="bell">Glocke</option></optgroup>
+              <optgroup label="Rhythmisch"><option value="pluck">Pluck (Achtel)</option><option value="arp">Arpeggio (16tel)</option></optgroup>
+            </select>
+          </label>
+        </div>
+        <p class="pattern-desc">Der Bass spielt mit der Kick den Grundton und die Quinte des jeweiligen Akkords. Beat und Looper-Drums sind dasselbe – der Designer liegt im Reiter Looper.</p>
       </div>
       <div class="card">
         <div class="card-head"><h2>Tempo-Trainer</h2><label class="check"><input type="checkbox" id="jamTr"> an</label></div>
