@@ -382,3 +382,5 @@
 .editor.ed-full #edOver { height: 42px; }
 html.ed-open, html.ed-open body { overflow: hidden; }
 .editor.ed-full > * { flex-shrink: 0; }
+.ed-edit .ed-row .toggle-btn { padding: 7px 10px; }
+#edUndo, #edRedo { min-width: 40px; font-size: 1rem; }

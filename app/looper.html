@@ -88,6 +88,8 @@
         <div class="editor-head">
           <span class="chip"></span><strong id="edTitle">Spur bearbeiten</strong>
           <span class="caption" id="edInfo"></span>
+          <button class="toggle-btn" id="edUndo" title="Letzten Schritt im Editor zurücknehmen">↶</button>
+          <button class="toggle-btn" id="edRedo" title="Zurückgenommenen Schritt wiederholen">↷</button>
           <button class="toggle-btn" id="edFull" aria-pressed="false" title="Editor über den ganzen Bildschirm">Vollbild</button>
           <button class="toggle-btn" id="edClose">Fertig</button>
         </div>
@@ -111,6 +113,25 @@
           <span class="caption ed-pos" id="edPos"></span>
         </div>
         <p class="pattern-desc ed-hint">Oben in der Zeitleiste tippen = dorthin springen. Griffe ziehen = Auswahl. Mit zwei Fingern oder +/− zoomen, unten in der Übersicht blättern. Feinschritte für den gewählten Griff; im Vollbild steuert das Fußpedal: ◀ 1 ms · 1 ms ▶ · Griff wechseln · Auswahl hören.</p>
+        <div class="ed-group ed-edit">
+          <span class="ed-label">Bearbeiten (Auswahl) · die Loop-Länge bleibt gleich</span>
+          <div class="ed-row">
+            <button class="toggle-btn" id="edCopy">Kopieren</button>
+            <button class="toggle-btn" id="edCut">Ausschneiden</button>
+            <button class="toggle-btn" id="edPaste" disabled>Einfügen</button>
+            <button class="toggle-btn" id="edDup">Duplizieren</button>
+            <button class="toggle-btn" id="edSilence">Stille</button>
+            <button class="toggle-btn" id="edReverse">Umkehren</button>
+          </div>
+          <div class="ed-row">
+            <button class="toggle-btn" id="edFadeIn">Einblenden</button>
+            <button class="toggle-btn" id="edFadeOut">Ausblenden</button>
+            <button class="toggle-btn" id="edGainDn">−3 dB</button>
+            <button class="toggle-btn" id="edGainUp">+3 dB</button>
+            <button class="toggle-btn" id="edNorm">Normalisieren</button>
+            <span class="caption" id="edClipInfo"></span>
+          </div>
+        </div>
         <div class="ed-groups">
           <div class="ed-group ed-check">
             <span class="ed-label">Loop prüfen</span>

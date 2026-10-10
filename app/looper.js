@@ -822,15 +822,19 @@ const Looper = (() => {
     showKey();
     update();
   }
+  function applySnap(t, sn) {
+    const os = others(t), sameLen = sn.L === t.L;
+    t.layers = sn.layers; t.L = sn.L; t.origPos = sn.origPos; t.origBars = sn.origBars; rebuildMix(t);
+    if (sn.od && t.orig) Object.assign(t.orig, sn.od);
+    if (!os.length || os.every(o => o.L % sn.baseL === 0)) baseL = sn.baseL;
+    if (t.src) { if (!os.length && !sameLen) anchor = nowFrame(); startTrack(t); }
+  }
   function undoTrack(t) {
     if (rec && rec.t === t) { cancelRec(); setStatus('Aufnahme verworfen.'); return; }
     if (t.hist.length) {
-      const sn = t.hist.pop(), os = others(t);
-      t.layers = sn.layers; t.L = sn.L; t.origPos = sn.origPos; t.origBars = sn.origBars; rebuildMix(t);
-      if (sn.od && t.orig) Object.assign(t.orig, sn.od);
-      if (!os.length || os.every(o => o.L % sn.baseL === 0)) baseL = sn.baseL;
-      if (t.src) { if (!os.length) anchor = nowFrame(); startTrack(t); }
-      if (ed.t === t) { ed.s = 0; ed.e = t.L; ed.lastOp = null; ed.offMs = 0; edInfo(); fillSrc(); }
+      const sn = t.hist.pop();
+      applySnap(t, sn);
+      if (ed.t === t) { ed.s = 0; ed.e = t.L; ed.lastOp = null; ed.offMs = 0; edInfo(); fillSrc(); edUR(); }
       detectTrackKey(t);
       setStatus('Spur ' + (t.i + 1) + ': letzter Schritt rückgängig gemacht.');
       update();
@@ -1451,7 +1455,7 @@ const Looper = (() => {
   }
   function snapshot(t) { t.hist.push({ ts: performance.now(), layers: t.layers.slice(), L: t.L, baseL, origPos: t.origPos, origBars: t.origBars, od: t.orig ? { downs: t.orig.downs, bars: t.orig.bars, data: t.orig.data, bpm: t.orig.bpm, barMed: t.orig.barMed } : null }); if (t.hist.length > 25) t.hist.shift(); trimHistory(); }
   // Ein Rückgängig-Schritt pro Aktion; mehrere Verschiebungen hintereinander zählen als einer
-  function edSnap(op) { if (!(op === 'nudge' && ed.lastOp === 'nudge')) snapshot(ed.t); ed.lastOp = op; }
+  function edSnap(op) { if (!(op === 'nudge' && ed.lastOp === 'nudge')) snapshot(ed.t); ed.lastOp = op; ed.redo = []; edUR(); }
   function fmtLen(L) {
     const bars = L / barFrames(), rb = Math.round(bars);
     return (L / sr).toFixed(2).replace('.', ',') + ' s · ' + (Math.abs(bars - rb) < 0.03 ? rb + ' Takt' + (rb === 1 ? '' : 'e') : bars.toFixed(2).replace('.', ',') + ' Takte');
@@ -1459,7 +1463,7 @@ const Looper = (() => {
   function openEditor(t, byUser) {
     if (!t.L || (rec && rec.t === t)) return;
     ed.t = t; ed.s = 0; ed.e = t.L; ed.lastOp = null; ed.offMs = 0; ed.peaks = null; ed.zoom = 1; ed.v0 = 0; showZoom();
-    edEl.hidden = false; setEdFull(!!byUser && loadPref('3nps-edfull', '1') === '1'); setHandle('s');   // Vollbild nur beim Antippen von ✂
+    edEl.hidden = false; setEdFull(!!byUser && loadPref('3nps-edfull', '1') === '1'); setHandle('s'); ed.redo = []; edUR();   // Vollbild nur beim Antippen von ✂
     edEl.style.setProperty('--tc', NEON.t[t.i]);
     $('edTitle').textContent = 'Spur ' + (t.i + 1) + ' bearbeiten';
     showKey(); showEdChords(); fillSrc(); edInfo(); update(); kick();
@@ -1473,6 +1477,81 @@ const Looper = (() => {
   }
   $('edFull').addEventListener('click', () => { const on = !edEl.classList.contains('ed-full'); savePref('3nps-edfull', on ? '1' : '0'); setEdFull(on); });
   // ---- Aktiver Griff + Feinschritte (1 ms / 1 Abtastwert) ----
+  // ---- Bearbeiten der Auswahl (Länge bleibt gleich → alle Spuren bleiben synchron) ----
+  const EDGE = () => Math.max(16, Math.round(sr * 0.003));          // 3-ms-Übergänge an den Kanten, damit nichts knackt
+  let edClip = null;                                                // Zwischenablage (auch spurübergreifend)
+  function edUR() { $('edUndo').disabled = !(ed.t && ed.t.hist.length); $('edRedo').disabled = !(ed.redo && ed.redo.length); $('edPaste').disabled = !edClip; $('edClipInfo').textContent = edClip ? 'Zwischenablage: ' + (edClip.l.length / sr).toFixed(3).replace('.', ',') + ' s' : ''; }
+  function snapOf(t) { return { ts: performance.now(), layers: t.layers.slice(), L: t.L, baseL, origPos: t.origPos, origBars: t.origBars, od: t.orig ? { downs: t.orig.downs, bars: t.orig.bars, data: t.orig.data, bpm: t.orig.bpm, barMed: t.orig.barMed } : null }; }
+  // Gemeinsame Ausführung: fn(kanal, kopie) ändert die Kopie im Bereich [s, e)
+  function edApply(label, fn, opts) {
+    const t = ed.t; if (!t || !t.L || rec) return;
+    const s0 = ed.s, e0 = ed.e; if (e0 - s0 < 2) return;
+    edSnap(label);
+    t.layers = [smap(t.mix, (a, ch) => { const o = a.slice(); fn(o, a, s0, e0, ch); return o; })];
+    rebuildMix(t); if (t.src) startTrack(t);
+    if (!(opts && opts.keepKey)) detectTrackKey(t);
+    if (ed.loop) restartLoopSel();
+    edInfo(); edUR(); update(); kick();
+    setStatus('Spur ' + (t.i + 1) + ': ' + label + ' (' + fmtLen(e0 - s0) + '). Mit ↶ zurücknehmen.');
+  }
+  // Übergang an einer Kante: von alt (Original) zu neu (Kopie) über n Abtastwerte, gleiche Leistung
+  function xfadeEdge(o, a, at, n, toNew) {
+    for (let i = 0; i < n; i++) { const p = at + i; if (p < 0 || p >= o.length) continue; const g = (i + 0.5) / n, wn = toNew ? Math.sin(g * Math.PI / 2) : Math.cos(g * Math.PI / 2), wo = toNew ? Math.cos(g * Math.PI / 2) : Math.sin(g * Math.PI / 2); o[p] = o[p] * wn + a[p] * wo; }
+  }
+  const edges = (o, a, s0, e0) => { const n = Math.min(EDGE(), (e0 - s0) >> 2); xfadeEdge(o, a, s0, n, true); xfadeEdge(o, a, e0 - n, n, false); };
+  function copySel() { const t = ed.t; if (!t) return null; return { l: t.mix.l.slice(ed.s, ed.e), r: t.mix.r === t.mix.l ? null : t.mix.r.slice(ed.s, ed.e) }; }
+  $('edCopy').addEventListener('click', () => { if (!ed.t) return; edClip = copySel(); edUR(); setStatus('Auswahl kopiert (' + fmtLen(ed.e - ed.s) + ').'); });
+  $('edCut').addEventListener('click', () => { if (!ed.t) return; edClip = copySel(); edApply('ausgeschnitten', (o, a, s0, e0) => { o.fill(0, s0, e0); edges(o, a, s0, e0); }, { keepKey: false }); });
+  $('edSilence').addEventListener('click', () => edApply('Stille', (o, a, s0, e0) => { o.fill(0, s0, e0); edges(o, a, s0, e0); }));
+  // Einfügen: überschreibt ab dem Anfang-Griff (bis höchstens zum Loop-Ende)
+  $('edPaste').addEventListener('click', () => {
+    if (!ed.t || !edClip) return;
+    const len = Math.min(edClip.l.length, ed.t.L - ed.s); if (len < 2) return;
+    const save = ed.e; ed.e = ed.s + len;
+    edApply('eingefügt', (o, a, s0, e0, ch) => { const src = ch === 1 && edClip.r ? edClip.r : edClip.l; o.set(src.subarray(0, e0 - s0), s0); edges(o, a, s0, e0); });
+    if (save < ed.e) ed.e = ed.s + len; edInfo();
+  });
+  // Duplizieren: Auswahl direkt dahinter noch einmal (überschreibt, bis zum Loop-Ende)
+  $('edDup').addEventListener('click', () => {
+    const t = ed.t; if (!t) return;
+    const len = ed.e - ed.s, at = ed.e, n = Math.min(len, t.L - at); if (n < 2) { setStatus('Hinter der Auswahl ist kein Platz mehr im Loop.'); return; }
+    const s1 = ed.s, e1 = ed.e; ed.s = at; ed.e = at + n;
+    edApply('dupliziert', (o, a, s0, e0) => { o.set(a.subarray(s1, s1 + (e0 - s0)), s0); edges(o, a, s0, e0); });
+  });
+  $('edReverse').addEventListener('click', () => edApply('umgekehrt', (o, a, s0, e0) => { for (let i = s0, j = e0 - 1; i < e0; i++, j--) o[i] = a[j]; edges(o, a, s0, e0); }));
+  $('edFadeIn').addEventListener('click', () => edApply('eingeblendet', (o, a, s0, e0) => { const n = e0 - s0; for (let i = 0; i < n; i++) o[s0 + i] *= Math.sin((i + 0.5) / n * Math.PI / 2); }, { keepKey: true }));
+  $('edFadeOut').addEventListener('click', () => edApply('ausgeblendet', (o, a, s0, e0) => { const n = e0 - s0; for (let i = 0; i < n; i++) o[s0 + i] *= Math.cos((i + 0.5) / n * Math.PI / 2); }, { keepKey: true }));
+  function gainSel(db, label) {
+    const g = Math.pow(10, db / 20);
+    edApply(label, (o, a, s0, e0) => { const n = Math.min(EDGE(), (e0 - s0) >> 2); for (let i = s0; i < e0; i++) { const k = i - s0, m = e0 - 1 - i, w = k < n ? (k + 0.5) / n : m < n ? (m + 0.5) / n : 1; o[i] = a[i] * (1 + (g - 1) * w); } }, { keepKey: true });
+  }
+  $('edGainDn').addEventListener('click', () => gainSel(-3, 'leiser (−3 dB)'));
+  $('edGainUp').addEventListener('click', () => gainSel(3, 'lauter (+3 dB)'));
+  // Normalisieren: lauteste Stelle der Auswahl auf −1 dBFS (beide Kanäle gleich behandelt)
+  $('edNorm').addEventListener('click', () => {
+    const t = ed.t; if (!t) return; let p = 0;
+    for (const x of [t.mix.l, t.mix.r]) for (let i = ed.s; i < ed.e; i++) { const v = x[i] < 0 ? -x[i] : x[i]; if (v > p) p = v; }
+    if (p < 1e-4) { setStatus('Die Auswahl ist still – nichts zu normalisieren.'); return; }
+    gainSel(20 * Math.log10(Math.pow(10, -1 / 20) / p), 'normalisiert (−1 dBFS)');
+  });
+  // Editor-Rückgängig/Wiederholen (löscht die Spur nie)
+  function edUndo() {
+    const t = ed.t; if (!t) return;
+    if (!t.hist.length) { setStatus('Im Editor gibt es nichts mehr zurückzunehmen.'); return; }
+    const s0 = ed.s, e0 = ed.e; (ed.redo = ed.redo || []).push(snapOf(t));
+    applySnap(t, t.hist.pop()); detectTrackKey(t);
+    ed.s = Math.min(s0, t.L - 1); ed.e = Math.min(e0, t.L); if (ed.e <= ed.s) { ed.s = 0; ed.e = t.L; }
+    ed.lastOp = null; edInfo(); edUR(); update(); kick(); setStatus('Spur ' + (t.i + 1) + ': Schritt zurückgenommen.');
+  }
+  function edRedo() {
+    const t = ed.t; if (!t || !ed.redo || !ed.redo.length) return;
+    const s0 = ed.s, e0 = ed.e; t.hist.push(snapOf(t));
+    applySnap(t, ed.redo.pop()); detectTrackKey(t);
+    ed.s = Math.min(s0, t.L - 1); ed.e = Math.min(e0, t.L); if (ed.e <= ed.s) { ed.s = 0; ed.e = t.L; }
+    ed.lastOp = null; edInfo(); edUR(); update(); kick(); setStatus('Spur ' + (t.i + 1) + ': Schritt wiederholt.');
+  }
+  $('edUndo').addEventListener('click', edUndo);
+  $('edRedo').addEventListener('click', edRedo);
   function setHandle(h) { ed.h = h; $('edHS').classList.toggle('active', h === 's'); $('edHE').classList.toggle('active', h === 'e'); edInfo(); }
   $('edHS').addEventListener('click', () => setHandle('s'));
   $('edHE').addEventListener('click', () => setHandle('e'));
@@ -1608,7 +1687,7 @@ const Looper = (() => {
     stopLoopSel();
     rebuildMix(t);
     if (t.src) { if (restartFromTop && !others(t).length) anchor = nowFrame(); startTrack(t); }
-    ed.s = 0; ed.e = t.L; ed.zoom = 1; ed.v0 = 0; showZoom(); edInfo(); update(); kick();
+    ed.s = 0; ed.e = t.L; ed.zoom = 1; ed.v0 = 0; showZoom(); edInfo(); edUR(); update(); kick();
   }
 
   // Loop-Naht: Ende des neuen Loops mit dem Klang direkt vor dem Schnitt überblenden (gleiche Leistung),
@@ -2775,7 +2854,7 @@ const Looper = (() => {
     exportLogic: () => exportLogic(),
     _micDrop: () => { if (stream) stream.getAudioTracks()[0].dispatchEvent(new Event('ended')); },
     themeChanged: () => readNeon(), _zip: files => makeZip(files),
-    _mem: () => memState(), setLive: v => setLive(v), edPedal: id => edPedal(id), _edSel: (a, b) => { if (ed.t) { ed.s = a; ed.e = b; edInfo(); } }, _trim: () => ed.t && trimTo(ed.s, ed.e, 'zugeschnitten'), _mixOf: i => tracks[i].mix, _ed: () => ed.t ? { s: ed.s, e: ed.e, h: ed.h, L: ed.t.L, zoom: ed.zoom, full: edEl.classList.contains('ed-full'), loop: !!ed.loop, onsets: trackOnsets(ed.t).length } : null, _onsets: i => tracks[i] && tracks[i].L ? trackOnsets(tracks[i]) : [],
+    _mem: () => memState(), setLive: v => setLive(v), edPedal: id => edPedal(id), _edClip: () => edClip, _edSel: (a, b) => { if (ed.t) { ed.s = a; ed.e = b; edInfo(); } }, _trim: () => ed.t && trimTo(ed.s, ed.e, 'zugeschnitten'), _mixOf: i => tracks[i].mix, _ed: () => ed.t ? { s: ed.s, e: ed.e, h: ed.h, L: ed.t.L, zoom: ed.zoom, full: edEl.classList.contains('ed-full'), loop: !!ed.loop, onsets: trackOnsets(ed.t).length } : null, _onsets: i => tracks[i] && tracks[i].L ? trackOnsets(tracks[i]) : [],
     perf: () => { let inLat = null, inSr = null; try { const st = stream && stream.getAudioTracks()[0].getSettings(); if (st) { inLat = typeof st.latency === 'number' ? st.latency : null; inSr = st.sampleRate || null; } } catch (e) {}
       const m = memState(); const r = { mic: micReady, sr, inLat, inSr, inChans, comp: parseInt(latEl.value || '0'), curMB: m.curMB, histMB: m.histMB, histMax: HIST_MB, gaps: perfIn.gaps, lagMs: perfIn.lagMs, lagMax: perfIn.lagMax, micErr: lastMicError };
       perfIn.lagMax = 0; return r; }, autosaveNow: () => doAutosave(), autosaveOn: v => { autoReady = v !== false; },

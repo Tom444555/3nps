@@ -469,3 +469,11 @@ Gut zu wissen
    - „↻ Auswahl hören“: nur die Auswahl in Schleife, die anderen Spuren sind solange still.
    - Fußpedal im Vollbild: Spur 1 = ◀ 1 ms, Spur 2 = 1 ms ▶, Spur 3 = Griff wechseln, Alle = Auswahl hören.
      (Halten wiederholt den Schritt.) Im Fenster-Modus steuert das Pedal wie gewohnt die Spuren.
+
+39. Editor: bearbeiten wie in Logic (v44)
+   - Gruppe „Bearbeiten“ wirkt auf die Auswahl; die Loop-Länge bleibt immer gleich (alle Spuren bleiben synchron):
+     Kopieren · Ausschneiden (hinterlässt Stille) · Einfügen (überschreibt ab dem Anfang-Griff, auch in eine
+     andere Spur) · Duplizieren (direkt hinter die Auswahl) · Stille · Umkehren · Einblenden · Ausblenden ·
+     −3 dB / +3 dB · Normalisieren (lauteste Stelle auf −1 dB).
+   - An den Kanten wird kurz (3 ms) übergeblendet, damit nichts knackt.
+   - ↶ / ↷ oben im Editor: Schritte zurücknehmen und wiederholen. Im Editor löscht ↶ nie die ganze Spur.
