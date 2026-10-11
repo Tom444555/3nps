@@ -156,7 +156,7 @@
     if (sig === bandSig) return;
     bandSig = sig;
     const bars = Math.max(1, ci.downs.length);
-    const W = Math.max(band.clientWidth - 2, bars * 92), px = f => f / ci.L * W;
+    const BW = band.clientWidth - 2, W = bars <= 6 ? BW : BW * bars / 6, px = f => f / ci.L * W;          // höchstens 6 Takte im Blick
     strip.style.width = W + 'px';
     let h = '';
     // Takte: jeder zweite leicht hinterlegt, kräftige Taktlinien über den Akkorden, Schlagstriche unten
@@ -175,12 +175,22 @@
   function tickBand(ci) {
     const ph = $('sfPh'); if (!ph || !ci.segs) return -1;
     const W = parseFloat($('sfStrip').style.width) || 1;
-    const i = ci.pos != null ? segAt(ci, ci.pos) : -1;
+    // Wechsel ~0,3 s (höchstens ein halber Schlag) vor dem Takt anzeigen – Zeit zum Umgreifen
+    const sr = ci.sr || 48000, beat = ci.beats && ci.beats.length > 1 ? Math.abs(ci.beats[1] - ci.beats[0]) : sr * 0.5;
+    const lead = Math.min(sr * 0.3, beat * 0.5), posL = ci.pos != null ? (ci.pos + lead) % ci.L : null;
+    const i = posL != null ? segAt(ci, posL) : -1;
     ph.style.display = ci.pos != null ? '' : 'none';
     if (ci.pos != null) {
       const x = ci.pos / ci.L * W; ph.style.transform = 'translateX(' + x.toFixed(1) + 'px)';
-      const band = $('sfBand');
-      if (x < band.scrollLeft + 40 || x > band.scrollLeft + band.clientWidth - 80) band.scrollLeft = Math.max(0, x - band.clientWidth * 0.3);
+      const band = $('sfBand'), cw = band.clientWidth, barW = W / Math.max(1, (ci.downs || []).length || 1);
+      if (W > cw + 2) {
+        // vorausschauend weiterschieben: sobald der Strich in den vorletzten sichtbaren Takt kommt,
+        // steht der laufende Takt wieder vorne (ein Takt Rückblick)
+        let target = null;
+        if (x < band.scrollLeft + 4) target = Math.max(0, x - barW * 0.25);
+        else if (x > band.scrollLeft + cw - barW * 2) target = Math.max(0, Math.min(W - cw, x - barW * 1.1));
+        if (target != null && Math.abs(target - band.scrollLeft) > 2) band.scrollTo({ left: target, behavior: x < band.scrollLeft ? 'auto' : 'smooth' });
+      }
     }
     if (i !== lastOn) {
       const segs = $('sfStrip').querySelectorAll('.sf-seg');

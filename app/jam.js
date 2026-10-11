@@ -430,7 +430,7 @@
       const n = now(), names = st.seq.map(c => SHARP[c.r].replace('♯', '#') + c.t);
       let a = 0; const segs = st.seq.map((c, i) => { const s = { name: names[i], a: a * 1000, e: (a + c.beats) * 1000 }; a += c.beats; return s; });
       const downs = []; for (let b = 0; b < a; b += 4) downs.push(b * 1000);
-      return { tracks: [], track: -2, segs, L: a * 1000, pos: n ? n.pos : null, downs, sr: 1000, key: { pc: st.key.pc, major: st.key.major }, playing: true, jam: true };
+      return { tracks: [], track: -2, segs, L: a * 1000, pos: n ? n.pos : null, downs, sr: 1000 * (parseFloat((document.getElementById('bpm') || {}).value) || 120) / 60, beats: [0, 1000], key: { pc: st.key.pc, major: st.key.major }, playing: true, jam: true };
     },
     nowChord: () => { const n = now(); if (!n) return null; const c = st.seq[n.idx]; return c ? { name: SHARP[c.r].replace('♯', '#') + c.t } : null; },
     start, stop, parse, state: () => st, setSeq: (text) => { const r = parse(text); st.seq = r.seq; save(); paintSeq(); return r; },

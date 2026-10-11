@@ -2793,7 +2793,7 @@ const Looper = (() => {
     // Akkorde der ersten Spur mit erkannten Akkorden, über die ganze Exportlänge wiederholt
     const ct = used.find(t => t.chords && t.chords.L === t.L && t.chords.segs.some(q => q.name !== '–'));
     const chordMarks = [], ticksPerFrame = exactBpm / 60 / sr * 480;
-    if (ct) for (let rp = 0; rp * ct.L < total; rp++) ct.chords.segs.forEach(q => { if (q.name === '–') return; const tk = Math.round((rp * ct.L + q.a) * ticksPerFrame); if (!chordMarks.length || chordMarks[chordMarks.length - 1][1] !== q.name) chordMarks.push([tk, q.name]); });
+    if (ct) for (let rp = 0; rp * ct.L < total; rp++) ct.chords.segs.forEach(q => { if (q.name === '–') return; const tk = Math.round((rp * ct.L + q.a) * ticksPerFrame); const nm = window.spellChord ? spellChord(q.name, ct.key).replace(/♭/g, 'b').replace(/♯/g, '#') : q.name; if (!chordMarks.length || chordMarks[chordMarks.length - 1][1] !== nm) chordMarks.push([tk, nm]); });
     files.push({ name: base + '/Tempo und Takt - ' + tag + '.mid', data: midiFile({ bpm: exactBpm, beats, sf, minor, keyLabel, name: base, drums: dStyle, drumsName: dName, chords: chordMarks }) });
     const lies = [
       base, '',
