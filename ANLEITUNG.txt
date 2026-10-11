@@ -493,3 +493,15 @@ Gut zu wissen
    - „Synth-Klang“ (Schalter „Synth“ = an/aus): Fläche, Warm, Streicher, Orgel, E-Piano, Glocke –
      und rhythmisch Pluck (Achtel) und Arpeggio (16tel), die im Takt die Akkordtöne spielen.
    - Alles wird in der App selbst erzeugt (keine Samples) und folgt den Akkorden und dem Tempo.
+
+42. Backing Track: Takte, neue Klänge · Editor: Loop verschieben mit Magnet (v49)
+   - Die Akkordleiste im Backing Track ist jetzt eine Zeitleiste: 4 Takte pro Zeile, Taktnummern oben,
+     kleine Striche für die Schläge. Der laufende Takt leuchtet, ein Strich zeigt die Stelle im Takt.
+   - Alle Synth-Klänge wurden neu gebaut: breiter (Stereo-Chorus), mit Hall und leisem Echo im Tempo.
+     Fläche, Streicher und Orgel klingen voller, E-Piano und Glocke wie echte FM-Instrumente.
+     Die Lautstärken sind aufeinander abgestimmt.
+   - Editor: Taktlinien sind kräftiger, jeder zweite Takt ist leicht aufgehellt, Taktnummern größer.
+   - „⇔ Loop verschieben“ einschalten und die Wellenform nach links oder rechts ziehen: der ganze Loop
+     wandert mit (was hinten herausfällt, kommt vorne wieder rein, die Länge bleibt gleich).
+   - „Magnet“: Takt (Standard), Schlag, 16tel oder aus. Der Anschlag, den du greifst, rastet auf der
+     nächsten Linie ein (grüne Linie = eingerastet). ↶ nimmt das Verschieben zurück.
