@@ -1,0 +1,50 @@
+  /* ===== CAGED ===== */
+  .cg-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 18px; }
+  .cg-chordbox { display: flex; flex-direction: column; min-width: 120px; }
+  .cg-chordbox .lbl, .cg-seq .lbl { font: 600 .62rem var(--f-body); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .cg-chordbox b { font: 800 2.2rem var(--f-mono); color: var(--accent); line-height: 1.05; }
+  .cg-sub { font: 600 .78rem var(--f-mono); color: var(--muted); }
+  .cg-follow { margin-left: auto; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+  .cg-hint { font: 600 .74rem var(--f-body); color: var(--muted); }
+  .cg-seq { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 12px; }
+  .cg-sq { appearance: none; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); border-radius: 8px; padding: 6px 12px; font: 700 .95rem var(--f-mono); cursor: pointer; }
+  .cg-sq.on { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), 0 0 12px color-mix(in srgb, var(--accent) 45%, transparent); color: var(--accent); }
+  .cg-head { flex-wrap: wrap; gap: 10px; }
+  .cg-shapes button { min-width: 44px; font-weight: 800; }
+  .cg-opts { display: flex; flex-wrap: wrap; gap: 10px 16px; margin: 10px 0 8px; }
+  .cg-opts [hidden] { display: none; }
+  .cg-neckwrap { overflow-x: auto; border-radius: 10px; }
+  .cg-neck { display: block; width: 100%; min-width: 640px; height: auto; }
+  .cg-sn { fill: var(--muted); font: 700 11px var(--f-mono); dominant-baseline: middle; }
+  .cg-fn { font-size: 11px; }
+  .cg-zone { fill: rgba(255,255,255,.06); stroke: rgba(255,255,255,.22); stroke-width: 1; }
+  .cg-zone.z1 { fill: color-mix(in srgb, var(--accent) 9%, transparent); stroke: color-mix(in srgb, var(--accent) 35%, transparent); }
+  .cg-zone.lage { fill: none; stroke: var(--accent); stroke-width: 2; stroke-dasharray: 6 4; }
+  .cg-zl { fill: var(--muted); font: 700 10px var(--f-body); text-anchor: middle; }
+  .cg-n { cursor: pointer; }
+  .cg-n circle { fill: #8a8f98; stroke: rgba(0,0,0,.6); stroke-width: 1; }
+  .cg-n text { font: 700 9px var(--f-mono); text-anchor: middle; dominant-baseline: middle; fill: #0b0d10; pointer-events: none; }
+  .cg-n.r circle { fill: var(--root-color, #ff3b30); } .cg-n.r text { fill: #fff; }
+  .cg-n.t circle { fill: #2fa8ff; }
+  .cg-n.f circle { fill: #34c759; }
+  .cg-n.s circle { fill: #ffcc00; }
+  .cg-n.o circle, .cg-n.sc circle { fill: #5b616b; } .cg-n.sc text { fill: #e8eaee; }
+  .cg-n.sc.r circle, .cg-n.sc.t circle, .cg-n.sc.f circle { opacity: 1; }
+  .cg-n.open circle { stroke: var(--ink); stroke-width: 2; }
+  .cg-n.common circle { stroke: #fff; stroke-width: 3; }
+  .cg-n.tri.dim { opacity: .3; }
+  .cg-n.tri.sel circle { stroke: #fff; stroke-width: 2.5; }
+  .cg-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 8px 0 4px; font: 600 .74rem var(--f-body); color: var(--muted); }
+  .cg-k::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; background: #5b616b; }
+  .cg-k.r::before { background: var(--root-color, #ff3b30); } .cg-k.t::before { background: #2fa8ff; } .cg-k.f::before { background: #34c759; } .cg-k.s::before { background: #ffcc00; }
+  .cg-k.n::before { background: transparent; border: 2px solid #fff; width: 8px; height: 8px; }
+  .cg-tris { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+  .cg-tris button { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 5px 10px; }
+  .cg-tris small { font: 600 .62rem var(--f-body); opacity: .8; } .cg-tris b { font: 700 .9rem var(--f-mono); }
+  .cg-play, .cg-train { margin-top: 6px; flex-wrap: wrap; }
+  .cg-tablewrap { overflow-x: auto; }
+  .cg-table { width: 100%; border-collapse: collapse; font: 600 .86rem var(--f-mono); }
+  .cg-table th { text-align: left; font: 700 .66rem var(--f-body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  .cg-table td { padding: 7px 8px; border-bottom: 1px solid var(--line-soft); white-space: nowrap; }
+  .cg-table td small { color: var(--muted); font-size: .72rem; }
+  @media (max-width: 620px) { .cg-follow { margin-left: 0; align-items: flex-start; } .cg-chordbox b { font-size: 1.8rem; } }

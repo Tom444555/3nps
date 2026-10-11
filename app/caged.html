@@ -1,0 +1,70 @@
+  <section class="panel" id="panel-caged" role="tabpanel" aria-labelledby="tab-caged" hidden>
+    <div class="card cg-top">
+      <div class="cg-row">
+        <div class="cg-chordbox">
+          <span class="lbl" id="cgSrcLbl">Akkord</span>
+          <b id="cgChord">C</b>
+          <span class="cg-sub" id="cgSub"></span>
+        </div>
+        <label class="field"><span>Grundton</span><select id="cgRoot" aria-label="Grundton"></select></label>
+        <label class="field"><span>Art</span>
+          <select id="cgType" aria-label="Akkordart"><option value="">Dur</option><option value="m">Moll</option><option value="7">Dominant 7</option><option value="m7">Moll 7</option><option value="maj7">Major 7</option></select>
+        </label>
+        <div class="cg-follow">
+          <label class="check"><input type="checkbox" id="cgFollow" checked> folgt dem Loop</label>
+          <span class="cg-hint" id="cgFollowInfo"></span>
+        </div>
+      </div>
+      <div class="cg-seq" id="cgSeq" hidden></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head cg-head">
+        <div class="seg cg-shapes" id="cgShapes" role="group" aria-label="Form">
+          <button class="toggle-btn" data-s="C">C</button><button class="toggle-btn" data-s="A">A</button><button class="toggle-btn" data-s="G">G</button><button class="toggle-btn" data-s="E">E</button><button class="toggle-btn" data-s="D">D</button><button class="toggle-btn" data-s="all">Alle</button>
+        </div>
+        <div class="seg cg-views" id="cgViews" role="group" aria-label="Ansicht">
+          <button class="toggle-btn" data-v="grip">Griff</button><button class="toggle-btn" data-v="arp">Arpeggio</button><button class="toggle-btn" data-v="tri">Dreiklänge</button><button class="toggle-btn" data-v="scale">Tonleiter</button>
+        </div>
+      </div>
+      <div class="cg-opts">
+        <label class="field" id="cgSetBox"><span>Saiten (Dreiklänge)</span>
+          <select id="cgSet"><option value="0">E – A – D</option><option value="1">A – D – G</option><option value="2" selected>D – G – B</option><option value="3">G – B – e</option></select>
+        </label>
+        <label class="field" id="cgScaleBox"><span>Tonleiter</span>
+          <select id="cgScale"><option value="penta">Pentatonik</option><option value="full">Ganze Tonleiter</option></select>
+        </label>
+        <label class="field"><span>Lage</span>
+          <select id="cgPos"><option value="-1">frei (Form wählen)</option></select>
+        </label>
+        <label class="field"><span>Beschriftung</span>
+          <select id="cgLabel"><option value="note">Töne</option><option value="iv">Intervalle</option></select>
+        </label>
+      </div>
+      <div class="cg-neckwrap"><svg id="cgNeck" class="cg-neck" viewBox="0 0 780 214" role="img" aria-label="Griffbrett"></svg></div>
+      <div class="cg-legend"><span class="cg-k r">Grundton</span><span class="cg-k t">Terz</span><span class="cg-k f">Quinte</span><span class="cg-k s">Septime</span><span class="cg-k o">Tonleiter</span><span class="cg-k n">gemeinsam mit nächstem Akkord</span></div>
+      <div class="cg-tris" id="cgTris"></div>
+      <p class="pattern-desc" id="cgExplain"></p>
+      <div class="ed-row cg-play">
+        <button class="toggle-btn active" id="cgStrum">▶ Anspielen</button>
+        <button class="toggle-btn" id="cgArpUp">▶ Arpeggio auf/ab</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Üben</h2>
+      <div class="ed-row cg-train">
+        <button class="toggle-btn" id="cgWalk">▶ Formen-Wanderung</button>
+        <button class="toggle-btn" id="cgLadder">▶ Dreiklang-Leiter</button>
+        <span class="caption" id="cgTrainInfo">Tempo aus der Tempo-Leiste oben.</span>
+      </div>
+      <p class="pattern-desc"><b>Formen-Wanderung:</b> derselbe Akkord, jeden Takt die nächste Form (C → A → G → E → D → wieder C eine Oktave höher). Greifen, anschlagen, weiter – so verbinden sich die Formen zum ganzen Griffbrett.
+      <b>Dreiklang-Leiter:</b> der Akkord auf den gewählten drei Saiten in allen Umkehrungen von unten nach oben, ein Dreiklang pro Schlag.</p>
+    </div>
+
+    <div class="card" id="cgLoopCard" hidden>
+      <div class="card-head"><h2>Im Loop</h2><span class="cg-hint" id="cgLoopInfo"></span></div>
+      <p class="pattern-desc">Für jeden Akkord des Loops: welche Form in deiner Lage liegt und welcher Dreiklang je Saitengruppe – so spielst du die ganze Folge an einer Stelle, ohne zu springen. Zahlen = Bünde von tief nach hoch.</p>
+      <div class="cg-tablewrap"><table class="cg-table" id="cgTable"></table></div>
+    </div>
+  </section>

@@ -525,3 +525,25 @@ Gut zu wissen
 
 45. Reihenfolge der Reiter (v52)
    - „Improvisation“ steht jetzt direkt neben „Looper“.
+
+46. Neuer Reiter CAGED (v54)
+   Das CAGED-System: Jeder Akkord lässt sich in fünf Formen greifen – so, wie man C, A, G, E und D offen
+   greift, nur weiter oben am Hals. Die fünf Formen greifen ineinander und decken das ganze Griffbrett ab.
+   - Oben: Akkord wählen (Grundton, Dur/Moll/7/m7/maj7). Ist „folgt dem Loop“ an und läuft ein Loop
+     (oder Backing Track/Song), zeigt der Reiter immer den Akkord, der gerade klingt.
+   - Formen: C · A · G · E · D einzeln oder „Alle“ (alle Formen nebeneinander, abwechselnd hinterlegt).
+   - Ansichten:
+     Griff – die ganze Form. Arpeggio – nur die Akkordtöne zum Einzelspielen.
+     Dreiklänge – Grundton, Terz, Quinte auf drei Saiten (Saitengruppe wählbar) in Grundstellung,
+     1. und 2. Umkehrung; Knöpfe darunter wählen und spielen einen Dreiklang an.
+     Tonleiter – Pentatonik oder ganze Tonleiter rund um die Form, Akkordtöne farbig.
+   - Farben: rot = Grundton, blau = Terz, grün = Quinte, gelb = Septime, grau = Tonleiterton.
+     Weißer Ring = Ton, den der nächste Akkord im Loop auch hat (kann liegen bleiben).
+   - „Lage“: einen Bereich von 4 Bünden wählen (z. B. Bund 5–8). Die App zeigt dann für jeden Akkord
+     die Form und die Dreiklänge, die genau dort liegen – so spielst du einen ganzen Loop an einer Stelle.
+   - Beschriftung: Tonnamen oder Intervalle (1, 3, 5, ♭7 …). Ton antippen = anhören,
+     „Anspielen“ und „Arpeggio auf/ab“ spielen Griff bzw. Töne.
+   - Üben: „Formen-Wanderung“ springt jeden Takt zur nächsten Form (Tempo aus der Tempo-Leiste),
+     „Dreiklang-Leiter“ spielt die Dreiklänge der Saitengruppe einen pro Schlag von unten nach oben.
+   - „Im Loop“ (nur mit Loop): Tabelle je Akkord mit der Form in deiner Lage und dem Dreiklang je
+     Saitengruppe (Bünde tief → hoch, G = Grundstellung, 1./2. = Umkehrung).
