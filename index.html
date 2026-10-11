@@ -620,6 +620,14 @@ html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleis
 .ed-mag select { padding: 5px 8px; min-height: 0; }
 #edMove[aria-pressed="true"] { background: var(--tc); color: #000; border-color: var(--tc); box-shadow: 0 0 10px var(--tc); }
 .editor.ed-moving #edWave { cursor: grab; }
+
+.in-dev { display: flex; align-items: center; gap: 7px; margin: 2px 0 6px; padding: 5px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); font: 600 .78rem var(--f-body); color: var(--muted); min-width: 0; }
+.in-dev b { color: var(--ink); font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.in-dev span { margin-left: auto; font-size: .7rem; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }
+.in-dev-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--line); flex: none; }
+.in-dev.on .in-dev-dot { background: #34c759; box-shadow: 0 0 6px #34c759; }
+.in-dev.on span { color: var(--accent); }
+.editor .ed-cutgrp { margin-bottom: 10px; }
   /* ---- Quintenzirkel ---- */
   .qz-card { flex-direction: row; flex-wrap: wrap; align-items: flex-start; gap: 18px; }
   .qz-wrap { flex: 1 1 380px; max-width: 560px; margin: 0 auto; }
@@ -793,6 +801,21 @@ html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleis
   .nk-hit.root { stroke: var(--root-color); } .nk-hit.ct { stroke: var(--t2); } .nk-hit.sc { stroke: var(--scale-color); } .nk-hit.out { stroke: #ff7a59; }
   @keyframes nkhit { from { stroke-width: 9; opacity: .4; } to { stroke-width: 4; opacity: 1; } }
   @media (prefers-reduced-motion: reduce) { .nk-hit { animation: none; } }
+
+  .sf-now-grip { display: inline-flex; flex-direction: column; align-items: center; gap: 1px; margin: 4px auto 0; cursor: pointer; align-self: center; }
+  .sf-now-grip svg { display: block; max-width: 100%; height: auto; }
+  .sf-now-grip small { font: 600 .66rem var(--f-body); color: var(--muted); }
+  .sf-now-grip .nk-n text { font-size: 7px; }
+  .sf-now-grip .nk-num { font-size: 9px; } .sf-now-grip .nk-num.on { fill: var(--ink); font-weight: 800; }
+  .sf-now-grip .nk-x.mini { font-size: 11px; }
+  .sf-now-grip .nk-nut { stroke-width: 4; }
+  .sf-now .sf-now-t { margin-left: 0; }
+
+  .sf-barbg { position: absolute; top: 0; bottom: 0; background: rgba(255,255,255,.05); pointer-events: none; }
+  .sf-bar { z-index: 3; border-left: 2px solid rgba(255,255,255,.55); }
+  .sf-bar span { font: 800 .72rem var(--f-mono); color: var(--ink); top: 2px; }
+  .sf-beat { position: absolute; bottom: 0; height: 12px; width: 0; border-left: 1px solid rgba(255,255,255,.45); z-index: 3; pointer-events: none; }
+  .sf-ph { z-index: 4; }
   /* ---- Jam ---- */
   .jam-top { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: flex-end; }
   .jam-tempo { display: flex; flex-direction: column; gap: 3px; }
@@ -2081,7 +2104,7 @@ html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleis
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v49</span></div>
+      <div class="brand">Looper <span>3nps · v50</span></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -2304,6 +2327,7 @@ html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleis
           </select>
         </label>
         <div class="field meter-field"><span>Eingang <em class="chan-info" id="inChanInfo"></em></span>
+          <div class="in-dev" id="inDev" title=""><i class="in-dev-dot"></i><b id="inDevName">Kein Eingang offen</b><span id="inDevKind"></span></div>
           <div class="meter-row">
             <div class="meter" id="loopMeterBox" aria-hidden="true"><div id="loopMeter"></div><div id="loopMeterR"></div><div class="thresh" id="loopThreshMark"></div></div>
             <button class="toggle-btn" id="loopMonitor">Eingang öffnen</button>
@@ -2403,6 +2427,29 @@ html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleis
           <span class="caption ed-pos" id="edPos"></span>
         </div>
         <p class="pattern-desc ed-hint">Oben in der Zeitleiste tippen = dorthin springen. Griffe ziehen = Auswahl. „⇔ Loop verschieben“ an: die ganze Wellenform nach links/rechts ziehen, der Magnet lässt den gegriffenen Anschlag auf Takt, Schlag oder 16tel einrasten. Mit zwei Fingern oder +/− zoomen, unten in der Übersicht blättern. Feinschritte für den gewählten Griff; im Vollbild steuert das Fußpedal: ◀ 1 ms · 1 ms ▶ · Griff wechseln · Auswahl hören.</p>
+      <div class="ed-group ed-cutgrp">
+          <span class="ed-label">Schneiden</span>
+          <div class="ed-row">
+            <label class="field ed-grid"><span>Raster</span>
+              <select id="edGrid">
+                <option value="bar">Takt</option>
+                <option value="beat" selected>Schlag</option>
+                <option value="eighth">Achtel</option>
+                <option value="sixteenth">16tel</option>
+                <option value="onset">Anschlag</option>
+                <option value="zero">Nulldurchgang</option>
+                <option value="free">Frei</option>
+              </select>
+            </label>
+            <label class="field ed-grid"><span>Blende am Schnitt</span>
+              <select id="edFade"><option value="0">aus</option><option value="2">2 ms</option><option value="5" selected>5 ms</option><option value="10">10 ms</option></select>
+            </label>
+            <button class="toggle-btn active" id="edTrim">Zuschneiden</button>
+            <button class="toggle-btn" id="edHalf">Halbieren</button>
+            <button class="toggle-btn" id="edDouble">Verdoppeln</button>
+          </div>
+          <p class="pattern-desc">Zieh die orangen Griffe auf Anfang und Ende, dann „Zuschneiden“. Jeder Schritt lässt sich mit ↶ zurücknehmen.</p>
+        </div>
         <div class="ed-group ed-edit">
           <span class="ed-label">Bearbeiten (Auswahl) · die Loop-Länge bleibt gleich</span>
           <div class="ed-row">
@@ -2445,29 +2492,6 @@ html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleis
               <button class="toggle-btn" id="edDownR">1 Schlag ▶</button>
             </div>
             <p class="pattern-desc">Die ganze Datei bleibt gespeichert. Wähle hier jederzeit einen anderen Teil des Songs. Liegt die Eins daneben, verschiebe das Taktraster um einen Schlag – der Ausschnitt wird sofort neu geschnitten.</p>
-          </div>
-          <div class="ed-group">
-            <span class="ed-label">Schneiden</span>
-            <div class="ed-row">
-              <label class="field ed-grid"><span>Raster</span>
-                <select id="edGrid">
-                  <option value="bar">Takt</option>
-                  <option value="beat" selected>Schlag</option>
-                  <option value="eighth">Achtel</option>
-                  <option value="sixteenth">16tel</option>
-                  <option value="onset">Anschlag</option>
-                  <option value="zero">Nulldurchgang</option>
-                  <option value="free">Frei</option>
-                </select>
-              </label>
-              <label class="field ed-grid"><span>Blende am Schnitt</span>
-                <select id="edFade"><option value="0">aus</option><option value="2">2 ms</option><option value="5" selected>5 ms</option><option value="10">10 ms</option></select>
-              </label>
-              <button class="toggle-btn active" id="edTrim">Zuschneiden</button>
-              <button class="toggle-btn" id="edHalf">Halbieren</button>
-              <button class="toggle-btn" id="edDouble">Verdoppeln</button>
-            </div>
-            <p class="pattern-desc">Zieh die orangen Griffe auf Anfang und Ende, dann „Zuschneiden“. Jeder Schritt lässt sich mit ↶ zurücknehmen.</p>
           </div>
           <div class="ed-group">
             <span class="ed-label">Synchronisieren</span>
@@ -7788,6 +7812,7 @@ const Looper = (() => {
       setTimeout(() => {
         if (audioCtx && audioCtx.state !== 'running') audioCtx.resume().catch(() => {});
         if (micReady && stream && stream.getAudioTracks().some(tr => tr.readyState === 'ended' || tr.muted)) { micLost('device'); setTimeout(reopenMic, 600); }
+        else showInDev();
       }, 500);
     });
   }
@@ -7822,7 +7847,28 @@ const Looper = (() => {
 
   // Eingang: Stereo erkennen (unterschiedliche Kanäle) und anzeigen
   let inChans = 0, stereoSeen = false;
+  // Welches Gerät liefert den Eingang (z. B. Spark LIVE, USB-Interface, iPad-Mikrofon, Bluetooth)
+  function devKind(lab) {
+    const l = (lab || '').toLowerCase();
+    if (/bluetooth|airpods|beats|hands-?free|headset|\bbt\b/.test(l)) return 'Bluetooth';
+    if (/usb|interface|spark|boss|katana|reactor|irig|focusrite|scarlett|audient|motu|steinberg|presonus|zoom|line ?6|helix|tonex|nux|positive grid|fender|yamaha|roland/.test(l)) return 'USB';
+    if (/^(default|standard)\b|ipad|iphone|eingebaut|built-?in|internes|internal|microphone$|mikrofon$/.test(l)) return 'eingebaut';
+    if (/headphone|kopfhörer|line in|lightning/.test(l)) return 'Kabel';
+    return '';
+  }
+  function showInDev() {
+    const box = $('inDev'); if (!box) return;
+    let lab = '';
+    try { const tr = micReady && stream && stream.getAudioTracks()[0]; lab = tr ? (tr.label || '') : ''; } catch (e) {}
+    lab = lab.replace(/^(Default|Standard)\s*[-–:]\s*/i, '').trim();
+    const k = micReady ? devKind(lab) : '';
+    $('inDevName').textContent = !micReady ? 'Kein Eingang offen' : lab || 'Eingang (Name vom System nicht genannt)';
+    $('inDevKind').textContent = !micReady ? '' : (k ? k + ' · ' : '') + (stereoSeen ? 'Stereo' : 'Mono');
+    box.classList.toggle('on', !!micReady);
+    box.title = micReady ? 'Diesen Eingang hat das iPad gewählt. Anderes Gerät: einstecken bzw. in den iPad-Einstellungen wählen, dann „Eingang öffnen“.' : '';
+  }
   function showInChans() {
+    showInDev();
     const el = $('inChanInfo'); if (!el) return;
     el.textContent = !micReady ? '' : stereoSeen ? '· Stereo L/R' : inChans >= 2 ? '· mono (beide Kanäle gleich)' : '· mono (Grenze von iPadOS)';
     el.classList.toggle('mono', micReady && !stereoSeen);
@@ -10358,7 +10404,7 @@ const Looper = (() => {
       if (!t) return { tracks: list, track: -1 };
       const pos = t.src && audioCtx ? mod(playFrame() - anchor, t.L) : null;
       const downs = trackDowns(t).filter(x => x > -2 && x < t.L - 2).map(x => Math.max(0, x));
-      return { tracks: list, track: t.i, segs: t.chords.segs.map(q => ({ name: q.name, a: q.a, e: q.e })), L: t.L, pos, downs, sr,
+      return { tracks: list, track: t.i, segs: t.chords.segs.map(q => ({ name: q.name, a: q.a, e: q.e })), L: t.L, pos, downs, sr, beats: trackBeats(t).filter(b => !b.bar && b.f > 0 && b.f < t.L - 2).map(b => b.f),
         key: t.key ? { pc: t.key.pc, major: !!t.key.major } : null, playing: !!t.src };
     },
     // Eingang für „Mithören“: öffnet ihn bei Bedarf (gleicher Zugriff wie der Looper), liefert einen Analyser
@@ -11614,6 +11660,9 @@ if (typeof module !== 'undefined') module.exports = Pitch;
     const W = Math.max(band.clientWidth - 2, bars * 92), px = f => f / ci.L * W;
     strip.style.width = W + 'px';
     let h = '';
+    // Takte: jeder zweite leicht hinterlegt, kräftige Taktlinien über den Akkorden, Schlagstriche unten
+    ci.downs.forEach((d, i) => { const e = i + 1 < ci.downs.length ? ci.downs[i + 1] : ci.L; if (i % 2) h += '<div class="sf-barbg" style="left:' + px(d).toFixed(1) + 'px;width:' + px(e - d).toFixed(1) + 'px"></div>'; });
+    (ci.beats || []).forEach(b => { h += '<div class="sf-beat" style="left:' + px(b).toFixed(1) + 'px"></div>'; });
     ci.downs.forEach((d, i) => { h += '<div class="sf-bar" style="left:' + px(d).toFixed(1) + 'px"><span>' + (i + 1) + '</span></div>'; });
     ci.segs.forEach((s, i) => {
       const c = parseChord(s.name), w = px(s.e - s.a);
@@ -11654,7 +11703,7 @@ if (typeof module !== 'undefined') module.exports = Pitch;
     $('sfKeyNotes').textContent = keyPcs(k).map(p => p).sort((a, b) => md(a - k.pc) - md(b - k.pc)).map(p => nn(p, k)).join(' ');
     const c = f ? f.c : null;
     if (!c) { $('sfNow').innerHTML = ''; return; }
-    $('sfNow').innerHTML = '<span class="sf-now-l">' + (f.live ? 'Klingt jetzt' : 'Ausgewählt') + '</span><b>' + chordName(c, k) + '</b><span class="sf-now-r">' + roman(c, k) + (func(c, k) ? ' · ' + func(c, k) : '') + '</span><span class="sf-now-t">Akkordtöne: ' + c.iv.map(x => nn(c.r + x, k) + '<sub>' + IVN[x % 12] + '</sub>').join(' ') + '</span>';
+    $('sfNow').innerHTML = '<span class="sf-now-l">' + (f.live ? 'Klingt jetzt' : 'Ausgewählt') + '</span><b>' + chordName(c, k) + '</b><span class="sf-now-r">' + roman(c, k) + (func(c, k) ? ' · ' + func(c, k) : '') + '</span>' + miniGrip(c, k) + '<span class="sf-now-t">Akkordtöne: ' + c.iv.map(x => nn(c.r + x, k) + '<sub>' + IVN[x % 12] + '</sub>').join(' ') + '</span>';
     // mögliche Akkorde
     const dia = diatonic(k), inLoop = new Set((ci.segs || []).map(s => s.name).filter(n => n !== '–').map(n => { const p = parseChord(n); return p ? p.r + '|' + qual(p.t) : ''; }));
     const nx = (NEXT[k.major ? 'maj' : 'min'][md(c.r - k.pc)] || []).map(x => md(k.pc + x));
@@ -11723,6 +11772,31 @@ if (typeof module !== 'undefined') module.exports = Pitch;
     $('sfNeckTitle').textContent = 'Griffbild: ' + nn(s.root, k) + ' ' + SC[s.id].n;
   }
 
+  // ---- Kleines Griffbild beim aktuellen Akkord: Griff mit 2 Bünden davor/danach, Bundzahlen unten ----
+  function miniGrip(c, k) {
+    if (typeof Voicings === 'undefined') return '';
+    const vs = Voicings.forChord(c.r, CH[c.t] ? c.t : ''); const v = vs[0]; if (!v) return '';
+    const pr = v.frets.filter(f => f != null && f > 0), lo = pr.length ? Math.min(...pr) : 1, hi = pr.length ? Math.max(...pr) : 1;
+    const a = Math.max(1, lo - 2), b = Math.max(hi + 2, a + 4), n = b - a + 1;    // sichtbare Bünde a … b
+    const x0 = 22, fw = 30, y0 = 10, sh = 13, W = x0 + n * fw + 6, H = y0 + sh * 5 + 26;
+    const fx = f => f === 0 ? x0 - 11 : x0 + (f - a + 0.5) * fw;
+    let h = '<rect x="' + x0 + '" y="' + (y0 - 5) + '" width="' + n * fw + '" height="' + (sh * 5 + 10) + '" class="nk-board" rx="2"/>';
+    for (let i = 0; i <= n; i++) h += '<line x1="' + (x0 + i * fw) + '" x2="' + (x0 + i * fw) + '" y1="' + (y0 - 5) + '" y2="' + (y0 + sh * 5 + 5) + '" class="' + (i === 0 && a === 1 ? 'nk-nut' : 'nk-fret') + '"/>';
+    for (let f = a; f <= b; f++) if ([3, 5, 7, 9, 15, 17].includes(f)) h += '<circle cx="' + fx(f) + '" cy="' + (y0 + sh * 2.5) + '" r="3" class="nk-dot"/>'; else if (f === 12) h += '<circle cx="' + fx(f) + '" cy="' + (y0 + sh * 1.5) + '" r="3" class="nk-dot"/><circle cx="' + fx(f) + '" cy="' + (y0 + sh * 3.5) + '" r="3" class="nk-dot"/>';
+    for (let st = 0; st < 6; st++) h += '<line x1="' + (x0 - 2) + '" x2="' + (x0 + n * fw) + '" y1="' + (y0 + st * sh) + '" y2="' + (y0 + st * sh) + '" class="nk-str" style="stroke-width:' + (0.7 + st * 0.3) + '"/>';
+    for (let f = a; f <= b; f++) h += '<text x="' + fx(f) + '" y="' + (H - 5) + '" class="nk-num' + (f >= lo && f <= hi && pr.length ? ' on' : '') + '">' + f + '</text>';
+    v.frets.forEach((f, s) => {
+      const y = y0 + (5 - s) * sh;
+      if (f == null) { h += '<text x="' + (x0 - 11) + '" y="' + (y + 0.5) + '" class="nk-x mini">×</text>'; return; }
+      const p = md(Voicings.OPEN[s] + f), rel = md(p - c.r), cls = rel === 0 ? 'root' : (rel === 3 || rel === 4) ? 'ct third' : 'ct';
+      h += '<g class="nk-n ' + cls + (f === 0 ? ' open' : '') + '"><circle cx="' + fx(f) + '" cy="' + y + '" r="6.5"/><text x="' + fx(f) + '" y="' + (y + 0.5) + '">' + nn(p, k) + '</text></g>';
+    });
+    return '<span class="sf-now-grip" role="button" tabindex="0" title="' + v.name + ' – antippen zum Anhören" data-frets="' + v.frets.map(f => f == null ? 'x' : f).join(',') + '"><svg viewBox="0 0 ' + W + ' ' + H + '" width="' + Math.round(W * 1.45) + '" height="' + Math.round(H * 1.45) + '" aria-label="Griff ' + chordName(c, k) + '">' + h + '</svg><small>' + v.name + '</small></span>';
+  }
+  document.addEventListener('click', e => {
+    const g = e.target.closest && e.target.closest('.sf-now-grip'); if (!g || !window.Quinten) return;
+    g.dataset.frets.split(',').map((f, s) => f === 'x' ? null : Voicings.OPEN[s] + +f).filter(x => x != null).forEach((m, i) => setTimeout(() => Quinten.playNote(m), i * 28));
+  });
   // ---- Griffbild: Tonleiter oder Akkordgriffe ----
   function drawNeck() {
     const x = state.ctx; if (!x) return;
