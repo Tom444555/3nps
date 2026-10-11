@@ -79,67 +79,137 @@
 
   // ---- Fläche (Pad): weiche Akkorde, Stimmführung nah am vorigen Akkord ----
   let padOut = null, padLp = null, padVoices = [], lastVoicing = null;
+  // Synth-Bus: Eingang → Tiefpass → Hochpass → trocken + Stereo-Chorus + Hall + (für Pluck/Arp) tempo-synchrones Echo
+  let fx = null;
+  function hallIR(sec) {
+    const sr = audioCtx.sampleRate, n = Math.round(sr * sec), b = audioCtx.createBuffer(2, n, sr);
+    for (let c = 0; c < 2; c++) { const d = b.getChannelData(c); let lp = 0; for (let i = 0; i < n; i++) { const t = i / sr; lp += ((Math.random() * 2 - 1) - lp) * (0.55 - 0.4 * Math.min(1, t / sec)); d[i] = lp * Math.exp(-t / (sec * 0.32)) * Math.min(1, t / 0.012); } }
+    return b;
+  }
   function padBus() {
     if (!padOut) {
-      padOut = audioCtx.createGain(); padOut.gain.value = st.padVol / 100 * 0.5;
-      const lp = audioCtx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = SOUND_LP[st.padSound] || 1800; lp.Q.value = 0.4; padLp = lp;
-      padOut.connect(lp); lp.connect(typeof ensureMasterBus === 'function' ? ensureMasterBus() : audioCtx.destination);
+      const ac = audioCtx, master = typeof ensureMasterBus === 'function' ? ensureMasterBus() : ac.destination;
+      padOut = ac.createGain(); padOut.gain.value = st.padVol / 100 * 0.5;
+      const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 2000; lp.Q.value = 0.5; padLp = lp;
+      const hp = ac.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 85; hp.Q.value = 0.6;
+      padOut.connect(lp); lp.connect(hp);
+      const dry = ac.createGain(); hp.connect(dry); dry.connect(master);
+      // Chorus: zwei langsam schwankende Verzögerungen, links und rechts
+      const chIn = ac.createGain(), mg = ac.createChannelMerger(2), chOut = ac.createGain(); hp.connect(chIn);
+      [[0.011, 0.31, 0], [0.017, 0.43, 1]].forEach(([d, f, ch]) => { const dl = ac.createDelay(0.05); dl.delayTime.value = d; const lfo = ac.createOscillator(), lg = ac.createGain(); lfo.frequency.value = f; lg.gain.value = 0.0028; lfo.connect(lg); lg.connect(dl.delayTime); lfo.start(); chIn.connect(dl); dl.connect(mg, 0, ch); });
+      mg.connect(chOut); chOut.connect(master);
+      // Hall
+      const rvIn = ac.createGain(), rv = ac.createConvolver(), rvOut = ac.createGain(); rv.buffer = hallIR(1.7); hp.connect(rvIn); rvIn.connect(rv); rv.connect(rvOut); rvOut.connect(master);
+      // Echo (Punktierte Achtel, Rückkopplung gedämpft), Zeit folgt dem Tempo
+      const dlIn = ac.createGain(), dl = ac.createDelay(2), fb = ac.createGain(), dlLp = ac.createBiquadFilter(), dlOut = ac.createGain();
+      dlLp.type = 'lowpass'; dlLp.frequency.value = 3200; fb.gain.value = 0.38; hp.connect(dlIn); dlIn.connect(dl); dl.connect(dlLp); dlLp.connect(fb); fb.connect(dl); dlLp.connect(dlOut);
+      const pan = ac.createStereoPanner ? ac.createStereoPanner() : null; if (pan) { pan.pan.value = 0.35; dlOut.connect(pan); pan.connect(master); } else dlOut.connect(master);
+      fx = { dry, chOut, rvIn, dlIn, dl, rvOut, dlOut };
+      applySound(st.padSound, true);
     }
     return padOut;
+  }
+  // Klangeinstellungen je Sound: Tiefpass, Anteile Chorus / Hall / Echo
+  const SOUND_FX = {
+    pad:     { lp: 3200, ch: 0.55, rv: 0.35, dl: 0, g: 1.48 },
+    warm:    { lp: 1500, ch: 0.35, rv: 0.4,  dl: 0, g: 0.65 },
+    strings: { lp: 5200, ch: 0.6,  rv: 0.5,  dl: 0, g: 2.38 },
+    organ:   { lp: 6000, ch: 0.7,  rv: 0.25, dl: 0, g: 1.21 },
+    epiano:  { lp: 7000, ch: 0.45, rv: 0.3,  dl: 0, g: 0.86 },
+    bell:    { lp: 9000, ch: 0.3,  rv: 0.55, dl: 0.18, g: 0.9 },
+    pluck:   { lp: 8000, ch: 0.35, rv: 0.3,  dl: 0.32, g: 1.55 },
+    arp:     { lp: 8000, ch: 0.3,  rv: 0.28, dl: 0.3, g: 2.08 }
+  };
+  const padGain = () => st.padVol / 100 * 0.5 * ((SOUND_FX[st.padSound] || SOUND_FX.pad).g || 1);
+  function applySound(kind, now) {
+    if (!fx) return;
+    const p = SOUND_FX[kind] || SOUND_FX.pad, t = audioCtx.currentTime, tc = now ? 0.001 : 0.08;
+    padLp.frequency.setTargetAtTime(p.lp, t, tc); fx.chOut.gain.setTargetAtTime(p.ch, t, tc); fx.rvIn.gain.setTargetAtTime(p.rv, t, tc); fx.dlIn.gain.setTargetAtTime(p.dl, t, tc);
+    fx.dry.gain.setTargetAtTime(1 - p.ch * 0.35, t, tc);
+    padOut.gain.setTargetAtTime(padGain(), t, tc);
+    const bpm = parseFloat(document.getElementById('bpm').value) || 90; fx.dl.delayTime.setTargetAtTime(Math.min(1.9, 60 / bpm * 0.75), t, 0.05);
   }
   function voicing(c) {
     const pcs = CH[c.t].map(x => md(c.r + x)).slice(0, 4), center = lastVoicing ? lastVoicing.reduce((a, b) => a + b, 0) / lastVoicing.length : 60;
     const v = pcs.map(p => { let m = 48 + p; while (m < center - 6) m += 12; while (m > center + 6) m -= 12; return Math.max(50, Math.min(72, m)); }).sort((a, b) => a - b);
     lastVoicing = v; return v;
   }
-  function padRelease(t) { padVoices.forEach(v => { try { if (v.strike) { v.g.gain.cancelScheduledValues(t); v.g.gain.setTargetAtTime(0, t, 0.25); v.o.forEach(o => { try { o.stop(t + 1.5); } catch (e) {} }); return; } v.g.gain.cancelScheduledValues(t); v.g.gain.setTargetAtTime(0, t, 0.18); v.o.forEach(o => o.stop(t + 1.2)); } catch (e) {} }); padVoices = []; arp = null; }
+  // Stimme nach dem Ausklingen vom Graphen trennen (Safari hielte sonst alles fest)
+  function unhook(v) { if (v.gone) return; v.gone = true; try { v.g.disconnect(); if (v.pn) v.pn.disconnect(); } catch (e) {} }
+  function padRelease(t) { padVoices.forEach(v => { try { if (v.strike) { v.g.gain.cancelScheduledValues(t); v.g.gain.setTargetAtTime(0, t, 0.25); v.o.forEach(o => { try { o.stop(t + 1.5); } catch (e) {} }); setTimeout(() => unhook(v), 1900); return; } v.g.gain.cancelScheduledValues(t); v.g.gain.setTargetAtTime(0, t, 0.18); v.o.forEach(o => o.stop(t + 1.2)); setTimeout(() => unhook(v), 1600); } catch (e) {} }); padVoices = []; arp = null; }
   // ---- Synth-Klänge (alles mit eigenen Oszillatoren – keine Samples) ----
-  const SOUND_LP = { pad: 1800, warm: 1100, strings: 3200, organ: 4200, epiano: 6000, bell: 8000, pluck: 5000, arp: 5000 };
   const hz = m => 440 * Math.pow(2, (m - 69) / 12);
   function osc(type, f, t, dest, gain, detune) { const o = audioCtx.createOscillator(); o.type = type; o.frequency.value = f; if (detune) o.detune.value = detune; let d = dest; if (gain != null) { const g = audioCtx.createGain(); g.gain.value = gain; o.connect(g); g.connect(dest); } else o.connect(dest); o.start(t); return o; }
   function env(g, t, peak, att, dec, sus) { g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(peak, t + att); if (dec) g.gain.setTargetAtTime(peak * (sus == null ? 0.6 : sus), t + att, dec); }
+  // Kleine Bausteine: Stereo-Position je Ton, Filter mit Hüllkurve
+  const spread = (k, n) => n > 1 ? (k / (n - 1) - 0.5) * 0.7 : 0;
+  function panNode(p) { if (!audioCtx.createStereoPanner) return null; const n = audioCtx.createStereoPanner(); n.pan.value = p; return n; }
+  function filt(type, f, q) { const x = audioCtx.createBiquadFilter(); x.type = type; x.frequency.value = f; x.Q.value = q == null ? 0.7 : q; return x; }
   // Gehaltene Akkordklänge (bis zum nächsten Akkord)
-  function sustainVoice(kind, m, t, out) {
-    const f = hz(m), g = audioCtx.createGain(), o = [];
-    if (kind === 'pad') { env(g, t, 0.11, 0.22); o.push(osc('sawtooth', f, t, g, null, -7), osc('sawtooth', f, t, g, null, 6), osc('triangle', f / 2, t, g, 0.6)); }
-    else if (kind === 'warm') { env(g, t, 0.14, 0.4); o.push(osc('triangle', f, t, g), osc('sine', f / 2, t, g, 0.7), osc('sine', f * 2, t, g, 0.12)); }
-    else if (kind === 'strings') {
-      env(g, t, 0.075, 0.55); const vib = audioCtx.createOscillator(), vg = audioCtx.createGain(); vib.frequency.value = 5.2; vg.gain.value = 6; vib.connect(vg); vib.start(t);
-      [-12, -4, 5, 13].forEach(dt => { const x = osc('sawtooth', f, t, g, null, dt); vg.connect(x.detune); o.push(x); }); o.push(vib);
-    } else if (kind === 'organ') {
-      env(g, t, 0.06, 0.015); [[1, 1], [2, 0.6], [3, 0.35], [4, 0.2], [0.5, 0.55]].forEach(([r, a]) => o.push(osc('sine', f * r, t, g, a)));
-      const lfo = audioCtx.createOscillator(), lg = audioCtx.createGain(); lfo.frequency.value = 6.4; lg.gain.value = 0.012; lfo.connect(lg); lg.connect(g.gain); lfo.start(t); o.push(lfo);
+  function sustainVoice(kind, m, t, out, k, n) {
+    const f = hz(m), g = audioCtx.createGain(), o = [], pn = panNode(spread(k, n)), dest = pn || out;
+    if (pn) pn.connect(out);
+    if (kind === 'pad') {                 // Analog-Fläche: 3 verstimmte Sägezähne + Sub, Filter öffnet sich langsam, leichtes Filter-Atmen
+      const lp = filt('lowpass', 500, 1.1); lp.frequency.setValueAtTime(500, t); lp.frequency.linearRampToValueAtTime(2600, t + 1.2);
+      const lfo = audioCtx.createOscillator(), lg = audioCtx.createGain(); lfo.frequency.value = 0.18 + k * 0.03; lg.gain.value = 380; lfo.connect(lg); lg.connect(lp.frequency); lfo.start(t); o.push(lfo);
+      [-14, 0, 13].forEach(dt => o.push(osc('sawtooth', f, t, lp, 0.33, dt)));
+      o.push(osc('sine', f / 2, t, lp, 0.35)); lp.connect(g); env(g, t, 0.13, 0.45, 0.9, 0.8);
+    } else if (kind === 'warm') {         // rund und dunkel: Dreieck + Sinus, Vibrato, langsames Einblenden
+      const vib = audioCtx.createOscillator(), vg = audioCtx.createGain(); vib.frequency.value = 4.6; vg.gain.value = 3; vib.connect(vg); vib.start(t + 0.4); o.push(vib);
+      const a = osc('triangle', f, t, g, 0.8), b2 = osc('sine', f, t, g, 0.6, 7), c = osc('sine', f / 2, t, g, 0.45); vg.connect(a.detune); vg.connect(b2.detune);
+      o.push(a, b2, c); env(g, t, 0.16, 0.6, 1.5, 0.85);
+    } else if (kind === 'strings') {      // Ensemble: 5 Sägezähne gefächert, Hochpass + Tiefpass, verzögertes Vibrato
+      const lp = filt('lowpass', 4200, 0.5), hpf = filt('highpass', 220, 0.5); lp.connect(hpf); hpf.connect(g);
+      const vib = audioCtx.createOscillator(), vg = audioCtx.createGain(); vib.frequency.value = 5.4; vg.gain.setValueAtTime(0, t); vg.gain.linearRampToValueAtTime(7, t + 1.1); vib.connect(vg); vib.start(t); o.push(vib);
+      [-16, -7, 0, 8, 17].forEach(dt => { const x = osc('sawtooth', f, t, lp, 0.22, dt); vg.connect(x.detune); o.push(x); });
+      env(g, t, 0.1, 0.55, 2.0, 0.9);
+    } else if (kind === 'organ') {        // Zugriegel 16′ 8′ 5⅓′ 4′ 2⅔′ 2′, Tastenklick
+      [[0.5, 0.55], [1, 0.8], [1.5, 0.45], [2, 0.5], [3, 0.22], [4, 0.18]].forEach(([r, a]) => o.push(osc('sine', f * r, t, g, a * 0.9)));
+      const ck = audioCtx.createBufferSource(), cb = audioCtx.createBuffer(1, Math.round(audioCtx.sampleRate * 0.012), audioCtx.sampleRate), cd = cb.getChannelData(0);
+      for (let i = 0; i < cd.length; i++) cd[i] = (Math.random() * 2 - 1) * Math.exp(-i / (cd.length * 0.25)) * 0.35;
+      ck.buffer = cb; const cf = filt('bandpass', 2400 + k * 300, 1.2); ck.connect(cf); cf.connect(g); ck.start(t); o.push(ck);
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.075, t + 0.008);
     }
-    g.connect(out); return { g, o };
+    g.connect(dest); return { g, o, pn };
   }
   // Angeschlagene Töne (klingen von selbst aus)
-  function strikeVoice(kind, m, t, out, vel) {
-    const f = hz(m), g = audioCtx.createGain(), o = [], v = vel || 1;
-    if (kind === 'epiano') {
-      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.16 * v, t + 0.004); g.gain.setTargetAtTime(0.0, t + 0.004, 0.9);
-      const car = osc('sine', f, t, g), mod = audioCtx.createOscillator(), mg = audioCtx.createGain(); mod.frequency.value = f; mg.gain.setValueAtTime(f * 1.6, t); mg.gain.setTargetAtTime(f * 0.15, t, 0.35); mod.connect(mg); mg.connect(car.frequency); mod.start(t);
-      const tine = osc('sine', f * 7, t, g, 0.05); o.push(car, mod, tine); tine.stop(t + 0.08);
-    } else if (kind === 'bell') {
-      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.3 * v, t + 0.003); g.gain.setTargetAtTime(0, t + 0.003, 1.1);
-      const car = osc('sine', f * 2, t, g), mod = audioCtx.createOscillator(), mg = audioCtx.createGain(); mod.frequency.value = f * 7; mg.gain.setValueAtTime(f * 4, t); mg.gain.setTargetAtTime(f * 0.3, t, 0.5); mod.connect(mg); mg.connect(car.frequency); mod.start(t); o.push(car, mod);
-    } else {                                          // pluck / arp: Sägezahn/Rechteck durch schließendes Filter
-      const lp = audioCtx.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = kind === 'arp' ? 4 : 2;
-      lp.frequency.setValueAtTime(kind === 'arp' ? 3800 : 3200, t); lp.frequency.setTargetAtTime(420, t, kind === 'arp' ? 0.07 : 0.11);
-      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime((kind === 'arp' ? 0.16 : 0.2) * v, t + 0.003); g.gain.setTargetAtTime(0, t + 0.003, kind === 'arp' ? 0.09 : 0.16);
-      const x = osc(kind === 'arp' ? 'square' : 'sawtooth', f, t, lp, null, 0), y = osc('sawtooth', f, t, lp, 0.5, 9); lp.connect(g); o.push(x, y);
+  function strikeVoice(kind, m, t, out, vel, k, n) {
+    const f = hz(m), g = audioCtx.createGain(), o = [], v = vel || 1, pn = panNode(spread(k || 0, n || 1)), dest = pn || out;
+    if (pn) pn.connect(out);
+    if (kind === 'epiano') {              // Rhodes-artig: FM 1:1 mit fallendem Index, „Bark“ bei kräftigem Anschlag, Stereo-Tremolo am Ausgang
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.2 * v, t + 0.003); g.gain.setTargetAtTime(0.07 * v, t + 0.003, 0.35); g.gain.setTargetAtTime(0, t + 0.6, 1.4);
+      const car = osc('sine', f, t, g), mod = audioCtx.createOscillator(), mg = audioCtx.createGain(); mod.frequency.value = f; mg.gain.setValueAtTime(f * 2.2 * v, t); mg.gain.setTargetAtTime(f * 0.25, t, 0.28); mod.connect(mg); mg.connect(car.frequency); mod.start(t);
+      const tine = audioCtx.createOscillator(), tg = audioCtx.createGain(); tine.frequency.value = f * 14; tg.gain.setValueAtTime(0.035 * v, t); tg.gain.setTargetAtTime(0, t, 0.025); tine.connect(tg); tg.connect(g); tine.start(t);
+      const trem = audioCtx.createOscillator(), tgm = audioCtx.createGain(); trem.frequency.value = 4.2; tgm.gain.value = 0.18; trem.connect(tgm); if (pn) tgm.connect(pn.pan); trem.start(t);
+      o.push(car, mod, tine, trem);
+    } else if (kind === 'bell') {         // Glocke: unharmonisches FM (3,5) + Teilton 2,76, langer Ausklang
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.26 * v, t + 0.002); g.gain.setTargetAtTime(0, t + 0.002, 1.3);
+      const car = osc('sine', f * 2, t, g), mod = audioCtx.createOscillator(), mg = audioCtx.createGain(); mod.frequency.value = f * 7; mg.gain.setValueAtTime(f * 5, t); mg.gain.setTargetAtTime(f * 0.4, t, 0.4); mod.connect(mg); mg.connect(car.frequency); mod.start(t);
+      const p2 = audioCtx.createOscillator(), p2g = audioCtx.createGain(); p2.frequency.value = f * 2 * 2.76; p2g.gain.setValueAtTime(0.12 * v, t); p2g.gain.setTargetAtTime(0, t, 0.35); p2.connect(p2g); p2g.connect(g); p2.start(t);
+      o.push(car, mod, p2);
+    } else {                              // Pluck / Arp: zwei verstimmte Sägezähne (+ Rechteck beim Arp) durch resonantes Filter mit schneller Hüllkurve
+      const lp = filt('lowpass', 400, kind === 'arp' ? 5 : 3);
+      const top = kind === 'arp' ? 5200 : 4200, dec = kind === 'arp' ? 0.06 : 0.09;
+      lp.frequency.setValueAtTime(top * (0.75 + 0.25 * v), t); lp.frequency.setTargetAtTime(380, t + 0.002, dec);
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime((kind === 'arp' ? 0.17 : 0.2) * v, t + 0.002); g.gain.setTargetAtTime(0, t + 0.002, kind === 'arp' ? 0.11 : 0.2);
+      o.push(osc('sawtooth', f, t, lp, 0.55, -6), osc('sawtooth', f, t, lp, 0.55, 7));
+      if (kind === 'arp') o.push(osc('square', f / 2, t, lp, 0.3));
+      lp.connect(g);
     }
-    g.connect(out); const end = t + (kind === 'bell' ? 4 : kind === 'epiano' ? 3.5 : 0.8); o.forEach(x => { try { x.stop(end); } catch (e) {} });
-    padVoices.push({ g, o, strike: true });
+    g.connect(dest); const end = t + (kind === 'bell' ? 5 : kind === 'epiano' ? 4.5 : 1); o.forEach(x => { try { x.stop(end); } catch (e) {} });
+    const vo = { g, o, pn, strike: true }; padVoices.push(vo);
+    setTimeout(() => unhook(vo), (end - audioCtx.currentTime) * 1000 + 300);
+    if (padVoices.length > 64) padVoices = padVoices.filter(x => !x.gone);
   }
   const RHYTHMIC = { pluck: 1, arp: 1 }, STRIKE = { epiano: 1, bell: 1 };
   function padChord(c, t) {
     padRelease(t);
     if (!st.pad) return;
     const out = padBus(), kind = st.padSound || 'pad', v = voicing(c);
-    if (padLp) padLp.frequency.setTargetAtTime(SOUND_LP[kind] || 1800, t, 0.05);
+    applySound(kind);
     if (RHYTHMIC[kind]) { arp = { notes: v, i: 0 }; return; }          // rhythmische Klänge spielt onStep
-    if (STRIKE[kind]) { v.forEach((m, k) => strikeVoice(kind, m, t + k * 0.008, out, 0.9)); return; }
-    v.forEach(m => padVoices.push(sustainVoice(kind, m, t, out)));
+    if (STRIKE[kind]) { v.forEach((m, k) => strikeVoice(kind, m, t + k * 0.012, out, 0.85 + 0.15 * Math.random(), k, v.length)); return; }
+    v.forEach((m, k) => padVoices.push(sustainVoice(kind, m, t, out, k, v.length)));
   }
   let arp = null;
   function arpStep(step, t, sd) {
@@ -149,7 +219,7 @@
     if (kind === 'pluck' && (res === 16 ? step % 2 !== 0 : step % 3 === 1)) return;
     const ns = arp.notes, seq = kind === 'arp' ? ns.concat(ns.map(m => m + 12)) : ns;
     const m = seq[arp.i % seq.length]; arp.i++;
-    strikeVoice(kind, m, t, padBus(), step % (res / 4) === 0 ? 1 : 0.75);
+    strikeVoice(kind, m, t, padBus(), step % (res / 4) === 0 ? 1 : 0.72, arp.i % 3, 3);
   }
   // ---- Ablauf am Taktgeber ----
   let run = null;          // { pending, beat, idx, pass, unlisten, ownDrums, events: [{t, idx, beat}] }
@@ -231,8 +301,21 @@
   function paintSeq() {
     const k = st.key, tot = totalBeats();
     $('jamKey').value = k.pc + ':' + (k.major ? 'M' : 'm');
-    $('jamSeq').innerHTML = st.seq.map((c, i) => '<button class="jam-c' + (i === selIdx ? ' sel' : '') + '" data-i="' + i + '" style="flex-grow:' + c.beats + '"><b>' + cname(c, k) + '</b><small>' + roman(c, k) + ' · ' + (c.beats % 4 ? c.beats + ' Schl.' : (c.beats / 4) + (c.beats === 4 ? ' Takt' : ' Takte')) + '</small></button>').join('')
-      || '<div class="sf-empty">Noch keine Akkorde – Vorlage wählen, Akkorde antippen oder eintippen.</div>';
+    // Zeitleiste: 4 Takte je Zeile, jede Spalte ein Schlag; Akkorde, die über eine Zeile laufen, werden geteilt
+    const PER = 16, rows = Math.max(1, Math.ceil(tot / PER)), segs = Array.from({ length: rows }, () => []);
+    let pos = 0;
+    st.seq.forEach((c, i) => {
+      let left = c.beats, at = pos, first = true;
+      while (left > 0) { const r = Math.floor(at / PER), col = at % PER, n = Math.min(left, PER - col); segs[r].push({ i, c, col, n, first, last: n === left }); at += n; left -= n; first = false; }
+      pos += c.beats;
+    });
+    const lab = c => c.beats % 4 ? c.beats + ' Schl.' : (c.beats / 4) + (c.beats === 4 ? ' Takt' : ' Takte');
+    $('jamSeq').innerHTML = tot ? segs.map((row, r) => '<div class="jam-row" data-r="' + r + '">' +
+        '<div class="jam-bars">' + [0, 1, 2, 3].map(b => { const n = r * 4 + b + 1; return n <= Math.ceil(tot / 4) ? '<span data-bar="' + n + '">' + n + '</span>' : '<span></span>'; }).join('') + '</div>' +
+        '<div class="jam-grid">' + row.map(g => '<button class="jam-c' + (g.i === selIdx ? ' sel' : '') + (g.first ? '' : ' cont') + (g.last ? '' : ' open') + '" data-i="' + g.i + '" style="grid-column:' + (g.col + 1) + ' / span ' + g.n + ';--n:' + g.n + '">' +
+          (g.first ? '<b>' + cname(g.c, k) + '</b><small>' + roman(g.c, k) + ' · ' + lab(g.c) + '</small>' : '<b class="dim">' + cname(g.c, k) + '</b><small>weiter</small>') + '</button>').join('') +
+        '<i class="jam-head" hidden></i></div></div>').join('')
+      : '<div class="sf-empty">Noch keine Akkorde – Vorlage wählen, Akkorde antippen oder eintippen.</div>';
     $('jamLen').textContent = tot ? (tot / 4) + ' Takte' : '';
     $('jamText').value = st.seq.map(c => (cname(c, k) + (c.beats !== 4 ? ':' + (c.beats / 4) : '')).replace(/[♯]/g, '#').replace(/[♭]/g, 'b').replace('°', 'dim')).join(' ');
     $('jamEdit').hidden = selIdx < 0 || selIdx >= st.seq.length;
@@ -250,9 +333,19 @@
     $('jamTrBox').classList.toggle('off', !tr.on);
   }
   let lastOn = -1;
+  let lastHead = null, lastBar = -1;
   function tickUi() {
     const n = now(), i = n ? n.idx : -1;
     if (i !== lastOn) { $('jamSeq').querySelectorAll('.jam-c').forEach(b => b.classList.toggle('on', +b.dataset.i === i)); lastOn = i; }
+    // Laufmarke: genaue Position in der Zeitleiste, aktueller Takt hervorgehoben
+    const tot = totalBeats();
+    if (n && tot) {
+      const beat = (n.pos / 1000) % tot, r = Math.floor(beat / 16), col = beat - r * 16, bar = Math.floor(beat / 4) + 1;
+      const row = $('jamSeq').querySelector('.jam-row[data-r="' + r + '"]'), head = row && row.querySelector('.jam-head');
+      if (lastHead && lastHead !== head) lastHead.hidden = true;
+      if (head) { head.hidden = false; head.style.left = (col / 16 * 100) + '%'; lastHead = head; }
+      if (bar !== lastBar) { $('jamSeq').querySelectorAll('.jam-bars span').forEach(sp => sp.classList.toggle('on', +sp.dataset.bar === bar)); lastBar = bar; }
+    } else if (lastHead) { lastHead.hidden = true; lastHead = null; $('jamSeq').querySelectorAll('.jam-bars span.on').forEach(sp => sp.classList.remove('on')); lastBar = -1; }
     $('jamBpm').textContent = Math.round(parseFloat($('bpm').value));
     $('jamPass').textContent = run && !run.pending ? 'Durchlauf ' + (run.pass + 1) + (st.trainer.on ? ' · Ziel ' + st.trainer.target + ' BPM' : '') : '';
   }
@@ -311,7 +404,7 @@
   if (lStyle) lStyle.addEventListener('change', () => { if (jStyle.value !== lStyle.value) syncList(); });
   $('jamPad').addEventListener('change', e => { st.pad = e.target.checked; save(); if (!st.pad && audioCtx) padRelease(audioCtx.currentTime); else if (run && run.cur) padChord(run.cur, audioCtx.currentTime + 0.02); });
   $('jamDrums').addEventListener('change', e => { st.drums = e.target.checked; save(); if (run) { if (st.drums && !Rhythm.on()) { Rhythm.setOn(true); run.ownDrums = true; } else if (!st.drums && Rhythm.on()) Rhythm.setOn(false); } });
-  $('jamPadVol').addEventListener('input', e => { st.padVol = +e.target.value; save(); if (padOut) padOut.gain.setTargetAtTime(st.padVol / 100 * 0.5, audioCtx.currentTime, 0.05); });
+  $('jamPadVol').addEventListener('input', e => { st.padVol = +e.target.value; save(); if (padOut) padOut.gain.setTargetAtTime(padGain(), audioCtx.currentTime, 0.05); });
   $('jamBass').addEventListener('click', () => { const b = $('btnBass'); if (b) b.click(); setTimeout(paintBass, 30); });
   function paintBass() { const on = typeof bassOn !== 'undefined' && bassOn; const b = $('jamBass'); b.classList.toggle('active', on); b.textContent = on ? 'Bass an' : 'Bass aus'; }
   $('jamTr').addEventListener('change', e => { st.trainer.on = e.target.checked; save(); paintTrainer(); });

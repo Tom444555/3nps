@@ -385,3 +385,8 @@ html.ed-open, html.ed-open body { overflow: hidden; }
 .ed-edit .ed-row .toggle-btn { padding: 7px 10px; }
 #edUndo, #edRedo { min-width: 40px; font-size: 1rem; }
 html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleiste würde sonst über dem Editor liegen */
+
+.ed-mag { display: inline-flex; align-items: center; gap: 6px; font: 600 .74rem var(--f-body); color: var(--muted); }
+.ed-mag select { padding: 5px 8px; min-height: 0; }
+#edMove[aria-pressed="true"] { background: var(--tc); color: #000; border-color: var(--tc); box-shadow: 0 0 10px var(--tc); }
+.editor.ed-moving #edWave { cursor: grab; }

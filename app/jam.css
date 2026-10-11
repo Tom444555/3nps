@@ -31,3 +31,21 @@
 
   .jam-sel { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
   @media (max-width: 520px) { .jam-sel { grid-template-columns: 1fr; } }
+
+  /* v49: Akkordleiste als Zeitleiste – 4 Takte je Zeile, jede Spalte ein Schlag */
+  .jam-seq { display: flex; flex-direction: column; gap: 8px; flex-wrap: nowrap; }
+  .jam-row { display: flex; flex-direction: column; gap: 3px; }
+  .jam-bars { display: grid; grid-template-columns: repeat(4, 1fr); font: 700 .68rem var(--f-mono); color: var(--muted); }
+  .jam-bars span { padding-left: 4px; border-left: 2px solid color-mix(in srgb, var(--ink) 35%, transparent); line-height: 1.3; }
+  .jam-bars span.on { color: var(--accent); border-left-color: var(--accent); }
+  .jam-grid { position: relative; display: grid; grid-template-columns: repeat(16, 1fr); gap: 0; min-height: 64px; border-radius: 6px;
+    background:
+      repeating-linear-gradient(90deg, color-mix(in srgb, var(--ink) 40%, transparent) 0 2px, transparent 2px 25%),
+      repeating-linear-gradient(90deg, color-mix(in srgb, var(--ink) 13%, transparent) 0 1px, transparent 1px 6.25%); }
+  .jam-grid .jam-c { min-width: 0; margin: 0 2px 0 3px; padding: 6px 4px; overflow: hidden; border-radius: 7px; background-color: color-mix(in srgb, var(--surface-2) 88%, transparent);
+    background-image: repeating-linear-gradient(90deg, transparent 0 calc(100% / var(--n, 4) - 1px), color-mix(in srgb, var(--ink) 18%, transparent) calc(100% / var(--n, 4) - 1px) calc(100% / var(--n, 4))); }
+  .jam-grid .jam-c b { font-size: 1.15rem; } .jam-grid .jam-c b.dim { opacity: .55; }
+  .jam-grid .jam-c.open { border-top-right-radius: 0; border-bottom-right-radius: 0; margin-right: 0; border-right-style: dashed; }
+  .jam-grid .jam-c.cont { border-top-left-radius: 0; border-bottom-left-radius: 0; margin-left: 0; border-left-style: dashed; }
+  .jam-head { position: absolute; top: -3px; bottom: -3px; width: 3px; margin-left: -1px; background: var(--accent); border-radius: 2px; box-shadow: 0 0 8px var(--accent); pointer-events: none; z-index: 2; }
+  @media (max-width: 520px) { .jam-grid .jam-c b { font-size: .95rem; } .jam-grid .jam-c small { display: none; } .jam-grid { min-height: 50px; } }
