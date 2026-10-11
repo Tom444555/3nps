@@ -522,3 +522,6 @@ Gut zu wissen
    - Oben rechts im Improvisieren-Fenster: „▶ Start“ / „⏸ Pause“ / „▶ Weiter“.
      Pause hält alle Spuren, Drums und den Drone an; „Weiter“ spielt an derselben Stelle weiter.
    - „Töne der Tonart“ steht jetzt links unter dem aktuellen Akkord, neben dem Griffbild.
+
+45. Reihenfolge der Reiter (v52)
+   - „Improvisation“ steht jetzt direkt neben „Looper“.
