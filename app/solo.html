@@ -11,13 +11,16 @@
           <div class="seg" id="sfTracks" role="group" aria-label="Spur">
             <button class="toggle-btn active" data-t="auto">Auto</button><button class="toggle-btn" data-t="0">1</button><button class="toggle-btn" data-t="1">2</button><button class="toggle-btn" data-t="2">3</button>
           </div>
+          <button class="toggle-btn sf-play" id="sfPlay" aria-label="Loop pausieren oder starten">▶ Start</button>
           <label class="check"><input type="checkbox" id="sfFollow" checked> folgt dem Looper</label>
         </div>
       </div>
       <div class="sf-head" id="sfHead" hidden><span>Takt</span></div>
       <div class="sf-band" id="sfBand"><div class="sf-strip" id="sfStrip"></div></div>
-      <div class="sf-now" id="sfNow"></div>
-      <p class="sf-keynotes"><span class="lbl">Töne der Tonart</span> <span id="sfKeyNotes"></span></p>
+      <div class="sf-nowgrid">
+        <div class="sf-now" id="sfNow"></div>
+        <p class="sf-keynotes"><span class="lbl">Töne der Tonart</span> <span id="sfKeyNotes"></span></p>
+      </div>
     </div>
 
     <div class="card">

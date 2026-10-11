@@ -134,3 +134,20 @@
   .sf-bar span { font: 800 .72rem var(--f-mono); color: var(--ink); top: 2px; }
   .sf-beat { position: absolute; bottom: 0; height: 12px; width: 0; border-left: 1px solid rgba(255,255,255,.45); z-index: 3; pointer-events: none; }
   .sf-ph { z-index: 4; }
+
+  .sf-play { min-width: 112px; font-weight: 800; }
+  .sf-play.active { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+
+  /* „Klingt jetzt“: Name links, Töne der Tonart darunter, Griffbild Mitte, Akkordtöne rechts – keine Extra-Höhe */
+  .sf-nowgrid { display: grid; grid-template-columns: auto auto 1fr auto; grid-template-areas: "l l g t" "b r g t" "k k g t"; align-items: center; column-gap: 12px; }
+  .sf-nowgrid .sf-now { display: contents; }
+  .sf-nowgrid .sf-now-l { grid-area: l; align-self: end; }
+  .sf-nowgrid .sf-now > b { grid-area: b; }
+  .sf-nowgrid .sf-now-r { grid-area: r; }
+  .sf-nowgrid .sf-now-grip { grid-area: g; justify-self: center; margin: 0; }
+  .sf-nowgrid .sf-now-t { grid-area: t; }
+  .sf-nowgrid .sf-keynotes { grid-area: k; align-self: start; margin: 6px 0 0; }
+  @media (max-width: 620px) {
+    .sf-nowgrid { grid-template-columns: auto 1fr; grid-template-areas: "l l" "b r" "g g" "t t" "k k"; }
+    .sf-nowgrid .sf-now-t { margin-top: 4px; }
+  }

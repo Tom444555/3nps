@@ -441,6 +441,7 @@
   // ---- Ablauf ----
   function update(force) {
     if (panel.hidden && !force) return;
+    showPlay();
     const ci = info(), { k, src } = currentKey(ci);
     state.k = k;
     // Spur-Auswahl
@@ -507,6 +508,16 @@
   for (let p = 0; p < 12; p++) ks.add(new Option(SHARP[p] + (FLAT[p] !== SHARP[p] ? '/' + FLAT[p] : '') + '-Moll', p + ':m'));
   ks.addEventListener('change', () => { state.keyOv = ks.value; bandSig = ''; update(true); });
   $('sfDice').addEventListener('click', idea);
+  // Pause/Start für den ganzen Loop (Spuren, Drums, Drone)
+  const playEl = $('sfPlay');
+  function showPlay() {
+    const LP = typeof Looper !== 'undefined' ? Looper : null; if (!LP || !LP.running) { playEl.hidden = true; return; }
+    const run = LP.running(), has = LP.hasLoop();
+    playEl.disabled = !has && !run;
+    playEl.textContent = run ? '⏸ Pause' : LP.paused() ? '▶ Weiter' : '▶ Start';
+    playEl.classList.toggle('active', run);
+  }
+  playEl.addEventListener('click', () => { if (typeof Looper !== 'undefined') { Looper.pauseToggle(); showPlay(); } });
   let timer = null;
   document.addEventListener('tabchange', e => {
     clearInterval(timer); timer = null;

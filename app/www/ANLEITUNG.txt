@@ -517,3 +517,8 @@ Gut zu wissen
      zwei Bünde davor und danach, Bundzahlen unten. Antippen spielt den Griff an.
    - Improvisation: In der Akkordleiste sind die Takte deutlich eingezeichnet (kräftige Taktlinien,
      jeder zweite Takt hinterlegt, Schlagstriche unten).
+
+44. Improvisation: Pause / Weiter (v51)
+   - Oben rechts im Improvisieren-Fenster: „▶ Start“ / „⏸ Pause“ / „▶ Weiter“.
+     Pause hält alle Spuren, Drums und den Drone an; „Weiter“ spielt an derselben Stelle weiter.
+   - „Töne der Tonart“ steht jetzt links unter dem aktuellen Akkord, neben dem Griffbild.
