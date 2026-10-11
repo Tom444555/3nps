@@ -1899,7 +1899,8 @@ const Looper = (() => {
   }
 
   // Verschieben (rotiert den Loop in sich, alle Overdubs mit)
-  function rotate(k) {
+  // keepGrid: das Taktraster bleibt stehen, nur der Inhalt wandert (Loop verschieben mit Magnet)
+  function rotate(k, keepGrid) {
     const t = ed.t; if (!t) return;
     k = Math.round(k); if (!k) return;
     edSnap('nudge');
@@ -1909,7 +1910,7 @@ const Looper = (() => {
       return o;
     }));
     ed.offMs += k / sr * 1000;
-    if (t.origPos != null) t.origPos -= k;
+    if (t.origPos != null && !keepGrid) t.origPos -= k;
     rebuildMix(t); if (t.src) startTrack(t);
     edInfo(); kick();
   }
@@ -2428,7 +2429,7 @@ const Looper = (() => {
     if (!ptrs.size) {
       if (ed.drag === 'move' && ed.mv) {
         const k = ed.mv.off, t = ed.t; ed.drag = null; ed.mv = null;
-        if (k && t) { rotate(k); detectTrackKey(t); setStatus('Spur ' + (t.i + 1) + ' verschoben: ' + (k > 0 ? '+' : '') + Math.round(k / sr * 1000) + ' ms. ↶ nimmt es zurück.'); }
+        if (k && t) { rotate(k, true); detectTrackKey(t); setStatus('Spur ' + (t.i + 1) + ' verschoben: ' + (k > 0 ? '+' : '') + Math.round(k / sr * 1000) + ' ms. ↶ nimmt es zurück.'); }
         edInfo(); kick(); return;
       }
       if (ed.drag && ed.drag !== 'seek' && ed.loop) restartLoopSel(); ed.drag = null;

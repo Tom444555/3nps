@@ -35,7 +35,9 @@ async def main():
         check('Modus an (Knopf gedrückt)', await pg.get_attribute('#edMove', 'aria-pressed') == 'true')
         x0 = bb['x'] + bb['width'] * 0.37
         m0 = await pg.evaluate("Array.from(Looper._mixOf(0).l)")
+        g0 = await pg.evaluate('Looper._grid(1)')
         await drag(pg, x0, 60, y)
+        g1 = await pg.evaluate('Looper._grid(1)')
         m1 = await pg.evaluate("Array.from(Looper._mixOf(0).l)")
         # Versatz k bestimmen: m1[i+k] == m0[i]
         import numpy as np
@@ -44,6 +46,7 @@ async def main():
         best = None
         for k in range(int(exp - sr * 0.1), int(exp + sr * 0.1)):
             if np.abs(np.roll(a, k)[1000:1400] - c[1000:1400]).max() < 1e-6 and np.abs(np.roll(a, k)[40000:40400] - c[40000:40400]).max() < 1e-6: best = k; break
+        check('Taktraster bleibt beim Verschieben stehen (Takt 1 fest)', g0 == g1 and abs(g0[0]) < 2, (g0[:3], g1[:3]))
         check('Ganzer Loop nach rechts verschoben (Länge gleich)', best is not None and len(m1) == len(m0), (best, round(exp)))
         await pg.click('#edUndo'); await pg.wait_for_timeout(300)
         check('↶ macht Verschieben rückgängig', abs(await pg.evaluate(SIG) - sig0) < 1e-6)
@@ -66,6 +69,13 @@ async def main():
         land = (o + best) % L if best is not None else None
         check('Magnet: Anschlag rastet auf Taktlinie ein', land is not None and min(abs(land - q) for q in grid) < 2, (land, round(g)))
         st = await pg.inner_text('#loopStatus'); check('Meldung „verschoben“', 'verschoben' in st, st[:70])
+        await pg.click('#edUndo'); await pg.wait_for_timeout(200)
+        for _ in range(3): await pg.click('#loopEditor button:has-text("+")')
+        await pg.wait_for_timeout(200)
+        g0 = await pg.evaluate('Looper._grid(1)')
+        await drag(pg, bb['x'] + bb['width'] * 0.5, 80, y)
+        g1 = await pg.evaluate('Looper._grid(1)')
+        check('Gezoomt: Taktraster bleibt stehen', g0 == g1, (g0[:2], g1[:2]))
         await pg.select_option('#edMag', 'beat')
         await pg.reload(); await pg.wait_for_timeout(500)
         check('Magnet-Wahl gespeichert', await pg.input_value('#edMag') == 'beat')
