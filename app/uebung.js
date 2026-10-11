@@ -17,7 +17,7 @@
   ];
   const IVLONG = ['Grundton', 'kleine Sekunde', 'große Sekunde', 'kleine Terz', 'große Terz', 'Quarte', 'Tritonus', 'Quinte', 'kleine Sexte', 'große Sexte', 'kleine Septime', 'große Septime', 'Oktave'];
   const flatsFor = (pc, major) => [5, 10, 3, 8, 1].includes(major ? pc : md(pc + 3));
-  const nn = (pc, k) => (k && flatsFor(k.pc, k.major) ? FLAT : SHARP)[md(pc)];
+  const nn = (pc, k) => window.spellPc && k ? spellPc(pc, k) : (k && flatsFor(k.pc, k.major) ? FLAT : SHARP)[md(pc)];
   const keyLabel = k => nn(k.pc, k) + (k.major ? '-Dur' : '-Moll');
   const play = (r, iv) => { if (window.Quinten) Quinten.play(r, iv); };
   const note = m => { if (window.Quinten) Quinten.playNote(m); };

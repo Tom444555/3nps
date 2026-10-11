@@ -547,3 +547,8 @@ Gut zu wissen
      „Dreiklang-Leiter“ spielt die Dreiklänge der Saitengruppe einen pro Schlag von unten nach oben.
    - „Im Loop“ (nur mit Loop): Tabelle je Akkord mit der Form in deiner Lage und dem Dreiklang je
      Saitengruppe (Bünde tief → hoch, G = Grundstellung, 1./2. = Umkehrung).
+
+47. Richtige Vorzeichen bei Akkorden (v55)
+   - Akkorde und Töne werden passend zur Tonart geschrieben: in C-Dur heißt der Akkord B♭ (nicht A♯),
+     ebenso E♭, A♭, D♭. Erhöhte Stufen bleiben mit ♯ (z. B. F♯ in C-Dur, G♯ als Leitton in A-Moll).
+   - Gilt im Looper (Akkorde an der Spur und im Editor), in Improvisation, CAGED, Backing Track und Training.

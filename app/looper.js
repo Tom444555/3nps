@@ -1439,9 +1439,9 @@ const Looper = (() => {
         t.chdName = nm; if (!t.thC) return;
         t.thC.hidden = nm == null;
         if (nm == null) return;
-        t.chdB.lastChild.textContent = nm; t.chdB.classList.toggle('rest', nm === '–');
+        t.chdB.lastChild.textContent = window.spellChord ? spellChord(nm, t.key) : nm; t.chdB.classList.toggle('rest', nm === '–');
         const nx = nextChord(c, i);
-        t.chnB.hidden = !nx; if (nx) t.chnB.lastChild.textContent = nx;
+        t.chnB.hidden = !nx; if (nx) t.chnB.lastChild.textContent = window.spellChord ? spellChord(nx, t.key) : nx;
       });
       drawEditor(C);
       const bgS = (meterEl.parentNode.clientWidth || 200) + 'px 100%', hot = !!rec && !rec.armed;
@@ -2550,7 +2550,7 @@ const Looper = (() => {
         if (i === cur) { ctx.fillStyle = tc; ctx.globalAlpha = 0.25; ctx.fillRect(Math.max(0, xa), 18, Math.min(w, xe) - Math.max(0, xa), 18); ctx.globalAlpha = 1; }
         ctx.fillStyle = 'rgba(255,255,255,.18)'; ctx.fillRect(Math.round(xa * dpr) / dpr, 18, 1, 18);
         if (q.name === '–') return;
-        const lab = q.name, room = xe - Math.max(0, xa) - 6;
+        const lab = window.spellChord ? spellChord(q.name, t.key) : q.name, room = xe - Math.max(0, xa) - 6;
         if (room < 14) return;
         ctx.fillStyle = i === cur ? '#ffffff' : tc; ctx.save(); ctx.beginPath(); ctx.rect(Math.max(0, xa), 18, room + 4, 18); ctx.clip();
         ctx.fillText(lab, Math.max(0, xa) + 4, 31); ctx.restore();

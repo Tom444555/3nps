@@ -49,7 +49,7 @@
   function save() { try { localStorage.setItem(SAVE, JSON.stringify({ key: st.key, seq: st.seq, pad: st.pad, padVol: st.padVol, padSound: st.padSound, drums: st.drums, trainer: st.trainer })); } catch (e) {} }
   function fromPreset(k, p) { return p.map(([o, t, b]) => ({ r: md(k.pc + o), t, beats: b || 4 })); }
   const flats = k => [5, 10, 3, 8, 1].includes(k.major ? k.pc : md(k.pc + 3));
-  const nn = (pc, k) => (flats(k) ? FLAT : SHARP)[md(pc)];
+  const nn = (pc, k) => window.spellPc ? spellPc(pc, k) : (flats(k) ? FLAT : SHARP)[md(pc)];
   const cname = (c, k) => nn(c.r, k) + (SUF[c.t] != null ? SUF[c.t] : c.t);
   const qual = t => /^(m|m7|m6|m9|m11)$/.test(t) ? 'm' : /^(dim|m7b5)$/.test(t) ? 'd' : /^(sus|5)/.test(t) ? '*' : 'M';
   function roman(c, k) {

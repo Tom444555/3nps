@@ -1,3 +1,25 @@
+/* ---------- Schreibweise von Tönen/Akkorden passend zur Tonart (B♭ statt A♯ in C-Dur) ----------
+   Leitereigene Töne: Vorzeichen der Tonart. Fremde Töne: erniedrigte Stufen (♭II, ♭III, ♭VI, ♭VII) mit ♭,
+   erhöhte (♯IV, in Moll ♯III, ♯VI, ♯VII = Leitton) mit ♯. Ohne Tonart: wie bisher ♯. */
+(function () {
+  const SH = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'];
+  const FL = ['C', 'D♭', 'D', 'E♭', 'E', 'F', 'G♭', 'G', 'A♭', 'A', 'B♭', 'B'];
+  const PCS = { C: 0, 'C#': 1, 'C♯': 1, Db: 1, 'D♭': 1, D: 2, 'D#': 3, 'D♯': 3, Eb: 3, 'E♭': 3, E: 4, F: 5, 'F#': 6, 'F♯': 6, Gb: 6, 'G♭': 6, G: 7, 'G#': 8, 'G♯': 8, Ab: 8, 'A♭': 8, A: 9, 'A#': 10, 'A♯': 10, Bb: 10, 'B♭': 10, B: 11 };
+  const md = x => ((x % 12) + 12) % 12;
+  function spellPc(pc, k) {
+    pc = md(pc); if (!k || k.pc == null) return SH[pc];
+    const rel = md(pc - k.pc), maj = !!k.major;
+    const dia = maj ? [0, 2, 4, 5, 7, 9, 11] : [0, 2, 3, 5, 7, 8, 10];
+    if (dia.includes(rel)) return ([5, 10, 3, 8, 1].includes(maj ? md(k.pc) : md(k.pc + 3)) ? FL : SH)[pc];
+    const flat = maj ? [1, 3, 8, 10].includes(rel) : rel === 1;
+    return (flat ? FL : SH)[pc];
+  }
+  function spellChord(name, k) {
+    const m = /^([A-G](?:#|♯|b|♭)?)(.*)$/.exec(name || ''); if (!m || PCS[m[1]] == null) return name;
+    return spellPc(PCS[m[1]], k) + m[2];
+  }
+  window.spellPc = spellPc; window.spellChord = spellChord;
+})();
 /* ---------- App: Optik umschalten, alles sichern und wiederherstellen ---------- */
 const AppCfg = (() => {
   const $ = id => document.getElementById(id);

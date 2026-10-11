@@ -65,7 +65,7 @@
     const iv = S.scale === 'penta' ? (minor ? [0, 3, 5, 7, 10] : [0, 2, 4, 7, 9]) : (minor ? [0, 2, 3, 5, 7, 8, 10] : c.t === '7' ? [0, 2, 4, 5, 7, 9, 10] : [0, 2, 4, 5, 7, 9, 11]);
     return iv.map(x => md(c.r + x));
   }
-  const nn = pc => (flats ? FLAT : SHARP)[md(pc)];
+  const nn = pc => cur.key && window.spellPc ? spellPc(pc, cur.key) : (flats ? FLAT : SHARP)[md(pc)];
   const cname = c => nn(c.r) + c.t;
   function role(c, pc) {
     const i = md(pc - c.r);
