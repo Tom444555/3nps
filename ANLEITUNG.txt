@@ -559,3 +559,8 @@ Gut zu wissen
    - Der nächste Akkord wird etwas früher markiert (bis 0,3 s, höchstens ein halber Schlag vor dem Wechsel),
      damit du Zeit zum Umgreifen hast.
    - MIDI-Export für Logic: Die Akkord-Marker heißen jetzt passend zur Tonart (z. B. Bb statt A#).
+
+49. Loop verschieben: Takt 1 bleibt fest (v57)
+   - Beim Ziehen mit „⇔ Loop verschieben“ bleibt das Taktraster jetzt stehen – auch gezoomt und bei
+     geladenen Dateien. Nur die Wellenform wandert; mit dem Magnet landet der gegriffene Anschlag
+     genau auf der Taktlinie. Takt 1 bleibt am Loopanfang.
