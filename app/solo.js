@@ -159,6 +159,9 @@
     const W = Math.max(band.clientWidth - 2, bars * 92), px = f => f / ci.L * W;
     strip.style.width = W + 'px';
     let h = '';
+    // Takte: jeder zweite leicht hinterlegt, kräftige Taktlinien über den Akkorden, Schlagstriche unten
+    ci.downs.forEach((d, i) => { const e = i + 1 < ci.downs.length ? ci.downs[i + 1] : ci.L; if (i % 2) h += '<div class="sf-barbg" style="left:' + px(d).toFixed(1) + 'px;width:' + px(e - d).toFixed(1) + 'px"></div>'; });
+    (ci.beats || []).forEach(b => { h += '<div class="sf-beat" style="left:' + px(b).toFixed(1) + 'px"></div>'; });
     ci.downs.forEach((d, i) => { h += '<div class="sf-bar" style="left:' + px(d).toFixed(1) + 'px"><span>' + (i + 1) + '</span></div>'; });
     ci.segs.forEach((s, i) => {
       const c = parseChord(s.name), w = px(s.e - s.a);
@@ -199,7 +202,7 @@
     $('sfKeyNotes').textContent = keyPcs(k).map(p => p).sort((a, b) => md(a - k.pc) - md(b - k.pc)).map(p => nn(p, k)).join(' ');
     const c = f ? f.c : null;
     if (!c) { $('sfNow').innerHTML = ''; return; }
-    $('sfNow').innerHTML = '<span class="sf-now-l">' + (f.live ? 'Klingt jetzt' : 'Ausgewählt') + '</span><b>' + chordName(c, k) + '</b><span class="sf-now-r">' + roman(c, k) + (func(c, k) ? ' · ' + func(c, k) : '') + '</span><span class="sf-now-t">Akkordtöne: ' + c.iv.map(x => nn(c.r + x, k) + '<sub>' + IVN[x % 12] + '</sub>').join(' ') + '</span>';
+    $('sfNow').innerHTML = '<span class="sf-now-l">' + (f.live ? 'Klingt jetzt' : 'Ausgewählt') + '</span><b>' + chordName(c, k) + '</b><span class="sf-now-r">' + roman(c, k) + (func(c, k) ? ' · ' + func(c, k) : '') + '</span>' + miniGrip(c, k) + '<span class="sf-now-t">Akkordtöne: ' + c.iv.map(x => nn(c.r + x, k) + '<sub>' + IVN[x % 12] + '</sub>').join(' ') + '</span>';
     // mögliche Akkorde
     const dia = diatonic(k), inLoop = new Set((ci.segs || []).map(s => s.name).filter(n => n !== '–').map(n => { const p = parseChord(n); return p ? p.r + '|' + qual(p.t) : ''; }));
     const nx = (NEXT[k.major ? 'maj' : 'min'][md(c.r - k.pc)] || []).map(x => md(k.pc + x));
@@ -268,6 +271,31 @@
     $('sfNeckTitle').textContent = 'Griffbild: ' + nn(s.root, k) + ' ' + SC[s.id].n;
   }
 
+  // ---- Kleines Griffbild beim aktuellen Akkord: Griff mit 2 Bünden davor/danach, Bundzahlen unten ----
+  function miniGrip(c, k) {
+    if (typeof Voicings === 'undefined') return '';
+    const vs = Voicings.forChord(c.r, CH[c.t] ? c.t : ''); const v = vs[0]; if (!v) return '';
+    const pr = v.frets.filter(f => f != null && f > 0), lo = pr.length ? Math.min(...pr) : 1, hi = pr.length ? Math.max(...pr) : 1;
+    const a = Math.max(1, lo - 2), b = Math.max(hi + 2, a + 4), n = b - a + 1;    // sichtbare Bünde a … b
+    const x0 = 22, fw = 30, y0 = 10, sh = 13, W = x0 + n * fw + 6, H = y0 + sh * 5 + 26;
+    const fx = f => f === 0 ? x0 - 11 : x0 + (f - a + 0.5) * fw;
+    let h = '<rect x="' + x0 + '" y="' + (y0 - 5) + '" width="' + n * fw + '" height="' + (sh * 5 + 10) + '" class="nk-board" rx="2"/>';
+    for (let i = 0; i <= n; i++) h += '<line x1="' + (x0 + i * fw) + '" x2="' + (x0 + i * fw) + '" y1="' + (y0 - 5) + '" y2="' + (y0 + sh * 5 + 5) + '" class="' + (i === 0 && a === 1 ? 'nk-nut' : 'nk-fret') + '"/>';
+    for (let f = a; f <= b; f++) if ([3, 5, 7, 9, 15, 17].includes(f)) h += '<circle cx="' + fx(f) + '" cy="' + (y0 + sh * 2.5) + '" r="3" class="nk-dot"/>'; else if (f === 12) h += '<circle cx="' + fx(f) + '" cy="' + (y0 + sh * 1.5) + '" r="3" class="nk-dot"/><circle cx="' + fx(f) + '" cy="' + (y0 + sh * 3.5) + '" r="3" class="nk-dot"/>';
+    for (let st = 0; st < 6; st++) h += '<line x1="' + (x0 - 2) + '" x2="' + (x0 + n * fw) + '" y1="' + (y0 + st * sh) + '" y2="' + (y0 + st * sh) + '" class="nk-str" style="stroke-width:' + (0.7 + st * 0.3) + '"/>';
+    for (let f = a; f <= b; f++) h += '<text x="' + fx(f) + '" y="' + (H - 5) + '" class="nk-num' + (f >= lo && f <= hi && pr.length ? ' on' : '') + '">' + f + '</text>';
+    v.frets.forEach((f, s) => {
+      const y = y0 + (5 - s) * sh;
+      if (f == null) { h += '<text x="' + (x0 - 11) + '" y="' + (y + 0.5) + '" class="nk-x mini">×</text>'; return; }
+      const p = md(Voicings.OPEN[s] + f), rel = md(p - c.r), cls = rel === 0 ? 'root' : (rel === 3 || rel === 4) ? 'ct third' : 'ct';
+      h += '<g class="nk-n ' + cls + (f === 0 ? ' open' : '') + '"><circle cx="' + fx(f) + '" cy="' + y + '" r="6.5"/><text x="' + fx(f) + '" y="' + (y + 0.5) + '">' + nn(p, k) + '</text></g>';
+    });
+    return '<span class="sf-now-grip" role="button" tabindex="0" title="' + v.name + ' – antippen zum Anhören" data-frets="' + v.frets.map(f => f == null ? 'x' : f).join(',') + '"><svg viewBox="0 0 ' + W + ' ' + H + '" width="' + Math.round(W * 1.45) + '" height="' + Math.round(H * 1.45) + '" aria-label="Griff ' + chordName(c, k) + '">' + h + '</svg><small>' + v.name + '</small></span>';
+  }
+  document.addEventListener('click', e => {
+    const g = e.target.closest && e.target.closest('.sf-now-grip'); if (!g || !window.Quinten) return;
+    g.dataset.frets.split(',').map((f, s) => f === 'x' ? null : Voicings.OPEN[s] + +f).filter(x => x != null).forEach((m, i) => setTimeout(() => Quinten.playNote(m), i * 28));
+  });
   // ---- Griffbild: Tonleiter oder Akkordgriffe ----
   function drawNeck() {
     const x = state.ctx; if (!x) return;

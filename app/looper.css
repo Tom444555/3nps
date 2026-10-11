@@ -390,3 +390,11 @@ html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleis
 .ed-mag select { padding: 5px 8px; min-height: 0; }
 #edMove[aria-pressed="true"] { background: var(--tc); color: #000; border-color: var(--tc); box-shadow: 0 0 10px var(--tc); }
 .editor.ed-moving #edWave { cursor: grab; }
+
+.in-dev { display: flex; align-items: center; gap: 7px; margin: 2px 0 6px; padding: 5px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); font: 600 .78rem var(--f-body); color: var(--muted); min-width: 0; }
+.in-dev b { color: var(--ink); font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.in-dev span { margin-left: auto; font-size: .7rem; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }
+.in-dev-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--line); flex: none; }
+.in-dev.on .in-dev-dot { background: #34c759; box-shadow: 0 0 6px #34c759; }
+.in-dev.on span { color: var(--accent); }
+.editor .ed-cutgrp { margin-bottom: 10px; }

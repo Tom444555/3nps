@@ -384,6 +384,7 @@ const Looper = (() => {
       setTimeout(() => {
         if (audioCtx && audioCtx.state !== 'running') audioCtx.resume().catch(() => {});
         if (micReady && stream && stream.getAudioTracks().some(tr => tr.readyState === 'ended' || tr.muted)) { micLost('device'); setTimeout(reopenMic, 600); }
+        else showInDev();
       }, 500);
     });
   }
@@ -418,7 +419,28 @@ const Looper = (() => {
 
   // Eingang: Stereo erkennen (unterschiedliche Kanäle) und anzeigen
   let inChans = 0, stereoSeen = false;
+  // Welches Gerät liefert den Eingang (z. B. Spark LIVE, USB-Interface, iPad-Mikrofon, Bluetooth)
+  function devKind(lab) {
+    const l = (lab || '').toLowerCase();
+    if (/bluetooth|airpods|beats|hands-?free|headset|\bbt\b/.test(l)) return 'Bluetooth';
+    if (/usb|interface|spark|boss|katana|reactor|irig|focusrite|scarlett|audient|motu|steinberg|presonus|zoom|line ?6|helix|tonex|nux|positive grid|fender|yamaha|roland/.test(l)) return 'USB';
+    if (/^(default|standard)\b|ipad|iphone|eingebaut|built-?in|internes|internal|microphone$|mikrofon$/.test(l)) return 'eingebaut';
+    if (/headphone|kopfhörer|line in|lightning/.test(l)) return 'Kabel';
+    return '';
+  }
+  function showInDev() {
+    const box = $('inDev'); if (!box) return;
+    let lab = '';
+    try { const tr = micReady && stream && stream.getAudioTracks()[0]; lab = tr ? (tr.label || '') : ''; } catch (e) {}
+    lab = lab.replace(/^(Default|Standard)\s*[-–:]\s*/i, '').trim();
+    const k = micReady ? devKind(lab) : '';
+    $('inDevName').textContent = !micReady ? 'Kein Eingang offen' : lab || 'Eingang (Name vom System nicht genannt)';
+    $('inDevKind').textContent = !micReady ? '' : (k ? k + ' · ' : '') + (stereoSeen ? 'Stereo' : 'Mono');
+    box.classList.toggle('on', !!micReady);
+    box.title = micReady ? 'Diesen Eingang hat das iPad gewählt. Anderes Gerät: einstecken bzw. in den iPad-Einstellungen wählen, dann „Eingang öffnen“.' : '';
+  }
   function showInChans() {
+    showInDev();
     const el = $('inChanInfo'); if (!el) return;
     el.textContent = !micReady ? '' : stereoSeen ? '· Stereo L/R' : inChans >= 2 ? '· mono (beide Kanäle gleich)' : '· mono (Grenze von iPadOS)';
     el.classList.toggle('mono', micReady && !stereoSeen);
@@ -2954,7 +2976,7 @@ const Looper = (() => {
       if (!t) return { tracks: list, track: -1 };
       const pos = t.src && audioCtx ? mod(playFrame() - anchor, t.L) : null;
       const downs = trackDowns(t).filter(x => x > -2 && x < t.L - 2).map(x => Math.max(0, x));
-      return { tracks: list, track: t.i, segs: t.chords.segs.map(q => ({ name: q.name, a: q.a, e: q.e })), L: t.L, pos, downs, sr,
+      return { tracks: list, track: t.i, segs: t.chords.segs.map(q => ({ name: q.name, a: q.a, e: q.e })), L: t.L, pos, downs, sr, beats: trackBeats(t).filter(b => !b.bar && b.f > 0 && b.f < t.L - 2).map(b => b.f),
         key: t.key ? { pc: t.key.pc, major: !!t.key.major } : null, playing: !!t.src };
     },
     // Eingang für „Mithören“: öffnet ihn bei Bedarf (gleicher Zugriff wie der Looper), liefert einen Analyser

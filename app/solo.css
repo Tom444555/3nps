@@ -119,3 +119,18 @@
   .nk-hit.root { stroke: var(--root-color); } .nk-hit.ct { stroke: var(--t2); } .nk-hit.sc { stroke: var(--scale-color); } .nk-hit.out { stroke: #ff7a59; }
   @keyframes nkhit { from { stroke-width: 9; opacity: .4; } to { stroke-width: 4; opacity: 1; } }
   @media (prefers-reduced-motion: reduce) { .nk-hit { animation: none; } }
+
+  .sf-now-grip { display: inline-flex; flex-direction: column; align-items: center; gap: 1px; margin: 4px auto 0; cursor: pointer; align-self: center; }
+  .sf-now-grip svg { display: block; max-width: 100%; height: auto; }
+  .sf-now-grip small { font: 600 .66rem var(--f-body); color: var(--muted); }
+  .sf-now-grip .nk-n text { font-size: 7px; }
+  .sf-now-grip .nk-num { font-size: 9px; } .sf-now-grip .nk-num.on { fill: var(--ink); font-weight: 800; }
+  .sf-now-grip .nk-x.mini { font-size: 11px; }
+  .sf-now-grip .nk-nut { stroke-width: 4; }
+  .sf-now .sf-now-t { margin-left: 0; }
+
+  .sf-barbg { position: absolute; top: 0; bottom: 0; background: rgba(255,255,255,.05); pointer-events: none; }
+  .sf-bar { z-index: 3; border-left: 2px solid rgba(255,255,255,.55); }
+  .sf-bar span { font: 800 .72rem var(--f-mono); color: var(--ink); top: 2px; }
+  .sf-beat { position: absolute; bottom: 0; height: 12px; width: 0; border-left: 1px solid rgba(255,255,255,.45); z-index: 3; pointer-events: none; }
+  .sf-ph { z-index: 4; }

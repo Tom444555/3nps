@@ -16,6 +16,7 @@
           </select>
         </label>
         <div class="field meter-field"><span>Eingang <em class="chan-info" id="inChanInfo"></em></span>
+          <div class="in-dev" id="inDev" title=""><i class="in-dev-dot"></i><b id="inDevName">Kein Eingang offen</b><span id="inDevKind"></span></div>
           <div class="meter-row">
             <div class="meter" id="loopMeterBox" aria-hidden="true"><div id="loopMeter"></div><div id="loopMeterR"></div><div class="thresh" id="loopThreshMark"></div></div>
             <button class="toggle-btn" id="loopMonitor">Eingang öffnen</button>
@@ -115,6 +116,29 @@
           <span class="caption ed-pos" id="edPos"></span>
         </div>
         <p class="pattern-desc ed-hint">Oben in der Zeitleiste tippen = dorthin springen. Griffe ziehen = Auswahl. „⇔ Loop verschieben“ an: die ganze Wellenform nach links/rechts ziehen, der Magnet lässt den gegriffenen Anschlag auf Takt, Schlag oder 16tel einrasten. Mit zwei Fingern oder +/− zoomen, unten in der Übersicht blättern. Feinschritte für den gewählten Griff; im Vollbild steuert das Fußpedal: ◀ 1 ms · 1 ms ▶ · Griff wechseln · Auswahl hören.</p>
+      <div class="ed-group ed-cutgrp">
+          <span class="ed-label">Schneiden</span>
+          <div class="ed-row">
+            <label class="field ed-grid"><span>Raster</span>
+              <select id="edGrid">
+                <option value="bar">Takt</option>
+                <option value="beat" selected>Schlag</option>
+                <option value="eighth">Achtel</option>
+                <option value="sixteenth">16tel</option>
+                <option value="onset">Anschlag</option>
+                <option value="zero">Nulldurchgang</option>
+                <option value="free">Frei</option>
+              </select>
+            </label>
+            <label class="field ed-grid"><span>Blende am Schnitt</span>
+              <select id="edFade"><option value="0">aus</option><option value="2">2 ms</option><option value="5" selected>5 ms</option><option value="10">10 ms</option></select>
+            </label>
+            <button class="toggle-btn active" id="edTrim">Zuschneiden</button>
+            <button class="toggle-btn" id="edHalf">Halbieren</button>
+            <button class="toggle-btn" id="edDouble">Verdoppeln</button>
+          </div>
+          <p class="pattern-desc">Zieh die orangen Griffe auf Anfang und Ende, dann „Zuschneiden“. Jeder Schritt lässt sich mit ↶ zurücknehmen.</p>
+        </div>
         <div class="ed-group ed-edit">
           <span class="ed-label">Bearbeiten (Auswahl) · die Loop-Länge bleibt gleich</span>
           <div class="ed-row">
@@ -157,29 +181,6 @@
               <button class="toggle-btn" id="edDownR">1 Schlag ▶</button>
             </div>
             <p class="pattern-desc">Die ganze Datei bleibt gespeichert. Wähle hier jederzeit einen anderen Teil des Songs. Liegt die Eins daneben, verschiebe das Taktraster um einen Schlag – der Ausschnitt wird sofort neu geschnitten.</p>
-          </div>
-          <div class="ed-group">
-            <span class="ed-label">Schneiden</span>
-            <div class="ed-row">
-              <label class="field ed-grid"><span>Raster</span>
-                <select id="edGrid">
-                  <option value="bar">Takt</option>
-                  <option value="beat" selected>Schlag</option>
-                  <option value="eighth">Achtel</option>
-                  <option value="sixteenth">16tel</option>
-                  <option value="onset">Anschlag</option>
-                  <option value="zero">Nulldurchgang</option>
-                  <option value="free">Frei</option>
-                </select>
-              </label>
-              <label class="field ed-grid"><span>Blende am Schnitt</span>
-                <select id="edFade"><option value="0">aus</option><option value="2">2 ms</option><option value="5" selected>5 ms</option><option value="10">10 ms</option></select>
-              </label>
-              <button class="toggle-btn active" id="edTrim">Zuschneiden</button>
-              <button class="toggle-btn" id="edHalf">Halbieren</button>
-              <button class="toggle-btn" id="edDouble">Verdoppeln</button>
-            </div>
-            <p class="pattern-desc">Zieh die orangen Griffe auf Anfang und Ende, dann „Zuschneiden“. Jeder Schritt lässt sich mit ↶ zurücknehmen.</p>
           </div>
           <div class="ed-group">
             <span class="ed-label">Synchronisieren</span>

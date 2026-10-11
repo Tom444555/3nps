@@ -505,3 +505,15 @@ Gut zu wissen
      wandert mit (was hinten herausfällt, kommt vorne wieder rein, die Länge bleibt gleich).
    - „Magnet“: Takt (Standard), Schlag, 16tel oder aus. Der Anschlag, den du greifst, rastet auf der
      nächsten Linie ein (grüne Linie = eingerastet). ↶ nimmt das Verschieben zurück.
+
+43. Eingang sichtbar, Zuschneiden oben, Griff zum Akkord, Takte in der Improvisation (v50)
+   - Looper: Über „Eingang öffnen“ steht jetzt, welches Gerät den Ton liefert (z. B. Spark LIVE,
+     USB-Interface, iPad-Mikrofon, Bluetooth) – mit grünem Punkt, Art des Anschlusses und Mono/Stereo.
+     Den Namen liefert das iPad; welches Gerät benutzt wird, entscheidet das iPad selbst
+     (zuletzt eingestecktes Gerät bzw. Auswahl im Kontrollzentrum).
+   - Editor: Der Block „Schneiden“ mit „Zuschneiden“ steht jetzt über „Bearbeiten“.
+     Zum Kürzen: Griffe auf den Teil setzen, den du behalten willst, dann „Zuschneiden“.
+   - Improvisation: Unter „Klingt jetzt“ zeigt ein kleines Griffbild, wie man den Akkord greift –
+     zwei Bünde davor und danach, Bundzahlen unten. Antippen spielt den Griff an.
+   - Improvisation: In der Akkordleiste sind die Takte deutlich eingezeichnet (kräftige Taktlinien,
+     jeder zweite Takt hinterlegt, Schlagstriche unten).
