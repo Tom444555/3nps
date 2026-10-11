@@ -552,3 +552,10 @@ Gut zu wissen
    - Akkorde und Töne werden passend zur Tonart geschrieben: in C-Dur heißt der Akkord B♭ (nicht A♯),
      ebenso E♭, A♭, D♭. Erhöhte Stufen bleiben mit ♯ (z. B. F♯ in C-Dur, G♯ als Leitton in A-Moll).
    - Gilt im Looper (Akkorde an der Spur und im Editor), in Improvisation, CAGED, Backing Track und Training.
+
+48. Akkordleiste in der Improvisation, MIDI-Marker (v56)
+   - Die Akkordleiste zeigt höchstens 6 Takte auf einmal. Längere Loops scrollen mit: sobald der Strich
+     in den vorletzten sichtbaren Takt kommt, rückt die Leiste weiter, der laufende Takt steht wieder vorne.
+   - Der nächste Akkord wird etwas früher markiert (bis 0,3 s, höchstens ein halber Schlag vor dem Wechsel),
+     damit du Zeit zum Umgreifen hast.
+   - MIDI-Export für Logic: Die Akkord-Marker heißen jetzt passend zur Tonart (z. B. Bb statt A#).

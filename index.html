@@ -2171,7 +2171,7 @@ html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleis
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v55</span></div>
+      <div class="brand">Looper <span>3nps · v56</span></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -10363,7 +10363,7 @@ const Looper = (() => {
     // Akkorde der ersten Spur mit erkannten Akkorden, über die ganze Exportlänge wiederholt
     const ct = used.find(t => t.chords && t.chords.L === t.L && t.chords.segs.some(q => q.name !== '–'));
     const chordMarks = [], ticksPerFrame = exactBpm / 60 / sr * 480;
-    if (ct) for (let rp = 0; rp * ct.L < total; rp++) ct.chords.segs.forEach(q => { if (q.name === '–') return; const tk = Math.round((rp * ct.L + q.a) * ticksPerFrame); if (!chordMarks.length || chordMarks[chordMarks.length - 1][1] !== q.name) chordMarks.push([tk, q.name]); });
+    if (ct) for (let rp = 0; rp * ct.L < total; rp++) ct.chords.segs.forEach(q => { if (q.name === '–') return; const tk = Math.round((rp * ct.L + q.a) * ticksPerFrame); const nm = window.spellChord ? spellChord(q.name, ct.key).replace(/♭/g, 'b').replace(/♯/g, '#') : q.name; if (!chordMarks.length || chordMarks[chordMarks.length - 1][1] !== nm) chordMarks.push([tk, nm]); });
     files.push({ name: base + '/Tempo und Takt - ' + tag + '.mid', data: midiFile({ bpm: exactBpm, beats, sf, minor, keyLabel, name: base, drums: dStyle, drumsName: dName, chords: chordMarks }) });
     const lies = [
       base, '',
@@ -11846,7 +11846,7 @@ if (typeof module !== 'undefined') module.exports = Pitch;
     if (sig === bandSig) return;
     bandSig = sig;
     const bars = Math.max(1, ci.downs.length);
-    const W = Math.max(band.clientWidth - 2, bars * 92), px = f => f / ci.L * W;
+    const BW = band.clientWidth - 2, W = bars <= 6 ? BW : BW * bars / 6, px = f => f / ci.L * W;          // höchstens 6 Takte im Blick
     strip.style.width = W + 'px';
     let h = '';
     // Takte: jeder zweite leicht hinterlegt, kräftige Taktlinien über den Akkorden, Schlagstriche unten
@@ -11865,12 +11865,22 @@ if (typeof module !== 'undefined') module.exports = Pitch;
   function tickBand(ci) {
     const ph = $('sfPh'); if (!ph || !ci.segs) return -1;
     const W = parseFloat($('sfStrip').style.width) || 1;
-    const i = ci.pos != null ? segAt(ci, ci.pos) : -1;
+    // Wechsel ~0,3 s (höchstens ein halber Schlag) vor dem Takt anzeigen – Zeit zum Umgreifen
+    const sr = ci.sr || 48000, beat = ci.beats && ci.beats.length > 1 ? Math.abs(ci.beats[1] - ci.beats[0]) : sr * 0.5;
+    const lead = Math.min(sr * 0.3, beat * 0.5), posL = ci.pos != null ? (ci.pos + lead) % ci.L : null;
+    const i = posL != null ? segAt(ci, posL) : -1;
     ph.style.display = ci.pos != null ? '' : 'none';
     if (ci.pos != null) {
       const x = ci.pos / ci.L * W; ph.style.transform = 'translateX(' + x.toFixed(1) + 'px)';
-      const band = $('sfBand');
-      if (x < band.scrollLeft + 40 || x > band.scrollLeft + band.clientWidth - 80) band.scrollLeft = Math.max(0, x - band.clientWidth * 0.3);
+      const band = $('sfBand'), cw = band.clientWidth, barW = W / Math.max(1, (ci.downs || []).length || 1);
+      if (W > cw + 2) {
+        // vorausschauend weiterschieben: sobald der Strich in den vorletzten sichtbaren Takt kommt,
+        // steht der laufende Takt wieder vorne (ein Takt Rückblick)
+        let target = null;
+        if (x < band.scrollLeft + 4) target = Math.max(0, x - barW * 0.25);
+        else if (x > band.scrollLeft + cw - barW * 2) target = Math.max(0, Math.min(W - cw, x - barW * 1.1));
+        if (target != null && Math.abs(target - band.scrollLeft) > 2) band.scrollTo({ left: target, behavior: x < band.scrollLeft ? 'auto' : 'smooth' });
+      }
     }
     if (i !== lastOn) {
       const segs = $('sfStrip').querySelectorAll('.sf-seg');
@@ -13172,7 +13182,7 @@ if (typeof module !== 'undefined') module.exports = Pitch;
       const n = now(), names = st.seq.map(c => SHARP[c.r].replace('♯', '#') + c.t);
       let a = 0; const segs = st.seq.map((c, i) => { const s = { name: names[i], a: a * 1000, e: (a + c.beats) * 1000 }; a += c.beats; return s; });
       const downs = []; for (let b = 0; b < a; b += 4) downs.push(b * 1000);
-      return { tracks: [], track: -2, segs, L: a * 1000, pos: n ? n.pos : null, downs, sr: 1000, key: { pc: st.key.pc, major: st.key.major }, playing: true, jam: true };
+      return { tracks: [], track: -2, segs, L: a * 1000, pos: n ? n.pos : null, downs, sr: 1000 * (parseFloat((document.getElementById('bpm') || {}).value) || 120) / 60, beats: [0, 1000], key: { pc: st.key.pc, major: st.key.major }, playing: true, jam: true };
     },
     nowChord: () => { const n = now(); if (!n) return null; const c = st.seq[n.idx]; return c ? { name: SHARP[c.r].replace('♯', '#') + c.t } : null; },
     start, stop, parse, state: () => st, setSeq: (text) => { const r = parse(text); st.seq = r.seq; save(); paintSeq(); return r; },
