@@ -1164,11 +1164,11 @@ const Looper = (() => {
     ensureAudio(); sr = audioCtx.sampleRate;
     if (anyRunning() && !rec) {
       const maxL = Math.max(...tracks.map(t => t.L || 0)) || 1;
-      pausedAt = { pos: mod(nowFrame() - anchor, maxL), drums: drumsOnF(), list: tracks.filter(t => t.src) };
+      pausedAt = { pos: mod(nowFrame() - anchor, maxL), drums: drumsOnF(), drone: droneOn, list: tracks.filter(t => t.src) };
       cancelCountIn();
       tracks.forEach(t => { if (t.src) { stopSrc(t); t.state = 'stopped'; } });
       if (pausedAt.drums) Rhythm.setOn(false);
-      droneFollow(false);
+      if (droneOn) setDrone(false);
       setStatus('Pausiert – „Weiter“ spielt an derselben Stelle weiter.'); ev('Pause');
     } else if (!rec && anyContent()) {
       const p = pausedAt; pausedAt = null;
@@ -1177,7 +1177,7 @@ const Looper = (() => {
       if (!p) anchor = startAnchor('play');
       tracks.forEach(t => { if (t.L && (!p || p.list.includes(t))) { startTrack(t); t.state = 'playing'; } });
       if (typeof Rhythm.resync === 'function') Rhythm.resync();
-      droneFollow(true);
+      if (p && p.drone && !droneOn) setDrone(true);       // Drone nur, wenn er vor der Pause lief
       setStatus(p ? 'Weiter.' : 'Alle Spuren laufen.'); ev('Weiter');
     }
     update();

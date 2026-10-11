@@ -34,8 +34,16 @@ async def main():
         st = await pg.evaluate("[Looper.running(), Rhythm.on(), Looper.debug().tracks[0].state, Looper.debug().anchor, audioCtx.currentTime*audioCtx.sampleRate, Looper.debug().tracks[0].L, audioCtx.sampleRate]")
         pos1 = (st[4] - st[3]) % st[5]
         check('Weiter: Spuren und Drums laufen', st[0] and st[1] and st[2] == 'playing', st[:3])
-        d = abs(pos1 - pos0) / st[6]
+        dd = abs(pos1 - pos0); d = min(dd, st[5] - dd) / st[6]
         check('… an derselben Stelle (nicht von vorn)', d < 0.35, round(d, 3))
+        check('Drone bleibt aus (lief vorher nicht)', not await pg.evaluate("Looper.debug().drone"))
+        # Drone an → Pause → Weiter: Drone läuft wieder
+        await pg.click('#tab-looper'); await pg.evaluate("document.getElementById('laneDrone').click()"); await pg.wait_for_timeout(300)
+        d1 = await pg.evaluate("Looper.debug().drone")
+        await pg.click('#tab-solo'); await pg.wait_for_timeout(300)
+        await pg.click('#sfPlay'); await pg.wait_for_timeout(200); d2 = await pg.evaluate("Looper.debug().drone")
+        await pg.click('#sfPlay'); await pg.wait_for_timeout(200); d3 = await pg.evaluate("Looper.debug().drone")
+        check('Drone an: Pause hält ihn an, Weiter startet ihn wieder', d1 and not d2 and d3, (d1, d2, d3))
         check('Knopf zeigt wieder Pause', 'Pause' in await pg.inner_text('#sfPlay'))
         check('Keine Skriptfehler', not errs, errs)
         await b.close()
