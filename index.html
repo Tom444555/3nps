@@ -2171,7 +2171,7 @@ html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleis
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v54</span></div>
+      <div class="brand">Looper <span>3nps · v55</span></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -9009,9 +9009,9 @@ const Looper = (() => {
         t.chdName = nm; if (!t.thC) return;
         t.thC.hidden = nm == null;
         if (nm == null) return;
-        t.chdB.lastChild.textContent = nm; t.chdB.classList.toggle('rest', nm === '–');
+        t.chdB.lastChild.textContent = window.spellChord ? spellChord(nm, t.key) : nm; t.chdB.classList.toggle('rest', nm === '–');
         const nx = nextChord(c, i);
-        t.chnB.hidden = !nx; if (nx) t.chnB.lastChild.textContent = nx;
+        t.chnB.hidden = !nx; if (nx) t.chnB.lastChild.textContent = window.spellChord ? spellChord(nx, t.key) : nx;
       });
       drawEditor(C);
       const bgS = (meterEl.parentNode.clientWidth || 200) + 'px 100%', hot = !!rec && !rec.armed;
@@ -10120,7 +10120,7 @@ const Looper = (() => {
         if (i === cur) { ctx.fillStyle = tc; ctx.globalAlpha = 0.25; ctx.fillRect(Math.max(0, xa), 18, Math.min(w, xe) - Math.max(0, xa), 18); ctx.globalAlpha = 1; }
         ctx.fillStyle = 'rgba(255,255,255,.18)'; ctx.fillRect(Math.round(xa * dpr) / dpr, 18, 1, 18);
         if (q.name === '–') return;
-        const lab = q.name, room = xe - Math.max(0, xa) - 6;
+        const lab = window.spellChord ? spellChord(q.name, t.key) : q.name, room = xe - Math.max(0, xa) - 6;
         if (room < 14) return;
         ctx.fillStyle = i === cur ? '#ffffff' : tc; ctx.save(); ctx.beginPath(); ctx.rect(Math.max(0, xa), 18, room + 4, 18); ctx.clip();
         ctx.fillText(lab, Math.max(0, xa) + 4, 31); ctx.restore();
@@ -10918,6 +10918,28 @@ const Pedal = (() => {
 
 </script>
 <script>
+/* ---------- Schreibweise von Tönen/Akkorden passend zur Tonart (B♭ statt A♯ in C-Dur) ----------
+   Leitereigene Töne: Vorzeichen der Tonart. Fremde Töne: erniedrigte Stufen (♭II, ♭III, ♭VI, ♭VII) mit ♭,
+   erhöhte (♯IV, in Moll ♯III, ♯VI, ♯VII = Leitton) mit ♯. Ohne Tonart: wie bisher ♯. */
+(function () {
+  const SH = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'];
+  const FL = ['C', 'D♭', 'D', 'E♭', 'E', 'F', 'G♭', 'G', 'A♭', 'A', 'B♭', 'B'];
+  const PCS = { C: 0, 'C#': 1, 'C♯': 1, Db: 1, 'D♭': 1, D: 2, 'D#': 3, 'D♯': 3, Eb: 3, 'E♭': 3, E: 4, F: 5, 'F#': 6, 'F♯': 6, Gb: 6, 'G♭': 6, G: 7, 'G#': 8, 'G♯': 8, Ab: 8, 'A♭': 8, A: 9, 'A#': 10, 'A♯': 10, Bb: 10, 'B♭': 10, B: 11 };
+  const md = x => ((x % 12) + 12) % 12;
+  function spellPc(pc, k) {
+    pc = md(pc); if (!k || k.pc == null) return SH[pc];
+    const rel = md(pc - k.pc), maj = !!k.major;
+    const dia = maj ? [0, 2, 4, 5, 7, 9, 11] : [0, 2, 3, 5, 7, 8, 10];
+    if (dia.includes(rel)) return ([5, 10, 3, 8, 1].includes(maj ? md(k.pc) : md(k.pc + 3)) ? FL : SH)[pc];
+    const flat = maj ? [1, 3, 8, 10].includes(rel) : rel === 1;
+    return (flat ? FL : SH)[pc];
+  }
+  function spellChord(name, k) {
+    const m = /^([A-G](?:#|♯|b|♭)?)(.*)$/.exec(name || ''); if (!m || PCS[m[1]] == null) return name;
+    return spellPc(PCS[m[1]], k) + m[2];
+  }
+  window.spellPc = spellPc; window.spellChord = spellChord;
+})();
 /* ---------- App: Optik umschalten, alles sichern und wiederherstellen ---------- */
 const AppCfg = (() => {
   const $ = id => document.getElementById(id);
@@ -11712,7 +11734,7 @@ if (typeof module !== 'undefined') module.exports = Pitch;
   }
   const parentMajor = k => k.major ? k.pc : md(k.pc + 3);
   const flats = k => [5, 10, 3, 8, 1].includes(parentMajor(k));
-  const nn = (pc, k) => (k && flats(k) ? FLAT : SHARP)[md(pc)];
+  const nn = (pc, k) => window.spellPc ? spellPc(pc, k) : (k && flats(k) ? FLAT : SHARP)[md(pc)];
   const chordName = (c, k) => nn(c.r, k) + (SUF[c.t] != null ? SUF[c.t] : c.t);
   const keyLabel = k => nn(k.pc, k) + (k.major ? '-Dur' : '-Moll');
   const qual = t => /^(m|m7|m6|m9|m11)$/.test(t) ? 'm' : /^(dim|m7b5)$/.test(t) ? 'd' : /^(sus|5)/.test(t) ? '*' : 'M';
@@ -12418,7 +12440,7 @@ if (typeof module !== 'undefined') module.exports = Pitch;
     const iv = S.scale === 'penta' ? (minor ? [0, 3, 5, 7, 10] : [0, 2, 4, 7, 9]) : (minor ? [0, 2, 3, 5, 7, 8, 10] : c.t === '7' ? [0, 2, 4, 5, 7, 9, 10] : [0, 2, 4, 5, 7, 9, 11]);
     return iv.map(x => md(c.r + x));
   }
-  const nn = pc => (flats ? FLAT : SHARP)[md(pc)];
+  const nn = pc => cur.key && window.spellPc ? spellPc(pc, cur.key) : (flats ? FLAT : SHARP)[md(pc)];
   const cname = c => nn(c.r) + c.t;
   function role(c, pc) {
     const i = md(pc - c.r);
@@ -12769,7 +12791,7 @@ if (typeof module !== 'undefined') module.exports = Pitch;
   function save() { try { localStorage.setItem(SAVE, JSON.stringify({ key: st.key, seq: st.seq, pad: st.pad, padVol: st.padVol, padSound: st.padSound, drums: st.drums, trainer: st.trainer })); } catch (e) {} }
   function fromPreset(k, p) { return p.map(([o, t, b]) => ({ r: md(k.pc + o), t, beats: b || 4 })); }
   const flats = k => [5, 10, 3, 8, 1].includes(k.major ? k.pc : md(k.pc + 3));
-  const nn = (pc, k) => (flats(k) ? FLAT : SHARP)[md(pc)];
+  const nn = (pc, k) => window.spellPc ? spellPc(pc, k) : (flats(k) ? FLAT : SHARP)[md(pc)];
   const cname = (c, k) => nn(c.r, k) + (SUF[c.t] != null ? SUF[c.t] : c.t);
   const qual = t => /^(m|m7|m6|m9|m11)$/.test(t) ? 'm' : /^(dim|m7b5)$/.test(t) ? 'd' : /^(sus|5)/.test(t) ? '*' : 'M';
   function roman(c, k) {
@@ -13245,7 +13267,7 @@ if (typeof module !== 'undefined') module.exports = Licks;
   ];
   const IVLONG = ['Grundton', 'kleine Sekunde', 'große Sekunde', 'kleine Terz', 'große Terz', 'Quarte', 'Tritonus', 'Quinte', 'kleine Sexte', 'große Sexte', 'kleine Septime', 'große Septime', 'Oktave'];
   const flatsFor = (pc, major) => [5, 10, 3, 8, 1].includes(major ? pc : md(pc + 3));
-  const nn = (pc, k) => (k && flatsFor(k.pc, k.major) ? FLAT : SHARP)[md(pc)];
+  const nn = (pc, k) => window.spellPc && k ? spellPc(pc, k) : (k && flatsFor(k.pc, k.major) ? FLAT : SHARP)[md(pc)];
   const keyLabel = k => nn(k.pc, k) + (k.major ? '-Dur' : '-Moll');
   const play = (r, iv) => { if (window.Quinten) Quinten.play(r, iv); };
   const note = m => { if (window.Quinten) Quinten.playNote(m); };
