@@ -83,6 +83,11 @@ Everything you record or write is stored only on this device (back it up, see se
   play and tap the big button on every word. Fix words by tapping them (replace, split, join,
   ◀ ▶ by a 16th) or drag them in the lane. “↻” re-taps a single line. Times are stored in bars and
   beats, so they stay in sync. Lyrics of other artists: for your own practice only.
+- Sing along tab: the lyrics big, every word fills while it is sung, the translation below and the next
+  line in small print. Beat dots and a “3 – 2 – 1 – ♪” count-in before each entry after a pause.
+  “↻ Practise line” loops the current line with a one-bar run-up, also at 75 % or 50 % without changing
+  the pitch. “🎤 Check timing” detects your vocal entries and marks every word green (on time, ±70 ms),
+  blue (early) or orange (late). Translation: one line per lyric line, typed in or made with Claude.
 
 7. CAGED
 --------

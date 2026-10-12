@@ -108,6 +108,7 @@
     appearance: none; border: 0; background: transparent; color: var(--muted); cursor: pointer; min-width: 0;
     font: 600 0.82rem var(--f-body); padding: 8px 4px; border-radius: 6px;
   }
+  @media (max-width: 900px) { .tabs .tab { font-size: .7rem !important; letter-spacing: .02em !important; padding-inline: 2px !important; } :root[data-theme="amp"] .tabs .tab { font-size: .54rem !important; letter-spacing: 0 !important; } }
   .tab[aria-selected="true"] { background: linear-gradient(180deg, #4a4a50, #3c3c41); color: var(--ink); box-shadow: 0 1px 0 rgba(255,255,255,.08) inset; }
   .tab:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--t2); outline-offset: 2px; }
 
@@ -1210,6 +1211,28 @@ html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleis
   .sg-line-read .sg-cur .on { color: var(--ink); text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 4px; text-decoration-thickness: 3px; }
   .sg-line-read .sg-cur .past { color: color-mix(in srgb, var(--ink) 75%, transparent); }
   .sg-line-read .sg-next { font: 0.85rem var(--f-body); color: var(--muted); opacity: .75; }
+  /* ---- Reiter Mitsingen (v63) ---- */
+  .sb-card { min-height: 260px; }
+  .sb-top { display: flex; align-items: center; justify-content: space-between; min-height: 56px; }
+  .sb-dots { display: flex; gap: 10px; }
+  .sb-dots i { width: 14px; height: 14px; border-radius: 50%; background: var(--line); transition: transform .06s; }
+  .sb-dots i.on { background: var(--accent); transform: scale(1.25); }
+  .sb-dots i.one { box-shadow: 0 0 10px var(--accent); }
+  .sb-count { font: 800 2.6rem var(--f-display, var(--f-body)); color: var(--accent); min-width: 2ch; text-align: right; }
+  .sb-count.go { color: var(--ink); }
+  .sb-stage { text-align: center; padding: 6px 4px 10px; }
+  .sb-line { font: 700 clamp(1.5rem, 4.2vw, 2.6rem) var(--f-body); line-height: 1.5; margin: 8px 0 2px; color: color-mix(in srgb, var(--ink) 55%, transparent); }
+  .sb-w { position: relative; display: inline-block; padding-bottom: 6px; color: color-mix(in srgb, var(--ink) 55%, transparent); }
+  .sb-w.done, .sb-w.on { color: var(--ink); }
+  .sb-fill { position: absolute; left: 0; right: 0; bottom: 0; height: 5px; border-radius: 3px; background: var(--accent); transform-origin: left center; transform: scaleX(0); will-change: transform; }
+  .sb-d { position: absolute; left: 50%; transform: translateX(-50%); bottom: -14px; font: 600 0.7rem var(--f-mono); padding: 0 4px; border-radius: 5px; white-space: nowrap; }
+  .sb-d.ok { color: #0d3; } .sb-d.early { color: #4af; } .sb-d.late { color: #f93; }
+  .sb-tr { font: italic 1rem var(--f-body); color: var(--muted); margin: 14px 0 4px; min-height: 1.2em; }
+  .sb-next { font: 600 1.05rem var(--f-body); color: var(--muted); opacity: .7; margin: 6px 0 0; min-height: 1.2em; }
+  .sb-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 6px 0; }
+  .sb-score { font: 600 0.95rem var(--f-body); color: var(--ink); min-height: 1.3em; margin: 6px 0 0; }
+  .sb-tredit summary { cursor: pointer; color: var(--muted); font: 600 0.85rem var(--f-body); }
+  .sb-tredit textarea { width: 100%; box-sizing: border-box; margin: 6px 0; font: 0.9rem var(--f-body); color: var(--ink); background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px; }
   /* ===== Rost & Stahl: Hintergrund aus gerostetem Blech, darauf verschraubte Stahlplatten ===== */
   :root {
     --plate-hi: #3a3a40;
@@ -2768,6 +2791,26 @@ Object.assign(window.__EN, {
   'Erst abspielen – dann bei jeder Silbe tippen.': 'Start playback first – then tap on every syllable.', 'Alle Wörter haben eine Zeit. „Zeile neu“ wählt eine Zeile zum neu Einklopfen.': 'All words are timed. “↻” next to a line lets you tap it again.',
   'Nächstes Wort: „': 'Next word: “', 'Fertig – alle Wörter haben eine Zeit.': 'Done – all words are timed.', ' neu: abspielen und tippen.': ' again: play and tap.', 'Zeile ': 'Line ', 'Wort': 'Word',
 });
+Object.assign(window.__EN, {
+  // Reiter Mitsingen (v63)
+  'Mit': 'Sing ', 'singen': 'along', 'Mitsingen': 'Sing along', 'Üben': 'Practice', 'Zeile für Zeile, auch langsam': 'Line by line, slow if you like',
+  'Spiel einen Song aus dem Songwriting oder einen Loop aus einer geladenen Datei ab, dessen Gesangstext ein Timing hat (Improvisation → „🎤 Gesangstext“).': 'Play a song from Songwriting or a loop from a loaded file whose lyrics have timing (Improvisation → “🎤 Lyrics”).',
+  '↻ Zeile üben': '↻ Practise line', '■ Üben beenden': '■ Stop practising', 'Vorherige Zeile': 'Previous line', 'Nächste Zeile': 'Next line', '◀ Zeile': '◀ Line', 'Zeile ▶': 'Line ▶',
+  '„Zeile üben“ spielt die aktuelle Zeile mit einem Takt Anlauf in Schleife – langsamer ohne dass sich die Tonhöhe ändert. Der Looper bleibt dabei unverändert.': '“Practise line” loops the current line with a one-bar run-up – slower without changing the pitch. The looper stays untouched.',
+  '🎤 Timing prüfen': '🎤 Check timing', 'Mit Kopfhörern singen – sonst hört das Mikrofon die Musik mit.': 'Sing with headphones – otherwise the microphone hears the music too.',
+  'Übersetzung': 'Translation', 'anzeigen': 'show', 'Übersetzung bearbeiten': 'Edit translation', 'Eine Zeile Übersetzung pro Liedzeile': 'One line of translation per lyric line',
+  'Auftrag für Claude kopieren': 'Copy request for Claude', 'Selbst eintragen oder den Auftrag kopieren, in einen Chat mit Claude einfügen und die Antwort hier einsetzen – Zeile für Zeile.': 'Type it yourself, or copy the request, paste it into a chat with Claude and put the answer here – line by line.',
+  'Übung': 'Practice', 'Zeile üben geht mit geladenen Songdateien. Für Songs aus dem Songwriting: dort das Tempo senken.': 'Practise line works with loaded song files. For songs from Songwriting: lower the tempo there.',
+  'Diese Zeile hat noch kein Timing.': 'This line has no timing yet.', 'Ausschnitt nicht verfügbar.': 'Section not available.', 'Bereite die Zeile vor …': 'Preparing the line …',
+  'mit einem Takt Anlauf, in Schleife.': 'with a one-bar run-up, looped.', 'Eingang wird geöffnet …': 'Opening input …',
+  'Sing mit – jedes Wort bekommt grün (genau), blau (zu früh) oder orange (zu spät).': 'Sing along – every word turns green (on time), blue (early) or orange (late).',
+  ' genau': ' on time', ' (eher zu früh)': ' (rather early)', ' (eher zu spät)': ' (rather late)', 'Übersetzung gespeichert.': 'Translation saved.',
+  'Erst Text und Timing anlegen (Improvisation → „🎤 Gesangstext“).': 'Add lyrics and timing first (Improvisation → “🎤 Lyrics”).',
+  'Kopiert – in einen Chat mit Claude einfügen, Antwort oben einsetzen und speichern.': 'Copied – paste it into a chat with Claude, put the answer above and save.',
+  'Kopieren ging nicht – der Auftrag steht im Feld, bitte von dort kopieren.': 'Copying failed – the request is in the field, please copy it from there.',
+  'Diese Zeile liegt außerhalb des geloopten Ausschnitts – „Zeile üben“ spielt sie trotzdem.': 'This line is outside the looped section – “Practise line” still plays it.', 'Tempo': 'Tempo',
+});
+window.__EN['Impro'] = 'Impro'; window.__EN['visation'] = 'visation';
 
 // Sprache (v59): Deutsch ist der Quelltext. Nur im EN-Modus läuft hier etwas:
 // Ein Beobachter übersetzt neue/geänderte Texte im DOM (Text, title, placeholder, aria-label)
@@ -2873,7 +2916,7 @@ Object.assign(window.__EN, {
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v62</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v63</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -2944,11 +2987,12 @@ Object.assign(window.__EN, {
 
   <nav class="tabs" role="tablist" aria-label="Bereiche">
     <button class="tab" role="tab" id="tab-looper" data-tab="looper" aria-selected="true">Looper</button>
-    <button class="tab" role="tab" id="tab-solo" data-tab="solo" aria-selected="false">Improvisation</button>
+    <button class="tab" role="tab" id="tab-solo" data-tab="solo" aria-selected="false">Impro<wbr>visation</button>
     <button class="tab" role="tab" id="tab-caged" data-tab="caged" aria-selected="false">CAGED</button>
     <button class="tab" role="tab" id="tab-quinten" data-tab="quinten" aria-selected="false">Quinten<wbr>zirkel</button>
     <button class="tab" role="tab" id="tab-jam" data-tab="jam" aria-selected="false">Backing<wbr> Track</button>
     <button class="tab" role="tab" id="tab-lied" data-tab="lied" aria-selected="false">Song<wbr>writing</button>
+    <button class="tab" role="tab" id="tab-singen" data-tab="singen" aria-selected="false">Mit<wbr>singen</button>
     <button class="tab" role="tab" id="tab-ueben" data-tab="ueben" aria-selected="false">Training</button>
     <button class="tab" role="tab" id="tab-griffbrett" data-tab="griffbrett" aria-selected="false">Technik</button>
   </nav>
@@ -3796,6 +3840,45 @@ Object.assign(window.__EN, {
       <textarea class="ld-area" id="ldPaste" rows="4" placeholder="Claudes Antwort hier einfügen (ganz oder nur den Song-Code) …" autocapitalize="off" spellcheck="false"></textarea>
       <div class="ld-impb"><button class="toggle-btn" id="ldClip">Aus Zwischenablage einfügen</button><button class="toggle-btn active" id="ldRead">Einlesen</button></div>
       <div class="ld-imr" id="ldImRes"></div>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-singen" role="tabpanel" aria-labelledby="tab-singen" hidden>
+    <div class="card sb-card">
+      <div class="card-head"><h2>Mitsingen</h2><span class="caption" id="sbSrc">–</span></div>
+      <div class="sb-top">
+        <div class="sb-dots" id="sbDots" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        <div class="sb-count" id="sbCount" aria-live="off"></div>
+      </div>
+      <div class="sb-stage" id="sbStage" translate="no">
+        <p class="sb-line" id="sbLine"></p>
+        <p class="sb-tr" id="sbTr"></p>
+        <p class="sb-next" id="sbNext"></p>
+      </div>
+      <p class="sb-empty caption" id="sbEmpty">Spiel einen Song aus dem Songwriting oder einen Loop aus einer geladenen Datei ab, dessen Gesangstext ein Timing hat (Improvisation → „🎤 Gesangstext“).</p>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Üben</h2><span class="caption">Zeile für Zeile, auch langsam</span></div>
+      <div class="sb-tools">
+        <button class="toggle-btn" id="sbLoop">↻ Zeile üben</button>
+        <div class="seg" id="sbSpeed" role="group" aria-label="Tempo"><button class="toggle-btn active" data-s="1">100 %</button><button class="toggle-btn" data-s="0.75">75 %</button><button class="toggle-btn" data-s="0.5">50 %</button></div>
+        <button class="toggle-btn" id="sbPrev" aria-label="Vorherige Zeile">◀ Zeile</button>
+        <button class="toggle-btn" id="sbNextL" aria-label="Nächste Zeile">Zeile ▶</button>
+      </div>
+      <p class="caption" id="sbLoopInfo">„Zeile üben“ spielt die aktuelle Zeile mit einem Takt Anlauf in Schleife – langsamer ohne dass sich die Tonhöhe ändert. Der Looper bleibt dabei unverändert.</p>
+      <div class="sb-tools">
+        <button class="toggle-btn" id="sbMic">🎤 Timing prüfen</button>
+        <span class="caption" id="sbMicInfo">Mit Kopfhörern singen – sonst hört das Mikrofon die Musik mit.</span>
+      </div>
+      <p class="sb-score" id="sbScore"></p>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Übersetzung</h2><label class="check"><input type="checkbox" id="sbTrOn" checked> anzeigen</label></div>
+      <details class="sb-tredit"><summary>Übersetzung bearbeiten</summary>
+        <textarea id="sbTrText" rows="6" placeholder="Eine Zeile Übersetzung pro Liedzeile"></textarea>
+        <div class="sb-tools"><button class="toggle-btn" id="sbTrSave">Speichern</button><button class="toggle-btn" id="sbTrClaude">Auftrag für Claude kopieren</button></div>
+        <p class="caption" id="sbTrInfo">Selbst eintragen oder den Auftrag kopieren, in einen Chat mit Claude einfügen und die Antwort hier einsetzen – Zeile für Zeile.</p>
+      </details>
     </div>
   </section>
 
@@ -11298,6 +11381,15 @@ const Looper = (() => {
       return { key: (o.name || 'Datei') + '|' + Math.round(len / sr * 10), name: o.name || 'Datei', origPos: t.origPos, beats: o.beats, downs: o.downs || [], sr, L: t.L,
         pos: t.src && audioCtx ? mod(playFrame() - anchor, t.L) : null };
     },
+    // Mitsingen-Übungsplayer (v63): Ausschnitt der Originaldatei (Bilder f0…f1) und Zeitdehnung ohne Tonhöhe – nur lesen/rechnen
+    singAudio: (i, f0, f1) => {
+      const t = tracks[i]; if (!t || !t.orig || !t.orig.data) return null;
+      const d = t.orig.data, l = d.l || d, r = d.r || l, n = l.length, a = Math.max(0, Math.floor(f0)), e = Math.min(n, Math.ceil(f1));
+      if (e - a < sr * 0.2) return null;
+      const L = l.slice(a, e); return { l: L, r: r === l ? L : r.slice(a, e), length: e - a, sr };
+    },
+    stretchAudio: (x, n) => stretch(x, n),
+    latencyMs: () => parseFloat(latEl.value) || 0,
     // Eingang für „Mithören“: öffnet ihn bei Bedarf (gleicher Zugriff wie der Looper), liefert einen Analyser
     openInput: () => ensureMic(),
     inputAnalyser: () => {
@@ -13553,7 +13645,7 @@ const Sing = (() => {
       let tok = rec ? rec.tok : [];
       if (!rec || rec.txt !== n.text) { tok = merge(rec ? rec.tok : [], fresh); db.l[id] = { tok, txt: n.text }; save(); }
       return { kind: 'lied', id, rec: db.l[id], title: n.part.name + (n.pass ? ' · ' + (n.pass + 1) + '. Mal' : ''), tok, editable: false,
-        toCi: b => b * 1000, fromCi: f => f / 1000, nowB: n.beat, label: b => (Math.floor(b / 4) + 1) + '.' + (Math.floor(b % 4) + 1), maxB: n.beats };
+        toCi: b => b * 1000, fromCi: f => f / 1000, nowB: n.beat, label: b => (Math.floor(b / 4) + 1) + '.' + (Math.floor(b % 4) + 1), maxB: n.beats, beatMs: () => 60000 / (n.bpm || 100) };
     }
     if (ci.track >= 0 && typeof Looper !== 'undefined' && Looper.singSrc) {
       const s = Looper.singSrc(ci.track); if (!s) return { kind: 'none', why: 'stretch' };
@@ -13562,7 +13654,8 @@ const Sing = (() => {
       const fromCi = f => f2b(f + s.origPos, s.beats);
       const label = b => { const f = b2f(b, s.beats), D = s.downs; let i = 0; while (i + 1 < D.length && D[i + 1] <= f + 2) i++; const bb = f2b(D[i] || 0, s.beats); return (i + 1) + '.' + (Math.floor(b - bb + 1e-6) + 1); };
       return { kind: 'file', id: s.key, rec, name: s.name, title: 'Datei „' + s.name + '“', tok: rec ? rec.tok : [], editable: true, toCi, fromCi,
-        nowB: s.pos != null ? fromCi(s.pos) : null, label, L: s.L };
+        nowB: s.pos != null ? fromCi(s.pos) : null, label, L: s.L, track: ci.track, beats: s.beats, sr: s.sr, origPos: s.origPos,
+        beatMs: b => (b2f(b + 1, s.beats) - b2f(b, s.beats)) / s.sr * 1000 };
     }
     return null;
   }
@@ -13725,9 +13818,212 @@ const Sing = (() => {
     bindLane(); bindEditor();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
-  return { tick, tap, tokenize, merge, f2b, b2f, source: ci => source(ci), data: () => db, _reload: () => { db = load(); changed(); }, ui: () => ui };
+  // Übersetzung je Zeile (v63)
+  function setTr(src, arr) { const rec = src.kind === 'lied' ? db.l[src.id] : db.f[src.id]; if (!rec) return false; rec.tr = arr; changed(); return true; }
+  function getTr(src) { const rec = src && (src.kind === 'lied' ? db.l[src.id] : db.f[src.id]); return rec && rec.tr || []; }
+  return { tick, tap, tokenize, merge, f2b, b2f, endOf, lines, setTr, getTr, ver: () => ver, source: ci => source(ci), data: () => db, _reload: () => { db = load(); changed(); }, ui: () => ui };
 })();
 window.Sing = Sing;
+
+// ---- Reiter „Mitsingen“ (v63): großer Text mit Wortfüllung, Einzähler, Schlagpunkte, Zeile üben (auch langsam),
+// Timing-Rückmeldung über das Mikrofon, Übersetzung je Zeile. Daten und Quellen kommen aus sing.js.
+const Singen = (() => {
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const timed = src => src && src.tok && src.tok.some(t => t.b != null);
+  let ciCache = null, ciAt = 0, wordEls = [], srcTxt = '', lastBeat = -2;
+  let raf = 0, lastSrc = null, speed = 1, player = null, mic = null, lineSig = '', prevB = null, res = {}, scored = {};
+
+  // ---- Quelle: laufender Übungsplayer, sonst was gerade spielt, sonst die zuletzt gespielte ----
+  function getSrc() {
+    if (player) return Object.assign({}, player.src, { nowB: player.nowB() });
+    const now = performance.now();
+    if (!ciCache || now - ciAt > 250) { ciCache = window.SoloInfo ? SoloInfo() : null; ciAt = now; }
+    const ci = ciCache;
+    const s = window.Sing ? Sing.source(ci) : null;
+    if (s && s.kind !== 'none' && timed(s)) { lastSrc = s; return s; }
+    return lastSrc ? Object.assign({}, lastSrc, { nowB: null }) : null;
+  }
+  const lineOf = (src, l) => src.tok.map((t, i) => Object.assign({ i }, t)).filter(t => t.l === l);
+  function focus(src) {
+    const tok = src.tok, nb = src.nowB; let cur = -1, i = -1;
+    if (nb != null) tok.forEach((t, j) => { if (t.b != null && nb >= t.b - 0.02 && nb < Sing.endOf(tok, j)) cur = j; });
+    i = cur >= 0 ? cur : nb != null ? tok.findIndex(t => t.b != null && t.b > nb) : -1;
+    if (i < 0) { const last = tok.map((t, j) => t.b != null ? j : -1).filter(j => j >= 0); i = nb != null && last.length && nb > tok[last[last.length - 1]].b ? last[last.length - 1] : tok.findIndex(t => t.b != null); }
+    return { cur, line: i >= 0 ? tok[i].l : -1, idx: i };
+  }
+
+  // ---- Anzeige (jedes Bild, solange der Reiter offen ist) ----
+  function frame() {
+    raf = requestAnimationFrame(frame);
+    const src = getSrc(), has = timed(src);
+    if ($('sbEmpty').hidden !== !!has) { $('sbEmpty').hidden = !!has; $('sbStage').hidden = !has; }
+    if (!has) { if (srcTxt !== '–') { srcTxt = '–'; $('sbSrc').textContent = '–'; } $('sbCount').textContent = ''; lineSig = ''; return; }
+    const st = src.title + (player ? ' · ' + T('Übung') + ' ' + Math.round(speed * 100) + ' %' : ''); if (st !== srcTxt) { srcTxt = st; $('sbSrc').textContent = st; }
+    const nb = src.nowB, f = focus(src);
+    if (player && (f.cur < 0 || src.tok[f.cur].l !== player.line)) { f.cur = -1; f.line = player.line; }   // beim Üben nur die geübte Zeile
+    // neuer Durchlauf (zurückgesprungen) → Mikrofon-Ergebnisse dieser Stelle zurücksetzen
+    if (nb != null && prevB != null && nb < prevB - 0.75) { res = {}; scored = {}; lineSig = ''; }
+    prevB = nb;
+    // Schlagpunkte
+    const dots = $('sbDots').children;
+    let beatIn = -1; if (nb != null) { const lb = String(src.label(nb)).split('.'); beatIn = (+lb[1] || 1) - 1; }
+    if (beatIn !== lastBeat) { lastBeat = beatIn; for (let k = 0; k < dots.length; k++) dots[k].className = k === beatIn ? (k === 0 ? 'on one' : 'on') : ''; }
+    // Einzähler vor einem Einsatz nach einer Pause
+    let cnt = '';
+    if (nb != null && f.cur < 0) {
+      const nx = src.tok.findIndex(t => t.b != null && t.b > nb);
+      if (nx >= 0) {
+        const pv = nx - 1, gapStart = pv >= 0 && src.tok[pv].b != null ? Sing.endOf(src.tok, pv) : -1e9, d = src.tok[nx].b - nb;
+        if (src.tok[nx].b - gapStart >= 1 && d <= 3.999) cnt = d < 0.35 ? '♪' : String(Math.ceil(d - 0.35));
+      }
+    }
+    const ce = $('sbCount'); if (ce.textContent !== cnt) { ce.textContent = cnt; ce.classList.toggle('go', cnt === '♪'); }
+    // Zeile
+    const tr = Sing.getTr(src), sig = src.id + '|' + f.line + '|' + Sing.ver() + '|' + ($('sbTrOn').checked ? 1 : 0) + '|' + JSON.stringify(res).length;
+    if (sig !== lineSig) {
+      lineSig = sig;
+      $('sbLine').innerHTML = lineOf(src, f.line).map(t => '<span class="sb-w" data-i="' + t.i + '">' + esc(t.w) + '<i class="sb-fill"></i>' + mark(t.i) + '</span>').join(' ');
+      wordEls = [...$('sbLine').querySelectorAll('.sb-w')].map(el => ({ el, bar: el.querySelector('.sb-fill'), i: +el.dataset.i, p: -1, on: false, done: false }));
+      $('sbTr').textContent = $('sbTrOn').checked && tr[f.line] ? tr[f.line] : '';
+      $('sbNext').textContent = lineOf(src, f.line + 1).map(t => t.w).join(' ');
+    }
+    // Füllung: vergangene Wörter voll, aktuelles anteilig
+    wordEls.forEach(w => {
+      const t = src.tok[w.i]; if (!t) return; let p = 0;
+      if (t.b != null && nb != null) { const e = Sing.endOf(src.tok, w.i); p = nb <= t.b ? 0 : nb >= e ? 1 : (nb - t.b) / (e - t.b); }
+      p = Math.round(p * 200) / 200; if (p !== w.p) { w.p = p; w.bar.style.transform = 'scaleX(' + p + ')'; const d = p >= 1; if (d !== w.done) { w.done = d; w.el.classList.toggle('done', d); } }
+      const on = w.i === f.cur; if (on !== w.on) { w.on = on; w.el.classList.toggle('on', on); }
+    });
+    if (mic) micFrame(src, nb, f);
+  }
+  function mark(i) {
+    const d = res[i]; if (d == null) return '';
+    const cls = Math.abs(d) <= 70 ? 'ok' : d < 0 ? 'early' : 'late';
+    return '<small class="sb-d ' + cls + '">' + (d > 0 ? '+' : '') + Math.round(d) + '</small>';
+  }
+
+  // ---- Zeile üben: eigener Player (Ausschnitt der Originaldatei, gedehnt ohne Tonhöhenänderung) ----
+  function stopPlayer() {
+    if (!player) return;
+    try { player.node.stop(); player.node.disconnect(); player.g.disconnect(); } catch (e) {}
+    player = null; ciCache = null; $('sbLoop').classList.remove('active'); $('sbLoop').textContent = T('↻ Zeile üben'); lineSig = '';
+  }
+  async function startPlayer(line) {
+    const src = getSrc();
+    if (!src || src.kind !== 'file') { info(T('Zeile üben geht mit geladenen Songdateien. Für Songs aus dem Songwriting: dort das Tempo senken.')); return; }
+    const words = lineOf(src, line).filter(t => t.b != null); if (!words.length) { info(T('Diese Zeile hat noch kein Timing.')); return; }
+    const b0 = words[0].b - 4, b1 = Sing.endOf(src.tok, words[words.length - 1].i) + 1;
+    const f0 = Sing.b2f(b0, src.beats), f1 = Sing.b2f(b1, src.beats);
+    const x = Looper.singAudio(src.track, f0, f1); if (!x) { info(T('Ausschnitt nicht verfügbar.')); return; }
+    stopPlayer();
+    if (typeof Looper !== 'undefined' && Looper.stopAll) Looper.stopAll();
+    info(T('Bereite die Zeile vor …'));
+    await new Promise(r => setTimeout(r, 30));
+    const y = speed === 1 ? x : Looper.stretchAudio(x, Math.round(x.length / speed));
+    if (typeof ensureAudio === 'function') ensureAudio();
+    const ctx = audioCtx, buf = ctx.createBuffer(2, y.length, x.sr);
+    buf.copyToChannel(y.l, 0); buf.copyToChannel(y.r || y.l, 1);
+    const node = ctx.createBufferSource(), g = ctx.createGain(); node.buffer = buf; node.loop = true; g.gain.value = 1;
+    node.connect(g); g.connect(typeof ensureMasterBus === 'function' ? ensureMasterBus() : ctx.destination);
+    const t0 = ctx.currentTime + 0.06, sr = x.sr, len = y.length, sp = speed, beats = src.beats;
+    node.start(t0);
+    player = { node, g, line, src: Object.assign({}, src),
+      nowB: () => { const el = ctx.currentTime - t0 - (ctx.outputLatency || 0); if (el < 0) return b0; const pf = ((el * sr) % len); return Sing.f2b(f0 + pf * sp, beats); } };
+    $('sbLoop').classList.add('active'); $('sbLoop').textContent = T('■ Üben beenden');
+    info(T('Zeile ') + (line + 1) + ' · ' + Math.round(sp * 100) + ' % – ' + T('mit einem Takt Anlauf, in Schleife.'));
+    res = {}; scored = {}; lineSig = '';
+  }
+  function info(m) { $('sbLoopInfo').textContent = m; }
+
+  // ---- Timing prüfen: Gesangseinsätze über das Mikrofon erkennen und mit den Wortzeiten vergleichen ----
+  async function startMic() {
+    if (typeof Looper === 'undefined' || !Looper.openInput) return;
+    $('sbMicInfo').textContent = T('Eingang wird geöffnet …');
+    const ok = await Looper.openInput(); const an = ok && Looper.inputAnalyser();
+    if (!an) { $('sbMicInfo').textContent = T('Kein Zugriff auf den Eingang.'); return; }
+    mic = { an, buf: new Float32Array(an.fftSize), nf: 0.004, above: false, belowSince: 0 };
+    $('sbMic').classList.add('active'); $('sbMicInfo').textContent = T('Sing mit – jedes Wort bekommt grün (genau), blau (zu früh) oder orange (zu spät).');
+    res = {}; scored = {}; lineSig = '';
+  }
+  function stopMic() {
+    if (!mic) return; mic = null;
+    try { Looper.releaseAnalyser(); } catch (e) {}
+    $('sbMic').classList.remove('active'); $('sbMicInfo').textContent = T('Mit Kopfhörern singen – sonst hört das Mikrofon die Musik mit.');
+  }
+  function micFrame(src, nb, f) {
+    if (nb == null) return;
+    const m = mic, an = m.an; an.getFloatTimeDomainData(m.buf);
+    const N = 512, B = m.buf; let s = 0; for (let k = B.length - N; k < B.length; k++) s += B[k] * B[k];
+    const rms = Math.sqrt(s / N), now = performance.now();
+    if (!m.above) m.nf = m.nf * 0.98 + Math.min(rms, 0.05) * 0.02;
+    const thr = Math.max(0.012, m.nf * 4);
+    if (!m.above && rms > thr && now - m.belowSince > 90) {
+      m.above = true;
+      const ctx = audioCtx, outMs = ((ctx && (ctx.outputLatency || ctx.baseLatency)) || 0) * 1000;
+      const inMs = Math.max(0, (Looper.latencyMs ? Looper.latencyMs() : 0) - outMs), winMs = N / 2 / (ctx ? ctx.sampleRate : 48000) * 1000;
+      const bm = src.beatMs(nb), ob = nb - (inMs + winMs) / bm;
+      let best = -1, bd = 1e9;
+      src.tok.forEach((t, i) => { if (t.b == null || scored[i]) return; const d = Math.abs(ob - t.b); if (d < 0.6 && d < bd) { bd = d; best = i; } });
+      if (best >= 0) { scored[best] = 1; res[best] = (ob - src.tok[best].b) * bm; score(src, src.tok[best].l); }
+    } else if (m.above && rms < thr * 0.5) { m.above = false; m.belowSince = now; }
+  }
+  function score(src, l) {
+    const ws = lineOf(src, l).filter(t => t.b != null), got = ws.filter(t => res[t.i] != null);
+    if (!got.length) return;
+    const ok = got.filter(t => Math.abs(res[t.i]) <= 70).length, avg = got.reduce((a, t) => a + res[t.i], 0) / got.length;
+    $('sbScore').textContent = T('Zeile ') + (l + 1) + ': ' + ok + T(' von ') + ws.length + T(' genau') + ' · Ø ' + (avg > 0 ? '+' : '') + Math.round(avg) + ' ms'
+      + (Math.abs(avg) <= 40 ? '' : avg < 0 ? T(' (eher zu früh)') : T(' (eher zu spät)'));
+  }
+
+  // ---- Übersetzung ----
+  function trLines(src) { const n = Math.max(0, ...src.tok.map(t => t.l)) + 1, tr = Sing.getTr(src); return Array.from({ length: n }, (_, i) => tr[i] || ''); }
+
+  function init() {
+    if (!$('panel-singen')) return;
+    const vis = () => !$('panel-singen').hidden;
+    const run = () => { if (vis()) { if (!raf) raf = requestAnimationFrame(frame); } else { cancelAnimationFrame(raf); raf = 0; stopPlayer(); stopMic(); } };
+    document.addEventListener('tabchange', () => setTimeout(run, 0));
+    new MutationObserver(run).observe($('panel-singen'), { attributes: true, attributeFilter: ['hidden'] });
+    $('sbLoop').addEventListener('click', () => { if (player) { stopPlayer(); return; } const src = getSrc(); if (src) startPlayer(focus(src).line); });
+    $('sbSpeed').addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b) return; speed = +b.dataset.s;
+      $('sbSpeed').querySelectorAll('button').forEach(x => x.classList.toggle('active', x === b));
+      if (player) startPlayer(player.line);
+    });
+    const step = d => {
+      const src = getSrc(); if (!src) return;
+      const maxL = Math.max(0, ...src.tok.map(t => t.l)), l = Math.max(0, Math.min(maxL, (player ? player.line : focus(src).line) + d));
+      if (player) { startPlayer(l); return; }
+      if (src.kind === 'file' && typeof Looper !== 'undefined') {
+        const w = lineOf(src, l).find(t => t.b != null); if (!w) return;
+        const f = Sing.b2f(w.b - 4, src.beats) - src.origPos;
+        if (f >= 0 && f < src.L) Looper.seek(src.track, f); else info(T('Diese Zeile liegt außerhalb des geloopten Ausschnitts – „Zeile üben“ spielt sie trotzdem.'));
+      }
+    };
+    $('sbPrev').addEventListener('click', () => step(-1)); $('sbNextL').addEventListener('click', () => step(1));
+    $('sbMic').addEventListener('click', () => { if (mic) stopMic(); else startMic(); });
+    $('sbTrOn').addEventListener('change', () => { lineSig = ''; });
+    $('panel-singen').querySelector('.sb-tredit').addEventListener('toggle', e => { const src = getSrc(); if (e.target.open && src) $('sbTrText').value = trLines(src).join('\n'); });
+    $('sbTrSave').addEventListener('click', () => {
+      const src = getSrc(); if (!src) return;
+      const ok = Sing.setTr(src, $('sbTrText').value.replace(/\r/g, '').split('\n'));
+      $('sbTrInfo').textContent = ok ? T('Übersetzung gespeichert.') : T('Erst Text und Timing anlegen (Improvisation → „🎤 Gesangstext“).');
+    });
+    $('sbTrClaude').addEventListener('click', async () => {
+      const src = getSrc(); if (!src) return;
+      const n = Math.max(0, ...src.tok.map(t => t.l)) + 1, lyr = Array.from({ length: n }, (_, l) => lineOf(src, l).map(t => t.w).join(' ')).join('\n');
+      const lang = window.__lang === 'en' ? 'English' : 'Deutsche';
+      const txt = (window.__lang === 'en' ? 'Translate these song lyrics line by line into English. Reply with exactly ' + n + ' lines, no numbers, nothing else.' : 'Übersetze diesen Liedtext Zeile für Zeile ins ' + lang + '. Antworte mit genau ' + n + ' Zeilen, ohne Nummern und ohne weiteren Text.') + '\n\n' + lyr;
+      try { await navigator.clipboard.writeText(txt); $('sbTrInfo').textContent = T('Kopiert – in einen Chat mit Claude einfügen, Antwort oben einsetzen und speichern.'); }
+      catch (e) { $('sbTrText').value = txt; $('sbTrInfo').textContent = T('Kopieren ging nicht – der Auftrag steht im Feld, bitte von dort kopieren.'); }
+    });
+    run();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+  return { debug: () => ({ player: !!player, speed, mic: !!mic, res: Object.assign({}, res), line: player ? player.line : -1 }) };
+})();
+window.Singen = Singen;
 
 </script>
 <script>
@@ -16175,7 +16471,7 @@ if (typeof module !== 'undefined') module.exports = LiedExport;
       const n = now(); if (!n || !window.LiedText) return null;
       const fl = C.flat(P.v), idx = fl.findIndex(x => x.oi === n.entry.oi && x.rep === n.entry.rep);
       const p = n.entry.p, pass = fl.slice(0, Math.max(0, idx)).filter(x => x.p.id === p.id).length, ly = LiedText.lyricsOf(p, pass);
-      return { song: db.active, part: p, pass: ly.same ? 0 : pass, text: ly.text, beat: n.beat, beats: C.beatsOf(p) };
+      return { song: db.active, part: p, pass: ly.same ? 0 : pass, text: ly.text, beat: n.beat, beats: C.beatsOf(p), bpm: P.v.bpm };
     },
     log: () => P ? P.log.slice() : [], grid: () => P ? P.events.filter(e => e.inChord === 0).map(e => e.t) : [],
     db: () => db, song, ver, play, prompt: () => promptText(), readCode, imp: () => imp, stop, openCapture, render, now: () => { const n = now(); return n ? { part: n.entry.p.name, oi: n.entry.oi, chord: n.chord, beat: n.beat } : null; },
