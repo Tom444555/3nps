@@ -2796,14 +2796,14 @@ const Looper = (() => {
     const tag = tempoTxt + ' BPM ' + safe(keyLabel.replace(/ \(.*\)/, ''));
     const info = { bpm: exactBpm, beats, rootPc };
     const files = [];
-    stems.forEach((s, j) => files.push({ name: base + '/' + String(j + 1).padStart(2, '0') + ' Spur ' + (s.t.i + 1) + ' - ' + tag + '.wav', data: wav24(s.data, gain, info) }));
+    stems.forEach((s, j) => files.push({ name: base + '/' + String(j + 1).padStart(2, '0') + T(' Spur ') + (s.t.i + 1) + ' - ' + tag + '.wav', data: wav24(s.data, gain, info) }));
     files.push({ name: base + '/00 Mix - ' + tag + '.wav', data: wav24(mix, gain, info) });
     const dStyle = Rhythm.on() ? true : null, dName = Rhythm.name();
     // Akkorde der ersten Spur mit erkannten Akkorden, über die ganze Exportlänge wiederholt
     const ct = used.find(t => t.chords && t.chords.L === t.L && t.chords.segs.some(q => q.name !== '–'));
     const chordMarks = [], ticksPerFrame = exactBpm / 60 / sr * 480;
     if (ct) for (let rp = 0; rp * ct.L < total; rp++) ct.chords.segs.forEach(q => { if (q.name === '–') return; const tk = Math.round((rp * ct.L + q.a) * ticksPerFrame); const nm = window.spellChord ? spellChord(q.name, ct.key).replace(/♭/g, 'b').replace(/♯/g, '#') : q.name; if (!chordMarks.length || chordMarks[chordMarks.length - 1][1] !== nm) chordMarks.push([tk, nm]); });
-    files.push({ name: base + '/Tempo und Takt - ' + tag + '.mid', data: midiFile({ bpm: exactBpm, beats, sf, minor, keyLabel, name: base, drums: dStyle, drumsName: dName, chords: chordMarks }) });
+    files.push({ name: base + T('/Tempo und Takt - ') + tag + '.mid', data: midiFile({ bpm: exactBpm, beats, sf, minor, keyLabel, name: base, drums: dStyle, drumsName: dName, chords: chordMarks }) });
     const lies = [
       base, '',
       'Tempo: ' + tempoTxt + ' BPM · Taktart 4/4 · ' + bars + ' Takte · Tonart ' + keyLabel,
@@ -2820,8 +2820,8 @@ const Looper = (() => {
       chordMarks.length ? 'Akkorde (Spur ' + (ct.i + 1) + '): ' + chordMarks.slice(0, 64).map(c => c[1]).join(' – ') + (chordMarks.length > 64 ? ' …' : '') : null,
       chordMarks.length ? 'Sie stehen auch als Marker in der MIDI-Datei (Logic: Marker-Spur einblenden).' : null,
       '', 'Erstellt mit dem 3nps-Übungsprogramm.'
-    ].filter(x => x !== null).join('\n');
-    files.push({ name: base + '/LIES MICH.txt', data: new TextEncoder().encode(lies) });
+    ].filter(x => x !== null).map((x, i) => i === 0 ? x : T(x)).join('\n');
+    files.push({ name: base + T('/LIES MICH.txt'), data: new TextEncoder().encode(lies) });
     const zip = makeZip(files);
     const file = new File([zip], base + '.zip', { type: 'application/zip' });
     setStatus('Logic-Paket fertig: ' + stems.length + ' Spur' + (stems.length === 1 ? '' : 'en') + ', Mix und MIDI · ' + tempoTxt + ' BPM · ' + bars + ' Takte · ' + (zip.size / 1048576).toFixed(1).replace('.', ',') + ' MB.');
@@ -3242,7 +3242,7 @@ const Pedal = (() => {
     list.innerHTML = ideas.map(i => `
       <div class="idea-row" data-id="${esc(i.id)}">
         <div class="idea-main">
-          <div class="idea-name">${esc(i.name)}</div>
+          <div class="idea-name" translate="no">${esc(i.name)}</div>
           <div class="log-meta" style="text-align:left">${esc(i.root)} ${esc(i.mode)} · ${String(Math.round(i.bpm * 10) / 10).replace('.', ',')} BPM · ${i.session ? i.session.tracks.filter(Boolean).length + ' Spur' + (i.session.tracks.filter(Boolean).length === 1 ? '' : 'en') + ' · ' : ''}${i.drumState ? 'Drums: ' + esc(i.drumState.name) + ' · ' : (i.drums ? 'Drums · ' : '')}${i.droneState ? 'Drone · ' : ''}${(+i.secs || 0).toFixed(1).replace('.', ',')} s · ${esc(i.dateStr)}</div>
         </div>
         <div class="idea-actions">
@@ -3263,7 +3263,7 @@ const Pedal = (() => {
     const sess = Looper.getSession(); if (!sess) return;
     const m = { secs: Looper.sessionSecs(sess) };                 // früher: kompletter Mix nur für die Länge → Speicherspitze
     const now = new Date();
-    const name = nameEl.value.trim() || ('Idee ' + now.toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }));
+    const name = nameEl.value.trim() || (T('Idee ') + now.toLocaleString(window.__lang === 'en' ? 'en-GB' : 'de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }));
     const drumState = withDrums.checked ? Rhythm.getState() : null, droneState = withDrone.checked ? Looper.getDroneState() : null;
     try {
       await AppDB.put('ideas', {

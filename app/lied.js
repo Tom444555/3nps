@@ -96,7 +96,7 @@
     const chs = cap.chords.map(c => { const p = parseName(c.name); return p ? C.cname(Object.assign(p, { beats: c.beats }), k) : c.name; });
     $('ldCapInfo').innerHTML = '<b>' + cap.bars + ' Takte</b> · ' + Math.round(cap.bpm) + ' BPM' + (cap.key ? ' · ' + C.keyLabel(cap.key) : '') + '<br>' + (chs.length ? esc(chs.join(' – ')) : '<span class="caption">keine Akkorde erkannt – du kannst sie im Songwriting eintragen</span>');
     const sel = $('ldDSong'); sel.innerHTML = '';
-    db.songs.forEach(s => sel.add(new Option(s.name, s.id))); sel.add(new Option('+ Neuer Song …', 'new'));
+    db.songs.forEach(s => { const o = new Option(s.name, s.id); o.translate = false; sel.add(o); }); sel.add(new Option('+ Neuer Song …', 'new'));
     sel.value = db.active && db.songs.some(s => s.id === db.active) ? db.active : 'new';
     $('ldDNew').value = 'Song ' + (db.songs.length + 1);
     suggestType(); fillDlgModes(); dlg.hidden = false;
@@ -117,7 +117,7 @@
       let part;
       if (mode === 'new') {
         const cnt = v.parts.filter(p => p.type === t).length;
-        part = { id: C.newId('p'), name: C.TYPES[t] + (cnt ? ' ' + (cnt + 1) : ''), type: t, chords, audio: aid, audioBpm: cap.bpm, audioSig: C.sig(chords), audioBars: cap.bars };
+        part = { id: C.newId('p'), name: T(C.TYPES[t]) + (cnt ? ' ' + (cnt + 1) : ''), type: t, chords, audio: aid, audioBpm: cap.bpm, audioSig: C.sig(chords), audioBars: cap.bars };
         v.parts.push(part); v.order.push({ p: part.id, reps: 1 });
       } else {
         part = v.parts.find(p => p.id === mode);
@@ -247,7 +247,7 @@
   let selOrd = -1, editPart = null, varCache = null;
   function render() {
     const sel = $('ldSong'); sel.innerHTML = '';
-    db.songs.forEach(s => sel.add(new Option(s.name, s.id)));
+    db.songs.forEach(s => { const o = new Option(s.name, s.id); o.translate = false; sel.add(o); });
     if (!db.songs.length) sel.add(new Option('– noch kein Song –', ''));
     const s = song(); if (s) sel.value = s.id;
     ['ldRename', 'ldDel'].forEach(id => { $(id).disabled = !s; });
@@ -273,11 +273,11 @@
     const L = C.totals(v);
     $('ldOrderInfo').textContent = v.order.length + ' Abschnitte · ' + C.mmss(L.secs);
     $('ldOrder').innerHTML = v.order.map((o, i) => { const p = C.partById(v, o.p); if (!p) return ''; const bars = C.beatsOf(p) / 4;
-      return '<button class="ld-blk ' + TCLS(p.type) + (i === selOrd ? ' sel' : '') + '" data-i="' + i + '" style="flex-grow:' + Math.max(1, bars * o.reps) + '"><b>' + esc(p.name) + '</b><small>' + bars + ' T' + (o.reps > 1 ? ' × ' + o.reps : '') + (p.audio && !C.audioStale(p) ? ' · 🎙' : '') + '</small></button>'; }).join('')
+      return '<button class="ld-blk ' + TCLS(p.type) + (i === selOrd ? ' sel' : '') + '" data-i="' + i + '" style="flex-grow:' + Math.max(1, bars * o.reps) + '"><b translate="no">' + esc(p.name) + '</b><small>' + bars + ' T' + (o.reps > 1 ? ' × ' + o.reps : '') + (p.audio && !C.audioStale(p) ? ' · 🎙' : '') + '</small></button>'; }).join('')
       || '<div class="sf-empty">Ablauf ist leer – unten einen Teil einfügen.</div>';
     $('ldOrdEdit').hidden = selOrd < 0 || selOrd >= v.order.length;
     if (!$('ldOrdEdit').hidden) $('ldReps').textContent = v.order[selOrd].reps;
-    const a = $('ldAdd'); a.innerHTML = '<option value="">+ Teil anhängen …</option>' + v.parts.map(p => '<option value="' + p.id + '">' + esc(p.name) + '</option>').join('');
+    const a = $('ldAdd'); a.innerHTML = '<option value="">+ Teil anhängen …</option>' + v.parts.map(p => '<option translate="no" value="' + p.id + '">' + esc(p.name) + '</option>').join('');
   }
   function chordChips(p, k) { return p.chords.map(c => '<span class="ld-ch"><b>' + C.cname(c, k) + '</b><small>' + C.roman(c, k) + (c.beats !== 4 ? ' · ' + (c.beats % 4 ? c.beats + ' Schl.' : c.beats / 4 + ' T') : '') + '</small></span>').join(''); }
   function chordText(p, k) { return p.chords.map(c => (C.cname(c, k).replace(/♯/g, '#').replace(/♭/g, 'b').replace('°', 'dim').replace('m7♭5', 'm7b5')) + (c.beats !== 4 ? ':' + String(c.beats / 4).replace('.', ',') : '')).join(' '); }
@@ -452,7 +452,7 @@
     $('ldTexts').innerHTML = textSlots(v).map(sl => {
       const p = sl.p, t = (p.lyrics || [])[sl.n] || '', ls = X.lines(t, lg), rows = Math.max(3, t.split('\n').length + 1);
       const ph = sl.n === 0 ? 'Text für „' + p.name + '“ …' : 'Text beim ' + (sl.n + 1) + '. Mal …';
-      return '<div class="ld-tx ' + TCLS(p.type) + '" data-id="' + p.id + '" data-n="' + sl.n + '"><div class="ld-txh"><b>' + esc(p.name) + (sl.multi ? ' · ' + (sl.n + 1) + '. Mal' : '') + '</b>'
+      return '<div class="ld-tx ' + TCLS(p.type) + '" data-id="' + p.id + '" data-n="' + sl.n + '"><div class="ld-txh"><b><span translate="no">' + esc(p.name) + '</span>' + (sl.multi ? ' · ' + (sl.n + 1) + '. Mal' : '') + '</b>'
         + '<span class="ld-txc">' + esc(X.chordText(p.chords, v.key)) + '</span><span class="ld-txs">' + esc(statsText(ls, p)) + '</span></div>'
         + '<div class="ld-txb"><div class="ld-gut">' + gutterHtml(ls) + '</div><textarea class="ld-txt" rows="' + rows + '" wrap="off" autocapitalize="sentences" placeholder="' + esc(ph) + '" aria-label="Text ' + esc(p.name) + '">' + esc(t) + '</textarea></div></div>';
     }).join('');
@@ -533,7 +533,7 @@
       const s = song(); if (imp.title && imp.title !== s.name) s.name = imp.title.slice(0, 60);
       pushVersion(imp.v, note); status('Übernommen – neue Version V' + ver().n + '. Mit „Version“ kommst du jederzeit zurück.');
     } else {
-      const old = song(), s = newSong((imp.title || (old ? old.name + ' (Claude)' : 'Song von Claude')).slice(0, 60));
+      const old = song(), s = newSong((imp.title || (old ? old.name + ' (Claude)' : T('Song von Claude'))).slice(0, 60));
       if (old && old.voice) s.voice = C.clone(old.voice);
       s.versions[0] = Object.assign(C.clone(imp.v), { n: 1, at: Date.now(), note }); save();
       status('Als neuer Song „' + s.name + '“ angelegt.');

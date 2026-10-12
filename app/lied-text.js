@@ -194,6 +194,7 @@ const LiedText = (() => {
     });
     return rows;
   }
+  const TT = s => (typeof window !== 'undefined' && window.__tr) ? window.__tr(s) : s;
   function leadsheet(song, v) {
     const k = v.key, occ = occurrences(v), secs = [], cnt = {}, printed = {};
     occ.forEach((o, j) => {
@@ -203,7 +204,7 @@ const LiedText = (() => {
       if (prev && prev.pid === p.id && prev.txt === l.text) { prev.times++; prev.head = prev.base + ' ×' + prev.times; return; }
       const s = { pid: p.id, txt: l.text, base: tname, head: tname, times: 1, type: p.type };
       if (!l.text.trim()) s.grid = gridOf(p, k);
-      else if (printed[p.id + '|' + l.text]) { s.head = tname + ' (wie oben)'; s.base = s.head; s.same = true; s.grid = null; s.rows = []; }
+      else if (printed[p.id + '|' + l.text]) { s.head = tname + TT(' (wie oben)'); s.base = s.head; s.same = true; s.grid = null; s.rows = []; }
       else {
         printed[p.id + '|' + l.text] = true;
         s.rows = /\[[^\]]+\]/.test(l.text) ? String(l.text).split('\n').map(r => { const x = inlineChords(r.trim()); return { text: x.text, chords: x.chords }; }) : autoRows(l.text, p, k);
@@ -212,7 +213,7 @@ const LiedText = (() => {
       secs.push(s); cnt[p.id] = (cnt[p.id] || 0) + 1;
     });
     const L = C.totals(v), order = v.order.map(o => { const p = C.partById(v, o.p); return p ? p.name + (o.reps > 1 ? ' ×' + o.reps : '') : ''; }).filter(Boolean).join(' – ');
-    return { title: song.name, info: C.keyLabel(k).replace(/♯/g, '#').replace(/♭/g, 'b') + ' · ' + Math.round(v.bpm) + ' BPM · ' + C.mmss(L.secs) + ' · Version ' + v.n, theme: v.theme || '', order, sections: secs };
+    return { title: song.name, info: TT(C.keyLabel(k)).replace(/♯/g, '#').replace(/♭/g, 'b') + ' · ' + Math.round(v.bpm) + ' BPM · ' + C.mmss(L.secs) + ' · Version ' + v.n, theme: v.theme || '', order, sections: secs };
   }
 
   // ================= Song-Code (Austausch mit Claude) =================
@@ -263,8 +264,30 @@ const LiedText = (() => {
     out.push(''); out.push('Notiz:'); out.push(END);
     return out.join('\n');
   }
+  const GOALS_EN = {
+    feedback: 'Give me honest, concrete feedback on structure, chords and lyrics – what works, what is weak – and suggest improvements. Only change the song code where you are sure it gets better.',
+    text: 'Continue the lyrics: fill empty lyric slots (missing verses, chorus, bridge) to match the theme, mood and syllable count of the existing lines. Only change existing lines if necessary.',
+    reime: 'Improve rhymes and rhythm of the words: parallel lines (e.g. verse 1 and 2) should have about the same number of syllables, the rhyme scheme should be clean, stresses should fall naturally on the beats. Keep the content and images.',
+    hook: 'Make the chorus stronger: a memorable hook line (ideally with the title), clear repetition. If it helps, change the chorus chords so it clearly stands out from the verse.',
+    akkorde: 'Make the chords more interesting (e.g. borrowed chords, sevenths, sus chords, better transitions between parts), but keep the style and key. Leave the lyrics unchanged.',
+    bridge: 'Write a bridge (chords and lyrics) that brings contrast – new chords, a new perspective in the lyrics – and put it before the last chorus in the arrangement.'
+  };
   function prompt(song, v, goal, own, voice) {
     const g = GOALS[goal] || GOALS.feedback, task = goal === 'eigen' ? (own || '').trim() || GOALS.feedback.t : g.t;
+    if (typeof window !== 'undefined' && window.__lang === 'en') {
+      const tEn = goal === 'eigen' ? (own || '').trim() || GOALS_EN.feedback : (GOALS_EN[goal] || GOALS_EN.feedback);
+      return 'I am writing a song with my guitar app “Loopsmiths/3nps” and sing it myself. Please answer in English; the lyrics are in English.\n\n'
+        + 'Task: ' + tEn + '\n\n'
+        + 'Please reply with the complete song code (from “' + HEAD + '” to “' + END + '”) in a code block so I can paste it straight into the app. Explanations are welcome outside the code block.\n'
+        + 'Rules for the song code (keep the German keywords exactly as they are – the app reads them):\n'
+        + '- Chords of a part on one line; one chord = 1 bar (4/4). “Am:2” = 2 bars, “C:½” = half a bar. Names like C, Am, F#m, Bb, G7, Cmaj7, Am7, Dsus4, Bdim, Bm7b5, Cadd9.\n'
+        + '- Every part starts with “## Name [Type]”. Types: Intro, Strophe (verse), Pre-Chorus, Refrain (chorus), Bridge, Solo, Outro, Teil (other). New parts are allowed.\n'
+        + '- “Ablauf:” (arrangement) lists the parts exactly by name, separated by “|”, repeats right after each other with “x2”.\n'
+        + '- “Text 1:” is the lyric for the first time the part is played, “Text 2:” the second time and so on. For the chorus “Text 1” is usually enough. “(leer)” = no lyrics yet. You may mark chord changes with [Am] right before the syllable.\n'
+        + '- Under “Notiz:” (note) summarise in one line what you changed.\n'
+        + '- Keywords: Titel = title, Tonart = key (e.g. “A-Dur” = A major, “a-Moll” = A minor), Tempo, Thema = theme, Stimme = voice, Akkorde = chords.\n\n'
+        + toCode(song, v, { voice }) + '\n';
+    }
     return 'Ich schreibe einen Song mit meiner Gitarren-App „3nps“ und singe ihn selbst.\n\n'
       + 'Aufgabe: ' + task + '\n\n'
       + 'Bitte antworte mit dem vollständigen Song-Code (von „' + HEAD + '“ bis „' + END + '“) in einem Codeblock, damit ich ihn direkt in die App einfügen kann. Erklärungen gern außerhalb des Codeblocks.\n'

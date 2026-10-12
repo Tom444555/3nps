@@ -278,7 +278,7 @@
     if (a === 'cancel') { rec = null; }
     if (a === 'save') {
       if (rec.notes.length < 2) { $('ubRecInfo').textContent = 'Mindestens zwei Töne antippen.'; return; }
-      const name = ($('ubRecName').value || '').trim() || 'Mein Lick ' + (own.length + 1);
+      const name = ($('ubRecName').value || '').trim() || T('Mein Lick ') + (own.length + 1);
       const o = { id: 'own' + Date.now().toString(36), name: name.slice(0, 40), key: rec.key, notes: rec.notes };
       own.push(o); pset('3nps-licks', own); lickId = o.id; rec = null;
     }

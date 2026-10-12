@@ -116,7 +116,7 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') {
   window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 }
 </script>'''
-I18N = '<script>\n' + rd(A + 'i18n-en.js') + '\n' + rd(A + 'i18n.js') + '\n</script>\n'
+I18N = '<script>\n' + rd(A + 'i18n-en.js') + '\n' + rd(A + 'i18n-en2.js') + '\n' + rd(A + 'i18n.js') + '\n</script>\n'
 app = top + body.replace('<header class="control-bar">', '</head>\n<body>\n' + I18N + '<header class="control-bar">', 1) + sw + '\n</body>\n</html>\n'
 open(A + 'www/index.html', 'w', encoding='utf8').write(app)
 

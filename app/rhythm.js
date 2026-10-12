@@ -419,7 +419,7 @@ const Rhythm = (() => {
   $('drumClear').addEventListener('click', () => { pat = blank(res); saveCustom(); paint(); });
   $('drumSaveBtn').addEventListener('click', () => {
     const nameIn = $('drumSaveName'); let name = nameIn.value.trim();
-    if (!name) name = 'Mein Muster ' + (user.length + 1);
+    if (!name) name = T('Mein Muster ') + (user.length + 1);
     const key = 'u_' + Date.now().toString(36);
     user.push({ key, name, res, steps: stepsCopy(), swing: parseInt(swingEl.value) });
     storeUser(); renderUser();

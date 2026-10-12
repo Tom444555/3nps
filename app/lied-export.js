@@ -94,7 +94,7 @@ const LiedExport = (() => {
       ch.push([T(c.start), meta(0x01, enc(X.chordName(c, k))), 0]);
       notes.forEach(m => { ch.push([T(c.start), [0x90, m, 72], 2]); ch.push([T(c.start + c.beats) - 1, [0x80, m, 0], 1]); });
     });
-    tracks.push(track('Akkorde', ch));
+    tracks.push(track(TT('Akkorde'), ch));
     // Bass (Kanal 2): Grundton auf jedem Schlag, auf Schlag 3 eines langen Akkords die Quinte
     const bs = [];
     tl.chords.forEach(c => {
@@ -112,7 +112,7 @@ const LiedExport = (() => {
       const span = e.beats / lines.length;
       lines.forEach((s, i) => ly.push([T(e.start + i * span), meta(0x05, enc(s + ' ')), 3]));
     });
-    if (ly.length) tracks.push(track('Text', ly));
+    if (ly.length) tracks.push(track(TT('Text'), ly));
     const hdr = [...enc('MThd'), 0, 0, 0, 6, 0, 1, 0, tracks.length, (PPQ >> 8) & 255, PPQ & 255];
     return new Uint8Array([...hdr, ...tracks.flat()]);
   }
@@ -162,9 +162,10 @@ const LiedExport = (() => {
 
   // ================= Paket =================
   const safe = s => String(s || '').replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim();
+  const TT = s => (typeof window !== 'undefined' && window.__tr) ? window.__tr(s) : s;
   function lyricsText(song, v) {
-    const tl = timeline(v), out = [song.name, C.keyLabel(v.key) + ' · ' + Math.round(v.bpm) + ' BPM', ''];
-    if (v.theme) out.push('Thema: ' + v.theme, '');
+    const tl = timeline(v), out = [song.name, TT(C.keyLabel(v.key)) + ' · ' + Math.round(v.bpm) + ' BPM', ''];
+    if (v.theme) out.push(TT('Thema: ') + v.theme, '');
     let last = null;
     tl.entries.forEach(e => {
       const t = X.lyricsOf(e.p, e.n), txt = String(t.text || '').split('\n').map(s => X.stripChords(s).replace(/\s+$/, '')).join('\n').trim();
@@ -177,40 +178,40 @@ const LiedExport = (() => {
   }
   async function build(song, v, o) {
     o = o || {};
-    const tl = timeline(v), k = v.key, tempoTxt = String(Math.round(v.bpm * 100) / 100).replace('.', ','), keyTxt = C.keyLabel(k).replace(/♯/g, '#').replace(/♭/g, 'b');
+    const tl = timeline(v), k = v.key, tempoTxt = String(Math.round(v.bpm * 100) / 100).replace('.', ','), keyTxt = TT(C.keyLabel(k)).replace(/♯/g, '#').replace(/♭/g, 'b');
     const base = safe(song.name || 'Song') + ' V' + v.n, tag = tempoTxt + ' BPM ' + keyTxt, files = [];
     const audio = o.getRec ? await render(v, o.getRec, o.sr || 48000) : null;
     if (audio) {
-      files.push({ name: base + '/01 Aufnahmen – ganzer Song – ' + tag + '.wav', data: wav24(audio.L, audio.R, audio.sr) });
-      audio.parts.forEach((q, i) => files.push({ name: base + '/Teile einzeln/' + String(i + 1).padStart(2, '0') + ' ' + safe(q.p.name) + ' (' + C.beatsOf(q.p) / 4 + ' Takte) – ' + tag + '.wav', data: wav24(q.L, q.R, audio.sr) }));
+      files.push({ name: base + TT('/01 Aufnahmen – ganzer Song – ') + tag + '.wav', data: wav24(audio.L, audio.R, audio.sr) });
+      audio.parts.forEach((q, i) => files.push({ name: base + TT('/Teile einzeln/') + String(i + 1).padStart(2, '0') + ' ' + safe(q.p.name) + ' (' + C.beatsOf(q.p) / 4 + TT(' Takte) – ') + tag + '.wav', data: wav24(q.L, q.R, audio.sr) }));
     }
-    files.push({ name: base + '/02 Tempo, Abschnitte, Akkorde, Bass' + (o.drums && o.drums.length ? ', Drums' : '') + ' – ' + tag + '.mid', data: midi(song, v, o) });
+    files.push({ name: base + TT('/02 Tempo, Abschnitte, Akkorde, Bass') + (o.drums && o.drums.length ? ', Drums' : '') + ' – ' + tag + '.mid', data: midi(song, v, o) });
     if (o.pdf) files.push({ name: base + '/03 Leadsheet.pdf', data: o.pdf });
-    files.push({ name: base + '/04 Text.txt', data: new Uint8Array(enc(lyricsText(song, v))) });
-    files.push({ name: base + '/05 Song-Code (für Claude).txt', data: new Uint8Array(enc(X.toCode(song, v, { voice: o.voice }))) });
+    files.push({ name: base + TT('/04 Text.txt'), data: new Uint8Array(enc(lyricsText(song, v))) });
+    files.push({ name: base + TT('/05 Song-Code (für Claude).txt'), data: new Uint8Array(enc(X.toCode(song, v, { voice: o.voice }))) });
     const bars = tl.beats / 4, secs = tl.secs, sections = [];
     tl.entries.forEach((e, i) => { const prev = tl.entries[i - 1]; if (prev && prev.p === e.p && prev.label === e.label) { sections[sections.length - 1].bars += e.beats / 4; return; } sections.push({ label: e.label, bar: e.start / 4 + 1, bars: e.beats / 4 }); });
     const fmtBar = b => String(Math.round(b * 100) / 100).replace('.', ',');
     const lies = [
       song.name + ' – Version ' + v.n, '',
-      'Tempo ' + tempoTxt + ' BPM · 4/4 · ' + fmtBar(bars) + ' Takte · ' + C.mmss(secs) + ' · Tonart ' + keyTxt, '',
-      'Ablauf (Takt im Logic-Projekt):',
-      ...sections.map(s => '  Takt ' + fmtBar(s.bar).padStart(5) + '  ' + s.label + ' (' + fmtBar(s.bars) + ' T)'), '',
-      'So geht es in Logic Pro (Mac oder iPad):',
-      '1. Neues leeres Projekt anlegen.',
-      '2. Die MIDI-Datei „02 Tempo, Abschnitte …“ ins Projekt ziehen. Frage nach dem Tempo mit „Ja“ beantworten.',
-      '   Logic legt Spuren für Akkorde, Bass' + (o.drums && o.drums.length ? ', Drums' : '') + ' und Text an und setzt die Abschnitte als Marker.',
-      '   Den Spuren passende Instrumente geben (z. B. E-Piano, Bass, Drum Kit). (Tempo sonst von Hand auf ' + tempoTxt + '.)',
-      audio ? '3. „01 Aufnahmen – ganzer Song“ auf Takt 1 ziehen – alle Teile liegen schon an der richtigen Stelle.' : '3. (Dieser Song hat noch keine Aufnahmen – nur MIDI.)',
-      audio ? '   Falls Logic nach Smart Tempo fragt: Projekttempo beibehalten / nicht anpassen.' : null,
-      audio ? '   Im Ordner „Teile einzeln“ liegt jeder Teil einmal, schon im Songtempo – zum Umbauen und Kopieren.' : null,
-      '4. Text und Akkorde zum Mitlesen: „03 Leadsheet.pdf“ bzw. „04 Text.txt“.',
-      '5. „05 Song-Code“ enthält den ganzen Song zum Weiterarbeiten mit Claude oder zum Wiederherstellen.',
-      audio && Object.values(v.parts).some(p => p.audio && p.audioBpm && Math.abs(p.audioBpm / v.bpm - 1) > 0.005) ? '\nHinweis: Aufnahmen mit anderem Tempo wurden wie in der App angepasst (Tonhöhe ändert sich mit).' : null,
-      v.parts.some(p => C.audioStale(p)) ? 'Hinweis: Teile mit geänderten Akkorden sind ohne Aufnahme (wie beim Abspielen) – neu einspielen.' : null,
-      '', 'Erstellt mit dem 3nps-Übungsprogramm.'
+      'Tempo ' + tempoTxt + ' BPM · 4/4 · ' + fmtBar(bars) + TT(' Takte · ') + C.mmss(secs) + TT(' · Tonart ') + keyTxt, '',
+      TT('Ablauf (Takt im Logic-Projekt):'),
+      ...sections.map(s => TT('  Takt ') + fmtBar(s.bar).padStart(5) + '  ' + s.label + ' (' + fmtBar(s.bars) + TT(' T)')), '',
+      TT('So geht es in Logic Pro (Mac oder iPad):'),
+      TT('1. Neues leeres Projekt anlegen.'),
+      TT('2. Die MIDI-Datei „02 Tempo, Abschnitte …“ ins Projekt ziehen. Frage nach dem Tempo mit „Ja“ beantworten.'),
+      TT('   Logic legt Spuren für Akkorde, Bass') + (o.drums && o.drums.length ? ', Drums' : '') + TT(' und Text an und setzt die Abschnitte als Marker.'),
+      TT('   Den Spuren passende Instrumente geben (z. B. E-Piano, Bass, Drum Kit). (Tempo sonst von Hand auf ') + tempoTxt + '.)',
+      TT(audio ? '3. „01 Aufnahmen – ganzer Song“ auf Takt 1 ziehen – alle Teile liegen schon an der richtigen Stelle.' : '3. (Dieser Song hat noch keine Aufnahmen – nur MIDI.)'),
+      audio ? TT('   Falls Logic nach Smart Tempo fragt: Projekttempo beibehalten / nicht anpassen.') : null,
+      audio ? TT('   Im Ordner „Teile einzeln“ liegt jeder Teil einmal, schon im Songtempo – zum Umbauen und Kopieren.') : null,
+      TT('4. Text und Akkorde zum Mitlesen: „03 Leadsheet.pdf“ bzw. „04 Text.txt“.'),
+      TT('5. „05 Song-Code“ enthält den ganzen Song zum Weiterarbeiten mit Claude oder zum Wiederherstellen.'),
+      audio && Object.values(v.parts).some(p => p.audio && p.audioBpm && Math.abs(p.audioBpm / v.bpm - 1) > 0.005) ? TT('\nHinweis: Aufnahmen mit anderem Tempo wurden wie in der App angepasst (Tonhöhe ändert sich mit).') : null,
+      v.parts.some(p => C.audioStale(p)) ? TT('Hinweis: Teile mit geänderten Akkorden sind ohne Aufnahme (wie beim Abspielen) – neu einspielen.') : null,
+      '', TT('Erstellt mit dem 3nps-Übungsprogramm.')
     ].filter(x => x !== null).join('\n');
-    files.push({ name: base + '/LIES MICH.txt', data: new Uint8Array(enc(lies)) });
+    files.push({ name: base + TT('/LIES MICH.txt'), data: new Uint8Array(enc(lies)) });
     const data = zip(files, !!o.blob); return { name: base + '.zip', data, size: data.size || data.length, files: o.blob ? files.map(f => ({ name: f.name, size: f.data.length })) : files, audio: !!audio, secs };
   }
   return { timeline, wav24, zip, midi, render, build, lyricsText, PPQ };
