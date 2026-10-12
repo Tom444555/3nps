@@ -282,3 +282,17 @@ Object.assign(window.__EN, {
   ' tiefer greifen': ' lower', '. Aufnahmen werden dabei stumm (neu einspielen).': '. Recordings get muted (record them again).', 'passt gut': 'fits well', 'passt knapp': 'just about fits', 'wird eng': 'gets tight',
 });
 window.__EN['↶ Letzten'] = '↶ Last';
+Object.assign(window.__EN, {
+  // Mitsingen (v61)
+  '🎤 Gesangstext': '🎤 Lyrics', 'Gesangstext mit Timing anzeigen und bearbeiten': 'Show and edit lyrics with timing', 'Gesangstext': 'Lyrics', 'Einsätze genau üben': 'Practise exact entries',
+  'Spiel einen Song aus dem Songwriting oder einen Loop aus einer geladenen Datei ab – dann erscheint hier sein Gesangstext.': 'Play a song from Songwriting or a loop from a loaded file – its lyrics then appear here.',
+  'Diese Spur wurde ins Tempo des Loops gedehnt – dafür ist kein Gesangstext möglich. Lade die Datei ohne Anpassung.': 'This track was stretched to the loop tempo – lyrics are not possible for it. Load the file without adjusting it.',
+  'Datei „': 'File “', ' · Text kommt aus dem Songwriting (dort ändern)': ' · lyrics come from Songwriting (edit them there)', 'Text einfügen / ersetzen': 'Paste / replace lyrics',
+  'Liedtext hier einfügen – eine Zeile pro gesungener Zeile': 'Paste the lyrics here – one line per sung line', '● Einklopfen': '● Tap timing', '■ Einklopfen beenden': '■ Stop tapping', 'Magnet 16tel': 'Snap to 16ths',
+  ' von ': ' of ', ' Wörtern mit Zeit': ' words timed', 'Tippen = nächstes Wort': 'Tap = next word',
+  'Abspielen und bei jeder Silbe bzw. jedem Wort auf den großen Knopf tippen.': 'Play and tap the big button on every syllable or word.',
+  'Wort antippen zum Bearbeiten. In der Spur oben kannst du Wörter ziehen.': 'Tap a word to edit it. In the lane above you can drag words.',
+  'Ersetzen': 'Replace', 'früher': 'earlier', 'später': 'later', 'Mit nächstem verbinden': 'Join with next', 'Zeit löschen': 'Clear time', 'noch ohne Zeit': 'not timed yet', 'Zeile neu einklopfen': 'Tap this line again',
+  'Erst abspielen – dann bei jeder Silbe tippen.': 'Start playback first – then tap on every syllable.', 'Alle Wörter haben eine Zeit. „Zeile neu“ wählt eine Zeile zum neu Einklopfen.': 'All words are timed. “↻” next to a line lets you tap it again.',
+  'Nächstes Wort: „': 'Next word: “', 'Fertig – alle Wörter haben eine Zeit.': 'Done – all words are timed.', ' neu: abspielen und tippen.': ' again: play and tap.', 'Zeile ': 'Line ', 'Wort': 'Word',
+});

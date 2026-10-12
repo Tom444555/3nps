@@ -1,0 +1,32 @@
+  /* ---- Mitsingen (v61): Gesangsspur unter der Akkordleiste, Editor ---- */
+  .sg-band { position: relative; overflow: hidden; margin-top: 4px; border-radius: 8px; background: rgba(0,0,0,.28); border: 1px solid var(--line-soft); }
+  .sg-strip { position: relative; height: 30px; min-width: 100%; touch-action: pan-y; }
+  .sg-w { position: absolute; top: 4px; height: 22px; padding: 0 5px; box-sizing: border-box; border-left: 2px solid var(--muted);
+    font: 600 0.8rem var(--f-body); line-height: 22px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: clip;
+    background: color-mix(in srgb, var(--surface-2) 70%, transparent); border-radius: 0 6px 6px 0; cursor: grab; user-select: none; -webkit-user-select: none; }
+  .sg-w.on { color: var(--ink); border-left-color: var(--accent); background: color-mix(in srgb, var(--accent) 30%, var(--surface-2)); }
+  .sg-w.sel { outline: 1px dashed var(--accent); }
+  .sg-card .sg-src { margin-bottom: 8px; }
+  .sg-paste summary { cursor: pointer; color: var(--muted); font: 600 0.85rem var(--f-body); margin: 4px 0 6px; }
+  .sg-paste textarea { width: 100%; box-sizing: border-box; font: 0.9rem var(--f-body); color: var(--ink); background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px; margin-bottom: 6px; }
+  .sg-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 8px 0; }
+  .sg-tap { display: block; width: 100%; min-height: 72px; margin: 6px 0; font: 700 1.1rem var(--f-body); color: var(--ink);
+    background: color-mix(in srgb, var(--accent) 25%, var(--surface-2)); border: 2px solid var(--accent); border-radius: 14px; cursor: pointer; touch-action: manipulation; }
+  .sg-tap:active { background: color-mix(in srgb, var(--accent) 50%, var(--surface-2)); }
+  .sg-status { color: var(--muted); font: 0.85rem var(--f-body); margin: 4px 0 8px; min-height: 1.2em; }
+  .sg-selbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 6px 0 10px; }
+  .sg-selbar input { min-width: 0; width: 12em; font: 0.95rem var(--f-body); color: var(--ink); background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
+  .sg-lines { display: flex; flex-direction: column; gap: 6px; }
+  .sg-line { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+  .sg-lnum { appearance: none; border: 1px solid var(--line-soft); background: transparent; color: var(--muted); border-radius: 6px; font: 600 0.7rem var(--f-mono); padding: 3px 5px; cursor: pointer; }
+  .sg-chip { appearance: none; display: inline-flex; flex-direction: column; align-items: center; gap: 1px; padding: 3px 7px; border-radius: 7px;
+    border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); font: 600 0.85rem var(--f-body); cursor: pointer; }
+  .sg-chip small { font: 500 0.62rem var(--f-mono); color: var(--muted); }
+  .sg-chip.none { border-style: dashed; color: var(--muted); }
+  .sg-chip.sel { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .sg-w.on { z-index: 2; overflow: visible; min-width: max-content !important; box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 50%, transparent); }
+  .sg-line-read { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin: 6px 2px 0; min-height: 1.6em; }
+  .sg-line-read .sg-cur { font: 600 1.15rem var(--f-body); color: var(--muted); }
+  .sg-line-read .sg-cur .on { color: var(--ink); text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 4px; text-decoration-thickness: 3px; }
+  .sg-line-read .sg-cur .past { color: color-mix(in srgb, var(--ink) 75%, transparent); }
+  .sg-line-read .sg-next { font: 0.85rem var(--f-body); color: var(--muted); opacity: .75; }

@@ -1178,6 +1178,38 @@ html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleis
   .ld-imr .err li { color: #ff7a59; } .ld-imr .wrn li { color: var(--muted); }
   .ld-imr .note { font: 500 .86rem var(--f-body); color: var(--muted); } .ld-imr .note b { color: var(--ink); }
   .ld-imr .ld-vact { flex-wrap: wrap; }
+  /* ---- Mitsingen (v61): Gesangsspur unter der Akkordleiste, Editor ---- */
+  .sg-band { position: relative; overflow: hidden; margin-top: 4px; border-radius: 8px; background: rgba(0,0,0,.28); border: 1px solid var(--line-soft); }
+  .sg-strip { position: relative; height: 30px; min-width: 100%; touch-action: pan-y; }
+  .sg-w { position: absolute; top: 4px; height: 22px; padding: 0 5px; box-sizing: border-box; border-left: 2px solid var(--muted);
+    font: 600 0.8rem var(--f-body); line-height: 22px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: clip;
+    background: color-mix(in srgb, var(--surface-2) 70%, transparent); border-radius: 0 6px 6px 0; cursor: grab; user-select: none; -webkit-user-select: none; }
+  .sg-w.on { color: var(--ink); border-left-color: var(--accent); background: color-mix(in srgb, var(--accent) 30%, var(--surface-2)); }
+  .sg-w.sel { outline: 1px dashed var(--accent); }
+  .sg-card .sg-src { margin-bottom: 8px; }
+  .sg-paste summary { cursor: pointer; color: var(--muted); font: 600 0.85rem var(--f-body); margin: 4px 0 6px; }
+  .sg-paste textarea { width: 100%; box-sizing: border-box; font: 0.9rem var(--f-body); color: var(--ink); background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px; margin-bottom: 6px; }
+  .sg-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 8px 0; }
+  .sg-tap { display: block; width: 100%; min-height: 72px; margin: 6px 0; font: 700 1.1rem var(--f-body); color: var(--ink);
+    background: color-mix(in srgb, var(--accent) 25%, var(--surface-2)); border: 2px solid var(--accent); border-radius: 14px; cursor: pointer; touch-action: manipulation; }
+  .sg-tap:active { background: color-mix(in srgb, var(--accent) 50%, var(--surface-2)); }
+  .sg-status { color: var(--muted); font: 0.85rem var(--f-body); margin: 4px 0 8px; min-height: 1.2em; }
+  .sg-selbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 6px 0 10px; }
+  .sg-selbar input { min-width: 0; width: 12em; font: 0.95rem var(--f-body); color: var(--ink); background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
+  .sg-lines { display: flex; flex-direction: column; gap: 6px; }
+  .sg-line { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+  .sg-lnum { appearance: none; border: 1px solid var(--line-soft); background: transparent; color: var(--muted); border-radius: 6px; font: 600 0.7rem var(--f-mono); padding: 3px 5px; cursor: pointer; }
+  .sg-chip { appearance: none; display: inline-flex; flex-direction: column; align-items: center; gap: 1px; padding: 3px 7px; border-radius: 7px;
+    border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); font: 600 0.85rem var(--f-body); cursor: pointer; }
+  .sg-chip small { font: 500 0.62rem var(--f-mono); color: var(--muted); }
+  .sg-chip.none { border-style: dashed; color: var(--muted); }
+  .sg-chip.sel { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .sg-w.on { z-index: 2; overflow: visible; min-width: max-content !important; box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 50%, transparent); }
+  .sg-line-read { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin: 6px 2px 0; min-height: 1.6em; }
+  .sg-line-read .sg-cur { font: 600 1.15rem var(--f-body); color: var(--muted); }
+  .sg-line-read .sg-cur .on { color: var(--ink); text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 4px; text-decoration-thickness: 3px; }
+  .sg-line-read .sg-cur .past { color: color-mix(in srgb, var(--ink) 75%, transparent); }
+  .sg-line-read .sg-next { font: 0.85rem var(--f-body); color: var(--muted); opacity: .75; }
   /* ===== Rost & Stahl: Hintergrund aus gerostetem Blech, darauf verschraubte Stahlplatten ===== */
   :root {
     --plate-hi: #3a3a40;
@@ -2722,6 +2754,20 @@ Object.assign(window.__EN, {
   ' tiefer greifen': ' lower', '. Aufnahmen werden dabei stumm (neu einspielen).': '. Recordings get muted (record them again).', 'passt gut': 'fits well', 'passt knapp': 'just about fits', 'wird eng': 'gets tight',
 });
 window.__EN['↶ Letzten'] = '↶ Last';
+Object.assign(window.__EN, {
+  // Mitsingen (v61)
+  '🎤 Gesangstext': '🎤 Lyrics', 'Gesangstext mit Timing anzeigen und bearbeiten': 'Show and edit lyrics with timing', 'Gesangstext': 'Lyrics', 'Einsätze genau üben': 'Practise exact entries',
+  'Spiel einen Song aus dem Songwriting oder einen Loop aus einer geladenen Datei ab – dann erscheint hier sein Gesangstext.': 'Play a song from Songwriting or a loop from a loaded file – its lyrics then appear here.',
+  'Diese Spur wurde ins Tempo des Loops gedehnt – dafür ist kein Gesangstext möglich. Lade die Datei ohne Anpassung.': 'This track was stretched to the loop tempo – lyrics are not possible for it. Load the file without adjusting it.',
+  'Datei „': 'File “', ' · Text kommt aus dem Songwriting (dort ändern)': ' · lyrics come from Songwriting (edit them there)', 'Text einfügen / ersetzen': 'Paste / replace lyrics',
+  'Liedtext hier einfügen – eine Zeile pro gesungener Zeile': 'Paste the lyrics here – one line per sung line', '● Einklopfen': '● Tap timing', '■ Einklopfen beenden': '■ Stop tapping', 'Magnet 16tel': 'Snap to 16ths',
+  ' von ': ' of ', ' Wörtern mit Zeit': ' words timed', 'Tippen = nächstes Wort': 'Tap = next word',
+  'Abspielen und bei jeder Silbe bzw. jedem Wort auf den großen Knopf tippen.': 'Play and tap the big button on every syllable or word.',
+  'Wort antippen zum Bearbeiten. In der Spur oben kannst du Wörter ziehen.': 'Tap a word to edit it. In the lane above you can drag words.',
+  'Ersetzen': 'Replace', 'früher': 'earlier', 'später': 'later', 'Mit nächstem verbinden': 'Join with next', 'Zeit löschen': 'Clear time', 'noch ohne Zeit': 'not timed yet', 'Zeile neu einklopfen': 'Tap this line again',
+  'Erst abspielen – dann bei jeder Silbe tippen.': 'Start playback first – then tap on every syllable.', 'Alle Wörter haben eine Zeit. „Zeile neu“ wählt eine Zeile zum neu Einklopfen.': 'All words are timed. “↻” next to a line lets you tap it again.',
+  'Nächstes Wort: „': 'Next word: “', 'Fertig – alle Wörter haben eine Zeit.': 'Done – all words are timed.', ' neu: abspielen und tippen.': ' again: play and tap.', 'Zeile ': 'Line ', 'Wort': 'Word',
+});
 
 // Sprache (v59): Deutsch ist der Quelltext. Nur im EN-Modus läuft hier etwas:
 // Ein Beobachter übersetzt neue/geänderte Texte im DOM (Text, title, placeholder, aria-label)
@@ -2827,7 +2873,7 @@ window.__EN['↶ Letzten'] = '↶ Last';
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v60</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v61</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -3465,15 +3511,22 @@ window.__EN['↶ Letzten'] = '↶ Last';
             <button class="toggle-btn active" data-t="auto">Auto</button><button class="toggle-btn" data-t="0">1</button><button class="toggle-btn" data-t="1">2</button><button class="toggle-btn" data-t="2">3</button>
           </div>
           <button class="toggle-btn sf-play" id="sfPlay" aria-label="Loop pausieren oder starten">▶ Start</button>
+          <button class="toggle-btn" id="sgToggle" title="Gesangstext mit Timing anzeigen und bearbeiten">🎤 Gesangstext</button>
           <label class="check"><input type="checkbox" id="sfFollow" checked> folgt dem Looper</label>
         </div>
       </div>
       <div class="sf-head" id="sfHead" hidden><span>Takt</span></div>
       <div class="sf-band" id="sfBand"><div class="sf-strip" id="sfStrip"></div></div>
+      <div class="sg-band" id="sgBand" hidden><div class="sg-strip" id="sgStrip"></div></div>
+      <p class="sg-line-read" id="sgLine" hidden translate="no"></p>
       <div class="sf-nowgrid">
         <div class="sf-now" id="sfNow"></div>
         <p class="sf-keynotes"><span class="lbl">Töne der Tonart</span> <span id="sfKeyNotes"></span></p>
       </div>
+    </div>
+    <div class="card sg-card" id="sgCard" hidden>
+      <div class="card-head"><h2>Gesangstext</h2><span class="caption">Einsätze genau üben</span></div>
+      <div class="sg-edit" id="sgEdit"></div>
     </div>
 
     <div class="card">
@@ -11238,6 +11291,13 @@ const Looper = (() => {
       return { tracks: list, track: t.i, segs: t.chords.segs.map(q => ({ name: q.name, a: q.a, e: q.e })), L: t.L, pos, downs, sr, beats: trackBeats(t).filter(b => !b.bar && b.f > 0 && b.f < t.L - 2).map(b => b.f),
         key: t.key ? { pc: t.key.pc, major: !!t.key.major } : null, playing: !!t.src };
     },
+    // Mitsingen (v61): Bezug einer Spur zur geladenen Originaldatei – nur lesen
+    singSrc: i => {
+      const t = tracks[i]; if (!t || !t.L || !t.orig || t.origPos == null || !t.orig.beats || t.orig.beats.length < 4) return null;
+      const o = t.orig, len = o.data ? (o.data.l || o.data).length : 0;
+      return { key: (o.name || 'Datei') + '|' + Math.round(len / sr * 10), name: o.name || 'Datei', origPos: t.origPos, beats: o.beats, downs: o.downs || [], sr, L: t.L,
+        pos: t.src && audioCtx ? mod(playFrame() - anchor, t.L) : null };
+    },
     // Eingang für „Mithören“: öffnet ihn bei Bedarf (gleicher Zugriff wie der Looper), liefert einen Analyser
     openInput: () => ensureMic(),
     inputAnalyser: () => {
@@ -12497,6 +12557,7 @@ if (typeof module !== 'undefined') module.exports = Pitch;
     if (m === 'Dorisch' || m === 'Phrygisch') return { pc, major: false };
     return { pc: md(pc - off), major: true };
   }
+  window.SoloInfo = () => info();
   function info() {
     const L = typeof Looper !== 'undefined' && Looper.chordInfo ? Looper.chordInfo(state.track) : { tracks: [], track: -1 };
     // Läuft der Jam (und kein Loop), zeigt der Solo Finder dessen Akkordfolge
@@ -12829,6 +12890,7 @@ if (typeof module !== 'undefined') module.exports = Pitch;
     });
     renderBand(ci, k);
     const on = tickBand(ci);
+    if (window.Sing) try { Sing.tick(ci); } catch (e) {}
     // Fokus: klingender Akkord (wenn „folgen“), sonst gewählter
     let f = state.focus;
     if (state.follow && on >= 0 && ci.segs) { const c = parseChord(ci.segs[on].name); if (c) f = { c, seg: on, live: true }; }
@@ -13424,6 +13486,248 @@ if (typeof module !== 'undefined') module.exports = Pitch;
   window.Caged = { debug: () => ({ c: cur.c, next: cur.next, src: cur.src, S: Object.assign({}, S), notes: lastNotes.slice(), inst: pickInstance(cur.c), tris: (cur.triList || []).length }),
     shapes: (r, t) => allShapes({ r, t }), triads: (r, t, s) => triads({ r, t }, s), parse };
 })();
+
+// ---- Mitsingen (v61): Gesangstext mit genauem Timing ----
+// Zeiten stehen in Schlägen (nicht Sekunden), damit sie bei Tempoänderungen synchron bleiben:
+//  - geladene Datei im Looper: Schlag-Index der Originaldatei (orig.beats), unabhängig vom geloopten Ausschnitt
+//  - Song (Songwriting): Schlag im Teil, je Teil und Durchgang
+// Speicher: localStorage 3nps-sing (neu; die stabile v24 kennt ihn nicht)
+//   { v: 1, f: { <dateischlüssel>: { name, tok: [{ w, b, l }] } }, l: { <song|teil|durchgang>: { tok: [...] } } }
+//   w = Wort, b = Schlag (null = noch ohne Zeit), l = Zeile
+const Sing = (() => {
+  const $ = id => document.getElementById(id);
+  const KEY = '3nps-sing';
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  let db = load(), ui = { open: false, tapping: false, sel: -1, lineFrom: -1, snap: true };
+  function load() {
+    try { const d = JSON.parse(localStorage.getItem(KEY) || 'null'); if (d && d.v === 1) { d.f = d.f || {}; d.l = d.l || {}; return d; } } catch (e) {}
+    return { v: 1, f: {}, l: {} };
+  }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(db)); } catch (e) {} }
+
+  // ---- Text → Wörter (Akkord-Marken [Am] fallen weg) ----
+  function tokenize(text) {
+    const out = [];
+    String(text || '').replace(/\r/g, '').split('\n').forEach(line => {
+      const clean = line.replace(/\[[^\]]*\]/g, ' ').trim(); if (!clean) return;
+      const l = out.length ? out[out.length - 1].l + 1 : 0;
+      clean.split(/\s+/).forEach(w => { if (w) out.push({ w, b: null, l }); });
+    });
+    return out;
+  }
+  // neue Wörter übernehmen, vorhandene Zeiten behalten (gleiches Wort in der Nähe)
+  function merge(oldT, newT) {
+    const used = new Set();
+    newT.forEach((t, i) => {
+      for (let d = 0; d <= 3; d++) for (const j of [i + d, i - d]) {
+        const o = oldT[j]; if (!o || used.has(j) || o.w !== t.w) continue;
+        t.b = o.b; used.add(j); return;
+      }
+    });
+    return newT;
+  }
+
+  // ---- Schlag ↔ Bild (Datei) ----
+  function f2b(f, B) {
+    const n = B.length; if (n < 2) return null;
+    if (f <= B[0]) return (f - B[0]) / (B[1] - B[0]);
+    if (f >= B[n - 1]) return n - 1 + (f - B[n - 1]) / (B[n - 1] - B[n - 2]);
+    let lo = 0, hi = n - 1; while (hi - lo > 1) { const m = (lo + hi) >> 1; if (B[m] <= f) lo = m; else hi = m; }
+    return lo + (f - B[lo]) / (B[lo + 1] - B[lo]);
+  }
+  function b2f(b, B) {
+    const n = B.length; if (n < 2) return null;
+    if (b <= 0) return B[0] + b * (B[1] - B[0]);
+    if (b >= n - 1) return B[n - 1] + (b - n + 1) * (B[n - 1] - B[n - 2]);
+    const i = Math.floor(b); return B[i] + (b - i) * (B[i + 1] - B[i]);
+  }
+
+  // ---- Aktuelle Quelle (passend zur Akkordleiste der Improvisation) ----
+  // Liefert: { kind, id, title, tok, editable, toCi(b) → Bild in ci, fromCi(f) → Schlag, nowB, label(b) }
+  function source(ci) {
+    if (!ci) return null;
+    if (ci.lied && window.Lied && Lied.singNow) {
+      const n = Lied.singNow(); if (!n) return null;
+      const id = n.song + '|' + n.part.id + '|' + n.pass;
+      const fresh = tokenize(n.text), rec = db.l[id];
+      let tok = rec ? rec.tok : [];
+      if (!rec || rec.txt !== n.text) { tok = merge(rec ? rec.tok : [], fresh); db.l[id] = { tok, txt: n.text }; save(); }
+      return { kind: 'lied', id, rec: db.l[id], title: n.part.name + (n.pass ? ' · ' + (n.pass + 1) + '. Mal' : ''), tok, editable: false,
+        toCi: b => b * 1000, fromCi: f => f / 1000, nowB: n.beat, label: b => (Math.floor(b / 4) + 1) + '.' + (Math.floor(b % 4) + 1), maxB: n.beats };
+    }
+    if (ci.track >= 0 && typeof Looper !== 'undefined' && Looper.singSrc) {
+      const s = Looper.singSrc(ci.track); if (!s) return { kind: 'none', why: 'stretch' };
+      const rec = db.f[s.key] || null;
+      const toCi = b => { const f = b2f(b, s.beats); return f == null ? null : f - s.origPos; };
+      const fromCi = f => f2b(f + s.origPos, s.beats);
+      const label = b => { const f = b2f(b, s.beats), D = s.downs; let i = 0; while (i + 1 < D.length && D[i + 1] <= f + 2) i++; const bb = f2b(D[i] || 0, s.beats); return (i + 1) + '.' + (Math.floor(b - bb + 1e-6) + 1); };
+      return { kind: 'file', id: s.key, rec, name: s.name, title: 'Datei „' + s.name + '“', tok: rec ? rec.tok : [], editable: true, toCi, fromCi,
+        nowB: s.pos != null ? fromCi(s.pos) : null, label, L: s.L };
+    }
+    return null;
+  }
+  const snapB = b => ui.snap ? Math.round(b * 4) / 4 : Math.round(b * 1000) / 1000;
+  const endOf = (tok, i) => { const t = tok[i]; for (let j = i + 1; j < tok.length; j++) if (tok[j].b != null) return Math.min(tok[j].b, t.b + 2); return t.b + 1; };
+
+  // ---- Spur unter der Akkordleiste ----
+  let laneSig = '', curSrc = null, lastSrc = null, lastCur = -2;
+  function tick(ci) {
+    const band = $('sgBand'), strip = $('sgStrip'); if (!band) return;
+    const live = source(ci);
+    if (live && live.kind !== 'none') lastSrc = live;
+    // Editor bleibt nach dem Anhalten bei der zuletzt gespielten Quelle (zum Korrigieren in Ruhe)
+    const src = live || (lastSrc ? Object.assign({}, lastSrc, { nowB: null }) : null); curSrc = src;
+    if (ui.open) paintEditor(src);
+    const has = live && live.tok && live.tok.some(t => t.b != null);
+    band.hidden = !has; const lineEl = $('sgLine'); if (lineEl) lineEl.hidden = !has;
+    if (band.hidden) { laneSig = ''; lineSig = ''; return; }
+    const srcL = live;
+    const W = parseFloat($('sfStrip').style.width) || $('sfBand').clientWidth;
+    const sig = srcL.id + '|' + W + '|' + ci.L + '|' + ver + '|' + (srcL.kind === 'lied' ? srcL.title : '');
+    if (sig !== laneSig) {
+      laneSig = sig; lastCur = -2;
+      strip.style.width = W + 'px';
+      const px = f => f / ci.L * W;
+      let h = '';
+      srcL.tok.forEach((t, i) => {
+        if (t.b == null) return;
+        const a = srcL.toCi(t.b), e = srcL.toCi(endOf(srcL.tok, i)); if (a == null || a < -1 || a >= ci.L) return;
+        h += '<span class="sg-w' + (i === ui.sel ? ' sel' : '') + '" data-i="' + i + '" style="left:' + px(a).toFixed(1) + 'px;min-width:' + Math.max(6, px(Math.min(ci.L, e) - a) - 2).toFixed(1) + 'px">' + esc(t.w) + '</span>';
+      });
+      strip.innerHTML = h; lineSig = '';
+    }
+    band.scrollLeft = $('sfBand').scrollLeft;
+    // aktuelles Wort
+    let cur = -1;
+    if (srcL.nowB != null) srcL.tok.forEach((t, i) => { if (t.b != null && srcL.nowB >= t.b - 0.02 && srcL.nowB < endOf(srcL.tok, i)) cur = i; });
+    if (cur !== lastCur) { strip.querySelectorAll('.sg-w').forEach(el => el.classList.toggle('on', +el.dataset.i === cur)); lastCur = cur; paintLine(srcL, cur); }
+  }
+  // Lesezeile: aktuelle (bzw. kommende) Zeile ganz, aktuelles Wort hervorgehoben, nächste Zeile klein
+  let lineSig = '';
+  function paintLine(src, cur) {
+    const el = $('sgLine'); if (!el) return;
+    const tok = src.tok; let i = cur;
+    if (i < 0 && src.nowB != null) i = tok.findIndex(t => t.b != null && t.b > src.nowB);
+    if (i < 0) i = tok.findIndex(t => t.b != null);
+    if (i < 0) { el.innerHTML = ''; lineSig = ''; return; }
+    const l = tok[i].l, sig = src.id + '|' + l + '|' + cur + '|' + ver;
+    if (sig === lineSig) return; lineSig = sig;
+    const words = tok.map((t, j) => ({ t, j })).filter(x => x.t.l === l), nx = tok.filter(t => t.l === l + 1).map(t => t.w).join(' ');
+    el.innerHTML = '<span class="sg-cur">' + words.map(x => '<span' + (x.j === cur ? ' class="on"' : x.j < cur && cur >= 0 ? ' class="past"' : '') + '>' + esc(x.t.w) + '</span>').join(' ') + '</span>'
+      + (nx ? '<span class="sg-next">' + esc(nx) + '</span>' : '');
+  }
+  let ver = 0; const changed = () => { ver++; save(); laneSig = ''; edSig = ''; };
+
+  // Wort im Band ziehen (Timing verschieben)
+  function bindLane() {
+    const strip = $('sgStrip'); if (!strip || strip._b) return; strip._b = true;
+    let drag = null;
+    strip.addEventListener('pointerdown', e => {
+      const el = e.target.closest('.sg-w'); if (!el || !curSrc) return;
+      const i = +el.dataset.i, W = parseFloat(strip.style.width) || 1;
+      drag = { i, x0: e.clientX, b0: curSrc.tok[i].b, W, moved: false }; strip.setPointerCapture(e.pointerId); e.preventDefault();
+      select(i);
+    });
+    strip.addEventListener('pointermove', e => {
+      if (!drag || !curSrc) return;
+      const dx = e.clientX - drag.x0; if (Math.abs(dx) < 3 && !drag.moved) return; drag.moved = true;
+      const ci = window.SoloInfo ? SoloInfo() : null; if (!ci) return;
+      const f0 = curSrc.toCi(drag.b0), f = f0 + dx / drag.W * ci.L;
+      const nb = snapB(curSrc.fromCi(f)); if (nb === curSrc.tok[drag.i].b) return;
+      curSrc.tok[drag.i].b = nb; changed();
+    });
+    const up = () => { drag = null; };
+    strip.addEventListener('pointerup', up); strip.addEventListener('pointercancel', up);
+  }
+
+  // ---- Einklopfen ----
+  function tap() {
+    const src = curSrc; if (!src || src.nowB == null) { status('Erst abspielen – dann bei jeder Silbe tippen.'); return; }
+    const tok = src.tok;
+    let i = tok.findIndex((t, j) => t.b == null && (ui.lineFrom < 0 || t.l >= ui.lineFrom));
+    if (i < 0) { status('Alle Wörter haben eine Zeit. „Zeile neu“ wählt eine Zeile zum neu Einklopfen.'); stopTap(); return; }
+    tok[i].b = snapB(src.nowB);
+    ui.sel = i; changed();
+    const nx = tok.findIndex((t, j) => j > i && t.b == null);
+    status(nx >= 0 ? 'Nächstes Wort: „' + tok[nx].w + '“' : 'Fertig – alle Wörter haben eine Zeit.');
+    if (nx < 0) stopTap();
+  }
+  function stopTap() { ui.tapping = false; ui.lineFrom = -1; edSig = ''; }
+  function status(m) { const el = $('sgStatus'); if (el) el.textContent = m; }
+
+  // ---- Editor ----
+  let edSig = '';
+  function select(i) { ui.sel = i; edSig = ''; laneSig = ''; }
+  function paintEditor(src) {
+    const box = $('sgEdit'); if (!box) return;
+    const sig = (src ? src.id + '|' + src.tok.length + '|' + ver : 'none') + '|' + ui.sel + '|' + ui.tapping + '|' + ui.lineFrom + '|' + ui.snap;
+    if (sig === edSig) return; edSig = sig;
+    if (!src) { box.innerHTML = '<p class="caption">Spiel einen Song aus dem Songwriting oder einen Loop aus einer geladenen Datei ab – dann erscheint hier sein Gesangstext.</p>'; return; }
+    if (src.kind === 'none') { box.innerHTML = '<p class="caption">Diese Spur wurde ins Tempo des Loops gedehnt – dafür ist kein Gesangstext möglich. Lade die Datei ohne Anpassung.</p>'; return; }
+    let h = '<div class="sg-src"><b translate="no">' + esc(src.title) + '</b>' + (src.kind === 'lied' ? '<span class="caption"> · Text kommt aus dem Songwriting (dort ändern)</span>' : '') + '</div>';
+    if (src.kind === 'file') h += '<details class="sg-paste"' + (src.tok.length ? '' : ' open') + '><summary>Text einfügen / ersetzen</summary><textarea id="sgText" rows="5" placeholder="Liedtext hier einfügen – eine Zeile pro gesungener Zeile">' + esc(lines(src.tok).map(l => l.map(t => t.w).join(' ')).join('\n')) + '</textarea><button class="toggle-btn" id="sgTake">Übernehmen</button></details>';
+    if (src.tok.length) {
+      h += '<div class="sg-tools"><button class="toggle-btn sg-tapbtn' + (ui.tapping ? ' active' : '') + '" id="sgTapMode">' + (ui.tapping ? '■ Einklopfen beenden' : '● Einklopfen') + '</button>'
+        + '<label class="check"><input type="checkbox" id="sgSnap"' + (ui.snap ? ' checked' : '') + '> Magnet 16tel</label>'
+        + '<span class="caption">' + src.tok.filter(t => t.b != null).length + ' von ' + src.tok.length + ' Wörtern mit Zeit</span></div>';
+      if (ui.tapping) h += '<button class="sg-tap" id="sgTap">Tippen = nächstes Wort</button>';
+      h += '<p class="sg-status" id="sgStatus">' + (ui.tapping ? 'Abspielen und bei jeder Silbe bzw. jedem Wort auf den großen Knopf tippen.' : 'Wort antippen zum Bearbeiten. In der Spur oben kannst du Wörter ziehen.') + '</p>';
+      if (ui.sel >= 0 && src.tok[ui.sel]) {
+        const t = src.tok[ui.sel];
+        h += '<div class="sg-selbar">' + (src.editable ? '<input type="text" id="sgWord" value="' + esc(t.w) + '" aria-label="Wort"><button class="toggle-btn" id="sgRepl">Ersetzen</button>' : '<b translate="no">' + esc(t.w) + '</b>')
+          + '<button class="toggle-btn" data-n="-1" aria-label="früher">◀</button><button class="toggle-btn" data-n="1" aria-label="später">▶</button>'
+          + (src.editable ? '<button class="toggle-btn" id="sgMerge">Mit nächstem verbinden</button>' : '')
+          + '<button class="toggle-btn" id="sgClear">Zeit löschen</button><span class="caption">' + (t.b != null ? 'Takt ' + src.label(t.b) : 'noch ohne Zeit') + '</span></div>';
+      }
+      h += '<div class="sg-lines">' + lines(src.tok).map((ln, li) => '<div class="sg-line"><button class="sg-lnum" data-l="' + li + '" title="Zeile neu einklopfen">' + (li + 1) + ' ↻</button>'
+        + ln.map(t => '<button class="sg-chip' + (t.b == null ? ' none' : '') + (t.i === ui.sel ? ' sel' : '') + '" data-i="' + t.i + '" translate="no">' + esc(t.w) + '<small>' + (t.b != null ? src.label(t.b) : '–') + '</small></button>').join('') + '</div>').join('') + '</div>';
+    }
+    box.innerHTML = h;
+  }
+  function lines(tok) { const out = []; tok.forEach((t, i) => { (out[t.l] = out[t.l] || []).push(Object.assign({ i }, t)); }); return out.filter(Boolean); }
+
+  function bindEditor() {
+    const box = $('sgEdit'); if (!box || box._b) return; box._b = true;
+    box.addEventListener('click', e => {
+      const src = curSrc; if (!src) return;
+      const b = e.target.closest('button'); if (!b) return;
+      const tok = src.tok;
+      if (b.id === 'sgTake') {
+        const nt = tokenize($('sgText').value); if (!nt.length) return;
+        const rec = db.f[src.id] = { name: src.name, tok: merge(tok, nt) }; src.tok = rec.tok; ui.sel = -1; changed(); return;
+      }
+      if (b.id === 'sgTapMode') { ui.tapping = !ui.tapping; ui.lineFrom = -1; edSig = ''; laneSig = ''; return; }
+      if (b.id === 'sgTap') { tap(); return; }
+      if (b.classList.contains('sg-chip')) { select(+b.dataset.i); return; }
+      if (b.classList.contains('sg-lnum')) {
+        const l = +b.dataset.l, ln = lines(tok)[l]; if (!ln) return;
+        ln.forEach(t => { tok[t.i].b = null; }); ui.lineFrom = ln[0].l; ui.tapping = true; changed();
+        status('Zeile ' + (l + 1) + ' neu: abspielen und tippen.'); return;
+      }
+      const i = ui.sel, t = tok[i]; if (!t) return;
+      if (b.dataset.n) { if (t.b == null) return; t.b = snapB(t.b + (+b.dataset.n) * (ui.snap ? 0.25 : 0.01)); changed(); return; }
+      if (b.id === 'sgClear') { t.b = null; changed(); return; }
+      if (b.id === 'sgRepl') {
+        const v = ($('sgWord').value || '').trim(); if (!v) return;
+        const parts = v.split(/\s+/), nb = endOf(tok, i);
+        // mehrere Wörter: Teilen – die Zeit verteilt sich gleichmäßig bis zum nächsten Wort
+        const add = parts.map((w, k) => ({ w, l: t.l, b: t.b == null ? null : snapB(t.b + (nb - t.b) * k / parts.length) }));
+        tok.splice(i, 1, ...add); changed(); return;
+      }
+      if (b.id === 'sgMerge') { const n = tok[i + 1]; if (!n || n.l !== t.l) return; t.w = t.w + ' ' + n.w; tok.splice(i + 1, 1); changed(); return; }
+    });
+    box.addEventListener('change', e => { if (e.target.id === 'sgSnap') { ui.snap = e.target.checked; edSig = ''; } });
+  }
+
+  function init() {
+    const btn = $('sgToggle'); if (!btn) return;
+    btn.addEventListener('click', () => { ui.open = !ui.open; $('sgCard').hidden = !ui.open; btn.classList.toggle('active', ui.open); edSig = ''; if (!ui.open) stopTap(); });
+    bindLane(); bindEditor();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+  return { tick, tap, tokenize, merge, f2b, b2f, source: ci => source(ci), data: () => db, _reload: () => { db = load(); changed(); }, ui: () => ui };
+})();
+window.Sing = Sing;
 
 </script>
 <script>
@@ -15866,6 +16170,13 @@ if (typeof module !== 'undefined') module.exports = LiedExport;
       return { tracks: [], track: -3, segs, L: a * 1000, pos: n.beat * 1000, downs, sr: 1000, key: P.v.key, playing: true, jam: true, lied: true };
     },
     nowChord: () => { const n = now(); return n ? { name: ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'][n.chord.r] + n.chord.t } : null; },
+    // Mitsingen (v61): laufender Teil, Durchgang (für den Text) und Schlag im Teil
+    singNow: () => {
+      const n = now(); if (!n || !window.LiedText) return null;
+      const fl = C.flat(P.v), idx = fl.findIndex(x => x.oi === n.entry.oi && x.rep === n.entry.rep);
+      const p = n.entry.p, pass = fl.slice(0, Math.max(0, idx)).filter(x => x.p.id === p.id).length, ly = LiedText.lyricsOf(p, pass);
+      return { song: db.active, part: p, pass: ly.same ? 0 : pass, text: ly.text, beat: n.beat, beats: C.beatsOf(p) };
+    },
     log: () => P ? P.log.slice() : [], grid: () => P ? P.events.filter(e => e.inChord === 0).map(e => e.t) : [],
     db: () => db, song, ver, play, prompt: () => promptText(), readCode, imp: () => imp, stop, openCapture, render, now: () => { const n = now(); return n ? { part: n.entry.p.name, oi: n.entry.oi, chord: n.chord, beat: n.beat } : null; },
     _reload: () => { db = load(); render(); }

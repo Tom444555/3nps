@@ -3012,6 +3012,13 @@ const Looper = (() => {
       return { tracks: list, track: t.i, segs: t.chords.segs.map(q => ({ name: q.name, a: q.a, e: q.e })), L: t.L, pos, downs, sr, beats: trackBeats(t).filter(b => !b.bar && b.f > 0 && b.f < t.L - 2).map(b => b.f),
         key: t.key ? { pc: t.key.pc, major: !!t.key.major } : null, playing: !!t.src };
     },
+    // Mitsingen (v61): Bezug einer Spur zur geladenen Originaldatei – nur lesen
+    singSrc: i => {
+      const t = tracks[i]; if (!t || !t.L || !t.orig || t.origPos == null || !t.orig.beats || t.orig.beats.length < 4) return null;
+      const o = t.orig, len = o.data ? (o.data.l || o.data).length : 0;
+      return { key: (o.name || 'Datei') + '|' + Math.round(len / sr * 10), name: o.name || 'Datei', origPos: t.origPos, beats: o.beats, downs: o.downs || [], sr, L: t.L,
+        pos: t.src && audioCtx ? mod(playFrame() - anchor, t.L) : null };
+    },
     // Eingang für „Mithören“: öffnet ihn bei Bedarf (gleicher Zugriff wie der Looper), liefert einen Analyser
     openInput: () => ensureMic(),
     inputAnalyser: () => {

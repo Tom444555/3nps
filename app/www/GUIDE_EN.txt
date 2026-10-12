@@ -78,6 +78,11 @@ Everything you record or write is stored only on this device (back it up, see se
 - “Listen” detects the notes you play through the input and counts chord tone / scale / clash.
 - Idea dice: small exercises for your next solo. Start / pause / resume the loop from here.
 
+- Lyrics (🎤): shows the lyrics of the playing song or loaded file in a lane under the chord strip,
+  with the current word lit and the full line below. Paste lyrics for a file, then “● Tap timing”:
+  play and tap the big button on every word. Fix words by tapping them (replace, split, join,
+  ◀ ▶ by a 16th) or drag them in the lane. “↻” re-taps a single line. Times are stored in bars and
+  beats, so they stay in sync. Lyrics of other artists: for your own practice only.
 
 7. CAGED
 --------

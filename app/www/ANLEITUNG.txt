@@ -572,3 +572,16 @@ Gut zu wissen
    - Beim Ziehen mit „⇔ Loop verschieben“ bleibt das Taktraster jetzt stehen – auch gezoomt und bei
      geladenen Dateien. Nur die Wellenform wandert; mit dem Magnet landet der gegriffene Anschlag
      genau auf der Taktlinie. Takt 1 bleibt am Loopanfang.
+
+49. Mitsingen: Gesangstext mit Timing (v61)
+   - In der Improvisation „🎤 Gesangstext“ antippen. Quelle ist, was gerade läuft:
+     ein Song aus dem Songwriting (Text kommt von dort) oder ein Loop aus einer geladenen Songdatei
+     (Text hier unter „Text einfügen“ hineinkopieren, eine Zeile pro gesungener Zeile).
+   - „● Einklopfen“: abspielen und bei jeder Silbe bzw. jedem Wort auf den großen Knopf tippen.
+     „Magnet 16tel“ rastet auf das Raster ein. „↻“ neben einer Zeile klopft nur diese Zeile neu ein.
+   - Korrigieren: Wort antippen → ersetzen (mehrere Wörter eintippen = teilen), ◀ ▶ um ein 16tel,
+     „Mit nächstem verbinden“, „Zeit löschen“. In der Spur unter der Akkordleiste lassen sich Wörter ziehen.
+   - Beim Abspielen leuchtet das aktuelle Wort unter dem Akkord, darunter steht die ganze Zeile
+     und klein die nächste. Die Zeiten hängen an Takt und Schlag der Datei – beim Loopen eines anderen
+     Ausschnitts passen sie weiter.
+   - Fremde Songtexte nur zum eigenen Üben; sie bleiben auf diesem Gerät.

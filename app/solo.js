@@ -130,6 +130,7 @@
     if (m === 'Dorisch' || m === 'Phrygisch') return { pc, major: false };
     return { pc: md(pc - off), major: true };
   }
+  window.SoloInfo = () => info();
   function info() {
     const L = typeof Looper !== 'undefined' && Looper.chordInfo ? Looper.chordInfo(state.track) : { tracks: [], track: -1 };
     // Läuft der Jam (und kein Loop), zeigt der Solo Finder dessen Akkordfolge
@@ -462,6 +463,7 @@
     });
     renderBand(ci, k);
     const on = tickBand(ci);
+    if (window.Sing) try { Sing.tick(ci); } catch (e) {}
     // Fokus: klingender Akkord (wenn „folgen“), sonst gewählter
     let f = state.focus;
     if (state.follow && on >= 0 && ci.segs) { const c = parseChord(ci.segs[on].name); if (c) f = { c, seg: on, live: true }; }
