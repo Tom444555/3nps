@@ -1,0 +1,141 @@
+LOOPSMITHS / 3NPS LOOPER – USER GUIDE (English)
+================================================
+
+Switch the language with the small “EN / DE” button next to the app name at the top.
+The app restarts briefly when you switch. Your recordings, songs and settings stay as they are.
+
+The app runs completely on your device: no account, no server, no data collection.
+Everything you record or write is stored only on this device (back it up, see section 11).
+
+
+1. GETTING STARTED
+------------------
+- iPad: open the web page in Safari, tap Share → “Add to Home Screen”. Start the app from its icon.
+  A new version becomes active when you open the app twice (the version is shown at the top, e.g. “v59”).
+- Connect your audio interface or amp (e.g. Spark LIVE via USB) before opening the input.
+- Tap “Open input” in the Looper. The meters next to the tracks now show your signal.
+  Tap the button again (“Input open”) to close the input – the app then stops listening completely
+  and does not reopen it by itself. REC or another tap on the button opens it again.
+- iPadOS gives web apps only one input channel (mono). Stereo works in the Mac app via Chrome.
+
+
+2. LOOPER
+---------
+- Three stereo tracks. Tap REC on track 1 and play your idea. Tap again: the loop plays.
+  Tap again: overdub. Undo with ↶, delete with ✕ (tap twice).
+- Loop length: free (the first recording sets the length and tempo) or a fixed number of bars.
+- Count-in, “recording starts with the first note” (trigger), and “remove the gap at the start”
+  are in the “Recording” card. New tracks are aligned to track 1 automatically (±60 ms).
+- Load an audio file (MP3, WAV, M4A, AIFF, FLAC …) onto a track: key, tempo and bars are detected.
+  Short, even files become a loop; longer songs keep the whole file and you choose a section.
+- Above the tracks the “What fits” box shows the current and next chord, a matching scale with its
+  notes, the pentatonic, and the next chord change (target note, leading tones). “Hold” freezes it.
+- Drums and drone follow the loop. “Start all” starts tracks, drums and drone together.
+- “Export for Logic” creates a ZIP with all tracks as 24-bit WAV (all starting on bar 1),
+  a mix, and a MIDI file with tempo, key, chords as markers and the drum pattern. A READ ME explains
+  the import step by step.
+- “→ Song” takes the current loop as a part (verse, chorus …) into a song in Songwriting.
+
+
+3. EDITOR (✂ on a track)
+------------------------
+- Waveform with bars, beats and 16ths. Tap the timeline to jump. Drag the orange handles to select.
+- Cut: trim, halve, double. Edit (selection): cut out, copy, paste, duplicate, silence, reverse,
+  fade in/out, ±3 dB, normalize. The loop length always stays the same. Undo/redo for every step.
+- “⇔ Move loop”: drag the whole waveform; “Snap” locks the grabbed hit to bar, beat or 16th.
+- Sync: shift by beats or 10 ms, fine align to the other tracks, first note on bar 1,
+  fit to loop length (time-stretch, pitch unchanged), ½ or 2× tempo.
+- “Check loop” tests whole bars, bar 1 at the start and a clean transition; “Fix it” corrects them.
+- Full screen editor: the foot pedal controls fine steps (◀ 1 ms · 1 ms ▶ · switch handle · listen).
+
+
+4. DRUMS, DRONE, EQ
+-------------------
+- More than 40 grooves (blues, rock, funk, latin, electronic …) with fills, swing and human feel.
+  The designer edits every step: tap a cell for on → accent → ghost → off. Save your own patterns.
+- “Room” is the drum reverb. Switching it off saves CPU if playback through a USB device stutters.
+- The drone plays the root of the key (several sound worlds). It can follow the key of a track.
+- 7-band EQ per track and for the drums, with presets.
+
+
+5. FOOT PEDAL
+-------------
+- Any pedal that sends as a keyboard works (M-VAVE Chocolate, AirTurn, PageFlip, iRig BlueTurn …).
+  Pair it in the iPad Bluetooth settings and set it to keyboard mode (M-VAVE: CubeSuite “Keyboard A” or “B”).
+- “Last” shows which key arrives with every press. Other keys: “Learn custom mapping”.
+- “Hold = undo” needs a pedal that stays pressed while held.
+
+
+6. IMPROVISATION
+----------------
+- Follows the looper, the backing track or the song. The chord strip shows up to 6 bars and scrolls
+  along; the next change is marked a little early so you can prepare.
+- “Playing now”: chord name and degree, notes of the key, a small chord shape (tap to hear it),
+  and the chord tones.
+- “What fits over it”: modes, pentatonic, blues scale, target notes – each with notes and a short
+  explanation of the sound. “To fretboard” shows it in Technique.
+- “Next change”: common notes, leading tones and the target note (third of the next chord).
+- “Listen” detects the notes you play through the input and counts chord tone / scale / clash.
+- Idea dice: small exercises for your next solo. Start / pause / resume the loop from here.
+
+
+7. CAGED
+--------
+- Five shapes (C, A, G, E, D) for major, minor, 7, m7 and maj7 chords.
+- Views: chord shape, arpeggio, triads (on any three strings, all inversions) and whole scale.
+- “Position” picks the shape that fits a four-fret area; notes shared with the next chord are ringed.
+- Follows the loop; the table “In the loop” shows for every chord which shape and triad lie in your position.
+- Practice: shape walk (next shape every bar) and triad ladder (one triad per beat).
+
+
+8. CIRCLE OF FIFTHS
+-------------------
+- Major outside, relative minor in the middle, diminished inside. The seven chords of the key are
+  highlighted. It jumps to the detected key and lights up the chord that is playing.
+- Tap a chord to hear it; send the key to the fretboard.
+
+
+9. BACKING TRACK
+----------------
+- Type a chord progression (e.g. “Am F C G”, “Am:2” = two bars) or choose a preset.
+- Drums and bass follow the chords; add a synth sound (pads, strings, organ, keys, bell, rhythmic).
+- The bar timeline shows every chord; tap to select, change or remove it.
+- Tempo trainer: starts at the start tempo and gets faster every few loops up to the target.
+
+
+10. SONGWRITING
+---------------
+- Build songs from looper parts: “→ Song” in the looper, then arrange the parts with repeats.
+- Play the whole song with recordings, drums, bass and pad. Change chords, transpose, save versions.
+- “Check song” gives tips on length, chorus, bridge, chords and lyrics. Variants can be auditioned
+  and accepted as a new version.
+- Vocals: choose your voice type or sing your lowest and highest note; the app suggests a key
+  and shows target notes per chord.
+- Lyrics per part and pass, with syllable count and rhyme letters. Write [Am] right before a syllable
+  to place a chord change. “Lead sheet (PDF)” prints chords over the lyrics.
+- “Continue with Claude”: choose a task, copy the song code, paste it into a chat with Claude,
+  then paste the answer back and “Read in”. You listen first and accept it as a new version.
+  The song code uses German keywords (Titel, Tonart, Akkorde …) – leave them as they are.
+- “Export for Logic”: the whole song as a ZIP with recordings, MIDI (tempo, sections, chords, bass,
+  drums, lyrics), lead sheet, lyrics and song code, plus a READ ME.
+
+
+11. TRAINING AND TECHNIQUE
+--------------------------
+- Training: daily practice with timers, ear training (intervals, chord types, degrees),
+  a lick library plus your own licks, and a solo analysis of a recorded solo against the chords.
+- Technique: fretboard with 3-notes-per-string scales and exercise patterns, metronome,
+  accompaniment (drone, drums, bass), song player and practice log.
+
+
+12. BACKUP, PERFORMANCE, TROUBLESHOOTING
+----------------------------------------
+- “Back up everything” (Looper → App · Backup) saves ideas, patterns, practice log and settings into
+  one file. Keep it in Files or iCloud; “Load backup” restores it. Do this before deleting the app.
+- After a crash the last session can be restored from the bar at the top of the looper.
+- “Performance ▾” shows CPU load, frame rate, dropouts, audio stalls, memory and latency.
+  It can be pinned, moved and made compact.
+- Playback stutters with a USB amp: choose “Stable – large audio buffer” under Performance and restart
+  the app, or switch off the drum “Room”.
+- Input does not open: close other audio apps (Logic, GarageBand), check the cable, tap “Open input” again.
+- “Live” switches off analysis and saving while you perform; everything is caught up afterwards.

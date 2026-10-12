@@ -107,8 +107,9 @@ Alles geht direkt auf dem iPad, ohne Computer.
 
 Sprache
    - Oben neben dem App-Namen schaltet „EN“ die App auf Englisch, „DE“ wieder auf Deutsch.
-     Die App startet dabei kurz neu. Bisher übersetzt: Kopf, Reiternamen und der Looper –
-     die übrigen Reiter folgen.
+     Die App startet dabei kurz neu. Übersetzt sind alle Reiter, Meldungen, Leadsheet-PDF und
+     die Logic-Pakete. Eigene Inhalte (Songnamen, Liedtexte, Ideen) bleiben, wie du sie geschrieben hast.
+     Englische Anleitung: GUIDE_EN.txt.
 
 9. Eingangspegel
    - „Eingang öffnen“ (oben im Looper) zeigt das Signal schon vor der Aufnahme
