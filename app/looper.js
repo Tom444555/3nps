@@ -239,9 +239,17 @@ const Looper = (() => {
   // ---- Mikrofon ----
   const monBtn = $('loopMonitor');
   monBtn.addEventListener('click', async () => {
-    if (micReady) { setStatus('Der Eingang ist offen. Die Pegelanzeigen neben den Spuren zeigen dein Signal.'); return; }
-    if (await ensureMic()) setStatus('Eingang offen: Die Pegelanzeigen neben den Spuren zeigen jetzt dein Signal.');
+    if (micReady) {
+      if (rec) { setStatus('Gerade läuft eine Aufnahme – erst beenden, dann den Eingang schließen.'); return; }
+      closeMic(); setStatus('Eingang geschlossen. Die App nimmt nichts mehr auf und hört nicht mehr mit. Zum Öffnen erneut tippen (oder REC).'); return;
+    }
+    if (await ensureMic()) setStatus('Eingang offen: Die Pegelanzeigen neben den Spuren zeigen jetzt dein Signal. Erneut tippen schließt ihn.');
   });
+  // Vom Nutzer geschlossen: kein automatisches Wiederöffnen (Wächter, Rückkehr, Tippen)
+  function closeMic() {
+    micWanted = false; wasMic = false; autoTries = 0;
+    micLost('vom Nutzer');
+  }
   // Öffnen läuft höchstens einmal gleichzeitig (Doppeltippen, REC während des Öffnens)
   let micOpening = null;
   function ensureMic() {
@@ -363,7 +371,7 @@ const Looper = (() => {
     $('panel-looper').classList.remove('mic-on');
     monBtn.classList.remove('active'); monBtn.textContent = 'Eingang öffnen';
     if (rec) cancelRec();
-    if (reason === 'device') return;
+    if (reason === 'device' || reason === 'vom Nutzer') return;
     setStatus('Der Eingang wurde unterbrochen (z. B. Sperren, Ladekabel, USB-Gerät). Ich öffne ihn neu …');
     // Gleich wieder öffnen (ohne Nachfrage, solange die Erlaubnis gilt); sonst beim nächsten Tippen
     setTimeout(reopenMic, 900);

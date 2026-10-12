@@ -1,6 +1,6 @@
 # 3nps Looper – Übergabe (vollständiger Stand)
 
-Stand: **11. Oktober 2026 · Version v57** – live unter https://tom444555.github.io/3nps/ ·
+Stand: **12. Oktober 2026 · Version v58** – live unter https://tom444555.github.io/3nps/ ·
 stabile Rückfall-Fassung **v24** unter https://tom444555.github.io/3nps/stabil/
 
 Diese Datei ist das Gedächtnis des Projekts. Alles, was ein neuer Chat wissen muss, steht hier –
@@ -184,10 +184,10 @@ IDs `tab-…`/`panel-…`. Begleitung (Drone, Drums, Bass), alter Song-Player un
 - **Anzeige:** `playFrame()` = hörbare Position; „Was passt“-Box mit fester Höhe (iPad 168 px, schmal 240 px, iPhone 236 px) –
   nichts darf beim Mitlaufen springen.
 
-## 8. Tests und erwartete Ergebnisse (v57)
+## 8. Tests und erwartete Ergebnisse (v58)
 
 Browser (Playwright, Testserver 8765, **nacheinander**):
-`v56strip.py` 7/7 (6 Takte, Mitscrollen, früherer Wechsel per Jam) · `v54caged.py` 21/21 (prüft alle 60 Akkorde × 5 Formen auf Akkordtöne, Dreiklänge je Saitengruppe, Ansichten, Lage, Loop folgen, Tabelle, Üben, schmal) · `v51play.py` 10/10 (Pause/Weiter, Stelle bleibt, Drums mit) · `v50ein.py` 8/8 (Eingangsgerät-Anzeige, Zuschneiden über Bearbeiten) · `v49edit.py` 12/12 (Loop ziehen rechts/links, Undo, Magnet Takt, Wahl gespeichert) · `v48lead.py` 8/8 · `v47mic.py` 6/6 · `v46jam.py` 7/7 · `v44edit.py` 15/15 · `v43edit.py` 16/16 · `v40idea.py` 7/7 · `v39back.py` 7/7 (Hintergrund simuliert über document.hidden + _micDrop + hängendes getUserMedia) · `v38live.py` 11/11 · `v41ideasolo.py` (Idee laden → Akkorde für Improvisation, mit/ohne Live; Ausgabe prüfen: Spur 0, has=True) · `v37stall.py` 16/16 (Hänger-Erkennung per absichtlich überlastetem Audio-Modul, Wächter, Schlüssel-Umzug, „Stabil“, Latenz-Nachziehen, Raum) · `v36mic.py` 10/10 (Fehlerfälle beim Öffnen per gepatchtem getUserMedia) · `v35.py` 20/20 (Anheften/Ziehen/Kompakt/Neustart, Kontraste der neuen Optiken) · `v34perf.py` 12/12 · `v34optik.py` 16/16 (Pages-Nachbau Port 8790, prüft Wechsel mit v24) · `v31export.py` 14/14 (prüft Versionsmarke – bei jeder Version anpassen) · `v30text.py` 27/27 (Versionsprüfung seit v34 „ab v30“ numerisch) · `v28lied.py` 34/34 · `v28sync.py` 6/6 · `v27passt.py` 17/17 · `passthoehe.py` 8/8 ·
+`v58mic.py` 10/10 (Eingang schließen, bleibt zu bei Wächter/Tippen/Rückkehr, REC öffnet, während Aufnahme gesperrt) · `v56strip.py` 7/7 (6 Takte, Mitscrollen, früherer Wechsel per Jam) · `v54caged.py` 21/21 (prüft alle 60 Akkorde × 5 Formen auf Akkordtöne, Dreiklänge je Saitengruppe, Ansichten, Lage, Loop folgen, Tabelle, Üben, schmal) · `v51play.py` 10/10 (Pause/Weiter, Stelle bleibt, Drums mit) · `v50ein.py` 8/8 (Eingangsgerät-Anzeige, Zuschneiden über Bearbeiten) · `v49edit.py` 12/12 (Loop ziehen rechts/links, Undo, Magnet Takt, Wahl gespeichert) · `v48lead.py` 8/8 · `v47mic.py` 6/6 · `v46jam.py` 7/7 · `v44edit.py` 15/15 · `v43edit.py` 16/16 · `v40idea.py` 7/7 · `v39back.py` 7/7 (Hintergrund simuliert über document.hidden + _micDrop + hängendes getUserMedia) · `v38live.py` 11/11 · `v41ideasolo.py` (Idee laden → Akkorde für Improvisation, mit/ohne Live; Ausgabe prüfen: Spur 0, has=True) · `v37stall.py` 16/16 (Hänger-Erkennung per absichtlich überlastetem Audio-Modul, Wächter, Schlüssel-Umzug, „Stabil“, Latenz-Nachziehen, Raum) · `v36mic.py` 10/10 (Fehlerfälle beim Öffnen per gepatchtem getUserMedia) · `v35.py` 20/20 (Anheften/Ziehen/Kompakt/Neustart, Kontraste der neuen Optiken) · `v34perf.py` 12/12 · `v34optik.py` 16/16 (Pages-Nachbau Port 8790, prüft Wechsel mit v24) · `v31export.py` 14/14 (prüft Versionsmarke – bei jeder Version anpassen) · `v30text.py` 27/27 (Versionsprüfung seit v34 „ab v30“ numerisch) · `v28lied.py` 34/34 · `v28sync.py` 6/6 · `v27passt.py` 17/17 · `passthoehe.py` 8/8 ·
 `v25grips.py` 10/10 · `v25jam.py` 21/21 · `v25listen.py` 9/9 · `v25ueben.py` 28/28 · `v25stress.py` 6/6 · `tempotest.py` 3/3 ·
 `v24solo.py` 22/22 · `v22key.py` 7/7 · `v21test.py` 8/8 · `v21tabs.py` 18/18 · `v20test.py` 14/14 · `suite.py` 81/81 · `stereotest.py` 16/16 (Prüfung „Pegel zeigt L/R“ liest einen Zufallsmoment, selten 15/16 – dann wiederholen) ·
 `eqtest.py` 9/9 · `restoretest.py` 7/7 · `backuptest.py` 7/7 · `csptest.py` (keine fremden Anfragen) · `rec_fit.py 1` 10/10 ·
@@ -235,6 +235,7 @@ Testaudio-Generatoren (alle deterministisch, von `wiederherstellen.sh` aufgerufe
 | v55 | Gemeinsame Schreibweise `window.spellPc(pc, key)` / `spellChord(name, key)` (oben in `appcfg.js`): leitereigen nach Tonart-Vorzeichen, fremde Stufen ♭II/♭III/♭VI/♭VII mit ♭ (Moll: nur ♭II), sonst ♯. Genutzt von `nn` in solo/jam/uebung/caged und den Akkordnamen im Looper (Spurkopf, Editor-Leiste) mit `t.key`. MIDI-Marker bleiben roh. v28lied prüft neue Reiterreihenfolge |
 | v56 | Improvisation: Leistenbreite `BW * bars / 6` (≤ 6 Takte sichtbar), `tickBand` scrollt vorausschauend (ab vorletztem sichtbaren Takt, laufender Takt mit 1 Takt Rückblick, `scrollTo smooth`); markierter/fokussierter Akkord mit Vorlauf `min(0,3 s, ½ Schlag)`. `Jam.chordInfo` liefert jetzt echte Einheiten je Sekunde (`sr = 1000·bpm/60`, `beats`). MIDI-Marker über `spellChord` (ASCII b/#) |
 | v57 | **Behoben:** Loop verschieben verschob bei geladenen Dateien das Taktraster mit (`rotate` zog `origPos` nach). Neu `rotate(k, keepGrid)`; das Ziehen nutzt `keepGrid = true`, Takt 1 bleibt am Loopanfang. Nudge-Knöpfe und „Erster Ton auf Takt 1“ unverändert |
+| v58 | Eingang per Knopf schließen: Tippen auf „Eingang offen“ → `closeMic()` (`micWanted = wasMic = false`, `micLost('vom Nutzer')` ohne Neuöffnen); während Aufnahme gesperrt; REC/Knopf öffnet wieder. ANLEITUNG Abschnitt 9 |
 | v47 | Eingang bleibt offen: `micWanted` + Wächter (1×/s): still beendete oder > 1,5 s stummgeschaltete Spur → `micLost` → bis zu 2 automatische Neuöffnungen (nicht nach Timeout, dann wartet es auf Tippen). Jedes Schließen mit Grund im Hänger-Protokoll (`Eingang zu (…)`). Anlass: iPad schloss den Eingang beim Reiterwechsel (in Chromium nicht nachstellbar) |
 | v46 | Backing Track: Beat-Auswahl `#jamStyle` (Spiegel von `#loopDrumStyle`), 9 neue Presets (house, techno, trap, lofi, synthwave, breakbeat, samba, cumbia, ballad68), Synth-Klänge `#jamSound`/`st.padSound` (pad, warm, strings, organ, epiano FM, bell FM, pluck/arp rhythmisch über `arpStep` im Taktgeber) |
 | v45 | Editor Block 3 Quantisieren: `qAnalyse` (Onsets in Auswahl → nächster Rasterpunkt aus `qGridPts`, Swing auf ungerade Teilungen, Anker streng steigend), `wsolaWarp` = Flex-Time-artig: Abschnitte je Anschlag (5 ms davor), `wsolaSeg` streckt nur den Ausklang (N 1024, Suche ±160), 3-ms-Überblendung; Vorher/Nachher über `startLoopSel(buf)`. `vergleich.py` setzt `3nps-edfull=0` |
@@ -259,6 +260,10 @@ Testaudio-Generatoren (alle deterministisch, von `wiederherstellen.sh` aufgerufe
   Das Logic-Paket ist technisch geprüft (WAV/MIDI/ZIP), aber noch nicht vom Nutzer in Logic geöffnet worden.
 
 ## 11. Offen / Ideen (warten auf den Nutzer)
+
+0. **App-Name „Loopsmiths“** (EUIPO + DPMA ohne Treffer, im App Store nichts gefunden). Nutzer: kein Gewerbe, kein Händler; Apple-Konto als
+   Einzelperson in Arbeit. Erst kostenlos (Nicht-Händler) denkbar, Verkauf/Trinkgeld → Kleingewerbe + Händlerstatus.
+   **Englisch-Umschaltung** gewünscht (Knopf oben beim Namen, alles inkl. Knöpfe) – Konzept dem Nutzer vorgelegt, wartet auf Freigabe.
 
 1. **Native Hülle (iPad-App) + AUv3-Plugin für Logic** – gebaut mit GitHub Actions (macOS), TestFlight, später App Store.
    WKWebView mit gebündelter App, Neustart nach Abbruch des Web-Prozesses + Wiederherstellen, Mikrofon-Erlaubnis einmalig,

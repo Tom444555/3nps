@@ -109,6 +109,8 @@ Alles geht direkt auf dem iPad, ohne Computer.
    - „Eingang öffnen“ (oben im Looper) zeigt das Signal schon vor der Aufnahme
      in den Pegelanzeigen neben jeder Spur. Weiße Linie = Spitzenwert, die
      aufnehmende Spur leuchtet rot.
+   - Erneut tippen auf „Eingang offen“ schließt den Eingang wieder: Die App hört dann nicht mehr mit
+     und öffnet ihn nicht von selbst. REC oder ein Tippen auf den Knopf öffnet ihn wieder.
    - Kommt ein Stereo-Signal an, teilt sich der obere Balken in zwei: oben links (L), unten rechts (R).
      Neben „Eingang“ steht dann „Stereo L/R“.
    - Die Pegel neben jeder Spur zeigen ebenfalls links (L) und rechts (R), in der Farbe der Spur.
