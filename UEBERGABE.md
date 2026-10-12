@@ -65,7 +65,7 @@ eigene kleine Leser/Schreiber verwenden (MIDI-Leser steht in `test/liedexport.js
 
 ## 5. Die App (Reiter)
 
-Reihenfolge der Reiter (intern `id`): **Looper** (`looper`) · **Quintenzirkel** (`quinten`) · **Improvisation** (`solo`) ·
+Reihenfolge der Reiter (intern `id`): **Looper** (`looper`) · **Improvisation** (`solo`) · **CAGED** (`caged`) · **Quintenzirkel** (`quinten`) ·
 **Backing Track** (`jam`) · **Songwriting** (`lied`) · **Training** (`ueben`) · **Technik** (`griffbrett`).
 IDs `tab-…`/`panel-…`. Begleitung (Drone, Drums, Bass), alter Song-Player und Übungslog sind Karten im Reiter Technik.
 
@@ -90,6 +90,10 @@ IDs `tab-…`/`panel-…`. Begleitung (Drone, Drums, Bass), alter Song-Player un
 - **Quintenzirkel:** folgt der erkannten Tonart und dem klingenden Akkord (Looper, Backing Track oder Song).
 - **Improvisation** (früher „Solo Finder“): Akkordleiste, Tonarten/Kirchentonleitern/Pentatonik mit Griffbild, Akkordgriffe (CAGED),
   Mithören (YIN) mit Zähler Akkordton/Tonleiter/außerhalb, Ideen-Würfel. Folgt Looper, Backing Track und Song.
+  Seit v50–v56: kleines Griffbild unter „Klingt jetzt“ (Töne der Tonart links daneben), Takte/Schläge in der Leiste, höchstens
+  6 Takte sichtbar mit Mitscrollen, Wechsel ~0,3 s früher markiert, Knopf Start/Pause/Weiter (`Looper.pauseToggle`).
+- **CAGED** (v54): 5 Formen je Akkord (Dur, m, 7, m7, maj7), Ansichten Griff/Arpeggio/Dreiklänge/Tonleiter, Lage (4 Bünde),
+  gemeinsame Töne mit nächstem Akkord, folgt Loop/Backing Track/Song, Tabelle „Im Loop“, Üben (Formen-Wanderung, Dreiklang-Leiter).
 - **Backing Track:** Akkordfolge eintippen oder Vorlagen, Drums/Bass folgen den Akkorden, Fläche, Tempo-Trainer.
 - **Songwriting:** Songs aus Looper-Teilen (Strophe, Refrain …), Ablauf mit Wiederholungen, Wiedergabe mit Aufnahmen/Drums/Bass/Fläche,
   Akkorde korrigieren, Versionen, „Song prüfen“ + Varianten (anhören/übernehmen), Gesang (Stimmlage, Tonart-Empfehlung, Zieltöne),
@@ -180,7 +184,7 @@ IDs `tab-…`/`panel-…`. Begleitung (Drone, Drums, Bass), alter Song-Player un
 - **Anzeige:** `playFrame()` = hörbare Position; „Was passt“-Box mit fester Höhe (iPad 168 px, schmal 240 px, iPhone 236 px) –
   nichts darf beim Mitlaufen springen.
 
-## 8. Tests und erwartete Ergebnisse (v48)
+## 8. Tests und erwartete Ergebnisse (v57)
 
 Browser (Playwright, Testserver 8765, **nacheinander**):
 `v56strip.py` 7/7 (6 Takte, Mitscrollen, früherer Wechsel per Jam) · `v54caged.py` 21/21 (prüft alle 60 Akkorde × 5 Formen auf Akkordtöne, Dreiklänge je Saitengruppe, Ansichten, Lage, Loop folgen, Tabelle, Üben, schmal) · `v51play.py` 10/10 (Pause/Weiter, Stelle bleibt, Drums mit) · `v50ein.py` 8/8 (Eingangsgerät-Anzeige, Zuschneiden über Bearbeiten) · `v49edit.py` 12/12 (Loop ziehen rechts/links, Undo, Magnet Takt, Wahl gespeichert) · `v48lead.py` 8/8 · `v47mic.py` 6/6 · `v46jam.py` 7/7 · `v44edit.py` 15/15 · `v43edit.py` 16/16 · `v40idea.py` 7/7 · `v39back.py` 7/7 (Hintergrund simuliert über document.hidden + _micDrop + hängendes getUserMedia) · `v38live.py` 11/11 · `v41ideasolo.py` (Idee laden → Akkorde für Improvisation, mit/ohne Live; Ausgabe prüfen: Spur 0, has=True) · `v37stall.py` 16/16 (Hänger-Erkennung per absichtlich überlastetem Audio-Modul, Wächter, Schlüssel-Umzug, „Stabil“, Latenz-Nachziehen, Raum) · `v36mic.py` 10/10 (Fehlerfälle beim Öffnen per gepatchtem getUserMedia) · `v35.py` 20/20 (Anheften/Ziehen/Kompakt/Neustart, Kontraste der neuen Optiken) · `v34perf.py` 12/12 · `v34optik.py` 16/16 (Pages-Nachbau Port 8790, prüft Wechsel mit v24) · `v31export.py` 14/14 (prüft Versionsmarke – bei jeder Version anpassen) · `v30text.py` 27/27 (Versionsprüfung seit v34 „ab v30“ numerisch) · `v28lied.py` 34/34 · `v28sync.py` 6/6 · `v27passt.py` 17/17 · `passthoehe.py` 8/8 ·
@@ -270,3 +274,8 @@ Testaudio-Generatoren (alle deterministisch, von `wiederherstellen.sh` aufgerufe
    Hinweis an den Nutzer: fremde Songtexte sind urheberrechtlich geschützt – nur zum eigenen Üben.
 3. Takterkennung weiter verfeinern: Shuffle-Takt-Eins, langsame Funk/Ride-Grooves (Fälle in `oktave3/4`: q22, q44, q48, q56, q62).
 4. Frühere Ideen ohne Termin: MIDI-/Tab-Export der Licks, Live-Szenen.
+5. **CAGED Schritt 2:** Mithören (gespielter Ton im Griffbild, Akkordton/Tonleiter/daneben – Erkennung aus der Improvisation
+   übernehmen) und Quiz („Welche Form?“, „Wo ist die Terz?“), ggf. ans Training anhängen.
+6. Vorlauf des Akkordwechsels in der Improvisation ggf. vergrößern (jetzt min(0,3 s, ½ Schlag)) – Rückmeldung vom Nutzer abwarten.
+7. Auf dem iPad noch ungeprüft: Gerätename über „Eingang öffnen“ (`track.label`, z. B. Spark LIVE), Pause/Weiter mit Drums.
+8. `stereotest.py` Prüfung „Pegel zeigt L/R“ schwankt (L/R-Pegel fast gleich) – Test toleranter machen.
