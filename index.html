@@ -65,6 +65,8 @@
   .cb-inner { max-width: 1100px; margin: 0 auto; padding: 10px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
   .brand { font: 700 0.95rem var(--f-display); letter-spacing: -0.01em; white-space: nowrap; }
   .brand span { color: var(--muted); font-weight: 500; }
+  .lang-btn { font: 600 0.62rem var(--f-display, system-ui); letter-spacing: 0.04em; margin-left: 6px; padding: 2px 6px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--muted); cursor: pointer; vertical-align: 2px; }
+  .lang-btn:hover { color: var(--ink); }
   .transport { display: flex; gap: 6px; }
   .tbtn {
     appearance: none; width: 44px; height: 36px; border-radius: 7px; border: 1px solid #141416; cursor: pointer; position: relative;
@@ -2168,10 +2170,371 @@ html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleis
 
 </head>
 <body>
+<script>
+// Englisch-Wörterbuch (Deutsch → Englisch). Schlüssel = Text bzw. Textbaustein genau wie im Programm.
+// Allgemeine Wörter stehen am Ende; längere Bausteine haben automatisch Vorrang.
+window.__EN = {
+// ---- Kopf, Reiter, Optik, Leistung ----
+'App-Optik ▾': 'Appearance ▾', 'Leistung ▾': 'Performance ▾', 'App-Optik': 'Appearance', 'Leistung': 'Performance',
+'Live: während des Loopens keine Analyse, keine Sicherung, ruhige Anzeigen – wird beim Ausschalten nachgeholt': 'Live: no analysis, no saving and calm displays while looping – caught up when you switch it off',
+'Klar': 'Clear', 'Kühl': 'Cool', 'Nordisch': 'Nordic', 'Verstärker': 'Amp', 'DJ-Pult': 'DJ Deck', 'Hell': 'Light', 'Präzision': 'Precision',
+'Ziehen zum Verschieben': 'Drag to move', 'Nur die wichtigsten Werte': 'Only the key values', 'Kompakt': 'Compact',
+'Fenster bleibt offen und lässt sich verschieben': 'Window stays open and can be moved', 'Anheften': 'Pin', 'Angeheftet': 'Pinned', 'Schließen': 'Close',
+'Rechenlast': 'CPU load', 'Bedienung': 'Interface', 'Bildrate': 'Frame rate', 'Aussetzer': 'Dropouts', 'Audio-Hänger': 'Audio stalls',
+'Drums zu spät': 'Late drum hits', 'Abtastrate': 'Sample rate', 'Arbeitsspeicher': 'Memory', 'Programm': 'App', 'Latenz': 'Latency',
+'Audio-Puffer': 'Audio buffer', 'Ausgang': 'Output', 'Eingang → Ohr': 'Input → ear', 'Ausgleich': 'Compensation',
+'Hänger-Protokoll': 'Stall log', 'Kopieren': 'Copy', 'Leeren': 'Clear', 'noch keine Hänger': 'no stalls yet',
+'Metronom starten oder stoppen': 'Start or stop metronome', 'Taktart': 'Time signature', 'Tempo in BPM': 'Tempo in BPM', 'Bereiche': 'Sections',
+'Improvisation': 'Improvisation', 'Quinten': 'Circle of', 'zirkel': 'fifths', 'Song': 'Song', 'writing': 'writing', 'Technik': 'Technique',
+'Grundton': 'Root', 'Modus': 'Mode', 'Übungsmuster': 'Exercise pattern', 'Rauf & Runter': 'Up & down', '3er-Sequenz': 'Groups of 3',
+'Terzsprünge': 'Thirds', 'Griffbild': 'Fretboard', 'Beschriftung': 'Labels', 'Noten': 'Notes', 'Finger': 'Fingers', 'Metronom': 'Metronome',
+'Töne pro Schlag': 'Notes per beat', '1 (Viertel)': '1 (quarters)', '2 (Achtel)': '2 (eighths)', 'Klick': 'Click', 'Klick an': 'Click on', 'Bereit': 'Ready',
+'Begleitung': 'Accompaniment', 'Grundton-Drone': 'Root drone', 'Klangfarbe': 'Sound',
+'Cineastisch I – Pad & Chor': 'Cinematic I – pad & choir', 'Cineastisch II – Brass & Streicher': 'Cinematic II – brass & strings',
+'Nordmeer – Wikinger (Wind, Wellen, Trommeln)': 'North Sea – Vikings (wind, waves, drums)', 'Nordlicht – Eis & Glas': 'Northern lights – ice & glass',
+'Elbenküste – Meer & Chor (Meeresrauschen, Harfe)': 'Elven coast – sea & choir (surf, harp)', 'Waldesruh – Elbenwald (Vögel, Bach, Flöte)': 'Forest calm – elven wood (birds, brook, flute)',
+'Nachtbrandung – Küste & Fläche (Meer im Hintergrund, E-Piano)': 'Night surf – coast & pad (sea in the background, e-piano)',
+'Maschinenhalle – Stahl & Takt (Presse, Ventile, Turbine)': 'Machine hall – steel & rhythm (press, valves, turbine)',
+'Drone starten oder stoppen': 'Start or stop drone', 'Lautstärke': 'Volume', 'Verzierungen einstreuen (Klavier, Rufe, Trommeln, Glas)': 'Add ornaments (piano, calls, drums, glass)',
+'Drums & Designer': 'Drums & designer', 'Dasselbe Schlagzeug wie im Looper – läuft hier frei im Tempo oben, im Looper im Takt deiner Loops.': 'The same drums as in the looper – here they run freely at the tempo above, in the looper in time with your loops.',
+'Bass aus': 'Bass off', 'Aus – spielt mit der Kick der Drums, im Grundton der Skala': 'Off – plays with the kick drum, on the root of the scale',
+'Über einen Song üben': 'Practise over a song', 'Audiodatei wählen': 'Choose audio file', 'Keine Datei geladen': 'No file loaded', 'Song abspielen oder pausieren': 'Play or pause song',
+'MP3, WAV, AIFF, M4A/AAC, Apple Lossless, FLAC, CAF und Videos mit Tonspur. Tonart und Tempo werden erkannt, Skala und Begleitung passen sich an.': 'MP3, WAV, AIFF, M4A/AAC, Apple Lossless, FLAC, CAF and videos with sound. Key and tempo are detected; scale and accompaniment adapt.',
+'Übungslog': 'Practice log', 'Minuten heute': 'Minutes today', 'Tage in Folge': 'Days in a row', 'Einheiten gesamt': 'Sessions total', 'Letzte Einheiten': 'Recent sessions', 'Verlauf wird geladen …': 'Loading history …',
+// ---- Looper: Kopf und Spuren ----
+'Kein Loop': 'No loop', 'Loop-Länge': 'Loop length', 'Frei (Taster) · ganze Datei': 'Free (footswitch) · whole file',
+'Kein Eingang offen': 'No input open', 'Eingang öffnen': 'Open input', 'Eingang offen': 'Input open', 'Öffne …': 'Opening …',
+'Klingender Akkord': 'Current chord', 'Nächster Akkord': 'Next chord', 'Danach': 'Then', 'Taktkreis': 'Bar circle', 'Wellenform': 'Waveform',
+'Schneiden und synchronisieren': 'Cut and sync', 'Audiodatei laden': 'Load audio file', 'Audiodatei auf Spur': 'Load audio file to track', 'Pegel': 'Level',
+'Eingangsverstärkung': 'Input gain', '7-Band-Equalizer für Spur': '7-band equalizer for track', '7-Band-Equalizer für die Drums': '7-band equalizer for the drums',
+'Spur bearbeiten': 'Edit track', 'Letzten Schritt im Editor zurücknehmen': 'Undo last editor step', 'Zurückgenommenen Schritt wiederholen': 'Redo step',
+'Editor über den ganzen Bildschirm': 'Editor full screen', 'Vollbild': 'Full screen', 'Fertig': 'Done', 'Herauszoomen': 'Zoom out', 'Hineinzoomen': 'Zoom in',
+'Auswahl zeigen': 'Show selection', 'Alles': 'All', '▶ ab Auswahl': '▶ from selection', 'Nur die Auswahl in Schleife hören (andere Spuren still)': 'Loop only the selection (other tracks muted)',
+'↻ Auswahl hören': '↻ Hear selection', 'Wellenform zum Schneiden': 'Waveform for cutting', 'Übersicht: ziehen zum Blättern': 'Overview: drag to scroll',
+'Griff': 'Handle', 'Anfang': 'Start', 'Ende': 'End', '1 Millisekunde nach links': '1 millisecond left', '1 Millisekunde nach rechts': '1 millisecond right',
+'1 Abtastwert nach links': '1 sample left', '1 Abtastwert nach rechts': '1 sample right',
+'Ganze Wellenform ziehen: Loop nach links/rechts verschieben': 'Drag the whole waveform: move the loop left/right', '⇔ Loop verschieben': '⇔ Move loop', 'Magnet': 'Snap',
+'Oben in der Zeitleiste tippen = dorthin springen. Griffe ziehen = Auswahl. „⇔ Loop verschieben“ an: die ganze Wellenform nach links/rechts ziehen, der Magnet lässt den gegriffenen Anschlag auf Takt, Schlag oder 16tel einrasten. Mit zwei Fingern oder +/− zoomen, unten in der Übersicht blättern. Feinschritte für den gewählten Griff; im Vollbild steuert das Fußpedal: ◀ 1 ms · 1 ms ▶ · Griff wechseln · Auswahl hören.': 'Tap the timeline at the top to jump there. Drag the handles to select. With “⇔ Move loop” on, drag the whole waveform left/right; snap makes the grabbed hit lock to the bar, beat or 16th. Zoom with two fingers or +/−, scroll in the overview below. Fine steps move the chosen handle; in full screen the foot pedal controls: ◀ 1 ms · 1 ms ▶ · switch handle · hear selection.',
+'Schneiden': 'Cut', 'Raster': 'Grid', 'Achtel': 'Eighths', 'Anschlag': 'Hit', 'Nulldurchgang': 'Zero crossing', 'Frei': 'Free', 'Blende am Schnitt': 'Fade at cut',
+'Zuschneiden': 'Trim', 'Halbieren': 'Halve', 'Verdoppeln': 'Double',
+'Zieh die orangen Griffe auf Anfang und Ende, dann „Zuschneiden“. Jeder Schritt lässt sich mit ↶ zurücknehmen.': 'Drag the orange handles to start and end, then “Trim”. Every step can be undone with ↶.',
+'Bearbeiten (Auswahl) · die Loop-Länge bleibt gleich': 'Edit (selection) · the loop length stays the same', 'Ausschneiden': 'Cut out', 'Einfügen': 'Paste',
+'Duplizieren': 'Duplicate', 'Stille': 'Silence', 'Umkehren': 'Reverse', 'Einblenden': 'Fade in', 'Ausblenden': 'Fade out', 'Normalisieren': 'Normalize',
+'Loop prüfen': 'Check loop', 'Prüfen': 'Check', 'Nacharbeiten': 'Fix it', 'Prüft, ob der Loop ganze Takte hat, Takt 1 am Anfang liegt und der Übergang sauber ist.': 'Checks that the loop has whole bars, bar 1 is at the start and the transition is clean.',
+'Ausschnitt aus Datei': 'Section of file', 'Ab Takt': 'From bar', 'Länge': 'Length', 'Übernehmen': 'Apply', 'Takt-Eins falsch?': 'Downbeat wrong?',
+'◀ 1 Schlag': '◀ 1 beat', '1 Schlag ▶': '1 beat ▶', '◀ Schlag': '◀ beat', 'Schlag ▶': 'beat ▶',
+'Die ganze Datei bleibt gespeichert. Wähle hier jederzeit einen anderen Teil des Songs. Liegt die Eins daneben, verschiebe das Taktraster um einen Schlag – der Ausschnitt wird sofort neu geschnitten.': 'The whole file stays saved. Choose another part of the song here at any time. If the downbeat is off, shift the bar grid by one beat – the section is re-cut right away.',
+'Synchronisieren': 'Sync', 'Versatz': 'Offset', 'Feinabgleich': 'Fine align', 'Erster Ton auf Takt 1': 'First note on bar 1', 'An Loop-Länge anpassen': 'Fit to loop length',
+'Tempo aus dieser Spur': 'Tempo from this track', '½ Tempo': '½ tempo', '2× Tempo': '2× tempo', 'Tonart und Akkorde': 'Key and chords', 'Erkennen': 'Detect', 'Akkorde: –': 'Chords: –',
+'Die Akkorde werden je Schlag erkannt und stehen über der Wellenform. Antippen eines Akkords springt dorthin. Beim Export für Logic kommen sie als Marker in die MIDI-Datei.': 'Chords are detected per beat and shown above the waveform. Tap a chord to jump there. When exporting for Logic they become markers in the MIDI file.',
+// ---- Drums, Drone, Gesamt ----
+'Drums aus': 'Drums off', 'Drums an': 'Drums on', 'Groove-Vorlage': 'Groove preset', 'Drum-Lautstärke': 'Drum volume',
+'Raumhall der Drums – aus spart Rechenzeit, falls die Wiedergabe über ein USB-Gerät stockt': 'Drum room reverb – switching it off saves CPU if playback through a USB device stutters',
+'Raum': 'Room', '16tel (gerade)': '16ths (straight)', 'Triolen (Shuffle, 12/8)': 'Triplets (shuffle, 12/8)', 'alle 4 Takte': 'every 4 bars', 'alle 8 Takte': 'every 8 bars',
+'alle 12 Takte (Blues)': 'every 12 bars (blues)', 'Gefühl': 'Feel', 'Menschliches Timing': 'Human timing', 'Vorhören': 'Preview', 'Name, z. B. Mein Shuffle': 'Name, e.g. My shuffle',
+'Muster speichern': 'Save pattern', 'Muster löschen': 'Delete pattern', 'Meine Muster': 'My patterns', 'Entwurf': 'Draft', 'Vorlagen': 'Presets',
+'Feld antippen: an → betont → leise (Ghost) → aus. Instrument antippen: stumm. „Gefühl“ = kleine menschliche Schwankungen in Timing und Lautstärke. Änderungen an einer Vorlage landen im „Entwurf“ – mit „Muster speichern“ bekommt dein Groove einen eigenen Namen unter „Meine Muster“. Änderungen an einem eigenen Muster werden direkt dort gespeichert.': 'Tap a cell: on → accent → soft (ghost) → off. Tap an instrument: mute. “Feel” = small human variations in timing and volume. Changes to a preset go into the “Draft” – “Save pattern” gives your groove its own name under “My patterns”. Changes to your own pattern are saved there directly.',
+'Drone aus': 'Drone off', 'Drone an': 'Drone on', 'Grundton der Drone': 'Drone root', 'Tonart wie Skala': 'Key as scale', 'Tongeschlecht der Drone': 'Drone mode', 'Modus wie Skala': 'Mode as scale',
+'Erkannte Tonart der Spuren übernehmen': 'Use the detected key of the tracks', 'Tonart aus Spur': 'Key from track', 'Drone-Klang': 'Drone sound',
+'Pad & Chor': 'Pad & choir', 'Brass & Streicher': 'Brass & strings', 'Nordmeer – Wikinger': 'North Sea – Vikings', 'Elbenküste – Meer & Chor': 'Elven coast – sea & choir',
+'Waldesruh – Elbenwald': 'Forest calm – elven wood', 'Nachtbrandung – Küste & Fläche': 'Night surf – coast & pad', 'Maschinenhalle – Stahl & Takt': 'Machine hall – steel & rhythm',
+'Verzierungen': 'Ornaments', 'Drone-Lautstärke': 'Drone volume', 'startet mit „Alle starten“': 'starts with “Start all”', 'Alle starten': 'Start all', 'Alle stoppen': 'Stop all',
+'Alle starten / stoppen': 'Start / stop all', 'Blitz: jeder Takt': 'Flash: every bar', 'Blitz: jeder Schlag': 'Flash: every beat', 'Blitz: aus': 'Flash: off',
+'Für Logic exportieren': 'Export for Logic', 'Gesamt': 'Master', 'Gesamtlautstärke': 'Master volume', 'Begrenzer gegen Übersteuern im Gesamtmix': 'Limiter against clipping in the master mix',
+'Limiter an': 'Limiter on', 'Limiter aus': 'Limiter off', 'Letzte Sitzung gefunden.': 'Last session found.', 'Wiederherstellen': 'Restore', 'Verwerfen': 'Discard',
+'Tippe auf REC von Spur 1 und spiel deine Idee ein. Nochmal tippen: Loop läuft. Nochmal: Overdub. Mit ✂ schneidest und synchronisierst du eine Spur.': 'Tap REC on track 1 and play your idea. Tap again: the loop plays. Again: overdub. Use ✂ to cut and sync a track.',
+// ---- Aufnahme, Leistung, Pedal ----
+'Aufnahme startet mit dem ersten Ton': 'Recording starts with the first note', 'Empfindlichkeit': 'Sensitivity', 'Vorzähler': 'Count-in',
+'Vorzähler auch vor dem Abspielen des Loops': 'Count-in also before playing the loop', 'Freie Länge auf ganze Takte runden': 'Round free length to whole bars',
+'Pause am Anfang wegnehmen: erster Ton liegt auf Takt 1 (erste Spur, ohne laufende Drums)': 'Remove the gap at the start: first note lands on bar 1 (first track, without running drums)',
+'Neue Spuren automatisch an Spur 1 angleichen (Timing, ±60 ms)': 'Align new tracks to track 1 automatically (timing, ±60 ms)',
+'Die orange Marke im Eingangspegel ist die Auslöseschwelle. Klingen Aufnahmen zu spät, schieb die Latenz nach rechts. Mit Kopfhörern landet der Loop nicht mit in der Aufnahme.': 'The orange mark in the input meter is the trigger threshold. If recordings sound late, move the latency to the right. With headphones the loop does not end up in the recording.',
+'Automatisch (schaltet bei Ruckeln auf sparsam)': 'Automatic (switches to economy when it stutters)', 'Hohe Qualität': 'High quality', 'Sparsam (z. B. beim Laden, ältere iPads)': 'Economy (e.g. while loading, older iPads)',
+'Stabil – großer Audio-Puffer (USB-Verstärker/-Interfaces)': 'Stable – large audio buffer (USB amps/interfaces)',
+'Sparsam: ruhigere Anzeige und größerer Audio-Puffer (nach einem Neustart der App) – der Klang bleibt gleich, nur die Verzögerung wird etwas größer.': 'Economy: calmer display and a larger audio buffer (after restarting the app) – the sound stays the same, only the delay gets slightly longer.',
+'Fußpedal': 'Foot pedal', 'Belegung': 'Mapping', 'Automatisch (Pfeiltasten, Bild ↑/↓, Leertaste, Enter)': 'Automatic (arrow keys, Page ↑/↓, Space, Enter)',
+'Nur Pfeiltasten (z. B. M-VAVE „Keyboard A“)': 'Arrow keys only (e.g. M-VAVE “Keyboard A”)', 'Bild ↑/↓, Leertaste, Enter (z. B. M-VAVE „Keyboard B“)': 'Page ↑/↓, Space, Enter (e.g. M-VAVE “Keyboard B”)',
+'Eigene Belegung anlernen': 'Learn custom mapping', 'Taster halten = Rückgängig': 'Hold switch = undo', 'Pedal-Empfang (nötig auf dem iPad) ·': 'Pedal input (needed on iPad) ·',
+'Zuletzt': 'Last', 'noch keine Taste empfangen': 'no key received yet', 'bereit ✓': 'ready ✓', 'einmal in die App tippen': 'tap the app once', ' (nicht belegt)': ' (not assigned)',
+'Pedal drücken …': 'Press pedal …', 'Anlernen': 'Learn', 'Pfeil ↑': 'Arrow ↑', 'Pfeil ↓': 'Arrow ↓', 'Pfeil ←': 'Arrow ←', 'Pfeil →': 'Arrow →', 'Bild ↑': 'Page ↑', 'Bild ↓': 'Page ↓', 'Leertaste': 'Space',
+'Jedes Pedal, das als Tastatur sendet, funktioniert – z. B. M-VAVE Chocolate, AirTurn, PageFlip oder iRig BlueTurn. Verbinden in den iPad-Einstellungen unter': 'Any pedal that sends as a keyboard works – e.g. M-VAVE Chocolate, AirTurn, PageFlip or iRig BlueTurn. Pair it in the iPad settings under',
+', das Pedal in den Tastatur-Modus stellen (beim M-VAVE in der App CubeSuite „Keyboard A“ oder „B“). Sendet dein Pedal andere Tasten: „Eigene Belegung anlernen“.': ', set the pedal to keyboard mode (M-VAVE: in the CubeSuite app “Keyboard A” or “B”). If your pedal sends other keys: “Learn custom mapping”.',
+'Bei jedem Tritt zeigt „Zuletzt“, welche Taste ankommt. Bleibt es leer, sendet das Pedal MIDI – das kann Safari auf dem iPad nicht empfangen. „Halten = Rückgängig“ braucht ein Pedal, das beim Halten gedrückt bleibt (manche Seitenwender senden nur kurze Tipps).': 'With every press, “Last” shows which key arrives. If it stays empty, the pedal sends MIDI – Safari on the iPad cannot receive that. “Hold = undo” needs a pedal that stays pressed while held (some page turners only send short taps).',
+// ---- Ideen, Sicherung ----
+'Ideen': 'Ideas', 'Name (optional)': 'Name (optional)', 'Speichern': 'Save', 'Drums mitspeichern': 'Save drums too', 'Drone mitspeichern': 'Save drone too', 'Wird geladen …': 'Loading …',
+'App · Sicherung': 'App · Backup', 'Als App installieren': 'Install as app', 'Alles sichern': 'Back up everything', 'Sicherung laden': 'Load backup',
+'„Alles sichern“ packt Ideen, eigene Drum-Muster, das Übungslog und alle Einstellungen in eine Datei – z. B. in Dateien oder iCloud ablegen. Vor dem Löschen oder Neu-Hinzufügen der App sichern, danach hier „Sicherung laden“.': '“Back up everything” packs ideas, your drum patterns, the practice log and all settings into one file – e.g. store it in Files or iCloud. Back up before deleting or re-adding the app, then use “Load backup” here.',
+'Teilen': 'Share', 'Idee ': 'Idea ', 'Gespeichert als „': 'Saved as “', 'Speichern fehlgeschlagen. Ist der Gerätespeicher voll?': 'Saving failed. Is the device storage full?',
+'“ geladen: ': '” loaded: ', ', Tonart und Tempo.': ', key and tempo.', '“ liegt auf Spur 1. Tonart und Tempo sind übernommen.': '” is on track 1. Key and tempo have been applied.',
+'Sicher?': 'Are you sure?', 'Letzte Sitzung von ': 'Last session from ', ' gefunden (': ' found (',
+'Letzte Sitzung wiederhergestellt. Drums und Drone sind aus – bei Bedarf wieder einschalten.': 'Last session restored. Drums and drone are off – switch them back on if needed.',
+'Sichere …': 'Backing up …', 'Looper-Sicherung ': 'Looper backup ', 'Sicherung fertig: ': 'Backup done: ', ' Log-Einträge, ': ' log entries, ', ' Einstellungen · ': ' settings · ',
+' MB. Im Teilen-Menü „In Dateien sichern“ wählen.': ' MB. Choose “Save to Files” in the share menu.', 'Lade Sicherung …': 'Loading backup …',
+'Das ist keine Looper-Sicherung (oder sie wurde verändert, z. B. entpackt und neu gepackt).': 'This is not a Looper backup (or it was changed, e.g. unzipped and zipped again).',
+'Sicherung geladen: ': 'Backup loaded: ', ' Einstellungen. Die App startet neu …': ' settings. The app is restarting …', 'Sichern fehlgeschlagen: ': 'Backup failed: ', 'Laden fehlgeschlagen: ': 'Loading failed: ',
+'Läuft als Mac-App. ': 'Running as a Mac app. ', 'Der Eingang kommt hier in Stereo an, wenn das Gerät zwei Kanäle liefert.': 'The input arrives in stereo here if the device delivers two channels.',
+'Hinweis: Für Stereo-Aufnahme die App in Google Chrome installieren.': 'Note: install the app in Google Chrome for stereo recording.',
+'Mac: „Als App installieren“ legt Looper ins Programme-Verzeichnis und ins Dock – mit eigenem Fenster, offline und mit Stereo-Eingang.': 'Mac: “Install as app” puts Looper in the Applications folder and the Dock – with its own window, offline and with stereo input.',
+'Mac: In Chrome oben rechts in der Adressleiste auf das Installieren-Symbol klicken (oder im Chrome-Menü ⋮ „Looper installieren“ bzw. „Seite als App installieren“ wählen).': 'Mac: in Chrome click the install icon on the right of the address bar (or choose “Install Looper” or “Install page as app” in the Chrome menu ⋮).',
+'Mac: Für Stereo-Aufnahme diese Seite in Google Chrome öffnen und dort installieren. In Safari geht „Ablage → Zum Dock hinzufügen“, Aufnahmen sind dort aber nur mono.': 'Mac: for stereo recording, open this page in Google Chrome and install it there. In Safari “File → Add to Dock” works, but recordings are mono only.',
+'Installiert. Looper startet jetzt aus dem Dock oder dem Programme-Ordner.': 'Installed. Looper now starts from the Dock or the Applications folder.',
+// ---- Datei laden ----
+'Datei auf Spur 1': 'File to track 1', 'Analysiere Takt und Tempo …': 'Analysing bars and tempo …', 'Ganze Datei': 'Whole file', 'komplett als Loop': 'complete as loop',
+'Ausschnitt': 'Section', 'ab Takt': 'from bar', 'Anzahl Takte': 'Number of bars', 'Abbrechen': 'Cancel', 'Laden': 'Load',
+'Die ganze Datei bleibt gespeichert – im Editor (✂) kannst du später jederzeit einen anderen Teil wählen.': 'The whole file stays saved – in the editor (✂) you can choose another part at any time.',
+// ---- Live, Leistung (Meldungen) ----
+'Läuft · ': 'Running · ', 'Aus · ': 'Off · ', 'Noch keine Tonart erkannt. Tippe in einer Spur auf ✂ → Tonart bestimmen.': 'No key detected yet. Tap ✂ on a track → detect key.',
+'Ionisch (Dur)': 'Ionian (major)', 'Äolisch (Moll)': 'Aeolian (minor)', 'Drone folgt jetzt der Tonart von Spur ': 'Drone now follows the key of track ',
+'Live an': 'Live on', 'Live aus': 'Live off', 'Live an: keine Analyse, keine Sicherung, ruhige Anzeigen. Beim Ausschalten wird alles nachgeholt.': 'Live on: no analysis, no saving, calm displays. Everything is caught up when you switch it off.',
+'Live aus: Analyse und Sicherung nachgeholt.': 'Live off: analysis and saving caught up.',
+'Stabil: großer Audio-Puffer (greift nach dem nächsten Start der App) – hilft, wenn die Wiedergabe über ein USB-Gerät ab und zu stockt. Den Gitarrenton hörst du direkt aus dem Verstärker; der Latenz-Ausgleich passt sich beim nächsten „Eingang öffnen“ an.': 'Stable: large audio buffer (takes effect after the next app start) – helps if playback through a USB device stutters now and then. You hear your guitar directly from the amp; the latency compensation adjusts at the next “Open input”.',
+'Sparsam aktiv': 'Economy active', '. Ruhigere Anzeige; der größere Audio-Puffer greift nach dem nächsten Start der App. Der Klang bleibt gleich.': '. Calmer display; the larger audio buffer takes effect after the next app start. The sound stays the same.',
+'Der Audio-Puffer ändert sich beim nächsten Start der App: App schließen (im App-Umschalter nach oben wischen) und neu öffnen.': 'The audio buffer changes at the next app start: close the app (swipe up in the app switcher) and open it again.',
+'automatisch eingeschaltet, weil die Anzeige ruckelte': 'switched on automatically because the display stuttered',
+'Das iPad ist gerade ausgelastet – die App läuft jetzt im Sparmodus (Einstellung „Leistung“).': 'The iPad is busy right now – the app is running in economy mode (“Performance” setting).',
+// ---- Eingang ----
+'Gerade läuft eine Aufnahme – erst beenden, dann den Eingang schließen.': 'A recording is running – finish it first, then close the input.',
+'Eingang geschlossen. Die App nimmt nichts mehr auf und hört nicht mehr mit. Zum Öffnen erneut tippen (oder REC).': 'Input closed. The app no longer records or listens. Tap again to open it (or REC).',
+'Eingang offen: Die Pegelanzeigen neben den Spuren zeigen jetzt dein Signal. Erneut tippen schließt ihn.': 'Input open: the meters next to the tracks now show your signal. Tap again to close it.',
+'Dieses Gerät erlaubt hier keine Aufnahme. Öffne die App über das Icon auf dem Home-Bildschirm.': 'This device does not allow recording here. Open the app from its icon on the home screen.',
+'Kein Zugriff aufs Mikrofon. Erlaube ihn in den iPad-Einstellungen unter Datenschutz → Mikrofon bzw. für die Website in Safari (aA → Website-Einstellungen → Mikrofon).': 'No access to the microphone. Allow it in the iPad settings under Privacy → Microphone, or for the website in Safari (aA → Website Settings → Microphone).',
+'Kein Audio-Eingang gefunden. Ist das Interface (z. B. Spark LIVE) angeschlossen und eingeschaltet? Dann erneut „Eingang öffnen“.': 'No audio input found. Is the interface (e.g. Spark LIVE) connected and switched on? Then tap “Open input” again.',
+'Das iPad hat den Eingang nicht freigegeben (oft direkt nach dem Zurückkehren in die App). Tippe noch einmal auf „Eingang öffnen“.': 'The iPad did not release the input (often right after returning to the app). Tap “Open input” once more.',
+'Der Eingang ist gerade belegt – meist von einer anderen Audio-App (z. B. Logic Pro, GarageBand) im Hintergrund. Diese App ganz schließen (im App-Umschalter nach oben wischen) und erneut „Eingang öffnen“.': 'The input is in use – usually by another audio app (e.g. Logic Pro, GarageBand) in the background. Close that app completely (swipe up in the app switcher) and tap “Open input” again.',
+'Der Eingang ließ sich nicht öffnen (': 'The input could not be opened (', '). Tippe erneut auf „Eingang öffnen“; hilft das nicht, die App einmal ganz schließen und neu starten.': '). Tap “Open input” again; if that does not help, close the app completely and restart it.',
+'Audio-Gerät oder Puffer hat sich geändert – Latenz-Ausgleich automatisch auf ': 'Audio device or buffer changed – latency compensation automatically set to ', ' ms angepasst.': ' ms.',
+'Eingang zu (': 'Input closed (', 'Gerät beendet': 'device ended', 'vom Nutzer': 'by user', 'stumm geschaltet': 'muted', 'beendet': 'ended', 'Zeitüberschreitung': 'time-out',
+'Der Eingang wurde unterbrochen (z. B. Sperren, Ladekabel, USB-Gerät). Ich öffne ihn neu …': 'The input was interrupted (e.g. locking, charging cable, USB device). Reopening it …',
+'Das Audio-Gerät verbindet sich immer wieder neu. Prüfe Adapter/Kabel, dann „Eingang öffnen“.': 'The audio device keeps reconnecting. Check the adapter/cable, then tap “Open input”.',
+'Eingang wieder offen – das Audio-Gerät wurde neu verbunden.': 'Input open again – the audio device was reconnected.', 'Eingang geschlossen. Tippe auf „Eingang öffnen“ oder REC, um weiterzumachen.': 'Input closed. Tap “Open input” or REC to continue.',
+'Ton läuft wieder.': 'Sound is back.', 'Der Ton wurde vom iPad unterbrochen (z. B. Ladekabel/USB-Gerät). Tippe einmal auf den Bildschirm, um weiterzumachen.': 'The iPad interrupted the sound (e.g. charging cable/USB device). Tap the screen once to continue.',
+'App vorne, Ton ': 'App in front, sound ', 'Willkommen zurück – tippe einmal auf den Bildschirm, dann läuft der Ton weiter.': 'Welcome back – tap the screen once and the sound continues.',
+'Kabel': 'cable', 'eingebaut': 'built-in', 'Eingang (Name vom System nicht genannt)': 'Input (name not given by the system)',
+'Diesen Eingang hat das iPad gewählt. Anderes Gerät: einstecken bzw. in den iPad-Einstellungen wählen, dann „Eingang öffnen“.': 'The iPad chose this input. Other device: plug it in or choose it in the iPad settings, then tap “Open input”.',
+'· mono (beide Kanäle gleich)': '· mono (both channels identical)', '· mono (Grenze von iPadOS)': '· mono (iPadOS limit)',
+'Safari und Web-Apps bekommen auf dem iPad nur einen Eingangskanal. Für echte Stereo-Aufnahmen in einer anderen App aufnehmen und die Datei hier laden.': 'Safari and web apps only get one input channel on the iPad. For true stereo, record in another app and load the file here.',
+'Eingang wird neu geöffnet': 'Reopening input',
+// ---- Aufnahme-Meldungen ----
+'Signal erkannt – Aufnahme läuft.': 'Signal detected – recording.', ' Tippe zum Beenden.': ' Tap to finish.',
+'Hinweis: Die Spuren sind sehr lang – die automatische Sicherung pausiert. Speichere wichtige Loops unter „Ideen“.': 'Note: the tracks are very long – automatic saving is paused. Save important loops under “Ideas”.',
+' Sie endet nach ': ' It ends by itself after ', ' von selbst.': '.', ' wartet auf dein erstes Signal.': ' is waiting for your first note.', ' Vorzähler – dann nimmt Spur ': ' count-in – then track ',
+'Gleich geht’s los.': 'Get ready.', ' nimmt auf.': ' is recording.', 'Abgebrochen.': 'Cancelled.', 'Zu kurz – nochmal aufnehmen.': 'Too short – record again.',
+'Spiel bis zum Taktende weiter …': 'Keep playing to the end of the bar …', 'Schließe Aufnahme ab …': 'Finishing recording …', 'Schließe Overdub ab …': 'Finishing overdub …',
+'Aufnahme Ende Spur ': 'Recording end track ', ' aufgenommen und gestoppt. Tippe auf Play zum Abspielen.': ' recorded and stopped. Tap Play to play it.', ': Overdub hinzugefügt.': ': overdub added.',
+' läuft. Nochmal tippen für ein Overdub.': ' is playing. Tap again for an overdub.', ' (Tempo aus deinem Spiel erkannt)': ' (tempo detected from your playing)', ' (Tempo aus der Loop-Länge)': ' (tempo from the loop length)',
+'Aufnahme verworfen.': 'Recording discarded.', ': letzter Schritt rückgängig gemacht.': ': last step undone.', ' gelöscht.': ' deleted.',
+' ab Schlag 1': ' from beat 1', ' (ganze Datei)': ' (whole file)', ', ins Tempo des Loops gebracht (': ', matched to the loop tempo (', ' BPM, Tonhöhe bleibt)': ' BPM, pitch unchanged)',
+', passt zum Loop': ', fits the loop', ' Takte des Loops aufgefüllt': ' bars of the loop', '. Das Tempo der Datei (': '. The tempo of the file (',
+' BPM) weicht stark vom Loop ab. Nutze „An Loop-Länge anpassen“ oder leere die anderen Spuren.': ' BPM) differs a lot from the loop. Use “Fit to loop length” or clear the other tracks.',
+'Datei auf Spur ': 'File to track ', 'bis zum Ende (': 'to the end (', 'Kein klarer Takt erkennbar – Ausschnitt wird nach dem aktuellen Tempo bemessen.': 'No clear bars found – the section is sized by the current tempo.',
+' · Takt 1 bei ': ' · bar 1 at ', ' (davor freies Intro)': ' (free intro before)', 'Loop erkannt: ': 'Loop detected: ', 'Erkannt: ': 'Detected: ', ' Takte als Loop': ' bars as loop',
+'Lade „': 'Loading “', '“ kann das iPad nicht öffnen. Wandle die Datei in MP3, WAV oder M4A um.': '” cannot be opened by the iPad. Convert the file to MP3, WAV or M4A.',
+'Die Datei ist länger als 6 Minuten – die ersten 6 Minuten werden verwendet.': 'The file is longer than 6 minutes – the first 6 minutes are used.', 'Analysiere Takt und Tempo von „': 'Analysing bars and tempo of “',
+'Laden abgebrochen.': 'Loading cancelled.', ' Takt 1 wurde an den Anfang gelegt (': ' Bar 1 was moved to the start (', 'Takt erkannt: ': 'Bars detected: ',
+' Das Tempo schwankt leicht, die Takte folgen der Aufnahme.': ' The tempo varies slightly; the bars follow the recording.', ' Die Erkennung ist unsicher – prüfe Takt 1 im Editor.': ' Detection is uncertain – check bar 1 in the editor.',
+'Kein klarer Takt erkannt, nach Zeit eingesetzt. Schneide den Loop im Editor zu.': 'No clear bars detected, placed by time. Trim the loop in the editor.', ' Feinabgleich zu den anderen Spuren: ': ' Fine alignment to the other tracks: ',
+'Erst wird Spur ': 'Track ', ' abgeschlossen, dann tippe erneut.': ' is finished first, then tap again.', ': Overdub läuft. Tippe zum Beenden.': ': overdub running. Tap to finish.',
+' übernommen.': ' applied.', 'Nochmal auf ✕ tippen, um Spur ': 'Tap ✕ again to delete track ', ' zu löschen.': '.',
+'Alle Spuren gestoppt.': 'All tracks stopped.', 'Alle Spuren laufen.': 'All tracks playing.', 'Noch nichts aufgenommen. Tippe auf den Taster einer Spur.': 'Nothing recorded yet. Tap the button of a track.',
+'Pausiert – „Weiter“ spielt an derselben Stelle weiter.': 'Paused – “Resume” continues from the same spot.', 'Weiter.': 'Resumed.', 'Weiter': 'Resume',
+'Wartet': 'Waiting', 'Abbruch': 'Cancel', 'Diese Spur ist stereo (links und rechts verschieden)': 'This track is stereo (left and right differ)', 'Diese Spur ist mono (links und rechts gleich)': 'This track is mono (left and right identical)',
+'Takte Vorzähler': 'bars count-in', 'wartet auf Signal': 'waiting for signal', 'Aufnahme · ': 'Recording · ', 'Gestoppt': 'Stopped', 'Leer': 'Empty',
+'Speicher schonen: ältere Rückgängig-Schritte wurden verworfen (lange Loops brauchen viel Platz).': 'Saving memory: older undo steps were discarded (long loops need a lot of space).',
+// ---- Editor-Meldungen ----
+'Fenster': 'Window', 'Zwischenablage: ': 'Clipboard: ', '). Mit ↶ zurücknehmen.': '). Undo with ↶.', 'Auswahl kopiert (': 'Selection copied (', 'eingefügt': 'pasted',
+'Hinter der Auswahl ist kein Platz mehr im Loop.': 'There is no room left in the loop after the selection.', 'leiser (−3 dB)': 'quieter (−3 dB)', 'lauter (+3 dB)': 'louder (+3 dB)',
+'Die Auswahl ist still – nichts zu normalisieren.': 'The selection is silent – nothing to normalize.', 'normalisiert (−1 dBFS)': 'normalized (−1 dBFS)',
+'Im Editor gibt es nichts mehr zurückzunehmen.': 'Nothing left to undo in the editor.', ': Schritt zurückgenommen.': ': step undone.', ': Schritt wiederholt.': ': step redone.',
+'Auswahl ': 'Selection ', 'Anfang: ': 'Start: ', 'Ende: ': 'End: ', 'Die Auswahl ist zu kurz.': 'The selection is too short.', ' (an die anderen Spuren angepasst)': ' (matched to the other tracks)',
+'■ Hören stoppen': '■ Stop listening', 'Verdoppeln geht nicht: Die Spur wäre länger als 6 Minuten (zu viel für den Speicher des iPads).': 'Cannot double: the track would be longer than 6 minutes (too much for the iPad’s memory).',
+'Feinabgleich braucht mindestens eine weitere Spur.': 'Fine align needs at least one more track.', ' sitzt schon genau auf den anderen Spuren': ' already sits exactly on the other tracks',
+' (kaum gemeinsame Anschläge zum Vergleichen).': ' (hardly any shared hits to compare).', 'die anderen Spuren': 'the other tracks', ' Timing an ': ' timing aligned to ', ' angeglichen (': ' (',
+' ms früher': ' ms earlier', ' ms später': ' ms later', ', ↶ nimmt es zurück).': ', ↶ undoes it).', ' fein angeglichen: ': ' fine-aligned: ', ' – die Anschläge liegen jetzt auf denen der anderen Spuren.': ' – the hits now line up with the other tracks.',
+'Pause am Anfang weggenommen (': 'Gap at the start removed (', ' ms) – der erste Ton liegt jetzt auf Takt 1. ↶ nimmt es zurück.': ' ms) – the first note is now on bar 1. ↶ undoes it.',
+'Die Spur ist zu leise für Auto-Sync.': 'The track is too quiet for auto-sync.', 'Der erste Ton sitzt schon auf dem Loopanfang.': 'The first note is already at the loop start.',
+': erster Ton auf den Loopanfang geschoben (': ': first note moved to the loop start (', 'Die Länge passt bereits genau.': 'The length already fits exactly.',
+'Der Unterschied ist größer als 35 %. Schneide die Spur zuerst ungefähr passend zu.': 'The difference is more than 35 %. Trim the track roughly to size first.',
+' angepasst – Tempo gedehnt, Tonhöhe bleibt.': ' fitted – tempo stretched, pitch unchanged.', 'Für diese Länge passt kein Tempo zwischen 40 und 200 BPM.': 'No tempo between 40 and 200 BPM fits this length.',
+' BPM: Spur ': ' BPM: track ', '. Drums und Taktkreis laufen jetzt passend.': '. Drums and bar circle now run in time.', 'Tempo halbiert: ': 'Tempo halved: ',
+', Taktraster der Datei angepasst (': ', bar grid of the file adjusted (', 'Tempo verdoppelt: ': 'Tempo doubled: ', 'Länge: ': 'Length: ', ', genau': ', exact',
+' ms daneben': ' ms off', 'Takt 1: ': 'Bar 1: ', 'liegt am Loopanfang': 'is at the loop start', ' dem Anfang': ' the start', 'Übergang Ende → Anfang: ': 'Transition end → start: ',
+'möglicher Knackser': 'possible click', 'Tempo im Loop: ': 'Tempo in the loop: ', 'Prüfe Takt, Länge und Übergang …': 'Checking bars, length and transition …',
+': Loop geprüft, alles passt.': ': loop checked, all good.', ': Loop geprüft. „Nacharbeiten“ korrigiert die markierten Punkte.': ': loop checked. “Fix it” corrects the marked points.',
+'Analysiere und arbeite nach …': 'Analysing and fixing …', 'Nacharbeiten nicht möglich: kein klarer Takt in der Spur.': 'Cannot fix: no clear bars in the track.',
+'aus der Datei neu geschnitten: ': 're-cut from the file: ', 'Takt 1 an den Anfang gelegt': 'bar 1 moved to the start', ' ganze Takt': ' whole bar', ' gekürzt': ' shortened',
+' BPM übernommen': ' BPM applied', 'ins Tempo des Loops gedehnt (Tonhöhe bleibt)': 'stretched to the loop tempo (pitch unchanged)', 'auf Loop-Länge gebracht': 'fitted to the loop length',
+'Übergang geglättet': 'transition smoothed', 'nichts zu ändern': 'nothing to change', ' Geprüft: passt.': ' Checked: fits.', 'Analyse Spur ': 'Analysis track ',
+' für Griffbrett und Drone übernehmen': ' use for fretboard and drone', 'nicht erkannt': 'not detected', 'Akkorde: ': 'Chords: ', 'werden erkannt …': 'detecting …',
+'analysiere …': 'analysing …', 'Akkorde: werden erkannt …': 'Chords: detecting …', 'Keine Tonart erkannt. Ist die Spur sehr leise oder nur Rhythmus?': 'No key detected. Is the track very quiet or only rhythm?',
+' Takte · ': ' bars · ', 'Bis zum Ende (': 'To the end (', ': Takt-Eins um einen Schlag ': ': downbeat moved one beat ', 'nach hinten': 'later', 'nach vorn': 'earlier', ' verschoben – ': ' – ',
+' spielt ab dem Anfang der Auswahl.': ' plays from the start of the selection.', 'Verschieben ': 'Move ', ' · eingerastet': ' · snapped', ' ms. ↶ nimmt es zurück.': ' ms. ↶ undoes it.',
+// ---- Export für Logic ----
+'Noch nichts zum Exportieren. Nimm zuerst einen Loop auf oder lade eine Datei.': 'Nothing to export yet. Record a loop or load a file first.', 'Beende zuerst die laufende Aufnahme.': 'Finish the running recording first.',
+'Erstelle das Logic-Paket …': 'Creating the Logic package …', 'Logic-Paket fertig: ': 'Logic package ready: ', ', Mix und MIDI · ': ', mix and MIDI · ',
+'Tempo: ': 'Tempo: ', ' BPM · Taktart 4/4 · ': ' BPM · time signature 4/4 · ', ' Takte · Tonart ': ' bars · key ',
+'Alle WAV-Dateien beginnen auf Takt 1 und sind gleich lang (Stereo, 24 Bit, ': 'All WAV files start on bar 1 and have the same length (stereo, 24 bit, ',
+'So geht es in Logic Pro (Mac oder iPad):': 'How to use it in Logic Pro (Mac or iPad):', '1. Neues leeres Projekt anlegen.': '1. Create a new empty project.',
+'2. Die MIDI-Datei „Tempo und Takt …“ ins Projekt ziehen. Logic fragt, ob es das Tempo übernehmen soll: Ja.': '2. Drag the MIDI file “Tempo and bars …” into the project. Logic asks whether to import the tempo: Yes.',
+'   (Alternativ das Tempo oben in Logic von Hand auf ': '   (Alternatively set the tempo in Logic by hand to ',
+'3. Alle WAV-Dateien gleichzeitig auf Takt 1 ziehen und „Neue Spuren erstellen“ wählen.': '3. Drag all WAV files onto bar 1 at once and choose “Create new tracks”.',
+'   Falls Logic nach Smart Tempo fragt: „Nicht anpassen“ bzw. Projekttempo beibehalten.': '   If Logic asks about Smart Tempo: “Do not adapt” or keep the project tempo.',
+'4. Mit Cycle (Taste C) auf Takt 1 bis ': '4. With Cycle (key C) on bar 1 to ', ' läuft alles als Loop.': ' everything plays as a loop.',
+'5. Die MIDI-Datei enthält eine Drum-Spur (': '5. The MIDI file contains a drum track (', ') für Drummer/Drum Kit Designer.': ') for Drummer/Drum Kit Designer.',
+'Akkorde (Spur ': 'Chords (track ', 'Sie stehen auch als Marker in der MIDI-Datei (Logic: Marker-Spur einblenden).': 'They are also markers in the MIDI file (Logic: show the marker track).',
+'Erstellt mit dem 3nps-Übungsprogramm.': 'Made with the 3nps practice app.',
+// ---- Leistungsfenster (Meldungen) ----
+' Bilder/s': ' fps', 'Rückstand ': 'Backlog ', 'Eingang zu': 'Input closed', 'Audio aus': 'Audio off', ' / Gerät ': ' / device ', 'meldet Safari nicht': 'not reported by Safari', 'meldet Gerät nicht': 'not reported by the device',
+'Werte meldet das Gerät selbst. ': 'The device reports these values itself. ', 'Ausgang über 60 ms – vermutlich Bluetooth-Kopfhörer/-Box. Zum Spielen besser Kabel oder das Interface. ': 'Output over 60 ms – probably Bluetooth headphones/speaker. For playing, a cable or the interface is better. ',
+'Für Eingangswerte im Looper „Eingang öffnen“. ': 'For input values, tap “Open input” in the looper. ', 'Was du beim Spielen direkt hörst, kommt über den Direkt-Ausgang des Interfaces ohne diese Verzögerung. ': 'What you hear directly while playing comes through the interface’s direct output without this delay. ',
+'Aussetzer: das iPad kam mit dem Eingang nicht hinterher. ': 'Dropouts: the iPad could not keep up with the input. ', 'Audio-Hänger: Die Wiedergabe hat ': 'Audio stalls: playback stuttered ', '× kurz gestockt. ': '× briefly. ',
+'Gerät und App laufen mit verschiedener Abtastrate – Safari muss umrechnen, das kann stocken. ': 'Device and app run at different sample rates – Safari has to convert, which can stutter. ', 'Eingang ließ sich nicht öffnen – Ursache: ': 'Input could not be opened – cause: ',
+'Die Wiedergabe stockt ab und zu, obwohl der große Audio-Puffer aktiv ist. Probier bei den Drums „Raum“ auszuschalten.': 'Playback stutters now and then although the large audio buffer is active. Try switching off “Room” for the drums.',
+'Die Wiedergabe stockt ab und zu (häufig mit USB-Verstärkern). Abhilfe: unter „Leistung“ „Stabil – großer Audio-Puffer“ wählen und die App neu starten, oder bei den Drums „Raum“ ausschalten.': 'Playback stutters now and then (common with USB amps). Fix: choose “Stable – large audio buffer” under “Performance” and restart the app, or switch off “Room” for the drums.',
+'App: nichts': 'App: nothing', 'Hänger: ': 'Stalls: ', ' · davon ohne App-Ereignis: ': ' · without app event: ', '3nps-Looper Hänger-Protokoll ': '3nps Looper stall log ', 'Kopiert ✓': 'Copied ✓', 'markiert – kopieren': 'selected – copy it',
+'Reiter ': 'Tab ', 'App im Hintergrund': 'App in background', 'App vorne': 'App in front', 'Aufnahme Ende': 'Recording end', 'Analyse': 'Analysis', 'Sicherung': 'Backup', 'Hintergrund': 'Background',
+// ---- Tonarten / Modi ----
+'Ionisch': 'Ionian', 'Dorisch': 'Dorian', 'Phrygisch': 'Phrygian', 'Lydisch': 'Lydian', 'Mixolydisch': 'Mixolydian', 'Äolisch': 'Aeolian', 'Lokrisch': 'Locrian',
+'Dur': 'major', 'Moll': 'minor', '-Dur': ' major', '-Moll': ' minor',
+// ---- allgemeine Wörter (Bausteine) ----
+'Looper': 'Looper', 'Aus': 'Off', 'aus': 'off', 'an': 'on', 'Takt': 'Bar', 'Takte': 'bars', ' Takte': ' bars', ' Takt': ' bar', 'Takt ': 'Bar ', 'Schlag': 'Beat', ' · Schlag ': ' · beat ',
+'1 Takt': '1 bar', '2 Takte': '2 bars', '4 Takte': '4 bars', '8 Takte': '8 bars', '16 Takte': '16 bars', '32 Takte': '32 bars', '64 Takte': '64 bars', 'Takt 1': 'Bar 1',
+'Tempo': 'Tempo', 'Tonart': 'Key', 'Tonart ': 'Key ', 'Spur': 'Track', 'Spuren': 'Tracks', 'Spur ': 'Track ', ' Spur ': ' track ', ' Spur': ' track', ' Idee': ' idea', ' Spuren': ' tracks',
+'Eingang': 'Input', 'Akkord': 'Chord', 'Akkorde': 'Chords', 'Stopp': 'Stop', 'Löschen': 'Delete', 'stoppen': 'stop', 'rückgängig': 'undo', 'löschen': 'delete', 'bearbeiten': 'edit', 'laden': 'load',
+'Rückgängig': 'Undo', 'Aufnahme': 'Recording', 'Pause': 'Pause', 'Stabil': 'Stable', 'Sparsam': 'Economy', 'ab': 'from', 'für': 'for', 'bis': 'to', 'Teil ': 'Part ', 'Loop ': 'Loop ',
+'Lautstärke Spur': 'Volume track', 'Eingangsverstärkung Spur': 'Input gain track', 'Taktkreis Spur': 'Bar circle track', 'Wellenform Spur': 'Waveform track',
+'Datei': 'File', 'Name': 'Name', 'Gerät': 'Device', 'Ton': 'Sound', 'Fills': 'Fills', 'Designer': 'Designer', 'Swing': 'Swing',
+};
+// Satzmuster mit anderer Wortstellung (werden vor den Bausteinen geprüft)
+window.__EN_PAT = [
+  [/^Spur (\d+) stoppen$/, 'Stop track $1'], [/^Spur (\d+) rückgängig$/, 'Undo track $1'], [/^Spur (\d+) löschen$/, 'Delete track $1'],
+  [/^Spur (\d+) bearbeiten$/, 'Edit track $1'], [/^Audiodatei auf Spur (\d+) laden$/, 'Load audio file to track $1'],
+];
+window.__EN['Takten'] = 'bars'; window.__EN[' Takten'] = ' bars';
+window.__EN['Die App startet neu – laufende Wiedergabe wird beendet. Weiter?'] = 'The app restarts – playback will stop. Continue?';
+Object.assign(window.__EN, {
+  'Quinten': 'Circle of ',
+  // Statuszeile oben (Grundprogramm)
+  'Startton: ': 'Start note: ', ' (Stufe ': ' (degree ', 'Bereit — ': 'Ready — ', ' Töne im Muster': ' notes in pattern',
+  // Drums: Instrumente, Schritte, Vorlagen
+  'Becken': 'Cymbal', 'HH Fuß': 'HH pedal', 'HH offen': 'HH open', 'HH zu': 'HH closed', 'Stand-Tom': 'Floor tom', ' Schritt ': ' step ', 'Stummschalten': 'Mute',
+  'Ballade': 'Ballad', '6/8-Ballade': '6/8 ballad', 'Blues-Ballade (Rim)': 'Blues ballad (rim)', 'Blues-Rock (gerade)': 'Blues rock (straight)', 'Blues-Rumba': 'Blues rumba',
+  'Boogie-Train (Snare-Triolen)': 'Boogie train (snare triplets)', 'Double Shuffle (Snare)': 'Double shuffle (snare)', 'Gospel-Shuffle': 'Gospel shuffle',
+  'Indie (Toms)': 'Indie (toms)', 'Jump Blues (Swing)': 'Jump blues (swing)', 'Nur Hi-Hat': 'Hi-hat only', 'Nur Viertel (Rim)': 'Quarters only (rim)', 'Pop (16tel)': 'Pop (16ths)',
+  'Rock-Shuffle': 'Rock shuffle', 'Slow Blues mit Ride': 'Slow blues with ride', 'Stop-Time (Akzent auf 1)': 'Stop-time (accent on 1)', 'Swamp Blues (Toms)': 'Swamp blues (toms)',
+  'Synthwave (80er)': 'Synthwave (80s)', 'Trap (Halftime, schnelle Hats)': 'Trap (half-time, fast hats)', 'Triolen': 'Triplets', 'Wikinger-Trommeln': 'Viking drums', 'Vorlage …': 'Preset …',
+  // EQ-Vorlagen
+  'EQ-Vorlage': 'EQ preset', 'Druckvoll': 'Punchy', 'Höhen weich': 'Soft highs', 'Mehr Bauch': 'More body', 'Mehr Biss': 'More bite', 'Präsenz': 'Presence', 'Telefon / Lo-Fi': 'Telephone / lo-fi',
+  'Trocken & nah': 'Dry & close', 'Weniger Becken': 'Less cymbals', 'Weniger Mulm': 'Less mud', 'Wärmer': 'Warmer', 'Neutral': 'Neutral',
+  // Was passt
+  'Was passt': 'What fits', 'Klingt jetzt': 'Playing now', 'In der Improvisation öffnen': 'Open in Improvisation', '▶ Weiter mitlaufen': '▶ Follow again', '⏸ Anhalten': '⏸ Hold',
+  'Akkord wählen': 'Choose chord', 'Angehalten': 'Held', 'Akkordtöne ': 'Chord tones ', ' · Tonart ': ' · key ', 'Danach ': 'Then ', 'Liegen lassen ': 'Hold over ', 'Leitton ': 'Leading tone ',
+  'Nächster Wechsel → ': 'Next change → ', ' (Terz) genau beim Wechsel': ' (third) right on the change',
+  'Aktuellen Loop als Teil in einen Song übernehmen': 'Add the current loop as a part to a song', 'Noch keine Ideen. Nimm einen Loop auf und tippe auf „Speichern“.': 'No ideas yet. Record a loop and tap “Save”.',
+});
+window.__EN['16tel'] = '16ths';
+window.__EN[' auf.'] = ' records.';
+window.__EN['von'] = 'of'; window.__EN[' Timing an '] = ' timing aligned to ';
+window.__EN[' eingetaktet: '] = ' set to: ';
+Object.assign(window.__EN, { ' läuft.': ' is playing.', ' – auf ': ' – padded to ', ' auf ': ' to ', 'auf ': 'to ', 'nach': 'after',
+  'Kein klarer Takt in dieser Spur erkennbar (zu leise oder ohne Rhythmus).': 'No clear bars found in this track (too quiet or no rhythm).' });
+
+// Sprache (v59): Deutsch ist der Quelltext. Nur im EN-Modus läuft hier etwas:
+// Ein Beobachter übersetzt neue/geänderte Texte im DOM (Text, title, placeholder, aria-label)
+// über das Wörterbuch window.__EN (exakt, sonst Bausteine einzeln). Im DE-Modus passiert nichts.
+// Schlüssel 3nps-lang ist neu – die stabile v24 kennt ihn nicht und läuft unverändert.
+(function () {
+  let lang = 'de';
+  try {
+    const q = /[?&]lang=(de|en)\b/.exec(location.search);
+    lang = q ? q[1] : (localStorage.getItem('3nps-lang') || 'de');
+  } catch (e) {}
+  if (lang !== 'en') lang = 'de';
+  window.__lang = lang;
+  window.setAppLang = function (l) {
+    try { localStorage.setItem('3nps-lang', l === 'en' ? 'en' : 'de'); } catch (e) {}
+    const u = location.href.replace(/([?&])lang=(de|en)&?/, '$1').replace(/[?&]$/, '');
+    location.replace(u);
+  };
+  if (lang !== 'en') return;
+  document.documentElement.lang = 'en';
+
+  const L = '[\\p{L}\\d]';
+  let RX = null, MAP = null;
+  function build() {
+    const D = window.__EN || {};
+    MAP = new Map();
+    Object.keys(D).forEach(k => {
+      MAP.set(k, D[k]);
+      const t = k.trim();
+      if (t && t !== k && !MAP.has(t)) MAP.set(t, D[k].trim());
+    });
+    const keys = [...MAP.keys()].filter(k => /[\p{L}]{2}/u.test(k)).sort((a, b) => b.length - a.length);
+    const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    RX = new RegExp(keys.map(k => (/^[\p{L}\d]/u.test(k) ? '(?<!' + L + ')' : '') + esc(k) + (/[\p{L}\d]$/u.test(k) ? '(?!' + L + ')' : '')).join('|'), 'gu');
+  }
+  const cache = new Map(), done = new Set();
+  function tr(s) {
+    if (!s || !/[\p{L}]{2}/u.test(s) || done.has(s)) return s;
+    let r = cache.get(s);
+    if (r !== undefined) return r;
+    if (!MAP) build();
+    r = MAP.get(s);
+    if (r === undefined) for (const [rx, rp] of (window.__EN_PAT || [])) if (rx.test(s)) { r = s.replace(rx, rp); break; }
+    if (r === undefined) {
+      const t = s.trim();
+      if (t !== s && MAP.has(t)) r = s.replace(t, MAP.get(t));
+      else r = s.replace(RX, m => MAP.get(m));
+    }
+    r = r.replace(/„/g, '“').replace(/(^|[^\d,.])1 bars\b/g, '$11 bar').replace(/(^|[^\d,.])1 tracks\b/g, '$11 track').replace(/(\d),(\d)/g, '$1.$2');
+    if (cache.size > 6000) { cache.clear(); done.clear(); }
+    cache.set(s, r); if (r !== s) done.add(r);
+    return r;
+  }
+  window.__tr = tr;
+
+  const ATTR = ['title', 'placeholder', 'aria-label'];
+  function doEl(el) {
+    for (const a of ATTR) { const v = el.getAttribute(a); if (v) { const n = tr(v); if (n !== v) el.setAttribute(a, n); } }
+  }
+  function doNode(n) {
+    if (n.nodeType === 3) {
+      const p = n.parentNode; if (p && (p.nodeName === 'SCRIPT' || p.nodeName === 'STYLE' || p.isContentEditable)) return;
+      const v = n.nodeValue, x = tr(v); if (x !== v) n.nodeValue = x;
+    } else if (n.nodeType === 1) {
+      if (n.nodeName === 'SCRIPT' || n.nodeName === 'STYLE' || n.nodeName === 'TEXTAREA' || n.isContentEditable) return;
+      doEl(n);
+      const w = document.createTreeWalker(n, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT);
+      let c; while ((c = w.nextNode())) {
+        if (c.nodeType === 1) { if (c.nodeName === 'SCRIPT' || c.nodeName === 'STYLE' || c.nodeName === 'TEXTAREA') continue; doEl(c); }
+        else doNode(c);
+      }
+    }
+  }
+  const mo = new MutationObserver(list => {
+    for (const m of list) {
+      if (m.type === 'characterData') doNode(m.target);
+      else if (m.type === 'attributes') doEl(m.target);
+      else m.addedNodes.forEach(doNode);
+    }
+  });
+  function start() {
+    doNode(document.body);
+    mo.observe(document.body, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ATTR });
+  }
+  if (document.body) start(); else document.addEventListener('DOMContentLoaded', start);
+  document.addEventListener('DOMContentLoaded', () => { document.title = tr(document.title); });
+  // Dialoge des Browsers
+  const oc = window.confirm, oa = window.alert, op = window.prompt;
+  window.confirm = m => oc.call(window, tr(String(m)));
+  window.alert = m => oa.call(window, tr(String(m)));
+  window.prompt = (m, d) => op.call(window, tr(String(m)), d);
+})();
+
+</script>
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v58</span></div>
+      <div class="brand">Looper <span>3nps · v59</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -8879,7 +9242,7 @@ const Looper = (() => {
       ctx.shadowBlur = 0;
       ctx.fillStyle = C.muted;
       ctx.font = '600 ' + Math.max(9, Math.round(R * 0.15)) + 'px -apple-system, system-ui, sans-serif';
-      ctx.fillText(small.toUpperCase(), cx, cy + R * 0.34);
+      ctx.fillText((window.__tr ? __tr(small) : small).toUpperCase(), cx, cy + R * 0.34);
     }
     function segsFor(L) {
       const beats = L / beatFrames(), bars = beats / 4;
@@ -11112,6 +11475,18 @@ const AppCfg = (() => {
   macInfo();
 
   return { applyTheme, backup, restore, isMac, standalone };
+})();
+
+// Sprache DE | EN (v59): Knopf zeigt die andere Sprache; Wechsel lädt die App neu
+(function () {
+  const b = document.getElementById('langBtn'); if (!b) return;
+  b.textContent = window.__lang === 'en' ? 'DE' : 'EN';
+  b.title = window.__lang === 'en' ? 'Auf Deutsch umschalten' : 'Switch to English';
+  b.addEventListener('click', () => {
+    const busy = window.Looper && Looper.busy && Looper.busy();
+    if (busy && !confirm('Die App startet neu – laufende Wiedergabe wird beendet. Weiter?')) return;
+    window.setAppLang(window.__lang === 'en' ? 'de' : 'en');
+  });
 })();
 
 /* ---------- Leistungsanzeige im Kopf: Rechenlast, Arbeitsspeicher, Latenz ----------
