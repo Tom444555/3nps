@@ -1309,7 +1309,7 @@ const Looper = (() => {
       ctx.shadowBlur = 0;
       ctx.fillStyle = C.muted;
       ctx.font = '600 ' + Math.max(9, Math.round(R * 0.15)) + 'px -apple-system, system-ui, sans-serif';
-      ctx.fillText(small.toUpperCase(), cx, cy + R * 0.34);
+      ctx.fillText((window.__tr ? __tr(small) : small).toUpperCase(), cx, cy + R * 0.34);
     }
     function segsFor(L) {
       const beats = L / beatFrames(), bars = beats / 4;

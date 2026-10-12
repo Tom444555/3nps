@@ -116,11 +116,12 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') {
   window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 }
 </script>'''
-app = top + body.replace('<header class="control-bar">', '</head>\n<body>\n<header class="control-bar">', 1) + sw + '\n</body>\n</html>\n'
+I18N = '<script>\n' + rd(A + 'i18n-en.js') + '\n' + rd(A + 'i18n.js') + '\n</script>\n'
+app = top + body.replace('<header class="control-bar">', '</head>\n<body>\n' + I18N + '<header class="control-bar">', 1) + sw + '\n</body>\n</html>\n'
 open(A + 'www/index.html', 'w', encoding='utf8').write(app)
 
 # --- Vorschau für Claude ---
-pv = '<title>Looper-Vorschau</title>\n' + FONTS + '\n' + EARLY + '<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>\n' + body
+pv = '<title>Looper-Vorschau</title>\n' + FONTS + '\n' + EARLY + I18N + '<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>\n' + body
 pv = pv.replace("let start = 'griffbrett';", "let start = 'looper';")
 old_mic = "setStatus('Kein Zugriff aufs Mikrofon. Erlaube ihn in den iPad-Einstellungen unter Datenschutz → Mikrofon bzw. für die Website in Safari (aA → Website-Einstellungen → Mikrofon).');"
 assert old_mic in pv

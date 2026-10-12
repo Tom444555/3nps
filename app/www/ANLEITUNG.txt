@@ -105,6 +105,11 @@ Alles geht direkt auf dem iPad, ohne Computer.
      „Verzierungen“ schaltet Trommeln, Hornrufe und Glockenläufe zu oder ab.
    - Mit Haken bei „startet mit Alle starten“ läuft die Drone mit dem Loop an und aus.
 
+Sprache
+   - Oben neben dem App-Namen schaltet „EN“ die App auf Englisch, „DE“ wieder auf Deutsch.
+     Die App startet dabei kurz neu. Bisher übersetzt: Kopf, Reiternamen und der Looper –
+     die übrigen Reiter folgen.
+
 9. Eingangspegel
    - „Eingang öffnen“ (oben im Looper) zeigt das Signal schon vor der Aufnahme
      in den Pegelanzeigen neben jeder Spur. Weiße Linie = Spitzenwert, die

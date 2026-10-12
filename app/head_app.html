@@ -47,6 +47,8 @@
   .cb-inner { max-width: 1100px; margin: 0 auto; padding: 10px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
   .brand { font: 700 0.95rem var(--f-display); letter-spacing: -0.01em; white-space: nowrap; }
   .brand span { color: var(--muted); font-weight: 500; }
+  .lang-btn { font: 600 0.62rem var(--f-display, system-ui); letter-spacing: 0.04em; margin-left: 6px; padding: 2px 6px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--muted); cursor: pointer; vertical-align: 2px; }
+  .lang-btn:hover { color: var(--ink); }
   .transport { display: flex; gap: 6px; }
   .tbtn {
     appearance: none; width: 44px; height: 36px; border-radius: 7px; border: 1px solid #141416; cursor: pointer; position: relative;
@@ -215,7 +217,7 @@
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v58</span></div>
+      <div class="brand">Looper <span>3nps · v59</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>

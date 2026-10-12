@@ -184,3 +184,15 @@ const AppCfg = (() => {
 
   return { applyTheme, backup, restore, isMac, standalone };
 })();
+
+// Sprache DE | EN (v59): Knopf zeigt die andere Sprache; Wechsel lädt die App neu
+(function () {
+  const b = document.getElementById('langBtn'); if (!b) return;
+  b.textContent = window.__lang === 'en' ? 'DE' : 'EN';
+  b.title = window.__lang === 'en' ? 'Auf Deutsch umschalten' : 'Switch to English';
+  b.addEventListener('click', () => {
+    const busy = window.Looper && Looper.busy && Looper.busy();
+    if (busy && !confirm('Die App startet neu – laufende Wiedergabe wird beendet. Weiter?')) return;
+    window.setAppLang(window.__lang === 'en' ? 'de' : 'en');
+  });
+})();
