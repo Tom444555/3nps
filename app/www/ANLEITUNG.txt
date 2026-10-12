@@ -585,3 +585,16 @@ Gut zu wissen
      und klein die nächste. Die Zeiten hängen an Takt und Schlag der Datei – beim Loopen eines anderen
      Ausschnitts passen sie weiter.
    - Fremde Songtexte nur zum eigenen Üben; sie bleiben auf diesem Gerät.
+
+50. Reiter „Mitsingen“ (v63)
+   - Zeigt den Gesangstext (mit Timing, siehe 49.) groß: Jedes Wort füllt sich, solange es gesungen wird,
+     darunter die Übersetzung und klein die nächste Zeile. Oben laufen die Schläge des Takts mit;
+     vor einem Einsatz nach einer Pause zählt die App „3 – 2 – 1 – ♪“ herunter.
+   - „↻ Zeile üben“: spielt die aktuelle Zeile mit einem Takt Anlauf in Schleife – auf Wunsch mit 75 % oder 50 %,
+     die Tonhöhe bleibt dabei gleich. „◀ Zeile / Zeile ▶“ wechselt die Zeile. Der Looper bleibt unverändert.
+     (Für Songs aus dem Songwriting: dort das Tempo senken.)
+   - „🎤 Timing prüfen“: erkennt deine Gesangseinsätze über das Mikrofon und zeigt je Wort grün (genau, ±70 ms),
+     blau (zu früh) oder orange (zu spät) mit den Millisekunden, dazu eine Auswertung der Zeile.
+     Mit Kopfhörern singen, sonst hört das Mikrofon die Musik mit.
+   - Übersetzung: unter „Übersetzung bearbeiten“ eine Zeile pro Liedzeile eintragen – oder „Auftrag für Claude
+     kopieren“, in einen Chat mit Claude einfügen und die Antwort einsetzen. Abschaltbar mit „anzeigen“.

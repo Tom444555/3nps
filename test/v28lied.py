@@ -28,7 +28,7 @@ async def main():
         pg.on('pageerror', lambda e: errs.append(str(e)))
         await pg.goto('http://localhost:8765/index.html'); await pg.wait_for_timeout(800)
         tabs = await pg.evaluate("[...document.querySelectorAll('.tab')].map(t => t.textContent)")
-        check('Reiter Songwriting zwischen Backing Track und Training', tabs == ['Looper', 'Improvisation', 'CAGED', 'Quintenzirkel', 'Backing Track', 'Songwriting', 'Training', 'Technik'], tabs)
+        check('Reiter Songwriting zwischen Backing Track und Training', tabs == ['Looper', 'Improvisation', 'CAGED', 'Quintenzirkel', 'Backing Track', 'Songwriting', 'Mitsingen', 'Training', 'Technik'], tabs)
         await pg.click('#tab-lied'); await pg.wait_for_timeout(200)
         check('Ohne Song: Anleitung sichtbar', await pg.is_visible('#ldEmpty') and 'Looper' in await pg.inner_text('#ldEmpty'))
         # 1) Strophe aus dem Looper

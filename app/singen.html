@@ -1,0 +1,38 @@
+  <section class="panel" id="panel-singen" role="tabpanel" aria-labelledby="tab-singen" hidden>
+    <div class="card sb-card">
+      <div class="card-head"><h2>Mitsingen</h2><span class="caption" id="sbSrc">–</span></div>
+      <div class="sb-top">
+        <div class="sb-dots" id="sbDots" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        <div class="sb-count" id="sbCount" aria-live="off"></div>
+      </div>
+      <div class="sb-stage" id="sbStage" translate="no">
+        <p class="sb-line" id="sbLine"></p>
+        <p class="sb-tr" id="sbTr"></p>
+        <p class="sb-next" id="sbNext"></p>
+      </div>
+      <p class="sb-empty caption" id="sbEmpty">Spiel einen Song aus dem Songwriting oder einen Loop aus einer geladenen Datei ab, dessen Gesangstext ein Timing hat (Improvisation → „🎤 Gesangstext“).</p>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Üben</h2><span class="caption">Zeile für Zeile, auch langsam</span></div>
+      <div class="sb-tools">
+        <button class="toggle-btn" id="sbLoop">↻ Zeile üben</button>
+        <div class="seg" id="sbSpeed" role="group" aria-label="Tempo"><button class="toggle-btn active" data-s="1">100 %</button><button class="toggle-btn" data-s="0.75">75 %</button><button class="toggle-btn" data-s="0.5">50 %</button></div>
+        <button class="toggle-btn" id="sbPrev" aria-label="Vorherige Zeile">◀ Zeile</button>
+        <button class="toggle-btn" id="sbNextL" aria-label="Nächste Zeile">Zeile ▶</button>
+      </div>
+      <p class="caption" id="sbLoopInfo">„Zeile üben“ spielt die aktuelle Zeile mit einem Takt Anlauf in Schleife – langsamer ohne dass sich die Tonhöhe ändert. Der Looper bleibt dabei unverändert.</p>
+      <div class="sb-tools">
+        <button class="toggle-btn" id="sbMic">🎤 Timing prüfen</button>
+        <span class="caption" id="sbMicInfo">Mit Kopfhörern singen – sonst hört das Mikrofon die Musik mit.</span>
+      </div>
+      <p class="sb-score" id="sbScore"></p>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Übersetzung</h2><label class="check"><input type="checkbox" id="sbTrOn" checked> anzeigen</label></div>
+      <details class="sb-tredit"><summary>Übersetzung bearbeiten</summary>
+        <textarea id="sbTrText" rows="6" placeholder="Eine Zeile Übersetzung pro Liedzeile"></textarea>
+        <div class="sb-tools"><button class="toggle-btn" id="sbTrSave">Speichern</button><button class="toggle-btn" id="sbTrClaude">Auftrag für Claude kopieren</button></div>
+        <p class="caption" id="sbTrInfo">Selbst eintragen oder den Auftrag kopieren, in einen Chat mit Claude einfügen und die Antwort hier einsetzen – Zeile für Zeile.</p>
+      </details>
+    </div>
+  </section>

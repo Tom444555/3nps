@@ -64,7 +64,7 @@ const Sing = (() => {
       let tok = rec ? rec.tok : [];
       if (!rec || rec.txt !== n.text) { tok = merge(rec ? rec.tok : [], fresh); db.l[id] = { tok, txt: n.text }; save(); }
       return { kind: 'lied', id, rec: db.l[id], title: n.part.name + (n.pass ? ' · ' + (n.pass + 1) + '. Mal' : ''), tok, editable: false,
-        toCi: b => b * 1000, fromCi: f => f / 1000, nowB: n.beat, label: b => (Math.floor(b / 4) + 1) + '.' + (Math.floor(b % 4) + 1), maxB: n.beats };
+        toCi: b => b * 1000, fromCi: f => f / 1000, nowB: n.beat, label: b => (Math.floor(b / 4) + 1) + '.' + (Math.floor(b % 4) + 1), maxB: n.beats, beatMs: () => 60000 / (n.bpm || 100) };
     }
     if (ci.track >= 0 && typeof Looper !== 'undefined' && Looper.singSrc) {
       const s = Looper.singSrc(ci.track); if (!s) return { kind: 'none', why: 'stretch' };
@@ -73,7 +73,8 @@ const Sing = (() => {
       const fromCi = f => f2b(f + s.origPos, s.beats);
       const label = b => { const f = b2f(b, s.beats), D = s.downs; let i = 0; while (i + 1 < D.length && D[i + 1] <= f + 2) i++; const bb = f2b(D[i] || 0, s.beats); return (i + 1) + '.' + (Math.floor(b - bb + 1e-6) + 1); };
       return { kind: 'file', id: s.key, rec, name: s.name, title: 'Datei „' + s.name + '“', tok: rec ? rec.tok : [], editable: true, toCi, fromCi,
-        nowB: s.pos != null ? fromCi(s.pos) : null, label, L: s.L };
+        nowB: s.pos != null ? fromCi(s.pos) : null, label, L: s.L, track: ci.track, beats: s.beats, sr: s.sr, origPos: s.origPos,
+        beatMs: b => (b2f(b + 1, s.beats) - b2f(b, s.beats)) / s.sr * 1000 };
     }
     return null;
   }
@@ -236,6 +237,9 @@ const Sing = (() => {
     bindLane(); bindEditor();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
-  return { tick, tap, tokenize, merge, f2b, b2f, source: ci => source(ci), data: () => db, _reload: () => { db = load(); changed(); }, ui: () => ui };
+  // Übersetzung je Zeile (v63)
+  function setTr(src, arr) { const rec = src.kind === 'lied' ? db.l[src.id] : db.f[src.id]; if (!rec) return false; rec.tr = arr; changed(); return true; }
+  function getTr(src) { const rec = src && (src.kind === 'lied' ? db.l[src.id] : db.f[src.id]); return rec && rec.tr || []; }
+  return { tick, tap, tokenize, merge, f2b, b2f, endOf, lines, setTr, getTr, ver: () => ver, source: ci => source(ci), data: () => db, _reload: () => { db = load(); changed(); }, ui: () => ui };
 })();
 window.Sing = Sing;

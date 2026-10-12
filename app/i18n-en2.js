@@ -296,3 +296,23 @@ Object.assign(window.__EN, {
   'Erst abspielen – dann bei jeder Silbe tippen.': 'Start playback first – then tap on every syllable.', 'Alle Wörter haben eine Zeit. „Zeile neu“ wählt eine Zeile zum neu Einklopfen.': 'All words are timed. “↻” next to a line lets you tap it again.',
   'Nächstes Wort: „': 'Next word: “', 'Fertig – alle Wörter haben eine Zeit.': 'Done – all words are timed.', ' neu: abspielen und tippen.': ' again: play and tap.', 'Zeile ': 'Line ', 'Wort': 'Word',
 });
+Object.assign(window.__EN, {
+  // Reiter Mitsingen (v63)
+  'Mit': 'Sing ', 'singen': 'along', 'Mitsingen': 'Sing along', 'Üben': 'Practice', 'Zeile für Zeile, auch langsam': 'Line by line, slow if you like',
+  'Spiel einen Song aus dem Songwriting oder einen Loop aus einer geladenen Datei ab, dessen Gesangstext ein Timing hat (Improvisation → „🎤 Gesangstext“).': 'Play a song from Songwriting or a loop from a loaded file whose lyrics have timing (Improvisation → “🎤 Lyrics”).',
+  '↻ Zeile üben': '↻ Practise line', '■ Üben beenden': '■ Stop practising', 'Vorherige Zeile': 'Previous line', 'Nächste Zeile': 'Next line', '◀ Zeile': '◀ Line', 'Zeile ▶': 'Line ▶',
+  '„Zeile üben“ spielt die aktuelle Zeile mit einem Takt Anlauf in Schleife – langsamer ohne dass sich die Tonhöhe ändert. Der Looper bleibt dabei unverändert.': '“Practise line” loops the current line with a one-bar run-up – slower without changing the pitch. The looper stays untouched.',
+  '🎤 Timing prüfen': '🎤 Check timing', 'Mit Kopfhörern singen – sonst hört das Mikrofon die Musik mit.': 'Sing with headphones – otherwise the microphone hears the music too.',
+  'Übersetzung': 'Translation', 'anzeigen': 'show', 'Übersetzung bearbeiten': 'Edit translation', 'Eine Zeile Übersetzung pro Liedzeile': 'One line of translation per lyric line',
+  'Auftrag für Claude kopieren': 'Copy request for Claude', 'Selbst eintragen oder den Auftrag kopieren, in einen Chat mit Claude einfügen und die Antwort hier einsetzen – Zeile für Zeile.': 'Type it yourself, or copy the request, paste it into a chat with Claude and put the answer here – line by line.',
+  'Übung': 'Practice', 'Zeile üben geht mit geladenen Songdateien. Für Songs aus dem Songwriting: dort das Tempo senken.': 'Practise line works with loaded song files. For songs from Songwriting: lower the tempo there.',
+  'Diese Zeile hat noch kein Timing.': 'This line has no timing yet.', 'Ausschnitt nicht verfügbar.': 'Section not available.', 'Bereite die Zeile vor …': 'Preparing the line …',
+  'mit einem Takt Anlauf, in Schleife.': 'with a one-bar run-up, looped.', 'Eingang wird geöffnet …': 'Opening input …',
+  'Sing mit – jedes Wort bekommt grün (genau), blau (zu früh) oder orange (zu spät).': 'Sing along – every word turns green (on time), blue (early) or orange (late).',
+  ' genau': ' on time', ' (eher zu früh)': ' (rather early)', ' (eher zu spät)': ' (rather late)', 'Übersetzung gespeichert.': 'Translation saved.',
+  'Erst Text und Timing anlegen (Improvisation → „🎤 Gesangstext“).': 'Add lyrics and timing first (Improvisation → “🎤 Lyrics”).',
+  'Kopiert – in einen Chat mit Claude einfügen, Antwort oben einsetzen und speichern.': 'Copied – paste it into a chat with Claude, put the answer above and save.',
+  'Kopieren ging nicht – der Auftrag steht im Feld, bitte von dort kopieren.': 'Copying failed – the request is in the field, please copy it from there.',
+  'Diese Zeile liegt außerhalb des geloopten Ausschnitts – „Zeile üben“ spielt sie trotzdem.': 'This line is outside the looped section – “Practise line” still plays it.', 'Tempo': 'Tempo',
+});
+window.__EN['Impro'] = 'Impro'; window.__EN['visation'] = 'visation';

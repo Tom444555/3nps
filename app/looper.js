@@ -3019,6 +3019,15 @@ const Looper = (() => {
       return { key: (o.name || 'Datei') + '|' + Math.round(len / sr * 10), name: o.name || 'Datei', origPos: t.origPos, beats: o.beats, downs: o.downs || [], sr, L: t.L,
         pos: t.src && audioCtx ? mod(playFrame() - anchor, t.L) : null };
     },
+    // Mitsingen-Übungsplayer (v63): Ausschnitt der Originaldatei (Bilder f0…f1) und Zeitdehnung ohne Tonhöhe – nur lesen/rechnen
+    singAudio: (i, f0, f1) => {
+      const t = tracks[i]; if (!t || !t.orig || !t.orig.data) return null;
+      const d = t.orig.data, l = d.l || d, r = d.r || l, n = l.length, a = Math.max(0, Math.floor(f0)), e = Math.min(n, Math.ceil(f1));
+      if (e - a < sr * 0.2) return null;
+      const L = l.slice(a, e); return { l: L, r: r === l ? L : r.slice(a, e), length: e - a, sr };
+    },
+    stretchAudio: (x, n) => stretch(x, n),
+    latencyMs: () => parseFloat(latEl.value) || 0,
     // Eingang für „Mithören“: öffnet ihn bei Bedarf (gleicher Zugriff wie der Looper), liefert einen Analyser
     openInput: () => ensureMic(),
     inputAnalyser: () => {

@@ -4,7 +4,7 @@ from playwright.async_api import async_playwright
 ok = 0; tot = 0
 def check(n, c, info=''):
     global ok, tot; tot += 1; ok += bool(c); print(('OK    ' if c else 'FEHLER') + '  ' + n + ('  · ' + str(info) if info else ''))
-TABS=['solo','caged','quinten','jam','lied','ueben','griffbrett']
+TABS=['solo','caged','quinten','jam','lied','singen','ueben','griffbrett']
 J="""(id)=>{const out=new Set();const r=document.getElementById('panel-'+id);if(!r)return [];const w=document.createTreeWalker(r,NodeFilter.SHOW_TEXT|NodeFilter.SHOW_ELEMENT);let n;while((n=w.nextNode())){
  if(n.nodeType===3){const p=n.parentNode;if(p&&/SCRIPT|STYLE|TEXTAREA/.test(p.nodeName))continue;if(p&&p.closest&&p.closest('[translate=no]'))continue;const v=n.nodeValue.trim();if(v)out.add(v);}
  else for(const a of ['title','placeholder','aria-label']){const v=n.getAttribute(a);if(v)out.add('@'+v);}}return [...out];}"""
@@ -26,7 +26,7 @@ JL="""()=>{const out=new Set();const r=document.getElementById('panel-lied');con
  if(n.nodeType===3){const p=n.parentNode;if(p&&/SCRIPT|STYLE|TEXTAREA/.test(p.nodeName))continue;if(p.closest('[translate=no]'))continue;const v=n.nodeValue.trim();if(v)out.add(v);}
  else for(const a of ['title','placeholder','aria-label']){const v=n.getAttribute(a);if(v&&!n.closest('[translate=no]'))out.add('@'+v);}}return [...out];}"""
 
-SAME_OK = re.compile(r'^(@?(Swing|Name|Version|Tempo in BPM)|Auto|Blues|Arpeggio|Dominant 7|Major 7|Lick|Licks|Looper|Song|Drums|Bass|BPM|Beat|Loop|Kick|Snare|Clap|Ride|Rim|Shaker|Tom|Designer|Start|Synth|Tempo|Fills|Neutral|Metal|Rock|Punk|Funk|Disco|House|Techno|Samba|Cumbia|Motown|Boogie|Breakbeat|Hip-Hop|Halftime|E-Piano|Position( \d)?|▶ Start|\d+ min|.*(Shuffle|Blues|Bossa|Stomp|Floor|Soul|Drop|Train Beat|12/8|Lo-Fi|·).*|.*\(.*–.*\)|[A-G][♯♭]?(m|maj|sus|add|°|7|9)*.*|[ivIV°]+)$')
+SAME_OK = re.compile(r'^(@?(Swing|Name|Version|Tempo in BPM)|Auto|Blues|Arpeggio|Dominant 7|Major 7|Lick|Licks|Looper|Song|Drums|Bass|BPM|Beat|Loop|Kick|Snare|Clap|Ride|Rim|Shaker|Tom|Designer|Start|Synth|Tempo|@Tempo|Fills|Neutral|Metal|Rock|Punk|Funk|Disco|House|Techno|Samba|Cumbia|Motown|Boogie|Breakbeat|Hip-Hop|Halftime|E-Piano|Position( \d)?|▶ Start|\d+ min|.*(Shuffle|Blues|Bossa|Stomp|Floor|Soul|Drop|Train Beat|12/8|Lo-Fi|·).*|.*\(.*–.*\)|[A-G][♯♭]?(m|maj|sus|add|°|7|9)*.*|[ivIV°]+)$')
 async def main():
     async with async_playwright() as p:
         b = await p.chromium.launch(args=['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream', '--autoplay-policy=no-user-gesture-required'])
