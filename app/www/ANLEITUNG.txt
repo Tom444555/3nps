@@ -617,3 +617,10 @@ Gut zu wissen
    - Wort ziehen: Zeit verschieben – eine Linie zeigt, auf welchem Takt.Schlag es einrastet.
    - Wort antippen: direkt dort ändern (Enter/✓), leer lassen oder ✕ = löschen, mehrere Wörter = teilen.
    - Freie Stelle antippen: neues Wort genau dort einfügen.
+
+53. Gesangsspur immer da, auch für Songs (v66)
+   - Die Spur unter den Akkorden erscheint jetzt immer, sobald eine Songdatei oder ein Song aus dem
+     Songwriting läuft – auch ohne Text. Dann einfach eine freie Stelle antippen und das Wort eintippen.
+   - Bei Songs aus dem Songwriting lassen sich die Wörter jetzt auch in der Spur ändern, einfügen und löschen;
+     die Änderung landet direkt im Songtext (ohne neue Version). Zeilen mit Akkordmarken wie [Am] bitte
+     im Songwriting ändern – dort sind die Marken an die Silben gebunden.

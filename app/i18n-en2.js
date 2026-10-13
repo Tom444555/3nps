@@ -339,3 +339,9 @@ Object.assign(window.__EN, {
   'In der Spur oben: Wort ziehen = Zeit verschieben, Wort antippen = ändern (leer = löschen), freie Stelle antippen = Wort einfügen. Hier unten: Wort antippen für Feinschritte.': 'In the lane above: drag a word = move its timing, tap a word = change it (empty = delete), tap an empty spot = insert a word. Down here: tap a word for fine steps.',
   'In der Spur oben: Wort ziehen = Zeit verschieben. Den Text selbst änderst du im Songwriting.': 'In the lane above: drag a word = move its timing. Change the words themselves in Songwriting.',
 });
+Object.assign(window.__EN, {
+  'Gesangstext: freie Stelle antippen = Wort einfügen · oder „🎤 Gesangstext“ → erkennen / einfügen / einklopfen': 'Lyrics: tap an empty spot = insert a word · or “🎤 Lyrics” → detect / paste / tap timing',
+  'Gesangstext: „🎤 Gesangstext“ → einklopfen': 'Lyrics: “🎤 Lyrics” → tap timing',
+  'Diese Zeile enthält Akkordmarken wie [Am] – ihren Text bitte im Songwriting ändern.': 'This line contains chord marks like [Am] – please change its words in Songwriting.',
+  'Text aus dem Songwriting – Änderungen hier landen dort': 'lyrics from Songwriting – changes here go there', 'Variante – Text im Songwriting ändern': 'variant – change the lyrics in Songwriting',
+});

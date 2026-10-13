@@ -585,7 +585,13 @@
       const n = now(); if (!n || !window.LiedText) return null;
       const fl = C.flat(P.v), idx = fl.findIndex(x => x.oi === n.entry.oi && x.rep === n.entry.rep);
       const p = n.entry.p, pass = fl.slice(0, Math.max(0, idx)).filter(x => x.p.id === p.id).length, ly = LiedText.lyricsOf(p, pass);
-      return { song: db.active, part: p, pass: ly.same ? 0 : pass, text: ly.text, beat: n.beat, beats: C.beatsOf(p), bpm: P.v.bpm };
+      return { song: db.active, part: p, pass: ly.same ? 0 : pass, text: ly.text, beat: n.beat, beats: C.beatsOf(p), bpm: P.v.bpm, editable: P.v === ver() };
+    },
+    // Mitsingen (v66): Liedtext eines Teils/Durchgangs aus der Gesangsspur ändern (aktuelle Version, ohne neue Version)
+    singSetText: (partId, pass, text) => {
+      const v = ver(); if (!v) return false; const p = v.parts.find(x => x.id === partId); if (!p) return false;
+      p.lyrics = Array.isArray(p.lyrics) ? p.lyrics : []; while (p.lyrics.length < pass) p.lyrics.push('');
+      p.lyrics[pass] = text; const ok = save(); if (ok && !panel.hidden) render(); return ok;
     },
     log: () => P ? P.log.slice() : [], grid: () => P ? P.events.filter(e => e.inChord === 0).map(e => e.t) : [],
     db: () => db, song, ver, play, prompt: () => promptText(), readCode, imp: () => imp, stop, openCapture, render, now: () => { const n = now(); return n ? { part: n.entry.p.name, oi: n.entry.oi, chord: n.chord, beat: n.beat } : null; },
