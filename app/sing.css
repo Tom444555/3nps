@@ -1,11 +1,24 @@
   /* ---- Mitsingen (v61): Gesangsspur unter der Akkordleiste, Editor ---- */
-  .sg-band { position: relative; overflow: hidden; margin-top: 4px; border-radius: 8px; background: rgba(0,0,0,.28); border: 1px solid var(--line-soft); }
-  .sg-strip { position: relative; height: 30px; min-width: 100%; touch-action: pan-y; }
-  .sg-w { position: absolute; top: 4px; height: 22px; padding: 0 5px; box-sizing: border-box; border-left: 2px solid var(--muted);
-    font: 600 0.8rem var(--f-body); line-height: 22px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: clip;
-    background: color-mix(in srgb, var(--surface-2) 70%, transparent); border-radius: 0 6px 6px 0; cursor: grab; user-select: none; -webkit-user-select: none; }
-  .sg-w.on { color: var(--ink); border-left-color: var(--accent); background: color-mix(in srgb, var(--accent) 30%, var(--surface-2)); }
-  .sg-w.sel { outline: 1px dashed var(--accent); }
+  .sg-band { position: relative; overflow-x: auto; overflow-y: hidden; margin-top: 6px; border-radius: 10px; background: rgba(0,0,0,.35); border: 1px solid var(--line-soft); scrollbar-width: none; }
+  .sg-band::-webkit-scrollbar { display: none; }
+  .sg-strip { position: relative; height: 96px; min-width: 100%; touch-action: pan-x; }
+  .sg-barbg { position: absolute; top: 0; bottom: 0; background: rgba(255,255,255,.05); pointer-events: none; }
+  .sg-gbar { position: absolute; top: 0; bottom: 0; width: 0; border-left: 2px solid rgba(255,255,255,.55); pointer-events: none; z-index: 1; }
+  .sg-gbar span { position: absolute; top: 2px; left: 4px; font: 800 .72rem var(--f-mono); color: var(--ink); }
+  .sg-gbeat { position: absolute; top: 16px; bottom: 0; width: 0; border-left: 1px solid rgba(255,255,255,.32); pointer-events: none; }
+  .sg-g16 { position: absolute; top: 16px; bottom: 0; width: 0; border-left: 1px dashed rgba(255,255,255,.12); pointer-events: none; }
+  .sg-w { position: absolute; height: 24px; padding: 0 6px; box-sizing: border-box; border-left: 3px solid var(--muted); z-index: 2;
+    font: 600 0.9rem var(--f-body); line-height: 24px; color: var(--ink); white-space: nowrap; overflow: visible;
+    background: color-mix(in srgb, var(--surface-2) 88%, transparent); border-radius: 0 7px 7px 0; cursor: grab; user-select: none; -webkit-user-select: none; touch-action: none; }
+  .sg-w.r0 { top: 18px; } .sg-w.r1 { top: 44px; } .sg-w.r2 { top: 70px; }
+  .sg-w.on { border-left-color: var(--accent); background: color-mix(in srgb, var(--accent) 35%, var(--surface-2)); box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 50%, transparent); z-index: 3; }
+  .sg-w.sel { outline: 2px solid var(--accent); outline-offset: 1px; z-index: 4; }
+  .sg-snap { position: absolute; top: 0; bottom: 0; width: 0; border-left: 2px solid var(--accent); z-index: 5; pointer-events: none; }
+  .sg-snap span { position: absolute; top: 2px; left: 4px; padding: 0 4px; border-radius: 4px; font: 700 .68rem var(--f-mono); color: var(--bg, #000); background: var(--accent); white-space: nowrap; }
+  .sg-inline { position: absolute; z-index: 6; display: flex; gap: 3px; align-items: center; }
+  .sg-inline input { width: 150px; height: 26px; box-sizing: border-box; font: 600 0.95rem var(--f-body); color: var(--ink); background: var(--surface-2); border: 2px solid var(--accent); border-radius: 6px; padding: 0 6px; }
+  .sg-inline button { height: 26px; min-width: 28px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); font: 700 .85rem var(--f-body); cursor: pointer; }
+  .sg-inline .sg-del { color: #f77; }
   .sg-card .sg-src { margin-bottom: 8px; }
   .sg-paste summary { cursor: pointer; color: var(--muted); font: 600 0.85rem var(--f-body); margin: 4px 0 6px; }
   .sg-paste textarea { width: 100%; box-sizing: border-box; font: 0.9rem var(--f-body); color: var(--ink); background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px; margin-bottom: 6px; }
@@ -24,7 +37,6 @@
   .sg-chip small { font: 500 0.62rem var(--f-mono); color: var(--muted); }
   .sg-chip.none { border-style: dashed; color: var(--muted); }
   .sg-chip.sel { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
-  .sg-w.on { z-index: 2; overflow: visible; min-width: max-content !important; box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 50%, transparent); }
   .sg-line-read { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin: 6px 2px 0; min-height: 1.6em; }
   .sg-line-read .sg-cur { font: 600 1.15rem var(--f-body); color: var(--muted); }
   .sg-line-read .sg-cur .on { color: var(--ink); text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 4px; text-decoration-thickness: 3px; }
@@ -35,3 +47,4 @@
   .sg-lang select { min-width: 8em; }
   .sg-prog { flex: 1 1 100%; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
   .sg-prog i { display: block; height: 100%; background: var(--accent); transition: width .5s; }
+  .sg-ph { position: absolute; top: 0; bottom: 0; left: 0; width: 2px; background: var(--ink); box-shadow: 0 0 6px var(--ink); pointer-events: none; z-index: 5; will-change: transform; }

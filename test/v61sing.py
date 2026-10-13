@@ -57,10 +57,10 @@ async def main():
         # ziehen (angehalten, Leiste am Anfang)
         await pg.click('#tab-looper'); await pg.click('#loopAll'); await pg.wait_for_timeout(300); await pg.click('#tab-solo'); await pg.wait_for_timeout(300)
         await pg.evaluate("document.getElementById('sfBand').scrollLeft=0"); await pg.wait_for_timeout(300)
-        box = await pg.evaluate("(()=>{const r=document.querySelector('#sgStrip .sg-w[data-i=\"2\"]').getBoundingClientRect();return [r.x+4,r.y+8]})()")
-        b0 = (await pg.evaluate(TOK))['f'][k]['tok'][2]['b']
-        await pg.mouse.move(*box); await pg.mouse.down(); await pg.mouse.move(box[0] + 30, box[1], steps=5); await pg.mouse.move(box[0] + 60, box[1], steps=5); await pg.mouse.up()
-        b1 = (await pg.evaluate(TOK))['f'][k]['tok'][2]['b']
+        box = await pg.evaluate("(()=>{const r=document.querySelector('#sgStrip .sg-w[data-i=\"4\"]').getBoundingClientRect();return [r.x+4,r.y+8]})()")
+        b0 = (await pg.evaluate(TOK))['f'][k]['tok'][4]['b']
+        await pg.mouse.move(*box); await pg.mouse.down(); await pg.mouse.move(box[0] + 10, box[1], steps=3); await pg.mouse.move(box[0] + 18, box[1], steps=3); await pg.mouse.up()
+        b1 = (await pg.evaluate(TOK))['f'][k]['tok'][4]['b']
         check('Wort ziehen verschiebt die Zeit (gerastet)', b1 > b0 and abs(b1 * 4 - round(b1 * 4)) < 1e-6, (b0, b1))
         # ersetzen und teilen
         await pg.click('#sgEdit .sg-chip[data-i="1"]'); await pg.wait_for_timeout(200)

@@ -334,3 +334,8 @@ Object.assign(window.__EN, {
   'Die Erkennung hat das iPad überlastet – ich habe auf „Sparsam“ umgestellt. Lade die Datei neu (deine Spuren holst du über „Wiederherstellen“ zurück) und starte die Erkennung nochmal.': 'The detection overloaded the iPad – I switched to “Economy”. Load the file again (get your tracks back with “Restore”) and start the detection again.',
   'Die Erkennung braucht für dieses Gerät zu viel Speicher. Schließe andere Apps und versuche es nochmal – oder füge den Text ein und klopfe ihn ein.': 'The detection needs too much memory for this device. Close other apps and try again – or paste the lyrics and tap the timing.',
 });
+Object.assign(window.__EN, {
+  'Wort löschen': 'Delete word',
+  'In der Spur oben: Wort ziehen = Zeit verschieben, Wort antippen = ändern (leer = löschen), freie Stelle antippen = Wort einfügen. Hier unten: Wort antippen für Feinschritte.': 'In the lane above: drag a word = move its timing, tap a word = change it (empty = delete), tap an empty spot = insert a word. Down here: tap a word for fine steps.',
+  'In der Spur oben: Wort ziehen = Zeit verschieben. Den Text selbst änderst du im Songwriting.': 'In the lane above: drag a word = move its timing. Change the words themselves in Songwriting.',
+});

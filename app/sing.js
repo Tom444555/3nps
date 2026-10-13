@@ -9,7 +9,7 @@ const Sing = (() => {
   const $ = id => document.getElementById(id);
   const KEY = '3nps-sing';
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  let db = load(), ui = { open: false, tapping: false, sel: -1, lineFrom: -1, snap: true };
+  let db = load(), ui = { open: false, tapping: false, sel: -1, lineFrom: -1, snap: true, inline: false };
   function load() {
     try { const d = JSON.parse(localStorage.getItem(KEY) || 'null'); if (d && d.v === 1) { d.f = d.f || {}; d.l = d.l || {}; return d; } } catch (e) {}
     return { v: 1, f: {}, l: {} };
@@ -82,7 +82,7 @@ const Sing = (() => {
   const endOf = (tok, i) => { const t = tok[i]; for (let j = i + 1; j < tok.length; j++) if (tok[j].b != null) return Math.min(tok[j].b, t.b + 2); return t.b + 1; };
 
   // ---- Spur unter der Akkordleiste ----
-  let laneSig = '', curSrc = null, lastSrc = null, lastCur = -2;
+  let laneSig = '', curSrc = null, lastSrc = null, lastCur = -2, syncing = false;
   function tick(ci) {
     const band = $('sgBand'), strip = $('sgStrip'); if (!band) return;
     const live = source(ci);
@@ -96,19 +96,32 @@ const Sing = (() => {
     const srcL = live;
     const W = parseFloat($('sfStrip').style.width) || $('sfBand').clientWidth;
     const sig = srcL.id + '|' + W + '|' + ci.L + '|' + ver + '|' + (srcL.kind === 'lied' ? srcL.title : '');
-    if (sig !== laneSig) {
+    if (sig !== laneSig && !ui.inline) {
       laneSig = sig; lastCur = -2;
       strip.style.width = W + 'px';
       const px = f => f / ci.L * W;
       let h = '';
+      // Raster wie in der Akkordleiste: Takte (kräftig, mit Nummer), Schläge, 16tel (fein) – zum genauen Einrasten
+      const downs = ci.downs || [], pts = downs.concat(ci.beats || []).filter(x => x >= 0 && x < ci.L).sort((x, y) => x - y);
+      downs.forEach((d, i) => { const e = i + 1 < downs.length ? downs[i + 1] : ci.L; if (i % 2) h += '<div class="sg-barbg" style="left:' + px(d).toFixed(1) + 'px;width:' + px(e - d).toFixed(1) + 'px"></div>'; });
+      pts.forEach((x, i) => { const nx = i + 1 < pts.length ? pts[i + 1] : ci.L; for (let k = 1; k < 4; k++) h += '<div class="sg-g16" style="left:' + px(x + (nx - x) * k / 4).toFixed(1) + 'px"></div>'; });
+      (ci.beats || []).forEach(x => { h += '<div class="sg-gbeat" style="left:' + px(x).toFixed(1) + 'px"></div>'; });
+      downs.forEach((d, i) => { h += '<div class="sg-gbar" style="left:' + px(d).toFixed(1) + 'px"><span>' + (i + 1) + '</span></div>'; });
+      // Wörter: auf drei Reihen verteilt, damit sich nichts überdeckt
+      const rowEnd = [-1e9, -1e9, -1e9];
       srcL.tok.forEach((t, i) => {
         if (t.b == null) return;
-        const a = srcL.toCi(t.b), e = srcL.toCi(endOf(srcL.tok, i)); if (a == null || a < -1 || a >= ci.L) return;
-        h += '<span class="sg-w' + (i === ui.sel ? ' sel' : '') + '" data-i="' + i + '" style="left:' + px(a).toFixed(1) + 'px;min-width:' + Math.max(6, px(Math.min(ci.L, e) - a) - 2).toFixed(1) + 'px">' + esc(t.w) + '</span>';
+        const a0 = srcL.toCi(t.b), e0 = srcL.toCi(endOf(srcL.tok, i)); if (a0 == null || a0 < -1 || a0 >= ci.L) return;
+        const x = px(a0), wTxt = Math.max(px(Math.min(ci.L, e0) - a0) - 2, String(t.w).length * 8.2 + 14);
+        let r = rowEnd.findIndex(e => e <= x - 2); if (r < 0) r = rowEnd.indexOf(Math.min(...rowEnd));
+        rowEnd[r] = x + wTxt;
+        h += '<span class="sg-w r' + r + (i === ui.sel ? ' sel' : '') + '" data-i="' + i + '" style="left:' + x.toFixed(1) + 'px;min-width:' + Math.max(8, px(Math.min(ci.L, e0) - a0) - 2).toFixed(1) + 'px">' + esc(t.w) + '</span>';
       });
+      h += '<div class="sg-snap" id="sgSnapLine" hidden><span></span></div><div class="sg-ph" id="sgPh"></div>';
       strip.innerHTML = h; lineSig = '';
     }
-    band.scrollLeft = $('sfBand').scrollLeft;
+    if (!ui.inline && Math.abs(band.scrollLeft - $('sfBand').scrollLeft) > 1) { syncing = true; band.scrollLeft = $('sfBand').scrollLeft; }
+    { const ph = $('sgPh'), sp = $('sfPh'); if (ph && sp) { const tr = sp.style.transform, dsp = sp.style.display; if (ph.style.transform !== tr) ph.style.transform = tr; if (ph.style.display !== dsp) ph.style.display = dsp; } }
     // aktuelles Wort
     let cur = -1;
     if (srcL.nowB != null) srcL.tok.forEach((t, i) => { if (t.b != null && srcL.nowB >= t.b - 0.02 && srcL.nowB < endOf(srcL.tok, i)) cur = i; });
@@ -132,25 +145,90 @@ const Sing = (() => {
 
   // Wort im Band ziehen (Timing verschieben)
   function bindLane() {
-    const strip = $('sgStrip'); if (!strip || strip._b) return; strip._b = true;
+    const strip = $('sgStrip'), band = $('sgBand'); if (!strip || strip._b) return; strip._b = true;
+    // Spur und Akkordleiste scrollen gemeinsam (in beide Richtungen)
+    band.addEventListener('scroll', () => { if (syncing) { syncing = false; return; } const sb = $('sfBand'); if (Math.abs(sb.scrollLeft - band.scrollLeft) > 1) sb.scrollLeft = band.scrollLeft; });
     let drag = null;
+    const ciNow = () => window.SoloInfo ? SoloInfo() : null;
+    const posB = (clientX, ci) => { const r = strip.getBoundingClientRect(), W = parseFloat(strip.style.width) || r.width; return curSrc.fromCi((clientX - r.left) / W * ci.L); };
+    const guide = (nb, ci) => {
+      const g = $('sgSnapLine'); if (!g) return;
+      if (nb == null) { g.hidden = true; return; }
+      const W = parseFloat(strip.style.width) || 1; g.hidden = false; g.style.left = (curSrc.toCi(nb) / ci.L * W).toFixed(1) + 'px';
+      g.firstChild.textContent = T('Takt ') + curSrc.label(nb);
+    };
     strip.addEventListener('pointerdown', e => {
-      const el = e.target.closest('.sg-w'); if (!el || !curSrc) return;
-      const i = +el.dataset.i, W = parseFloat(strip.style.width) || 1;
-      drag = { i, x0: e.clientX, b0: curSrc.tok[i].b, W, moved: false }; strip.setPointerCapture(e.pointerId); e.preventDefault();
-      select(i);
+      if (!curSrc || ui.inline || e.target.closest('.sg-inline')) return;
+      const el = e.target.closest('.sg-w');
+      drag = { i: el ? +el.dataset.i : -1, x0: e.clientX, y0: e.clientY, b0: el ? curSrc.tok[+el.dataset.i].b : null, moved: false, pid: e.pointerId };
+      if (el) { strip.setPointerCapture(e.pointerId); e.preventDefault(); }
     });
     strip.addEventListener('pointermove', e => {
-      if (!drag || !curSrc) return;
-      const dx = e.clientX - drag.x0; if (Math.abs(dx) < 3 && !drag.moved) return; drag.moved = true;
-      const ci = window.SoloInfo ? SoloInfo() : null; if (!ci) return;
-      const f0 = curSrc.toCi(drag.b0), f = f0 + dx / drag.W * ci.L;
-      const nb = snapB(curSrc.fromCi(f)); if (nb === curSrc.tok[drag.i].b) return;
+      if (!drag || drag.i < 0 || !curSrc) return;
+      const dx = e.clientX - drag.x0; if (Math.abs(dx) < 4 && !drag.moved) return;
+      if (!drag.moved) { drag.moved = true; select(drag.i); }
+      const ci = ciNow(); if (!ci) return;
+      const W = parseFloat(strip.style.width) || 1, f = curSrc.toCi(drag.b0) + dx / W * ci.L;
+      const nb = snapB(curSrc.fromCi(f)); guide(nb, ci);
+      if (nb === curSrc.tok[drag.i].b) return;
       curSrc.tok[drag.i].b = nb; changed();
     });
-    const up = () => { drag = null; };
-    strip.addEventListener('pointerup', up); strip.addEventListener('pointercancel', up);
+    const up = e => {
+      const d = drag; drag = null; guide(null);
+      if (d && d.moved && curSrc) reorder(curSrc.tok, d.i);
+      if (!d || !curSrc || d.moved || Math.abs(e.clientX - d.x0) > 6 || Math.abs(e.clientY - d.y0) > 10) return;
+      if (d.i >= 0) { select(d.i); if (curSrc.editable) inlineEdit(d.i, null); return; }
+      if (curSrc.editable && e.target === strip || (e.target.className && /sg-(g16|gbeat|gbar|barbg)/.test(e.target.className))) { const ci = ciNow(); if (ci) inlineEdit(-1, snapB(posB(e.clientX, ci))); }
+    };
+    strip.addEventListener('pointerup', up); strip.addEventListener('pointercancel', () => { drag = null; guide(null); });
   }
+  // gezogenes Wort in der Reihenfolge an seine neue Zeit setzen (Text bleibt sonst unverändert)
+  function reorder(tok, i) {
+    const t = tok[i]; if (!t || t.b == null) return;
+    const rest = tok.slice(0, i).concat(tok.slice(i + 1));
+    let k = rest.findIndex(x => x.b != null && x.b > t.b); if (k < 0) k = rest.length;
+    if (k === i) return;
+    rest.splice(k, 0, t); tok.splice(0, tok.length, ...rest); ui.sel = k; changed();
+  }
+  // Wort direkt in der Spur ändern (i ≥ 0) oder an der Stelle b neu einfügen (i = -1).
+  // Leer lassen = Wort löschen, mehrere Wörter = teilen (Zeit verteilt bis zum nächsten Wort).
+  function inlineEdit(i, b) {
+    const src = curSrc, strip = $('sgStrip'); if (!src || !strip) return;
+    const ci = window.SoloInfo ? SoloInfo() : null; if (!ci) return;
+    const tok = src.tok, W = parseFloat(strip.style.width) || 1, at = i >= 0 ? tok[i].b : b; if (at == null) return;
+    const el = i >= 0 ? strip.querySelector('.sg-w[data-i="' + i + '"]') : null;
+    const box = document.createElement('div'); box.className = 'sg-inline';
+    box.style.left = Math.max(0, Math.min(W - 230, src.toCi(at) / ci.L * W)).toFixed(1) + 'px';
+    box.style.top = el ? el.offsetTop + 'px' : '34px';
+    box.innerHTML = '<input type="text" autocapitalize="off" autocomplete="off" spellcheck="false" value="' + (i >= 0 ? esc(tok[i].w) : '') + '" aria-label="' + T('Wort') + '"><button type="button" class="sg-ok" aria-label="OK">✓</button>' + (i >= 0 ? '<button type="button" class="sg-del" aria-label="' + T('Wort löschen') + '">✕</button>' : '');
+    ui.inline = true; strip.appendChild(box);
+    const inp = box.querySelector('input'); inp.focus(); inp.select();
+    let done = false;
+    const close = apply => {
+      if (done) return; done = true; ui.inline = false;
+      const v = apply === 'del' ? '' : inp.value.trim(); box.remove();
+      if (apply) {
+        if (i >= 0) {
+          if (!v) { tok.splice(i, 1); ui.sel = -1; }
+          else if (v !== tok[i].w) { const parts = v.split(/\s+/), t = tok[i], nb = endOf(tok, i); tok.splice(i, 1, ...parts.map((w, k) => ({ w, l: t.l, b: t.b == null ? null : snapB(t.b + (nb - t.b) * k / parts.length) }))); }
+        } else if (v) {
+          // Zeile vom Wort davor übernehmen (sonst vom Wort danach), richtig einsortieren
+          let k = tok.findIndex(t => t.b != null && t.b > b); if (k < 0) k = tok.length;
+          const l = k > 0 ? tok[k - 1].l : tok[k] ? tok[k].l : 0;
+          const parts = v.split(/\s+/), step = ui.snap ? 0.5 : 0.25;
+          tok.splice(k, 0, ...parts.map((w, j) => ({ w, l, b: snapB(b + j * step) }))); ui.sel = k;
+        }
+        changed(); persist(src);
+      }
+      laneSig = ''; edSig = '';
+    };
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); close(true); } else if (e.key === 'Escape') { e.preventDefault(); close(false); } e.stopPropagation(); });
+    inp.addEventListener('blur', () => setTimeout(() => { if (!box.contains(document.activeElement)) close(true); }, 120));
+    box.querySelector('.sg-ok').addEventListener('click', () => close(true));
+    const del = box.querySelector('.sg-del'); if (del) del.addEventListener('pointerdown', e => { e.preventDefault(); close('del'); });
+  }
+  // Datei-Text speichern (für Song-Quellen liegt der Text im Songwriting – dort nur die Zeiten)
+  function persist(src) { if (src.kind === 'file' && !db.f[src.id]) { db.f[src.id] = { name: src.name, tok: src.tok }; save(); } }
 
   // ---- Einklopfen ----
   function tap() {
@@ -188,7 +266,7 @@ const Sing = (() => {
         + '<label class="check"><input type="checkbox" id="sgSnap"' + (ui.snap ? ' checked' : '') + '> Magnet 16tel</label>'
         + '<span class="caption">' + src.tok.filter(t => t.b != null).length + ' von ' + src.tok.length + ' Wörtern mit Zeit</span></div>';
       if (ui.tapping) h += '<button class="sg-tap" id="sgTap">Tippen = nächstes Wort</button>';
-      h += '<p class="sg-status" id="sgStatus">' + (ui.tapping ? 'Abspielen und bei jeder Silbe bzw. jedem Wort auf den großen Knopf tippen.' : 'Wort antippen zum Bearbeiten. In der Spur oben kannst du Wörter ziehen.') + '</p>';
+      h += '<p class="sg-status" id="sgStatus">' + (ui.tapping ? 'Abspielen und bei jeder Silbe bzw. jedem Wort auf den großen Knopf tippen.' : (src.editable ? 'In der Spur oben: Wort ziehen = Zeit verschieben, Wort antippen = ändern (leer = löschen), freie Stelle antippen = Wort einfügen. Hier unten: Wort antippen für Feinschritte.' : 'In der Spur oben: Wort ziehen = Zeit verschieben. Den Text selbst änderst du im Songwriting.')) + '</p>';
       if (ui.sel >= 0 && src.tok[ui.sel]) {
         const t = src.tok[ui.sel];
         h += '<div class="sg-selbar">' + (src.editable ? '<input type="text" id="sgWord" value="' + esc(t.w) + '" aria-label="Wort"><button class="toggle-btn" id="sgRepl">Ersetzen</button>' : '<b translate="no">' + esc(t.w) + '</b>')

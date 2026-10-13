@@ -92,6 +92,9 @@ Everything you record or write is stored only on this device (back it up, see se
   sung lyrics on the device (Whisper model, about 100 MB loaded once, then works offline), places every word
   on its beat and splits lines – then you only correct them. “Economy” uses a smaller model and less memory;
   if the iPad reloads the app during detection, it switches to Economy by itself.
+- The lyrics lane under the chords is as big as the chord strip, with the same grid (bars, beats, 16ths) and
+  play line. Drag a word to move it (a line shows the bar.beat it snaps to), tap a word to change it right there
+  (empty or ✕ = delete, several words = split), tap an empty spot to insert a word.
 
 7. CAGED
 --------
