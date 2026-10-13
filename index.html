@@ -1180,13 +1180,26 @@ html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleis
   .ld-imr .note { font: 500 .86rem var(--f-body); color: var(--muted); } .ld-imr .note b { color: var(--ink); }
   .ld-imr .ld-vact { flex-wrap: wrap; }
   /* ---- Mitsingen (v61): Gesangsspur unter der Akkordleiste, Editor ---- */
-  .sg-band { position: relative; overflow: hidden; margin-top: 4px; border-radius: 8px; background: rgba(0,0,0,.28); border: 1px solid var(--line-soft); }
-  .sg-strip { position: relative; height: 30px; min-width: 100%; touch-action: pan-y; }
-  .sg-w { position: absolute; top: 4px; height: 22px; padding: 0 5px; box-sizing: border-box; border-left: 2px solid var(--muted);
-    font: 600 0.8rem var(--f-body); line-height: 22px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: clip;
-    background: color-mix(in srgb, var(--surface-2) 70%, transparent); border-radius: 0 6px 6px 0; cursor: grab; user-select: none; -webkit-user-select: none; }
-  .sg-w.on { color: var(--ink); border-left-color: var(--accent); background: color-mix(in srgb, var(--accent) 30%, var(--surface-2)); }
-  .sg-w.sel { outline: 1px dashed var(--accent); }
+  .sg-band { position: relative; overflow-x: auto; overflow-y: hidden; margin-top: 6px; border-radius: 10px; background: rgba(0,0,0,.35); border: 1px solid var(--line-soft); scrollbar-width: none; }
+  .sg-band::-webkit-scrollbar { display: none; }
+  .sg-strip { position: relative; height: 96px; min-width: 100%; touch-action: pan-x; }
+  .sg-barbg { position: absolute; top: 0; bottom: 0; background: rgba(255,255,255,.05); pointer-events: none; }
+  .sg-gbar { position: absolute; top: 0; bottom: 0; width: 0; border-left: 2px solid rgba(255,255,255,.55); pointer-events: none; z-index: 1; }
+  .sg-gbar span { position: absolute; top: 2px; left: 4px; font: 800 .72rem var(--f-mono); color: var(--ink); }
+  .sg-gbeat { position: absolute; top: 16px; bottom: 0; width: 0; border-left: 1px solid rgba(255,255,255,.32); pointer-events: none; }
+  .sg-g16 { position: absolute; top: 16px; bottom: 0; width: 0; border-left: 1px dashed rgba(255,255,255,.12); pointer-events: none; }
+  .sg-w { position: absolute; height: 24px; padding: 0 6px; box-sizing: border-box; border-left: 3px solid var(--muted); z-index: 2;
+    font: 600 0.9rem var(--f-body); line-height: 24px; color: var(--ink); white-space: nowrap; overflow: visible;
+    background: color-mix(in srgb, var(--surface-2) 88%, transparent); border-radius: 0 7px 7px 0; cursor: grab; user-select: none; -webkit-user-select: none; touch-action: none; }
+  .sg-w.r0 { top: 18px; } .sg-w.r1 { top: 44px; } .sg-w.r2 { top: 70px; }
+  .sg-w.on { border-left-color: var(--accent); background: color-mix(in srgb, var(--accent) 35%, var(--surface-2)); box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 50%, transparent); z-index: 3; }
+  .sg-w.sel { outline: 2px solid var(--accent); outline-offset: 1px; z-index: 4; }
+  .sg-snap { position: absolute; top: 0; bottom: 0; width: 0; border-left: 2px solid var(--accent); z-index: 5; pointer-events: none; }
+  .sg-snap span { position: absolute; top: 2px; left: 4px; padding: 0 4px; border-radius: 4px; font: 700 .68rem var(--f-mono); color: var(--bg, #000); background: var(--accent); white-space: nowrap; }
+  .sg-inline { position: absolute; z-index: 6; display: flex; gap: 3px; align-items: center; }
+  .sg-inline input { width: 150px; height: 26px; box-sizing: border-box; font: 600 0.95rem var(--f-body); color: var(--ink); background: var(--surface-2); border: 2px solid var(--accent); border-radius: 6px; padding: 0 6px; }
+  .sg-inline button { height: 26px; min-width: 28px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); font: 700 .85rem var(--f-body); cursor: pointer; }
+  .sg-inline .sg-del { color: #f77; }
   .sg-card .sg-src { margin-bottom: 8px; }
   .sg-paste summary { cursor: pointer; color: var(--muted); font: 600 0.85rem var(--f-body); margin: 4px 0 6px; }
   .sg-paste textarea { width: 100%; box-sizing: border-box; font: 0.9rem var(--f-body); color: var(--ink); background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px; margin-bottom: 6px; }
@@ -1205,7 +1218,6 @@ html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleis
   .sg-chip small { font: 500 0.62rem var(--f-mono); color: var(--muted); }
   .sg-chip.none { border-style: dashed; color: var(--muted); }
   .sg-chip.sel { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
-  .sg-w.on { z-index: 2; overflow: visible; min-width: max-content !important; box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 50%, transparent); }
   .sg-line-read { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin: 6px 2px 0; min-height: 1.6em; }
   .sg-line-read .sg-cur { font: 600 1.15rem var(--f-body); color: var(--muted); }
   .sg-line-read .sg-cur .on { color: var(--ink); text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 4px; text-decoration-thickness: 3px; }
@@ -1216,6 +1228,7 @@ html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleis
   .sg-lang select { min-width: 8em; }
   .sg-prog { flex: 1 1 100%; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
   .sg-prog i { display: block; height: 100%; background: var(--accent); transition: width .5s; }
+  .sg-ph { position: absolute; top: 0; bottom: 0; left: 0; width: 2px; background: var(--ink); box-shadow: 0 0 6px var(--ink); pointer-events: none; z-index: 5; will-change: transform; }
   /* ---- Reiter Mitsingen (v63) ---- */
   .sb-card { min-height: 260px; }
   .sb-top { display: flex; align-items: center; justify-content: space-between; min-height: 56px; }
@@ -2834,6 +2847,11 @@ Object.assign(window.__EN, {
   'Die Erkennung hat das iPad überlastet – ich habe auf „Sparsam“ umgestellt. Lade die Datei neu (deine Spuren holst du über „Wiederherstellen“ zurück) und starte die Erkennung nochmal.': 'The detection overloaded the iPad – I switched to “Economy”. Load the file again (get your tracks back with “Restore”) and start the detection again.',
   'Die Erkennung braucht für dieses Gerät zu viel Speicher. Schließe andere Apps und versuche es nochmal – oder füge den Text ein und klopfe ihn ein.': 'The detection needs too much memory for this device. Close other apps and try again – or paste the lyrics and tap the timing.',
 });
+Object.assign(window.__EN, {
+  'Wort löschen': 'Delete word',
+  'In der Spur oben: Wort ziehen = Zeit verschieben, Wort antippen = ändern (leer = löschen), freie Stelle antippen = Wort einfügen. Hier unten: Wort antippen für Feinschritte.': 'In the lane above: drag a word = move its timing, tap a word = change it (empty = delete), tap an empty spot = insert a word. Down here: tap a word for fine steps.',
+  'In der Spur oben: Wort ziehen = Zeit verschieben. Den Text selbst änderst du im Songwriting.': 'In the lane above: drag a word = move its timing. Change the words themselves in Songwriting.',
+});
 
 // Sprache (v59): Deutsch ist der Quelltext. Nur im EN-Modus läuft hier etwas:
 // Ein Beobachter übersetzt neue/geänderte Texte im DOM (Text, title, placeholder, aria-label)
@@ -2939,7 +2957,7 @@ Object.assign(window.__EN, {
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v64</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v65</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -13613,7 +13631,7 @@ const Sing = (() => {
   const $ = id => document.getElementById(id);
   const KEY = '3nps-sing';
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  let db = load(), ui = { open: false, tapping: false, sel: -1, lineFrom: -1, snap: true };
+  let db = load(), ui = { open: false, tapping: false, sel: -1, lineFrom: -1, snap: true, inline: false };
   function load() {
     try { const d = JSON.parse(localStorage.getItem(KEY) || 'null'); if (d && d.v === 1) { d.f = d.f || {}; d.l = d.l || {}; return d; } } catch (e) {}
     return { v: 1, f: {}, l: {} };
@@ -13686,7 +13704,7 @@ const Sing = (() => {
   const endOf = (tok, i) => { const t = tok[i]; for (let j = i + 1; j < tok.length; j++) if (tok[j].b != null) return Math.min(tok[j].b, t.b + 2); return t.b + 1; };
 
   // ---- Spur unter der Akkordleiste ----
-  let laneSig = '', curSrc = null, lastSrc = null, lastCur = -2;
+  let laneSig = '', curSrc = null, lastSrc = null, lastCur = -2, syncing = false;
   function tick(ci) {
     const band = $('sgBand'), strip = $('sgStrip'); if (!band) return;
     const live = source(ci);
@@ -13700,19 +13718,32 @@ const Sing = (() => {
     const srcL = live;
     const W = parseFloat($('sfStrip').style.width) || $('sfBand').clientWidth;
     const sig = srcL.id + '|' + W + '|' + ci.L + '|' + ver + '|' + (srcL.kind === 'lied' ? srcL.title : '');
-    if (sig !== laneSig) {
+    if (sig !== laneSig && !ui.inline) {
       laneSig = sig; lastCur = -2;
       strip.style.width = W + 'px';
       const px = f => f / ci.L * W;
       let h = '';
+      // Raster wie in der Akkordleiste: Takte (kräftig, mit Nummer), Schläge, 16tel (fein) – zum genauen Einrasten
+      const downs = ci.downs || [], pts = downs.concat(ci.beats || []).filter(x => x >= 0 && x < ci.L).sort((x, y) => x - y);
+      downs.forEach((d, i) => { const e = i + 1 < downs.length ? downs[i + 1] : ci.L; if (i % 2) h += '<div class="sg-barbg" style="left:' + px(d).toFixed(1) + 'px;width:' + px(e - d).toFixed(1) + 'px"></div>'; });
+      pts.forEach((x, i) => { const nx = i + 1 < pts.length ? pts[i + 1] : ci.L; for (let k = 1; k < 4; k++) h += '<div class="sg-g16" style="left:' + px(x + (nx - x) * k / 4).toFixed(1) + 'px"></div>'; });
+      (ci.beats || []).forEach(x => { h += '<div class="sg-gbeat" style="left:' + px(x).toFixed(1) + 'px"></div>'; });
+      downs.forEach((d, i) => { h += '<div class="sg-gbar" style="left:' + px(d).toFixed(1) + 'px"><span>' + (i + 1) + '</span></div>'; });
+      // Wörter: auf drei Reihen verteilt, damit sich nichts überdeckt
+      const rowEnd = [-1e9, -1e9, -1e9];
       srcL.tok.forEach((t, i) => {
         if (t.b == null) return;
-        const a = srcL.toCi(t.b), e = srcL.toCi(endOf(srcL.tok, i)); if (a == null || a < -1 || a >= ci.L) return;
-        h += '<span class="sg-w' + (i === ui.sel ? ' sel' : '') + '" data-i="' + i + '" style="left:' + px(a).toFixed(1) + 'px;min-width:' + Math.max(6, px(Math.min(ci.L, e) - a) - 2).toFixed(1) + 'px">' + esc(t.w) + '</span>';
+        const a0 = srcL.toCi(t.b), e0 = srcL.toCi(endOf(srcL.tok, i)); if (a0 == null || a0 < -1 || a0 >= ci.L) return;
+        const x = px(a0), wTxt = Math.max(px(Math.min(ci.L, e0) - a0) - 2, String(t.w).length * 8.2 + 14);
+        let r = rowEnd.findIndex(e => e <= x - 2); if (r < 0) r = rowEnd.indexOf(Math.min(...rowEnd));
+        rowEnd[r] = x + wTxt;
+        h += '<span class="sg-w r' + r + (i === ui.sel ? ' sel' : '') + '" data-i="' + i + '" style="left:' + x.toFixed(1) + 'px;min-width:' + Math.max(8, px(Math.min(ci.L, e0) - a0) - 2).toFixed(1) + 'px">' + esc(t.w) + '</span>';
       });
+      h += '<div class="sg-snap" id="sgSnapLine" hidden><span></span></div><div class="sg-ph" id="sgPh"></div>';
       strip.innerHTML = h; lineSig = '';
     }
-    band.scrollLeft = $('sfBand').scrollLeft;
+    if (!ui.inline && Math.abs(band.scrollLeft - $('sfBand').scrollLeft) > 1) { syncing = true; band.scrollLeft = $('sfBand').scrollLeft; }
+    { const ph = $('sgPh'), sp = $('sfPh'); if (ph && sp) { const tr = sp.style.transform, dsp = sp.style.display; if (ph.style.transform !== tr) ph.style.transform = tr; if (ph.style.display !== dsp) ph.style.display = dsp; } }
     // aktuelles Wort
     let cur = -1;
     if (srcL.nowB != null) srcL.tok.forEach((t, i) => { if (t.b != null && srcL.nowB >= t.b - 0.02 && srcL.nowB < endOf(srcL.tok, i)) cur = i; });
@@ -13736,25 +13767,90 @@ const Sing = (() => {
 
   // Wort im Band ziehen (Timing verschieben)
   function bindLane() {
-    const strip = $('sgStrip'); if (!strip || strip._b) return; strip._b = true;
+    const strip = $('sgStrip'), band = $('sgBand'); if (!strip || strip._b) return; strip._b = true;
+    // Spur und Akkordleiste scrollen gemeinsam (in beide Richtungen)
+    band.addEventListener('scroll', () => { if (syncing) { syncing = false; return; } const sb = $('sfBand'); if (Math.abs(sb.scrollLeft - band.scrollLeft) > 1) sb.scrollLeft = band.scrollLeft; });
     let drag = null;
+    const ciNow = () => window.SoloInfo ? SoloInfo() : null;
+    const posB = (clientX, ci) => { const r = strip.getBoundingClientRect(), W = parseFloat(strip.style.width) || r.width; return curSrc.fromCi((clientX - r.left) / W * ci.L); };
+    const guide = (nb, ci) => {
+      const g = $('sgSnapLine'); if (!g) return;
+      if (nb == null) { g.hidden = true; return; }
+      const W = parseFloat(strip.style.width) || 1; g.hidden = false; g.style.left = (curSrc.toCi(nb) / ci.L * W).toFixed(1) + 'px';
+      g.firstChild.textContent = T('Takt ') + curSrc.label(nb);
+    };
     strip.addEventListener('pointerdown', e => {
-      const el = e.target.closest('.sg-w'); if (!el || !curSrc) return;
-      const i = +el.dataset.i, W = parseFloat(strip.style.width) || 1;
-      drag = { i, x0: e.clientX, b0: curSrc.tok[i].b, W, moved: false }; strip.setPointerCapture(e.pointerId); e.preventDefault();
-      select(i);
+      if (!curSrc || ui.inline || e.target.closest('.sg-inline')) return;
+      const el = e.target.closest('.sg-w');
+      drag = { i: el ? +el.dataset.i : -1, x0: e.clientX, y0: e.clientY, b0: el ? curSrc.tok[+el.dataset.i].b : null, moved: false, pid: e.pointerId };
+      if (el) { strip.setPointerCapture(e.pointerId); e.preventDefault(); }
     });
     strip.addEventListener('pointermove', e => {
-      if (!drag || !curSrc) return;
-      const dx = e.clientX - drag.x0; if (Math.abs(dx) < 3 && !drag.moved) return; drag.moved = true;
-      const ci = window.SoloInfo ? SoloInfo() : null; if (!ci) return;
-      const f0 = curSrc.toCi(drag.b0), f = f0 + dx / drag.W * ci.L;
-      const nb = snapB(curSrc.fromCi(f)); if (nb === curSrc.tok[drag.i].b) return;
+      if (!drag || drag.i < 0 || !curSrc) return;
+      const dx = e.clientX - drag.x0; if (Math.abs(dx) < 4 && !drag.moved) return;
+      if (!drag.moved) { drag.moved = true; select(drag.i); }
+      const ci = ciNow(); if (!ci) return;
+      const W = parseFloat(strip.style.width) || 1, f = curSrc.toCi(drag.b0) + dx / W * ci.L;
+      const nb = snapB(curSrc.fromCi(f)); guide(nb, ci);
+      if (nb === curSrc.tok[drag.i].b) return;
       curSrc.tok[drag.i].b = nb; changed();
     });
-    const up = () => { drag = null; };
-    strip.addEventListener('pointerup', up); strip.addEventListener('pointercancel', up);
+    const up = e => {
+      const d = drag; drag = null; guide(null);
+      if (d && d.moved && curSrc) reorder(curSrc.tok, d.i);
+      if (!d || !curSrc || d.moved || Math.abs(e.clientX - d.x0) > 6 || Math.abs(e.clientY - d.y0) > 10) return;
+      if (d.i >= 0) { select(d.i); if (curSrc.editable) inlineEdit(d.i, null); return; }
+      if (curSrc.editable && e.target === strip || (e.target.className && /sg-(g16|gbeat|gbar|barbg)/.test(e.target.className))) { const ci = ciNow(); if (ci) inlineEdit(-1, snapB(posB(e.clientX, ci))); }
+    };
+    strip.addEventListener('pointerup', up); strip.addEventListener('pointercancel', () => { drag = null; guide(null); });
   }
+  // gezogenes Wort in der Reihenfolge an seine neue Zeit setzen (Text bleibt sonst unverändert)
+  function reorder(tok, i) {
+    const t = tok[i]; if (!t || t.b == null) return;
+    const rest = tok.slice(0, i).concat(tok.slice(i + 1));
+    let k = rest.findIndex(x => x.b != null && x.b > t.b); if (k < 0) k = rest.length;
+    if (k === i) return;
+    rest.splice(k, 0, t); tok.splice(0, tok.length, ...rest); ui.sel = k; changed();
+  }
+  // Wort direkt in der Spur ändern (i ≥ 0) oder an der Stelle b neu einfügen (i = -1).
+  // Leer lassen = Wort löschen, mehrere Wörter = teilen (Zeit verteilt bis zum nächsten Wort).
+  function inlineEdit(i, b) {
+    const src = curSrc, strip = $('sgStrip'); if (!src || !strip) return;
+    const ci = window.SoloInfo ? SoloInfo() : null; if (!ci) return;
+    const tok = src.tok, W = parseFloat(strip.style.width) || 1, at = i >= 0 ? tok[i].b : b; if (at == null) return;
+    const el = i >= 0 ? strip.querySelector('.sg-w[data-i="' + i + '"]') : null;
+    const box = document.createElement('div'); box.className = 'sg-inline';
+    box.style.left = Math.max(0, Math.min(W - 230, src.toCi(at) / ci.L * W)).toFixed(1) + 'px';
+    box.style.top = el ? el.offsetTop + 'px' : '34px';
+    box.innerHTML = '<input type="text" autocapitalize="off" autocomplete="off" spellcheck="false" value="' + (i >= 0 ? esc(tok[i].w) : '') + '" aria-label="' + T('Wort') + '"><button type="button" class="sg-ok" aria-label="OK">✓</button>' + (i >= 0 ? '<button type="button" class="sg-del" aria-label="' + T('Wort löschen') + '">✕</button>' : '');
+    ui.inline = true; strip.appendChild(box);
+    const inp = box.querySelector('input'); inp.focus(); inp.select();
+    let done = false;
+    const close = apply => {
+      if (done) return; done = true; ui.inline = false;
+      const v = apply === 'del' ? '' : inp.value.trim(); box.remove();
+      if (apply) {
+        if (i >= 0) {
+          if (!v) { tok.splice(i, 1); ui.sel = -1; }
+          else if (v !== tok[i].w) { const parts = v.split(/\s+/), t = tok[i], nb = endOf(tok, i); tok.splice(i, 1, ...parts.map((w, k) => ({ w, l: t.l, b: t.b == null ? null : snapB(t.b + (nb - t.b) * k / parts.length) }))); }
+        } else if (v) {
+          // Zeile vom Wort davor übernehmen (sonst vom Wort danach), richtig einsortieren
+          let k = tok.findIndex(t => t.b != null && t.b > b); if (k < 0) k = tok.length;
+          const l = k > 0 ? tok[k - 1].l : tok[k] ? tok[k].l : 0;
+          const parts = v.split(/\s+/), step = ui.snap ? 0.5 : 0.25;
+          tok.splice(k, 0, ...parts.map((w, j) => ({ w, l, b: snapB(b + j * step) }))); ui.sel = k;
+        }
+        changed(); persist(src);
+      }
+      laneSig = ''; edSig = '';
+    };
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); close(true); } else if (e.key === 'Escape') { e.preventDefault(); close(false); } e.stopPropagation(); });
+    inp.addEventListener('blur', () => setTimeout(() => { if (!box.contains(document.activeElement)) close(true); }, 120));
+    box.querySelector('.sg-ok').addEventListener('click', () => close(true));
+    const del = box.querySelector('.sg-del'); if (del) del.addEventListener('pointerdown', e => { e.preventDefault(); close('del'); });
+  }
+  // Datei-Text speichern (für Song-Quellen liegt der Text im Songwriting – dort nur die Zeiten)
+  function persist(src) { if (src.kind === 'file' && !db.f[src.id]) { db.f[src.id] = { name: src.name, tok: src.tok }; save(); } }
 
   // ---- Einklopfen ----
   function tap() {
@@ -13792,7 +13888,7 @@ const Sing = (() => {
         + '<label class="check"><input type="checkbox" id="sgSnap"' + (ui.snap ? ' checked' : '') + '> Magnet 16tel</label>'
         + '<span class="caption">' + src.tok.filter(t => t.b != null).length + ' von ' + src.tok.length + ' Wörtern mit Zeit</span></div>';
       if (ui.tapping) h += '<button class="sg-tap" id="sgTap">Tippen = nächstes Wort</button>';
-      h += '<p class="sg-status" id="sgStatus">' + (ui.tapping ? 'Abspielen und bei jeder Silbe bzw. jedem Wort auf den großen Knopf tippen.' : 'Wort antippen zum Bearbeiten. In der Spur oben kannst du Wörter ziehen.') + '</p>';
+      h += '<p class="sg-status" id="sgStatus">' + (ui.tapping ? 'Abspielen und bei jeder Silbe bzw. jedem Wort auf den großen Knopf tippen.' : (src.editable ? 'In der Spur oben: Wort ziehen = Zeit verschieben, Wort antippen = ändern (leer = löschen), freie Stelle antippen = Wort einfügen. Hier unten: Wort antippen für Feinschritte.' : 'In der Spur oben: Wort ziehen = Zeit verschieben. Den Text selbst änderst du im Songwriting.')) + '</p>';
       if (ui.sel >= 0 && src.tok[ui.sel]) {
         const t = src.tok[ui.sel];
         h += '<div class="sg-selbar">' + (src.editable ? '<input type="text" id="sgWord" value="' + esc(t.w) + '" aria-label="Wort"><button class="toggle-btn" id="sgRepl">Ersetzen</button>' : '<b translate="no">' + esc(t.w) + '</b>')

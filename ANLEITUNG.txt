@@ -610,3 +610,10 @@ Gut zu wissen
      (kleineres Modell, mehr Fehler). Die Spuren werden vorher gesichert („Wiederherstellen“).
    - Je lauter und klarer der Gesang, desto besser. Bei lauter Band, Chören oder Effekten entstehen Fehler.
    - Fremde Songtexte nur zum eigenen Üben.
+
+52. Gesangsspur zum Bearbeiten (v65)
+   - Die Spur unter den Akkorden ist jetzt genauso groß wie die Akkordleiste und hat dasselbe Raster
+     (Takte mit Nummer, Schläge, feine 16tel-Linien) und den Abspielstrich. Beide scrollen gemeinsam.
+   - Wort ziehen: Zeit verschieben – eine Linie zeigt, auf welchem Takt.Schlag es einrastet.
+   - Wort antippen: direkt dort ändern (Enter/✓), leer lassen oder ✕ = löschen, mehrere Wörter = teilen.
+   - Freie Stelle antippen: neues Wort genau dort einfügen.
