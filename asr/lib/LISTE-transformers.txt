@@ -1,0 +1,21 @@
+total 45272
+drwxr-xr-x 2 runner runner     4096 Oct 13 08:20 .
+drwxr-xr-x 5 runner runner     4096 Oct 13 08:20 ..
+-rw-r--r-- 1 runner runner    44484 Oct 26  1985 ort-wasm-simd-threaded.jsep.mjs
+-rw-r--r-- 1 runner runner 21596019 Oct 26  1985 ort-wasm-simd-threaded.jsep.wasm
+-rw-r--r-- 1 runner runner  2253735 Oct 26  1985 transformers.js
+-rw-r--r-- 1 runner runner  2146226 Oct 26  1985 transformers.js.map
+-rw-r--r-- 1 runner runner   888173 Oct 26  1985 transformers.min.js
+-rw-r--r-- 1 runner runner  2692154 Oct 26  1985 transformers.min.js.map
+-rw-r--r-- 1 runner runner  1647845 Oct 26  1985 transformers.node.cjs
+-rw-r--r-- 1 runner runner  1575731 Oct 26  1985 transformers.node.cjs.map
+-rw-r--r-- 1 runner runner   426274 Oct 26  1985 transformers.node.min.cjs
+-rw-r--r-- 1 runner runner  1799021 Oct 26  1985 transformers.node.min.cjs.map
+-rw-r--r-- 1 runner runner   470288 Oct 26  1985 transformers.node.min.mjs
+-rw-r--r-- 1 runner runner  1799404 Oct 26  1985 transformers.node.min.mjs.map
+-rw-r--r-- 1 runner runner  1777746 Oct 26  1985 transformers.node.mjs
+-rw-r--r-- 1 runner runner  1575721 Oct 26  1985 transformers.node.mjs.map
+-rw-r--r-- 1 runner runner  1777240 Oct 26  1985 transformers.web.js
+-rw-r--r-- 1 runner runner  1576002 Oct 26  1985 transformers.web.js.map
+-rw-r--r-- 1 runner runner   469931 Oct 26  1985 transformers.web.min.js
+-rw-r--r-- 1 runner runner  1798603 Oct 26  1985 transformers.web.min.js.map
