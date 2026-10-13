@@ -3,3 +3,9 @@ __pycache__/
 test/*/*.wav
 !test/loops/*.wav
 test/*.wav
+app/www/asr/lib/transformers.min.js
+app/www/asr/lib/ort-*
+app/www/asr/lib/LICENSE-transformers.txt
+app/www/asr/models/
+app/www/asr/worker.js
+test/sing/lied_*.wav

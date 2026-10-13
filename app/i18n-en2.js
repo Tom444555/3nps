@@ -316,3 +316,21 @@ Object.assign(window.__EN, {
   'Diese Zeile liegt außerhalb des geloopten Ausschnitts – „Zeile üben“ spielt sie trotzdem.': 'This line is outside the looped section – “Practise line” still plays it.', 'Tempo': 'Tempo',
 });
 window.__EN['Impro'] = 'Impro'; window.__EN['visation'] = 'visation';
+Object.assign(window.__EN, {
+  // Texterkennung (v64)
+  '🤖 Text automatisch erkennen': '🤖 Detect lyrics automatically', 'Sprache': 'Language', 'Deutsch': 'German', 'Englisch': 'English',
+  'Erkennt den gesungenen Text mit Zeitpunkten – danach nur noch ausbessern. Läuft komplett auf dem Gerät; beim ersten Mal werden etwa 100 MB geladen.': 'Detects the sung lyrics with their timing – then you only need to correct them. Runs entirely on the device; about 100 MB are loaded the first time.',
+  'Der vorhandene Text und sein Timing werden durch die Erkennung ersetzt. Weiter?': 'The existing lyrics and timing will be replaced by the detection. Continue?',
+  'Dieses Gerät kann die Erkennung nicht ausführen.': 'This device cannot run the detection.', 'Die Audiodatei ist nicht mehr im Speicher – bitte neu laden.': 'The audio file is no longer in memory – please load it again.',
+  'Bereite das Audio vor …': 'Preparing the audio …', 'Lade das Erkennungsmodell (einmalig ca. 100 MB) … ': 'Loading the recognition model (once, about 100 MB) … ',
+  'Höre den Text heraus …': 'Listening for the lyrics …', 'Höre den Text heraus … ': 'Listening for the lyrics … ',
+  'Kein Gesang erkannt. Ist der Gesang sehr leise, oder ist die Sprache falsch eingestellt?': 'No vocals detected. Are the vocals very quiet, or is the language set wrong?',
+  ' Wörter in ': ' words in ', ' Zeilen erkannt (': ' lines detected (', ' s). Jetzt ausbessern: Wort antippen → ersetzen, Zeiten ziehen.': ' s). Now correct them: tap a word → replace, drag the timing.',
+  'Erkennung fehlgeschlagen: ': 'Detection failed: ',
+});
+Object.assign(window.__EN, {
+  'Erkennung': 'Detection', 'Genau': 'Accurate', 'Sparsam (weniger Speicher)': 'Economy (less memory)', 'Sichere die Spuren …': 'Saving the tracks …',
+  'Lade das Erkennungsmodell (einmalig ca. 65 MB) … ': 'Loading the recognition model (once, about 65 MB) … ',
+  'Die Erkennung hat das iPad überlastet – ich habe auf „Sparsam“ umgestellt. Lade die Datei neu (deine Spuren holst du über „Wiederherstellen“ zurück) und starte die Erkennung nochmal.': 'The detection overloaded the iPad – I switched to “Economy”. Load the file again (get your tracks back with “Restore”) and start the detection again.',
+  'Die Erkennung braucht für dieses Gerät zu viel Speicher. Schließe andere Apps und versuche es nochmal – oder füge den Text ein und klopfe ihn ein.': 'The detection needs too much memory for this device. Close other apps and try again – or paste the lyrics and tap the timing.',
+});

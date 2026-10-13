@@ -30,3 +30,8 @@
   .sg-line-read .sg-cur .on { color: var(--ink); text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 4px; text-decoration-thickness: 3px; }
   .sg-line-read .sg-cur .past { color: color-mix(in srgb, var(--ink) 75%, transparent); }
   .sg-line-read .sg-next { font: 0.85rem var(--f-body); color: var(--muted); opacity: .75; }
+  .sg-auto { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px 12px; margin: 4px 0 10px; }
+  .sg-auto .caption { flex: 1 1 260px; }
+  .sg-lang select { min-width: 8em; }
+  .sg-prog { flex: 1 1 100%; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+  .sg-prog i { display: block; height: 100%; background: var(--accent); transition: width .5s; }

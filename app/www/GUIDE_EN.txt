@@ -88,6 +88,10 @@ Everything you record or write is stored only on this device (back it up, see se
   “↻ Practise line” loops the current line with a one-bar run-up, also at 75 % or 50 % without changing
   the pitch. “🎤 Check timing” detects your vocal entries and marks every word green (on time, ±70 ms),
   blue (early) or orange (late). Translation: one line per lyric line, typed in or made with Claude.
+- “🤖 Detect lyrics automatically” (for loaded song files): choose the language, and the app transcribes the
+  sung lyrics on the device (Whisper model, about 100 MB loaded once, then works offline), places every word
+  on its beat and splits lines – then you only correct them. “Economy” uses a smaller model and less memory;
+  if the iPad reloads the app during detection, it switches to Economy by itself.
 
 7. CAGED
 --------

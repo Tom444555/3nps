@@ -172,11 +172,16 @@ const Sing = (() => {
   function select(i) { ui.sel = i; edSig = ''; laneSig = ''; }
   function paintEditor(src) {
     const box = $('sgEdit'); if (!box) return;
-    const sig = (src ? src.id + '|' + src.tok.length + '|' + ver : 'none') + '|' + ui.sel + '|' + ui.tapping + '|' + ui.lineFrom + '|' + ui.snap;
+    const sig = (src ? src.id + '|' + src.tok.length + '|' + ver : 'none') + '|' + rec.busy + '|' + rec.msg + '|' + Math.round((rec.p || 0) * 50) + '|' + ui.sel + '|' + ui.tapping + '|' + ui.lineFrom + '|' + ui.snap;
     if (sig === edSig) return; edSig = sig;
     if (!src) { box.innerHTML = '<p class="caption">Spiel einen Song aus dem Songwriting oder einen Loop aus einer geladenen Datei ab – dann erscheint hier sein Gesangstext.</p>'; return; }
     if (src.kind === 'none') { box.innerHTML = '<p class="caption">Diese Spur wurde ins Tempo des Loops gedehnt – dafür ist kein Gesangstext möglich. Lade die Datei ohne Anpassung.</p>'; return; }
     let h = '<div class="sg-src"><b translate="no">' + esc(src.title) + '</b>' + (src.kind === 'lied' ? '<span class="caption"> · Text kommt aus dem Songwriting (dort ändern)</span>' : '') + '</div>';
+    if (src.kind === 'file') h += '<div class="sg-auto"><button class="toggle-btn' + (rec.busy ? ' active' : '') + '" id="sgAuto"' + (rec.busy ? ' disabled' : '') + '>🤖 Text automatisch erkennen</button>'
+      + '<label class="field sg-lang"><span>Erkennung</span><select id="sgModel"><option value="base"' + (rec.model === 'base' ? ' selected' : '') + '>Genau</option><option value="tiny"' + (rec.model === 'tiny' ? ' selected' : '') + '>Sparsam (weniger Speicher)</option></select></label>'
+      + '<label class="field sg-lang"><span>Sprache</span><select id="sgLang"><option value="de"' + (rec.lang === 'de' ? ' selected' : '') + '>Deutsch</option><option value="en"' + (rec.lang === 'en' ? ' selected' : '') + '>Englisch</option></select></label>'
+      + '<span class="caption" id="sgAutoInfo">' + esc(rec.msg || 'Erkennt den gesungenen Text mit Zeitpunkten – danach nur noch ausbessern. Läuft komplett auf dem Gerät; beim ersten Mal werden etwa 100 MB geladen.') + '</span>'
+      + (rec.busy ? '<div class="sg-prog"><i style="width:' + Math.round((rec.p || 0) * 100) + '%"></i></div>' : '') + '</div>';
     if (src.kind === 'file') h += '<details class="sg-paste"' + (src.tok.length ? '' : ' open') + '><summary>Text einfügen / ersetzen</summary><textarea id="sgText" rows="5" placeholder="Liedtext hier einfügen – eine Zeile pro gesungener Zeile">' + esc(lines(src.tok).map(l => l.map(t => t.w).join(' ')).join('\n')) + '</textarea><button class="toggle-btn" id="sgTake">Übernehmen</button></details>';
     if (src.tok.length) {
       h += '<div class="sg-tools"><button class="toggle-btn sg-tapbtn' + (ui.tapping ? ' active' : '') + '" id="sgTapMode">' + (ui.tapping ? '■ Einklopfen beenden' : '● Einklopfen') + '</button>'
@@ -204,6 +209,7 @@ const Sing = (() => {
       const src = curSrc; if (!src) return;
       const b = e.target.closest('button'); if (!b) return;
       const tok = src.tok;
+      if (b.id === 'sgAuto') { recognize(src); return; }
       if (b.id === 'sgTake') {
         const nt = tokenize($('sgText').value); if (!nt.length) return;
         const rec = db.f[src.id] = { name: src.name, tok: merge(tok, nt) }; src.tok = rec.tok; ui.sel = -1; changed(); return;
@@ -228,7 +234,7 @@ const Sing = (() => {
       }
       if (b.id === 'sgMerge') { const n = tok[i + 1]; if (!n || n.l !== t.l) return; t.w = t.w + ' ' + n.w; tok.splice(i + 1, 1); changed(); return; }
     });
-    box.addEventListener('change', e => { if (e.target.id === 'sgSnap') { ui.snap = e.target.checked; edSig = ''; } });
+    box.addEventListener('change', e => { if (e.target.id === 'sgSnap') { ui.snap = e.target.checked; edSig = ''; } if (e.target.id === 'sgLang') { rec.lang = e.target.value; lsSet('3nps-asr-lang', rec.lang); } if (e.target.id === 'sgModel') { rec.model = e.target.value; lsSet('3nps-asr-model', rec.model); } });
   }
 
   function init() {
@@ -237,9 +243,91 @@ const Sing = (() => {
     bindLane(); bindEditor();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+  // ---- Texterkennung (v64): Whisper im Hintergrund-Worker (asr/worker.js), Ergebnis als Wörter mit Schlagzeit ----
+  const lsGet = (k, d) => { try { return localStorage.getItem(k) || d; } catch (e) { return d; } }, lsSet = (k, v) => { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} };
+  const MODELS = { base: 'Xenova/whisper-base', tiny: 'Xenova/whisper-tiny' };
+  const rec = { busy: false, p: 0, msg: '', lang: lsGet('3nps-asr-lang', window.__lang === 'en' ? 'en' : 'de'), model: lsGet('3nps-asr-model', 'base') };
+  if (!MODELS[rec.model]) rec.model = 'base';
+  // Absturzerkennung: lief beim letzten Mal eine Erkennung und die Seite wurde neu geladen → zu wenig Speicher
+  (() => {
+    let run = null; try { run = JSON.parse(lsGet('3nps-asr-run', 'null')); } catch (e) {}
+    if (!run || Date.now() - run.at > 15 * 60000) { lsSet('3nps-asr-run', null); return; }
+    lsSet('3nps-asr-run', null);
+    if (run.model === 'base') { rec.model = 'tiny'; lsSet('3nps-asr-model', 'tiny'); rec.msg = T('Die Erkennung hat das iPad überlastet – ich habe auf „Sparsam“ umgestellt. Lade die Datei neu (deine Spuren holst du über „Wiederherstellen“ zurück) und starte die Erkennung nochmal.'); }
+    else rec.msg = T('Die Erkennung braucht für dieses Gerät zu viel Speicher. Schließe andere Apps und versuche es nochmal – oder füge den Text ein und klopfe ihn ein.');
+    setTimeout(() => { const st = $('loopStatus'); if (st) st.textContent = rec.msg; }, 1500);
+  })();
+  const say = (m, p) => { rec.msg = m; if (p != null) rec.p = p; edSig = ''; };
+  const JUNK = /untertitel|amara\.org|zdf|swr|copyright|thanks for watching|vielen dank (fürs|für's) zuschauen|subtitles by|♪|^\W+$/i;
+  function wordsToTok(words, src) {
+    const sr = src.sr, out = []; let l = 0, prevE = null, n = 0, lastText = '', rep = 0;
+    words.forEach(x => {
+      let w = String(x.w || '').replace(/^[„"“»«(]+|[.,!?;:"“”»«)]+$/g, '').trim();
+      if (!w || JUNK.test(x.w) || !(x.e >= x.a)) return;
+      rep = w.toLowerCase() === lastText ? rep + 1 : 0; lastText = w.toLowerCase(); if (rep >= 3) return;   // hängende Wiederholungen
+      if (prevE != null && (x.a - prevE > 0.9 || n >= 10)) { l++; n = 0; }
+      const b = f2b(x.a * sr, src.beats); if (b == null || !isFinite(b)) return;
+      out.push({ w, b: snapB(b), l }); n++; prevE = x.e;
+      if (/[.!?]$/.test(String(x.w).trim()) && n >= 3) { l++; n = 0; prevE = null; }
+    });
+    // Zeilen lückenlos nummerieren
+    const map = {}; let k = 0; out.forEach(t => { if (map[t.l] == null) map[t.l] = k++; t.l = map[t.l]; });
+    return out;
+  }
+  async function toMono16k(x, sr) {
+    const n = x.length, ac = new OfflineAudioContext(1, Math.ceil(n / sr * 16000), 16000);
+    const buf = ac.createBuffer(x.r && x.r !== x.l ? 2 : 1, n, sr); buf.copyToChannel(x.l, 0); if (x.r && x.r !== x.l) buf.copyToChannel(x.r, 1);
+    const s = ac.createBufferSource(); s.buffer = buf; s.channelCount = 1; s.channelCountMode = 'explicit'; s.channelInterpretation = 'speakers';
+    const hp = ac.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 110;
+    const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 7000;
+    s.connect(hp); hp.connect(lp); lp.connect(ac.destination); s.start();
+    const out = (await ac.startRendering()).getChannelData(0);
+    let pk = 0; for (let i = 0; i < out.length; i += 4) { const v = Math.abs(out[i]); if (v > pk) pk = v; }
+    if (pk > 0.01) { const g = 0.9 / pk; for (let i = 0; i < out.length; i++) out[i] *= g; }
+    return out;
+  }
+  async function recognize(src) {
+    if (rec.busy || !src || src.kind !== 'file' || typeof Looper === 'undefined' || !Looper.singAudio) return;
+    if (src.tok.length && !confirm(T('Der vorhandene Text und sein Timing werden durch die Erkennung ersetzt. Weiter?'))) return;
+    if (typeof Worker === 'undefined' || typeof WebAssembly === 'undefined') { say(T('Dieses Gerät kann die Erkennung nicht ausführen.')); return; }
+    const x = Looper.singAudio(src.track, 0, Infinity); if (!x) { say(T('Die Audiodatei ist nicht mehr im Speicher – bitte neu laden.')); return; }
+    if (Looper.stopAll) Looper.stopAll();
+    rec.busy = true; say(T('Sichere die Spuren …'), 0);
+    try { if (Looper.autosaveNow) await Looper.autosaveNow(); } catch (e) {}
+    lsSet('3nps-asr-run', JSON.stringify({ model: rec.model, at: Date.now() }));
+    say(T('Bereite das Audio vor …'), 0);
+    let w = null;
+    try {
+      const audio = await toMono16k(x, x.sr), secs = audio.length / 16000;
+      w = new Worker('asr/worker.js', { type: 'module' });
+      const t0 = Date.now(); let tick = null;
+      const res = await new Promise((resolve, reject) => {
+        w.onerror = e => reject(new Error(e.message || 'Worker'));
+        w.onmessage = e => {
+          const m = e.data;
+          if (m.type === 'progress' && m.phase === 'load') say(T(rec.model === 'base' ? 'Lade das Erkennungsmodell (einmalig ca. 100 MB) … ' : 'Lade das Erkennungsmodell (einmalig ca. 65 MB) … ') + Math.round(m.p * 100) + ' %', m.p * 0.3);
+          if (m.type === 'status' && m.phase === 'run') {
+            const est = Math.max(20, secs * (rec.model === 'base' ? 0.6 : 0.35)), t1 = Date.now();
+            say(T('Höre den Text heraus …'), 0.3);
+            tick = setInterval(() => { const f = Math.min(0.97, 0.3 + 0.67 * (Date.now() - t1) / 1000 / est); say(T('Höre den Text heraus … ') + Math.round(f * 100) + ' %', f); }, 700);
+          }
+          if (m.type === 'done') resolve(m); if (m.type === 'error') reject(new Error(m.msg));
+        };
+        w.postMessage({ type: 'run', audio, model: MODELS[rec.model], lang: rec.lang }, [audio.buffer]);
+      }).finally(() => clearInterval(tick));
+      const tok = wordsToTok(res.words, src);
+      if (!tok.length) { say(T('Kein Gesang erkannt. Ist der Gesang sehr leise, oder ist die Sprache falsch eingestellt?')); }
+      else {
+        db.f[src.id] = { name: src.name, tok, auto: { lang: rec.lang, at: Date.now(), mode: res.mode } }; src.tok = tok; ui.sel = -1; changed();
+        say(tok.length + T(' Wörter in ') + (Math.max(0, ...tok.map(t => t.l)) + 1) + T(' Zeilen erkannt (') + Math.round((Date.now() - t0) / 1000) + T(' s). Jetzt ausbessern: Wort antippen → ersetzen, Zeiten ziehen.'), 1);
+      }
+    } catch (e) {
+      say(T('Erkennung fehlgeschlagen: ') + (e && e.message || e));
+    } finally { rec.busy = false; if (w) w.terminate(); lsSet('3nps-asr-run', null); edSig = ''; }
+  }
   // Übersetzung je Zeile (v63)
   function setTr(src, arr) { const rec = src.kind === 'lied' ? db.l[src.id] : db.f[src.id]; if (!rec) return false; rec.tr = arr; changed(); return true; }
   function getTr(src) { const rec = src && (src.kind === 'lied' ? db.l[src.id] : db.f[src.id]); return rec && rec.tr || []; }
-  return { tick, tap, tokenize, merge, f2b, b2f, endOf, lines, setTr, getTr, ver: () => ver, source: ci => source(ci), data: () => db, _reload: () => { db = load(); changed(); }, ui: () => ui };
+  return { recognize: () => recognize(curSrc), rec: () => Object.assign({}, rec), wordsToTok, tick, tap, tokenize, merge, f2b, b2f, endOf, lines, setTr, getTr, ver: () => ver, source: ci => source(ci), data: () => db, _reload: () => { db = load(); changed(); }, ui: () => ui };
 })();
 window.Sing = Sing;

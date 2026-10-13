@@ -75,7 +75,7 @@ def _ff(fam, fn, w='400'):
 # Schriften liegen in der App (SIL Open Font License, siehe SCHRIFTEN-LIZENZ.txt) – keine Anfragen an fremde Server
 FONTS = '<style>' + ''.join([_ff('Uncial Antiqua', 'uncial.woff'), _ff('Metal Mania', 'metalmania.woff'), _ff('Black Ops One', 'blackopsone.woff'),
                              _ff('Russo One', 'russoone.woff'), _ff('Michroma', 'michroma.woff'), _ff('Cinzel', 'cinzel700.woff', '600 700')]) + '</style>'
-CSP = '<meta http-equiv="Content-Security-Policy" content="default-src \'self\'; script-src \'self\' \'unsafe-inline\' blob:; worker-src \'self\' blob:; style-src \'self\' \'unsafe-inline\'; img-src \'self\' data: blob:; font-src \'self\' data:; media-src \'self\' blob: data:; connect-src \'self\' blob: data:; manifest-src \'self\'; object-src \'none\'; base-uri \'none\'; form-action \'none\'">'
+CSP = '<meta http-equiv="Content-Security-Policy" content="default-src \'self\'; script-src \'self\' \'unsafe-inline\' \'wasm-unsafe-eval\' blob:; worker-src \'self\' blob:; style-src \'self\' \'unsafe-inline\'; img-src \'self\' data: blob:; font-src \'self\' data:; media-src \'self\' blob: data:; connect-src \'self\' blob: data:; manifest-src \'self\'; object-src \'none\'; base-uri \'none\'; form-action \'none\'">'
 EARLY = "<script>try{var t=localStorage.getItem('3nps-theme')||'nordic',u=localStorage.getItem('3nps-theme2');if(u&&/^(nordic|metal|amp|ice|clean|matrix|dj|light|precise)$/.test(u)&&(/^(metal|amp|ice|nordic)$/.test(u)?u:'nordic')===t)t=u;if(t!=='nordic'&&/^(metal|amp|ice|clean|matrix|dj|light|precise)$/.test(t)){document.documentElement.dataset.theme=t;}}catch(e){}</script>\n"
 
 # --- Kopf/Markup ---
@@ -163,3 +163,8 @@ document.getElementById('demoLoop').addEventListener('click', () => {
 '''
 open(D + 'preview.html', 'w', encoding='utf8').write(pv)
 print('app', len(app), 'preview', len(pv))
+
+# Texterkennung (v64): Worker neben die Modelle legen (Modelle selbst kommen aus dem Branch „modelle“)
+import os, shutil
+os.makedirs(A + 'www/asr', exist_ok=True)
+shutil.copy(A + 'asr-worker.js', A + 'www/asr/worker.js')
