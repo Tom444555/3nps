@@ -13,6 +13,7 @@
 4.0K	asr/models/Xenova/whisper-tiny/generation_config.json
 4.0K	asr/models/Xenova/whisper-tiny/preprocessor_config.json
 4.0K	asr/models/Xenova/whisper-tiny/special_tokens_map.json
+8.0K	asr/lib/README-onnxruntime.md
 12K	asr/lib/LICENSE-transformers.txt
 44K	asr/lib/PACK.txt
 44K	asr/lib/ort-wasm-simd-threaded.jsep.mjs
@@ -20,9 +21,12 @@
 52K	asr/models/Xenova/whisper-tiny/normalizer.json
 280K	asr/models/Xenova/whisper-base/tokenizer_config.json
 280K	asr/models/Xenova/whisper-tiny/tokenizer_config.json
-460K	asr/lib/transformers.web.min.js
+284K	asr/test/sprache_en.wav
+324K	asr/test/sprache_de.wav
 484K	asr/models/Xenova/whisper-base/merges.txt
 484K	asr/models/Xenova/whisper-tiny/merges.txt
+612K	asr/test
+868K	asr/lib/transformers.min.js
 1016K	asr/models/Xenova/whisper-base/vocab.json
 1016K	asr/models/Xenova/whisper-tiny/vocab.json
 2.4M	asr/models/Xenova/whisper-base/tokenizer.json
@@ -39,4 +43,4 @@
 78M	asr/models/Xenova/whisper-base
 121M	asr/models
 121M	asr/models/Xenova
-142M	asr
+143M	asr

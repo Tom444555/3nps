@@ -781,8 +781,8 @@ npm notice total files: 375
 npm notice
 onnxruntime-web-1.20.1.tgz
 total 30212
-drwxr-xr-x 2 runner runner     4096 Oct 13 08:22 .
-drwxr-xr-x 6 runner runner     4096 Oct 13 08:22 ..
--rw-r--r-- 1 runner runner 10482401 Oct 13 08:22 huggingface-transformers-3.8.1.tgz
--rw-r--r-- 1 runner runner 20439316 Oct 13 08:22 onnxruntime-web-1.20.1.tgz
+drwxr-xr-x 2 runner runner     4096 Oct 13 08:24 .
+drwxr-xr-x 6 runner runner     4096 Oct 13 08:24 ..
+-rw-r--r-- 1 runner runner 10482401 Oct 13 08:24 huggingface-transformers-3.8.1.tgz
+-rw-r--r-- 1 runner runner 20439316 Oct 13 08:24 onnxruntime-web-1.20.1.tgz
 T=x-huggingface-transformers-3.8.1/package O=x-onnxruntime-web-1.20.1/package
