@@ -92,7 +92,8 @@ const Sing = (() => {
     if (ui.open) paintEditor(src);
     const has = live && live.tok && live.tok.some(t => t.b != null);
     band.hidden = !live || live.kind === 'none'; const lineEl = $('sgLine'); if (lineEl) lineEl.hidden = !has;
-    if (band.hidden) { laneSig = ''; lineSig = ''; return; }
+    if (band.hidden) { laneSig = ''; lineSig = ''; focusUi(null, ci); return; }
+    focusUi(live, ci);
     if (lineEl) lineEl.hidden = !has;
     const srcL = live;
     const W = parseFloat($('sfStrip').style.width) || $('sfBand').clientWidth;
@@ -144,6 +145,63 @@ const Sing = (() => {
   const fitFont = (w, wpx) => Math.max(10, Math.min(16, Math.floor((wpx - 9) / (String(w).length * 0.56 + 0.2))));
   let ver = 0; const changed = () => { ver++; save(); laneSig = ''; edSig = ''; };
 
+  // ---- Bearbeitungs-Zoom (v70): ein Takt breit, „▶ ab hier“, Wörter verteilen, „✓ Fertig“ ----
+  const SF = () => window.SoloFocus || null, fBar = () => SF() ? SF().get() : null;
+  let focusSrc = null, focusSig = '';
+  // Takt (Index in ci.downs), in dem die Schlagzeit b liegt
+  function barOf(src, ci, b) { const a = src.toCi(b), D = ci.downs || []; let i = 0; while (i + 1 < D.length && D[i + 1] <= a + 2) i++; return i; }
+  // Schlagbereich eines Taktes in Quellen-Schlägen
+  function barRange(src, ci, k) { const D = ci.downs || [], a = D[k] || 0, e = k + 1 < D.length ? D[k + 1] : ci.L; return [src.fromCi(a), src.fromCi(e)]; }
+  function focus(k) { if (!SF()) return; focusSrc = curSrc ? curSrc.id : null; SF().set(k); laneSig = ''; }
+  function unfocus() { if (SF() && fBar() != null) SF().set(null); focusSrc = null; ui.sel = -1; laneSig = ''; }
+  function focusUi(src, ci) {
+    const box = $('sgFocus'); if (!box) return;
+    let k = fBar();
+    if (k != null && (!src || src.kind === 'none' || src.id !== focusSrc)) { unfocus(); k = null; }
+    const sig = k == null ? '' : k + '|' + ((ci && ci.downs) || []).length + '|' + ver;
+    if (sig === focusSig) return; focusSig = sig;
+    box.hidden = k == null; if (k == null) return;
+    $('sgFLbl').textContent = T('Takt ') + (k + 1);
+    { const [a, e] = barRange(src, ci, k); $('sgFSpread').disabled = !src.editable && src.kind !== 'lied' || src.tok.filter(t => t.b != null && t.b >= a - 1e-6 && t.b < e - 1e-6).length < 2; }
+    $('sgFPrev').disabled = k <= 0; $('sgFNext').disabled = !ci || k >= (ci.downs || []).length - 1;
+  }
+  // ab einem Takt vor dem bearbeiteten Takt abspielen
+  function playFrom() {
+    const src = curSrc, k = fBar(), ci = window.SoloInfo ? SoloInfo() : null; if (!src || k == null || !ci) return;
+    if (src.kind === 'file' && typeof Looper !== 'undefined' && Looper.seek) { const D = ci.downs || []; Looper.seek(src.track, D[Math.max(0, k - 1)] || 0); return; }
+    if (src.kind === 'lied' && window.Lied && Lied.play && Lied.now) { const n = Lied.now(); if (n) Lied.play(Lied.ver(), { from: n.oi, count: 1, label: src.title }); }
+  }
+  function stopPlay() {
+    if (curSrc && curSrc.kind === 'lied' && window.Lied && Lied.stop) { Lied.stop(); return; }
+    if (typeof Looper !== 'undefined' && Looper.running && Looper.running() && Looper.pauseToggle) Looper.pauseToggle();
+  }
+  // Wörter im Takt gleichmäßig verteilen (auf 16tel), z. B. wenn die Erkennung mehrere auf denselben Punkt gelegt hat
+  function spread() {
+    const src = curSrc, k = fBar(), ci = window.SoloInfo ? SoloInfo() : null; if (!src || k == null || !ci) return;
+    const [a, e] = barRange(src, ci, k), tok = src.tok, idx = [];
+    tok.forEach((t, i) => { if (t.b != null && t.b >= a - 1e-6 && t.b < e - 1e-6) idx.push(i); });
+    if (idx.length < 2) { status(T('In diesem Takt gibt es nichts zu verteilen.')); return; }
+    const last = idx[idx.length - 1]; let nextB = Infinity; for (let j = last + 1; j < tok.length; j++) if (tok[j].b != null) { nextB = tok[j].b; break; }
+    const from = tok[idx[0]].b, end = Math.min(e, nextB), step = Math.max(0.25, Math.floor((end - from) / idx.length * 4) / 4);
+    idx.forEach((i, n) => { tok[i].b = Math.round((from + n * step) * 1000) / 1000; });
+    // reicht der Platz nicht, rückt der folgende Text nach (Abstände bleiben)
+    const over = tok[last].b + 0.25 - nextB;
+    if (over > 1e-6) for (let j = last + 1; j < tok.length; j++) if (tok[j].b != null) tok[j].b = Math.round((tok[j].b + over) * 1000) / 1000;
+    changed(); persist(src);
+  }
+  function bindFocus() {
+    const box = $('sgFocus'); if (!box || box._b) return; box._b = true;
+    box.addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b) return; const k = fBar(), ci = window.SoloInfo ? SoloInfo() : null;
+      if (b.id === 'sgFDone') unfocus();
+      else if (b.id === 'sgFPrev' && k > 0) focus(k - 1);
+      else if (b.id === 'sgFNext' && ci && k < (ci.downs || []).length - 1) focus(k + 1);
+      else if (b.id === 'sgFPlay') playFrom();
+      else if (b.id === 'sgFStop') stopPlay();
+      else if (b.id === 'sgFSpread') spread();
+    });
+  }
+
   // Wort im Band ziehen (Timing verschieben)
   function bindLane() {
     const strip = $('sgStrip'), band = $('sgBand'); if (!strip || strip._b) return; strip._b = true;
@@ -190,8 +248,12 @@ const Sing = (() => {
       const d = drag; drag = null; guide(null); ui.dragging = false;
       if (d && d.dirty && curSrc) { if (!d.rip) reorder(curSrc.tok, d.i); changed(); }
       if (!d || !curSrc || d.moved || Math.abs(e.clientX - d.x0) > 6 || Math.abs(e.clientY - d.y0) > 10) return;
+      const ci = ciNow(); if (!ci) return;
+      const empty = e.target === strip || (e.target.className && /sg-(g16|gbeat|gbar|barbg)/.test(e.target.className));
+      // erstes Antippen: dieser Takt wird breit (Bearbeitungs-Zoom), danach wird bearbeitet
+      if (SF() && fBar() == null && (d.i >= 0 || empty)) { if (d.i >= 0) select(d.i); focus(barOf(curSrc, ci, d.i >= 0 ? curSrc.tok[d.i].b : posB(e.clientX, ci))); return; }
       if (d.i >= 0) { select(d.i); if (curSrc.editable) inlineEdit(d.i, null); return; }
-      if (curSrc.editable && e.target === strip || (e.target.className && /sg-(g16|gbeat|gbar|barbg)/.test(e.target.className))) { const ci = ciNow(); if (ci) inlineEdit(-1, snapB(posB(e.clientX, ci))); }
+      if (curSrc.editable && empty) inlineEdit(-1, snapB(posB(e.clientX, ci)));
     };
     strip.addEventListener('pointerup', up); strip.addEventListener('pointercancel', () => { const d = drag; drag = null; guide(null); ui.dragging = false; if (d && d.dirty) changed(); });
   }
@@ -215,7 +277,7 @@ const Sing = (() => {
     box.style.top = el ? el.offsetTop + 'px' : '34px';
     box.innerHTML = '<input type="text" autocapitalize="off" autocomplete="off" spellcheck="false" value="' + (i >= 0 ? esc(tok[i].w) : '') + '" aria-label="' + T('Wort') + '"><button type="button" class="sg-ok" aria-label="OK">✓</button>' + (i >= 0 ? '<button type="button" class="sg-del" aria-label="' + T('Wort löschen') + '">✕</button>' : '');
     ui.inline = true; strip.appendChild(box);
-    const inp = box.querySelector('input'); inp.focus(); inp.select();
+    const inp = box.querySelector('input'); try { inp.focus({ preventScroll: true }); } catch (e) { inp.focus(); } inp.select();
     let done = false; const snap = tok.map(t => Object.assign({}, t));
     const close = apply => {
       if (done) return; done = true; ui.inline = false;
@@ -361,7 +423,7 @@ const Sing = (() => {
     if (rb) { const show = () => { rb.classList.toggle('active', ui.ripple); rb.setAttribute('aria-pressed', ui.ripple ? 'true' : 'false'); }; show();
       rb.addEventListener('click', () => { ui.ripple = !ui.ripple; try { localStorage.setItem('3nps-sing-ripple', ui.ripple ? '1' : '0'); } catch (e) {} show(); }); }
     btn.addEventListener('click', () => { ui.open = !ui.open; $('sgCard').hidden = !ui.open; btn.classList.toggle('active', ui.open); edSig = ''; if (!ui.open) stopTap(); });
-    bindLane(); bindEditor();
+    bindLane(); bindFocus(); bindEditor();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
   // ---- Texterkennung (v64): Whisper im Hintergrund-Worker (asr/worker.js), Ergebnis als Wörter mit Schlagzeit ----
@@ -388,7 +450,8 @@ const Sing = (() => {
       rep = w.toLowerCase() === lastText ? rep + 1 : 0; lastText = w.toLowerCase(); if (rep >= 3) return;   // hängende Wiederholungen
       if (prevE != null && (x.a - prevE > 0.9 || n >= 10)) { l++; n = 0; }
       const b = f2b(x.a * sr, src.beats); if (b == null || !isFinite(b)) return;
-      out.push({ w, b: snapB(b), l }); n++; prevE = x.e;
+      let sb = snapB(b); const pv = out[out.length - 1]; if (pv && sb < pv.b + 0.25) sb = Math.round((pv.b + 0.25) * 1000) / 1000;   // nie zwei Wörter auf demselben Punkt
+      out.push({ w, b: sb, l }); n++; prevE = x.e;
       if (/[.!?]$/.test(String(x.w).trim()) && n >= 3) { l++; n = 0; prevE = null; }
     });
     // Zeilen lückenlos nummerieren
@@ -449,6 +512,6 @@ const Sing = (() => {
   // Übersetzung je Zeile (v63)
   function setTr(src, arr) { const rec = src.kind === 'lied' ? db.l[src.id] : db.f[src.id]; if (!rec) return false; rec.tr = arr; changed(); return true; }
   function getTr(src) { const rec = src && (src.kind === 'lied' ? db.l[src.id] : db.f[src.id]); return rec && rec.tr || []; }
-  return { recognize: () => recognize(curSrc), rec: () => Object.assign({}, rec), wordsToTok, tick, tap, tokenize, merge, f2b, b2f, endOf, lines, setTr, getTr, ver: () => ver, source: ci => source(ci), data: () => db, _reload: () => { db = load(); changed(); }, ui: () => ui };
+  return { recognize: () => recognize(curSrc), rec: () => Object.assign({}, rec), wordsToTok, tick, tap, tokenize, merge, f2b, b2f, endOf, lines, setTr, getTr, ver: () => ver, focus: k => focus(k), unfocus, spread, playFrom, source: ci => source(ci), data: () => db, _reload: () => { db = load(); changed(); }, ui: () => ui };
 })();
 window.Sing = Sing;

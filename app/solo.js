@@ -150,18 +150,24 @@
   // Zoom der Akkordleiste (und damit der Gesangsspur darunter): 6, 4 oder 2 Takte im Blick
   let zoomBars = (() => { try { const z = +localStorage.getItem('3nps-sf-zoom'); return [6, 4, 2].includes(z) ? z : 6; } catch (e) { return 6; } })();
   const zoomShow = () => { const zb = $('sfZoom'); if (zb) zb.querySelectorAll('button').forEach(b => b.classList.toggle('active', +b.dataset.z === zoomBars)); };
-  setTimeout(() => { const zb = $('sfZoom'); if (!zb) return; zoomShow(); zb.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; zoomBars = +b.dataset.z; try { localStorage.setItem('3nps-sf-zoom', String(zoomBars)); } catch (x) {} zoomShow(); bandSig = ''; }); }, 0);
+  setTimeout(() => { const zb = $('sfZoom'); if (!zb) return; zoomShow(); zb.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; zoomBars = +b.dataset.z; focusBar = null; try { localStorage.setItem('3nps-sf-zoom', String(zoomBars)); } catch (x) {} zoomShow(); bandSig = ''; }); }, 0);
+  // Bearbeitungs-Zoom (v70): ein Takt füllt die Leiste (Akkord und Gesangsspur breit), bis „Fertig“
+  let focusBar = null, focusScroll = false;
+  window.SoloFocus = {
+    set: b => { focusBar = b == null ? null : Math.max(0, b | 0); focusScroll = true; bandSig = ''; },
+    get: () => focusBar
+  };
   function renderBand(ci, k) {
     const band = $('sfBand'), strip = $('sfStrip');
     if (!ci.segs) {
       if (bandSig !== 'none') { strip.innerHTML = '<div class="sf-empty">Noch keine Akkorde – lade im Looper eine Datei oder spiel etwas ein. Bis dahin: Tonart wählen und unten einen Akkord antippen.</div>'; strip.style.width = ''; bandSig = 'none'; }
       $('sfHead').hidden = true; return;
     }
-    const sig = ci.track + '|' + ci.L + '|' + ci.segs.map(s => s.name + s.a).join(',') + '|' + ci.downs.join(',') + '|' + k.pc + k.major + '|' + band.clientWidth + '|' + zoomBars;
+    const sig = ci.track + '|' + ci.L + '|' + ci.segs.map(s => s.name + s.a).join(',') + '|' + ci.downs.join(',') + '|' + k.pc + k.major + '|' + band.clientWidth + '|' + zoomBars + '|' + (focusBar != null);
     if (sig === bandSig) return;
     bandSig = sig;
     const bars = Math.max(1, ci.downs.length);
-    const BW = band.clientWidth - 2, W = bars <= zoomBars ? BW : BW * bars / zoomBars, px = f => f / ci.L * W;          // höchstens 6 (bzw. 4/2 beim Zoomen) Takte im Blick
+    const BW = band.clientWidth - 2, W = focusBar != null ? BW * bars / 1.25 : bars <= zoomBars ? BW : BW * bars / zoomBars, px = f => f / ci.L * W;          // höchstens 6 (bzw. 4/2 beim Zoomen) Takte im Blick
     strip.style.width = W + 'px';
     let h = '';
     // Takte: jeder zweite leicht hinterlegt, kräftige Taktlinien über den Akkorden, Schlagstriche unten
@@ -176,6 +182,7 @@
     h += '<div class="sf-ph" id="sfPh"></div>';
     strip.innerHTML = h; lastOn = -2;          // neu aufgebaut: Einrahmung beim nächsten Bild neu setzen
     $('sfHead').hidden = false;
+    if (focusBar != null && focusBar >= bars) focusBar = bars - 1;
   }
   function tickBand(ci) {
     const ph = $('sfPh'); if (!ph || !ci.segs) return -1;
@@ -185,10 +192,15 @@
     const lead = Math.min(sr * 0.3, beat * 0.5), posL = ci.pos != null ? (ci.pos + lead) % ci.L : null;
     const i = posL != null ? segAt(ci, posL) : -1;
     ph.style.display = ci.pos != null ? '' : 'none';
+    if (focusBar != null && focusScroll) {
+      // beim Bearbeiten bleibt der Takt stehen (ein wenig vom Takt davor sichtbar)
+      focusScroll = false; const band = $('sfBand'), D = ci.downs || [], d = D[Math.min(focusBar, D.length - 1)] || 0, barW = W / Math.max(1, D.length);
+      band.scrollLeft = Math.max(0, d / ci.L * W - barW * 0.12);
+    }
     if (ci.pos != null) {
       const x = ci.pos / ci.L * W; ph.style.transform = 'translateX(' + x.toFixed(1) + 'px)';
       const band = $('sfBand'), cw = band.clientWidth, barW = W / Math.max(1, (ci.downs || []).length || 1);
-      if (W > cw + 2) {
+      if (focusBar == null && W > cw + 2) {
         // vorausschauend weiterschieben: sobald der Strich in den vorletzten sichtbaren Takt kommt,
         // steht der laufende Takt wieder vorne (ein Takt Rückblick)
         let target = null;

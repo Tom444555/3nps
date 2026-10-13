@@ -76,6 +76,13 @@ async def main():
         await pg.evaluate("(()=>{const d=JSON.parse(localStorage.getItem('3nps-sing'));const t=Object.values(d.f)[0].tok;const i=t.findIndex(x=>x.w==='to');const x=t.splice(i,1)[0];x.b=9;t.splice(2,0,x);localStorage.setItem('3nps-sing',JSON.stringify(d));Sing._reload();})()")
         await pg.wait_for_timeout(300)
         check('nach dem Ziehen kein Eingabefeld', not await pg.query_selector('#sgStrip .sg-inline'))
+        # v70: erstes Antippen macht den Takt breit (Bearbeitungs-Zoom), Akkordleiste und Spur gleich
+        wz = await pg.evaluate("parseFloat(document.getElementById('sfStrip').style.width)")
+        await pg.click('#sgStrip .sg-w[data-i="4"]'); await pg.wait_for_timeout(400)
+        fz = await pg.evaluate("""(()=>{const ci=SoloInfo(),a=document.getElementById('sfBand'),bw=a.clientWidth-2,W=parseFloat(document.getElementById('sfStrip').style.width),k=SoloFocus.get(),D=ci.downs,x0=D[k]/ci.L*W,x1=(k+1<D.length?D[k+1]:ci.L)/ci.L*W,
+          w=document.querySelector('#sgStrip .sg-w[data-i="4"]').getBoundingClientRect(),r=a.getBoundingClientRect();
+          return {k,W,lane:parseFloat(document.getElementById('sgStrip').style.width),barPx:x1-x0,inView:x0>=a.scrollLeft-1&&x1<=a.scrollLeft+a.clientWidth+1,wordIn:w.left>=r.left&&w.right<=r.right,bar:!document.getElementById('sgFocus').hidden,lbl:document.getElementById('sgFLbl').textContent,inl:!!document.querySelector('#sgStrip .sg-inline'),bw}})()""")
+        check('erstes Antippen: Takt breit (≈ 80 % der Leiste), sichtbar, Leiste „Takt …“ da, noch kein Eingabefeld', fz['k'] is not None and fz['W'] > wz * 2 and fz['W'] == fz['lane'] and fz['barPx'] > fz['bw'] * 0.7 and fz['inView'] and fz['wordIn'] and fz['bar'] and fz['lbl'].startswith('Takt ') and not fz['inl'], fz)
         # Tippen auf Wort → direkt ändern
         await pg.click('#sgStrip .sg-w[data-i="4"]'); await pg.wait_for_timeout(200)
         check('Tippen öffnet Eingabefeld in der Spur', await pg.is_visible('#sgStrip .sg-inline input') and await pg.input_value('#sgStrip .sg-inline input') == 'nite')
@@ -93,6 +100,7 @@ async def main():
         tok = await pg.evaluate(TK)
         check('✕ löscht das Wort', len(tok) == n0 - 1 and 'so' not in [t['w'] for t in tok], [t['w'] for t in tok])
         # einfügen an freier Stelle (Takt 4, zwischen „night“ und „we“)
+        await pg.evaluate("(()=>{const ci=SoloInfo(),src=Sing.source(ci),a=src.toCi(11.5),D=ci.downs;let k=0;while(k+1<D.length&&D[k+1]<=a+2)k++;Sing.focus(k)})()"); await pg.wait_for_timeout(400)
         x = await pg.evaluate("(()=>{const s=document.getElementById('sgStrip'),r=s.getBoundingClientRect(),ci=SoloInfo(),src=Sing.source(ci);return r.left+src.toCi(11.5)/ci.L*parseFloat(s.style.width)})()")
         y = await pg.evaluate("document.getElementById('sgStrip').getBoundingClientRect().y+86")
         await pg.mouse.click(x, y); await pg.wait_for_timeout(250)
@@ -103,6 +111,26 @@ async def main():
         # Escape bricht ab, leere neue Eingabe fügt nichts ein
         await pg.click('#sgStrip .sg-w[data-i="0"]'); await pg.fill('#sgStrip .sg-inline input', 'XX'); await pg.keyboard.press('Escape'); await pg.wait_for_timeout(200)
         check('Escape bricht ab', (await pg.evaluate(TK))[0]['w'] == 'Hold')
+        # Wörter verteilen: vier Wörter auf demselben Punkt (wie nach einer Erkennung) → auf 16tel auseinander
+        ST = [{"w": w, "b": b, "l": 0} for (w, b) in [("a", 8, ), ("b", 8), ("c", 8), ("d", 8), ("e", 13)]]
+        await pg.evaluate("(()=>{const d=JSON.parse(localStorage.getItem('3nps-sing'));Object.values(d.f)[0].tok=%s;localStorage.setItem('3nps-sing',JSON.stringify(d));Sing._reload();})()" % json.dumps(ST))
+        await pg.evaluate("(()=>{const ci=SoloInfo(),src=Sing.source(ci),a=src.toCi(8),D=ci.downs;let k=0;while(k+1<D.length&&D[k+1]<=a+2)k++;Sing.focus(k)})()"); await pg.wait_for_timeout(400)
+        check('„verteilen“ aktiv bei mehreren Wörtern im Takt', not await pg.evaluate("document.getElementById('sgFSpread').disabled"))
+        await pg.click('#sgFSpread'); await pg.wait_for_timeout(250)
+        sp = [t['b'] for t in await pg.evaluate(TK)]
+        check('verteilt: aufsteigend, auf 16tel, im Takt, Folgewort bleibt', all(sp[i] < sp[i + 1] for i in range(4)) and all(abs(x * 4 - round(x * 4)) < 1e-6 for x in sp) and sp[0] == 8 and sp[3] < 12 and sp[4] == 13, sp)
+        # ▶ ab hier: spielt einen Takt vor dem Takt; Ansicht bleibt stehen; ■ hält an
+        sl0 = await pg.evaluate("document.getElementById('sfBand').scrollLeft")
+        await pg.click('#sgFPlay'); await pg.wait_for_timeout(150)
+        pl = await pg.evaluate("(()=>{const ci=SoloInfo(),k=SoloFocus.get(),D=ci.downs,s=D[Math.max(0,k-1)];return [Looper.running(),ci.pos,s,ci.sr]})()")
+        check('▶ ab hier startet einen Takt davor', pl[0] and pl[1] is not None and 0 <= (pl[1] - pl[2]) / pl[3] < 0.6, pl)
+        await pg.wait_for_timeout(2500)
+        check('Ansicht bleibt beim Abspielen auf dem Takt stehen', abs(await pg.evaluate("document.getElementById('sfBand').scrollLeft") - sl0) < 2)
+        await pg.click('#sgFStop'); await pg.wait_for_timeout(200)
+        check('■ hält an', not await pg.evaluate("Looper.running()"))
+        # ✓ Fertig → wieder die normale Ansicht
+        await pg.click('#sgFDone'); await pg.wait_for_timeout(400)
+        check('✓ Fertig: Zoom zurück, Leiste weg', await pg.evaluate("SoloFocus.get()") is None and await pg.is_hidden('#sgFocus') and abs(await pg.evaluate("parseFloat(document.getElementById('sfStrip').style.width)") - wz) < 2)
         # Scroll gekoppelt
         await pg.set_viewport_size({'width': 700, 'height': 900}); await pg.wait_for_timeout(600)
         sc = await pg.evaluate("(()=>{const a=document.getElementById('sfBand'),b=document.getElementById('sgBand');a.scrollLeft=200;return new Promise(r=>setTimeout(()=>{const x=b.scrollLeft;b.scrollLeft=60;setTimeout(()=>r([x,a.scrollLeft,a.scrollWidth>a.clientWidth]),300)},300))})()")
@@ -119,6 +147,8 @@ async def main():
         await pg.set_viewport_size({'width': 1180, 'height': 900}); await pg.click('#tab-looper'); await pg.click('#loopAll'); await pg.click('#tab-solo'); await pg.wait_for_timeout(600)
         ph = await pg.evaluate("[document.getElementById('sgPh').style.transform, document.getElementById('sfPh').style.transform]")
         check('Abspielstrich in der Spur', ph[0] and ph[0] == ph[1], ph)
+        wt = await pg.evaluate("(()=>{const src=Sing.source(SoloInfo());return Sing.wordsToTok([{w:'a',a:2,e:2.1},{w:'b',a:2.01,e:2.1},{w:'c',a:2.02,e:2.2},{w:'d',a:2.03,e:2.3}],src).map(t=>t.b)})()")
+        check('Erkennung legt nie zwei Wörter auf denselben Punkt', len(wt) == 4 and all(wt[i + 1] - wt[i] >= 0.25 - 1e-9 for i in range(3)), wt)
         check('keine Skriptfehler', not errs, errs)
         await b.close()
     print(f'{ok}/{tot}')

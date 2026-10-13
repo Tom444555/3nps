@@ -95,6 +95,10 @@ Everything you record or write is stored only on this device (back it up, see se
 - The lyrics lane under the chords is as big as the chord strip, with the same grid (bars, beats, 16ths) and
   play line. Drag a word to move it (a line shows the bar.beat it snaps to), tap a word to change it right there
   (empty or ✕ = delete, several words = split), tap an empty spot to insert a word.
+- The first tap on a word (or an empty spot) widens that bar: chord and lyrics fill the whole strip and the view stays
+  there until “✓ Done”. Drag words; tap again to change a word. “‹ Bar / Bar ›” moves to the previous/next bar,
+  “▶ From here” plays from one bar before (songs from Songwriting: from the start of the part), “■” stops,
+  “⇹ Spread” spaces the words of the bar evenly on 16ths (useful when detection put several words on one spot).
 
 7. CAGED
 --------

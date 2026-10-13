@@ -635,3 +635,12 @@ Gut zu wissen
      in engen Stellen wird die Schrift kleiner. Ausgewählt oder beim Singen ist das Wort ganz zu sehen.
    - Über der Akkordleiste: „6 Takte · 4 · 2“ – zeigt weniger Takte und damit mehr Platz. Akkordleiste
      und Gesangsspur zoomen gemeinsam und laufen beim Mitscrollen genau übereinander.
+
+56. Takt breit zum Bearbeiten, ab hier anhören (v70)
+   - Erstes Antippen eines Wortes (oder einer freien Stelle) in der Gesangsspur: dieser Takt wird breit –
+     Akkord und Text füllen die ganze Leiste. Die Ansicht bleibt dort stehen, bis du „✓ Fertig“ tippst.
+     Jetzt Wörter ziehen; noch einmal antippen = Wort ändern.
+   - Leiste darunter: „‹ Takt / Takt ›“ = Takt davor/danach, „▶ ab hier“ = spielt einen Takt vor dieser
+     Stelle los (bei Songs aus dem Songwriting: ab Anfang des Teils), „■“ = anhalten.
+   - „⇹ verteilen“: legt die Wörter des Taktes gleichmäßig auf 16tel auseinander – praktisch, wenn die
+     Erkennung mehrere Wörter auf denselben Punkt gesetzt hat. Neue Erkennungen tun das nicht mehr.

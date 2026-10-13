@@ -347,3 +347,6 @@ Object.assign(window.__EN, {
 });
 Object.assign(window.__EN, { '⇉ Rest mitziehen': '⇉ Move the rest too', 'Beim Verschieben eines Wortes wandert der ganze folgende Text mit': 'When you move a word, all following lyrics move with it' });
 Object.assign(window.__EN, { '6 Takte': '6 bars', 'Takte im Blick': 'Bars in view' });
+Object.assign(window.__EN, { 'Takt davor': 'Previous bar', 'Nächster Takt': 'Next bar', '‹ Takt': '‹ Bar', 'Takt ›': 'Bar ›', '▶ ab hier': '▶ From here', 'Spielt ab einem Takt vor dieser Stelle': 'Plays from one bar before this spot', 'Anhalten': 'Stop',
+  '⇹ verteilen': '⇹ Spread', 'Wörter in diesem Takt gleichmäßig verteilen (auf 16tel)': 'Spread the words in this bar evenly (on 16ths)', '✓ Fertig': '✓ Done', 'Bearbeiten beenden, wieder alle Takte': 'Finish editing, back to all bars',
+  'In diesem Takt gibt es nichts zu verteilen.': 'Nothing to spread in this bar.' });
