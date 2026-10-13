@@ -624,3 +624,8 @@ Gut zu wissen
    - Bei Songs aus dem Songwriting lassen sich die Wörter jetzt auch in der Spur ändern, einfügen und löschen;
      die Änderung landet direkt im Songtext (ohne neue Version). Zeilen mit Akkordmarken wie [Am] bitte
      im Songwriting ändern – dort sind die Marken an die Silben gebunden.
+
+54. Rest mitziehen (v67)
+   - Verschiebst du ein Wort in der Gesangsspur, wandert der ganze folgende Text mit – die Abstände bleiben.
+     Nach vorn geht es höchstens bis zum Wort davor. Auch ◀ ▶ in der Gesangstext-Karte zieht den Rest mit.
+   - Schalter „⇉ Rest mitziehen“ (Improvisation, neben „🎤 Gesangstext“): aus = nur das eine Wort verschieben.
