@@ -644,3 +644,12 @@ Gut zu wissen
      Stelle los (bei Songs aus dem Songwriting: ab Anfang des Teils), „■“ = anhalten.
    - „⇹ verteilen“: legt die Wörter des Taktes gleichmäßig auf 16tel auseinander – praktisch, wenn die
      Erkennung mehrere Wörter auf denselben Punkt gesetzt hat. Neue Erkennungen tun das nicht mehr.
+
+57. Lieder mit Text speichern (v71)
+   - Looper unten: „Ideen“ und „Lieder mit Text“ sind jetzt Bereiche zum Aufklappen (▸ antippen).
+   - „Lieder mit Text“ speichert die ganze Songdatei zusammen mit dem bearbeiteten Gesangstext (Name optional).
+     Nochmal speichern aktualisiert denselben Eintrag. Schneller: „💾 Lied speichern“ in der Improvisation.
+   - „Laden“ legt das Lied auf die nächste freie Spur (gleicher Ausschnitt, keine Rückfrage) – der Text ist
+     sofort wieder da, auch auf einem anderen iPad nach „Sicherung laden“. „Text“ teilt den reinen Text als Datei.
+   - Der Text wird außerdem wie bisher bei jeder Änderung automatisch gespeichert und hängt an der Datei:
+     dieselbe Datei neu laden bringt ihn ebenfalls zurück.

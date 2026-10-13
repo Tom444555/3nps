@@ -99,6 +99,9 @@ Everything you record or write is stored only on this device (back it up, see se
   there until “✓ Done”. Drag words; tap again to change a word. “‹ Bar / Bar ›” moves to the previous/next bar,
   “▶ From here” plays from one bar before (songs from Songwriting: from the start of the part), “■” stops,
   “⇹ Spread” spaces the words of the bar evenly on 16ths (useful when detection put several words on one spot).
+- Songs with lyrics (Looper, bottom; “Ideas” and “Songs with lyrics” fold open with ▸): saves the whole song file
+  together with the edited lyrics, also via “💾 Save song” in Improvisation. “Load” puts it on the next free track with
+  its lyrics; “Lyrics” shares the plain text as a file. Lyrics are also saved automatically with every change.
 
 7. CAGED
 --------
