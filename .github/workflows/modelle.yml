@@ -3,7 +3,7 @@ on:
   push:
     branches: [modelle]
     paths: ['.github/workflows/modelle.yml']
-# v3: Testsprache; v2: passende ORT-Laufzeit aus dem transformers-Paket
+# v4: volle Bibliothek; v3: Testsprache; v2: passende ORT-Laufzeit aus dem transformers-Paket
 permissions:
   contents: write
 jobs:
@@ -25,7 +25,7 @@ jobs:
           T=$(ls -d x-huggingface-transformers-*/package | head -1); O=$(ls -d x-onnxruntime-web-*/package | head -1)
           echo "T=$T O=$O" >> ../asr/lib/PACK.txt
           ls -la $T/dist > ../asr/lib/LISTE-transformers.txt; ls -la $O/dist > ../asr/lib/LISTE-ort.txt
-          cp $T/dist/transformers.web.min.js ../asr/lib/
+          cp $T/dist/transformers.min.js ../asr/lib/; cp $T/node_modules/onnxruntime-web/LICENSE ../asr/lib/LICENSE-onnxruntime.txt 2>/dev/null; cp $O/README.md ../asr/lib/README-onnxruntime.md 2>/dev/null
           cp $T/dist/ort-wasm-simd-threaded.jsep.wasm $T/dist/ort-wasm-simd-threaded.jsep.mjs ../asr/lib/
           cp $T/LICENSE ../asr/lib/LICENSE-transformers.txt; cp $O/LICENSE ../asr/lib/LICENSE-onnxruntime.txt
           grep '"version"' $T/package.json $O/package.json > ../asr/lib/VERSION.txt
