@@ -1229,6 +1229,7 @@ html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleis
   .sg-prog { flex: 1 1 100%; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
   .sg-prog i { display: block; height: 100%; background: var(--accent); transition: width .5s; }
   .sg-ph { position: absolute; top: 0; bottom: 0; left: 0; width: 2px; background: var(--ink); box-shadow: 0 0 6px var(--ink); pointer-events: none; z-index: 5; will-change: transform; }
+  .sg-hint { position: absolute; left: 12px; right: 12px; top: 50%; transform: translateY(-30%); text-align: center; font: 600 .85rem var(--f-body); color: var(--muted); pointer-events: none; z-index: 1; }
   /* ---- Reiter Mitsingen (v63) ---- */
   .sb-card { min-height: 260px; }
   .sb-top { display: flex; align-items: center; justify-content: space-between; min-height: 56px; }
@@ -2852,6 +2853,12 @@ Object.assign(window.__EN, {
   'In der Spur oben: Wort ziehen = Zeit verschieben, Wort antippen = ändern (leer = löschen), freie Stelle antippen = Wort einfügen. Hier unten: Wort antippen für Feinschritte.': 'In the lane above: drag a word = move its timing, tap a word = change it (empty = delete), tap an empty spot = insert a word. Down here: tap a word for fine steps.',
   'In der Spur oben: Wort ziehen = Zeit verschieben. Den Text selbst änderst du im Songwriting.': 'In the lane above: drag a word = move its timing. Change the words themselves in Songwriting.',
 });
+Object.assign(window.__EN, {
+  'Gesangstext: freie Stelle antippen = Wort einfügen · oder „🎤 Gesangstext“ → erkennen / einfügen / einklopfen': 'Lyrics: tap an empty spot = insert a word · or “🎤 Lyrics” → detect / paste / tap timing',
+  'Gesangstext: „🎤 Gesangstext“ → einklopfen': 'Lyrics: “🎤 Lyrics” → tap timing',
+  'Diese Zeile enthält Akkordmarken wie [Am] – ihren Text bitte im Songwriting ändern.': 'This line contains chord marks like [Am] – please change its words in Songwriting.',
+  'Text aus dem Songwriting – Änderungen hier landen dort': 'lyrics from Songwriting – changes here go there', 'Variante – Text im Songwriting ändern': 'variant – change the lyrics in Songwriting',
+});
 
 // Sprache (v59): Deutsch ist der Quelltext. Nur im EN-Modus läuft hier etwas:
 // Ein Beobachter übersetzt neue/geänderte Texte im DOM (Text, title, placeholder, aria-label)
@@ -2957,7 +2964,7 @@ Object.assign(window.__EN, {
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v65</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v66</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -13685,7 +13692,7 @@ const Sing = (() => {
       const fresh = tokenize(n.text), rec = db.l[id];
       let tok = rec ? rec.tok : [];
       if (!rec || rec.txt !== n.text) { tok = merge(rec ? rec.tok : [], fresh); db.l[id] = { tok, txt: n.text }; save(); }
-      return { kind: 'lied', id, rec: db.l[id], title: n.part.name + (n.pass ? ' · ' + (n.pass + 1) + '. Mal' : ''), tok, editable: false,
+      return { kind: 'lied', id, rec: db.l[id], title: n.part.name + (n.pass ? ' · ' + (n.pass + 1) + '. Mal' : ''), tok, editable: !!n.editable, partId: n.part.id, pass: n.pass, text: n.text,
         toCi: b => b * 1000, fromCi: f => f / 1000, nowB: n.beat, label: b => (Math.floor(b / 4) + 1) + '.' + (Math.floor(b % 4) + 1), maxB: n.beats, beatMs: () => 60000 / (n.bpm || 100) };
     }
     if (ci.track >= 0 && typeof Looper !== 'undefined' && Looper.singSrc) {
@@ -13713,16 +13720,18 @@ const Sing = (() => {
     const src = live || (lastSrc ? Object.assign({}, lastSrc, { nowB: null }) : null); curSrc = src;
     if (ui.open) paintEditor(src);
     const has = live && live.tok && live.tok.some(t => t.b != null);
-    band.hidden = !has; const lineEl = $('sgLine'); if (lineEl) lineEl.hidden = !has;
+    band.hidden = !live || live.kind === 'none'; const lineEl = $('sgLine'); if (lineEl) lineEl.hidden = !has;
     if (band.hidden) { laneSig = ''; lineSig = ''; return; }
+    if (lineEl) lineEl.hidden = !has;
     const srcL = live;
     const W = parseFloat($('sfStrip').style.width) || $('sfBand').clientWidth;
     const sig = srcL.id + '|' + W + '|' + ci.L + '|' + ver + '|' + (srcL.kind === 'lied' ? srcL.title : '');
     if (sig !== laneSig && !ui.inline) {
       laneSig = sig; lastCur = -2;
-      strip.style.width = W + 'px';
+      strip.style.width = W + 'px'; { const hh = $('sfStrip').offsetHeight; if (hh) strip.style.height = hh + 'px'; }
       const px = f => f / ci.L * W;
       let h = '';
+      if (!has) h += '<div class="sg-hint">' + esc(srcL.editable ? T('Gesangstext: freie Stelle antippen = Wort einfügen · oder „🎤 Gesangstext“ → erkennen / einfügen / einklopfen') : T('Gesangstext: „🎤 Gesangstext“ → einklopfen')) + '</div>';
       // Raster wie in der Akkordleiste: Takte (kräftig, mit Nummer), Schläge, 16tel (fein) – zum genauen Einrasten
       const downs = ci.downs || [], pts = downs.concat(ci.beats || []).filter(x => x >= 0 && x < ci.L).sort((x, y) => x - y);
       downs.forEach((d, i) => { const e = i + 1 < downs.length ? downs[i + 1] : ci.L; if (i % 2) h += '<div class="sg-barbg" style="left:' + px(d).toFixed(1) + 'px;width:' + px(e - d).toFixed(1) + 'px"></div>'; });
@@ -13825,7 +13834,7 @@ const Sing = (() => {
     box.innerHTML = '<input type="text" autocapitalize="off" autocomplete="off" spellcheck="false" value="' + (i >= 0 ? esc(tok[i].w) : '') + '" aria-label="' + T('Wort') + '"><button type="button" class="sg-ok" aria-label="OK">✓</button>' + (i >= 0 ? '<button type="button" class="sg-del" aria-label="' + T('Wort löschen') + '">✕</button>' : '');
     ui.inline = true; strip.appendChild(box);
     const inp = box.querySelector('input'); inp.focus(); inp.select();
-    let done = false;
+    let done = false; const snap = tok.map(t => Object.assign({}, t));
     const close = apply => {
       if (done) return; done = true; ui.inline = false;
       const v = apply === 'del' ? '' : inp.value.trim(); box.remove();
@@ -13840,7 +13849,8 @@ const Sing = (() => {
           const parts = v.split(/\s+/), step = ui.snap ? 0.5 : 0.25;
           tok.splice(k, 0, ...parts.map((w, j) => ({ w, l, b: snapB(b + j * step) }))); ui.sel = k;
         }
-        changed(); persist(src);
+        changed();
+        if (!persist(src)) { const fresh = tokenize(src.text); src.tok.splice(0, src.tok.length, ...merge(snap, fresh)); changed(); }
       }
       laneSig = ''; edSig = '';
     };
@@ -13850,7 +13860,28 @@ const Sing = (() => {
     const del = box.querySelector('.sg-del'); if (del) del.addEventListener('pointerdown', e => { e.preventDefault(); close('del'); });
   }
   // Datei-Text speichern (für Song-Quellen liegt der Text im Songwriting – dort nur die Zeiten)
-  function persist(src) { if (src.kind === 'file' && !db.f[src.id]) { db.f[src.id] = { name: src.name, tok: src.tok }; save(); } }
+  function persist(src) {
+    if (src.kind === 'file' && !db.f[src.id]) { db.f[src.id] = { name: src.name, tok: src.tok }; save(); }
+    if (src.kind !== 'lied' || !window.Lied || !Lied.singSetText) return true;
+    // Text aus den Wörtern zurück in den Songtext; Leerzeilen bleiben, Zeilen mit Akkordmarken [Am] werden nicht angefasst
+    const orig = String(src.text || '').replace(/\r/g, '').split('\n'), ne = [];
+    orig.forEach((ln, i) => { if (ln.replace(/\[[^\]]*\]/g, ' ').trim()) ne.push(i); });
+    const byL = {}; src.tok.forEach(t => { (byL[t.l] = byL[t.l] || []).push(t.w); });
+    const norm = x => x.replace(/\[[^\]]*\]/g, ' ').trim().split(/\s+/).join(' ');
+    let conflict = false;
+    ne.forEach((oi, k) => {
+      const nl = (byL[k] || []).join(' ');
+      if (/\[/.test(orig[oi])) { if (norm(orig[oi]) !== nl) conflict = true; return; }
+      orig[oi] = nl;
+    });
+    Object.keys(byL).map(Number).filter(k => k >= ne.length).sort((x, y) => x - y).forEach(k => orig.push(byL[k].join(' ')));   // neue Zeilen (z. B. leerer Text)
+    if (conflict) { status(T('Diese Zeile enthält Akkordmarken wie [Am] – ihren Text bitte im Songwriting ändern.')); return false; }
+    const text = orig.filter((ln, i) => !(ne.includes(i) && !ln.trim())).join('\n').replace(/^\n+/, '');
+    if (text === src.text) return true;
+    if (!Lied.singSetText(src.partId, src.pass, text)) return false;
+    src.text = text; if (db.l[src.id]) { db.l[src.id].txt = text; save(); }
+    return true;
+  }
 
   // ---- Einklopfen ----
   function tap() {
@@ -13876,7 +13907,7 @@ const Sing = (() => {
     if (sig === edSig) return; edSig = sig;
     if (!src) { box.innerHTML = '<p class="caption">Spiel einen Song aus dem Songwriting oder einen Loop aus einer geladenen Datei ab – dann erscheint hier sein Gesangstext.</p>'; return; }
     if (src.kind === 'none') { box.innerHTML = '<p class="caption">Diese Spur wurde ins Tempo des Loops gedehnt – dafür ist kein Gesangstext möglich. Lade die Datei ohne Anpassung.</p>'; return; }
-    let h = '<div class="sg-src"><b translate="no">' + esc(src.title) + '</b>' + (src.kind === 'lied' ? '<span class="caption"> · Text kommt aus dem Songwriting (dort ändern)</span>' : '') + '</div>';
+    let h = '<div class="sg-src"><b translate="no">' + esc(src.title) + '</b>' + (src.kind === 'lied' ? '<span class="caption"> · ' + (src.editable ? 'Text aus dem Songwriting – Änderungen hier landen dort' : 'Variante – Text im Songwriting ändern') + '</span>' : '') + '</div>';
     if (src.kind === 'file') h += '<div class="sg-auto"><button class="toggle-btn' + (rec.busy ? ' active' : '') + '" id="sgAuto"' + (rec.busy ? ' disabled' : '') + '>🤖 Text automatisch erkennen</button>'
       + '<label class="field sg-lang"><span>Erkennung</span><select id="sgModel"><option value="base"' + (rec.model === 'base' ? ' selected' : '') + '>Genau</option><option value="tiny"' + (rec.model === 'tiny' ? ' selected' : '') + '>Sparsam (weniger Speicher)</option></select></label>'
       + '<label class="field sg-lang"><span>Sprache</span><select id="sgLang"><option value="de"' + (rec.lang === 'de' ? ' selected' : '') + '>Deutsch</option><option value="en"' + (rec.lang === 'en' ? ' selected' : '') + '>Englisch</option></select></label>'
@@ -13930,9 +13961,9 @@ const Sing = (() => {
         const parts = v.split(/\s+/), nb = endOf(tok, i);
         // mehrere Wörter: Teilen – die Zeit verteilt sich gleichmäßig bis zum nächsten Wort
         const add = parts.map((w, k) => ({ w, l: t.l, b: t.b == null ? null : snapB(t.b + (nb - t.b) * k / parts.length) }));
-        tok.splice(i, 1, ...add); changed(); return;
+        tok.splice(i, 1, ...add); changed(); persist(src); return;
       }
-      if (b.id === 'sgMerge') { const n = tok[i + 1]; if (!n || n.l !== t.l) return; t.w = t.w + ' ' + n.w; tok.splice(i + 1, 1); changed(); return; }
+      if (b.id === 'sgMerge') { const n = tok[i + 1]; if (!n || n.l !== t.l) return; t.w = t.w + ' ' + n.w; tok.splice(i + 1, 1); changed(); persist(src); return; }
     });
     box.addEventListener('change', e => { if (e.target.id === 'sgSnap') { ui.snap = e.target.checked; edSig = ''; } if (e.target.id === 'sgLang') { rec.lang = e.target.value; lsSet('3nps-asr-lang', rec.lang); } if (e.target.id === 'sgModel') { rec.model = e.target.value; lsSet('3nps-asr-model', rec.model); } });
   }
@@ -16678,7 +16709,13 @@ if (typeof module !== 'undefined') module.exports = LiedExport;
       const n = now(); if (!n || !window.LiedText) return null;
       const fl = C.flat(P.v), idx = fl.findIndex(x => x.oi === n.entry.oi && x.rep === n.entry.rep);
       const p = n.entry.p, pass = fl.slice(0, Math.max(0, idx)).filter(x => x.p.id === p.id).length, ly = LiedText.lyricsOf(p, pass);
-      return { song: db.active, part: p, pass: ly.same ? 0 : pass, text: ly.text, beat: n.beat, beats: C.beatsOf(p), bpm: P.v.bpm };
+      return { song: db.active, part: p, pass: ly.same ? 0 : pass, text: ly.text, beat: n.beat, beats: C.beatsOf(p), bpm: P.v.bpm, editable: P.v === ver() };
+    },
+    // Mitsingen (v66): Liedtext eines Teils/Durchgangs aus der Gesangsspur ändern (aktuelle Version, ohne neue Version)
+    singSetText: (partId, pass, text) => {
+      const v = ver(); if (!v) return false; const p = v.parts.find(x => x.id === partId); if (!p) return false;
+      p.lyrics = Array.isArray(p.lyrics) ? p.lyrics : []; while (p.lyrics.length < pass) p.lyrics.push('');
+      p.lyrics[pass] = text; const ok = save(); if (ok && !panel.hidden) render(); return ok;
     },
     log: () => P ? P.log.slice() : [], grid: () => P ? P.events.filter(e => e.inChord === 0).map(e => e.t) : [],
     db: () => db, song, ver, play, prompt: () => promptText(), readCode, imp: () => imp, stop, openCapture, render, now: () => { const n = now(); return n ? { part: n.entry.p.name, oi: n.entry.oi, chord: n.chord, beat: n.beat } : null; },
