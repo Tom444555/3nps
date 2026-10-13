@@ -14,6 +14,7 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.pathname.includes('/stabil/')) return;   // stabile Fassung hat ihren eigenen Speicher
+  if (url.pathname.includes('/gruenwissen/')) return;   // Grünwissen-Kompendium ist eine eigene Seite, nicht die App
   // Texterkennung: Modell und Laufzeit (~100 MB) in eigenem Speicher, der App-Updates überlebt; erst laden, wenn gebraucht
   if (url.pathname.includes('/asr/')) {
     e.respondWith(caches.open(ASR).then(c => c.match(req).then(hit => hit || fetch(req).then(r => { if (r.ok) c.put(req, r.clone()); return r; }))));
