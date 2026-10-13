@@ -28,6 +28,23 @@ async def main():
         rows = await pg.evaluate("[...document.querySelectorAll('#sgStrip .sg-w')].map(e=>{const r=e.getBoundingClientRect();return [r.left,r.right,r.top]})")
         ov = sum(1 for i, a in enumerate(rows) for c in rows[i + 1:] if a[2] == c[2] and a[0] < c[1] - 1 and c[0] < a[1] - 1)
         check('Wörter überdecken sich nicht', ov == 0 and len(rows) == 10, (ov, len(rows)))
+        # Standard: Rest mitziehen – Wort 5 („we“) um 1 Schlag nach hinten, alle folgenden mit, davor bleibt
+        check('Schalter „Rest mitziehen“ standardmäßig an', await pg.evaluate("document.getElementById('sgRipple').classList.contains('active')"))
+        t0 = await pg.evaluate(TK)
+        bx = await pg.evaluate("(()=>{const r=document.querySelector('#sgStrip .sg-w[data-i=\"5\"]').getBoundingClientRect();return [r.x+6,r.y+10]})()")
+        px1 = await pg.evaluate("(()=>{const s=document.getElementById('sgStrip'),ci=SoloInfo(),src=Sing.source(ci);return (src.toCi(14)-src.toCi(13))/ci.L*parseFloat(s.style.width)})()")
+        await pg.mouse.move(*bx); await pg.mouse.down(); await pg.mouse.move(bx[0] + px1 / 2, bx[1], steps=4); await pg.mouse.move(bx[0] + px1, bx[1], steps=4); await pg.mouse.up(); await pg.wait_for_timeout(250)
+        t1 = await pg.evaluate(TK); d = [round(t1[j]['b'] - t0[j]['b'], 3) for j in range(len(t0))]
+        check('Rest wandert mit, Abstände bleiben, davor unverändert', d[:5] == [0] * 5 and len(set(d[5:])) == 1 and d[5] > 0, d)
+        # nicht über das Wort davor hinaus nach vorn
+        await pg.mouse.move(bx[0] + px1, bx[1]); await pg.mouse.down(); await pg.mouse.move(bx[0] - px1 * 5, bx[1], steps=8); await pg.mouse.up(); await pg.wait_for_timeout(250)
+        t2 = await pg.evaluate(TK)
+        check('nach vorn höchstens bis zum Wort davor', t2[5]['b'] >= t2[4]['b'] and [x['w'] for x in t2] == [x['w'] for x in t0], (t2[4]['b'], t2[5]['b']))
+        await pg.evaluate("(()=>{const d=JSON.parse(localStorage.getItem('3nps-sing'));Object.values(d.f)[0].tok=%s;localStorage.setItem('3nps-sing',JSON.stringify(d));Sing._reload();})()" % json.dumps(TOK))
+        await pg.wait_for_timeout(300)
+        # Einzelwort-Modus
+        await pg.click('#sgRipple'); await pg.wait_for_timeout(150)
+        check('Schalter aus und gemerkt', await pg.evaluate("localStorage.getItem('3nps-sing-ripple')") == '0')
         # Ziehen mit Einrast-Anzeige
         box = await pg.evaluate("(()=>{const r=document.querySelector('#sgStrip .sg-w[data-i=\"2\"]').getBoundingClientRect();return [r.x+6,r.y+10]})()")
         b0 = (await pg.evaluate(TK))[2]['b']

@@ -9,7 +9,7 @@ const Sing = (() => {
   const $ = id => document.getElementById(id);
   const KEY = '3nps-sing';
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  let db = load(), ui = { open: false, tapping: false, sel: -1, lineFrom: -1, snap: true, inline: false };
+  let db = load(), ui = { open: false, tapping: false, sel: -1, lineFrom: -1, snap: true, inline: false, ripple: (() => { try { return localStorage.getItem('3nps-sing-ripple') !== '0'; } catch (e) { return true; } })() };
   function load() {
     try { const d = JSON.parse(localStorage.getItem(KEY) || 'null'); if (d && d.v === 1) { d.f = d.f || {}; d.l = d.l || {}; return d; } } catch (e) {}
     return { v: 1, f: {}, l: {} };
@@ -162,7 +162,11 @@ const Sing = (() => {
     strip.addEventListener('pointerdown', e => {
       if (!curSrc || ui.inline || e.target.closest('.sg-inline')) return;
       const el = e.target.closest('.sg-w');
-      drag = { i: el ? +el.dataset.i : -1, x0: e.clientX, y0: e.clientY, b0: el ? curSrc.tok[+el.dataset.i].b : null, moved: false, pid: e.pointerId };
+      const di = el ? +el.dataset.i : -1, tk = curSrc.tok;
+      // Rest mitziehen: alle folgenden Wörter wandern mit (Abstände bleiben); nicht über das Wort davor hinaus
+      let prevB = -Infinity; for (let j = di - 1; j >= 0; j--) if (tk[j].b != null) { prevB = tk[j].b; break; }
+      drag = { i: di, x0: e.clientX, y0: e.clientY, b0: el ? tk[di].b : null, moved: false, pid: e.pointerId,
+        rip: el && ui.ripple ? tk.map((t, j) => j >= di && t.b != null ? t.b : null) : null, prevB };
       if (el) { strip.setPointerCapture(e.pointerId); e.preventDefault(); }
     });
     strip.addEventListener('pointermove', e => {
@@ -171,13 +175,17 @@ const Sing = (() => {
       if (!drag.moved) { drag.moved = true; select(drag.i); }
       const ci = ciNow(); if (!ci) return;
       const W = parseFloat(strip.style.width) || 1, f = curSrc.toCi(drag.b0) + dx / W * ci.L;
-      const nb = snapB(curSrc.fromCi(f)); guide(nb, ci);
+      let nb = snapB(curSrc.fromCi(f));
+      if (drag.rip && nb < drag.prevB) nb = drag.prevB;
+      guide(nb, ci);
       if (nb === curSrc.tok[drag.i].b) return;
-      curSrc.tok[drag.i].b = nb; changed();
+      if (drag.rip) { const d = nb - drag.b0; drag.rip.forEach((b0, j) => { if (b0 != null) curSrc.tok[j].b = Math.round((b0 + d) * 1000) / 1000; }); }
+      else curSrc.tok[drag.i].b = nb;
+      changed();
     });
     const up = e => {
       const d = drag; drag = null; guide(null);
-      if (d && d.moved && curSrc) reorder(curSrc.tok, d.i);
+      if (d && d.moved && curSrc && !d.rip) reorder(curSrc.tok, d.i);
       if (!d || !curSrc || d.moved || Math.abs(e.clientX - d.x0) > 6 || Math.abs(e.clientY - d.y0) > 10) return;
       if (d.i >= 0) { select(d.i); if (curSrc.editable) inlineEdit(d.i, null); return; }
       if (curSrc.editable && e.target === strip || (e.target.className && /sg-(g16|gbeat|gbar|barbg)/.test(e.target.className))) { const ci = ciNow(); if (ci) inlineEdit(-1, snapB(posB(e.clientX, ci))); }
@@ -325,7 +333,12 @@ const Sing = (() => {
         status('Zeile ' + (l + 1) + ' neu: abspielen und tippen.'); return;
       }
       const i = ui.sel, t = tok[i]; if (!t) return;
-      if (b.dataset.n) { if (t.b == null) return; t.b = snapB(t.b + (+b.dataset.n) * (ui.snap ? 0.25 : 0.01)); changed(); return; }
+      if (b.dataset.n) {
+        if (t.b == null) return; const d = (+b.dataset.n) * (ui.snap ? 0.25 : 0.01);
+        if (ui.ripple) { let pv = -Infinity; for (let j = i - 1; j >= 0; j--) if (tok[j].b != null) { pv = tok[j].b; break; } if (t.b + d < pv) return; for (let j = i; j < tok.length; j++) if (tok[j].b != null) tok[j].b = Math.round((tok[j].b + d) * 1000) / 1000; }
+        else t.b = snapB(t.b + d);
+        changed(); return;
+      }
       if (b.id === 'sgClear') { t.b = null; changed(); return; }
       if (b.id === 'sgRepl') {
         const v = ($('sgWord').value || '').trim(); if (!v) return;
@@ -341,6 +354,9 @@ const Sing = (() => {
 
   function init() {
     const btn = $('sgToggle'); if (!btn) return;
+    const rb = $('sgRipple');
+    if (rb) { const show = () => { rb.classList.toggle('active', ui.ripple); rb.setAttribute('aria-pressed', ui.ripple ? 'true' : 'false'); }; show();
+      rb.addEventListener('click', () => { ui.ripple = !ui.ripple; try { localStorage.setItem('3nps-sing-ripple', ui.ripple ? '1' : '0'); } catch (e) {} show(); }); }
     btn.addEventListener('click', () => { ui.open = !ui.open; $('sgCard').hidden = !ui.open; btn.classList.toggle('active', ui.open); edSig = ''; if (!ui.open) stopTap(); });
     bindLane(); bindEditor();
   }
