@@ -836,6 +836,9 @@ html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleis
     .sf-nowgrid { grid-template-columns: auto 1fr; grid-template-areas: "l l" "b r" "g g" "t t" "k k"; }
     .sf-nowgrid .sf-now-t { margin-top: 4px; }
   }
+  .sf-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px !important; }
+  .sf-zoom .toggle-btn { text-transform: none; letter-spacing: 0; }
+  .sf-zoom .toggle-btn { padding: 2px 8px; font-size: .72rem; }
   /* ===== CAGED ===== */
   .cg-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 18px; }
   .cg-chordbox { display: flex; flex-direction: column; min-width: 120px; }
@@ -1188,12 +1191,12 @@ html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleis
   .sg-gbar span { position: absolute; top: 2px; left: 4px; font: 800 .72rem var(--f-mono); color: var(--ink); }
   .sg-gbeat { position: absolute; top: 16px; bottom: 0; width: 0; border-left: 1px solid rgba(255,255,255,.32); pointer-events: none; }
   .sg-g16 { position: absolute; top: 16px; bottom: 0; width: 0; border-left: 1px dashed rgba(255,255,255,.12); pointer-events: none; }
-  .sg-w { position: absolute; height: 24px; padding: 0 6px; box-sizing: border-box; border-left: 3px solid var(--muted); z-index: 2;
-    font: 600 0.9rem var(--f-body); line-height: 24px; color: var(--ink); white-space: nowrap; overflow: visible;
-    background: color-mix(in srgb, var(--surface-2) 88%, transparent); border-radius: 0 7px 7px 0; cursor: grab; user-select: none; -webkit-user-select: none; touch-action: none; }
-  .sg-w.r0 { top: 18px; } .sg-w.r1 { top: 44px; } .sg-w.r2 { top: 70px; }
-  .sg-w.on { border-left-color: var(--accent); background: color-mix(in srgb, var(--accent) 35%, var(--surface-2)); box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 50%, transparent); z-index: 3; }
-  .sg-w.sel { outline: 2px solid var(--accent); outline-offset: 1px; z-index: 4; }
+  .sg-w { position: absolute; top: 32px; height: 40px; padding: 0 5px; box-sizing: border-box; border-left: 3px solid var(--muted); z-index: 2;
+    font: 600 1rem var(--f-body); line-height: 40px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: clip;
+    background: color-mix(in srgb, var(--surface-2) 92%, transparent); border-radius: 0 7px 7px 0; cursor: grab; user-select: none; -webkit-user-select: none; touch-action: none; }
+  .sg-w.on, .sg-w.sel { font-size: 16px !important; }
+  .sg-w.on { border-left-color: var(--accent); background: color-mix(in srgb, var(--accent) 35%, var(--surface-2)); box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 50%, transparent); z-index: 3; overflow: visible; min-width: max-content; }
+  .sg-w.sel { outline: 2px solid var(--accent); outline-offset: 1px; z-index: 4; overflow: visible; min-width: max-content; }
   .sg-snap { position: absolute; top: 0; bottom: 0; width: 0; border-left: 2px solid var(--accent); z-index: 5; pointer-events: none; }
   .sg-snap span { position: absolute; top: 2px; left: 4px; padding: 0 4px; border-radius: 4px; font: 700 .68rem var(--f-mono); color: var(--bg, #000); background: var(--accent); white-space: nowrap; }
   .sg-inline { position: absolute; z-index: 6; display: flex; gap: 3px; align-items: center; }
@@ -2860,6 +2863,7 @@ Object.assign(window.__EN, {
   'Text aus dem Songwriting – Änderungen hier landen dort': 'lyrics from Songwriting – changes here go there', 'Variante – Text im Songwriting ändern': 'variant – change the lyrics in Songwriting',
 });
 Object.assign(window.__EN, { '⇉ Rest mitziehen': '⇉ Move the rest too', 'Beim Verschieben eines Wortes wandert der ganze folgende Text mit': 'When you move a word, all following lyrics move with it' });
+Object.assign(window.__EN, { '6 Takte': '6 bars', 'Takte im Blick': 'Bars in view' });
 
 // Sprache (v59): Deutsch ist der Quelltext. Nur im EN-Modus läuft hier etwas:
 // Ein Beobachter übersetzt neue/geänderte Texte im DOM (Text, title, placeholder, aria-label)
@@ -2965,7 +2969,7 @@ Object.assign(window.__EN, { '⇉ Rest mitziehen': '⇉ Move the rest too', 'Bei
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v68</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v69</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -3609,7 +3613,7 @@ Object.assign(window.__EN, { '⇉ Rest mitziehen': '⇉ Move the rest too', 'Bei
           <label class="check"><input type="checkbox" id="sfFollow" checked> folgt dem Looper</label>
         </div>
       </div>
-      <div class="sf-head" id="sfHead" hidden><span>Takt</span></div>
+      <div class="sf-head" id="sfHead" hidden><span>Takt</span><div class="seg sf-zoom" id="sfZoom" role="group" aria-label="Takte im Blick"><button class="toggle-btn" data-z="6">6 Takte</button><button class="toggle-btn" data-z="4">4</button><button class="toggle-btn" data-z="2">2</button></div></div>
       <div class="sf-band" id="sfBand"><div class="sf-strip" id="sfStrip"></div></div>
       <div class="sg-band" id="sgBand" hidden><div class="sg-strip" id="sgStrip"></div></div>
       <p class="sg-line-read" id="sgLine" hidden translate="no"></p>
@@ -12716,17 +12720,21 @@ if (typeof module !== 'undefined') module.exports = Pitch;
 
   // ---- Akkordleiste ----
   let bandSig = '', lastOn = -1;
+  // Zoom der Akkordleiste (und damit der Gesangsspur darunter): 6, 4 oder 2 Takte im Blick
+  let zoomBars = (() => { try { const z = +localStorage.getItem('3nps-sf-zoom'); return [6, 4, 2].includes(z) ? z : 6; } catch (e) { return 6; } })();
+  const zoomShow = () => { const zb = $('sfZoom'); if (zb) zb.querySelectorAll('button').forEach(b => b.classList.toggle('active', +b.dataset.z === zoomBars)); };
+  setTimeout(() => { const zb = $('sfZoom'); if (!zb) return; zoomShow(); zb.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; zoomBars = +b.dataset.z; try { localStorage.setItem('3nps-sf-zoom', String(zoomBars)); } catch (x) {} zoomShow(); bandSig = ''; }); }, 0);
   function renderBand(ci, k) {
     const band = $('sfBand'), strip = $('sfStrip');
     if (!ci.segs) {
       if (bandSig !== 'none') { strip.innerHTML = '<div class="sf-empty">Noch keine Akkorde – lade im Looper eine Datei oder spiel etwas ein. Bis dahin: Tonart wählen und unten einen Akkord antippen.</div>'; strip.style.width = ''; bandSig = 'none'; }
       $('sfHead').hidden = true; return;
     }
-    const sig = ci.track + '|' + ci.L + '|' + ci.segs.map(s => s.name + s.a).join(',') + '|' + ci.downs.join(',') + '|' + k.pc + k.major + '|' + band.clientWidth;
+    const sig = ci.track + '|' + ci.L + '|' + ci.segs.map(s => s.name + s.a).join(',') + '|' + ci.downs.join(',') + '|' + k.pc + k.major + '|' + band.clientWidth + '|' + zoomBars;
     if (sig === bandSig) return;
     bandSig = sig;
     const bars = Math.max(1, ci.downs.length);
-    const BW = band.clientWidth - 2, W = bars <= 6 ? BW : BW * bars / 6, px = f => f / ci.L * W;          // höchstens 6 Takte im Blick
+    const BW = band.clientWidth - 2, W = bars <= zoomBars ? BW : BW * bars / zoomBars, px = f => f / ci.L * W;          // höchstens 6 (bzw. 4/2 beim Zoomen) Takte im Blick
     strip.style.width = W + 'px';
     let h = '';
     // Takte: jeder zweite leicht hinterlegt, kräftige Taktlinien über den Akkorden, Schlagstriche unten
@@ -13713,7 +13721,7 @@ const Sing = (() => {
   const endOf = (tok, i) => { const t = tok[i]; for (let j = i + 1; j < tok.length; j++) if (tok[j].b != null) return Math.min(tok[j].b, t.b + 2); return t.b + 1; };
 
   // ---- Spur unter der Akkordleiste ----
-  let laneSig = '', curSrc = null, lastSrc = null, lastCur = -2, syncing = false, rowOf = new Map();
+  let laneSig = '', curSrc = null, lastSrc = null, lastCur = -2, syncing = false;
   function tick(ci) {
     const band = $('sgBand'), strip = $('sgStrip'); if (!band) return;
     const live = source(ci);
@@ -13740,15 +13748,12 @@ const Sing = (() => {
       pts.forEach((x, i) => { const nx = i + 1 < pts.length ? pts[i + 1] : ci.L; for (let k = 1; k < 4; k++) h += '<div class="sg-g16" style="left:' + px(x + (nx - x) * k / 4).toFixed(1) + 'px"></div>'; });
       (ci.beats || []).forEach(x => { h += '<div class="sg-gbeat" style="left:' + px(x).toFixed(1) + 'px"></div>'; });
       downs.forEach((d, i) => { h += '<div class="sg-gbar" style="left:' + px(d).toFixed(1) + 'px"><span>' + (i + 1) + '</span></div>'; });
-      // Wörter: auf drei Reihen verteilt, damit sich nichts überdeckt
-      const rowEnd = [-1e9, -1e9, -1e9], prevRow = rowOf; rowOf = new Map();
+      // Wörter: alle auf einer Ebene; Breite = Zeit bis zum nächsten Wort (langes Wort wird gekürzt, ausgewählt/aktuell ganz sichtbar)
       srcL.tok.forEach((t, i) => {
         if (t.b == null) return;
         const a0 = srcL.toCi(t.b), e0 = srcL.toCi(endOf(srcL.tok, i)); if (a0 == null || a0 < -1 || a0 >= ci.L) return;
-        const x = px(a0), wTxt = Math.max(px(Math.min(ci.L, e0) - a0) - 2, String(t.w).length * 8.2 + 14);
-        const pr = prevRow.get(t); let r = pr != null && rowEnd[pr] <= x - 2 ? pr : rowEnd.findIndex(e => e <= x - 2); if (r < 0) r = rowEnd.indexOf(Math.min(...rowEnd));
-        rowEnd[r] = x + wTxt; rowOf.set(t, r);
-        h += '<span class="sg-w r' + r + (i === ui.sel ? ' sel' : '') + '" data-i="' + i + '" style="left:' + x.toFixed(1) + 'px;min-width:' + Math.max(8, px(Math.min(ci.L, e0) - a0) - 2).toFixed(1) + 'px">' + esc(t.w) + '</span>';
+        const wpx = Math.max(14, px(Math.min(ci.L, e0) - a0) - 2);
+        h += '<span class="sg-w' + (i === ui.sel ? ' sel' : '') + '" data-i="' + i + '" style="left:' + px(a0).toFixed(1) + 'px;width:' + wpx.toFixed(1) + 'px;font-size:' + fitFont(t.w, wpx) + 'px">' + esc(t.w) + '</span>';
       });
       h += '<div class="sg-snap" id="sgSnapLine" hidden><span></span></div><div class="sg-ph" id="sgPh"></div>';
       strip.innerHTML = h; lineSig = '';
@@ -13774,13 +13779,18 @@ const Sing = (() => {
     el.innerHTML = '<span class="sg-cur">' + words.map(x => '<span' + (x.j === cur ? ' class="on"' : x.j < cur && cur >= 0 ? ' class="past"' : '') + '>' + esc(x.t.w) + '</span>').join(' ') + '</span>'
       + (nx ? '<span class="sg-next">' + esc(nx) + '</span>' : '');
   }
+  // Schriftgröße so, dass das Wort möglichst in seine Breite passt (16 px, in engen Stellen bis 10 px)
+  const fitFont = (w, wpx) => Math.max(10, Math.min(16, Math.floor((wpx - 9) / (String(w).length * 0.56 + 0.2))));
   let ver = 0; const changed = () => { ver++; save(); laneSig = ''; edSig = ''; };
 
   // Wort im Band ziehen (Timing verschieben)
   function bindLane() {
     const strip = $('sgStrip'), band = $('sgBand'); if (!strip || strip._b) return; strip._b = true;
     // Spur und Akkordleiste scrollen gemeinsam (in beide Richtungen)
-    band.addEventListener('scroll', () => { if (syncing) { syncing = false; return; } const sb = $('sfBand'); if (Math.abs(sb.scrollLeft - band.scrollLeft) > 1) sb.scrollLeft = band.scrollLeft; });
+    const sb = $('sfBand');
+    band.addEventListener('scroll', () => { if (syncing) { syncing = false; return; } if (Math.abs(sb.scrollLeft - band.scrollLeft) > 0.5) sb.scrollLeft = band.scrollLeft; });
+    // Akkordleiste scrollt (auch weich beim Mitlaufen) → Spur sofort mit, nicht erst beim nächsten Anzeigeschritt
+    if (sb) sb.addEventListener('scroll', () => { if (!ui.inline && !band.hidden && Math.abs(band.scrollLeft - sb.scrollLeft) > 0.5) { syncing = true; band.scrollLeft = sb.scrollLeft; } }, { passive: true });
     let drag = null;
     const ciNow = () => window.SoloInfo ? SoloInfo() : null;
     const posB = (clientX, ci) => { const r = strip.getBoundingClientRect(), W = parseFloat(strip.style.width) || r.width; return curSrc.fromCi((clientX - r.left) / W * ci.L); };
@@ -13813,7 +13823,7 @@ const Sing = (() => {
       if (drag.rip) { const d = nb - drag.b0; drag.rip.forEach((b0, j) => { if (b0 != null) curSrc.tok[j].b = Math.round((b0 + d) * 1000) / 1000; }); }
       else curSrc.tok[drag.i].b = nb;
       ui.dragging = true; drag.dirty = true;
-      strip.querySelectorAll('.sg-w').forEach(el => { const t = curSrc.tok[+el.dataset.i]; if (t && t.b != null) el.style.left = (curSrc.toCi(t.b) / ci.L * W).toFixed(1) + 'px'; });
+      strip.querySelectorAll('.sg-w').forEach(el => { const j = +el.dataset.i, t = curSrc.tok[j]; if (!t || t.b == null) return; const a0 = curSrc.toCi(t.b); el.style.left = (a0 / ci.L * W).toFixed(1) + 'px'; const wp = Math.max(14, (Math.min(ci.L, curSrc.toCi(endOf(curSrc.tok, j))) - a0) / ci.L * W - 2); el.style.width = wp.toFixed(1) + 'px'; el.style.fontSize = fitFont(t.w, wp) + 'px'; });
     });
     const up = e => {
       const d = drag; drag = null; guide(null); ui.dragging = false;
