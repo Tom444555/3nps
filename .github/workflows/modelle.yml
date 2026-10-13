@@ -1,0 +1,44 @@
+name: Whisper-Modelle holen
+on:
+  push:
+    branches: [modelle]
+    paths: ['.github/workflows/modelle.yml']
+permissions:
+  contents: write
+jobs:
+  holen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: modelle }
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: Bibliotheken (transformers.js, onnxruntime-web)
+        run: |
+          mkdir -p asr/lib tmp && cd tmp
+          npm pack @huggingface/transformers@3 onnxruntime-web@1.20.1 >/dev/null
+          for f in *.tgz; do mkdir -p "${f%.tgz}" && tar -xzf "$f" -C "${f%.tgz}"; done
+          T=$(ls -d huggingface-transformers-*)/package; O=$(ls -d onnxruntime-web-*)/package
+          cp $T/dist/transformers.min.js $T/dist/transformers.web.min.js ../asr/lib/ 2>/dev/null || true
+          ls $T/dist > ../asr/lib/LISTE-transformers.txt; ls $O/dist > ../asr/lib/LISTE-ort.txt
+          cp $O/dist/ort-wasm-simd-threaded.wasm $O/dist/ort-wasm-simd-threaded.mjs ../asr/lib/ 2>/dev/null || true
+          cp $T/LICENSE ../asr/lib/LICENSE-transformers.txt; cp $O/LICENSE ../asr/lib/LICENSE-onnxruntime.txt 2>/dev/null || cp $O/README.md ../asr/lib/README-onnxruntime.md
+          cat $T/package.json | grep '"version"' > ../asr/lib/VERSION.txt; cat $O/package.json | grep '"version"' >> ../asr/lib/VERSION.txt
+      - name: Modelle (Whisper tiny und base, mehrsprachig, 8 Bit)
+        run: |
+          for m in Xenova/whisper-tiny Xenova/whisper-base; do
+            d=asr/models/$m; mkdir -p $d/onnx
+            for f in config.json generation_config.json preprocessor_config.json tokenizer.json tokenizer_config.json special_tokens_map.json added_tokens.json normalizer.json vocab.json merges.txt; do
+              curl -sfL -o $d/$f https://huggingface.co/$m/resolve/main/$f || rm -f $d/$f
+            done
+            for f in encoder_model_quantized.onnx decoder_model_merged_quantized.onnx; do
+              curl -sfL -o $d/onnx/$f https://huggingface.co/$m/resolve/main/onnx/$f || rm -f $d/onnx/$f
+            done
+          done
+          curl -sfL -o asr/models/LICENSE-whisper.txt https://raw.githubusercontent.com/openai/whisper/main/LICENSE || true
+          du -ah asr | sort -h | tail -40 > asr/GROESSEN.txt; cat asr/GROESSEN.txt
+      - name: Ablegen
+        run: |
+          rm -rf tmp
+          git config user.name "github-actions"; git config user.email "github-actions@users.noreply.github.com"
+          git add asr && git commit -qm "Whisper-Modelle und Bibliotheken" && git push
