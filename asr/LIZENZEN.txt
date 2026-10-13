@@ -1,0 +1,7 @@
+Texterkennung im Looper (Ordner asr/) – verwendete freie Software und Modelle
+============================================================================
+- Whisper (Modell „base“, mehrsprachig) – OpenAI, MIT-Lizenz (models/LICENSE-whisper.txt).
+  ONNX-Fassung „Xenova/whisper-base“ (8 Bit), Hugging Face.
+- transformers.js 3.8.1 – Hugging Face, Apache-Lizenz 2.0 (lib/LICENSE-transformers.txt).
+- ONNX Runtime Web (in transformers.js enthalten) – Microsoft, MIT-Lizenz (lib/LICENSE-onnxruntime.txt).
+Alles läuft auf dem Gerät; es werden keine Daten an fremde Server geschickt.

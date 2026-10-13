@@ -598,3 +598,15 @@ Gut zu wissen
      Mit Kopfhörern singen, sonst hört das Mikrofon die Musik mit.
    - Übersetzung: unter „Übersetzung bearbeiten“ eine Zeile pro Liedzeile eintragen – oder „Auftrag für Claude
      kopieren“, in einen Chat mit Claude einfügen und die Antwort einsetzen. Abschaltbar mit „anzeigen“.
+
+51. Text automatisch erkennen (v64)
+   - Improvisation → „🎤 Gesangstext“ → „🤖 Text automatisch erkennen“ (bei geladenen Songdateien).
+     Vorher „Sprache“ wählen (Deutsch/Englisch). Die App hört den gesungenen Text heraus, setzt jedes Wort
+     auf seinen Zeitpunkt (16tel-Raster) und teilt in Zeilen. Danach nur noch ausbessern: Wort antippen →
+     ersetzen, Zeiten ziehen, „↻“ für eine Zeile.
+   - Läuft komplett auf dem iPad (Whisper-Modell, frei lizenziert), nichts geht ins Internet. Beim ersten Mal
+     werden etwa 100 MB geladen und gespeichert; danach geht es auch offline. Dauer: etwa halb so lang wie der Song.
+   - „Genau“ braucht viel Arbeitsspeicher. Lädt das iPad die App dabei neu, stellt sie selbst auf „Sparsam“ um
+     (kleineres Modell, mehr Fehler). Die Spuren werden vorher gesichert („Wiederherstellen“).
+   - Je lauter und klarer der Gesang, desto besser. Bei lauter Band, Chören oder Effekten entstehen Fehler.
+   - Fremde Songtexte nur zum eigenen Üben.
