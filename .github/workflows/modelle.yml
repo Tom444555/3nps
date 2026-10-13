@@ -3,7 +3,7 @@ on:
   push:
     branches: [modelle]
     paths: ['.github/workflows/modelle.yml']
-# v2: passende ORT-Laufzeit aus dem transformers-Paket
+# v3: Testsprache; v2: passende ORT-Laufzeit aus dem transformers-Paket
 permissions:
   contents: write
 jobs:
@@ -46,6 +46,15 @@ jobs:
           done
           curl -sfL -o asr/models/LICENSE-whisper.txt https://raw.githubusercontent.com/openai/whisper/main/LICENSE || true
           du -ah asr | sort -h | tail -60 > asr/GROESSEN.txt; cat asr/GROESSEN.txt; exit 0
+      - name: Testsprache (espeak-ng)
+        shell: bash
+        run: |
+          set +e
+          sudo apt-get install -y -q espeak-ng >/dev/null 2>&1
+          mkdir -p asr/test
+          espeak-ng -v de -s 140 -w asr/test/sprache_de.wav "Ich fahre auf der Straße bis zum Ende. Und die Nacht ist lang. Danach kommt nichts mehr an der Grenze aus Licht."
+          espeak-ng -v en-us -s 140 -w asr/test/sprache_en.wav "Hold on to the night, we were young and free. Take my hand and sing along with me."
+          ls -la asr/test; exit 0
       - name: Ablegen
         run: |
           rm -rf tmp
