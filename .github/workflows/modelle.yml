@@ -14,18 +14,26 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 20 }
       - name: Bibliotheken (transformers.js, onnxruntime-web)
+        shell: bash
         run: |
+          set +e
           mkdir -p asr/lib tmp && cd tmp
-          npm pack @huggingface/transformers@3 onnxruntime-web@1.20.1 >/dev/null
-          for f in *.tgz; do mkdir -p "${f%.tgz}" && tar -xzf "$f" -C "${f%.tgz}"; done
-          T=$(ls -d huggingface-transformers-*)/package; O=$(ls -d onnxruntime-web-*)/package
-          cp $T/dist/transformers.min.js $T/dist/transformers.web.min.js ../asr/lib/ 2>/dev/null || true
-          ls $T/dist > ../asr/lib/LISTE-transformers.txt; ls $O/dist > ../asr/lib/LISTE-ort.txt
-          cp $O/dist/ort-wasm-simd-threaded.wasm $O/dist/ort-wasm-simd-threaded.mjs ../asr/lib/ 2>/dev/null || true
-          cp $T/LICENSE ../asr/lib/LICENSE-transformers.txt; cp $O/LICENSE ../asr/lib/LICENSE-onnxruntime.txt 2>/dev/null || cp $O/README.md ../asr/lib/README-onnxruntime.md
-          cat $T/package.json | grep '"version"' > ../asr/lib/VERSION.txt; cat $O/package.json | grep '"version"' >> ../asr/lib/VERSION.txt
+          npm pack @huggingface/transformers@3 onnxruntime-web@1.20.1 > ../asr/lib/PACK.txt 2>&1
+          ls -la >> ../asr/lib/PACK.txt
+          for f in *.tgz; do mkdir -p "x-${f%.tgz}"; tar -xzf "$f" -C "x-${f%.tgz}"; done
+          T=$(ls -d x-huggingface-transformers-*/package | head -1); O=$(ls -d x-onnxruntime-web-*/package | head -1)
+          echo "T=$T O=$O" >> ../asr/lib/PACK.txt
+          ls -la $T/dist > ../asr/lib/LISTE-transformers.txt; ls -la $O/dist > ../asr/lib/LISTE-ort.txt
+          cp $T/dist/*.min.js ../asr/lib/; cp $T/dist/*.mjs ../asr/lib/ 2>/dev/null
+          cp $O/dist/ort-wasm-simd-threaded.wasm $O/dist/ort-wasm-simd-threaded.mjs ../asr/lib/
+          cp $T/LICENSE ../asr/lib/LICENSE-transformers.txt; cp $O/LICENSE ../asr/lib/LICENSE-onnxruntime.txt
+          grep '"version"' $T/package.json $O/package.json > ../asr/lib/VERSION.txt
+          grep -o '"onnxruntime-web": *"[^"]*"' $T/package.json >> ../asr/lib/VERSION.txt
+          exit 0
       - name: Modelle (Whisper tiny und base, mehrsprachig, 8 Bit)
+        shell: bash
         run: |
+          set +e
           for m in Xenova/whisper-tiny Xenova/whisper-base; do
             d=asr/models/$m; mkdir -p $d/onnx
             for f in config.json generation_config.json preprocessor_config.json tokenizer.json tokenizer_config.json special_tokens_map.json added_tokens.json normalizer.json vocab.json merges.txt; do
@@ -36,7 +44,7 @@ jobs:
             done
           done
           curl -sfL -o asr/models/LICENSE-whisper.txt https://raw.githubusercontent.com/openai/whisper/main/LICENSE || true
-          du -ah asr | sort -h | tail -40 > asr/GROESSEN.txt; cat asr/GROESSEN.txt
+          du -ah asr | sort -h | tail -60 > asr/GROESSEN.txt; cat asr/GROESSEN.txt; exit 0
       - name: Ablegen
         run: |
           rm -rf tmp
