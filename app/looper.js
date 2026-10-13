@@ -1032,7 +1032,7 @@ const Looper = (() => {
     });
   }
 
-  async function importFile(t, file) {
+  async function importFile(t, file, preChoice) {
     ensureAudio(); sr = audioCtx.sampleRate;
     setStatus('Lade „' + file.name + '“ …');
     let buf;
@@ -1051,7 +1051,7 @@ const Looper = (() => {
     // Längere Dateien: vorher fragen, wie viel davon in die Spur soll
     let choice = { mode: 'all' };
     if (secs > 20) {
-      choice = await askImport(t, file.name, secs, anaP);
+      choice = preChoice || await askImport(t, file.name, secs, anaP);
       if (!choice) { setStatus('Laden abgebrochen.'); return; }
     }
     const ana = await anaP;
@@ -1059,7 +1059,7 @@ const Looper = (() => {
     t.orig = null; t.origPos = null;
     let seg = null, L = 0, msg = '', warn = '';
     if (ana.kind !== 'none') {
-      t.orig = ana.orig;
+      t.orig = ana.orig; t.orig.file = file; t.orig.choice = choice;        // v71: Originaldatei für „Lieder mit Text“
       const o = t.orig, from = choice.mode === 'part' ? Math.min(choice.from, o.bars) : 1;
       const nb = choice.mode === 'part' ? Math.min(choice.bars, o.bars - from + 1) : o.bars;
       const r = placeExcerpt(t, from, nb);
@@ -3013,6 +3013,10 @@ const Looper = (() => {
         key: t.key ? { pc: t.key.pc, major: !!t.key.major } : null, playing: !!t.src };
     },
     // Mitsingen (v61): Bezug einer Spur zur geladenen Originaldatei – nur lesen
+    // v71: Originaldatei einer Spur (für „Lieder mit Text“) und Laden einer gespeicherten Datei ohne Rückfrage
+    fileOf: i => { const t = tracks[i]; return t && t.orig && t.orig.file ? { file: t.orig.file, name: t.orig.name || t.orig.file.name, choice: t.orig.choice || { mode: 'all' }, bpm: t.orig.bpm } : null; },
+    importBlob: (i, blob, name, choice) => { const t = tracks[i]; if (!t || rec) return Promise.resolve(false); return importFile(t, new File([blob], name, { type: blob.type || '' }), choice || { mode: 'all' }).then(() => true); },
+    trackUsed: i => !!(tracks[i] && tracks[i].L),
     singSrc: i => {
       const t = tracks[i]; if (!t || !t.L || !t.orig || t.origPos == null || !t.orig.beats || t.orig.beats.length < 4) return null;
       const o = t.orig, len = o.data ? (o.data.l || o.data).length : 0;
@@ -3253,6 +3257,8 @@ const Pedal = (() => {
   async function render() {
     let ideas = [];
     try { ideas = await AppDB.all('ideas'); } catch (e) {}
+    ideas = ideas.filter(i => i.kind !== 'lied');                  // Lieder mit Text haben eine eigene Liste (v71)
+    { const c = $('ideaCount'); if (c) c.textContent = ideas.length ? String(ideas.length) : ''; }
     ideas.sort((a, b) => b.ts - a.ts);
     if (!ideas.length) { list.innerHTML = '<p class="pattern-desc">Noch keine Ideen. Nimm einen Loop auf und tippe auf „Speichern“.</p>'; return; }
     list.innerHTML = ideas.map(i => `

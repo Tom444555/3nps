@@ -350,3 +350,14 @@ Object.assign(window.__EN, { '6 Takte': '6 bars', 'Takte im Blick': 'Bars in vie
 Object.assign(window.__EN, { 'Takt davor': 'Previous bar', 'Nächster Takt': 'Next bar', '‹ Takt': '‹ Bar', 'Takt ›': 'Bar ›', '▶ ab hier': '▶ From here', 'Spielt ab einem Takt vor dieser Stelle': 'Plays from one bar before this spot', 'Anhalten': 'Stop',
   '⇹ verteilen': '⇹ Spread', 'Wörter in diesem Takt gleichmäßig verteilen (auf 16tel)': 'Spread the words in this bar evenly (on 16ths)', '✓ Fertig': '✓ Done', 'Bearbeiten beenden, wieder alle Takte': 'Finish editing, back to all bars',
   'In diesem Takt gibt es nichts zu verteilen.': 'Nothing to spread in this bar.' });
+Object.assign(window.__EN, { 'Lieder mit Text': 'Songs with lyrics', 'Lied mit Text speichern': 'Save song with lyrics', '💾 Lied speichern': '💾 Save song',
+  'Songdatei und Gesangstext unter „Lieder mit Text“ (Looper) speichern': 'Save the song file and lyrics under “Songs with lyrics” (Looper)',
+  'Speichert die ganze Songdatei zusammen mit dem bearbeiteten Gesangstext. „Laden“ bringt beides zurück – Improvisation und Mitsingen sind sofort bereit.': 'Saves the whole song file together with the edited lyrics. “Load” brings both back – Improvisation and Sing along are ready right away.',
+  'Lade zuerst eine Songdatei in den Looper (aufgenommene Loops speicherst du unter „Ideen“).': 'Load a song file into the looper first (recorded loops are saved under “Ideas”).',
+  'Aktualisiert: „': 'Updated: “', 'Gespeichert: „': 'Saved: “', 'Wörter': 'words', 'Zeilen': 'lines', ' (noch kein Text – du kannst später nochmal speichern)': ' (no lyrics yet – you can save again later)',
+  'Alle Spuren sind belegt. Spur 1 durch das Lied ersetzen?': 'All tracks are in use. Replace track 1 with the song?', 'Lade „': 'Loading “',
+  '“ liegt auf Spur ': '” is on track ', ' – mit Text. Improvisation und Mitsingen sind bereit.': ' – with lyrics. Improvisation and Sing along are ready.',
+  'Laden nicht möglich, während aufgenommen wird.': 'Cannot load while recording.', 'Für dieses Lied gibt es noch keinen Text.': 'This song has no lyrics yet.',
+  'Noch keine Lieder. Lade eine Songdatei, bearbeite den Text in der Improvisation und tippe auf „Lied mit Text speichern“.': 'No songs yet. Load a song file, edit the lyrics in Improvisation and tap “Save song with lyrics”.',
+  'Text': 'Lyrics', '“ löschen? Der Text bleibt auf diesem Gerät erhalten, die gespeicherte Songdatei wird entfernt.': '”? The lyrics stay on this device, the saved song file is removed.',
+  '✓ Gespeichert': '✓ Saved', 'Speichern nicht möglich': 'Cannot save' });

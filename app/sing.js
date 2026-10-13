@@ -91,6 +91,7 @@ const Sing = (() => {
     const src = live || (lastSrc ? Object.assign({}, lastSrc, { nowB: null }) : null); curSrc = src;
     if (ui.open) paintEditor(src);
     const has = live && live.tok && live.tok.some(t => t.b != null);
+    { const sv = $('sgSave'); if (sv) { const hv = !(live && live.kind === 'file'); if (sv.hidden !== hv) sv.hidden = hv; } }
     band.hidden = !live || live.kind === 'none'; const lineEl = $('sgLine'); if (lineEl) lineEl.hidden = !has;
     if (band.hidden) { laneSig = ''; lineSig = ''; focusUi(null, ci); return; }
     focusUi(live, ci);

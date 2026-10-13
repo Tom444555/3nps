@@ -350,8 +350,10 @@
       </div>
     </div>
 
-    <div class="card">
-      <h2>Ideen</h2>
+    <div class="card fold-card">
+      <details class="fold" id="ideaFold">
+      <summary><h2>Ideen</h2><span class="fold-n" id="ideaCount"></span></summary>
+      <div class="fold-body">
       <div class="row">
         <input type="text" id="ideaName" class="text-in" placeholder="Name (optional)" maxlength="60">
         <button class="toggle-btn active" id="ideaSave">Speichern</button>
@@ -361,6 +363,23 @@
         <label class="check"><input type="checkbox" id="ideaWithDrone" checked> Drone mitspeichern</label>
       </div>
       <div class="log-list" id="ideaList"><p class="pattern-desc">Wird geladen …</p></div>
+      </div>
+      </details>
+    </div>
+
+    <div class="card fold-card">
+      <details class="fold" id="lsFold">
+      <summary><h2>Lieder mit Text</h2><span class="fold-n" id="lsCount"></span></summary>
+      <div class="fold-body">
+      <p class="pattern-desc">Speichert die ganze Songdatei zusammen mit dem bearbeiteten Gesangstext. „Laden“ bringt beides zurück – Improvisation und Mitsingen sind sofort bereit.</p>
+      <div class="row">
+        <input type="text" id="lsName" class="text-in" placeholder="Name (optional)" maxlength="60">
+        <button class="toggle-btn active" id="lsSave">Lied mit Text speichern</button>
+      </div>
+      <p class="pattern-desc" id="lsInfo"></p>
+      <div class="log-list" id="lsList"><p class="pattern-desc">Wird geladen …</p></div>
+      </div>
+      </details>
     </div>
 
     <div class="card app-card">

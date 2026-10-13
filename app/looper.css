@@ -398,3 +398,11 @@ html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleis
 .in-dev.on .in-dev-dot { background: #34c759; box-shadow: 0 0 6px #34c759; }
 .in-dev.on span { color: var(--accent); }
 .editor .ed-cutgrp { margin-bottom: 10px; }
+  /* v71: aufklappbare Bereiche (Ideen, Lieder mit Text) */
+  .fold > summary { list-style: none; display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; -webkit-user-select: none; }
+  .fold > summary::-webkit-details-marker { display: none; }
+  .fold > summary::before { content: '▸'; color: var(--accent); font-size: .9rem; transition: transform .15s; }
+  .fold[open] > summary::before { transform: rotate(90deg); }
+  .fold > summary h2 { margin: 0; }
+  .fold-n { font: 600 .75rem var(--f-mono); color: var(--muted); }
+  .fold-body { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
