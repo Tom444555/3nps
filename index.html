@@ -1233,6 +1233,11 @@ html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleis
   .sg-prog i { display: block; height: 100%; background: var(--accent); transition: width .5s; }
   .sg-ph { position: absolute; top: 0; bottom: 0; left: 0; width: 2px; background: var(--ink); box-shadow: 0 0 6px var(--ink); pointer-events: none; z-index: 5; will-change: transform; }
   .sg-hint { position: absolute; left: 12px; right: 12px; top: 50%; transform: translateY(-30%); text-align: center; font: 600 .85rem var(--f-body); color: var(--muted); pointer-events: none; z-index: 1; }
+  .sg-focus { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 6px 0 2px; padding: 6px 8px; border-radius: 10px; border: 1px solid var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--surface-2)); }
+  .sg-focus[hidden] { display: none; }
+  .sg-focus b { font: 800 .85rem var(--f-mono); color: var(--ink); margin-right: 4px; }
+  .sg-focus .toggle-btn { text-transform: none; letter-spacing: 0; padding: 6px 10px; font-size: .85rem; min-height: 34px; }
+  .sg-focus .sg-fdone { margin-left: auto; border-color: var(--accent); color: var(--ink); }
   /* ---- Reiter Mitsingen (v63) ---- */
   .sb-card { min-height: 260px; }
   .sb-top { display: flex; align-items: center; justify-content: space-between; min-height: 56px; }
@@ -2864,6 +2869,9 @@ Object.assign(window.__EN, {
 });
 Object.assign(window.__EN, { '⇉ Rest mitziehen': '⇉ Move the rest too', 'Beim Verschieben eines Wortes wandert der ganze folgende Text mit': 'When you move a word, all following lyrics move with it' });
 Object.assign(window.__EN, { '6 Takte': '6 bars', 'Takte im Blick': 'Bars in view' });
+Object.assign(window.__EN, { 'Takt davor': 'Previous bar', 'Nächster Takt': 'Next bar', '‹ Takt': '‹ Bar', 'Takt ›': 'Bar ›', '▶ ab hier': '▶ From here', 'Spielt ab einem Takt vor dieser Stelle': 'Plays from one bar before this spot', 'Anhalten': 'Stop',
+  '⇹ verteilen': '⇹ Spread', 'Wörter in diesem Takt gleichmäßig verteilen (auf 16tel)': 'Spread the words in this bar evenly (on 16ths)', '✓ Fertig': '✓ Done', 'Bearbeiten beenden, wieder alle Takte': 'Finish editing, back to all bars',
+  'In diesem Takt gibt es nichts zu verteilen.': 'Nothing to spread in this bar.' });
 
 // Sprache (v59): Deutsch ist der Quelltext. Nur im EN-Modus läuft hier etwas:
 // Ein Beobachter übersetzt neue/geänderte Texte im DOM (Text, title, placeholder, aria-label)
@@ -2969,7 +2977,7 @@ Object.assign(window.__EN, { '6 Takte': '6 bars', 'Takte im Blick': 'Bars in vie
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v69</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v70</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -3616,6 +3624,7 @@ Object.assign(window.__EN, { '6 Takte': '6 bars', 'Takte im Blick': 'Bars in vie
       <div class="sf-head" id="sfHead" hidden><span>Takt</span><div class="seg sf-zoom" id="sfZoom" role="group" aria-label="Takte im Blick"><button class="toggle-btn" data-z="6">6 Takte</button><button class="toggle-btn" data-z="4">4</button><button class="toggle-btn" data-z="2">2</button></div></div>
       <div class="sf-band" id="sfBand"><div class="sf-strip" id="sfStrip"></div></div>
       <div class="sg-band" id="sgBand" hidden><div class="sg-strip" id="sgStrip"></div></div>
+      <div class="sg-focus" id="sgFocus" hidden><b id="sgFLbl">Takt 1</b><button class="toggle-btn" id="sgFPrev" title="Takt davor">‹ Takt</button><button class="toggle-btn" id="sgFNext" title="Nächster Takt">Takt ›</button><button class="toggle-btn" id="sgFPlay" title="Spielt ab einem Takt vor dieser Stelle">▶ ab hier</button><button class="toggle-btn" id="sgFStop" title="Anhalten">■</button><button class="toggle-btn" id="sgFSpread" title="Wörter in diesem Takt gleichmäßig verteilen (auf 16tel)">⇹ verteilen</button><button class="toggle-btn sg-fdone" id="sgFDone" title="Bearbeiten beenden, wieder alle Takte">✓ Fertig</button></div>
       <p class="sg-line-read" id="sgLine" hidden translate="no"></p>
       <div class="sf-nowgrid">
         <div class="sf-now" id="sfNow"></div>
@@ -12723,18 +12732,24 @@ if (typeof module !== 'undefined') module.exports = Pitch;
   // Zoom der Akkordleiste (und damit der Gesangsspur darunter): 6, 4 oder 2 Takte im Blick
   let zoomBars = (() => { try { const z = +localStorage.getItem('3nps-sf-zoom'); return [6, 4, 2].includes(z) ? z : 6; } catch (e) { return 6; } })();
   const zoomShow = () => { const zb = $('sfZoom'); if (zb) zb.querySelectorAll('button').forEach(b => b.classList.toggle('active', +b.dataset.z === zoomBars)); };
-  setTimeout(() => { const zb = $('sfZoom'); if (!zb) return; zoomShow(); zb.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; zoomBars = +b.dataset.z; try { localStorage.setItem('3nps-sf-zoom', String(zoomBars)); } catch (x) {} zoomShow(); bandSig = ''; }); }, 0);
+  setTimeout(() => { const zb = $('sfZoom'); if (!zb) return; zoomShow(); zb.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; zoomBars = +b.dataset.z; focusBar = null; try { localStorage.setItem('3nps-sf-zoom', String(zoomBars)); } catch (x) {} zoomShow(); bandSig = ''; }); }, 0);
+  // Bearbeitungs-Zoom (v70): ein Takt füllt die Leiste (Akkord und Gesangsspur breit), bis „Fertig“
+  let focusBar = null, focusScroll = false;
+  window.SoloFocus = {
+    set: b => { focusBar = b == null ? null : Math.max(0, b | 0); focusScroll = true; bandSig = ''; },
+    get: () => focusBar
+  };
   function renderBand(ci, k) {
     const band = $('sfBand'), strip = $('sfStrip');
     if (!ci.segs) {
       if (bandSig !== 'none') { strip.innerHTML = '<div class="sf-empty">Noch keine Akkorde – lade im Looper eine Datei oder spiel etwas ein. Bis dahin: Tonart wählen und unten einen Akkord antippen.</div>'; strip.style.width = ''; bandSig = 'none'; }
       $('sfHead').hidden = true; return;
     }
-    const sig = ci.track + '|' + ci.L + '|' + ci.segs.map(s => s.name + s.a).join(',') + '|' + ci.downs.join(',') + '|' + k.pc + k.major + '|' + band.clientWidth + '|' + zoomBars;
+    const sig = ci.track + '|' + ci.L + '|' + ci.segs.map(s => s.name + s.a).join(',') + '|' + ci.downs.join(',') + '|' + k.pc + k.major + '|' + band.clientWidth + '|' + zoomBars + '|' + (focusBar != null);
     if (sig === bandSig) return;
     bandSig = sig;
     const bars = Math.max(1, ci.downs.length);
-    const BW = band.clientWidth - 2, W = bars <= zoomBars ? BW : BW * bars / zoomBars, px = f => f / ci.L * W;          // höchstens 6 (bzw. 4/2 beim Zoomen) Takte im Blick
+    const BW = band.clientWidth - 2, W = focusBar != null ? BW * bars / 1.25 : bars <= zoomBars ? BW : BW * bars / zoomBars, px = f => f / ci.L * W;          // höchstens 6 (bzw. 4/2 beim Zoomen) Takte im Blick
     strip.style.width = W + 'px';
     let h = '';
     // Takte: jeder zweite leicht hinterlegt, kräftige Taktlinien über den Akkorden, Schlagstriche unten
@@ -12749,6 +12764,7 @@ if (typeof module !== 'undefined') module.exports = Pitch;
     h += '<div class="sf-ph" id="sfPh"></div>';
     strip.innerHTML = h; lastOn = -2;          // neu aufgebaut: Einrahmung beim nächsten Bild neu setzen
     $('sfHead').hidden = false;
+    if (focusBar != null && focusBar >= bars) focusBar = bars - 1;
   }
   function tickBand(ci) {
     const ph = $('sfPh'); if (!ph || !ci.segs) return -1;
@@ -12758,10 +12774,15 @@ if (typeof module !== 'undefined') module.exports = Pitch;
     const lead = Math.min(sr * 0.3, beat * 0.5), posL = ci.pos != null ? (ci.pos + lead) % ci.L : null;
     const i = posL != null ? segAt(ci, posL) : -1;
     ph.style.display = ci.pos != null ? '' : 'none';
+    if (focusBar != null && focusScroll) {
+      // beim Bearbeiten bleibt der Takt stehen (ein wenig vom Takt davor sichtbar)
+      focusScroll = false; const band = $('sfBand'), D = ci.downs || [], d = D[Math.min(focusBar, D.length - 1)] || 0, barW = W / Math.max(1, D.length);
+      band.scrollLeft = Math.max(0, d / ci.L * W - barW * 0.12);
+    }
     if (ci.pos != null) {
       const x = ci.pos / ci.L * W; ph.style.transform = 'translateX(' + x.toFixed(1) + 'px)';
       const band = $('sfBand'), cw = band.clientWidth, barW = W / Math.max(1, (ci.downs || []).length || 1);
-      if (W > cw + 2) {
+      if (focusBar == null && W > cw + 2) {
         // vorausschauend weiterschieben: sobald der Strich in den vorletzten sichtbaren Takt kommt,
         // steht der laufende Takt wieder vorne (ein Takt Rückblick)
         let target = null;
@@ -13731,7 +13752,8 @@ const Sing = (() => {
     if (ui.open) paintEditor(src);
     const has = live && live.tok && live.tok.some(t => t.b != null);
     band.hidden = !live || live.kind === 'none'; const lineEl = $('sgLine'); if (lineEl) lineEl.hidden = !has;
-    if (band.hidden) { laneSig = ''; lineSig = ''; return; }
+    if (band.hidden) { laneSig = ''; lineSig = ''; focusUi(null, ci); return; }
+    focusUi(live, ci);
     if (lineEl) lineEl.hidden = !has;
     const srcL = live;
     const W = parseFloat($('sfStrip').style.width) || $('sfBand').clientWidth;
@@ -13783,6 +13805,63 @@ const Sing = (() => {
   const fitFont = (w, wpx) => Math.max(10, Math.min(16, Math.floor((wpx - 9) / (String(w).length * 0.56 + 0.2))));
   let ver = 0; const changed = () => { ver++; save(); laneSig = ''; edSig = ''; };
 
+  // ---- Bearbeitungs-Zoom (v70): ein Takt breit, „▶ ab hier“, Wörter verteilen, „✓ Fertig“ ----
+  const SF = () => window.SoloFocus || null, fBar = () => SF() ? SF().get() : null;
+  let focusSrc = null, focusSig = '';
+  // Takt (Index in ci.downs), in dem die Schlagzeit b liegt
+  function barOf(src, ci, b) { const a = src.toCi(b), D = ci.downs || []; let i = 0; while (i + 1 < D.length && D[i + 1] <= a + 2) i++; return i; }
+  // Schlagbereich eines Taktes in Quellen-Schlägen
+  function barRange(src, ci, k) { const D = ci.downs || [], a = D[k] || 0, e = k + 1 < D.length ? D[k + 1] : ci.L; return [src.fromCi(a), src.fromCi(e)]; }
+  function focus(k) { if (!SF()) return; focusSrc = curSrc ? curSrc.id : null; SF().set(k); laneSig = ''; }
+  function unfocus() { if (SF() && fBar() != null) SF().set(null); focusSrc = null; ui.sel = -1; laneSig = ''; }
+  function focusUi(src, ci) {
+    const box = $('sgFocus'); if (!box) return;
+    let k = fBar();
+    if (k != null && (!src || src.kind === 'none' || src.id !== focusSrc)) { unfocus(); k = null; }
+    const sig = k == null ? '' : k + '|' + ((ci && ci.downs) || []).length + '|' + ver;
+    if (sig === focusSig) return; focusSig = sig;
+    box.hidden = k == null; if (k == null) return;
+    $('sgFLbl').textContent = T('Takt ') + (k + 1);
+    { const [a, e] = barRange(src, ci, k); $('sgFSpread').disabled = !src.editable && src.kind !== 'lied' || src.tok.filter(t => t.b != null && t.b >= a - 1e-6 && t.b < e - 1e-6).length < 2; }
+    $('sgFPrev').disabled = k <= 0; $('sgFNext').disabled = !ci || k >= (ci.downs || []).length - 1;
+  }
+  // ab einem Takt vor dem bearbeiteten Takt abspielen
+  function playFrom() {
+    const src = curSrc, k = fBar(), ci = window.SoloInfo ? SoloInfo() : null; if (!src || k == null || !ci) return;
+    if (src.kind === 'file' && typeof Looper !== 'undefined' && Looper.seek) { const D = ci.downs || []; Looper.seek(src.track, D[Math.max(0, k - 1)] || 0); return; }
+    if (src.kind === 'lied' && window.Lied && Lied.play && Lied.now) { const n = Lied.now(); if (n) Lied.play(Lied.ver(), { from: n.oi, count: 1, label: src.title }); }
+  }
+  function stopPlay() {
+    if (curSrc && curSrc.kind === 'lied' && window.Lied && Lied.stop) { Lied.stop(); return; }
+    if (typeof Looper !== 'undefined' && Looper.running && Looper.running() && Looper.pauseToggle) Looper.pauseToggle();
+  }
+  // Wörter im Takt gleichmäßig verteilen (auf 16tel), z. B. wenn die Erkennung mehrere auf denselben Punkt gelegt hat
+  function spread() {
+    const src = curSrc, k = fBar(), ci = window.SoloInfo ? SoloInfo() : null; if (!src || k == null || !ci) return;
+    const [a, e] = barRange(src, ci, k), tok = src.tok, idx = [];
+    tok.forEach((t, i) => { if (t.b != null && t.b >= a - 1e-6 && t.b < e - 1e-6) idx.push(i); });
+    if (idx.length < 2) { status(T('In diesem Takt gibt es nichts zu verteilen.')); return; }
+    const last = idx[idx.length - 1]; let nextB = Infinity; for (let j = last + 1; j < tok.length; j++) if (tok[j].b != null) { nextB = tok[j].b; break; }
+    const from = tok[idx[0]].b, end = Math.min(e, nextB), step = Math.max(0.25, Math.floor((end - from) / idx.length * 4) / 4);
+    idx.forEach((i, n) => { tok[i].b = Math.round((from + n * step) * 1000) / 1000; });
+    // reicht der Platz nicht, rückt der folgende Text nach (Abstände bleiben)
+    const over = tok[last].b + 0.25 - nextB;
+    if (over > 1e-6) for (let j = last + 1; j < tok.length; j++) if (tok[j].b != null) tok[j].b = Math.round((tok[j].b + over) * 1000) / 1000;
+    changed(); persist(src);
+  }
+  function bindFocus() {
+    const box = $('sgFocus'); if (!box || box._b) return; box._b = true;
+    box.addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b) return; const k = fBar(), ci = window.SoloInfo ? SoloInfo() : null;
+      if (b.id === 'sgFDone') unfocus();
+      else if (b.id === 'sgFPrev' && k > 0) focus(k - 1);
+      else if (b.id === 'sgFNext' && ci && k < (ci.downs || []).length - 1) focus(k + 1);
+      else if (b.id === 'sgFPlay') playFrom();
+      else if (b.id === 'sgFStop') stopPlay();
+      else if (b.id === 'sgFSpread') spread();
+    });
+  }
+
   // Wort im Band ziehen (Timing verschieben)
   function bindLane() {
     const strip = $('sgStrip'), band = $('sgBand'); if (!strip || strip._b) return; strip._b = true;
@@ -13829,8 +13908,12 @@ const Sing = (() => {
       const d = drag; drag = null; guide(null); ui.dragging = false;
       if (d && d.dirty && curSrc) { if (!d.rip) reorder(curSrc.tok, d.i); changed(); }
       if (!d || !curSrc || d.moved || Math.abs(e.clientX - d.x0) > 6 || Math.abs(e.clientY - d.y0) > 10) return;
+      const ci = ciNow(); if (!ci) return;
+      const empty = e.target === strip || (e.target.className && /sg-(g16|gbeat|gbar|barbg)/.test(e.target.className));
+      // erstes Antippen: dieser Takt wird breit (Bearbeitungs-Zoom), danach wird bearbeitet
+      if (SF() && fBar() == null && (d.i >= 0 || empty)) { if (d.i >= 0) select(d.i); focus(barOf(curSrc, ci, d.i >= 0 ? curSrc.tok[d.i].b : posB(e.clientX, ci))); return; }
       if (d.i >= 0) { select(d.i); if (curSrc.editable) inlineEdit(d.i, null); return; }
-      if (curSrc.editable && e.target === strip || (e.target.className && /sg-(g16|gbeat|gbar|barbg)/.test(e.target.className))) { const ci = ciNow(); if (ci) inlineEdit(-1, snapB(posB(e.clientX, ci))); }
+      if (curSrc.editable && empty) inlineEdit(-1, snapB(posB(e.clientX, ci)));
     };
     strip.addEventListener('pointerup', up); strip.addEventListener('pointercancel', () => { const d = drag; drag = null; guide(null); ui.dragging = false; if (d && d.dirty) changed(); });
   }
@@ -13854,7 +13937,7 @@ const Sing = (() => {
     box.style.top = el ? el.offsetTop + 'px' : '34px';
     box.innerHTML = '<input type="text" autocapitalize="off" autocomplete="off" spellcheck="false" value="' + (i >= 0 ? esc(tok[i].w) : '') + '" aria-label="' + T('Wort') + '"><button type="button" class="sg-ok" aria-label="OK">✓</button>' + (i >= 0 ? '<button type="button" class="sg-del" aria-label="' + T('Wort löschen') + '">✕</button>' : '');
     ui.inline = true; strip.appendChild(box);
-    const inp = box.querySelector('input'); inp.focus(); inp.select();
+    const inp = box.querySelector('input'); try { inp.focus({ preventScroll: true }); } catch (e) { inp.focus(); } inp.select();
     let done = false; const snap = tok.map(t => Object.assign({}, t));
     const close = apply => {
       if (done) return; done = true; ui.inline = false;
@@ -14000,7 +14083,7 @@ const Sing = (() => {
     if (rb) { const show = () => { rb.classList.toggle('active', ui.ripple); rb.setAttribute('aria-pressed', ui.ripple ? 'true' : 'false'); }; show();
       rb.addEventListener('click', () => { ui.ripple = !ui.ripple; try { localStorage.setItem('3nps-sing-ripple', ui.ripple ? '1' : '0'); } catch (e) {} show(); }); }
     btn.addEventListener('click', () => { ui.open = !ui.open; $('sgCard').hidden = !ui.open; btn.classList.toggle('active', ui.open); edSig = ''; if (!ui.open) stopTap(); });
-    bindLane(); bindEditor();
+    bindLane(); bindFocus(); bindEditor();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
   // ---- Texterkennung (v64): Whisper im Hintergrund-Worker (asr/worker.js), Ergebnis als Wörter mit Schlagzeit ----
@@ -14027,7 +14110,8 @@ const Sing = (() => {
       rep = w.toLowerCase() === lastText ? rep + 1 : 0; lastText = w.toLowerCase(); if (rep >= 3) return;   // hängende Wiederholungen
       if (prevE != null && (x.a - prevE > 0.9 || n >= 10)) { l++; n = 0; }
       const b = f2b(x.a * sr, src.beats); if (b == null || !isFinite(b)) return;
-      out.push({ w, b: snapB(b), l }); n++; prevE = x.e;
+      let sb = snapB(b); const pv = out[out.length - 1]; if (pv && sb < pv.b + 0.25) sb = Math.round((pv.b + 0.25) * 1000) / 1000;   // nie zwei Wörter auf demselben Punkt
+      out.push({ w, b: sb, l }); n++; prevE = x.e;
       if (/[.!?]$/.test(String(x.w).trim()) && n >= 3) { l++; n = 0; prevE = null; }
     });
     // Zeilen lückenlos nummerieren
@@ -14088,7 +14172,7 @@ const Sing = (() => {
   // Übersetzung je Zeile (v63)
   function setTr(src, arr) { const rec = src.kind === 'lied' ? db.l[src.id] : db.f[src.id]; if (!rec) return false; rec.tr = arr; changed(); return true; }
   function getTr(src) { const rec = src && (src.kind === 'lied' ? db.l[src.id] : db.f[src.id]); return rec && rec.tr || []; }
-  return { recognize: () => recognize(curSrc), rec: () => Object.assign({}, rec), wordsToTok, tick, tap, tokenize, merge, f2b, b2f, endOf, lines, setTr, getTr, ver: () => ver, source: ci => source(ci), data: () => db, _reload: () => { db = load(); changed(); }, ui: () => ui };
+  return { recognize: () => recognize(curSrc), rec: () => Object.assign({}, rec), wordsToTok, tick, tap, tokenize, merge, f2b, b2f, endOf, lines, setTr, getTr, ver: () => ver, focus: k => focus(k), unfocus, spread, playFrom, source: ci => source(ci), data: () => db, _reload: () => { db = load(); changed(); }, ui: () => ui };
 })();
 window.Sing = Sing;
 
