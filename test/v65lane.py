@@ -8,6 +8,9 @@ def check(n, c, info=''):
 TOK = [{"w": w, "b": b, "l": l} for (w, b, l) in [("Hold", 8, 0), ("on", 8.5, 0), ("to", 9, 0), ("the", 9.5, 0), ("nite", 10, 0), ("we", 13, 1), ("were", 13.5, 1), ("young", 14, 1), ("and", 15, 1), ("free", 15.5, 1)]]
 INIT = "if(!sessionStorage.getItem('x')){sessionStorage.setItem('x','1');localStorage.setItem('3nps-sing',%s);}" % json.dumps(json.dumps({"v": 1, "f": {"ballad_72.wav|420": {"name": "ballad_72.wav", "tok": TOK}}, "l": {}}))
 TK = "Object.values(JSON.parse(localStorage.getItem('3nps-sing')).f)[0].tok"
+async def edit(pg, i):
+    await pg.click('#sgStrip .sg-w[data-i="%s"]' % i); await pg.wait_for_timeout(200)
+    if not await pg.query_selector('#sgStrip .sg-inline'): await pg.click('#sgStrip .sg-w[data-i="%s"]' % i); await pg.wait_for_timeout(150)
 async def main():
     async with async_playwright() as p:
         b = await p.chromium.launch(args=['--autoplay-policy=no-user-gesture-required'])
@@ -90,12 +93,12 @@ async def main():
         tok = await pg.evaluate(TK)
         check('Wort geändert, Zeit bleibt', tok[4]['w'] == 'night' and tok[4]['b'] == 10, tok[4])
         # teilen
-        await pg.click('#sgStrip .sg-w[data-i="7"]'); await pg.fill('#sgStrip .sg-inline input', 'so young'); await pg.click('#sgStrip .sg-inline .sg-ok'); await pg.wait_for_timeout(250)
+        await edit(pg, 7); await pg.fill('#sgStrip .sg-inline input', 'so young'); await pg.click('#sgStrip .sg-inline .sg-ok'); await pg.wait_for_timeout(250)
         tok = await pg.evaluate(TK)
         check('mehrere Wörter = teilen', [t['w'] for t in tok[7:9]] == ['so', 'young'] and tok[7]['b'] < tok[8]['b'], [(t['w'], t['b']) for t in tok[6:10]])
         # löschen mit ✕
         n0 = len(tok)
-        await pg.click('#sgStrip .sg-w[data-i="7"]'); await pg.wait_for_timeout(150)
+        await edit(pg, 7)
         await pg.dispatch_event('#sgStrip .sg-inline .sg-del', 'pointerdown'); await pg.wait_for_timeout(250)
         tok = await pg.evaluate(TK)
         check('✕ löscht das Wort', len(tok) == n0 - 1 and 'so' not in [t['w'] for t in tok], [t['w'] for t in tok])
@@ -109,7 +112,7 @@ async def main():
         tok = await pg.evaluate(TK); y_ = [t for t in tok if t['w'] == 'yeah']
         check('freie Stelle antippen = Wort einfügen (gerastet, richtig einsortiert)', vis and y_ and abs(y_[0]['b'] - 11.5) <= 0.25 and [t['w'] for t in tok].index('yeah') == 5, y_ and y_[0])
         # Escape bricht ab, leere neue Eingabe fügt nichts ein
-        await pg.click('#sgStrip .sg-w[data-i="0"]'); await pg.fill('#sgStrip .sg-inline input', 'XX'); await pg.keyboard.press('Escape'); await pg.wait_for_timeout(200)
+        await edit(pg, 0); await pg.fill('#sgStrip .sg-inline input', 'XX'); await pg.keyboard.press('Escape'); await pg.wait_for_timeout(200)
         check('Escape bricht ab', (await pg.evaluate(TK))[0]['w'] == 'Hold')
         # Wörter verteilen: vier Wörter auf demselben Punkt (wie nach einer Erkennung) → auf 16tel auseinander
         ST = [{"w": w, "b": b, "l": 0} for (w, b) in [("a", 8, ), ("b", 8), ("c", 8), ("d", 8), ("e", 13)]]

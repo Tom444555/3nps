@@ -99,6 +99,12 @@ Everything you record or write is stored only on this device (back it up, see se
   there until “✓ Done”. Drag words; tap again to change a word. “‹ Bar / Bar ›” moves to the previous/next bar,
   “▶ From here” plays from one bar before (songs from Songwriting: from the start of the part), “■” stops,
   “⇹ Spread” spaces the words of the bar evenly on 16ths (useful when detection put several words on one spot).
+- Precise placing (bar widened): song files show a green voice curve – hills are sung syllables, marks at the top are
+  syllable starts. Snap: “♪ Voice” (default, jumps to the nearest syllable start), “Grid” (16ths) or “free”.
+  “♪ To voice” moves all words of the bar to their syllables (automatic detection now does this too).
+  Tap a word = select and hear it, tap again = change it, hold = hear it. “⟲ Loop” repeats the bar (one beat run-up),
+  also at 75 % / 50 % without changing the pitch. “◀ 10 ms / 10 ms ▶” nudges the selected word.
+  “● Tap this bar”: the bar loops, tap the big button (or space bar) at every word.
 - Songs with lyrics (Looper, bottom; “Ideas” and “Songs with lyrics” fold open with ▸): saves the whole song file
   together with the edited lyrics, also via “💾 Save song” in Improvisation. “Load” puts it on the next free track with
   its lyrics; “Lyrics” shares the plain text as a file. Lyrics are also saved automatically with every change.

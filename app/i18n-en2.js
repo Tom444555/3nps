@@ -361,3 +361,12 @@ Object.assign(window.__EN, { 'Lieder mit Text': 'Songs with lyrics', 'Lied mit T
   'Noch keine Lieder. Lade eine Songdatei, bearbeite den Text in der Improvisation und tippe auf „Lied mit Text speichern“.': 'No songs yet. Load a song file, edit the lyrics in Improvisation and tap “Save song with lyrics”.',
   'Text': 'Lyrics', '“ löschen? Der Text bleibt auf diesem Gerät erhalten, die gespeicherte Songdatei wird entfernt.': '”? The lyrics stay on this device, the saved song file is removed.',
   '✓ Gespeichert': '✓ Saved', 'Speichern nicht möglich': 'Cannot save' });
+Object.assign(window.__EN, { '⟲ Schleife': '⟲ Loop', '■ Schleife': '■ Loop', 'Diesen Takt immer wieder spielen (ein Schlag Anlauf)': 'Play this bar again and again (one beat run-up)', 'Tempo': 'Tempo',
+  'Einrasten': 'Snap', 'Raster': 'Grid', '♪ Stimme': '♪ Voice', 'frei': 'free', 'Auf 16tel einrasten': 'Snap to 16ths', 'Am nächsten Silbenanfang der Stimme einrasten': 'Snap to the nearest syllable start of the voice', 'Ohne Einrasten': 'No snapping',
+  '◀ 10 ms': '◀ 10 ms', '10 ms ▶': '10 ms ▶', 'Ausgewähltes Wort 10 ms früher': 'Selected word 10 ms earlier', 'Ausgewähltes Wort 10 ms später': 'Selected word 10 ms later',
+  '♪ an Stimme': '♪ To voice', 'Wörter dieses Taktes an die nächsten Silbenanfänge legen': 'Move the words of this bar to the nearest syllable starts',
+  '● Takt einklopfen': '● Tap this bar', '✕ Einklopfen abbrechen': '✕ Cancel tapping', 'Takt läuft in Schleife, du tippst bei jedem Wort': 'The bar loops, you tap on every word', 'Tippen': 'Tap', 'Tippen: „': 'Tap: “',
+  '♪ Stimmkurve: Berge = gesungene Silben, Striche oben = Silbenanfänge': '♪ Voice curve: hills = sung syllables, marks at the top = syllable starts', '♪ Stimmkurve wird berechnet …': '♪ Calculating the voice curve …',
+  'Wort antippen = auswählen und anhören · nochmal antippen = ändern · gedrückt halten = anhören · ziehen = verschieben': 'Tap a word = select and hear it · tap again = change it · hold = hear it · drag = move it',
+  ' Wörter an die Stimme gelegt.': ' words moved to the voice.', 'In diesem Takt stehen keine Wörter.': 'There are no words in this bar.', 'Takt eingeklopft – hör es dir in der Schleife an.': 'Bar tapped – listen to it in the loop.',
+  'Lege die Wörter an die Stimme …': 'Moving the words to the voice …', ' Wörter an die Stimme angepasst. ': ' words matched to the voice. ' });

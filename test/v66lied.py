@@ -16,6 +16,9 @@ async def start(pg):
     await pg.click('#tab-lied'); await pg.wait_for_timeout(300); await pg.evaluate("document.getElementById('ldTL').checked=true"); await pg.click('#ldPlay'); await pg.wait_for_timeout(1300)
     await pg.click('#tab-solo'); await pg.wait_for_timeout(700)
 FOC = "(b=>{const ci=SoloInfo(),src=Sing.source(ci),a=src.toCi(b),D=ci.downs;let k=0;while(k+1<D.length&&D[k+1]<=a+2)k++;Sing.focus(k)})"
+async def edit(pg, i):
+    await pg.click('#sgStrip .sg-w[data-i="%s"]' % i); await pg.wait_for_timeout(200)
+    if not await pg.query_selector('#sgStrip .sg-inline'): await pg.click('#sgStrip .sg-w[data-i="%s"]' % i); await pg.wait_for_timeout(150)
 async def main():
     async with async_playwright() as p:
         b = await p.chromium.launch(args=['--autoplay-policy=no-user-gesture-required'])
@@ -49,13 +52,13 @@ async def main():
         check('Zeiten bleiben erhalten', tm[:3] == [1, 2, 3], tm)
         # Zeile mit Akkordmarke: Änderung wird abgelehnt, Text bleibt
         await pg.evaluate(FOC + "(JSON.parse(localStorage.getItem('3nps-sing')).l['s1|p1|0'].tok[4].b)"); await pg.wait_for_timeout(400)
-        await pg.click('#sgStrip .sg-w[data-i="4"]'); await pg.wait_for_timeout(200)
+        await edit(pg, 4)
         await pg.fill('#sgStrip .sg-inline input', 'hier'); await pg.keyboard.press('Enter'); await pg.wait_for_timeout(400)
         lyr2 = await pg.evaluate(LYR); w4 = await pg.evaluate("JSON.parse(localStorage.getItem('3nps-sing')).l['s1|p1|0'].tok[4].w")
         check('Akkordzeile geschützt: Songtext unverändert, Wort zurückgesetzt', lyr2 == lyr and w4 == 'dort', (repr(lyr2), w4))
         # Wort löschen in normaler Zeile
         await pg.evaluate(FOC + "(JSON.parse(localStorage.getItem('3nps-sing')).l['s1|p1|0'].tok[2].b)"); await pg.wait_for_timeout(400)
-        await pg.click('#sgStrip .sg-w[data-i="2"]'); await pg.wait_for_timeout(150); await pg.dispatch_event('#sgStrip .sg-inline .sg-del', 'pointerdown'); await pg.wait_for_timeout(400)
+        await edit(pg, 2); await pg.dispatch_event('#sgStrip .sg-inline .sg-del', 'pointerdown'); await pg.wait_for_timeout(400)
         check('Wort gelöscht → Songtext', await pg.evaluate(LYR) == "Ich sing\n\nund [G]dort am Meer", repr(await pg.evaluate(LYR)))
         await pg.evaluate(FOC + "(1)"); await pg.wait_for_timeout(300); await pg.click('#sgFPlay'); await pg.wait_for_timeout(900)
         check('Song: ▶ ab hier spielt den Teil von vorn', await pg.evaluate("!!Lied.now() && Lied.now().beat < 3"), await pg.evaluate("Lied.now()"))

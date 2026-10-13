@@ -45,6 +45,8 @@ for lang in ['de','en']:
         a = int(st*sr); n = min(len(sp), len(mix)-a); mix[a:a+n] += sp[:n]*0.9
     mix /= np.abs(mix).max()*1.05; wf.write(T+'sing/lied_%s.wav'%lang, sr, (mix*32767).astype(np.int16))
 P
+# v72: Testdatei mit Silben an bekannten Zeiten (für v72prec.py)
+python3 "$ZIEL/test/gen_silben.py" || true
 # App bauen und Testserver starten
 python3 "$ZIEL/app/build.py"
 sh "$ZIEL/test/srv.sh"

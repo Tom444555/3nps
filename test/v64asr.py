@@ -48,7 +48,9 @@ async def main():
         check('Einsatz der 2. Stelle genau (±0,4 s)', first2 and abs(first2[0] - 22.0) <= 0.4, first2[:1])
         nl = max(t['l'] for t in tok) + 1
         check('in Zeilen aufgeteilt (Pause trennt)', 2 <= nl <= 8 and any(t['l'] > 0 for t in tok if secs[tok.index(t)] > 20), nl)
-        check('auf 16tel gerastet', all(abs(t['b'] * 4 - round(t['b'] * 4)) < 1e-6 for t in tok))
+        al = await pg.evaluate("Object.values(Sing.data().f).map(r=>r.auto&&r.auto.aligned)[0]")
+        offg = sum(1 for t in tok if abs(t['b'] * 4 - round(t['b'] * 4)) > 1e-6)
+        check('auf 16tel gerastet, außer an die Stimme angepasste Wörter (v72)', offg <= (al or 0) and all(tok[i]['b'] < tok[i + 1]['b'] for i in range(len(tok) - 1)), (offg, al))
         check('keine fremden Anfragen', not foreign, foreign[:3])
         # ausbessern: Wort ersetzen bleibt möglich
         await pg.click('#sgEdit .sg-chip[data-i="0"]'); await pg.fill('#sgWord', 'Ich'); await pg.click('#sgRepl'); await pg.wait_for_timeout(200)

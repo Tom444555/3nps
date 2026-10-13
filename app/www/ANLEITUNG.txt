@@ -653,3 +653,20 @@ Gut zu wissen
      sofort wieder da, auch auf einem anderen iPad nach „Sicherung laden“. „Text“ teilt den reinen Text als Datei.
    - Der Text wird außerdem wie bisher bei jeder Änderung automatisch gespeichert und hängt an der Datei:
      dieselbe Datei neu laden bringt ihn ebenfalls zurück.
+
+58. Text präzise setzen (v72) – in der Bearbeitungsleiste unter dem breiten Takt
+   - Stimmkurve: Bei Songdateien zeigt die Textspur im breiten Takt eine grüne Kurve. Berge sind gesungene
+     Silben, kleine Striche oben die Silbenanfänge. Das Wort gehört an den Anfang „seines“ Bergs.
+     (Im fertigen Mix klingen auch Gitarre und Schlagzeug mit – die Kurve ist eine Hilfe, kein Beweis.)
+   - Einrasten: „♪ Stimme“ (Standard) = das gezogene Wort springt zum nächsten Silbenanfang (Linie zeigt ♪),
+     „Raster“ = 16tel, „frei“ = gar nicht.
+   - „♪ an Stimme“: legt alle Wörter des Taktes auf einmal an ihre Silbenanfänge. Die automatische Erkennung
+     macht das jetzt gleich mit (Feinabgleich ± 0,25 s).
+   - Hören: Wort antippen = auswählen und anhören, nochmal antippen = ändern, gedrückt halten = anhören.
+     „⟲ Schleife“ spielt den Takt immer wieder (ein Schlag Anlauf), auch mit 75 % oder 50 % Tempo
+     (Tonhöhe bleibt). Ziehen und hören gleichzeitig.
+   - Feinschritte: „◀ 10 ms / 10 ms ▶“ verschiebt das ausgewählte Wort (mit „Rest mitziehen“ samt folgendem Text).
+   - „● Takt einklopfen“: Der Takt läuft in Schleife (am besten 50 %), du tippst auf die große Taste
+     (oder Leertaste), sobald ein Wort beginnt – Wort für Wort. Die Zeiten werden aufs normale Tempo umgerechnet
+     und bei „♪ Stimme“ zusätzlich an den Silbenanfang gelegt.
+   - Bei Songs aus dem Songwriting gibt es keine Audiodatei: dort Raster/frei, Feinschritte und Verteilen.

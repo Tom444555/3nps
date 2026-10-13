@@ -49,8 +49,17 @@
   .sg-prog i { display: block; height: 100%; background: var(--accent); transition: width .5s; }
   .sg-ph { position: absolute; top: 0; bottom: 0; left: 0; width: 2px; background: var(--ink); box-shadow: 0 0 6px var(--ink); pointer-events: none; z-index: 5; will-change: transform; }
   .sg-hint { position: absolute; left: 12px; right: 12px; top: 50%; transform: translateY(-30%); text-align: center; font: 600 .85rem var(--f-body); color: var(--muted); pointer-events: none; z-index: 1; }
-  .sg-focus { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 6px 0 2px; padding: 6px 8px; border-radius: 10px; border: 1px solid var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--surface-2)); }
+  .sg-focus { display: flex; flex-direction: column; align-items: stretch; gap: 6px; margin: 6px 0 2px; padding: 6px 8px; border-radius: 10px; border: 1px solid var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--surface-2)); }
   .sg-focus[hidden] { display: none; }
   .sg-focus b { font: 800 .85rem var(--f-mono); color: var(--ink); margin-right: 4px; }
   .sg-focus .toggle-btn { text-transform: none; letter-spacing: 0; padding: 6px 10px; font-size: .85rem; min-height: 34px; }
   .sg-focus .sg-fdone { margin-left: auto; border-color: var(--accent); color: var(--ink); }
+  .sg-frow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  .sg-flab { font: 600 .72rem var(--f-body); color: var(--muted); }
+  .sg-focus .seg .toggle-btn { padding: 6px 9px; }
+  .sg-focus .sg-tap { margin: 2px 0; min-height: 64px; }
+  .sg-fhint { margin: 0; font: .76rem var(--f-body); color: var(--muted); }
+  .sg-fhint:empty { display: none; }
+  .sg-env { position: absolute; top: 16px; height: 80px; pointer-events: none; z-index: 1; color: var(--accent); }
+  .sg-w { -webkit-touch-callout: none; }
+  .sg-env-on .sg-w:not(.on):not(.sel) { background: color-mix(in srgb, var(--surface-2) 45%, transparent); }

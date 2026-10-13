@@ -97,8 +97,10 @@ const Sing = (() => {
     focusUi(live, ci);
     if (lineEl) lineEl.hidden = !has;
     const srcL = live;
+    const own = (loopP && loopP.id === srcL.id) ? loopP : (wordP && wordP.id === srcL.id ? wordP : null);
+    if (own) srcL.nowB = own.nowB();
     const W = parseFloat($('sfStrip').style.width) || $('sfBand').clientWidth;
-    const sig = srcL.id + '|' + W + '|' + ci.L + '|' + ver + '|' + (srcL.kind === 'lied' ? srcL.title : '');
+    const fk = fBar(), sig = srcL.id + '|' + W + '|' + ci.L + '|' + ver + '|' + (srcL.kind === 'lied' ? srcL.title : '') + '|' + fk + '|' + !!envOf(srcL);
     if (sig !== laneSig && !ui.inline && !ui.dragging) {
       laneSig = sig; lastCur = -2;
       strip.style.width = W + 'px'; { const hh = $('sfStrip').offsetHeight; if (hh) strip.style.height = hh + 'px'; }
@@ -118,11 +120,16 @@ const Sing = (() => {
         const wpx = Math.max(14, px(Math.min(ci.L, e0) - a0) - 2);
         h += '<span class="sg-w' + (i === ui.sel ? ' sel' : '') + '" data-i="' + i + '" style="left:' + px(a0).toFixed(1) + 'px;width:' + wpx.toFixed(1) + 'px;font-size:' + fitFont(t.w, wpx) + 'px">' + esc(t.w) + '</span>';
       });
+      // v72: Stimmkurve im Bearbeitungs-Zoom (Takt davor bis Takt danach)
+      let envBox = null;
+      if (fk != null && envOf(srcL) && downs.length) { const a = downs[Math.max(0, fk - 1)], e = fk + 2 < downs.length ? downs[fk + 2] : ci.L; envBox = [px(a), px(e) - px(a)]; h += '<canvas class="sg-env" id="sgEnv" style="left:' + envBox[0].toFixed(1) + 'px;width:' + envBox[1].toFixed(1) + 'px"></canvas>'; }
       h += '<div class="sg-snap" id="sgSnapLine" hidden><span></span></div><div class="sg-ph" id="sgPh"></div>';
-      strip.innerHTML = h; lineSig = '';
+      strip.innerHTML = h; lineSig = ''; strip.classList.toggle('sg-env-on', !!envBox);
+      if (envBox) drawEnv(srcL, ci, W);
     }
     if (!ui.inline && Math.abs(band.scrollLeft - $('sfBand').scrollLeft) > 1) { syncing = true; band.scrollLeft = $('sfBand').scrollLeft; }
-    { const ph = $('sgPh'), sp = $('sfPh'); if (ph && sp) { const tr = sp.style.transform, dsp = sp.style.display; if (ph.style.transform !== tr) ph.style.transform = tr; if (ph.style.display !== dsp) ph.style.display = dsp; } }
+    if (own) { const ph = $('sgPh'), f = srcL.toCi(srcL.nowB); if (ph && f != null) { ph.style.display = ''; ph.style.transform = 'translateX(' + (f / ci.L * W).toFixed(1) + 'px)'; } }
+    else { const ph = $('sgPh'), sp = $('sfPh'); if (ph && sp) { const tr = sp.style.transform, dsp = sp.style.display; if (ph.style.transform !== tr) ph.style.transform = tr; if (ph.style.display !== dsp) ph.style.display = dsp; } }
     // aktuelles Wort
     let cur = -1;
     if (srcL.nowB != null) srcL.tok.forEach((t, i) => { if (t.b != null && srcL.nowB >= t.b - 0.02 && srcL.nowB < endOf(srcL.tok, i)) cur = i; });
@@ -148,31 +155,45 @@ const Sing = (() => {
 
   // ---- Bearbeitungs-Zoom (v70): ein Takt breit, „▶ ab hier“, Wörter verteilen, „✓ Fertig“ ----
   const SF = () => window.SoloFocus || null, fBar = () => SF() ? SF().get() : null;
-  let focusSrc = null, focusSig = '';
+  let focusSrc = null, focusSig = '*';
   // Takt (Index in ci.downs), in dem die Schlagzeit b liegt
   function barOf(src, ci, b) { const a = src.toCi(b), D = ci.downs || []; let i = 0; while (i + 1 < D.length && D[i + 1] <= a + 2) i++; return i; }
   // Schlagbereich eines Taktes in Quellen-Schlägen
   function barRange(src, ci, k) { const D = ci.downs || [], a = D[k] || 0, e = k + 1 < D.length ? D[k + 1] : ci.L; return [src.fromCi(a), src.fromCi(e)]; }
-  function focus(k) { if (!SF()) return; focusSrc = curSrc ? curSrc.id : null; SF().set(k); laneSig = ''; }
-  function unfocus() { if (SF() && fBar() != null) SF().set(null); focusSrc = null; ui.sel = -1; laneSig = ''; }
+  function focus(k) { if (!SF()) return; const was = !!loopP; if (tapS) tapS = null; focusSrc = curSrc ? curSrc.id : null; SF().set(k); laneSig = ''; if (was) setTimeout(startLoop, 50); }
+  function unfocus() { if (SF() && fBar() != null) SF().set(null); focusSrc = null; ui.sel = -1; laneSig = ''; if (typeof stopLoop === 'function') stopLoop(); }
   function focusUi(src, ci) {
     const box = $('sgFocus'); if (!box) return;
     let k = fBar();
     if (k != null && (!src || src.kind === 'none' || src.id !== focusSrc)) { unfocus(); k = null; }
-    const sig = k == null ? '' : k + '|' + ((ci && ci.downs) || []).length + '|' + ver;
+    const sig = k == null ? '' : k + '|' + ((ci && ci.downs) || []).length + '|' + ver + '|' + ui.sel + '|' + ui.mag + '|' + ui.rate + '|' + !!loopP + '|' + (tapS ? tapS.n : -1) + '|' + !!(src && envOf(src));
     if (sig === focusSig) return; focusSig = sig;
     box.hidden = k == null; if (k == null) return;
     $('sgFLbl').textContent = T('Takt ') + (k + 1);
     { const [a, e] = barRange(src, ci, k); $('sgFSpread').disabled = !src.editable && src.kind !== 'lied' || src.tok.filter(t => t.b != null && t.b >= a - 1e-6 && t.b < e - 1e-6).length < 2; }
     $('sgFPrev').disabled = k <= 0; $('sgFNext').disabled = !ci || k >= (ci.downs || []).length - 1;
+    // v72: Präzisions-Werkzeuge (Stimme/Hören nur bei Songdateien)
+    const file = src.kind === 'file', E = file ? envOf(src) : null;
+    if (file && !envs[src.id]) voiceEnv(src);
+    box.querySelectorAll('.sg-fileonly').forEach(el => { el.hidden = !file; });
+    box.querySelectorAll('#sgFMag button').forEach(b => b.classList.toggle('active', b.dataset.m === ui.mag));
+    box.querySelectorAll('#sgFRate button').forEach(b => b.classList.toggle('active', +b.dataset.r === ui.rate));
+    $('sgFLoop').classList.toggle('active', !!loopP); $('sgFLoop').textContent = loopP ? T('■ Schleife') : T('⟲ Schleife');
+    $('sgFAlign').disabled = !E; $('sgFNudgeL').disabled = $('sgFNudgeR').disabled = !(ui.sel >= 0 && src.tok[ui.sel] && src.tok[ui.sel].b != null);
+    $('sgFTapStart').classList.toggle('active', !!tapS); $('sgFTapStart').textContent = tapS ? T('✕ Einklopfen abbrechen') : T('● Takt einklopfen');
+    const tb = $('sgFTap'); tb.hidden = !tapS;
+    if (tapS) { const t = src.tok[tapS.idx[tapS.n]]; tb.textContent = T('Tippen: „') + (t ? t.w : '') + '“ (' + (tapS.n + 1) + '/' + tapS.idx.length + ')'; }
+    const ev = $('sgFVoice'); if (ev) ev.textContent = !file ? '' : E ? T('♪ Stimmkurve: Berge = gesungene Silben, Striche oben = Silbenanfänge') : T('♪ Stimmkurve wird berechnet …');
   }
   // ab einem Takt vor dem bearbeiteten Takt abspielen
   function playFrom() {
     const src = curSrc, k = fBar(), ci = window.SoloInfo ? SoloInfo() : null; if (!src || k == null || !ci) return;
+    stopLoop(); killP(wordP); wordP = null;
     if (src.kind === 'file' && typeof Looper !== 'undefined' && Looper.seek) { const D = ci.downs || []; Looper.seek(src.track, D[Math.max(0, k - 1)] || 0); return; }
     if (src.kind === 'lied' && window.Lied && Lied.play && Lied.now) { const n = Lied.now(); if (n) Lied.play(Lied.ver(), { from: n.oi, count: 1, label: src.title }); }
   }
   function stopPlay() {
+    if (loopP || wordP) { stopLoop(); killP(wordP); wordP = null; return; }
     if (curSrc && curSrc.kind === 'lied' && window.Lied && Lied.stop) { Lied.stop(); return; }
     if (typeof Looper !== 'undefined' && Looper.running && Looper.running() && Looper.pauseToggle) Looper.pauseToggle();
   }
@@ -200,7 +221,161 @@ const Sing = (() => {
       else if (b.id === 'sgFPlay') playFrom();
       else if (b.id === 'sgFStop') stopPlay();
       else if (b.id === 'sgFSpread') spread();
+      else if (b.dataset.m) { ui.mag = b.dataset.m; lsS('3nps-sing-mag', ui.mag); focusSig = '*'; }
+      else if (b.dataset.r) { ui.rate = +b.dataset.r; lsS('3nps-sing-rate', String(ui.rate)); focusSig = '*'; if (loopP) { const t = tapS; startLoop(); tapS = t; } }
+      else if (b.id === 'sgFLoop') { if (loopP) stopLoop(); else startLoop(); }
+      else if (b.id === 'sgFAlign') { const src = curSrc; if (src && k != null && ci) { const [a, e2] = barRange(src, ci, k), idx = []; src.tok.forEach((t, i) => { if (t.b != null && t.b >= a - 0.5 && t.b < e2) idx.push(i); }); const n = alignIdx(src, idx, 0.3); if (n) { changed(); persist(src); } status(n + T(' Wörter an die Stimme gelegt.')); focusSig = '*'; } }
+      else if (b.id === 'sgFNudgeL') nudge(-10);
+      else if (b.id === 'sgFNudgeR') nudge(10);
+      else if (b.id === 'sgFTapStart') { if (tapS) { tapS = null; focusSig = '*'; } else startTapBar(); }
     });
+    const tb = $('sgFTap'); if (tb) tb.addEventListener('pointerdown', e => { e.preventDefault(); tapBar(); });
+    document.addEventListener('keydown', e => { if (tapS && (e.code === 'Space' || e.key === ' ') && !/INPUT|TEXTAREA|SELECT/.test((e.target || {}).tagName || '')) { e.preventDefault(); tapBar(); } });
+  }
+
+  // ---- Präziser setzen (v72): Stimme sichtbar, Magnet, Hören (Wort halten, Takt-Schleife, langsam), Feinschritte, Takt einklopfen ----
+  const lsG = (k, d) => { try { const v = localStorage.getItem(k); return v == null ? d : v; } catch (e) { return d; } };
+  const lsS = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+  ui.mag = lsG('3nps-sing-mag', 'voice'); if (!['grid', 'voice', 'free'].includes(ui.mag)) ui.mag = 'voice';
+  ui.rate = +lsG('3nps-sing-rate', '1'); if (![1, 0.75, 0.5].includes(ui.rate)) ui.rate = 1;
+  // Stimmkurve: Lautstärke im Stimmbereich (250–3500 Hz) alle 10 ms + Silbenanfänge, je Datei einmal berechnet
+  const envs = {};
+  function biq(type, f, sr) {
+    const w = 2 * Math.PI * f / sr, cs = Math.cos(w), al = Math.sin(w) / (2 * Math.SQRT1_2), a0 = 1 + al;
+    const b = type === 'hp' ? [(1 + cs) / 2, -(1 + cs), (1 + cs) / 2] : [(1 - cs) / 2, 1 - cs, (1 - cs) / 2];
+    return { b0: b[0] / a0, b1: b[1] / a0, b2: b[2] / a0, a1: -2 * cs / a0, a2: (1 - al) / a0, x1: 0, x2: 0, y1: 0, y2: 0 };
+  }
+  const run = (q, x) => { const y = q.b0 * x + q.b1 * q.x1 + q.b2 * q.x2 - q.a1 * q.y1 - q.a2 * q.y2; q.x2 = q.x1; q.x1 = x; q.y2 = q.y1; q.y1 = y; return y; };
+  function envOf(src) { const e = src && envs[src.id]; return e && e.ready ? e : null; }
+  async function voiceEnv(src) {
+    if (!src || src.kind !== 'file' || typeof Looper === 'undefined' || !Looper.singAudio) return null;
+    if (envs[src.id]) return envs[src.id].p;
+    const E = envs[src.id] = { ready: false };
+    E.p = (async () => {
+      const probe = Looper.singAudio(src.track, 0, 1e4); if (!probe) return null;
+      const sr = probe.sr, hop = Math.round(sr * 0.01), CH = sr * 10, fl = [biq('hp', 250, sr), biq('hp', 250, sr), biq('lp', 3500, sr)];
+      const dv = []; let acc = 0, n = 0;
+      for (let a = 0; ; a += CH) {
+        const x = Looper.singAudio(src.track, a, a + CH); if (!x) break;
+        for (let i = 0; i < x.length; i++) { let v = (x.l[i] + x.r[i]) * 0.5; v = run(fl[2], run(fl[1], run(fl[0], v))); acc += v * v; if (++n === hop) { dv.push(10 * Math.log10(acc / hop + 1e-10)); acc = 0; n = 0; } }
+        if (x.length < CH) break;
+        await new Promise(r => setTimeout(r, 0));
+      }
+      if (dv.length < 10) return null;
+      // Bereich: vom Mittelwert (Begleitung) bis zur Spitze – so heben sich die gesungenen Silben ab
+      const srt = Float32Array.from(dv).sort(), mx = srt[Math.max(0, srt.length - 1 - (srt.length / 200 | 0))], fl0 = Math.max(mx - 30, srt[srt.length >> 1]), rg = Math.max(6, mx - fl0);
+      const e = new Float32Array(dv.length); dv.forEach((v, i) => { e[i] = Math.max(0, Math.min(1, (v - fl0) / rg)); });
+      // Silbenanfänge: deutlicher Anstieg (≥ 5 dB in 30 ms), stärkster Punkt des Anstiegs, laut genug, mindestens 90 ms Abstand
+      const rise = i => dv[i] - dv[i - 3], on = []; let last = -1e9;
+      for (let i = 4; i < dv.length - 3; i++) {
+        const d = rise(i); if (d < 5 || e[i + 2] < 0.25 || rise(i + 1) > d || rise(i - 1) >= d || i - last < 9) continue;
+        on.push((i - 2) * 0.01); last = i;
+      }
+      E.sr = sr; E.e = e; E.on = on; E.onB = on.map(s => f2b(s * sr, src.beats)); E.ready = true; laneSig = ''; focusSig = '*';
+      return E;
+    })().catch(() => null);
+    return E.p;
+  }
+  // Ziel für ein gezogenes/getipptes Wort: Raster, nächster Silbenanfang (Stimme) oder frei
+  function placeB(raw, src, tolMs) {
+    if (ui.mag === 'voice') {
+      const E = envOf(src);
+      if (E) {
+        const tol = (tolMs || 120) / (src.beatMs ? src.beatMs(raw) : 500); let best = null, bd = tol;
+        for (const ob of E.onB) { const d = Math.abs(ob - raw); if (d < bd) { bd = d; best = ob; } }
+        if (best != null) return { b: Math.round(best * 1000) / 1000, how: 'voice' };
+      }
+      return { b: Math.round(raw * 4) / 4, how: 'grid' };
+    }
+    if (ui.mag === 'free') return { b: Math.round(raw * 1000) / 1000, how: 'free' };
+    return { b: snapB(raw), how: 'grid' };
+  }
+  // Wörter (Indizes, aufsteigend) an die nächsten Silbenanfänge legen; Reihenfolge bleibt, jeder Anfang nur einmal
+  function alignIdx(src, idx, tolS) {
+    const E = envOf(src); if (!E) return 0; const tok = src.tok; let n = 0, used = new Set();
+    idx.forEach((i, k) => {
+      const t = tok[i]; if (t.b == null) return;
+      const prevB = (() => { for (let j = i - 1; j >= 0; j--) if (tok[j].b != null) return tok[j].b; return -Infinity; })();
+      const nextB = (() => { for (let j = i + 1; j < tok.length; j++) if (tok[j].b != null) return tok[j].b; return Infinity; })();
+      const tol = tolS * 1000 / (src.beatMs ? src.beatMs(t.b) : 500); let best = -1, bd = tol;
+      E.onB.forEach((ob, j) => { const d = Math.abs(ob - t.b); if (d < bd && !used.has(j) && ob > prevB + 0.06 && ob < nextB - 0.06) { bd = d; best = j; } });
+      if (best >= 0) { used.add(best); const nb = Math.round(E.onB[best] * 1000) / 1000; if (nb !== t.b) { t.b = nb; n++; } }
+    });
+    return n;
+  }
+  // eigener Player: Takt in Schleife (ein Schlag Anlauf), auch langsam; oder ein einzelnes Wort
+  let loopP = null, wordP = null;
+  function mkPlayer(src, b0, b1, loop, rate) {
+    const f0 = b2f(b0, src.beats), f1 = b2f(b1, src.beats); if (f0 == null || f1 == null) return null;
+    const x = Looper.singAudio(src.track, Math.max(0, f0), f1); if (!x) return null;
+    const y = rate === 1 ? x : Looper.stretchAudio(x, Math.round(x.length / rate));
+    if (typeof ensureAudio === 'function') ensureAudio();
+    const ctx = audioCtx, buf = ctx.createBuffer(2, y.length, x.sr); buf.copyToChannel(y.l, 0); buf.copyToChannel(y.r || y.l, 1);
+    const node = ctx.createBufferSource(), g = ctx.createGain(); node.buffer = buf; node.loop = loop;
+    node.connect(g); g.connect(typeof ensureMasterBus === 'function' ? ensureMasterBus() : ctx.destination);
+    const t0 = ctx.currentTime + 0.05, len = y.length, sr = x.sr, fs = Math.max(0, f0); node.start(t0);
+    return { node, g, id: src.id, b0, b1, rate,
+      nowB: () => { const el = ctx.currentTime - t0 - (ctx.outputLatency || 0); if (el < 0) return b0; const pf = loop ? (el * sr) % len : Math.min(len, el * sr); return f2b(fs + pf * rate, src.beats); } };
+  }
+  const killP = p => { if (p) try { p.node.stop(); p.node.disconnect(); p.g.disconnect(); } catch (e) {} };
+  function stopLoop() { killP(loopP); loopP = null; tapS = null; focusSig = '*'; }
+  function startLoop() {
+    const src = curSrc, k = fBar(), ci = window.SoloInfo ? SoloInfo() : null; if (!src || src.kind !== 'file' || k == null || !ci) return false;
+    stopLoop(); killP(wordP); wordP = null;
+    if (typeof Looper !== 'undefined' && Looper.running && Looper.running() && Looper.pauseToggle) Looper.pauseToggle();
+    const [a, e] = barRange(src, ci, k); loopP = mkPlayer(src, a - 1, e, true, ui.rate); focusSig = '*'; return !!loopP;
+  }
+  function playWord(i) {
+    const src = curSrc; if (!src || src.kind !== 'file') return; const t = src.tok[i]; if (!t || t.b == null) return;
+    killP(wordP); if (loopP) stopLoop();
+    if (typeof Looper !== 'undefined' && Looper.running && Looper.running() && Looper.pauseToggle) Looper.pauseToggle();
+    const e = Math.min(endOf(src.tok, i), t.b + 2);
+    wordP = mkPlayer(src, t.b, e, false, ui.rate);
+  }
+  // Feinschritt: ausgewähltes Wort (bei „Rest mitziehen“ samt folgendem Text) um ms verschieben
+  function nudge(ms) {
+    const src = curSrc, i = ui.sel; if (!src || i < 0 || !src.tok[i] || src.tok[i].b == null) return;
+    const tok = src.tok, d = ms / (src.beatMs ? src.beatMs(tok[i].b) : 500);
+    let prevB = -Infinity; for (let j = i - 1; j >= 0; j--) if (tok[j].b != null) { prevB = tok[j].b; break; }
+    let nextB = Infinity; if (!ui.ripple) for (let j = i + 1; j < tok.length; j++) if (tok[j].b != null) { nextB = tok[j].b; break; }
+    const nb = Math.round(Math.max(prevB + 0.01, Math.min(nextB - 0.01, tok[i].b + d)) * 1000) / 1000, dd = nb - tok[i].b; if (!dd) return;
+    if (ui.ripple) for (let j = i; j < tok.length; j++) { if (tok[j].b != null) tok[j].b = Math.round((tok[j].b + dd) * 1000) / 1000; }
+    else tok[i].b = nb;
+    changed(); persist(src); if (!loopP) playWord(i);
+  }
+  // Takt neu einklopfen: Takt läuft (langsam) in Schleife, jeder Tipp setzt das nächste Wort dieses Taktes
+  let tapS = null;
+  function startTapBar() {
+    const src = curSrc, k = fBar(), ci = window.SoloInfo ? SoloInfo() : null; if (!src || src.kind !== 'file' || k == null || !ci) return;
+    const [a, e] = barRange(src, ci, k), idx = []; src.tok.forEach((t, i) => { if (t.b != null && t.b >= a - 1e-6 && t.b < e - 1e-6) idx.push(i); });
+    if (!idx.length) { status(T('In diesem Takt stehen keine Wörter.')); return; }
+    if (!loopP && !startLoop()) return;
+    tapS = { idx, n: 0, a, e, last: -Infinity, pass: -1 }; focusSig = '*';
+  }
+  function tapBar() {
+    const src = curSrc; if (!tapS || !loopP || !src) return;
+    const raw = loopP.nowB(); if (raw < tapS.a - 0.6) return;                       // Anlauf: noch nicht
+    const p = ui.mag === 'voice' ? placeB(raw, src, 80) : { b: Math.round(raw * 1000) / 1000 };
+    const i = tapS.idx[tapS.n]; let b = p.b; if (b <= tapS.last + 0.05) b = Math.round((tapS.last + 0.0625) * 1000) / 1000;
+    src.tok[i].b = b; tapS.last = b; tapS.n++; ui.sel = i; changed();
+    if (tapS.n >= tapS.idx.length) { tapS = null; persist(src); reorderAll(src.tok); status(T('Takt eingeklopft – hör es dir in der Schleife an.')); }
+    focusSig = '*';
+  }
+  function reorderAll(tok) { const s = tok.map((t, i) => ({ t, i })).sort((x, y) => (x.t.b == null ? 1e9 : x.t.b) - (y.t.b == null ? 1e9 : y.t.b) || x.i - y.i).map(x => x.t); tok.splice(0, tok.length, ...s); changed(); }
+  // Stimmkurve in die Spur zeichnen (nur im Bearbeitungs-Zoom: Takt davor bis Takt danach)
+  function drawEnv(src, ci, W) {
+    const cv = $('sgEnv'), E = envOf(src); if (!cv || !E) return;
+    const x0 = parseFloat(cv.style.left), w = parseFloat(cv.style.width), h = cv.parentNode.offsetHeight - 16, dpr = Math.min(2, window.devicePixelRatio || 1);
+    cv.width = Math.min(8000, Math.round(w * dpr)); cv.height = Math.round(h * dpr); cv.style.height = h + 'px';
+    const g = cv.getContext('2d'); g.scale(cv.width / w, dpr);
+    const css = getComputedStyle(cv), col = css.color || '#3c9';
+    const fr = px => (x0 + px) / W * ci.L + src.origPos, idxOf = f => Math.floor(f / E.sr / 0.01);
+    g.beginPath(); g.moveTo(0, h);
+    for (let px = 0; px <= w; px += 1) { const i0 = idxOf(fr(px)), i1 = Math.max(i0, idxOf(fr(px + 1))); let m = 0; for (let i = i0; i <= i1; i++) if (E.e[i] > m) m = E.e[i]; g.lineTo(px, h - m * (h - 4)); }
+    g.lineTo(w, h); g.closePath(); g.globalAlpha = 0.28; g.fillStyle = col; g.fill(); g.globalAlpha = 0.85; g.strokeStyle = col; g.lineWidth = 1; g.stroke();
+    // Silbenanfänge als kleine Marken oben
+    g.globalAlpha = 1; g.fillStyle = col;
+    E.on.forEach(s => { const px = (s * E.sr - src.origPos) / ci.L * W - x0; if (px < -2 || px > w + 2) return; g.fillRect(px - 1, 0, 2, 7); });
   }
 
   // Wort im Band ziehen (Timing verschieben)
@@ -218,7 +393,7 @@ const Sing = (() => {
       const g = $('sgSnapLine'); if (!g) return;
       if (nb == null) { g.hidden = true; return; }
       const W = parseFloat(strip.style.width) || 1; g.hidden = false; g.style.left = (curSrc.toCi(nb) / ci.L * W).toFixed(1) + 'px';
-      g.firstChild.textContent = T('Takt ') + curSrc.label(nb);
+      g.firstChild.textContent = T('Takt ') + curSrc.label(nb) + (guide.how === 'voice' ? ' ♪' : '');
     };
     strip.addEventListener('pointerdown', e => {
       if (!curSrc || ui.inline || e.target.closest('.sg-inline')) return;
@@ -228,15 +403,17 @@ const Sing = (() => {
       let prevB = -Infinity; for (let j = di - 1; j >= 0; j--) if (tk[j].b != null) { prevB = tk[j].b; break; }
       drag = { i: di, x0: e.clientX, y0: e.clientY, b0: el ? tk[di].b : null, moved: false, pid: e.pointerId,
         rip: el && ui.ripple ? tk.map((t, j) => j >= di && t.b != null ? t.b : null) : null, prevB };
-      if (el) { strip.setPointerCapture(e.pointerId); e.preventDefault(); }
+      if (el) { strip.setPointerCapture(e.pointerId); e.preventDefault();
+        // gedrückt halten (ohne zu ziehen) = dieses Wort anhören
+        if (curSrc.kind === 'file') { const dd = drag; dd.hold = setTimeout(() => { if (drag === dd && !dd.moved) { dd.held = true; select(dd.i); playWord(dd.i); } }, 450); } }
     });
     strip.addEventListener('pointermove', e => {
       if (!drag || drag.i < 0 || !curSrc) return;
       const dx = e.clientX - drag.x0; if (Math.abs(dx) < 4 && !drag.moved) return;
-      if (!drag.moved) { drag.moved = true; select(drag.i); }
+      if (!drag.moved) { drag.moved = true; clearTimeout(drag.hold); select(drag.i); }
       const ci = ciNow(); if (!ci) return;
       const W = parseFloat(strip.style.width) || 1, f = curSrc.toCi(drag.b0) + dx / W * ci.L;
-      let nb = snapB(curSrc.fromCi(f));
+      const pl = placeB(curSrc.fromCi(f), curSrc); let nb = pl.b; guide.how = pl.how;
       if (drag.rip && nb < drag.prevB) nb = drag.prevB;
       guide(nb, ci);
       if (nb === curSrc.tok[drag.i].b) return;
@@ -246,17 +423,20 @@ const Sing = (() => {
       strip.querySelectorAll('.sg-w').forEach(el => { const j = +el.dataset.i, t = curSrc.tok[j]; if (!t || t.b == null) return; const a0 = curSrc.toCi(t.b); el.style.left = (a0 / ci.L * W).toFixed(1) + 'px'; const wp = Math.max(14, (Math.min(ci.L, curSrc.toCi(endOf(curSrc.tok, j))) - a0) / ci.L * W - 2); el.style.width = wp.toFixed(1) + 'px'; el.style.fontSize = fitFont(t.w, wp) + 'px'; });
     });
     const up = e => {
-      const d = drag; drag = null; guide(null); ui.dragging = false;
+      const d = drag; drag = null; guide(null); ui.dragging = false; if (d) clearTimeout(d.hold);
+      if (d && d.held) return;
       if (d && d.dirty && curSrc) { if (!d.rip) reorder(curSrc.tok, d.i); changed(); }
       if (!d || !curSrc || d.moved || Math.abs(e.clientX - d.x0) > 6 || Math.abs(e.clientY - d.y0) > 10) return;
       const ci = ciNow(); if (!ci) return;
       const empty = e.target === strip || (e.target.className && /sg-(g16|gbeat|gbar|barbg)/.test(e.target.className));
       // erstes Antippen: dieser Takt wird breit (Bearbeitungs-Zoom), danach wird bearbeitet
       if (SF() && fBar() == null && (d.i >= 0 || empty)) { if (d.i >= 0) select(d.i); focus(barOf(curSrc, ci, d.i >= 0 ? curSrc.tok[d.i].b : posB(e.clientX, ci))); return; }
+      // im Bearbeitungs-Zoom: anderes Wort antippen = auswählen (und anhören), ausgewähltes nochmal = ändern
+      if (d.i >= 0 && fBar() != null && ui.sel !== d.i) { select(d.i); if (!loopP) playWord(d.i); return; }
       if (d.i >= 0) { select(d.i); if (curSrc.editable) inlineEdit(d.i, null); return; }
       if (curSrc.editable && empty) inlineEdit(-1, snapB(posB(e.clientX, ci)));
     };
-    strip.addEventListener('pointerup', up); strip.addEventListener('pointercancel', () => { const d = drag; drag = null; guide(null); ui.dragging = false; if (d && d.dirty) changed(); });
+    strip.addEventListener('pointerup', up); strip.addEventListener('pointercancel', () => { const d = drag; if (d) clearTimeout(d.hold); drag = null; guide(null); ui.dragging = false; if (d && d.dirty) changed(); });
   }
   // gezogenes Wort in der Reihenfolge an seine neue Zeit setzen (Text bleibt sonst unverändert)
   function reorder(tok, i) {
@@ -341,7 +521,7 @@ const Sing = (() => {
     if (nx < 0) stopTap();
   }
   function stopTap() { ui.tapping = false; ui.lineFrom = -1; edSig = ''; }
-  function status(m) { const el = $('sgStatus'); if (el) el.textContent = m; }
+  function status(m) { const el = $('sgStatus'); if (el) el.textContent = m; const f = $('sgFMsg'); if (f) f.textContent = m; }
 
   // ---- Editor ----
   let edSig = '';
@@ -503,8 +683,12 @@ const Sing = (() => {
       const tok = wordsToTok(res.words, src);
       if (!tok.length) { say(T('Kein Gesang erkannt. Ist der Gesang sehr leise, oder ist die Sprache falsch eingestellt?')); }
       else {
-        db.f[src.id] = { name: src.name, tok, auto: { lang: rec.lang, at: Date.now(), mode: res.mode } }; src.tok = tok; ui.sel = -1; changed();
-        say(tok.length + T(' Wörter in ') + (Math.max(0, ...tok.map(t => t.l)) + 1) + T(' Zeilen erkannt (') + Math.round((Date.now() - t0) / 1000) + T(' s). Jetzt ausbessern: Wort antippen → ersetzen, Zeiten ziehen.'), 1);
+        db.f[src.id] = { name: src.name, tok, auto: { lang: rec.lang, at: Date.now(), mode: res.mode } }; src.tok = tok; ui.sel = -1;
+        // v72: Feinabgleich – jedes Wort an den nächsten Silbenanfang (± 0,25 s)
+        say(T('Lege die Wörter an die Stimme …'), 0.98);
+        let al = 0; try { await voiceEnv(src); al = alignIdx(src, tok.map((t, i) => i), 0.25); } catch (x) {}
+        db.f[src.id].auto.aligned = al; changed();
+        say((al ? al + T(' Wörter an die Stimme angepasst. ') : '') + tok.length + T(' Wörter in ') + (Math.max(0, ...tok.map(t => t.l)) + 1) + T(' Zeilen erkannt (') + Math.round((Date.now() - t0) / 1000) + T(' s). Jetzt ausbessern: Wort antippen → ersetzen, Zeiten ziehen.'), 1);
       }
     } catch (e) {
       say(T('Erkennung fehlgeschlagen: ') + (e && e.message || e));
@@ -513,6 +697,6 @@ const Sing = (() => {
   // Übersetzung je Zeile (v63)
   function setTr(src, arr) { const rec = src.kind === 'lied' ? db.l[src.id] : db.f[src.id]; if (!rec) return false; rec.tr = arr; changed(); return true; }
   function getTr(src) { const rec = src && (src.kind === 'lied' ? db.l[src.id] : db.f[src.id]); return rec && rec.tr || []; }
-  return { recognize: () => recognize(curSrc), rec: () => Object.assign({}, rec), wordsToTok, tick, tap, tokenize, merge, f2b, b2f, endOf, lines, setTr, getTr, ver: () => ver, focus: k => focus(k), unfocus, spread, playFrom, source: ci => source(ci), data: () => db, _reload: () => { db = load(); changed(); }, ui: () => ui };
+  return { recognize: () => recognize(curSrc), rec: () => Object.assign({}, rec), wordsToTok, tick, tap, tokenize, merge, f2b, b2f, endOf, lines, setTr, getTr, ver: () => ver, focus: k => focus(k), unfocus, prec: () => { const E = envOf(curSrc); return { env: E ? { n: E.e.length, on: E.on.slice(), onB: E.onB.slice() } : null, loop: !!loopP, rate: loopP ? loopP.rate : null, word: !!wordP, tap: tapS ? { n: tapS.n, of: tapS.idx.length } : null, mag: ui.mag, sel: ui.sel }; }, voiceEnv: () => voiceEnv(curSrc), placeB: r => placeB(r, curSrc), loopNow: () => loopP ? loopP.nowB() : null, spread, playFrom, source: ci => source(ci), data: () => db, _reload: () => { db = load(); changed(); }, ui: () => ui };
 })();
 window.Sing = Sing;
