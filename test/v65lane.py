@@ -36,6 +36,22 @@ async def main():
         await pg.mouse.move(*bx); await pg.mouse.down(); await pg.mouse.move(bx[0] + px1 / 2, bx[1], steps=4); await pg.mouse.move(bx[0] + px1, bx[1], steps=4); await pg.mouse.up(); await pg.wait_for_timeout(250)
         t1 = await pg.evaluate(TK); d = [round(t1[j]['b'] - t0[j]['b'], 3) for j in range(len(t0))]
         check('Rest wandert mit, Abstände bleiben, davor unverändert', d[:5] == [0] * 5 and len(set(d[5:])) == 1 and d[5] > 0, d)
+        # beim Ziehen bleibt jedes Wort in seiner Reihe (kein Rutschen nach unten)
+        TOPS = "Object.fromEntries([...document.querySelectorAll('#sgStrip .sg-w')].map(e=>[e.dataset.i, e.offsetTop]))"
+        top0 = await pg.evaluate(TOPS); jumps = 0
+        bx2 = await pg.evaluate("(()=>{const r=document.querySelector('#sgStrip .sg-w[data-i=\"2\"]').getBoundingClientRect();return [r.x+6,r.y+10]})()")
+        await pg.mouse.move(*bx2); await pg.mouse.down()
+        for k in range(1, 13):
+            await pg.mouse.move(bx2[0] + k * 9, bx2[1]); await pg.wait_for_timeout(60)
+            tp = await pg.evaluate(TOPS); jumps += sum(1 for i in tp if top0.get(i) is not None and tp[i] != top0[i])
+        await pg.mouse.up(); await pg.wait_for_timeout(250)
+        check('beim Ziehen bleiben alle Wörter in ihrer Reihe', jumps == 0, jumps)
+        top1 = await pg.evaluate(TOPS)
+        check('nach dem Loslassen keine Reihe gewechselt (nichts überdeckt)', all(top1[i] == top0[i] for i in top0), {i: (top0[i], top1[i]) for i in top0 if top1.get(i) != top0[i]})
+        await pg.evaluate("(()=>{const d=JSON.parse(localStorage.getItem('3nps-sing'));Object.values(d.f)[0].tok=%s;localStorage.setItem('3nps-sing',JSON.stringify(d));Sing._reload();})()" % json.dumps(TOK))
+        await pg.wait_for_timeout(300)
+        bx = await pg.evaluate("(()=>{const r=document.querySelector('#sgStrip .sg-w[data-i=\"5\"]').getBoundingClientRect();return [r.x+6,r.y+10]})()")
+        await pg.mouse.move(bx[0], bx[1]); await pg.mouse.down(); await pg.mouse.move(bx[0] + px1, bx[1], steps=4); await pg.mouse.up(); await pg.wait_for_timeout(250)
         # nicht über das Wort davor hinaus nach vorn
         await pg.mouse.move(bx[0] + px1, bx[1]); await pg.mouse.down(); await pg.mouse.move(bx[0] - px1 * 5, bx[1], steps=8); await pg.mouse.up(); await pg.wait_for_timeout(250)
         t2 = await pg.evaluate(TK)

@@ -9,7 +9,7 @@ const Sing = (() => {
   const $ = id => document.getElementById(id);
   const KEY = '3nps-sing';
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  let db = load(), ui = { open: false, tapping: false, sel: -1, lineFrom: -1, snap: true, inline: false, ripple: (() => { try { return localStorage.getItem('3nps-sing-ripple') !== '0'; } catch (e) { return true; } })() };
+  let db = load(), ui = { open: false, tapping: false, sel: -1, lineFrom: -1, snap: true, inline: false, dragging: false, ripple: (() => { try { return localStorage.getItem('3nps-sing-ripple') !== '0'; } catch (e) { return true; } })() };
   function load() {
     try { const d = JSON.parse(localStorage.getItem(KEY) || 'null'); if (d && d.v === 1) { d.f = d.f || {}; d.l = d.l || {}; return d; } } catch (e) {}
     return { v: 1, f: {}, l: {} };
@@ -82,7 +82,7 @@ const Sing = (() => {
   const endOf = (tok, i) => { const t = tok[i]; for (let j = i + 1; j < tok.length; j++) if (tok[j].b != null) return Math.min(tok[j].b, t.b + 2); return t.b + 1; };
 
   // ---- Spur unter der Akkordleiste ----
-  let laneSig = '', curSrc = null, lastSrc = null, lastCur = -2, syncing = false;
+  let laneSig = '', curSrc = null, lastSrc = null, lastCur = -2, syncing = false, rowOf = new Map();
   function tick(ci) {
     const band = $('sgBand'), strip = $('sgStrip'); if (!band) return;
     const live = source(ci);
@@ -97,7 +97,7 @@ const Sing = (() => {
     const srcL = live;
     const W = parseFloat($('sfStrip').style.width) || $('sfBand').clientWidth;
     const sig = srcL.id + '|' + W + '|' + ci.L + '|' + ver + '|' + (srcL.kind === 'lied' ? srcL.title : '');
-    if (sig !== laneSig && !ui.inline) {
+    if (sig !== laneSig && !ui.inline && !ui.dragging) {
       laneSig = sig; lastCur = -2;
       strip.style.width = W + 'px'; { const hh = $('sfStrip').offsetHeight; if (hh) strip.style.height = hh + 'px'; }
       const px = f => f / ci.L * W;
@@ -110,13 +110,13 @@ const Sing = (() => {
       (ci.beats || []).forEach(x => { h += '<div class="sg-gbeat" style="left:' + px(x).toFixed(1) + 'px"></div>'; });
       downs.forEach((d, i) => { h += '<div class="sg-gbar" style="left:' + px(d).toFixed(1) + 'px"><span>' + (i + 1) + '</span></div>'; });
       // Wörter: auf drei Reihen verteilt, damit sich nichts überdeckt
-      const rowEnd = [-1e9, -1e9, -1e9];
+      const rowEnd = [-1e9, -1e9, -1e9], prevRow = rowOf; rowOf = new Map();
       srcL.tok.forEach((t, i) => {
         if (t.b == null) return;
         const a0 = srcL.toCi(t.b), e0 = srcL.toCi(endOf(srcL.tok, i)); if (a0 == null || a0 < -1 || a0 >= ci.L) return;
         const x = px(a0), wTxt = Math.max(px(Math.min(ci.L, e0) - a0) - 2, String(t.w).length * 8.2 + 14);
-        let r = rowEnd.findIndex(e => e <= x - 2); if (r < 0) r = rowEnd.indexOf(Math.min(...rowEnd));
-        rowEnd[r] = x + wTxt;
+        const pr = prevRow.get(t); let r = pr != null && rowEnd[pr] <= x - 2 ? pr : rowEnd.findIndex(e => e <= x - 2); if (r < 0) r = rowEnd.indexOf(Math.min(...rowEnd));
+        rowEnd[r] = x + wTxt; rowOf.set(t, r);
         h += '<span class="sg-w r' + r + (i === ui.sel ? ' sel' : '') + '" data-i="' + i + '" style="left:' + x.toFixed(1) + 'px;min-width:' + Math.max(8, px(Math.min(ci.L, e0) - a0) - 2).toFixed(1) + 'px">' + esc(t.w) + '</span>';
       });
       h += '<div class="sg-snap" id="sgSnapLine" hidden><span></span></div><div class="sg-ph" id="sgPh"></div>';
@@ -181,16 +181,17 @@ const Sing = (() => {
       if (nb === curSrc.tok[drag.i].b) return;
       if (drag.rip) { const d = nb - drag.b0; drag.rip.forEach((b0, j) => { if (b0 != null) curSrc.tok[j].b = Math.round((b0 + d) * 1000) / 1000; }); }
       else curSrc.tok[drag.i].b = nb;
-      changed();
+      ui.dragging = true; drag.dirty = true;
+      strip.querySelectorAll('.sg-w').forEach(el => { const t = curSrc.tok[+el.dataset.i]; if (t && t.b != null) el.style.left = (curSrc.toCi(t.b) / ci.L * W).toFixed(1) + 'px'; });
     });
     const up = e => {
-      const d = drag; drag = null; guide(null);
-      if (d && d.moved && curSrc && !d.rip) reorder(curSrc.tok, d.i);
+      const d = drag; drag = null; guide(null); ui.dragging = false;
+      if (d && d.dirty && curSrc) { if (!d.rip) reorder(curSrc.tok, d.i); changed(); }
       if (!d || !curSrc || d.moved || Math.abs(e.clientX - d.x0) > 6 || Math.abs(e.clientY - d.y0) > 10) return;
       if (d.i >= 0) { select(d.i); if (curSrc.editable) inlineEdit(d.i, null); return; }
       if (curSrc.editable && e.target === strip || (e.target.className && /sg-(g16|gbeat|gbar|barbg)/.test(e.target.className))) { const ci = ciNow(); if (ci) inlineEdit(-1, snapB(posB(e.clientX, ci))); }
     };
-    strip.addEventListener('pointerup', up); strip.addEventListener('pointercancel', () => { drag = null; guide(null); });
+    strip.addEventListener('pointerup', up); strip.addEventListener('pointercancel', () => { const d = drag; drag = null; guide(null); ui.dragging = false; if (d && d.dirty) changed(); });
   }
   // gezogenes Wort in der Reihenfolge an seine neue Zeit setzen (Text bleibt sonst unverändert)
   function reorder(tok, i) {
