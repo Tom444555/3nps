@@ -346,3 +346,4 @@ Object.assign(window.__EN, {
   'Text aus dem Songwriting – Änderungen hier landen dort': 'lyrics from Songwriting – changes here go there', 'Variante – Text im Songwriting ändern': 'variant – change the lyrics in Songwriting',
 });
 Object.assign(window.__EN, { '⇉ Rest mitziehen': '⇉ Move the rest too', 'Beim Verschieben eines Wortes wandert der ganze folgende Text mit': 'When you move a word, all following lyrics move with it' });
+Object.assign(window.__EN, { '6 Takte': '6 bars', 'Takte im Blick': 'Bars in view' });

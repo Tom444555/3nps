@@ -151,3 +151,6 @@
     .sf-nowgrid { grid-template-columns: auto 1fr; grid-template-areas: "l l" "b r" "g g" "t t" "k k"; }
     .sf-nowgrid .sf-now-t { margin-top: 4px; }
   }
+  .sf-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px !important; }
+  .sf-zoom .toggle-btn { text-transform: none; letter-spacing: 0; }
+  .sf-zoom .toggle-btn { padding: 2px 8px; font-size: .72rem; }

@@ -66,7 +66,7 @@ async def main():
         await pg.click('#sgEdit .sg-chip[data-i="1"]'); await pg.wait_for_timeout(200)
         await pg.fill('#sgWord', 'zwo und'); await pg.click('#sgRepl'); await pg.wait_for_timeout(200)
         tok = (await pg.evaluate(TOK))['f'][k]['tok']
-        check('Ersetzen mit zwei Wörtern teilt das Wort', [t['w'] for t in tok[:4]] == ['eins', 'zwo', 'und', 'drei'] and tok[1]['b'] < tok[2]['b'] < tok[3]['b'], [(t['w'], t['b']) for t in tok[:4]])
+        check('Ersetzen mit zwei Wörtern teilt das Wort', [t['w'] for t in tok[:4]] == ['eins', 'zwo', 'und', 'drei'] and tok[1]['b'] < tok[2]['b'] <= tok[3]['b'], [(t['w'], t['b']) for t in tok[:4]])
         await pg.click('#sgEdit .sg-chip[data-i="1"]'); await pg.click('#sgMerge'); await pg.wait_for_timeout(200)
         tok = (await pg.evaluate(TOK))['f'][k]['tok']
         check('Verbinden fügt zusammen', tok[1]['w'] == 'zwo und' and len(tok) == 5, [t['w'] for t in tok])

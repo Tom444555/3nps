@@ -147,17 +147,21 @@
 
   // ---- Akkordleiste ----
   let bandSig = '', lastOn = -1;
+  // Zoom der Akkordleiste (und damit der Gesangsspur darunter): 6, 4 oder 2 Takte im Blick
+  let zoomBars = (() => { try { const z = +localStorage.getItem('3nps-sf-zoom'); return [6, 4, 2].includes(z) ? z : 6; } catch (e) { return 6; } })();
+  const zoomShow = () => { const zb = $('sfZoom'); if (zb) zb.querySelectorAll('button').forEach(b => b.classList.toggle('active', +b.dataset.z === zoomBars)); };
+  setTimeout(() => { const zb = $('sfZoom'); if (!zb) return; zoomShow(); zb.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; zoomBars = +b.dataset.z; try { localStorage.setItem('3nps-sf-zoom', String(zoomBars)); } catch (x) {} zoomShow(); bandSig = ''; }); }, 0);
   function renderBand(ci, k) {
     const band = $('sfBand'), strip = $('sfStrip');
     if (!ci.segs) {
       if (bandSig !== 'none') { strip.innerHTML = '<div class="sf-empty">Noch keine Akkorde – lade im Looper eine Datei oder spiel etwas ein. Bis dahin: Tonart wählen und unten einen Akkord antippen.</div>'; strip.style.width = ''; bandSig = 'none'; }
       $('sfHead').hidden = true; return;
     }
-    const sig = ci.track + '|' + ci.L + '|' + ci.segs.map(s => s.name + s.a).join(',') + '|' + ci.downs.join(',') + '|' + k.pc + k.major + '|' + band.clientWidth;
+    const sig = ci.track + '|' + ci.L + '|' + ci.segs.map(s => s.name + s.a).join(',') + '|' + ci.downs.join(',') + '|' + k.pc + k.major + '|' + band.clientWidth + '|' + zoomBars;
     if (sig === bandSig) return;
     bandSig = sig;
     const bars = Math.max(1, ci.downs.length);
-    const BW = band.clientWidth - 2, W = bars <= 6 ? BW : BW * bars / 6, px = f => f / ci.L * W;          // höchstens 6 Takte im Blick
+    const BW = band.clientWidth - 2, W = bars <= zoomBars ? BW : BW * bars / zoomBars, px = f => f / ci.L * W;          // höchstens 6 (bzw. 4/2 beim Zoomen) Takte im Blick
     strip.style.width = W + 'px';
     let h = '';
     // Takte: jeder zweite leicht hinterlegt, kräftige Taktlinien über den Akkorden, Schlagstriche unten

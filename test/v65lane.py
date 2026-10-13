@@ -28,6 +28,7 @@ async def main():
         rows = await pg.evaluate("[...document.querySelectorAll('#sgStrip .sg-w')].map(e=>{const r=e.getBoundingClientRect();return [r.left,r.right,r.top]})")
         ov = sum(1 for i, a in enumerate(rows) for c in rows[i + 1:] if a[2] == c[2] and a[0] < c[1] - 1 and c[0] < a[1] - 1)
         check('Wörter überdecken sich nicht', ov == 0 and len(rows) == 10, (ov, len(rows)))
+        check('alle Wörter auf einer Ebene', len(set(r[2] for r in rows)) == 1, sorted(set(r[2] for r in rows)))
         # Standard: Rest mitziehen – Wort 5 („we“) um 1 Schlag nach hinten, alle folgenden mit, davor bleibt
         check('Schalter „Rest mitziehen“ standardmäßig an', await pg.evaluate("document.getElementById('sgRipple').classList.contains('active')"))
         t0 = await pg.evaluate(TK)
@@ -106,6 +107,14 @@ async def main():
         await pg.set_viewport_size({'width': 700, 'height': 900}); await pg.wait_for_timeout(600)
         sc = await pg.evaluate("(()=>{const a=document.getElementById('sfBand'),b=document.getElementById('sgBand');a.scrollLeft=200;return new Promise(r=>setTimeout(()=>{const x=b.scrollLeft;b.scrollLeft=60;setTimeout(()=>r([x,a.scrollLeft,a.scrollWidth>a.clientWidth]),300)},300))})()")
         check('Spur und Akkordleiste scrollen gemeinsam', sc[2] and abs(sc[0] - 200) <= 2 and abs(sc[1] - 60) <= 2, sc)
+        # Zoom 6/4/2 Takte: Akkordleiste und Spur gleich breit, 2 Takte = 3× so breit wie 6
+        w6 = await pg.evaluate("parseFloat(document.getElementById('sfStrip').style.width)")
+        await pg.click('#sfZoom [data-z="2"]'); await pg.wait_for_timeout(500)
+        z = await pg.evaluate("[parseFloat(document.getElementById('sfStrip').style.width), parseFloat(document.getElementById('sgStrip').style.width), localStorage.getItem('3nps-sf-zoom')]")
+        check('Zoom 2 Takte: beide Leisten 3× breiter, gemerkt', abs(z[0] - 3 * w6) < 2 and z[0] == z[1] and z[2] == '2', (w6, z))
+        # beim weichen Mitscrollen der Akkordleiste bleibt die Spur deckungsgleich
+        off = await pg.evaluate("""(()=>new Promise(res=>{const a=document.getElementById('sfBand'),b=document.getElementById('sgBand');a.scrollTo({left:a.scrollLeft+400,behavior:'smooth'});let mx=0,n=0;const t=setInterval(()=>{mx=Math.max(mx,Math.abs(a.scrollLeft-b.scrollLeft));if(++n>20){clearInterval(t);res(mx)}},16)}))()""")
+        check('Spur folgt der Akkordleiste ohne Versatz', off <= 1, off)
         # Abspielstrich auch in der Spur
         await pg.set_viewport_size({'width': 1180, 'height': 900}); await pg.click('#tab-looper'); await pg.click('#loopAll'); await pg.click('#tab-solo'); await pg.wait_for_timeout(600)
         ph = await pg.evaluate("[document.getElementById('sgPh').style.transform, document.getElementById('sfPh').style.transform]")

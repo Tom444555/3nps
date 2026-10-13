@@ -629,3 +629,9 @@ Gut zu wissen
    - Verschiebst du ein Wort in der Gesangsspur, wandert der ganze folgende Text mit – die Abstände bleiben.
      Nach vorn geht es höchstens bis zum Wort davor. Auch ◀ ▶ in der Gesangstext-Karte zieht den Rest mit.
    - Schalter „⇉ Rest mitziehen“ (Improvisation, neben „🎤 Gesangstext“): aus = nur das eine Wort verschieben.
+
+55. Gesangsspur auf einer Ebene, Zoom (v69)
+   - Alle Wörter stehen auf einer Ebene. Jedes Wort ist so breit wie die Zeit bis zum nächsten Wort;
+     in engen Stellen wird die Schrift kleiner. Ausgewählt oder beim Singen ist das Wort ganz zu sehen.
+   - Über der Akkordleiste: „6 Takte · 4 · 2“ – zeigt weniger Takte und damit mehr Platz. Akkordleiste
+     und Gesangsspur zoomen gemeinsam und laufen beim Mitscrollen genau übereinander.

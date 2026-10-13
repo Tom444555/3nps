@@ -82,7 +82,7 @@ const Sing = (() => {
   const endOf = (tok, i) => { const t = tok[i]; for (let j = i + 1; j < tok.length; j++) if (tok[j].b != null) return Math.min(tok[j].b, t.b + 2); return t.b + 1; };
 
   // ---- Spur unter der Akkordleiste ----
-  let laneSig = '', curSrc = null, lastSrc = null, lastCur = -2, syncing = false, rowOf = new Map();
+  let laneSig = '', curSrc = null, lastSrc = null, lastCur = -2, syncing = false;
   function tick(ci) {
     const band = $('sgBand'), strip = $('sgStrip'); if (!band) return;
     const live = source(ci);
@@ -109,15 +109,12 @@ const Sing = (() => {
       pts.forEach((x, i) => { const nx = i + 1 < pts.length ? pts[i + 1] : ci.L; for (let k = 1; k < 4; k++) h += '<div class="sg-g16" style="left:' + px(x + (nx - x) * k / 4).toFixed(1) + 'px"></div>'; });
       (ci.beats || []).forEach(x => { h += '<div class="sg-gbeat" style="left:' + px(x).toFixed(1) + 'px"></div>'; });
       downs.forEach((d, i) => { h += '<div class="sg-gbar" style="left:' + px(d).toFixed(1) + 'px"><span>' + (i + 1) + '</span></div>'; });
-      // Wörter: auf drei Reihen verteilt, damit sich nichts überdeckt
-      const rowEnd = [-1e9, -1e9, -1e9], prevRow = rowOf; rowOf = new Map();
+      // Wörter: alle auf einer Ebene; Breite = Zeit bis zum nächsten Wort (langes Wort wird gekürzt, ausgewählt/aktuell ganz sichtbar)
       srcL.tok.forEach((t, i) => {
         if (t.b == null) return;
         const a0 = srcL.toCi(t.b), e0 = srcL.toCi(endOf(srcL.tok, i)); if (a0 == null || a0 < -1 || a0 >= ci.L) return;
-        const x = px(a0), wTxt = Math.max(px(Math.min(ci.L, e0) - a0) - 2, String(t.w).length * 8.2 + 14);
-        const pr = prevRow.get(t); let r = pr != null && rowEnd[pr] <= x - 2 ? pr : rowEnd.findIndex(e => e <= x - 2); if (r < 0) r = rowEnd.indexOf(Math.min(...rowEnd));
-        rowEnd[r] = x + wTxt; rowOf.set(t, r);
-        h += '<span class="sg-w r' + r + (i === ui.sel ? ' sel' : '') + '" data-i="' + i + '" style="left:' + x.toFixed(1) + 'px;min-width:' + Math.max(8, px(Math.min(ci.L, e0) - a0) - 2).toFixed(1) + 'px">' + esc(t.w) + '</span>';
+        const wpx = Math.max(14, px(Math.min(ci.L, e0) - a0) - 2);
+        h += '<span class="sg-w' + (i === ui.sel ? ' sel' : '') + '" data-i="' + i + '" style="left:' + px(a0).toFixed(1) + 'px;width:' + wpx.toFixed(1) + 'px;font-size:' + fitFont(t.w, wpx) + 'px">' + esc(t.w) + '</span>';
       });
       h += '<div class="sg-snap" id="sgSnapLine" hidden><span></span></div><div class="sg-ph" id="sgPh"></div>';
       strip.innerHTML = h; lineSig = '';
@@ -143,13 +140,18 @@ const Sing = (() => {
     el.innerHTML = '<span class="sg-cur">' + words.map(x => '<span' + (x.j === cur ? ' class="on"' : x.j < cur && cur >= 0 ? ' class="past"' : '') + '>' + esc(x.t.w) + '</span>').join(' ') + '</span>'
       + (nx ? '<span class="sg-next">' + esc(nx) + '</span>' : '');
   }
+  // Schriftgröße so, dass das Wort möglichst in seine Breite passt (16 px, in engen Stellen bis 10 px)
+  const fitFont = (w, wpx) => Math.max(10, Math.min(16, Math.floor((wpx - 9) / (String(w).length * 0.56 + 0.2))));
   let ver = 0; const changed = () => { ver++; save(); laneSig = ''; edSig = ''; };
 
   // Wort im Band ziehen (Timing verschieben)
   function bindLane() {
     const strip = $('sgStrip'), band = $('sgBand'); if (!strip || strip._b) return; strip._b = true;
     // Spur und Akkordleiste scrollen gemeinsam (in beide Richtungen)
-    band.addEventListener('scroll', () => { if (syncing) { syncing = false; return; } const sb = $('sfBand'); if (Math.abs(sb.scrollLeft - band.scrollLeft) > 1) sb.scrollLeft = band.scrollLeft; });
+    const sb = $('sfBand');
+    band.addEventListener('scroll', () => { if (syncing) { syncing = false; return; } if (Math.abs(sb.scrollLeft - band.scrollLeft) > 0.5) sb.scrollLeft = band.scrollLeft; });
+    // Akkordleiste scrollt (auch weich beim Mitlaufen) → Spur sofort mit, nicht erst beim nächsten Anzeigeschritt
+    if (sb) sb.addEventListener('scroll', () => { if (!ui.inline && !band.hidden && Math.abs(band.scrollLeft - sb.scrollLeft) > 0.5) { syncing = true; band.scrollLeft = sb.scrollLeft; } }, { passive: true });
     let drag = null;
     const ciNow = () => window.SoloInfo ? SoloInfo() : null;
     const posB = (clientX, ci) => { const r = strip.getBoundingClientRect(), W = parseFloat(strip.style.width) || r.width; return curSrc.fromCi((clientX - r.left) / W * ci.L); };
@@ -182,7 +184,7 @@ const Sing = (() => {
       if (drag.rip) { const d = nb - drag.b0; drag.rip.forEach((b0, j) => { if (b0 != null) curSrc.tok[j].b = Math.round((b0 + d) * 1000) / 1000; }); }
       else curSrc.tok[drag.i].b = nb;
       ui.dragging = true; drag.dirty = true;
-      strip.querySelectorAll('.sg-w').forEach(el => { const t = curSrc.tok[+el.dataset.i]; if (t && t.b != null) el.style.left = (curSrc.toCi(t.b) / ci.L * W).toFixed(1) + 'px'; });
+      strip.querySelectorAll('.sg-w').forEach(el => { const j = +el.dataset.i, t = curSrc.tok[j]; if (!t || t.b == null) return; const a0 = curSrc.toCi(t.b); el.style.left = (a0 / ci.L * W).toFixed(1) + 'px'; const wp = Math.max(14, (Math.min(ci.L, curSrc.toCi(endOf(curSrc.tok, j))) - a0) / ci.L * W - 2); el.style.width = wp.toFixed(1) + 'px'; el.style.fontSize = fitFont(t.w, wp) + 'px'; });
     });
     const up = e => {
       const d = drag; drag = null; guide(null); ui.dragging = false;
