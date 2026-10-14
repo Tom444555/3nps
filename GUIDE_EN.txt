@@ -116,6 +116,11 @@ Everything you record or write is stored only on this device (back it up, see se
 - v75: “♩ Metronome” clicks on every beat while you listen (loop, word, ▶ from here). Changing the tempo at the top while a
   song file with lyrics is shown sets the file's grid to that tempo (words keep their place in the song; snapping,
   metronome and “Check the rest” use the new grid; “↺ Detected grid” goes back). Song files now load to the very end.
+- v80–v84: Undo/redo (↶ ↷, ⌘Z) for every lyrics change; versions for “Songs with lyrics”. “Add vocal track” (e.g. a Moises
+  vocal stem) makes voice curve, snapping and detection work on the vocals only. Export/import LRC files and print a lead
+  sheet (PDF). Hold a chord in the chord strip to correct it. Mark parts (verse, chorus …) with “🏷 Part here”, loop a part
+  with the tempo trainer. While a bar is widened, the foot pedal edits the lyrics (1 loop · 2/3 previous/next word ·
+  4 play/stop; every pedal is a tap while tapping a bar). Less-used tools are under “⋯ More”.
 - Songs with lyrics (Looper, bottom; “Ideas” and “Songs with lyrics” fold open with ▸): saves the whole song file
   together with the edited lyrics, also via “💾 Save song” in Improvisation. “Load” puts it on the next free track with
   its lyrics; “Lyrics” shares the plain text as a file. Lyrics are also saved automatically with every change.
