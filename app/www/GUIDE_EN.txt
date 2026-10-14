@@ -27,6 +27,8 @@ Everything you record or write is stored only on this device (back it up, see se
 - Count-in, “recording starts with the first note” (trigger), and “remove the gap at the start”
   are in the “Recording” card. New tracks are aligned to track 1 automatically (±60 ms).
 - Load an audio file (MP3, WAV, M4A, AIFF, FLAC …) onto a track: key, tempo and bars are detected.
+  If another app shows a different tempo (e.g. 135 instead of 90), enter it in the load dialog (“Tempo wrong?”, with
+  suggestions ⅔, 1.5×, ½, 2×) or later in the editor (“Set tempo” → “Recalculate grid”). It is remembered per file.
   Short, even files become a loop; longer songs keep the whole file and you choose a section.
 - Above the tracks the “What fits” box shows the current and next chord, a matching scale with its
   notes, the pentatonic, and the next chord change (target note, leading tones). “Hold” freezes it.

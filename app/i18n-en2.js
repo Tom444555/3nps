@@ -383,3 +383,9 @@ Object.assign(window.__EN, { '♩ Metronom': '♩ Metronome', 'Klick auf jeden S
   '↺ erkanntes Raster': '↺ Detected grid', 'Wieder das beim Laden erkannte Raster verwenden': 'Use the grid detected when loading again', 'Raster: ': 'Grid: ', ' BPM (Tempo oben)': ' BPM (tempo at the top)', 'Raster: erkannt': 'Grid: detected',
   'Raster jetzt ': 'Grid now ', ' BPM (Tempo oben) – Wörter bleiben an ihrer Stelle im Lied.': ' BPM (tempo at the top) – words keep their place in the song.', 'Wieder das erkannte Raster.': 'Back to the detected grid.' });
 Object.assign(window.__EN, { 'Klick auf jeden Schlag, solange der Loop läuft – so hörst du, ob er im Takt liegt': 'Click on every beat while the loop plays – so you hear whether it sits on the beat' });
+Object.assign(window.__EN, { 'Tempo stimmt nicht?': 'Tempo wrong?', 'z. B. 135': 'e.g. 135', 'Tempo vorgeben (BPM)': 'Set the tempo (BPM)', 'Tempo vorgeben': 'Set tempo', 'Raster neu berechnen': 'Recalculate grid',
+  'Takt und Schläge der geladenen Datei mit diesem Tempo neu bestimmen (z. B. wenn eine andere App 135 statt 90 anzeigt)': 'Recalculate bars and beats of the loaded file with this tempo (e.g. when another app shows 135 instead of 90)' });
+window.__EN_PAT.push(
+  [/^Bestimme Takt und Schläge mit ([\d,.]+) BPM neu …$/, 'Recalculating bars and beats at $1 BPM …'],
+);
+Object.assign(window.__EN, { 'Das geht mit einer in dieser Sitzung geladenen Songdatei – lade die Datei dafür neu.': 'This works with a song file loaded in this session – load the file again.', 'Bitte ein Tempo zwischen 40 und 240 BPM eintragen.': 'Please enter a tempo between 40 and 240 BPM.' });

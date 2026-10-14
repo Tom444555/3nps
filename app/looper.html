@@ -202,6 +202,10 @@
               <button class="toggle-btn" id="edTempoHalf">½ Tempo</button>
               <button class="toggle-btn" id="edTempoDouble">2× Tempo</button>
             </div>
+            <div class="ed-row">
+              <label class="ed-rebpm">Tempo vorgeben <input type="number" id="edReBpm" min="40" max="240" step="0.1" inputmode="decimal" aria-label="Tempo vorgeben (BPM)"> BPM</label>
+              <button class="toggle-btn" id="edReGrid" title="Takt und Schläge der geladenen Datei mit diesem Tempo neu bestimmen (z. B. wenn eine andere App 135 statt 90 anzeigt)">Raster neu berechnen</button>
+            </div>
           </div>
           <div class="ed-group">
             <span class="ed-label">Tonart und Akkorde</span>
@@ -402,6 +406,7 @@
         <h2 id="impTitle">Datei auf Spur 1</h2>
         <div class="imp-name" id="impName"></div>
         <div class="imp-ana caption" id="impAna">Analysiere Takt und Tempo …</div>
+        <div class="imp-bpm"><label>Tempo stimmt nicht? <input type="number" id="impBpm" min="40" max="240" step="0.1" inputmode="decimal" placeholder="z. B. 135" aria-label="Tempo vorgeben (BPM)"> BPM</label><span id="impBpmAlt"></span></div>
         <label class="imp-opt"><input type="radio" name="impMode" value="all" checked><span><b>Ganze Datei</b><em id="impAllInfo">komplett als Loop</em></span></label>
         <label class="imp-opt"><input type="radio" name="impMode" value="part"><span><b>Ausschnitt</b><em>ab <select id="impFrom" aria-label="ab Takt"><option value="1">Takt 1</option></select> für <select id="impBars" aria-label="Anzahl Takte"></select></em></span></label>
         <div class="imp-btns"><button class="toggle-btn" id="impCancel">Abbrechen</button><button class="toggle-btn active" id="impOk">Laden</button></div>

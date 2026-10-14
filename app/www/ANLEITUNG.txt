@@ -696,3 +696,14 @@ Gut zu wissen
 61. Metronom im Editor (v76)
    - Im Bearbeiten-Fenster (✂) neben „⇔ Loop verschieben“: „♩ Metronom“ an/aus. Solange die Spur läuft, klickt es
      auf jeden Schlag ihres Rasters (die Eins höher). Beim Verschieben hörst du sofort, ob der Loop auf dem Takt liegt.
+
+62. Tempo vorgeben, wenn die Erkennung danebenliegt (v77)
+   - Zeigt eine andere App (z. B. Moises) ein anderes Tempo als der Looper – etwa 135 statt 90 (Verhältnis 3 : 2,
+     typisch bei Shuffle, Triolen-Gefühl oder punktierten Rhythmen) –, kann man das mit Schieben nicht beheben:
+     Das ganze Raster hat dann den falschen Abstand.
+   - Beim Laden: im Dialog „Tempo stimmt nicht? … BPM“ das richtige Tempo eintragen oder einen Vorschlag antippen
+     (⅔, 1,5×, ½, 2× des erkannten Tempos). Takt und Schläge werden dann mit diesem Tempo neu bestimmt.
+   - Nachträglich: Bearbeiten-Fenster (✂) → „Tempo vorgeben … BPM“ → „Raster neu berechnen“ (lädt die Datei neu).
+   - Das vorgegebene Tempo wird für diese Datei gemerkt und beim nächsten Laden wieder benutzt; Feld leeren =
+     wieder automatisch. Vorhandener Gesangstext bleibt an seiner Stelle im Lied.
+   - Die App rechnet immer im 4/4-Takt. Lieder im 3/4- oder 6/8-Takt werden (noch) in Vierer-Takte eingeteilt.

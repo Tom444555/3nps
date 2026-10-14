@@ -990,12 +990,13 @@ const Looper = (() => {
   }
 
   // Vor dem Laden fragen: ganze Datei oder Ausschnitt (Analyse läuft schon im Hintergrund)
-  function askImport(t, name, secs, anaP) {
+  function askImport(t, name, secs, anaP, preBpm) {
     const dlg = $('impDlg'), from = $('impFrom'), bars = $('impBars'), anaEl = $('impAna');
     $('impTitle').textContent = 'Datei auf Spur ' + (t.i + 1);
     $('impName').textContent = name + ' · ' + Math.floor(secs / 60) + ':' + String(Math.round(secs % 60)).padStart(2, '0') + ' min';
     anaEl.textContent = 'Analysiere Takt und Tempo …'; anaEl.classList.remove('done');
     $('impAllInfo').textContent = 'komplett als Loop';
+    const bpmIn = $('impBpm'), altEl = $('impBpmAlt'); bpmIn.value = preBpm ? String(preBpm) : ''; altEl.innerHTML = '';
     dlg.querySelector('input[value="all"]').checked = true;
     let total = 0;
     const fillBars = () => {
@@ -1015,6 +1016,10 @@ const Looper = (() => {
       const st0 = Math.round(a.orig.downs[0] / sr), intro = a.kind === 'song' && st0 >= 2 ? ' · Takt 1 bei ' + Math.floor(st0 / 60) + ':' + String(st0 % 60).padStart(2, '0') + ' (davor freies Intro)' : '';
       anaEl.textContent = (a.kind === 'loop' ? 'Loop erkannt: ' : 'Erkannt: ') + bpmTxt(a.kind === 'loop' ? a.lp.bpm : a.beat.bpm) + ' BPM · ' + total + ' Takte' + intro;
       anaEl.classList.add('done');
+      // v77: häufige Verwechslungen als Vorschläge (½, 2×, ⅔ und 1,5× – z. B. 90 statt 135)
+      const b0 = a.kind === 'loop' ? a.lp.bpm : a.beat.bpm;
+      altEl.innerHTML = [2 / 3, 1.5, 0.5, 2].map(q => b0 * q).filter(v => v >= 40 && v <= 240).map(v => '<button type="button" class="toggle-btn" data-b="' + (Math.round(v * 10) / 10) + '">' + bpmTxt(v) + '</button>').join('');
+      altEl.onclick = e => { const bb = e.target.closest('button'); if (bb) bpmIn.value = bb.dataset.b; };
       $('impAllInfo').textContent = 'alle ' + total + ' Takte als Loop';
       from.innerHTML = '';
       for (let i = 1; i <= total; i++) from.add(new Option('Takt ' + i, String(i)));
@@ -1025,8 +1030,10 @@ const Looper = (() => {
     return new Promise(res => {
       const done = v => { dlg.hidden = true; $('impOk').onclick = $('impCancel').onclick = null; res(v); };
       $('impOk').onclick = () => {
-        const mode = dlg.querySelector('input[name="impMode"]:checked').value;
-        done(mode === 'all' ? { mode: 'all' } : { mode: 'part', from: parseInt(from.value) || 1, bars: parseInt(bars.value) || 8 });
+        const mode = dlg.querySelector('input[name="impMode"]:checked').value, fb = parseFloat(String($('impBpm').value).replace(',', '.'));
+        const c = mode === 'all' ? { mode: 'all' } : { mode: 'part', from: parseInt(from.value) || 1, bars: parseInt(bars.value) || 8 };
+        if (fb >= 40 && fb <= 240) c.bpm = fb; else if (preBpm) c.bpm = null;     // geleert = wieder automatisch
+        done(c);
       };
       $('impCancel').onclick = () => done(null);
     });
@@ -1046,20 +1053,37 @@ const Looper = (() => {
     if (buf.length > n) setStatus('Die Datei ist länger als 6 Minuten – die ersten 6 Minuten werden verwendet.');
     buf = null;
     const secs = n / sr;
+    // v77: für diese Datei gemerktes Tempo (vorgegeben) – aus dem Gesangstext-Speicher
+    const sKey = file.name + '|' + Math.round(n / sr * 10);
+    let memBpm = null; try { const sd = JSON.parse(localStorage.getItem('3nps-sing') || '{}'); memBpm = sd.f && sd.f[sKey] && sd.f[sKey].force || null; } catch (e) {}
+    if (preChoice && preChoice.bpm === null) memBpm = null;
     setStatus('Analysiere Takt und Tempo von „' + file.name + '“ …');
     const anaP = analyseImport(data, file.name);
     // Längere Dateien: vorher fragen, wie viel davon in die Spur soll
     let choice = { mode: 'all' };
     if (secs > 20) {
-      choice = preChoice || await askImport(t, file.name, secs, anaP);
+      choice = preChoice || await askImport(t, file.name, secs, anaP, memBpm);
       if (!choice) { setStatus('Laden abgebrochen.'); return; }
     }
-    const ana = await anaP;
+    let ana = await anaP;
+    const forceB = choice && choice.bpm !== undefined ? choice.bpm : memBpm;
+    if (forceB && ana.kind !== 'loop') {
+      const b0 = ana.beat ? ana.beat.bpm : 0;
+      if (!b0 || Math.abs(forceB / b0 - 1) > 0.004) {
+        setStatus('Bestimme Takt und Schläge mit ' + bpmTxt(forceB) + ' BPM neu …');
+        const bt = await Analyzer.beat(chans(data), sr, { forceBpm: forceB, hintBpm: forceB, hintStrong: true });
+        const o2 = bt && makeOrig(data, file.name, bt, false);
+        if (o2) ana = { kind: 'song', beat: bt, orig: o2, forced: forceB };
+      } else ana.forced = forceB;
+    }
+    const oldBeats = t.orig && t.orig.beats && t.orig.data && (t.orig.name + '|' + Math.round((t.orig.data.l || t.orig.data).length / sr * 10)) === sKey ? t.orig.beats : null;
     const os = others(t);
     t.orig = null; t.origPos = null;
     let seg = null, L = 0, msg = '', warn = '';
     if (ana.kind !== 'none') {
-      t.orig = ana.orig; t.orig.file = file; t.orig.choice = choice;        // v71: Originaldatei für „Lieder mit Text“
+      t.orig = ana.orig; t.orig.file = file; t.orig.choice = Object.assign({}, choice, ana.forced ? { bpm: ana.forced } : {});        // v71: Originaldatei für „Lieder mit Text“
+      // v77: Mitsingen rechnet gespeicherte Wortzeiten aufs neue Raster um und merkt sich das vorgegebene Tempo
+      document.dispatchEvent(new CustomEvent('origbeats', { detail: { key: sKey, oldBeats, newBeats: t.orig.beats, forced: ana.forced || null, sr } }));
       const o = t.orig, from = choice.mode === 'part' ? Math.min(choice.from, o.bars) : 1;
       const nb = choice.mode === 'part' ? Math.min(choice.bars, o.bars - from + 1) : o.bars;
       const r = placeExcerpt(t, from, nb);
@@ -2082,6 +2106,16 @@ const Looper = (() => {
     o.downs = d; o.bars = d.length - 1; o.bpm *= factor; o.barMed = (d[d.length - 1] - d[0]) / o.bars;
     fillSrc();
   }
+  // v77: Tempo vorgeben → Datei mit diesem Tempo neu rastern (lädt die Spur neu, gleicher Ausschnitt)
+  setTimeout(() => { const i = $('edReBpm'); if (i) i.value = bpmTxt(bpm()).replace(',', '.'); }, 0);
+  $('edReGrid').addEventListener('click', async () => {
+    const t = ed.t, v = parseFloat(String($('edReBpm').value).replace(',', '.'));
+    if (!t || !t.orig || !t.orig.file) { setStatus('Das geht mit einer in dieser Sitzung geladenen Songdatei – lade die Datei dafür neu.'); return; }
+    if (!(v >= 40 && v <= 240)) { setStatus('Bitte ein Tempo zwischen 40 und 240 BPM eintragen.'); return; }
+    const c = Object.assign({}, t.orig.choice || { mode: 'all' }, { bpm: v });
+    if (c.mode === 'part') c.mode = 'all';                    // Takte zählen sich neu – ganze Datei
+    closeEditor(); await importFile(t, t.orig.file, c);
+  });
   $('edTempoHalf').addEventListener('click', () => {
     const v = bpm() / 2; if (v < 40) return;
     setTempo(v); if (ed.t) regridOrig(ed.t, 0.5);

@@ -406,3 +406,8 @@ html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleis
   .fold > summary h2 { margin: 0; }
   .fold-n { font: 600 .75rem var(--f-mono); color: var(--muted); }
   .fold-body { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
+  /* v77: Tempo vorgeben (Import-Dialog, Editor) */
+  .imp-bpm { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 6px 0; font: .85rem var(--f-body); color: var(--muted); }
+  .imp-bpm input, .ed-rebpm input { width: 5.5em; font: 600 .95rem var(--f-mono); color: var(--ink); background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: 4px 6px; }
+  .imp-bpm .toggle-btn { padding: 3px 8px; font-size: .8rem; }
+  .ed-rebpm { display: inline-flex; align-items: center; gap: 6px; font: .85rem var(--f-body); color: var(--muted); }

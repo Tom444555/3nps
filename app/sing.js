@@ -83,6 +83,17 @@ const Sing = (() => {
     changed(); focusSig = '*'; laneSig = '';
     status(ng ? T('Raster jetzt ') + v + T(' BPM (Tempo oben) – Wörter bleiben an ihrer Stelle im Lied.') : T('Wieder das erkannte Raster.'));
   }
+  // v77: Datei wurde (mit anderem Tempo) neu gerastert – Wortzeiten über die Zeit im Lied umrechnen, Tempo merken
+  document.addEventListener('origbeats', e => {
+    const d = e.detail || {}, rec = db.f[d.key]; if (!rec && !d.forced) return;
+    const r = rec || (db.f[d.key] = { name: String(d.key).split('|')[0], tok: [] });
+    const oldB = d.oldBeats ? (r.grid && d.oldBeats ? synGrid(r.grid, { key: d.key, sr: d.sr, beats: d.oldBeats, len: 0 }).beats : d.oldBeats) : null;
+    const same = oldB && oldB.length === d.newBeats.length && oldB.every((v, i) => Math.abs(v - d.newBeats[i]) < 2);
+    if (oldB && !same) { const conv = b => b == null ? b : Math.round(f2b(b2f(b, oldB), d.newBeats) * 1000) / 1000; r.tok.forEach(t => { t.b = conv(t.b); if (t.a != null) t.a = conv(t.a); }); }
+    if (oldB) delete r.grid;
+    if (d.forced) r.force = d.forced; else delete r.force;
+    delete envs[d.key]; changed();
+  });
   function resetGrid() { const src = lastSrc; if (!src || src.kind !== 'file') return; const s = Looper.singSrc(src.track); if (!s || !s.bpm) return; const el = $('bpm'); el.value = s.bpm; el.dispatchEvent(new Event('input', { bubbles: true })); onTempo(); }
   setTimeout(() => {
     const el = $('bpm'); if (!el) return; let t = null;
