@@ -84,3 +84,6 @@
   .sg-pitem.on { outline: 2px solid var(--accent); }
   .sg-pitem .toggle-btn { padding: 3px 8px; min-width: 30px; }
   #sgFPartSel { font: .85rem var(--f-body); color: var(--ink); background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: 5px; }
+  /* v84: selten Gebrauchtes unter „⋯ Mehr“ */
+  .sg-focus:not(.more) .sg-more { display: none !important; }
+  .sg-focus .sg-fmore[aria-expanded="true"] { background: var(--surface-2); border-color: var(--accent); }

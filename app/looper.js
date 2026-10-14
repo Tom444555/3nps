@@ -3287,6 +3287,7 @@ const Pedal = (() => {
     if (!a) return;
     e.preventDefault();
     if (Looper.edPedal && Looper.edPedal(a.id)) return;     // Vollbild-Editor: Feinschritte statt Spuren
+    if (window.Sing && Sing.pedal && !e.repeat && Sing.pedal(a.id)) return;   // v84: Text bearbeiten (Takt breit): eigene Belegung
     if (e.repeat) return;
     down[key] = { t: performance.now(), a };
     a.run();

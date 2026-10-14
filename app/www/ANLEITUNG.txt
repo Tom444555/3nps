@@ -753,3 +753,11 @@ Gut zu wissen
      Die Marke steht unten in der Spur; antippen = entfernen. Das Leadsheet gliedert sich danach.
    - Karte „🎤 Gesangstext“ → „🏷 Teile“: ▶ spielt ab dem Teil, ⟲ wiederholt den Teil in Schleife.
      „Tempo-Trainer“ an: die Schleife beginnt langsamer (50–80 %) und wird alle 2 Durchgänge 5 % schneller bis 100 %.
+
+69. Fußpedal beim Text-Bearbeiten, aufgeräumte Leiste (v84)
+   - Ist ein Takt zum Bearbeiten breit, steuert das Pedal (M-VAVE u. a., Tastatur-Modus A oder B) den Text:
+     1 = Schleife an/aus · 2 = Wort zurück · 3 = Wort vor (wird vorgespielt, die Ansicht folgt über Taktgrenzen)
+     · 4 = ▶ ab hier / ■. Beim „● Takt einklopfen“ ist jedes Pedal ein Tipp – beide Hände bleiben an der Gitarre.
+     Nach „✓ Fertig“ steuert das Pedal wieder die Looper-Spuren.
+   - Die Leiste unter dem breiten Takt zeigt nur noch das Wichtigste; Vorlage (🔒, Rest nachprüfen), Teile, Raster und
+     die Hinweise stehen unter „⋯ Mehr“ (die Einstellung wird gemerkt).

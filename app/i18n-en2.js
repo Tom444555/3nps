@@ -409,3 +409,5 @@ Object.assign(window.__EN, { 'Strophe': 'Verse', 'Refrain': 'Chorus', 'Zwischent
   ' – wird alle 2 Durchgänge 5 % schneller bis 100 %': ' – gets 5 % faster every 2 passes up to 100 %', ' – Zieltempo erreicht': ' – target tempo reached',
   'Akkord ändern (z. B. Am, C7, F#m, Bbmaj7). Leer = wieder der erkannte Akkord:': 'Change chord (e.g. Am, C7, F#m, Bbmaj7). Empty = detected chord again:',
   'Diesen Akkord kenne ich nicht. Beispiele: C, Am, G7, Dm7, Fmaj7, Bb, F#m7b5, Esus4.': 'I do not know this chord. Examples: C, Am, G7, Dm7, Fmaj7, Bb, F#m7b5, Esus4.' });
+Object.assign(window.__EN, { '⋯ Mehr': '⋯ More', 'Weitere Werkzeuge: Vorlage, Teile, Raster': 'More tools: reference, parts, grid',
+  'Fußpedal: 1 Schleife · 2 Wort zurück · 3 Wort vor · 4 ▶ ab hier / ■ · beim Einklopfen ist jedes Pedal ein Tipp': 'Foot pedal: 1 loop · 2 previous word · 3 next word · 4 ▶ from here / ■ · while tapping, every pedal is a tap' });

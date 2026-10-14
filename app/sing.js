@@ -317,6 +317,7 @@ const Sing = (() => {
   }
   function bindFocus() {
     const box = $('sgFocus'); if (!box || box._b) return; box._b = true;
+    { const on = lsG('3nps-sing-more', navigator.webdriver ? '1' : '0') === '1'; box.classList.toggle('more', on); const mb = $('sgFMore'); if (mb) mb.setAttribute('aria-expanded', String(on)); }
     box.addEventListener('click', e => {
       const b = e.target.closest('button'); if (!b) return; const k = fBar(), ci = window.SoloInfo ? SoloInfo() : null;
       if (b.id === 'sgFDone') unfocus();
@@ -329,6 +330,7 @@ const Sing = (() => {
       else if (b.dataset.r) setRate(+b.dataset.r);
       else if (b.id === 'sgFUndoE') undoRedo(-1);
       else if (b.id === 'sgFRedoE') undoRedo(1);
+      else if (b.id === 'sgFMore') { const on = !box.classList.contains('more'); box.classList.toggle('more', on); b.setAttribute('aria-expanded', String(on)); lsS('3nps-sing-more', on ? '1' : '0'); }
       else if (b.id === 'sgFClick') { ui.click = !ui.click; lsS('3nps-sing-click', ui.click ? '1' : '0'); focusSig = '*'; if (loopP) { const t = tapS; startLoop(); tapS = t; } }
       else if (b.id === 'sgFGrid') resetGrid();
       else if (b.id === 'sgFPartAdd') addPart($('sgFPartSel').value);
@@ -345,7 +347,7 @@ const Sing = (() => {
       else if (b.id === 'sgFTapStart') { if (tapS) { tapS = null; focusSig = '*'; } else startTapBar(); }
     });
     const tb = $('sgFTap'); if (tb) tb.addEventListener('pointerdown', e => { e.preventDefault(); tapBar(); });
-    document.addEventListener('keydown', e => { if (tapS && (e.code === 'Space' || e.key === ' ') && (!/INPUT|TEXTAREA|SELECT/.test((e.target || {}).tagName || '') || (e.target || {}).id === 'pedalSink')) { e.preventDefault(); tapBar(); } });
+    document.addEventListener('keydown', e => { if (!e.defaultPrevented && tapS && (e.code === 'Space' || e.key === ' ') && (!/INPUT|TEXTAREA|SELECT/.test((e.target || {}).tagName || '') || (e.target || {}).id === 'pedalSink')) { e.preventDefault(); tapBar(); } });
   }
 
   // ---- Präziser setzen (v72): Stimme sichtbar, Magnet, Hören (Wort halten, Takt-Schleife, langsam), Feinschritte, Takt einklopfen ----
@@ -660,6 +662,24 @@ const Sing = (() => {
       }
     }
     trainer.last = b;
+  }
+
+  // ---- v84: Fußpedal beim Bearbeiten (Takt breit): 1 Schleife · 2 Wort zurück · 3 Wort vor · 4 ▶ ab hier / ■; beim Einklopfen = Tipp ----
+  function pedal(id) {
+    const p = $('panel-solo'); if (!p || p.hidden || fBar() == null || !curSrc) return false;
+    if (tapS) { tapBar(); return true; }
+    const src = curSrc, ci = window.SoloInfo ? SoloInfo() : null;
+    if (id === 'foot0') { if (src.kind !== 'file') return true; if (loopP) stopLoop(); else startLoop(); return true; }
+    if (id === 'all') { if (loopP || wordP || (src.kind === 'lied' ? window.Lied && Lied.active && Lied.active() : typeof Looper !== 'undefined' && Looper.running && Looper.running())) stopPlay(); else playFrom(); focusSig = '*'; return true; }
+    if (id === 'foot1' || id === 'foot2') {
+      const tok = src.tok, d = id === 'foot1' ? -1 : 1; let i = ui.sel;
+      if (i < 0) { const [a] = ci ? barRange(src, ci, fBar()) : [0]; i = tok.findIndex(t => t.b != null && t.b >= a - 1e-6); if (i < 0) i = 0; }
+      else { let j = i + d; while (j >= 0 && j < tok.length && tok[j].b == null) j += d; if (j >= 0 && j < tok.length) i = j; }
+      if (!tok[i] || tok[i].b == null) return true;
+      select(i); if (ci) { const k = barOf(src, ci, tok[i].b); if (k !== fBar()) focus(k); }
+      if (!loopP && src.kind === 'file') playWord(i); focusSig = '*'; return true;
+    }
+    return false;
   }
   // Takt neu einklopfen: Takt läuft (langsam) in Schleife, jeder Tipp setzt das nächste Wort dieses Taktes
   let tapS = null;
@@ -1080,6 +1100,6 @@ const Sing = (() => {
   // Übersetzung je Zeile (v63)
   function setTr(src, arr) { const rec = src.kind === 'lied' ? db.l[src.id] : db.f[src.id]; if (!rec) return false; rec.tr = arr; changed(); return true; }
   function getTr(src) { const rec = src && (src.kind === 'lied' ? db.l[src.id] : db.f[src.id]); return rec && rec.tr || []; }
-  return { recognize: () => recognize(curSrc), rec: () => Object.assign({}, rec), wordsToTok, tick, tap, tokenize, merge, f2b, b2f, endOf, lines, setTr, getTr, ver: () => ver, focus: k => focus(k), unfocus, prec: () => { const E = envOf(curSrc); return { env: E ? { n: E.e.length, on: E.on.slice(), onB: E.onB.slice() } : null, loop: !!loopP, rate: loopP ? loopP.rate : null, word: !!wordP, tap: tapS ? { n: tapS.n, of: tapS.idx.length } : null, mag: ui.mag, sel: ui.sel }; }, voiceEnv: () => voiceEnv(curSrc), placeB: r => placeB(r, curSrc), undo: () => undoRedo(-1), redo: () => undoRedo(1), vox: () => { const v = curSrc && vox[curSrc.id]; return v ? { name: v.name, off: v.off, sr: v.sr, n: v.l.length } : null; }, lrcText: () => curSrc ? lrcText(curSrc) : '', lrcImport: t => curSrc && lrcImport(curSrc, t), leadsheet: () => curSrc ? leadsheetOf(curSrc) : null, parts: () => curSrc ? partsOf(curSrc) : [], addPart: n => addPart(n), partLoop: i => startPartLoop(i), trainerState: () => trainer ? Object.assign({}, trainer) : null, loopRate: () => loopP ? loopP.rate : null, loopNow: () => loopP ? loopP.nowB() : (wordP ? wordP.nowB() : null), onTempo: () => onTempo(), addClicks, recheck: () => recheck(), toggleLock: () => toggleLock(), insertAfter: () => insertAfter(), spread, playFrom, source: ci => source(ci), data: () => db, _reload: () => { db = load(); changed(); }, ui: () => ui };
+  return { recognize: () => recognize(curSrc), rec: () => Object.assign({}, rec), wordsToTok, tick, tap, tokenize, merge, f2b, b2f, endOf, lines, setTr, getTr, ver: () => ver, focus: k => focus(k), unfocus, prec: () => { const E = envOf(curSrc); return { env: E ? { n: E.e.length, on: E.on.slice(), onB: E.onB.slice() } : null, loop: !!loopP, rate: loopP ? loopP.rate : null, word: !!wordP, tap: tapS ? { n: tapS.n, of: tapS.idx.length } : null, mag: ui.mag, sel: ui.sel }; }, voiceEnv: () => voiceEnv(curSrc), placeB: r => placeB(r, curSrc), undo: () => undoRedo(-1), redo: () => undoRedo(1), vox: () => { const v = curSrc && vox[curSrc.id]; return v ? { name: v.name, off: v.off, sr: v.sr, n: v.l.length } : null; }, lrcText: () => curSrc ? lrcText(curSrc) : '', lrcImport: t => curSrc && lrcImport(curSrc, t), leadsheet: () => curSrc ? leadsheetOf(curSrc) : null, parts: () => curSrc ? partsOf(curSrc) : [], addPart: n => addPart(n), partLoop: i => startPartLoop(i), trainerState: () => trainer ? Object.assign({}, trainer) : null, loopRate: () => loopP ? loopP.rate : null, pedal: id => pedal(id), loopNow: () => loopP ? loopP.nowB() : (wordP ? wordP.nowB() : null), onTempo: () => onTempo(), addClicks, recheck: () => recheck(), toggleLock: () => toggleLock(), insertAfter: () => insertAfter(), spread, playFrom, source: ci => source(ci), data: () => db, _reload: () => { db = load(); changed(); }, ui: () => ui };
 })();
 window.Sing = Sing;
