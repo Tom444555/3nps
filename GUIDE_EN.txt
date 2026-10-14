@@ -105,6 +105,11 @@ Everything you record or write is stored only on this device (back it up, see se
   Tap a word = select and hear it, tap again = change it, hold = hear it. “⟲ Loop” repeats the bar (one beat run-up),
   also at 75 % / 50 % without changing the pitch. “◀ 10 ms / 10 ms ▶” nudges the selected word.
   “● Tap this bar”: the bar loops, tap the big button (or space bar) at every word.
+- v74: “−/+” next to the tempo slider change the tempo by 1 BPM; in the bar loop and “Practise line” they change the
+  playback speed by 1 %. “＋ Word after” inserts a word between the selected word and the next one.
+  “🔒 Line done” marks a finished line (green); it is never changed automatically again. “✓ Check the rest” learns
+  from the finished lines (detection offset, where you place words on the syllable) and corrects all other words;
+  “↶” undoes it. Sing along now shows the chords above the words.
 - Songs with lyrics (Looper, bottom; “Ideas” and “Songs with lyrics” fold open with ▸): saves the whole song file
   together with the edited lyrics, also via “💾 Save song” in Improvisation. “Load” puts it on the next free track with
   its lyrics; “Lyrics” shares the plain text as a file. Lyrics are also saved automatically with every change.
