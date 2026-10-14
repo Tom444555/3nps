@@ -2909,6 +2909,7 @@ Object.assign(window.__EN, { '⟲ Schleife': '⟲ Loop', '■ Schleife': '■ Lo
   'Wort antippen = auswählen und anhören · nochmal antippen = ändern · gedrückt halten = anhören · ziehen = verschieben': 'Tap a word = select and hear it · tap again = change it · hold = hear it · drag = move it',
   ' Wörter an die Stimme gelegt.': ' words moved to the voice.', 'In diesem Takt stehen keine Wörter.': 'There are no words in this bar.', 'Takt eingeklopft – hör es dir in der Schleife an.': 'Bar tapped – listen to it in the loop.',
   'Lege die Wörter an die Stimme …': 'Moving the words to the voice …', ' Wörter an die Stimme angepasst. ': ' words matched to the voice. ' });
+Object.assign(window.__EN, { 'Die Ideen konnten nicht gelesen werden: ': 'The ideas could not be read: ', 'Beschädigter Eintrag': 'Damaged entry', 'Die Idee konnte nicht geladen werden: ': 'The idea could not be loaded: ' });
 
 // Sprache (v59): Deutsch ist der Quelltext. Nur im EN-Modus läuft hier etwas:
 // Ein Beobachter übersetzt neue/geänderte Texte im DOM (Text, title, placeholder, aria-label)
@@ -3014,7 +3015,7 @@ Object.assign(window.__EN, { '⟲ Schleife': '⟲ Loop', '■ Schleife': '■ Lo
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v72</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v73</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -5796,6 +5797,17 @@ const AppDB = (() => {
     put: (store, obj) => tx(store, 'readwrite', s => reqP(s.put(obj))),
     del: (store, id) => tx(store, 'readwrite', s => reqP(s.delete(id))),
     get: (store, id) => tx(store, 'readonly', s => reqP(s.get(id))),
+    // v73: Übersicht ohne alles auf einmal zu laden – Eintrag für Eintrag, nur die Kurzfassung bleibt im Speicher;
+    // ein beschädigter Eintrag blockiert die Liste nicht mehr
+    list: async (store, pick) => {
+      const keys = await tx(store, 'readonly', s => reqP(s.getAllKeys()));
+      const out = [];
+      for (const k of keys) {
+        try { const v = await tx(store, 'readonly', s => reqP(s.get(k))); if (v) { const r = pick(v); if (r) out.push(r); } }
+        catch (e) { out.push({ id: k, broken: true, err: String(e && e.message || e) }); }
+      }
+      return out;
+    },
   };
 })();
 
@@ -11743,17 +11755,21 @@ const Pedal = (() => {
   function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 
   async function render() {
-    let ideas = [];
-    try { ideas = await AppDB.all('ideas'); } catch (e) {}
-    ideas = ideas.filter(i => i.kind !== 'lied');                  // Lieder mit Text haben eine eigene Liste (v71)
+    let ideas = [], err = '';
+    // nur die Kurzfassung je Idee lesen (nicht alle Audiodaten gleichzeitig – spart auf dem iPad viel Speicher)
+    try { ideas = await AppDB.list('ideas', i => i.kind === 'lied' ? null : { id: i.id, name: i.name, root: i.root, mode: i.mode, bpm: i.bpm, ts: i.ts, secs: i.secs, dateStr: i.dateStr, n: i.session ? i.session.tracks.filter(Boolean).length : 0, session: !!i.session, drumName: i.drumState ? i.drumState.name : null, drums: !!i.drums, drone: !!i.droneState }); }
+    catch (e) { err = String(e && e.message || e); }
+    if (err) { list.innerHTML = '<p class="pattern-desc">' + esc(T('Die Ideen konnten nicht gelesen werden: ') + err) + '</p>'; return; }                  // Lieder mit Text haben eine eigene Liste (v71)
     { const c = $('ideaCount'); if (c) c.textContent = ideas.length ? String(ideas.length) : ''; }
     ideas.sort((a, b) => b.ts - a.ts);
     if (!ideas.length) { list.innerHTML = '<p class="pattern-desc">Noch keine Ideen. Nimm einen Loop auf und tippe auf „Speichern“.</p>'; return; }
-    list.innerHTML = ideas.map(i => `
+    list.innerHTML = ideas.map(i => i.broken ? `
+      <div class="idea-row" data-id="${esc(i.id)}"><div class="idea-main"><div class="idea-name">${esc(T('Beschädigter Eintrag'))}</div><div class="log-meta" style="text-align:left">${esc(i.err)}</div></div>
+        <div class="idea-actions"><button class="toggle-btn" data-act="del">Löschen</button></div></div>` : `
       <div class="idea-row" data-id="${esc(i.id)}">
         <div class="idea-main">
           <div class="idea-name" translate="no">${esc(i.name)}</div>
-          <div class="log-meta" style="text-align:left">${esc(i.root)} ${esc(i.mode)} · ${String(Math.round(i.bpm * 10) / 10).replace('.', ',')} BPM · ${i.session ? i.session.tracks.filter(Boolean).length + ' Spur' + (i.session.tracks.filter(Boolean).length === 1 ? '' : 'en') + ' · ' : ''}${i.drumState ? 'Drums: ' + esc(i.drumState.name) + ' · ' : (i.drums ? 'Drums · ' : '')}${i.droneState ? 'Drone · ' : ''}${(+i.secs || 0).toFixed(1).replace('.', ',')} s · ${esc(i.dateStr)}</div>
+          <div class="log-meta" style="text-align:left">${esc(i.root)} ${esc(i.mode)} · ${String(Math.round(i.bpm * 10) / 10).replace('.', ',')} BPM · ${i.session ? i.n + ' Spur' + (i.n === 1 ? '' : 'en') + ' · ' : ''}${i.drumName ? 'Drums: ' + esc(i.drumName) + ' · ' : (i.drums ? 'Drums · ' : '')}${i.drone ? 'Drone · ' : ''}${(+i.secs || 0).toFixed(1).replace('.', ',')} s · ${esc(i.dateStr)}</div>
         </div>
         <div class="idea-actions">
           <button class="toggle-btn" data-act="load">Laden</button>
@@ -11791,11 +11807,15 @@ const Pedal = (() => {
     }
   });
 
-  list.addEventListener('click', async e => {
+  list.addEventListener('click', e => {
     const btn = e.target.closest('button'); if (!btn) return;
-    const row = btn.closest('.idea-row'); const id = row.dataset.id;
-    const idea = await AppDB.get('ideas', id); if (!idea) return;
-    const act = btn.dataset.act;
+    act(btn).catch(err => { $('loopStatus').textContent = T('Die Idee konnte nicht geladen werden: ') + (err && err.message || err); });
+  });
+  async function act(btn) {
+    const row = btn.closest('.idea-row'); const id = row.dataset.id, act = btn.dataset.act;
+    if (act === 'del' && btn.dataset.armed === '1') { await AppDB.del('ideas', id); render(); return; }
+    let idea = null; try { idea = await AppDB.get('ideas', id); } catch (x) { if (act !== 'del') throw x; }
+    if (!idea && act !== 'del') { render(); return; }
     if (act === 'load') {
       ensureAudio();
       rootSel.value = idea.root; modeSel.value = idea.mode; rebuild();
@@ -11830,7 +11850,7 @@ const Pedal = (() => {
       }
       await AppDB.del('ideas', id); render();
     }
-  });
+  }
 
   render();
   Looper.update();
@@ -12334,7 +12354,7 @@ const AppCfg = (() => {
   // Aufklappen merken (Standard: zu; im automatischen Test offen)
   ['ideaFold', 'lsFold'].forEach(id => {
     const d = $(id); if (!d) return;
-    let open = !!navigator.webdriver; try { const v = localStorage.getItem('3nps-fold-' + id); if (v != null) open = v === '1'; } catch (e) {}
+    let open = id === 'ideaFold' || !!navigator.webdriver; try { const v = localStorage.getItem('3nps-fold-' + id); if (v != null) open = v === '1'; } catch (e) {}
     d.open = open;
     d.addEventListener('toggle', () => { try { localStorage.setItem('3nps-fold-' + id, d.open ? '1' : '0'); } catch (e) {} if (d.open && id === 'lsFold') render(); });
   });
@@ -12357,15 +12377,17 @@ const AppCfg = (() => {
     const i = pick();
     if (i < 0) { say(T('Lade zuerst eine Songdatei in den Looper (aufgenommene Loops speicherst du unter „Ideen“).')); return false; }
     const f = Looper.fileOf(i), src = Looper.singSrc(i), r = liveRec(src.key);
-    let all = []; try { all = await AppDB.all('ideas'); } catch (e) {}
-    const old = all.find(x => x.kind === 'lied' && x.singKey === src.key), now = new Date();
+    let all = []; try { all = await AppDB.list('ideas', x => x.kind === 'lied' ? { id: x.id, name: x.name, singKey: x.singKey } : null); } catch (e) {}
+    const old = all.find(x => x.singKey === src.key), now = new Date();
+    // Kopie der Datei im Speicher ablegen (nicht nur einen Verweis auf die ausgewählte Datei – iPadOS räumt die weg)
+    let blob = f.file; try { blob = new Blob([await f.file.arrayBuffer()], { type: f.file.type || '' }); } catch (x) {}
     const name = String(nameIn || '').trim() || (old && old.name) || String(f.name).replace(/\.[^.]+$/, '');
     const bpmEl = $('bpm');
     const e = {
       id: old ? old.id : newId(), v: 2, kind: 'lied', name, ts: now.getTime(),
       dateStr: now.toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' }),
       root: $('root') ? $('root').value : '', mode: $('mode') ? $('mode').value : '', bpm: +f.bpm || (bpmEl ? parseFloat(bpmEl.value) : 0) || 0,
-      secs: secsOf(src.key), wav: f.file, fname: f.name, choice: f.choice, singKey: src.key,
+      secs: secsOf(src.key), wav: blob, fname: f.name, choice: f.choice, singKey: src.key,
       tok: r && r.tok ? r.tok : [], tr: r && r.tr ? r.tr : null, lang: r && r.auto ? r.auto.lang : null
     };
     try { await AppDB.put('ideas', e); }
@@ -12404,7 +12426,7 @@ const AppCfg = (() => {
   }
 
   async function render() {
-    let all = []; try { all = (await AppDB.all('ideas')).filter(x => x.kind === 'lied'); } catch (e) {}
+    let all = []; try { all = await AppDB.list('ideas', x => x.kind === 'lied' ? { id: x.id, name: x.name, singKey: x.singKey, tok: x.tok, secs: x.secs, lang: x.lang, dateStr: x.dateStr, ts: x.ts } : null); } catch (e) {}
     all.sort((a, b) => b.ts - a.ts);
     const cnt = $('lsCount'); if (cnt) cnt.textContent = all.length ? String(all.length) : '';
     if (!all.length) { list.innerHTML = '<p class="pattern-desc">' + esc(T('Noch keine Lieder. Lade eine Songdatei, bearbeite den Text in der Improvisation und tippe auf „Lied mit Text speichern“.')) + '</p>'; return; }
