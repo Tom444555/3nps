@@ -39,7 +39,7 @@ async def main():
         e1 = await env(pg); on = e1['on']
         hit = sum(1 for t in SYL if any(abs(o - t) <= 0.012 for o in on))
         check('Stimmkurve aus der Gesangsspur: genau die Silben, keine Begleit-Anschläge', hit == len(SYL) and len(on) == len(SYL), (hit, len(on), n0))
-        check('Karte zeigt Name und Versatz', 'silben_vox.wav' in await pg.inner_text('#sgEdit') and 'ms' in await pg.inner_text('#sgEdit .sg-vox'))
+        check('Karte zeigt Name und Versatz', 'silben_vox.wav' in await pg.inner_text('#sgEdit') and 'ms' in await pg.inner_text('#sgVoxBox'))
         # Neustart: Gesangsspur kommt aus dem Speicher zurück
         await pg.reload(); await pg.wait_for_timeout(900); await load(pg)
         for _ in range(40):
