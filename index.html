@@ -856,6 +856,8 @@ html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleis
   .sf-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px !important; }
   .sf-zoom .toggle-btn { text-transform: none; letter-spacing: 0; }
   .sf-zoom .toggle-btn { padding: 2px 8px; font-size: .72rem; }
+  .sf-seg.fixed { border-style: dashed; border-color: #f0a030; }
+  .sf-seg.fixed b::after { content: '✎'; font-size: .6em; margin-left: 2px; color: #f0a030; }
   /* ===== CAGED ===== */
   .cg-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 18px; }
   .cg-chordbox { display: flex; flex-direction: column; min-width: 120px; }
@@ -1278,6 +1280,13 @@ html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleis
   .sg-chip.drag { position: relative; z-index: 20; opacity: .85; box-shadow: 0 6px 18px rgba(0,0,0,.5); cursor: grabbing; }
   .sg-chip.drop { outline: 2px dashed var(--accent); outline-offset: 2px; }
   .sg-vox { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 6px 0 10px; padding: 8px; border: 1px dashed var(--line); border-radius: 8px; }
+  .sg-part { position: absolute; top: 76px; z-index: 6; padding: 1px 6px; border-radius: 0 6px 6px 0; border-left: 2px solid #6ab0ff; background: color-mix(in srgb, #6ab0ff 30%, var(--surface-2)); color: var(--ink); font: 700 .66rem/14px var(--f-body); white-space: nowrap; cursor: pointer; }
+  .sg-parts { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 6px 0 10px; padding: 8px; border: 1px dashed var(--line); border-radius: 8px; }
+  .sg-pitem { display: inline-flex; align-items: center; gap: 4px; padding: 2px 4px 2px 8px; border-radius: 8px; background: var(--surface-2); font: 600 .85rem var(--f-body); }
+  .sg-pitem small { color: var(--muted); font: .7rem var(--f-mono); }
+  .sg-pitem.on { outline: 2px solid var(--accent); }
+  .sg-pitem .toggle-btn { padding: 3px 8px; min-width: 30px; }
+  #sgFPartSel { font: .85rem var(--f-body); color: var(--ink); background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: 5px; }
   /* ---- Reiter Mitsingen (v63) ---- */
   .sb-card { min-height: 260px; }
   .sb-top { display: flex; align-items: center; justify-content: space-between; min-height: 56px; }
@@ -2966,6 +2975,13 @@ Object.assign(window.__EN, { 'Gesangsspur': 'Vocal track', 'wird für Stimmkurve
 Object.assign(window.__EN, { 'Austausch': 'Exchange', 'LRC exportieren': 'Export LRC', 'LRC laden': 'Load LRC', 'Leadsheet (PDF)': 'Lead sheet (PDF)', 'Noch kein Text mit Zeiten.': 'No timed lyrics yet.', 'Noch kein Text.': 'No lyrics yet.',
   'In der Datei wurden keine Zeilen mit Zeiten gefunden.': 'No timed lines found in this file.', 'Der vorhandene Text wird durch den Text aus der LRC-Datei ersetzt (rückgängig mit ↶). Weiter?': 'The current lyrics will be replaced by the LRC file (undo with ↶). Continue?',
   ' Zeilen aus der LRC-Datei übernommen.': ' lines taken from the LRC file.', 'Leadsheet aus dem 3nps Looper': 'Lead sheet from the 3nps Looper' });
+Object.assign(window.__EN, { 'Strophe': 'Verse', 'Refrain': 'Chorus', 'Zwischenteil': 'Interlude', 'Teil': 'Part', '🏷 Teil hier': '🏷 Part here', 'Hier (Anfang dieses Taktes) beginnt ein Teil': 'A part starts here (start of this bar)',
+  'Teil „': 'Part “', '“ beginnt bei Takt ': '” starts at bar ', 'Teil-Marke – antippen zum Entfernen': 'Part marker – tap to remove', 'Teil-Marke „': 'Remove part marker “', '“ entfernen?': '”?',
+  'Teile': 'Parts', 'Ab hier abspielen': 'Play from here', 'Diesen Teil in Schleife': 'Loop this part', 'Noch keine Teile – Takt antippen (breit), dann in der Leiste „🏷 Teil hier“.': 'No parts yet – tap a bar (widen it), then “🏷 Part here” in the bar below.',
+  'Tempo-Trainer: ab': 'Tempo trainer: from', 'alle 2 Durchgänge +5 % bis 100 %': '+5 % every 2 passes up to 100 %', 'Teil-Schleife': 'Part loop', 'Teil-Schleife: ': 'Part loop: ',
+  ' – wird alle 2 Durchgänge 5 % schneller bis 100 %': ' – gets 5 % faster every 2 passes up to 100 %', ' – Zieltempo erreicht': ' – target tempo reached',
+  'Akkord ändern (z. B. Am, C7, F#m, Bbmaj7). Leer = wieder der erkannte Akkord:': 'Change chord (e.g. Am, C7, F#m, Bbmaj7). Empty = detected chord again:',
+  'Diesen Akkord kenne ich nicht. Beispiele: C, Am, G7, Dm7, Fmaj7, Bb, F#m7b5, Esus4.': 'I do not know this chord. Examples: C, Am, G7, Dm7, Fmaj7, Bb, F#m7b5, Esus4.' });
 
 // Sprache (v59): Deutsch ist der Quelltext. Nur im EN-Modus läuft hier etwas:
 // Ein Beobachter übersetzt neue/geänderte Texte im DOM (Text, title, placeholder, aria-label)
@@ -3071,7 +3087,7 @@ Object.assign(window.__EN, { 'Austausch': 'Exchange', 'LRC exportieren': 'Export
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v82</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v83</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -3749,7 +3765,7 @@ Object.assign(window.__EN, { 'Austausch': 'Exchange', 'LRC exportieren': 'Export
       <div class="sg-focus" id="sgFocus" hidden>
         <div class="sg-frow"><b id="sgFLbl">Takt 1</b><button class="toggle-btn" id="sgFUndoE" title="Rückgängig (⌘Z)">↶</button><button class="toggle-btn" id="sgFRedoE" title="Wiederholen (⇧⌘Z)">↷</button><button class="toggle-btn" id="sgFPrev" title="Takt davor">‹ Takt</button><button class="toggle-btn" id="sgFNext" title="Nächster Takt">Takt ›</button><button class="toggle-btn" id="sgFPlay" title="Spielt ab einem Takt vor dieser Stelle">▶ ab hier</button><button class="toggle-btn sg-fileonly" id="sgFClick" aria-pressed="false" title="Klick auf jeden Schlag beim Anhören (Schleife, Wort, ▶ ab hier)">♩ Metronom</button><button class="toggle-btn sg-fileonly" id="sgFLoop" title="Diesen Takt immer wieder spielen (ein Schlag Anlauf)">⟲ Schleife</button><div class="seg sg-fileonly" id="sgFRate" role="group" aria-label="Tempo"><button class="toggle-btn" data-r="1">100 %</button><button class="toggle-btn" data-r="0.75">75 %</button><button class="toggle-btn" data-r="0.5">50 %</button></div><span class="sg-rate sg-fileonly"><button class="toggle-btn" id="sgFRateDn" title="1 % langsamer">−</button><b id="sgFRateV">100 %</b><button class="toggle-btn" id="sgFRateUp" title="1 % schneller">+</button></span><button class="toggle-btn" id="sgFStop" title="Anhalten">■</button><button class="toggle-btn sg-fdone" id="sgFDone" title="Bearbeiten beenden, wieder alle Takte">✓ Fertig</button></div>
         <div class="sg-frow"><span class="sg-flab">Einrasten</span><div class="seg" id="sgFMag" role="group" aria-label="Einrasten"><button class="toggle-btn" data-m="grid" title="Auf 16tel einrasten">Raster</button><button class="toggle-btn sg-fileonly" data-m="voice" title="Am nächsten Silbenanfang der Stimme einrasten">♪ Stimme</button><button class="toggle-btn" data-m="free" title="Ohne Einrasten">frei</button></div><button class="toggle-btn" id="sgFNudgeL" title="Ausgewähltes Wort 10 ms früher">◀ 10 ms</button><button class="toggle-btn" id="sgFNudgeR" title="Ausgewähltes Wort 10 ms später">10 ms ▶</button><button class="toggle-btn sg-fileonly" id="sgFAlign" title="Wörter dieses Taktes an die nächsten Silbenanfänge legen">♪ an Stimme</button><button class="toggle-btn" id="sgFSpread" title="Wörter in diesem Takt gleichmäßig verteilen (auf 16tel)">⇹ verteilen</button><button class="toggle-btn" id="sgFIns" title="Neues Wort zwischen dem ausgewählten und dem nächsten einfügen">＋ Wort danach</button><button class="toggle-btn sg-fileonly" id="sgFTapStart" title="Takt läuft in Schleife, du tippst bei jedem Wort">● Takt einklopfen</button></div>
-        <div class="sg-frow sg-fileonly"><span class="sg-flab">Vorlage</span><button class="toggle-btn" id="sgFLock" title="Zeile des ausgewählten Wortes als fertig markieren – sie bleibt, wie sie ist, und dient als Vorlage">🔒 Zeile fertig</button><button class="toggle-btn" id="sgFCheck" title="Aus den fertigen Zeilen lernen und alle anderen Wörter nachprüfen – fertige Zeilen bleiben unverändert">✓ Rest nachprüfen</button><button class="toggle-btn" id="sgFUndo" hidden title="Nachprüfung zurücknehmen">↶</button><span class="sg-flab" id="sgFGridL"></span><button class="toggle-btn" id="sgFGrid" hidden title="Wieder das beim Laden erkannte Raster verwenden">↺ erkanntes Raster</button></div>
+        <div class="sg-frow sg-fileonly"><span class="sg-flab">Vorlage</span><button class="toggle-btn" id="sgFLock" title="Zeile des ausgewählten Wortes als fertig markieren – sie bleibt, wie sie ist, und dient als Vorlage">🔒 Zeile fertig</button><button class="toggle-btn" id="sgFCheck" title="Aus den fertigen Zeilen lernen und alle anderen Wörter nachprüfen – fertige Zeilen bleiben unverändert">✓ Rest nachprüfen</button><button class="toggle-btn" id="sgFUndo" hidden title="Nachprüfung zurücknehmen">↶</button><select id="sgFPartSel" aria-label="Teil"><option>Intro</option><option selected>Strophe</option><option>Pre-Chorus</option><option>Refrain</option><option>Bridge</option><option>Solo</option><option>Zwischenteil</option><option>Outro</option></select><button class="toggle-btn" id="sgFPartAdd" title="Hier (Anfang dieses Taktes) beginnt ein Teil">🏷 Teil hier</button><span class="sg-flab" id="sgFGridL"></span><button class="toggle-btn" id="sgFGrid" hidden title="Wieder das beim Laden erkannte Raster verwenden">↺ erkanntes Raster</button></div>
         <button class="sg-tap" id="sgFTap" hidden>Tippen</button>
         <p class="sg-fhint"><span id="sgFVoice"></span> <span id="sgFMsg"></span></p>
         <p class="sg-fhint">Wort antippen = auswählen und anhören · nochmal antippen = ändern · gedrückt halten = anhören · ziehen = verschieben</p>
@@ -10664,6 +10680,15 @@ const Looper = (() => {
     edInfo(); update(); kick();
   });
 
+  // v83: Akkord-Korrekturen je Datei (Schlüssel wie beim Gesangstext: Name|Länge), Zeit in 10-ms-Schritten im Original
+  const fixKey = t => (t.orig.name || 'Datei') + '|' + Math.round((t.orig.data.l || t.orig.data).length / sr * 10);
+  let fixCache = null, fixAt = 0;
+  const loadFixes = () => { try { return JSON.parse(localStorage.getItem('3nps-chordfix') || '{}') || {}; } catch (e) { return {}; } };
+  function chordFixOf(t) {
+    if (!t.orig || t.origPos == null || !t.orig.data) return null;
+    if (!fixCache || performance.now() - fixAt > 500) { fixCache = loadFixes(); fixAt = performance.now(); }
+    return fixCache[fixKey(t)] || null;
+  }
   // Taktraster der geladenen Datei mit umrechnen: 2× = jeder Takt wird zu zwei Takten, ½ = zwei Takte werden einer
   function regridOrig(t, factor) {
     const o = t.orig; if (!o) return;
@@ -11624,6 +11649,14 @@ const Looper = (() => {
     undo: i => undoTrack(tracks[i]),
     // klingender Akkord der ersten laufenden Spur mit erkannten Akkorden (für den Quintenzirkel)
     // komplette Akkordfolge einer Spur für den Solo Finder (Frames, Taktanfänge, Abspielposition, Tonart)
+    // v83: Akkord einer Spur von Hand ändern (nur bei geladenen Dateien); name leer = wieder erkannt
+    setChordFix: (i, a, name) => {
+      const t = tracks[i]; if (!t || !t.orig || t.origPos == null) return false;
+      const key = fixKey(t), all = loadFixes(), k = Math.round((a + t.origPos) / (sr * 0.01)), m = all[key] || {};
+      for (let d = -5; d <= 5; d++) delete m[k + d];
+      if (name) m[k] = name; all[key] = m; if (!Object.keys(m).length) delete all[key];
+      try { localStorage.setItem('3nps-chordfix', JSON.stringify(all)); } catch (e) {} fixCache = null; return true;
+    },
     chordInfo: want => {
       const ok = t => !!(t.chords && t.chords.L === t.L && t.L && t.chords.segs.some(q => q.name !== '–'));
       const list = tracks.map(t => ({ i: t.i, has: ok(t), playing: !!t.src }));
@@ -11631,7 +11664,9 @@ const Looper = (() => {
       if (!t) return { tracks: list, track: -1 };
       const pos = t.src && audioCtx ? mod(playFrame() - anchor, t.L) : null;
       const downs = trackDowns(t).filter(x => x > -2 && x < t.L - 2).map(x => Math.max(0, x));
-      return { tracks: list, track: t.i, segs: t.chords.segs.map(q => ({ name: q.name, a: q.a, e: q.e })), L: t.L, pos, downs, sr, beats: trackBeats(t).filter(b => !b.bar && b.f > 0 && b.f < t.L - 2).map(b => b.f),
+      // v83: von Hand korrigierte Akkorde (je Datei, nach Zeit im Original) ersetzen die erkannten
+      const fx = chordFixOf(t), fixName = q => { if (!fx) return null; const k = Math.round((q.a + t.origPos) / (sr * 0.01)); for (let d = -5; d <= 5; d++) if (fx[k + d] != null) return fx[k + d]; return null; };
+      return { tracks: list, track: t.i, segs: t.chords.segs.map(q => { const fn = fixName(q); return { name: fn || q.name, a: q.a, e: q.e, fixed: !!fn }; }), L: t.L, pos, downs, sr, beats: trackBeats(t).filter(b => !b.bar && b.f > 0 && b.f < t.L - 2).map(b => b.f),
         key: t.key ? { pc: t.key.pc, major: !!t.key.major } : null, playing: !!t.src };
     },
     // Mitsingen (v61): Bezug einer Spur zur geladenen Originaldatei – nur lesen
@@ -13128,7 +13163,7 @@ if (typeof module !== 'undefined') module.exports = Pitch;
     ci.segs.forEach((s, i) => {
       const c = parseChord(s.name), w = px(s.e - s.a);
       if (!c) { h += '<div class="sf-seg rest" data-i="' + i + '" style="left:' + px(s.a).toFixed(1) + 'px;width:' + w.toFixed(1) + 'px"></div>'; return; }
-      h += '<button class="sf-seg' + (w < 54 ? ' tight' : '') + '" data-i="' + i + '" style="left:' + px(s.a).toFixed(1) + 'px;width:' + w.toFixed(1) + 'px"><b>' + chordName(c, k) + '</b><small>' + roman(c, k) + '</small></button>';
+      h += '<button class="sf-seg' + (w < 54 ? ' tight' : '') + (s.fixed ? ' fixed' : '') + '" data-i="' + i + '" style="left:' + px(s.a).toFixed(1) + 'px;width:' + w.toFixed(1) + 'px"><b>' + chordName(c, k) + '</b><small>' + roman(c, k) + '</small></button>';
     });
     h += '<div class="sf-ph" id="sfPh"></div>';
     strip.innerHTML = h; lastOn = -2;          // neu aufgebaut: Einrahmung beim nächsten Bild neu setzen
@@ -13444,7 +13479,28 @@ if (typeof module !== 'undefined') module.exports = Pitch;
     if (sig !== state.sig || force) { state.sig = sig; renderFocus(ci, k, src); }
   }
   // Bedienung
+  // v83: Akkord gedrückt halten = von Hand ändern (nur bei geladenen Dateien)
+  const FLAT2 = { Db: 'C#', Eb: 'D#', Gb: 'F#', Ab: 'G#', Bb: 'A#', Cb: 'B', Fb: 'E', H: 'B', 'E#': 'F', 'B#': 'C' };
+  function normChord(v) {
+    v = String(v || '').trim().replace(/♭/g, 'b').replace(/♯/g, '#'); if (!v) return '';
+    const m = /^([A-H][b#]?)(.*)$/.exec(v); if (!m) return null;
+    const r = FLAT2[m[1]] || m[1], suf = m[2] === 'min' || m[2] === 'moll' ? 'm' : m[2] === 'maj' || m[2] === 'dur' ? '' : m[2];
+    return PC[r] != null && (suf === '' || CH[suf]) ? r + suf : null;
+  }
+  let holdT = null, held = false;
+  $('sfStrip').addEventListener('pointerdown', e => {
+    const b = e.target.closest('.sf-seg'); if (!b) return; held = false; clearTimeout(holdT);
+    holdT = setTimeout(() => {
+      const ci = info(), i = +b.dataset.i, s = ci.segs && ci.segs[i]; if (!s || ci.track < 0 || ci.jam || ci.lied) return;
+      held = true;
+      const v = prompt(T('Akkord ändern (z. B. Am, C7, F#m, Bbmaj7). Leer = wieder der erkannte Akkord:'), s.fixed ? s.name : (s.name === '–' ? '' : s.name)); if (v == null) return;
+      const n = normChord(v); if (n === null) { alert(T('Diesen Akkord kenne ich nicht. Beispiele: C, Am, G7, Dm7, Fmaj7, Bb, F#m7b5, Esus4.')); return; }
+      if (typeof Looper !== 'undefined' && Looper.setChordFix && Looper.setChordFix(ci.track, s.a, n)) { bandSig = ''; state.sig = ''; update(true); }
+    }, 550);
+  });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => $('sfStrip').addEventListener(ev, () => clearTimeout(holdT)));
   $('sfStrip').addEventListener('click', e => {
+    if (held) { held = false; return; }
     const b = e.target.closest('.sf-seg'); if (!b || b.classList.contains('rest')) return;
     const ci = info(), i = +b.dataset.i, s = ci.segs && ci.segs[i]; if (!s) return;
     const c = parseChord(s.name);
@@ -14176,6 +14232,7 @@ const Sing = (() => {
     focusUi(live, ci);
     if (lineEl) lineEl.hidden = !has;
     const srcL = live;
+    trainerTick();
     const own = (loopP && loopP.id === srcL.id) ? loopP : (wordP && wordP.id === srcL.id ? wordP : null);
     if (own) srcL.nowB = own.nowB();
     const W = parseFloat($('sfStrip').style.width) || $('sfBand').clientWidth;
@@ -14209,6 +14266,8 @@ const Sing = (() => {
         const wpx = Math.max(14, px(Math.min(ci.L, e0) - a0) - 2), sv = stk[i];
         h += '<span class="sg-w' + (i === ui.sel ? ' sel' : '') + (t.k ? ' lk' : '') + (sv ? ' stk' : '') + '"' + (sv && sv.lvl ? ' data-lvl="' + sv.lvl + '"' : '') + ' data-i="' + i + '" style="left:' + px(a0).toFixed(1) + 'px;width:' + wpx.toFixed(1) + 'px;font-size:' + fitFont(t.w, wpx) + 'px">' + esc(t.w) + '</span>';
       });
+      // v83: Teil-Marken
+      partsOf(srcL).forEach(p => { const a = srcL.toCi(p.b); if (a == null || a < -1 || a >= ci.L) return; h += '<b class="sg-part" data-pb="' + p.b + '" style="left:' + px(a).toFixed(1) + 'px" title="' + esc(T('Teil-Marke – antippen zum Entfernen')) + '">' + esc(T(p.name)) + '</b>'; });
       // v72: Stimmkurve im Bearbeitungs-Zoom (Takt davor bis Takt danach)
       let envBox = null;
       if (fk != null && envOf(srcL) && downs.length) { const a = downs[Math.max(0, fk - 1)], e = fk + 2 < downs.length ? downs[fk + 2] : ci.L; envBox = [px(a), px(e) - px(a)]; h += '<canvas class="sg-env" id="sgEnv" style="left:' + envBox[0].toFixed(1) + 'px;width:' + envBox[1].toFixed(1) + 'px"></canvas>'; }
@@ -14357,6 +14416,7 @@ const Sing = (() => {
       else if (b.id === 'sgFRedoE') undoRedo(1);
       else if (b.id === 'sgFClick') { ui.click = !ui.click; lsS('3nps-sing-click', ui.click ? '1' : '0'); focusSig = '*'; if (loopP) { const t = tapS; startLoop(); tapS = t; } }
       else if (b.id === 'sgFGrid') resetGrid();
+      else if (b.id === 'sgFPartAdd') addPart($('sgFPartSel').value);
       else if (b.id === 'sgFRateDn') setRate(ui.rate - 0.01);
       else if (b.id === 'sgFRateUp') setRate(ui.rate + 0.01);
       else if (b.id === 'sgFIns') insertAfter();
@@ -14377,7 +14437,7 @@ const Sing = (() => {
   const lsG = (k, d) => { try { const v = localStorage.getItem(k); return v == null ? d : v; } catch (e) { return d; } };
   const lsS = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
   ui.mag = lsG('3nps-sing-mag', 'voice'); if (!['grid', 'voice', 'free'].includes(ui.mag)) ui.mag = 'voice';
-  ui.click = lsG('3nps-sing-click', '0') === '1'; ui.rate = +lsG('3nps-sing-rate', '1'); if (!(ui.rate >= 0.4 && ui.rate <= 1)) ui.rate = 1;
+  ui.click = lsG('3nps-sing-click', '0') === '1'; ui.trainer = lsG('3nps-sing-trainer', '0') === '1'; ui.trStart = +lsG('3nps-sing-trstart', '0.7') || 0.7; ui.rate = +lsG('3nps-sing-rate', '1'); if (!(ui.rate >= 0.4 && ui.rate <= 1)) ui.rate = 1;
 
 
   // ---- v82: Austausch – LRC (Liedtext mit Zeiten, auch je Wort) und Leadsheet als PDF ----
@@ -14568,7 +14628,7 @@ const Sing = (() => {
     }
   }
   const killP = p => { if (p) try { p.node.stop(); p.node.disconnect(); p.g.disconnect(); } catch (e) {} };
-  function stopLoop() { killP(loopP); loopP = null; tapS = null; focusSig = '*'; }
+  function stopLoop() { killP(loopP); loopP = null; tapS = null; trainer = null; focusSig = '*'; edSig = ''; }
   function startLoop() {
     const src = curSrc, k = fBar(), ci = window.SoloInfo ? SoloInfo() : null; if (!src || src.kind !== 'file' || k == null || !ci) return false;
     stopLoop(); killP(wordP); wordP = null;
@@ -14645,6 +14705,47 @@ const Sing = (() => {
     ui.rate = Math.max(0.4, Math.min(1, Math.round(r * 100) / 100)); lsS('3nps-sing-rate', String(ui.rate)); focusSig = '*';
     clearTimeout(setRate.t); if (loopP) setRate.t = setTimeout(() => { const t = tapS; startLoop(); tapS = t; }, 350);
   }
+
+  // ---- v83: Teile (Intro, Strophe, Refrain …) als Marken in der Spur; Schleife über einen Teil mit Tempo-Trainer ----
+  const partsOf = src => { const r = recOf(src); return r && r.parts ? r.parts.slice().sort((a, b) => a.b - b.b) : []; };
+  function addPart(name) {
+    const src = curSrc, k = fBar(), ci = window.SoloInfo ? SoloInfo() : null; if (!src || src.kind !== 'file' || k == null || !ci) return;
+    const [a] = barRange(src, ci, k), r = db.f[src.id] || (db.f[src.id] = { name: src.name, tok: [] }); r.tok = r.tok || [];
+    r.parts = (r.parts || []).filter(p => Math.abs(p.b - a) > 0.5); r.parts.push({ b: Math.round(a * 1000) / 1000, name });
+    changed(); status(T('Teil „') + T(name) + T('“ beginnt bei Takt ') + src.label(a) + '.');
+  }
+  function delPart(b) { const src = curSrc, r = src && db.f[src.id]; if (!r || !r.parts) return; r.parts = r.parts.filter(p => Math.abs(p.b - b) > 0.01); changed(); }
+  // Ende eines Teils = Beginn des nächsten, sonst das letzte Wort + 2 Takte (höchstens Liedende)
+  function partRange(src, i) {
+    const ps = partsOf(src), p = ps[i]; if (!p) return null;
+    let e = i + 1 < ps.length ? ps[i + 1].b : null;
+    if (e == null) { const lastW = src.tok.filter(t => t.b != null).pop(); const endB = src.len ? f2b(src.len, src.beats) : null; e = Math.min(endB || 1e9, lastW && lastW.b > p.b ? lastW.b + 8 : p.b + 32); }
+    return [p.b, e, p.name];
+  }
+  let trainer = null;
+  function startPartLoop(i) {
+    const src = curSrc; if (!src || src.kind !== 'file') return; const r = partRange(src, i); if (!r) return;
+    stopLoop(); killP(wordP); wordP = null;
+    if (typeof Looper !== 'undefined' && Looper.running && Looper.running() && Looper.pauseToggle) Looper.pauseToggle();
+    const tr = ui.trainer ? { rate: ui.trStart, step: 0.05, every: 2, pass: 0, last: null } : null;
+    loopP = mkPlayer(src, r[0], r[1], true, tr ? tr.rate : ui.rate); if (!loopP) return;
+    loopP.part = { i, name: r[2], a: r[0], e: r[1] }; trainer = tr; edSig = ''; focusSig = '*';
+    status(T('Teil-Schleife: ') + T(r[2]) + ' · ' + Math.round((tr ? tr.rate : ui.rate) * 100) + ' %' + (tr ? T(' – wird alle 2 Durchgänge 5 % schneller bis 100 %') : ''));
+  }
+  // Tempo-Trainer: Durchgänge zählen (Position springt zurück) und das Tempo stufenweise anheben
+  function trainerTick() {
+    if (!trainer || !loopP || !loopP.part) return;
+    const b = loopP.nowB(); if (trainer.last != null && b < trainer.last - 0.5) {
+      trainer.pass++;
+      if (trainer.pass % trainer.every === 0 && trainer.rate < 1) {
+        const src = curSrc, p = loopP.part; trainer.rate = Math.min(1, Math.round((trainer.rate + trainer.step) * 100) / 100);
+        killP(loopP); loopP = mkPlayer(src, p.a, p.e, true, trainer.rate); if (loopP) loopP.part = p;
+        status(T('Teil-Schleife: ') + T(p.name) + ' · ' + Math.round(trainer.rate * 100) + ' %' + (trainer.rate >= 1 ? T(' – Zieltempo erreicht') : '')); edSig = '';
+        trainer.last = null; return;
+      }
+    }
+    trainer.last = b;
+  }
   // Takt neu einklopfen: Takt läuft (langsam) in Schleife, jeder Tipp setzt das nächste Wort dieses Taktes
   let tapS = null;
   function startTapBar() {
@@ -14699,6 +14800,8 @@ const Sing = (() => {
     };
     strip.addEventListener('pointerdown', e => {
       if (!curSrc || ui.inline || e.target.closest('.sg-inline')) return;
+      const pm = e.target.closest('.sg-part');
+      if (pm) { e.preventDefault(); if (confirm(T('Teil-Marke „') + pm.textContent + T('“ entfernen?'))) delPart(+pm.dataset.pb); return; }
       const sk = e.target.closest('.sg-stkn');
       if (sk) { e.preventDefault(); const ci = ciNow(), i = +sk.dataset.i; if (ci && curSrc.tok[i]) { select(i); focus(barOf(curSrc, ci, curSrc.tok[i].b)); status(T('Mehrere Wörter auf einer Stelle – „⇹ verteilen“ zieht sie auseinander, oder einzeln antippen und ziehen.')); } return; }
       const el = e.target.closest('.sg-w');
@@ -14838,7 +14941,7 @@ const Sing = (() => {
   function paintEditor(src) {
     const box = $('sgEdit'); if (!box) return;
     if (ui.chipDrag) return;                       // während ein Wort-Chip gezogen wird, nicht neu zeichnen
-    const sig = (src ? src.id + '|' + src.tok.length + '|' + ver : 'none') + '|' + !!ui.sort + '|' + canUndo() + canRedo() + '|' + rec.busy + '|' + rec.msg + '|' + Math.round((rec.p || 0) * 50) + '|' + ui.sel + '|' + ui.tapping + '|' + ui.lineFrom + '|' + ui.snap;
+    const sig = (src ? src.id + '|' + src.tok.length + '|' + ver : 'none') + '|' + (loopP && loopP.part ? loopP.part.i + ':' + loopP.rate : '-') + '|' + !!ui.sort + '|' + canUndo() + canRedo() + '|' + rec.busy + '|' + rec.msg + '|' + Math.round((rec.p || 0) * 50) + '|' + ui.sel + '|' + ui.tapping + '|' + ui.lineFrom + '|' + ui.snap;
     if (sig === edSig) return; edSig = sig;
     if (!src) { box.innerHTML = '<p class="caption">Spiel einen Song aus dem Songwriting oder einen Loop aus einer geladenen Datei ab – dann erscheint hier sein Gesangstext.</p>'; return; }
     if (src.kind === 'none') { box.innerHTML = '<p class="caption">Diese Spur wurde ins Tempo des Loops gedehnt – dafür ist kein Gesangstext möglich. Lade die Datei ohne Anpassung.</p>'; return; }
@@ -14848,6 +14951,13 @@ const Sing = (() => {
       + '<label class="field sg-lang"><span>Sprache</span><select id="sgLang"><option value="de"' + (rec.lang === 'de' ? ' selected' : '') + '>Deutsch</option><option value="en"' + (rec.lang === 'en' ? ' selected' : '') + '>Englisch</option></select></label>'
       + '<span class="caption" id="sgAutoInfo">' + esc(rec.msg || 'Erkennt den gesungenen Text mit Zeitpunkten – danach nur noch ausbessern. Läuft komplett auf dem Gerät; beim ersten Mal werden etwa 100 MB geladen.') + '</span>'
       + (rec.busy ? '<div class="sg-prog"><i style="width:' + Math.round((rec.p || 0) * 100) + '%"></i></div>' : '') + '</div>';
+    if (src.kind === 'file') {
+      const ps = partsOf(src);
+      h += '<div class="sg-parts"><b>🏷 ' + T('Teile') + '</b>' + (ps.length ? ps.map((p, i) => '<span class="sg-pitem' + (loopP && loopP.part && loopP.part.i === i ? ' on' : '') + '"><span translate="no">' + esc(T(p.name)) + '</span><small>' + T('Takt ') + src.label(p.b) + '</small><button class="toggle-btn" data-pplay="' + i + '" title="' + T('Ab hier abspielen') + '">▶</button><button class="toggle-btn" data-ploop="' + i + '" title="' + T('Diesen Teil in Schleife') + '">⟲</button></span>').join('')
+        : '<span class="caption">' + T('Noch keine Teile – Takt antippen (breit), dann in der Leiste „🏷 Teil hier“.') + '</span>')
+        + '<label class="check"><input type="checkbox" id="sgTrainer"' + (ui.trainer ? ' checked' : '') + '> ' + T('Tempo-Trainer: ab') + ' <select id="sgTrStart">' + [0.5, 0.6, 0.7, 0.8].map(v => '<option value="' + v + '"' + (Math.abs(ui.trStart - v) < 0.001 ? ' selected' : '') + '>' + Math.round(v * 100) + ' %</option>').join('') + '</select> ' + T('alle 2 Durchgänge +5 % bis 100 %') + '</label>'
+        + (loopP && loopP.part ? '<button class="toggle-btn active" id="sgPStop">■ ' + T('Teil-Schleife') + ' · ' + Math.round(loopP.rate * 100) + ' %</button>' : '') + '</div>';
+    }
     if (src.kind === 'file') h += '<div class="sg-vox"><b>⇄ ' + T('Austausch') + '</b><button class="toggle-btn" id="sgLrcOut">' + T('LRC exportieren') + '</button><button class="toggle-btn" id="sgLrcIn">' + T('LRC laden') + '</button><button class="toggle-btn" id="sgLead">' + T('Leadsheet (PDF)') + '</button><input type="file" id="sgLrcFile" accept=".lrc,.txt,text/plain" hidden></div>';
     if (src.kind === 'file') { const v = vox[src.id];
       h += '<div class="sg-vox" id="sgVoxBox"><b>🎙 ' + T('Gesangsspur') + '</b> ' + (v ? '<span class="caption" translate="no">' + esc(v.name) + '</span><span class="caption"> · ' + T('wird für Stimmkurve, Einrasten und Erkennung benutzt') + (Math.abs(v.off) > v.sr * 0.002 ? ' · ' + T('Versatz ') + Math.round(v.off / v.sr * 1000) + ' ms' : '') + '</span><button class="toggle-btn" id="sgVoxDel">' + T('entfernen') + '</button>'
@@ -14898,6 +15008,8 @@ const Sing = (() => {
       if (d.on) { box._dragged = true; setTimeout(() => { box._dragged = false; }, 300); if (d.to != null && curSrc) moveWord(curSrc, d.i, d.to); edSig = ''; } };
     box.addEventListener('pointerup', endDrag); box.addEventListener('pointercancel', endDrag);
     box.addEventListener('change', async e => {
+      if (e.target.id === 'sgTrainer') { ui.trainer = e.target.checked; lsS('3nps-sing-trainer', ui.trainer ? '1' : '0'); return; }
+      if (e.target.id === 'sgTrStart') { ui.trStart = +e.target.value; lsS('3nps-sing-trstart', String(ui.trStart)); return; }
       if (e.target.id === 'sgLrcFile') { const f = e.target.files && e.target.files[0]; e.target.value = ''; const src = curSrc; if (f && src && src.kind === 'file') lrcImport(src, await f.text()); return; }
       if (e.target.id !== 'sgVoxFile') return; const f = e.target.files && e.target.files[0]; e.target.value = ''; const src = curSrc; if (!f || !src || src.kind !== 'file') return;
       status(T('Lade die Gesangsspur …'));
@@ -14911,6 +15023,9 @@ const Sing = (() => {
       if (b.id === 'sgAuto') { recognize(src); return; }
       if (b.id === 'sgVoxAdd') { $('sgVoxFile').click(); return; }
       if (b.id === 'sgLrcOut') { lrcExport(src); return; }
+      if (b.dataset.ploop != null) { startPartLoop(+b.dataset.ploop); return; }
+      if (b.dataset.pplay != null) { const r = partRange(src, +b.dataset.pplay); if (r) { stopLoop(); killP(wordP); if (typeof Looper !== 'undefined' && Looper.running && Looper.running() && Looper.pauseToggle) Looper.pauseToggle(); wordP = mkPlayer(src, r[0], f2b(b2f(r[0], src.beats) + 30 * src.sr, src.beats), false, ui.rate); } return; }
+      if (b.id === 'sgPStop') { stopLoop(); return; }
       if (b.id === 'sgLrcIn') { $('sgLrcFile').click(); return; }
       if (b.id === 'sgLead') { leadsheetPdf(src); return; }
       if (b.id === 'sgVoxDel') { if (confirm(T('Gesangsspur für dieses Lied entfernen?'))) dropVox(src); return; }
@@ -15050,7 +15165,7 @@ const Sing = (() => {
   // Übersetzung je Zeile (v63)
   function setTr(src, arr) { const rec = src.kind === 'lied' ? db.l[src.id] : db.f[src.id]; if (!rec) return false; rec.tr = arr; changed(); return true; }
   function getTr(src) { const rec = src && (src.kind === 'lied' ? db.l[src.id] : db.f[src.id]); return rec && rec.tr || []; }
-  return { recognize: () => recognize(curSrc), rec: () => Object.assign({}, rec), wordsToTok, tick, tap, tokenize, merge, f2b, b2f, endOf, lines, setTr, getTr, ver: () => ver, focus: k => focus(k), unfocus, prec: () => { const E = envOf(curSrc); return { env: E ? { n: E.e.length, on: E.on.slice(), onB: E.onB.slice() } : null, loop: !!loopP, rate: loopP ? loopP.rate : null, word: !!wordP, tap: tapS ? { n: tapS.n, of: tapS.idx.length } : null, mag: ui.mag, sel: ui.sel }; }, voiceEnv: () => voiceEnv(curSrc), placeB: r => placeB(r, curSrc), undo: () => undoRedo(-1), redo: () => undoRedo(1), vox: () => { const v = curSrc && vox[curSrc.id]; return v ? { name: v.name, off: v.off, sr: v.sr, n: v.l.length } : null; }, lrcText: () => curSrc ? lrcText(curSrc) : '', lrcImport: t => curSrc && lrcImport(curSrc, t), leadsheet: () => curSrc ? leadsheetOf(curSrc) : null, loopNow: () => loopP ? loopP.nowB() : (wordP ? wordP.nowB() : null), onTempo: () => onTempo(), addClicks, recheck: () => recheck(), toggleLock: () => toggleLock(), insertAfter: () => insertAfter(), spread, playFrom, source: ci => source(ci), data: () => db, _reload: () => { db = load(); changed(); }, ui: () => ui };
+  return { recognize: () => recognize(curSrc), rec: () => Object.assign({}, rec), wordsToTok, tick, tap, tokenize, merge, f2b, b2f, endOf, lines, setTr, getTr, ver: () => ver, focus: k => focus(k), unfocus, prec: () => { const E = envOf(curSrc); return { env: E ? { n: E.e.length, on: E.on.slice(), onB: E.onB.slice() } : null, loop: !!loopP, rate: loopP ? loopP.rate : null, word: !!wordP, tap: tapS ? { n: tapS.n, of: tapS.idx.length } : null, mag: ui.mag, sel: ui.sel }; }, voiceEnv: () => voiceEnv(curSrc), placeB: r => placeB(r, curSrc), undo: () => undoRedo(-1), redo: () => undoRedo(1), vox: () => { const v = curSrc && vox[curSrc.id]; return v ? { name: v.name, off: v.off, sr: v.sr, n: v.l.length } : null; }, lrcText: () => curSrc ? lrcText(curSrc) : '', lrcImport: t => curSrc && lrcImport(curSrc, t), leadsheet: () => curSrc ? leadsheetOf(curSrc) : null, parts: () => curSrc ? partsOf(curSrc) : [], addPart: n => addPart(n), partLoop: i => startPartLoop(i), trainerState: () => trainer ? Object.assign({}, trainer) : null, loopRate: () => loopP ? loopP.rate : null, loopNow: () => loopP ? loopP.nowB() : (wordP ? wordP.nowB() : null), onTempo: () => onTempo(), addClicks, recheck: () => recheck(), toggleLock: () => toggleLock(), insertAfter: () => insertAfter(), spread, playFrom, source: ci => source(ci), data: () => db, _reload: () => { db = load(); changed(); }, ui: () => ui };
 })();
 window.Sing = Sing;
 
