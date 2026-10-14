@@ -911,15 +911,15 @@ const Looper = (() => {
     if (!downs.length) return null;
     const barMed = (() => { if (downs.length < 2) return Math.round(beatRes.beatSec * 4 * sr); const d = []; for (let i = 1; i < downs.length; i++) d.push(downs[i] - downs[i - 1]); d.sort((a, b) => a - b); return d[d.length >> 1]; })();
     // Rasterende: letzte Eins + ein Takt, solange Audio vorhanden
-    const last = downs[downs.length - 1];
-    if (last + barMed <= data.length + barMed * 0.05) downs.push(Math.min(last + barMed, data.length));
-    // Ausklang: leise Takte am Ende abschneiden (unter 15 % der typischen Taktlautstärke)
-    const dm = monoOf(data);
-    const rmsBar = i => { let e = 0, c = 0; for (let j = downs[i]; j < downs[i + 1]; j += 16) { e += dm[j] * dm[j]; c++; } return Math.sqrt(e / Math.max(1, c)); };
-    const br = []; for (let i = 0; i < downs.length - 1; i++) br.push(rmsBar(i));
-    const medB = br.slice().sort((a, b) => a - b)[br.length >> 1] || 1e-9;
-    // Ausklang: der letzte Takt zählt nur, wenn er noch kräftig klingt (kein Nachhall / Schlussakkord)
-    while (downs.length > 2 && br[downs.length - 2] < medB * (downs.length - 2 === br.length - 1 ? 0.4 : 0.15)) { downs.pop(); br.pop(); }
+    // v75: Lieder komplett – Takte bis zum Dateiende anhängen (der letzte wird beim Laden mit Stille aufgefüllt),
+    // Ausklang und Schlussakkord bleiben erhalten
+    // Ende des hörbaren Audios: letzte 50-ms-Stelle über 2,5 % der typischen Taktlautstärke (Rauschen/Stille danach zählt nicht)
+    const dm = monoOf(data), win = Math.round(sr * 0.05), rms = (a, e) => { let q = 0, c = 0; for (let j = a; j < e; j += 8) { q += dm[j] * dm[j]; c++; } return Math.sqrt(q / Math.max(1, c)); };
+    const br = []; for (let i = 0; i + 1 < downs.length; i++) br.push(rms(downs[i], downs[i + 1]));
+    const med = br.length ? br.slice().sort((a, b) => a - b)[br.length >> 1] : rms(0, data.length);
+    let audEnd = data.length; while (audEnd > win && rms(audEnd - win, audEnd) < med * 0.025) audEnd -= win;
+    let last = downs[downs.length - 1];
+    while (last < audEnd - barMed * 0.08) { last += barMed; downs.push(last); }
     const bars = downs.length - 1;
     if (bars < 1) return null;
     const beats = (beatRes.beats || []).map(toS).filter(v => v >= 0 && v < data.length);
@@ -3020,7 +3020,7 @@ const Looper = (() => {
     singSrc: i => {
       const t = tracks[i]; if (!t || !t.L || !t.orig || t.origPos == null || !t.orig.beats || t.orig.beats.length < 4) return null;
       const o = t.orig, len = o.data ? (o.data.l || o.data).length : 0;
-      return { key: (o.name || 'Datei') + '|' + Math.round(len / sr * 10), name: o.name || 'Datei', origPos: t.origPos, beats: o.beats, downs: o.downs || [], sr, L: t.L,
+      return { key: (o.name || 'Datei') + '|' + Math.round(len / sr * 10), name: o.name || 'Datei', origPos: t.origPos, beats: o.beats, downs: o.downs || [], sr, L: t.L, len, bpm: o.bpm,
         pos: t.src && audioCtx ? mod(playFrame() - anchor, t.L) : null };
     },
     // Mitsingen-Übungsplayer (v63): Ausschnitt der Originaldatei (Bilder f0…f1) und Zeitdehnung ohne Tonhöhe – nur lesen/rechnen

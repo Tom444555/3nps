@@ -110,6 +110,9 @@ Everything you record or write is stored only on this device (back it up, see se
   “🔒 Line done” marks a finished line (green); it is never changed automatically again. “✓ Check the rest” learns
   from the finished lines (detection offset, where you place words on the syllable) and corrects all other words;
   “↶” undoes it. Sing along now shows the chords above the words.
+- v75: “♩ Metronome” clicks on every beat while you listen (loop, word, ▶ from here). Changing the tempo at the top while a
+  song file with lyrics is shown sets the file's grid to that tempo (words keep their place in the song; snapping,
+  metronome and “Check the rest” use the new grid; “↺ Detected grid” goes back). Song files now load to the very end.
 - Songs with lyrics (Looper, bottom; “Ideas” and “Songs with lyrics” fold open with ▸): saves the whole song file
   together with the edited lyrics, also via “💾 Save song” in Improvisation. “Load” puts it on the next free track with
   its lyrics; “Lyrics” shares the plain text as a file. Lyrics are also saved automatically with every change.

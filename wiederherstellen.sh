@@ -47,6 +47,7 @@ for lang in ['de','en']:
 P
 # v72: Testdatei mit Silben an bekannten Zeiten (für v72prec.py)
 python3 "$ZIEL/test/gen_silben.py" || true
+python3 "$ZIEL/test/gen_ausklang.py" || true
 # App bauen und Testserver starten
 python3 "$ZIEL/app/build.py"
 sh "$ZIEL/test/srv.sh"

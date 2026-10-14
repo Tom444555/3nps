@@ -53,6 +53,43 @@ const Sing = (() => {
     const i = Math.floor(b); return B[i] + (b - i) * (B[i + 1] - B[i]);
   }
 
+
+  // ---- v75: Raster nach dem Tempo oben ----
+  const gridCache = {};
+  // gleichmäßiges Raster: Schlag-Index 0 = erster erkannter Schlag (Indizes der gespeicherten Wörter bleiben vergleichbar),
+  // Takt 1 = erste erkannte Eins, Abstand aus dem eingestellten Tempo
+  function synGrid(g, s) {
+    const k = s.key + '|' + g.bpm + '|' + g.anchor + '|' + g.b0, c = gridCache[k]; if (c) return c;
+    const per = s.sr * 60 / g.bpm, n = Math.ceil(((s.len || s.beats[s.beats.length - 1]) - g.b0) / per) + 8, beats = [], downs = [];
+    for (let i = 0; i < n; i++) beats.push(g.b0 + i * per);
+    const off = Math.round((g.anchor - g.b0) / per); for (let i = off % 4; i < n; i += 4) downs.push(g.b0 + i * per);
+    return (gridCache[k] = { beats, downs });
+  }
+  // Tempo oben geändert (von Hand): Raster der laufenden Songdatei danach richten – Wörter behalten ihre Zeit im Lied
+  function onTempo() {
+    const src = lastSrc; if (!src || src.kind !== 'file' || typeof Looper === 'undefined' || !Looper.singSrc) return;
+    const s = Looper.singSrc(src.track); if (!s || s.key !== src.id) return;
+    const v = parseFloat(($('bpm') || {}).value); if (!(v > 20)) return;
+    let rec = db.f[s.key]; if (!rec) { rec = db.f[s.key] = { name: s.name, tok: [] }; }
+    const oldB = rec.grid ? synGrid(rec.grid, s).beats : s.beats;
+    const det = s.bpm || 0, same = det && Math.abs(v - det) < 0.05;
+    if (same && !rec.grid) return;
+    const ng = same ? null : { bpm: v, anchor: s.downs[0] || s.beats[0], b0: s.beats[0] };
+    const newB = ng ? synGrid(ng, s).beats : s.beats;
+    const conv = b => b == null ? b : Math.round(f2b(b2f(b, oldB), newB) * 1000) / 1000;
+    rec.tok.forEach(t => { t.b = conv(t.b); if (t.a != null) t.a = conv(t.a); });
+    if (ng) rec.grid = ng; else delete rec.grid;
+    const E = envs[s.key]; if (E && E.ready) E.onB = E.on.map(x => f2b(x * E.sr, newB));
+    changed(); focusSig = '*'; laneSig = '';
+    status(ng ? T('Raster jetzt ') + v + T(' BPM (Tempo oben) – Wörter bleiben an ihrer Stelle im Lied.') : T('Wieder das erkannte Raster.'));
+  }
+  function resetGrid() { const src = lastSrc; if (!src || src.kind !== 'file') return; const s = Looper.singSrc(src.track); if (!s || !s.bpm) return; const el = $('bpm'); el.value = s.bpm; el.dispatchEvent(new Event('input', { bubbles: true })); onTempo(); }
+  setTimeout(() => {
+    const el = $('bpm'); if (!el) return; let t = null;
+    const user = () => { clearTimeout(t); t = setTimeout(onTempo, 400); };
+    el.addEventListener('input', e => { if (e.isTrusted) user(); });
+    document.addEventListener('bpmuser', user);
+  }, 0);
   // ---- Aktuelle Quelle (passend zur Akkordleiste der Improvisation) ----
   // Liefert: { kind, id, title, tok, editable, toCi(b) → Bild in ci, fromCi(f) → Schlag, nowB, label(b) }
   function source(ci) {
@@ -69,11 +106,13 @@ const Sing = (() => {
     if (ci.track >= 0 && typeof Looper !== 'undefined' && Looper.singSrc) {
       const s = Looper.singSrc(ci.track); if (!s) return { kind: 'none', why: 'stretch' };
       const rec = db.f[s.key] || null;
+      // v75: eigenes Raster nach dem Tempo oben (gleichmäßig ab Takt 1), sonst das erkannte
+      if (rec && rec.grid) { const g = synGrid(rec.grid, s); s.beats = g.beats; s.downs = g.downs; }
       const toCi = b => { const f = b2f(b, s.beats); return f == null ? null : f - s.origPos; };
       const fromCi = f => f2b(f + s.origPos, s.beats);
       const label = b => { const f = b2f(b, s.beats), D = s.downs; let i = 0; while (i + 1 < D.length && D[i + 1] <= f + 2) i++; const bb = f2b(D[i] || 0, s.beats); return (i + 1) + '.' + (Math.floor(b - bb + 1e-6) + 1); };
       return { kind: 'file', id: s.key, rec, name: s.name, title: 'Datei „' + s.name + '“', tok: rec ? rec.tok : [], editable: true, toCi, fromCi,
-        nowB: s.pos != null ? fromCi(s.pos) : null, label, L: s.L, track: ci.track, beats: s.beats, sr: s.sr, origPos: s.origPos,
+        nowB: s.pos != null ? fromCi(s.pos) : null, label, L: s.L, track: ci.track, beats: s.beats, downs: s.downs, sr: s.sr, origPos: s.origPos, grid: rec && rec.grid || null, bpmDet: s.bpm, len: s.len,
         beatMs: b => (b2f(b + 1, s.beats) - b2f(b, s.beats)) / s.sr * 1000 };
     }
     return null;
@@ -108,10 +147,13 @@ const Sing = (() => {
       let h = '';
       if (!has) h += '<div class="sg-hint">' + esc(srcL.editable ? T('Gesangstext: freie Stelle antippen = Wort einfügen · oder „🎤 Gesangstext“ → erkennen / einfügen / einklopfen') : T('Gesangstext: „🎤 Gesangstext“ → einklopfen')) + '</div>';
       // Raster wie in der Akkordleiste: Takte (kräftig, mit Nummer), Schläge, 16tel (fein) – zum genauen Einrasten
-      const downs = ci.downs || [], pts = downs.concat(ci.beats || []).filter(x => x >= 0 && x < ci.L).sort((x, y) => x - y);
+      // v75: eigenes Raster (Tempo oben) → Linien aus dem Raster der Datei, sonst wie die Akkordleiste
+      const gB = srcL.grid ? srcL.beats.map(f => f - srcL.origPos).filter(x => x >= 0 && x < ci.L) : null;
+      const downs = srcL.grid ? srcL.downs.map(f => f - srcL.origPos).filter(x => x >= 0 && x < ci.L) : ci.downs || [];
+      const ciBeats = gB || ci.beats || [], pts = downs.concat(ciBeats).filter(x => x >= 0 && x < ci.L).sort((x, y) => x - y).filter((x, i, a) => !i || x - a[i - 1] > 2);
       downs.forEach((d, i) => { const e = i + 1 < downs.length ? downs[i + 1] : ci.L; if (i % 2) h += '<div class="sg-barbg" style="left:' + px(d).toFixed(1) + 'px;width:' + px(e - d).toFixed(1) + 'px"></div>'; });
       pts.forEach((x, i) => { const nx = i + 1 < pts.length ? pts[i + 1] : ci.L; for (let k = 1; k < 4; k++) h += '<div class="sg-g16" style="left:' + px(x + (nx - x) * k / 4).toFixed(1) + 'px"></div>'; });
-      (ci.beats || []).forEach(x => { h += '<div class="sg-gbeat" style="left:' + px(x).toFixed(1) + 'px"></div>'; });
+      ciBeats.forEach(x => { h += '<div class="sg-gbeat" style="left:' + px(x).toFixed(1) + 'px"></div>'; });
       downs.forEach((d, i) => { h += '<div class="sg-gbar" style="left:' + px(d).toFixed(1) + 'px"><span>' + (i + 1) + '</span></div>'; });
       // Wörter: alle auf einer Ebene; Breite = Zeit bis zum nächsten Wort (langes Wort wird gekürzt, ausgewählt/aktuell ganz sichtbar)
       srcL.tok.forEach((t, i) => {
@@ -166,7 +208,7 @@ const Sing = (() => {
     const box = $('sgFocus'); if (!box) return;
     let k = fBar();
     if (k != null && (!src || src.kind === 'none' || src.id !== focusSrc)) { unfocus(); k = null; }
-    const sig = k == null ? '' : k + '|' + ((ci && ci.downs) || []).length + '|' + ver + '|' + ui.sel + '|' + ui.mag + '|' + ui.rate + '|' + !!loopP + '|' + (tapS ? tapS.n : -1) + '|' + !!(src && envOf(src)) + '|' + !!undoTok;
+    const sig = k == null ? '' : k + '|' + ((ci && ci.downs) || []).length + '|' + ver + '|' + ui.sel + '|' + ui.mag + '|' + ui.rate + '|' + !!loopP + '|' + (tapS ? tapS.n : -1) + '|' + !!(src && envOf(src)) + '|' + !!undoTok + '|' + ui.click + '|' + (src && src.grid ? src.grid.bpm : 0);
     if (sig === focusSig) return; focusSig = sig;
     box.hidden = k == null; if (k == null) return;
     $('sgFLbl').textContent = T('Takt ') + (k + 1);
@@ -181,6 +223,8 @@ const Sing = (() => {
     $('sgFLoop').classList.toggle('active', !!loopP); $('sgFLoop').textContent = loopP ? T('■ Schleife') : T('⟲ Schleife');
     $('sgFAlign').disabled = !E; $('sgFNudgeL').disabled = $('sgFNudgeR').disabled = !(ui.sel >= 0 && src.tok[ui.sel] && src.tok[ui.sel].b != null);
     $('sgFTapStart').classList.toggle('active', !!tapS); $('sgFTapStart').textContent = tapS ? T('✕ Einklopfen abbrechen') : T('● Takt einklopfen');
+    $('sgFClick').classList.toggle('active', ui.click); $('sgFClick').setAttribute('aria-pressed', ui.click ? 'true' : 'false');
+    { const gl = $('sgFGridL'), gb = $('sgFGrid'); if (gl) { gl.textContent = file ? (src.grid ? T('Raster: ') + src.grid.bpm + T(' BPM (Tempo oben)') : T('Raster: erkannt') + (src.bpmDet ? ' (' + (Math.round(src.bpmDet * 10) / 10) + ' BPM)' : '')) : ''; gb.hidden = !(file && src.grid); } }
     { const r = Math.round(ui.rate * 100); $('sgFRateV').textContent = r + ' %'; $('sgFRateDn').disabled = r <= 40; $('sgFRateUp').disabled = r >= 100; }
     { const hs = ui.sel >= 0 && src.tok[ui.sel]; $('sgFIns').disabled = !(hs && src.editable && src.tok[ui.sel].b != null); $('sgFLock').disabled = !hs;
       $('sgFLock').textContent = hs && lineLocked(src.tok, src.tok[ui.sel].l) ? T('🔓 Zeile freigeben') : T('🔒 Zeile fertig');
@@ -193,6 +237,10 @@ const Sing = (() => {
   function playFrom() {
     const src = curSrc, k = fBar(), ci = window.SoloInfo ? SoloInfo() : null; if (!src || k == null || !ci) return;
     stopLoop(); killP(wordP); wordP = null;
+    if (src.kind === 'file' && (ui.click || ui.rate !== 1)) {
+      if (typeof Looper !== 'undefined' && Looper.running && Looper.running() && Looper.pauseToggle) Looper.pauseToggle();
+      const [a] = barRange(src, ci, Math.max(0, k - 1)), fa = b2f(a, src.beats); wordP = mkPlayer(src, a, f2b(fa + 30 * src.sr, src.beats), false, ui.rate); focusSig = '*'; return;
+    }
     if (src.kind === 'file' && typeof Looper !== 'undefined' && Looper.seek) { const D = ci.downs || []; Looper.seek(src.track, D[Math.max(0, k - 1)] || 0); return; }
     if (src.kind === 'lied' && window.Lied && Lied.play && Lied.now) { const n = Lied.now(); if (n) Lied.play(Lied.ver(), { from: n.oi, count: 1, label: src.title }); }
   }
@@ -227,6 +275,8 @@ const Sing = (() => {
       else if (b.id === 'sgFSpread') spread();
       else if (b.dataset.m) { ui.mag = b.dataset.m; lsS('3nps-sing-mag', ui.mag); focusSig = '*'; }
       else if (b.dataset.r) setRate(+b.dataset.r);
+      else if (b.id === 'sgFClick') { ui.click = !ui.click; lsS('3nps-sing-click', ui.click ? '1' : '0'); focusSig = '*'; if (loopP) { const t = tapS; startLoop(); tapS = t; } }
+      else if (b.id === 'sgFGrid') resetGrid();
       else if (b.id === 'sgFRateDn') setRate(ui.rate - 0.01);
       else if (b.id === 'sgFRateUp') setRate(ui.rate + 0.01);
       else if (b.id === 'sgFIns') insertAfter();
@@ -247,7 +297,7 @@ const Sing = (() => {
   const lsG = (k, d) => { try { const v = localStorage.getItem(k); return v == null ? d : v; } catch (e) { return d; } };
   const lsS = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
   ui.mag = lsG('3nps-sing-mag', 'voice'); if (!['grid', 'voice', 'free'].includes(ui.mag)) ui.mag = 'voice';
-  ui.rate = +lsG('3nps-sing-rate', '1'); if (!(ui.rate >= 0.4 && ui.rate <= 1)) ui.rate = 1;
+  ui.click = lsG('3nps-sing-click', '0') === '1'; ui.rate = +lsG('3nps-sing-rate', '1'); if (!(ui.rate >= 0.4 && ui.rate <= 1)) ui.rate = 1;
   // Stimmkurve: Lautstärke im Stimmbereich (250–3500 Hz) alle 10 ms + Silbenanfänge, je Datei einmal berechnet
   const envs = {};
   function biq(type, f, sr) {
@@ -319,6 +369,7 @@ const Sing = (() => {
     const f0 = b2f(b0, src.beats), f1 = b2f(b1, src.beats); if (f0 == null || f1 == null) return null;
     const x = Looper.singAudio(src.track, Math.max(0, f0), f1); if (!x) return null;
     const y = rate === 1 ? x : Looper.stretchAudio(x, Math.round(x.length / rate));
+    if (ui.click) addClicks(y, src, b0, b1, Math.max(0, f0), rate, x.sr);
     if (typeof ensureAudio === 'function') ensureAudio();
     const ctx = audioCtx, buf = ctx.createBuffer(2, y.length, x.sr); buf.copyToChannel(y.l, 0); buf.copyToChannel(y.r || y.l, 1);
     const node = ctx.createBufferSource(), g = ctx.createGain(); node.buffer = buf; node.loop = loop;
@@ -326,6 +377,17 @@ const Sing = (() => {
     const t0 = ctx.currentTime + 0.05, len = y.length, sr = x.sr, fs = Math.max(0, f0); node.start(t0);
     return { node, g, id: src.id, b0, b1, rate,
       nowB: () => { const el = ctx.currentTime - t0 - (ctx.outputLatency || 0); if (el < 0) return b0; const pf = loop ? (el * sr) % len : Math.min(len, el * sr); return f2b(fs + pf * rate, src.beats); } };
+  }
+
+  // v75: Metronom – Klicks auf jeden Schlag des Rasters direkt in den Ausschnitt mischen (Eins höher und lauter)
+  function addClicks(y, src, b0, b1, fs, rate, sr) {
+    const n = Math.round(sr * 0.03), D = src.downs || [], chans = y.r && y.r !== y.l ? [y.l, y.r] : [y.l];
+    for (let k = Math.ceil(b0 - 1e-6); k <= Math.floor(b1 + 1e-6); k++) {
+      const fk = b2f(k, src.beats); if (fk == null) continue;
+      const p0 = Math.round((fk - fs) / rate); if (p0 < 0 || p0 >= y.length) continue;
+      const down = D.some(d => Math.abs(d - fk) < sr * 0.02), f = down ? 2400 : 1600, g = down ? 0.7 : 0.45;
+      for (let i = 0; i < n && p0 + i < y.length; i++) { const v = Math.sin(2 * Math.PI * f * i / sr) * Math.exp(-i / (sr * 0.006)) * g; chans.forEach(c => { c[p0 + i] += v; }); }
+    }
   }
   const killP = p => { if (p) try { p.node.stop(); p.node.disconnect(); p.g.disconnect(); } catch (e) {} };
   function stopLoop() { killP(loopP); loopP = null; tapS = null; focusSig = '*'; }
@@ -765,6 +827,6 @@ const Sing = (() => {
   // Übersetzung je Zeile (v63)
   function setTr(src, arr) { const rec = src.kind === 'lied' ? db.l[src.id] : db.f[src.id]; if (!rec) return false; rec.tr = arr; changed(); return true; }
   function getTr(src) { const rec = src && (src.kind === 'lied' ? db.l[src.id] : db.f[src.id]); return rec && rec.tr || []; }
-  return { recognize: () => recognize(curSrc), rec: () => Object.assign({}, rec), wordsToTok, tick, tap, tokenize, merge, f2b, b2f, endOf, lines, setTr, getTr, ver: () => ver, focus: k => focus(k), unfocus, prec: () => { const E = envOf(curSrc); return { env: E ? { n: E.e.length, on: E.on.slice(), onB: E.onB.slice() } : null, loop: !!loopP, rate: loopP ? loopP.rate : null, word: !!wordP, tap: tapS ? { n: tapS.n, of: tapS.idx.length } : null, mag: ui.mag, sel: ui.sel }; }, voiceEnv: () => voiceEnv(curSrc), placeB: r => placeB(r, curSrc), loopNow: () => loopP ? loopP.nowB() : null, recheck: () => recheck(), toggleLock: () => toggleLock(), insertAfter: () => insertAfter(), spread, playFrom, source: ci => source(ci), data: () => db, _reload: () => { db = load(); changed(); }, ui: () => ui };
+  return { recognize: () => recognize(curSrc), rec: () => Object.assign({}, rec), wordsToTok, tick, tap, tokenize, merge, f2b, b2f, endOf, lines, setTr, getTr, ver: () => ver, focus: k => focus(k), unfocus, prec: () => { const E = envOf(curSrc); return { env: E ? { n: E.e.length, on: E.on.slice(), onB: E.onB.slice() } : null, loop: !!loopP, rate: loopP ? loopP.rate : null, word: !!wordP, tap: tapS ? { n: tapS.n, of: tapS.idx.length } : null, mag: ui.mag, sel: ui.sel }; }, voiceEnv: () => voiceEnv(curSrc), placeB: r => placeB(r, curSrc), loopNow: () => loopP ? loopP.nowB() : (wordP ? wordP.nowB() : null), onTempo: () => onTempo(), addClicks, recheck: () => recheck(), toggleLock: () => toggleLock(), insertAfter: () => insertAfter(), spread, playFrom, source: ci => source(ci), data: () => db, _reload: () => { db = load(); changed(); }, ui: () => ui };
 })();
 window.Sing = Sing;

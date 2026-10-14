@@ -200,7 +200,7 @@ const AppCfg = (() => {
 /* v74: Tempo in 1er-Schritten (− / +), gedrückt halten wiederholt */
 (function () {
   const r = document.getElementById('bpm'); if (!r) return;
-  const step = d => { const v = Math.max(+r.min || 40, Math.min(+r.max || 200, Math.round(+r.value) + d)); if (v === +r.value) return; r.value = v; r.dispatchEvent(new Event('input', { bubbles: true })); r.dispatchEvent(new Event('change', { bubbles: true })); };
+  const step = d => { const v = Math.max(+r.min || 40, Math.min(+r.max || 200, Math.round(+r.value) + d)); if (v === +r.value) return; r.value = v; r.dispatchEvent(new Event('input', { bubbles: true })); r.dispatchEvent(new Event('change', { bubbles: true })); document.dispatchEvent(new Event('bpmuser')); };
   [['bpmDn', -1], ['bpmUp', 1]].forEach(([id, d]) => {
     const b = document.getElementById(id); if (!b) return; let t = null, iv = null;
     const stop = () => { clearTimeout(t); clearInterval(iv); t = iv = null; };
