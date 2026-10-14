@@ -713,3 +713,12 @@ Gut zu wissen
      Triolen-Stellen so stark wie die Schläge, ist das Raster zu langsam – dann gewinnt das schnellere Tempo.
    - Auch ein hörbares Intro vor Takt 1 bleibt jetzt beim Laden erhalten (der erste Takt wird vorn mit Stille
      aufgefüllt). Reine Stille am Anfang und Ende wird weiterhin weggelassen.
+
+64. Wörter umsortieren, übereinanderliegende Wörter sichtbar (v79)
+   - Spur oben und Wortliste unten (Karte „🎤 Gesangstext“) zeigen dieselben Daten – jede Änderung erscheint sofort
+     in beiden.
+   - Wortliste: „↕ Wörter umsortieren“ einschalten, dann ein Wort ziehen und auf ein anderes fallen lassen – es nimmt
+     dessen Platz ein, die anderen rücken nach. Die Zeiten (Takt.Schlag) bleiben, wo sie sind; nur die Wörter
+     wandern – auch in eine andere Zeile. Für ein ausgewähltes Wort gibt es außerdem „⇠ tauschen“ / „tauschen ⇢“.
+   - Spur: Liegen mehrere Wörter (fast) auf derselben Stelle, stehen sie jetzt leicht versetzt mit orangem Rand,
+     und am ersten steht „+2“ (Anzahl der verdeckten). Antippen macht den Takt breit; „⇹ verteilen“ zieht sie auseinander.
