@@ -3047,7 +3047,7 @@ Object.assign(window.__EN, { 'Das geht mit einer in dieser Sitzung geladenen Son
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v77</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v78</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -6120,11 +6120,14 @@ function beatAnalyse(x, sr, opts) {
     const offRatio = s.m.off8 / Math.max(1e-6, s.m.on);
     const offPen = offRatio > 0.8 ? Math.pow(0.8 / offRatio, 2) : 1;
     const alt3Pen = s.m.alt3 > 1.4 ? Math.pow(1.4 / s.m.alt3, 2) : 1;
+    // v78: Triolen-Stellen so stark wie die Schläge → das Raster ist zu langsam (3 : 2-Verwechslung, z. B. 90 statt 135)
+    const off3Ratio = s.m.off3 / Math.max(1e-6, s.m.on), off3Pen = opts.off3Pen === false ? 1 : off3Ratio > 0.8 ? Math.pow(0.8 / off3Ratio, 2) : 1;
     const sub = Math.max(0.25 * s.m.off8 + 0.1 * s.m.off16, 0.3 * s.m.off3);     // gerade oder triolische Unterteilung bestätigt
     const contrast = s.m.on + sub;
-    s.score = Math.max(0, contrast) * altPen * alt3Pen * offPen * s.prior;
+    s.score = Math.max(0, contrast) * altPen * alt3Pen * offPen * off3Pen * s.prior;
   });
   scored.sort((a, b) => b.score - a.score);
+  if (opts.debug) console.log('  Kandidaten ' + JSON.stringify(scored.slice(0, 8).map(s => ({ bpm: +s.bpm.toFixed(1), sc: +s.score.toFixed(3), on: +s.m.on.toFixed(2), o8: +s.m.off8.toFixed(2), o16: +s.m.off16.toFixed(2), o3: +s.m.off3.toFixed(2), alt: +s.m.alt.toFixed(2), alt3: +s.m.alt3.toFixed(2), pr: +s.prior.toFixed(2) }))));
   let chosen = scored[0];
   // Oktav-Prüfung über die Rollen von Bass (Kick) und Höhen (Snare/Hi-Hat):
   //  doppeltes Tempo  → Bass und Höhen wechseln gemeinsam zwischen geraden/ungeraden Schlägen
@@ -9461,6 +9464,9 @@ const Looper = (() => {
     let audEnd = data.length; while (audEnd > win && rms(audEnd - win, audEnd) < med * 0.025) audEnd -= win;
     let last = downs[downs.length - 1];
     while (last < audEnd - barMed * 0.08) { last += barMed; downs.push(last); }
+    // v78: hörbares Intro vor Takt 1 ebenfalls behalten – Takte davor anhängen (der erste wird vorn mit Stille aufgefüllt)
+    let audStart = 0; while (audStart + win < downs[0] && rms(audStart, audStart + win) < med * 0.025) audStart += win;
+    while (downs[0] > audStart + barMed * 0.08) downs.unshift(downs[0] - barMed);
     const bars = downs.length - 1;
     if (bars < 1) return null;
     const beats = (beatRes.beats || []).map(toS).filter(v => v >= 0 && v < data.length);
@@ -9473,8 +9479,9 @@ const Looper = (() => {
     const o = t.orig, os = others(t);
     from = Math.max(1, Math.min(from, o.bars)); nb = Math.max(1, Math.min(nb, o.bars - from + 1));
     const start = o.downs[from - 1], end = o.downs[from - 1 + nb];
-    const Ldet = Math.max(1, end - start), pre = Math.min(start, Math.round(sr * 0.01));
-    let seg = smap(o.data, a => { const g = new Float32Array(Ldet); g.set(a.subarray(start, Math.min(a.length, start + Ldet - pre)), 0); if (pre) g.set(a.subarray(start - pre, start), Ldet - pre); return g; });
+    const Ldet = Math.max(1, end - start), pre = Math.max(0, Math.min(start, Math.round(sr * 0.01)));
+    // Anfang darf vor dem Dateianfang liegen (Intro-Takt) – dann vorn Stille
+    let seg = smap(o.data, a => { const g = new Float32Array(Ldet), s0 = Math.max(0, start), e0 = Math.min(a.length, start + Ldet - pre); if (e0 > s0) g.set(a.subarray(s0, e0), s0 - start); if (pre) g.set(a.subarray(start - pre, start), Ldet - pre); return g; });
     const exactBpm = 240 * nb / (Ldet / sr);
     const what = nb + ' Takt' + (nb === 1 ? '' : 'e') + (from > 1 ? ' ab Takt ' + from : ' ab Schlag 1') + (from === 1 && nb === o.bars ? (o.loopFile ? ' (Loop-Datei)' : ' (ganze Datei)') : '');
     let L, msg;
