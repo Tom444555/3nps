@@ -692,3 +692,7 @@ Gut zu wissen
      Anzeige „Raster: 73 BPM (Tempo oben)“, „↺ erkanntes Raster“ geht zurück.
    - Songdateien werden jetzt bis zum Schluss geladen – der hörbare Ausklang bleibt, der letzte Takt wird
      mit Stille aufgefüllt. (Grenze weiterhin 6 Minuten je Datei, wegen des Speichers auf dem iPad.)
+
+61. Metronom im Editor (v76)
+   - Im Bearbeiten-Fenster (✂) neben „⇔ Loop verschieben“: „♩ Metronom“ an/aus. Solange die Spur läuft, klickt es
+     auf jeden Schlag ihres Rasters (die Eins höher). Beim Verschieben hörst du sofort, ob der Loop auf dem Takt liegt.
