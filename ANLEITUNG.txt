@@ -682,3 +682,13 @@ Gut zu wissen
      Wörter zur Silbe legst, und korrigiert damit alle anderen Wörter (fertige Zeilen bleiben, wie sie sind).
      „↶“ nimmt die Nachprüfung zurück. Am besten wirkt es bei Texten aus der automatischen Erkennung.
    - Mitsingen: Die Akkorde stehen jetzt über den Wörtern – beim ersten Wort der Zeile und bei jedem Wechsel.
+
+60. Metronom beim Bearbeiten, Raster nach dem Tempo, Lieder komplett (v75)
+   - „♩ Metronom“ (Leiste unter dem breiten Takt): klickt beim Anhören auf jeden Schlag – in der Schleife,
+     beim Wort-Anhören und bei „▶ ab hier“ (dann 30 s, auch langsamer). Die Eins klickt höher.
+   - Tempo oben ändern (Regler oder − / +), während eine Songdatei mit Text in der Improvisation liegt:
+     Das Raster der Datei richtet sich nach diesem Tempo (gleichmäßig ab Takt 1). Die Wörter bleiben an ihrer
+     Stelle im Lied, aber Einrasten, Metronom, Takt-Anzeige und „Rest nachprüfen“ nutzen das neue Raster.
+     Anzeige „Raster: 73 BPM (Tempo oben)“, „↺ erkanntes Raster“ geht zurück.
+   - Songdateien werden jetzt bis zum Schluss geladen – der hörbare Ausklang bleibt, der letzte Takt wird
+     mit Stille aufgefüllt. (Grenze weiterhin 6 Minuten je Datei, wegen des Speichers auf dem iPad.)
