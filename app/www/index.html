@@ -646,6 +646,8 @@ html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleis
   .imp-bpm input, .ed-rebpm input { width: 5.5em; font: 600 .95rem var(--f-mono); color: var(--ink); background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: 4px 6px; }
   .imp-bpm .toggle-btn { padding: 3px 8px; font-size: .8rem; }
   .ed-rebpm { display: inline-flex; align-items: center; gap: 6px; font: .85rem var(--f-body); color: var(--muted); }
+  .ls-vers { flex: 1 1 100%; display: flex; flex-direction: column; gap: 4px; padding: 6px 0 2px 10px; border-left: 2px solid var(--line-soft); }
+  .ls-ver { display: flex; align-items: center; justify-content: space-between; gap: 8px; font: .8rem var(--f-body); color: var(--muted); }
   /* ---- Quintenzirkel ---- */
   .qz-card { flex-direction: row; flex-wrap: wrap; align-items: flex-start; gap: 18px; }
   .qz-wrap { flex: 1 1 380px; max-width: 560px; margin: 0 auto; }
@@ -2954,6 +2956,9 @@ Object.assign(window.__EN, { '↕ Wörter umsortieren': '↕ Reorder words', 'Wo
   '⇠ tauschen': '⇠ swap', 'tauschen ⇢': 'swap ⇢', 'Mit dem Wort davor tauschen': 'Swap with the previous word', 'Mit dem Wort danach tauschen': 'Swap with the next word',
   'Hier liegen mehrere Wörter übereinander – antippen zum Auseinanderziehen': 'Several words lie on top of each other here – tap to spread them',
   'Mehrere Wörter auf einer Stelle – „⇹ verteilen“ zieht sie auseinander, oder einzeln antippen und ziehen.': 'Several words on one spot – “⇹ Spread” pulls them apart, or tap and drag them one by one.' });
+Object.assign(window.__EN, { 'Rückgängig gemacht.': 'Undone.', 'Wiederhergestellt.': 'Redone.', 'Rückgängig': 'Undo', 'Wiederholen': 'Redo', 'Rückgängig (⌘Z)': 'Undo (⌘Z)', 'Wiederholen (⇧⌘Z)': 'Redo (⇧⌘Z)',
+  'Versionen': 'Versions', 'zurückholen': 'restore', 'Version wiederhergestellt: „': 'Version restored: “',
+  'Den Text dieser Version wiederherstellen? Der jetzige Stand wird als Version behalten.': 'Restore the lyrics of this version? The current state is kept as a version.' });
 
 // Sprache (v59): Deutsch ist der Quelltext. Nur im EN-Modus läuft hier etwas:
 // Ein Beobachter übersetzt neue/geänderte Texte im DOM (Text, title, placeholder, aria-label)
@@ -3059,7 +3064,7 @@ Object.assign(window.__EN, { '↕ Wörter umsortieren': '↕ Reorder words', 'Wo
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v79</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v80</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -3735,7 +3740,7 @@ Object.assign(window.__EN, { '↕ Wörter umsortieren': '↕ Reorder words', 'Wo
       <div class="sf-band" id="sfBand"><div class="sf-strip" id="sfStrip"></div></div>
       <div class="sg-band" id="sgBand" hidden><div class="sg-strip" id="sgStrip"></div></div>
       <div class="sg-focus" id="sgFocus" hidden>
-        <div class="sg-frow"><b id="sgFLbl">Takt 1</b><button class="toggle-btn" id="sgFPrev" title="Takt davor">‹ Takt</button><button class="toggle-btn" id="sgFNext" title="Nächster Takt">Takt ›</button><button class="toggle-btn" id="sgFPlay" title="Spielt ab einem Takt vor dieser Stelle">▶ ab hier</button><button class="toggle-btn sg-fileonly" id="sgFClick" aria-pressed="false" title="Klick auf jeden Schlag beim Anhören (Schleife, Wort, ▶ ab hier)">♩ Metronom</button><button class="toggle-btn sg-fileonly" id="sgFLoop" title="Diesen Takt immer wieder spielen (ein Schlag Anlauf)">⟲ Schleife</button><div class="seg sg-fileonly" id="sgFRate" role="group" aria-label="Tempo"><button class="toggle-btn" data-r="1">100 %</button><button class="toggle-btn" data-r="0.75">75 %</button><button class="toggle-btn" data-r="0.5">50 %</button></div><span class="sg-rate sg-fileonly"><button class="toggle-btn" id="sgFRateDn" title="1 % langsamer">−</button><b id="sgFRateV">100 %</b><button class="toggle-btn" id="sgFRateUp" title="1 % schneller">+</button></span><button class="toggle-btn" id="sgFStop" title="Anhalten">■</button><button class="toggle-btn sg-fdone" id="sgFDone" title="Bearbeiten beenden, wieder alle Takte">✓ Fertig</button></div>
+        <div class="sg-frow"><b id="sgFLbl">Takt 1</b><button class="toggle-btn" id="sgFUndoE" title="Rückgängig (⌘Z)">↶</button><button class="toggle-btn" id="sgFRedoE" title="Wiederholen (⇧⌘Z)">↷</button><button class="toggle-btn" id="sgFPrev" title="Takt davor">‹ Takt</button><button class="toggle-btn" id="sgFNext" title="Nächster Takt">Takt ›</button><button class="toggle-btn" id="sgFPlay" title="Spielt ab einem Takt vor dieser Stelle">▶ ab hier</button><button class="toggle-btn sg-fileonly" id="sgFClick" aria-pressed="false" title="Klick auf jeden Schlag beim Anhören (Schleife, Wort, ▶ ab hier)">♩ Metronom</button><button class="toggle-btn sg-fileonly" id="sgFLoop" title="Diesen Takt immer wieder spielen (ein Schlag Anlauf)">⟲ Schleife</button><div class="seg sg-fileonly" id="sgFRate" role="group" aria-label="Tempo"><button class="toggle-btn" data-r="1">100 %</button><button class="toggle-btn" data-r="0.75">75 %</button><button class="toggle-btn" data-r="0.5">50 %</button></div><span class="sg-rate sg-fileonly"><button class="toggle-btn" id="sgFRateDn" title="1 % langsamer">−</button><b id="sgFRateV">100 %</b><button class="toggle-btn" id="sgFRateUp" title="1 % schneller">+</button></span><button class="toggle-btn" id="sgFStop" title="Anhalten">■</button><button class="toggle-btn sg-fdone" id="sgFDone" title="Bearbeiten beenden, wieder alle Takte">✓ Fertig</button></div>
         <div class="sg-frow"><span class="sg-flab">Einrasten</span><div class="seg" id="sgFMag" role="group" aria-label="Einrasten"><button class="toggle-btn" data-m="grid" title="Auf 16tel einrasten">Raster</button><button class="toggle-btn sg-fileonly" data-m="voice" title="Am nächsten Silbenanfang der Stimme einrasten">♪ Stimme</button><button class="toggle-btn" data-m="free" title="Ohne Einrasten">frei</button></div><button class="toggle-btn" id="sgFNudgeL" title="Ausgewähltes Wort 10 ms früher">◀ 10 ms</button><button class="toggle-btn" id="sgFNudgeR" title="Ausgewähltes Wort 10 ms später">10 ms ▶</button><button class="toggle-btn sg-fileonly" id="sgFAlign" title="Wörter dieses Taktes an die nächsten Silbenanfänge legen">♪ an Stimme</button><button class="toggle-btn" id="sgFSpread" title="Wörter in diesem Takt gleichmäßig verteilen (auf 16tel)">⇹ verteilen</button><button class="toggle-btn" id="sgFIns" title="Neues Wort zwischen dem ausgewählten und dem nächsten einfügen">＋ Wort danach</button><button class="toggle-btn sg-fileonly" id="sgFTapStart" title="Takt läuft in Schleife, du tippst bei jedem Wort">● Takt einklopfen</button></div>
         <div class="sg-frow sg-fileonly"><span class="sg-flab">Vorlage</span><button class="toggle-btn" id="sgFLock" title="Zeile des ausgewählten Wortes als fertig markieren – sie bleibt, wie sie ist, und dient als Vorlage">🔒 Zeile fertig</button><button class="toggle-btn" id="sgFCheck" title="Aus den fertigen Zeilen lernen und alle anderen Wörter nachprüfen – fertige Zeilen bleiben unverändert">✓ Rest nachprüfen</button><button class="toggle-btn" id="sgFUndo" hidden title="Nachprüfung zurücknehmen">↶</button><span class="sg-flab" id="sgFGridL"></span><button class="toggle-btn" id="sgFGrid" hidden title="Wieder das beim Laden erkannte Raster verwenden">↺ erkanntes Raster</button></div>
         <button class="sg-tap" id="sgFTap" hidden>Tippen</button>
@@ -12503,7 +12508,11 @@ const AppCfg = (() => {
     let all = []; try { all = await AppDB.list('ideas', x => x.kind === 'lied' ? { id: x.id, name: x.name, singKey: x.singKey } : null); } catch (e) {}
     const old = all.find(x => x.singKey === src.key), now = new Date();
     // Kopie der Datei im Speicher ablegen (nicht nur einen Verweis auf die ausgewählte Datei – iPadOS räumt die weg)
-    let blob = f.file; try { blob = new Blob([await f.file.arrayBuffer()], { type: f.file.type || '' }); } catch (x) {}
+    // v80: vorhandener Eintrag – Datei übernehmen, bisherigen Text als Version behalten (höchstens 12)
+    let prev = null; if (old) { try { prev = await AppDB.get('ideas', old.id); } catch (x) {} }
+    let blob = prev && prev.wav; if (!blob) { blob = f.file; try { blob = new Blob([await f.file.arrayBuffer()], { type: f.file.type || '' }); } catch (x) {} }
+    const versions = (prev && prev.versions || []).slice();
+    if (prev && prev.tok && JSON.stringify(prev.tok) !== JSON.stringify(r && r.tok || [])) { versions.push({ ts: prev.ts, dateStr: prev.dateStr, tok: prev.tok, tr: prev.tr || null }); while (versions.length > 12) versions.shift(); }
     const name = String(nameIn || '').trim() || (old && old.name) || String(f.name).replace(/\.[^.]+$/, '');
     const bpmEl = $('bpm');
     const e = {
@@ -12511,7 +12520,7 @@ const AppCfg = (() => {
       dateStr: now.toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' }),
       root: $('root') ? $('root').value : '', mode: $('mode') ? $('mode').value : '', bpm: +f.bpm || (bpmEl ? parseFloat(bpmEl.value) : 0) || 0,
       secs: secsOf(src.key), wav: blob, fname: f.name, choice: f.choice, singKey: src.key,
-      tok: r && r.tok ? r.tok : [], tr: r && r.tr ? r.tr : null, lang: r && r.auto ? r.auto.lang : null
+      tok: r && r.tok ? r.tok : [], tr: r && r.tr ? r.tr : null, lang: r && r.auto ? r.auto.lang : null, versions
     };
     try { await AppDB.put('ideas', e); }
     catch (x) { say(T('Speichern fehlgeschlagen. Ist der Gerätespeicher voll?')); return false; }
@@ -12549,7 +12558,7 @@ const AppCfg = (() => {
   }
 
   async function render() {
-    let all = []; try { all = await AppDB.list('ideas', x => x.kind === 'lied' ? { id: x.id, name: x.name, singKey: x.singKey, tok: x.tok, secs: x.secs, lang: x.lang, dateStr: x.dateStr, ts: x.ts } : null); } catch (e) {}
+    let all = []; try { all = await AppDB.list('ideas', x => x.kind === 'lied' ? { id: x.id, name: x.name, singKey: x.singKey, tok: x.tok, secs: x.secs, lang: x.lang, dateStr: x.dateStr, ts: x.ts, nv: (x.versions || []).length } : null); } catch (e) {}
     all.sort((a, b) => b.ts - a.ts);
     const cnt = $('lsCount'); if (cnt) cnt.textContent = all.length ? String(all.length) : '';
     if (!all.length) { list.innerHTML = '<p class="pattern-desc">' + esc(T('Noch keine Lieder. Lade eine Songdatei, bearbeite den Text in der Improvisation und tippe auf „Lied mit Text speichern“.')) + '</p>'; return; }
@@ -12557,7 +12566,7 @@ const AppCfg = (() => {
       const r = liveRec(e.singKey), tok = r && r.tok && r.tok.length ? r.tok : e.tok || [], lines = tok.length ? Math.max(...tok.map(t => t.l)) + 1 : 0;
       return '<div class="idea-row" data-id="' + esc(e.id) + '"><div class="idea-main"><div class="idea-name" translate="no">' + esc(e.name) + '</div>'
         + '<div class="log-meta" style="text-align:left">' + tok.length + ' ' + esc(T('Wörter')) + ' · ' + lines + ' ' + esc(T('Zeilen')) + ' · ' + mmss(e.secs || 0) + ' min' + (e.lang ? ' · ' + esc(e.lang.toUpperCase()) : '') + ' · ' + esc(e.dateStr || '') + '</div></div>'
-        + '<div class="idea-actions"><button class="toggle-btn" data-act="load">' + esc(T('Laden')) + '</button><button class="toggle-btn" data-act="text">' + esc(T('Text')) + '</button><button class="toggle-btn" data-act="del">' + esc(T('Löschen')) + '</button></div></div>';
+        + '<div class="idea-actions"><button class="toggle-btn" data-act="load">' + esc(T('Laden')) + '</button><button class="toggle-btn" data-act="text">' + esc(T('Text')) + '</button>' + (e.nv ? '<button class="toggle-btn" data-act="vers">' + esc(T('Versionen')) + ' (' + e.nv + ')</button>' : '') + '<button class="toggle-btn" data-act="del">' + esc(T('Löschen')) + '</button></div></div>';
     }).join('');
   }
 
@@ -12566,6 +12575,26 @@ const AppCfg = (() => {
     const id = b.closest('.idea-row').dataset.id, act = b.dataset.act;
     if (act === 'load') load(id);
     else if (act === 'text') { const e = await AppDB.get('ideas', id); if (e) shareText(e); }
+    else if (act === 'vers') {
+      const row = b.closest('.idea-row'), open = row.querySelector('.ls-vers'); if (open) { open.remove(); return; }
+      const e = await AppDB.get('ideas', id); if (!e || !e.versions) return;
+      const box = document.createElement('div'); box.className = 'ls-vers';
+      box.innerHTML = e.versions.map((v, k) => ({ v, k })).reverse().map(({ v, k }) => '<div class="ls-ver"><span>' + esc(v.dateStr || new Date(v.ts).toLocaleString()) + ' · ' + (v.tok || []).length + ' ' + esc(T('Wörter')) + '</span><button class="toggle-btn" data-act="restore" data-k="' + k + '">' + esc(T('zurückholen')) + '</button></div>').join('');
+      row.appendChild(box);
+    }
+    else if (act === 'restore') {
+      const e = await AppDB.get('ideas', id), v = e && e.versions && e.versions[+b.dataset.k]; if (!v) return;
+      if (!confirm(T('Den Text dieser Version wiederherstellen? Der jetzige Stand wird als Version behalten.'))) return;
+      // jetzigen Stand als Version behalten, dann die gewählte Version als aktuellen Text setzen
+      const d = readSing(), cur = d.f[e.singKey];
+      e.versions.push({ ts: Date.now(), dateStr: new Date().toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' }), tok: cur && cur.tok || e.tok, tr: cur && cur.tr || e.tr || null });
+      while (e.versions.length > 12) e.versions.shift();
+      e.tok = v.tok; e.tr = v.tr; await AppDB.put('ideas', e);
+      d.f[e.singKey] = Object.assign(cur || { name: e.fname }, { tok: JSON.parse(JSON.stringify(v.tok)) }); if (v.tr) d.f[e.singKey].tr = v.tr;
+      try { localStorage.setItem('3nps-sing', JSON.stringify(d)); } catch (x) {}
+      if (window.Sing && Sing._reload) Sing._reload();
+      say(T('Version wiederhergestellt: „') + e.name + '“'); render();
+    }
     else if (act === 'del') { const e = await AppDB.get('ideas', id); if (e && confirm('„' + e.name + T('“ löschen? Der Text bleibt auf diesem Gerät erhalten, die gespeicherte Songdatei wird entfernt.'))) { await AppDB.del('ideas', id); say(''); render(); } }
   });
   const sb = $('lsSave'); if (sb) sb.addEventListener('click', () => save($('lsName') ? $('lsName').value : ''));
@@ -14129,7 +14158,7 @@ const Sing = (() => {
   function tick(ci) {
     const band = $('sgBand'), strip = $('sgStrip'); if (!band) return;
     const live = source(ci);
-    if (live && live.kind !== 'none') lastSrc = live;
+    if (live && live.kind !== 'none') { lastSrc = live; histSeen(live); }
     // Editor bleibt nach dem Anhalten bei der zuletzt gespielten Quelle (zum Korrigieren in Ruhe)
     const src = live || (lastSrc ? Object.assign({}, lastSrc, { nowB: null }) : null); curSrc = src;
     if (ui.open) paintEditor(src);
@@ -14204,7 +14233,37 @@ const Sing = (() => {
   }
   // Schriftgröße so, dass das Wort möglichst in seine Breite passt (16 px, in engen Stellen bis 10 px)
   const fitFont = (w, wpx) => Math.max(10, Math.min(16, Math.floor((wpx - 9) / (String(w).length * 0.56 + 0.2))));
-  let ver = 0; const changed = () => { ver++; save(); laneSig = ''; edSig = ''; };
+  let ver = 0; const changed = () => { ver++; hist(); save(); laneSig = ''; edSig = ''; };
+  // ---- v80: Rückgängig / Wiederholen – jeder Stand des Textes der aktuellen Quelle (alle Änderungen laufen über changed) ----
+  const H = {};                                     // id → { snap, undo: [], redo: [] }
+  const recOf = src => !src ? null : src.kind === 'lied' ? db.l[src.id] : db.f[src.id];
+  const stateOf = r => JSON.stringify(r ? { tok: r.tok, grid: r.grid || null } : { tok: [], grid: null });
+  function hist() {
+    const src = curSrc || lastSrc; if (!src || !src.id || src.kind === 'none') return;
+    const h = H[src.id] || (H[src.id] = { snap: null, undo: [], redo: [] }), cur = stateOf(recOf(src));
+    if (h.snap != null && h.snap !== cur && !hist.off) { h.undo.push(h.snap); if (h.undo.length > 80) h.undo.shift(); h.redo = []; }
+    h.snap = cur;
+  }
+  function histSeen(src) { if (src && src.id && !H[src.id]) H[src.id] = { snap: stateOf(recOf(src)), undo: [], redo: [] }; }
+  function undoRedo(dir) {
+    const src = curSrc; if (!src || !src.id) return false; const h = H[src.id]; if (!h) return false;
+    const from = dir < 0 ? h.undo : h.redo, to = dir < 0 ? h.redo : h.undo; if (!from.length) return false;
+    let r = recOf(src); if (!r) { r = src.kind === 'lied' ? (db.l[src.id] = { tok: [], txt: src.text }) : (db.f[src.id] = { name: src.name, tok: [] }); }
+    to.push(stateOf(r)); const st = JSON.parse(from.pop());
+    r.tok.splice(0, r.tok.length, ...st.tok); if (st.grid) r.grid = st.grid; else delete r.grid;
+    if (src.tok !== r.tok) src.tok = r.tok;
+    hist.off = true; changed(); hist.off = false; h.snap = stateOf(r);
+    if (src.kind === 'lied') persist(src);
+    ui.sel = Math.min(ui.sel, r.tok.length - 1); focusSig = '*';
+    status(dir < 0 ? T('Rückgängig gemacht.') : T('Wiederhergestellt.')); return true;
+  }
+  const canUndo = () => { const s2 = curSrc, h = s2 && H[s2.id]; return !!(h && h.undo.length); }, canRedo = () => { const s2 = curSrc, h = s2 && H[s2.id]; return !!(h && h.redo.length); };
+  document.addEventListener('keydown', e => {
+    if (!(e.metaKey || e.ctrlKey) || (e.key !== 'z' && e.key !== 'Z' && e.key !== 'y')) return;
+    if (/INPUT|TEXTAREA|SELECT/.test((e.target || {}).tagName || '') && (e.target || {}).id !== 'pedalSink') return;
+    const p = document.getElementById('panel-solo'); if (!p || p.hidden) return;
+    if (undoRedo(e.key === 'y' || e.shiftKey ? 1 : -1)) e.preventDefault();
+  });
 
   // ---- Bearbeitungs-Zoom (v70): ein Takt breit, „▶ ab hier“, Wörter verteilen, „✓ Fertig“ ----
   const SF = () => window.SoloFocus || null, fBar = () => SF() ? SF().get() : null;
@@ -14219,7 +14278,7 @@ const Sing = (() => {
     const box = $('sgFocus'); if (!box) return;
     let k = fBar();
     if (k != null && (!src || src.kind === 'none' || src.id !== focusSrc)) { unfocus(); k = null; }
-    const sig = k == null ? '' : k + '|' + ((ci && ci.downs) || []).length + '|' + ver + '|' + ui.sel + '|' + ui.mag + '|' + ui.rate + '|' + !!loopP + '|' + (tapS ? tapS.n : -1) + '|' + !!(src && envOf(src)) + '|' + !!undoTok + '|' + ui.click + '|' + (src && src.grid ? src.grid.bpm : 0);
+    const sig = k == null ? '' : k + '|' + ((ci && ci.downs) || []).length + '|' + ver + '|' + ui.sel + '|' + ui.mag + '|' + ui.rate + '|' + !!loopP + '|' + (tapS ? tapS.n : -1) + '|' + !!(src && envOf(src)) + '|' + !!undoTok + '|' + ui.click + '|' + (src && src.grid ? src.grid.bpm : 0) + '|' + canUndo() + canRedo();
     if (sig === focusSig) return; focusSig = sig;
     box.hidden = k == null; if (k == null) return;
     $('sgFLbl').textContent = T('Takt ') + (k + 1);
@@ -14234,6 +14293,7 @@ const Sing = (() => {
     $('sgFLoop').classList.toggle('active', !!loopP); $('sgFLoop').textContent = loopP ? T('■ Schleife') : T('⟲ Schleife');
     $('sgFAlign').disabled = !E; $('sgFNudgeL').disabled = $('sgFNudgeR').disabled = !(ui.sel >= 0 && src.tok[ui.sel] && src.tok[ui.sel].b != null);
     $('sgFTapStart').classList.toggle('active', !!tapS); $('sgFTapStart').textContent = tapS ? T('✕ Einklopfen abbrechen') : T('● Takt einklopfen');
+    $('sgFUndoE').disabled = !canUndo(); $('sgFRedoE').disabled = !canRedo();
     $('sgFClick').classList.toggle('active', ui.click); $('sgFClick').setAttribute('aria-pressed', ui.click ? 'true' : 'false');
     { const gl = $('sgFGridL'), gb = $('sgFGrid'); if (gl) { gl.textContent = file ? (src.grid ? T('Raster: ') + src.grid.bpm + T(' BPM (Tempo oben)') : T('Raster: erkannt') + (src.bpmDet ? ' (' + (Math.round(src.bpmDet * 10) / 10) + ' BPM)' : '')) : ''; gb.hidden = !(file && src.grid); } }
     { const r = Math.round(ui.rate * 100); $('sgFRateV').textContent = r + ' %'; $('sgFRateDn').disabled = r <= 40; $('sgFRateUp').disabled = r >= 100; }
@@ -14286,6 +14346,8 @@ const Sing = (() => {
       else if (b.id === 'sgFSpread') spread();
       else if (b.dataset.m) { ui.mag = b.dataset.m; lsS('3nps-sing-mag', ui.mag); focusSig = '*'; }
       else if (b.dataset.r) setRate(+b.dataset.r);
+      else if (b.id === 'sgFUndoE') undoRedo(-1);
+      else if (b.id === 'sgFRedoE') undoRedo(1);
       else if (b.id === 'sgFClick') { ui.click = !ui.click; lsS('3nps-sing-click', ui.click ? '1' : '0'); focusSig = '*'; if (loopP) { const t = tapS; startLoop(); tapS = t; } }
       else if (b.id === 'sgFGrid') resetGrid();
       else if (b.id === 'sgFRateDn') setRate(ui.rate - 0.01);
@@ -14301,7 +14363,7 @@ const Sing = (() => {
       else if (b.id === 'sgFTapStart') { if (tapS) { tapS = null; focusSig = '*'; } else startTapBar(); }
     });
     const tb = $('sgFTap'); if (tb) tb.addEventListener('pointerdown', e => { e.preventDefault(); tapBar(); });
-    document.addEventListener('keydown', e => { if (tapS && (e.code === 'Space' || e.key === ' ') && !/INPUT|TEXTAREA|SELECT/.test((e.target || {}).tagName || '')) { e.preventDefault(); tapBar(); } });
+    document.addEventListener('keydown', e => { if (tapS && (e.code === 'Space' || e.key === ' ') && (!/INPUT|TEXTAREA|SELECT/.test((e.target || {}).tagName || '') || (e.target || {}).id === 'pedalSink')) { e.preventDefault(); tapBar(); } });
   }
 
   // ---- Präziser setzen (v72): Stimme sichtbar, Magnet, Hören (Wort halten, Takt-Schleife, langsam), Feinschritte, Takt einklopfen ----
@@ -14671,7 +14733,7 @@ const Sing = (() => {
   function paintEditor(src) {
     const box = $('sgEdit'); if (!box) return;
     if (ui.chipDrag) return;                       // während ein Wort-Chip gezogen wird, nicht neu zeichnen
-    const sig = (src ? src.id + '|' + src.tok.length + '|' + ver : 'none') + '|' + !!ui.sort + '|' + rec.busy + '|' + rec.msg + '|' + Math.round((rec.p || 0) * 50) + '|' + ui.sel + '|' + ui.tapping + '|' + ui.lineFrom + '|' + ui.snap;
+    const sig = (src ? src.id + '|' + src.tok.length + '|' + ver : 'none') + '|' + !!ui.sort + '|' + canUndo() + canRedo() + '|' + rec.busy + '|' + rec.msg + '|' + Math.round((rec.p || 0) * 50) + '|' + ui.sel + '|' + ui.tapping + '|' + ui.lineFrom + '|' + ui.snap;
     if (sig === edSig) return; edSig = sig;
     if (!src) { box.innerHTML = '<p class="caption">Spiel einen Song aus dem Songwriting oder einen Loop aus einer geladenen Datei ab – dann erscheint hier sein Gesangstext.</p>'; return; }
     if (src.kind === 'none') { box.innerHTML = '<p class="caption">Diese Spur wurde ins Tempo des Loops gedehnt – dafür ist kein Gesangstext möglich. Lade die Datei ohne Anpassung.</p>'; return; }
@@ -14695,6 +14757,7 @@ const Sing = (() => {
           + (src.editable ? '<button class="toggle-btn" id="sgMerge">Mit nächstem verbinden</button><button class="toggle-btn" id="sgInsA">＋ Wort danach</button><button class="toggle-btn" id="sgSwapL" title="Mit dem Wort davor tauschen">⇠ tauschen</button><button class="toggle-btn" id="sgSwapR" title="Mit dem Wort danach tauschen">tauschen ⇢</button>' : '')
           + '<button class="toggle-btn" id="sgClear">Zeit löschen</button><span class="caption">' + (t.b != null ? 'Takt ' + src.label(t.b) : 'noch ohne Zeit') + '</span></div>';
       }
+      h += '<div class="sg-sortbar"><button class="toggle-btn" id="sgUndo"' + (canUndo() ? '' : ' disabled') + ' title="' + T('Rückgängig') + '">↶</button><button class="toggle-btn" id="sgRedo"' + (canRedo() ? '' : ' disabled') + ' title="' + T('Wiederholen') + '">↷</button></div>';
       if (src.editable) h += '<div class="sg-sortbar"><button class="toggle-btn' + (ui.sort ? ' active' : '') + '" id="sgSort" aria-pressed="' + !!ui.sort + '">↕ Wörter umsortieren</button><span class="caption">' + (ui.sort ? T('Wort ziehen und auf ein anderes fallen lassen – die Wörter tauschen ihre Plätze, die Zeiten bleiben.') : '') + '</span></div>';
       h += '<div class="sg-lines' + (ui.sort ? ' sorting' : '') + '">' + lines(src.tok).map((ln, li) => '<div class="sg-line"><button class="sg-lnum" data-l="' + li + '" title="Zeile neu einklopfen">' + (li + 1) + ' ↻</button>'
         + ln.map(t => '<button class="sg-chip' + (t.b == null ? ' none' : '') + (t.i === ui.sel ? ' sel' : '') + '" data-i="' + t.i + '" translate="no">' + esc(t.w) + '<small>' + (t.b != null ? src.label(t.b) : '–') + '</small></button>').join('') + '</div>').join('') + '</div>';
@@ -14751,6 +14814,8 @@ const Sing = (() => {
       }
       if (b.id === 'sgClear') { t.b = null; changed(); return; }
       if (b.id === 'sgInsA') { insertAfter(); return; }
+      if (b.id === 'sgUndo') { undoRedo(-1); edSig = ''; return; }
+      if (b.id === 'sgRedo') { undoRedo(1); edSig = ''; return; }
       if (b.id === 'sgSort') { ui.sort = !ui.sort; edSig = ''; return; }
       if (b.id === 'sgSwapL' || b.id === 'sgSwapR') { const i = ui.sel, j = i + (b.id === 'sgSwapL' ? -1 : 1); if (i >= 0 && j >= 0 && j < tok.length) { moveWord(src, i, j); } return; }
       if (b.id === 'sgRepl') {
@@ -14864,7 +14929,7 @@ const Sing = (() => {
   // Übersetzung je Zeile (v63)
   function setTr(src, arr) { const rec = src.kind === 'lied' ? db.l[src.id] : db.f[src.id]; if (!rec) return false; rec.tr = arr; changed(); return true; }
   function getTr(src) { const rec = src && (src.kind === 'lied' ? db.l[src.id] : db.f[src.id]); return rec && rec.tr || []; }
-  return { recognize: () => recognize(curSrc), rec: () => Object.assign({}, rec), wordsToTok, tick, tap, tokenize, merge, f2b, b2f, endOf, lines, setTr, getTr, ver: () => ver, focus: k => focus(k), unfocus, prec: () => { const E = envOf(curSrc); return { env: E ? { n: E.e.length, on: E.on.slice(), onB: E.onB.slice() } : null, loop: !!loopP, rate: loopP ? loopP.rate : null, word: !!wordP, tap: tapS ? { n: tapS.n, of: tapS.idx.length } : null, mag: ui.mag, sel: ui.sel }; }, voiceEnv: () => voiceEnv(curSrc), placeB: r => placeB(r, curSrc), loopNow: () => loopP ? loopP.nowB() : (wordP ? wordP.nowB() : null), onTempo: () => onTempo(), addClicks, recheck: () => recheck(), toggleLock: () => toggleLock(), insertAfter: () => insertAfter(), spread, playFrom, source: ci => source(ci), data: () => db, _reload: () => { db = load(); changed(); }, ui: () => ui };
+  return { recognize: () => recognize(curSrc), rec: () => Object.assign({}, rec), wordsToTok, tick, tap, tokenize, merge, f2b, b2f, endOf, lines, setTr, getTr, ver: () => ver, focus: k => focus(k), unfocus, prec: () => { const E = envOf(curSrc); return { env: E ? { n: E.e.length, on: E.on.slice(), onB: E.onB.slice() } : null, loop: !!loopP, rate: loopP ? loopP.rate : null, word: !!wordP, tap: tapS ? { n: tapS.n, of: tapS.idx.length } : null, mag: ui.mag, sel: ui.sel }; }, voiceEnv: () => voiceEnv(curSrc), placeB: r => placeB(r, curSrc), undo: () => undoRedo(-1), redo: () => undoRedo(1), loopNow: () => loopP ? loopP.nowB() : (wordP ? wordP.nowB() : null), onTempo: () => onTempo(), addClicks, recheck: () => recheck(), toggleLock: () => toggleLock(), insertAfter: () => insertAfter(), spread, playFrom, source: ci => source(ci), data: () => db, _reload: () => { db = load(); changed(); }, ui: () => ui };
 })();
 window.Sing = Sing;
 

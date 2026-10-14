@@ -393,3 +393,6 @@ Object.assign(window.__EN, { '↕ Wörter umsortieren': '↕ Reorder words', 'Wo
   '⇠ tauschen': '⇠ swap', 'tauschen ⇢': 'swap ⇢', 'Mit dem Wort davor tauschen': 'Swap with the previous word', 'Mit dem Wort danach tauschen': 'Swap with the next word',
   'Hier liegen mehrere Wörter übereinander – antippen zum Auseinanderziehen': 'Several words lie on top of each other here – tap to spread them',
   'Mehrere Wörter auf einer Stelle – „⇹ verteilen“ zieht sie auseinander, oder einzeln antippen und ziehen.': 'Several words on one spot – “⇹ Spread” pulls them apart, or tap and drag them one by one.' });
+Object.assign(window.__EN, { 'Rückgängig gemacht.': 'Undone.', 'Wiederhergestellt.': 'Redone.', 'Rückgängig': 'Undo', 'Wiederholen': 'Redo', 'Rückgängig (⌘Z)': 'Undo (⌘Z)', 'Wiederholen (⇧⌘Z)': 'Redo (⇧⌘Z)',
+  'Versionen': 'Versions', 'zurückholen': 'restore', 'Version wiederhergestellt: „': 'Version restored: “',
+  'Den Text dieser Version wiederherstellen? Der jetzige Stand wird als Version behalten.': 'Restore the lyrics of this version? The current state is kept as a version.' });

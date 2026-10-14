@@ -411,3 +411,5 @@ html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleis
   .imp-bpm input, .ed-rebpm input { width: 5.5em; font: 600 .95rem var(--f-mono); color: var(--ink); background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: 4px 6px; }
   .imp-bpm .toggle-btn { padding: 3px 8px; font-size: .8rem; }
   .ed-rebpm { display: inline-flex; align-items: center; gap: 6px; font: .85rem var(--f-body); color: var(--muted); }
+  .ls-vers { flex: 1 1 100%; display: flex; flex-direction: column; gap: 4px; padding: 6px 0 2px 10px; border-left: 2px solid var(--line-soft); }
+  .ls-ver { display: flex; align-items: center; justify-content: space-between; gap: 8px; font: .8rem var(--f-body); color: var(--muted); }

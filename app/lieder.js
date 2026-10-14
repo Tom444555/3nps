@@ -42,7 +42,11 @@
     let all = []; try { all = await AppDB.list('ideas', x => x.kind === 'lied' ? { id: x.id, name: x.name, singKey: x.singKey } : null); } catch (e) {}
     const old = all.find(x => x.singKey === src.key), now = new Date();
     // Kopie der Datei im Speicher ablegen (nicht nur einen Verweis auf die ausgewählte Datei – iPadOS räumt die weg)
-    let blob = f.file; try { blob = new Blob([await f.file.arrayBuffer()], { type: f.file.type || '' }); } catch (x) {}
+    // v80: vorhandener Eintrag – Datei übernehmen, bisherigen Text als Version behalten (höchstens 12)
+    let prev = null; if (old) { try { prev = await AppDB.get('ideas', old.id); } catch (x) {} }
+    let blob = prev && prev.wav; if (!blob) { blob = f.file; try { blob = new Blob([await f.file.arrayBuffer()], { type: f.file.type || '' }); } catch (x) {} }
+    const versions = (prev && prev.versions || []).slice();
+    if (prev && prev.tok && JSON.stringify(prev.tok) !== JSON.stringify(r && r.tok || [])) { versions.push({ ts: prev.ts, dateStr: prev.dateStr, tok: prev.tok, tr: prev.tr || null }); while (versions.length > 12) versions.shift(); }
     const name = String(nameIn || '').trim() || (old && old.name) || String(f.name).replace(/\.[^.]+$/, '');
     const bpmEl = $('bpm');
     const e = {
@@ -50,7 +54,7 @@
       dateStr: now.toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' }),
       root: $('root') ? $('root').value : '', mode: $('mode') ? $('mode').value : '', bpm: +f.bpm || (bpmEl ? parseFloat(bpmEl.value) : 0) || 0,
       secs: secsOf(src.key), wav: blob, fname: f.name, choice: f.choice, singKey: src.key,
-      tok: r && r.tok ? r.tok : [], tr: r && r.tr ? r.tr : null, lang: r && r.auto ? r.auto.lang : null
+      tok: r && r.tok ? r.tok : [], tr: r && r.tr ? r.tr : null, lang: r && r.auto ? r.auto.lang : null, versions
     };
     try { await AppDB.put('ideas', e); }
     catch (x) { say(T('Speichern fehlgeschlagen. Ist der Gerätespeicher voll?')); return false; }
@@ -88,7 +92,7 @@
   }
 
   async function render() {
-    let all = []; try { all = await AppDB.list('ideas', x => x.kind === 'lied' ? { id: x.id, name: x.name, singKey: x.singKey, tok: x.tok, secs: x.secs, lang: x.lang, dateStr: x.dateStr, ts: x.ts } : null); } catch (e) {}
+    let all = []; try { all = await AppDB.list('ideas', x => x.kind === 'lied' ? { id: x.id, name: x.name, singKey: x.singKey, tok: x.tok, secs: x.secs, lang: x.lang, dateStr: x.dateStr, ts: x.ts, nv: (x.versions || []).length } : null); } catch (e) {}
     all.sort((a, b) => b.ts - a.ts);
     const cnt = $('lsCount'); if (cnt) cnt.textContent = all.length ? String(all.length) : '';
     if (!all.length) { list.innerHTML = '<p class="pattern-desc">' + esc(T('Noch keine Lieder. Lade eine Songdatei, bearbeite den Text in der Improvisation und tippe auf „Lied mit Text speichern“.')) + '</p>'; return; }
@@ -96,7 +100,7 @@
       const r = liveRec(e.singKey), tok = r && r.tok && r.tok.length ? r.tok : e.tok || [], lines = tok.length ? Math.max(...tok.map(t => t.l)) + 1 : 0;
       return '<div class="idea-row" data-id="' + esc(e.id) + '"><div class="idea-main"><div class="idea-name" translate="no">' + esc(e.name) + '</div>'
         + '<div class="log-meta" style="text-align:left">' + tok.length + ' ' + esc(T('Wörter')) + ' · ' + lines + ' ' + esc(T('Zeilen')) + ' · ' + mmss(e.secs || 0) + ' min' + (e.lang ? ' · ' + esc(e.lang.toUpperCase()) : '') + ' · ' + esc(e.dateStr || '') + '</div></div>'
-        + '<div class="idea-actions"><button class="toggle-btn" data-act="load">' + esc(T('Laden')) + '</button><button class="toggle-btn" data-act="text">' + esc(T('Text')) + '</button><button class="toggle-btn" data-act="del">' + esc(T('Löschen')) + '</button></div></div>';
+        + '<div class="idea-actions"><button class="toggle-btn" data-act="load">' + esc(T('Laden')) + '</button><button class="toggle-btn" data-act="text">' + esc(T('Text')) + '</button>' + (e.nv ? '<button class="toggle-btn" data-act="vers">' + esc(T('Versionen')) + ' (' + e.nv + ')</button>' : '') + '<button class="toggle-btn" data-act="del">' + esc(T('Löschen')) + '</button></div></div>';
     }).join('');
   }
 
@@ -105,6 +109,26 @@
     const id = b.closest('.idea-row').dataset.id, act = b.dataset.act;
     if (act === 'load') load(id);
     else if (act === 'text') { const e = await AppDB.get('ideas', id); if (e) shareText(e); }
+    else if (act === 'vers') {
+      const row = b.closest('.idea-row'), open = row.querySelector('.ls-vers'); if (open) { open.remove(); return; }
+      const e = await AppDB.get('ideas', id); if (!e || !e.versions) return;
+      const box = document.createElement('div'); box.className = 'ls-vers';
+      box.innerHTML = e.versions.map((v, k) => ({ v, k })).reverse().map(({ v, k }) => '<div class="ls-ver"><span>' + esc(v.dateStr || new Date(v.ts).toLocaleString()) + ' · ' + (v.tok || []).length + ' ' + esc(T('Wörter')) + '</span><button class="toggle-btn" data-act="restore" data-k="' + k + '">' + esc(T('zurückholen')) + '</button></div>').join('');
+      row.appendChild(box);
+    }
+    else if (act === 'restore') {
+      const e = await AppDB.get('ideas', id), v = e && e.versions && e.versions[+b.dataset.k]; if (!v) return;
+      if (!confirm(T('Den Text dieser Version wiederherstellen? Der jetzige Stand wird als Version behalten.'))) return;
+      // jetzigen Stand als Version behalten, dann die gewählte Version als aktuellen Text setzen
+      const d = readSing(), cur = d.f[e.singKey];
+      e.versions.push({ ts: Date.now(), dateStr: new Date().toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' }), tok: cur && cur.tok || e.tok, tr: cur && cur.tr || e.tr || null });
+      while (e.versions.length > 12) e.versions.shift();
+      e.tok = v.tok; e.tr = v.tr; await AppDB.put('ideas', e);
+      d.f[e.singKey] = Object.assign(cur || { name: e.fname }, { tok: JSON.parse(JSON.stringify(v.tok)) }); if (v.tr) d.f[e.singKey].tr = v.tr;
+      try { localStorage.setItem('3nps-sing', JSON.stringify(d)); } catch (x) {}
+      if (window.Sing && Sing._reload) Sing._reload();
+      say(T('Version wiederhergestellt: „') + e.name + '“'); render();
+    }
     else if (act === 'del') { const e = await AppDB.get('ideas', id); if (e && confirm('„' + e.name + T('“ löschen? Der Text bleibt auf diesem Gerät erhalten, die gespeicherte Songdatei wird entfernt.'))) { await AppDB.del('ideas', id); say(''); render(); } }
   });
   const sb = $('lsSave'); if (sb) sb.addEventListener('click', () => save($('lsName') ? $('lsName').value : ''));
