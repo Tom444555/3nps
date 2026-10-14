@@ -707,3 +707,9 @@ Gut zu wissen
    - Das vorgegebene Tempo wird für diese Datei gemerkt und beim nächsten Laden wieder benutzt; Feld leeren =
      wieder automatisch. Vorhandener Gesangstext bleibt an seiner Stelle im Lied.
    - Die App rechnet immer im 4/4-Takt. Lieder im 3/4- oder 6/8-Takt werden (noch) in Vierer-Takte eingeteilt.
+
+63. Bessere Tempo-Erkennung bei 3 : 2, Intro bleibt (v78)
+   - Die Erkennung verwechselt seltener ein Tempo mit seinen zwei Dritteln (z. B. 90 statt 135): Liegen die
+     Triolen-Stellen so stark wie die Schläge, ist das Raster zu langsam – dann gewinnt das schnellere Tempo.
+   - Auch ein hörbares Intro vor Takt 1 bleibt jetzt beim Laden erhalten (der erste Takt wird vorn mit Stille
+     aufgefüllt). Reine Stille am Anfang und Ende wird weiterhin weggelassen.

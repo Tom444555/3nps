@@ -920,6 +920,9 @@ const Looper = (() => {
     let audEnd = data.length; while (audEnd > win && rms(audEnd - win, audEnd) < med * 0.025) audEnd -= win;
     let last = downs[downs.length - 1];
     while (last < audEnd - barMed * 0.08) { last += barMed; downs.push(last); }
+    // v78: hörbares Intro vor Takt 1 ebenfalls behalten – Takte davor anhängen (der erste wird vorn mit Stille aufgefüllt)
+    let audStart = 0; while (audStart + win < downs[0] && rms(audStart, audStart + win) < med * 0.025) audStart += win;
+    while (downs[0] > audStart + barMed * 0.08) downs.unshift(downs[0] - barMed);
     const bars = downs.length - 1;
     if (bars < 1) return null;
     const beats = (beatRes.beats || []).map(toS).filter(v => v >= 0 && v < data.length);
@@ -932,8 +935,9 @@ const Looper = (() => {
     const o = t.orig, os = others(t);
     from = Math.max(1, Math.min(from, o.bars)); nb = Math.max(1, Math.min(nb, o.bars - from + 1));
     const start = o.downs[from - 1], end = o.downs[from - 1 + nb];
-    const Ldet = Math.max(1, end - start), pre = Math.min(start, Math.round(sr * 0.01));
-    let seg = smap(o.data, a => { const g = new Float32Array(Ldet); g.set(a.subarray(start, Math.min(a.length, start + Ldet - pre)), 0); if (pre) g.set(a.subarray(start - pre, start), Ldet - pre); return g; });
+    const Ldet = Math.max(1, end - start), pre = Math.max(0, Math.min(start, Math.round(sr * 0.01)));
+    // Anfang darf vor dem Dateianfang liegen (Intro-Takt) – dann vorn Stille
+    let seg = smap(o.data, a => { const g = new Float32Array(Ldet), s0 = Math.max(0, start), e0 = Math.min(a.length, start + Ldet - pre); if (e0 > s0) g.set(a.subarray(s0, e0), s0 - start); if (pre) g.set(a.subarray(start - pre, start), Ldet - pre); return g; });
     const exactBpm = 240 * nb / (Ldet / sr);
     const what = nb + ' Takt' + (nb === 1 ? '' : 'e') + (from > 1 ? ' ab Takt ' + from : ' ab Schlag 1') + (from === 1 && nb === o.bars ? (o.loopFile ? ' (Loop-Datei)' : ' (ganze Datei)') : '');
     let L, msg;

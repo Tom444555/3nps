@@ -9,3 +9,4 @@ app/www/asr/lib/LICENSE-transformers.txt
 app/www/asr/models/
 app/www/asr/worker.js
 test/sing/lied_*.wav
+test/user/

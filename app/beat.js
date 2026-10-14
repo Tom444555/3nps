@@ -125,11 +125,14 @@ function beatAnalyse(x, sr, opts) {
     const offRatio = s.m.off8 / Math.max(1e-6, s.m.on);
     const offPen = offRatio > 0.8 ? Math.pow(0.8 / offRatio, 2) : 1;
     const alt3Pen = s.m.alt3 > 1.4 ? Math.pow(1.4 / s.m.alt3, 2) : 1;
+    // v78: Triolen-Stellen so stark wie die Schläge → das Raster ist zu langsam (3 : 2-Verwechslung, z. B. 90 statt 135)
+    const off3Ratio = s.m.off3 / Math.max(1e-6, s.m.on), off3Pen = opts.off3Pen === false ? 1 : off3Ratio > 0.8 ? Math.pow(0.8 / off3Ratio, 2) : 1;
     const sub = Math.max(0.25 * s.m.off8 + 0.1 * s.m.off16, 0.3 * s.m.off3);     // gerade oder triolische Unterteilung bestätigt
     const contrast = s.m.on + sub;
-    s.score = Math.max(0, contrast) * altPen * alt3Pen * offPen * s.prior;
+    s.score = Math.max(0, contrast) * altPen * alt3Pen * offPen * off3Pen * s.prior;
   });
   scored.sort((a, b) => b.score - a.score);
+  if (opts.debug) console.log('  Kandidaten ' + JSON.stringify(scored.slice(0, 8).map(s => ({ bpm: +s.bpm.toFixed(1), sc: +s.score.toFixed(3), on: +s.m.on.toFixed(2), o8: +s.m.off8.toFixed(2), o16: +s.m.off16.toFixed(2), o3: +s.m.off3.toFixed(2), alt: +s.m.alt.toFixed(2), alt3: +s.m.alt3.toFixed(2), pr: +s.prior.toFixed(2) }))));
   let chosen = scored[0];
   // Oktav-Prüfung über die Rollen von Bass (Kick) und Höhen (Snare/Hi-Hat):
   //  doppeltes Tempo  → Bass und Höhen wechseln gemeinsam zwischen geraden/ungeraden Schlägen

@@ -31,7 +31,7 @@ async def main():
             if kind=='song' and tr['orig']:
                 ends=gt['downbeats']+[gt['beats'][-1]+(gt['beats'][-1]-gt['beats'][-2])]
                 # v75: Takte nach dem Musikende (hörbarer Ausklang, mit Stille aufgefüllt) zählen nicht zur Abweichung
-                devs=[min(abs(e-x/sr) for e in ends)*1000 for x in tr['orig']['downs'] if x/sr <= ends[-1]+0.04]
+                devs=[min(abs(e-x/sr) for e in ends)*1000 for x in tr['orig']['downs'] if gt['downbeats'][0]-0.04 <= x/sr <= ends[-1]+0.04]   # v78: auch Intro-Takte davor zählen nicht
                 half = abs(d['bpm']/gt['bpm']-0.5)<0.01
                 tol = (60/gt['bpm']*1000*2+40) if half else 40   # bei halbem Tempo liegt jede zweite Eins dazwischen
                 mx=max(devs) if not half else max(devs[::2])
