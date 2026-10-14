@@ -2096,6 +2096,15 @@ const Looper = (() => {
     edInfo(); update(); kick();
   });
 
+  // v83: Akkord-Korrekturen je Datei (Schlüssel wie beim Gesangstext: Name|Länge), Zeit in 10-ms-Schritten im Original
+  const fixKey = t => (t.orig.name || 'Datei') + '|' + Math.round((t.orig.data.l || t.orig.data).length / sr * 10);
+  let fixCache = null, fixAt = 0;
+  const loadFixes = () => { try { return JSON.parse(localStorage.getItem('3nps-chordfix') || '{}') || {}; } catch (e) { return {}; } };
+  function chordFixOf(t) {
+    if (!t.orig || t.origPos == null || !t.orig.data) return null;
+    if (!fixCache || performance.now() - fixAt > 500) { fixCache = loadFixes(); fixAt = performance.now(); }
+    return fixCache[fixKey(t)] || null;
+  }
   // Taktraster der geladenen Datei mit umrechnen: 2× = jeder Takt wird zu zwei Takten, ½ = zwei Takte werden einer
   function regridOrig(t, factor) {
     const o = t.orig; if (!o) return;
@@ -3056,6 +3065,14 @@ const Looper = (() => {
     undo: i => undoTrack(tracks[i]),
     // klingender Akkord der ersten laufenden Spur mit erkannten Akkorden (für den Quintenzirkel)
     // komplette Akkordfolge einer Spur für den Solo Finder (Frames, Taktanfänge, Abspielposition, Tonart)
+    // v83: Akkord einer Spur von Hand ändern (nur bei geladenen Dateien); name leer = wieder erkannt
+    setChordFix: (i, a, name) => {
+      const t = tracks[i]; if (!t || !t.orig || t.origPos == null) return false;
+      const key = fixKey(t), all = loadFixes(), k = Math.round((a + t.origPos) / (sr * 0.01)), m = all[key] || {};
+      for (let d = -5; d <= 5; d++) delete m[k + d];
+      if (name) m[k] = name; all[key] = m; if (!Object.keys(m).length) delete all[key];
+      try { localStorage.setItem('3nps-chordfix', JSON.stringify(all)); } catch (e) {} fixCache = null; return true;
+    },
     chordInfo: want => {
       const ok = t => !!(t.chords && t.chords.L === t.L && t.L && t.chords.segs.some(q => q.name !== '–'));
       const list = tracks.map(t => ({ i: t.i, has: ok(t), playing: !!t.src }));
@@ -3063,7 +3080,9 @@ const Looper = (() => {
       if (!t) return { tracks: list, track: -1 };
       const pos = t.src && audioCtx ? mod(playFrame() - anchor, t.L) : null;
       const downs = trackDowns(t).filter(x => x > -2 && x < t.L - 2).map(x => Math.max(0, x));
-      return { tracks: list, track: t.i, segs: t.chords.segs.map(q => ({ name: q.name, a: q.a, e: q.e })), L: t.L, pos, downs, sr, beats: trackBeats(t).filter(b => !b.bar && b.f > 0 && b.f < t.L - 2).map(b => b.f),
+      // v83: von Hand korrigierte Akkorde (je Datei, nach Zeit im Original) ersetzen die erkannten
+      const fx = chordFixOf(t), fixName = q => { if (!fx) return null; const k = Math.round((q.a + t.origPos) / (sr * 0.01)); for (let d = -5; d <= 5; d++) if (fx[k + d] != null) return fx[k + d]; return null; };
+      return { tracks: list, track: t.i, segs: t.chords.segs.map(q => { const fn = fixName(q); return { name: fn || q.name, a: q.a, e: q.e, fixed: !!fn }; }), L: t.L, pos, downs, sr, beats: trackBeats(t).filter(b => !b.bar && b.f > 0 && b.f < t.L - 2).map(b => b.f),
         key: t.key ? { pc: t.key.pc, major: !!t.key.major } : null, playing: !!t.src };
     },
     // Mitsingen (v61): Bezug einer Spur zur geladenen Originaldatei – nur lesen

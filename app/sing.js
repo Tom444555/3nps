@@ -147,6 +147,7 @@ const Sing = (() => {
     focusUi(live, ci);
     if (lineEl) lineEl.hidden = !has;
     const srcL = live;
+    trainerTick();
     const own = (loopP && loopP.id === srcL.id) ? loopP : (wordP && wordP.id === srcL.id ? wordP : null);
     if (own) srcL.nowB = own.nowB();
     const W = parseFloat($('sfStrip').style.width) || $('sfBand').clientWidth;
@@ -180,6 +181,8 @@ const Sing = (() => {
         const wpx = Math.max(14, px(Math.min(ci.L, e0) - a0) - 2), sv = stk[i];
         h += '<span class="sg-w' + (i === ui.sel ? ' sel' : '') + (t.k ? ' lk' : '') + (sv ? ' stk' : '') + '"' + (sv && sv.lvl ? ' data-lvl="' + sv.lvl + '"' : '') + ' data-i="' + i + '" style="left:' + px(a0).toFixed(1) + 'px;width:' + wpx.toFixed(1) + 'px;font-size:' + fitFont(t.w, wpx) + 'px">' + esc(t.w) + '</span>';
       });
+      // v83: Teil-Marken
+      partsOf(srcL).forEach(p => { const a = srcL.toCi(p.b); if (a == null || a < -1 || a >= ci.L) return; h += '<b class="sg-part" data-pb="' + p.b + '" style="left:' + px(a).toFixed(1) + 'px" title="' + esc(T('Teil-Marke – antippen zum Entfernen')) + '">' + esc(T(p.name)) + '</b>'; });
       // v72: Stimmkurve im Bearbeitungs-Zoom (Takt davor bis Takt danach)
       let envBox = null;
       if (fk != null && envOf(srcL) && downs.length) { const a = downs[Math.max(0, fk - 1)], e = fk + 2 < downs.length ? downs[fk + 2] : ci.L; envBox = [px(a), px(e) - px(a)]; h += '<canvas class="sg-env" id="sgEnv" style="left:' + envBox[0].toFixed(1) + 'px;width:' + envBox[1].toFixed(1) + 'px"></canvas>'; }
@@ -328,6 +331,7 @@ const Sing = (() => {
       else if (b.id === 'sgFRedoE') undoRedo(1);
       else if (b.id === 'sgFClick') { ui.click = !ui.click; lsS('3nps-sing-click', ui.click ? '1' : '0'); focusSig = '*'; if (loopP) { const t = tapS; startLoop(); tapS = t; } }
       else if (b.id === 'sgFGrid') resetGrid();
+      else if (b.id === 'sgFPartAdd') addPart($('sgFPartSel').value);
       else if (b.id === 'sgFRateDn') setRate(ui.rate - 0.01);
       else if (b.id === 'sgFRateUp') setRate(ui.rate + 0.01);
       else if (b.id === 'sgFIns') insertAfter();
@@ -348,7 +352,7 @@ const Sing = (() => {
   const lsG = (k, d) => { try { const v = localStorage.getItem(k); return v == null ? d : v; } catch (e) { return d; } };
   const lsS = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
   ui.mag = lsG('3nps-sing-mag', 'voice'); if (!['grid', 'voice', 'free'].includes(ui.mag)) ui.mag = 'voice';
-  ui.click = lsG('3nps-sing-click', '0') === '1'; ui.rate = +lsG('3nps-sing-rate', '1'); if (!(ui.rate >= 0.4 && ui.rate <= 1)) ui.rate = 1;
+  ui.click = lsG('3nps-sing-click', '0') === '1'; ui.trainer = lsG('3nps-sing-trainer', '0') === '1'; ui.trStart = +lsG('3nps-sing-trstart', '0.7') || 0.7; ui.rate = +lsG('3nps-sing-rate', '1'); if (!(ui.rate >= 0.4 && ui.rate <= 1)) ui.rate = 1;
 
 
   // ---- v82: Austausch – LRC (Liedtext mit Zeiten, auch je Wort) und Leadsheet als PDF ----
@@ -539,7 +543,7 @@ const Sing = (() => {
     }
   }
   const killP = p => { if (p) try { p.node.stop(); p.node.disconnect(); p.g.disconnect(); } catch (e) {} };
-  function stopLoop() { killP(loopP); loopP = null; tapS = null; focusSig = '*'; }
+  function stopLoop() { killP(loopP); loopP = null; tapS = null; trainer = null; focusSig = '*'; edSig = ''; }
   function startLoop() {
     const src = curSrc, k = fBar(), ci = window.SoloInfo ? SoloInfo() : null; if (!src || src.kind !== 'file' || k == null || !ci) return false;
     stopLoop(); killP(wordP); wordP = null;
@@ -616,6 +620,47 @@ const Sing = (() => {
     ui.rate = Math.max(0.4, Math.min(1, Math.round(r * 100) / 100)); lsS('3nps-sing-rate', String(ui.rate)); focusSig = '*';
     clearTimeout(setRate.t); if (loopP) setRate.t = setTimeout(() => { const t = tapS; startLoop(); tapS = t; }, 350);
   }
+
+  // ---- v83: Teile (Intro, Strophe, Refrain …) als Marken in der Spur; Schleife über einen Teil mit Tempo-Trainer ----
+  const partsOf = src => { const r = recOf(src); return r && r.parts ? r.parts.slice().sort((a, b) => a.b - b.b) : []; };
+  function addPart(name) {
+    const src = curSrc, k = fBar(), ci = window.SoloInfo ? SoloInfo() : null; if (!src || src.kind !== 'file' || k == null || !ci) return;
+    const [a] = barRange(src, ci, k), r = db.f[src.id] || (db.f[src.id] = { name: src.name, tok: [] }); r.tok = r.tok || [];
+    r.parts = (r.parts || []).filter(p => Math.abs(p.b - a) > 0.5); r.parts.push({ b: Math.round(a * 1000) / 1000, name });
+    changed(); status(T('Teil „') + T(name) + T('“ beginnt bei Takt ') + src.label(a) + '.');
+  }
+  function delPart(b) { const src = curSrc, r = src && db.f[src.id]; if (!r || !r.parts) return; r.parts = r.parts.filter(p => Math.abs(p.b - b) > 0.01); changed(); }
+  // Ende eines Teils = Beginn des nächsten, sonst das letzte Wort + 2 Takte (höchstens Liedende)
+  function partRange(src, i) {
+    const ps = partsOf(src), p = ps[i]; if (!p) return null;
+    let e = i + 1 < ps.length ? ps[i + 1].b : null;
+    if (e == null) { const lastW = src.tok.filter(t => t.b != null).pop(); const endB = src.len ? f2b(src.len, src.beats) : null; e = Math.min(endB || 1e9, lastW && lastW.b > p.b ? lastW.b + 8 : p.b + 32); }
+    return [p.b, e, p.name];
+  }
+  let trainer = null;
+  function startPartLoop(i) {
+    const src = curSrc; if (!src || src.kind !== 'file') return; const r = partRange(src, i); if (!r) return;
+    stopLoop(); killP(wordP); wordP = null;
+    if (typeof Looper !== 'undefined' && Looper.running && Looper.running() && Looper.pauseToggle) Looper.pauseToggle();
+    const tr = ui.trainer ? { rate: ui.trStart, step: 0.05, every: 2, pass: 0, last: null } : null;
+    loopP = mkPlayer(src, r[0], r[1], true, tr ? tr.rate : ui.rate); if (!loopP) return;
+    loopP.part = { i, name: r[2], a: r[0], e: r[1] }; trainer = tr; edSig = ''; focusSig = '*';
+    status(T('Teil-Schleife: ') + T(r[2]) + ' · ' + Math.round((tr ? tr.rate : ui.rate) * 100) + ' %' + (tr ? T(' – wird alle 2 Durchgänge 5 % schneller bis 100 %') : ''));
+  }
+  // Tempo-Trainer: Durchgänge zählen (Position springt zurück) und das Tempo stufenweise anheben
+  function trainerTick() {
+    if (!trainer || !loopP || !loopP.part) return;
+    const b = loopP.nowB(); if (trainer.last != null && b < trainer.last - 0.5) {
+      trainer.pass++;
+      if (trainer.pass % trainer.every === 0 && trainer.rate < 1) {
+        const src = curSrc, p = loopP.part; trainer.rate = Math.min(1, Math.round((trainer.rate + trainer.step) * 100) / 100);
+        killP(loopP); loopP = mkPlayer(src, p.a, p.e, true, trainer.rate); if (loopP) loopP.part = p;
+        status(T('Teil-Schleife: ') + T(p.name) + ' · ' + Math.round(trainer.rate * 100) + ' %' + (trainer.rate >= 1 ? T(' – Zieltempo erreicht') : '')); edSig = '';
+        trainer.last = null; return;
+      }
+    }
+    trainer.last = b;
+  }
   // Takt neu einklopfen: Takt läuft (langsam) in Schleife, jeder Tipp setzt das nächste Wort dieses Taktes
   let tapS = null;
   function startTapBar() {
@@ -670,6 +715,8 @@ const Sing = (() => {
     };
     strip.addEventListener('pointerdown', e => {
       if (!curSrc || ui.inline || e.target.closest('.sg-inline')) return;
+      const pm = e.target.closest('.sg-part');
+      if (pm) { e.preventDefault(); if (confirm(T('Teil-Marke „') + pm.textContent + T('“ entfernen?'))) delPart(+pm.dataset.pb); return; }
       const sk = e.target.closest('.sg-stkn');
       if (sk) { e.preventDefault(); const ci = ciNow(), i = +sk.dataset.i; if (ci && curSrc.tok[i]) { select(i); focus(barOf(curSrc, ci, curSrc.tok[i].b)); status(T('Mehrere Wörter auf einer Stelle – „⇹ verteilen“ zieht sie auseinander, oder einzeln antippen und ziehen.')); } return; }
       const el = e.target.closest('.sg-w');
@@ -809,7 +856,7 @@ const Sing = (() => {
   function paintEditor(src) {
     const box = $('sgEdit'); if (!box) return;
     if (ui.chipDrag) return;                       // während ein Wort-Chip gezogen wird, nicht neu zeichnen
-    const sig = (src ? src.id + '|' + src.tok.length + '|' + ver : 'none') + '|' + !!ui.sort + '|' + canUndo() + canRedo() + '|' + rec.busy + '|' + rec.msg + '|' + Math.round((rec.p || 0) * 50) + '|' + ui.sel + '|' + ui.tapping + '|' + ui.lineFrom + '|' + ui.snap;
+    const sig = (src ? src.id + '|' + src.tok.length + '|' + ver : 'none') + '|' + (loopP && loopP.part ? loopP.part.i + ':' + loopP.rate : '-') + '|' + !!ui.sort + '|' + canUndo() + canRedo() + '|' + rec.busy + '|' + rec.msg + '|' + Math.round((rec.p || 0) * 50) + '|' + ui.sel + '|' + ui.tapping + '|' + ui.lineFrom + '|' + ui.snap;
     if (sig === edSig) return; edSig = sig;
     if (!src) { box.innerHTML = '<p class="caption">Spiel einen Song aus dem Songwriting oder einen Loop aus einer geladenen Datei ab – dann erscheint hier sein Gesangstext.</p>'; return; }
     if (src.kind === 'none') { box.innerHTML = '<p class="caption">Diese Spur wurde ins Tempo des Loops gedehnt – dafür ist kein Gesangstext möglich. Lade die Datei ohne Anpassung.</p>'; return; }
@@ -819,6 +866,13 @@ const Sing = (() => {
       + '<label class="field sg-lang"><span>Sprache</span><select id="sgLang"><option value="de"' + (rec.lang === 'de' ? ' selected' : '') + '>Deutsch</option><option value="en"' + (rec.lang === 'en' ? ' selected' : '') + '>Englisch</option></select></label>'
       + '<span class="caption" id="sgAutoInfo">' + esc(rec.msg || 'Erkennt den gesungenen Text mit Zeitpunkten – danach nur noch ausbessern. Läuft komplett auf dem Gerät; beim ersten Mal werden etwa 100 MB geladen.') + '</span>'
       + (rec.busy ? '<div class="sg-prog"><i style="width:' + Math.round((rec.p || 0) * 100) + '%"></i></div>' : '') + '</div>';
+    if (src.kind === 'file') {
+      const ps = partsOf(src);
+      h += '<div class="sg-parts"><b>🏷 ' + T('Teile') + '</b>' + (ps.length ? ps.map((p, i) => '<span class="sg-pitem' + (loopP && loopP.part && loopP.part.i === i ? ' on' : '') + '"><span translate="no">' + esc(T(p.name)) + '</span><small>' + T('Takt ') + src.label(p.b) + '</small><button class="toggle-btn" data-pplay="' + i + '" title="' + T('Ab hier abspielen') + '">▶</button><button class="toggle-btn" data-ploop="' + i + '" title="' + T('Diesen Teil in Schleife') + '">⟲</button></span>').join('')
+        : '<span class="caption">' + T('Noch keine Teile – Takt antippen (breit), dann in der Leiste „🏷 Teil hier“.') + '</span>')
+        + '<label class="check"><input type="checkbox" id="sgTrainer"' + (ui.trainer ? ' checked' : '') + '> ' + T('Tempo-Trainer: ab') + ' <select id="sgTrStart">' + [0.5, 0.6, 0.7, 0.8].map(v => '<option value="' + v + '"' + (Math.abs(ui.trStart - v) < 0.001 ? ' selected' : '') + '>' + Math.round(v * 100) + ' %</option>').join('') + '</select> ' + T('alle 2 Durchgänge +5 % bis 100 %') + '</label>'
+        + (loopP && loopP.part ? '<button class="toggle-btn active" id="sgPStop">■ ' + T('Teil-Schleife') + ' · ' + Math.round(loopP.rate * 100) + ' %</button>' : '') + '</div>';
+    }
     if (src.kind === 'file') h += '<div class="sg-vox"><b>⇄ ' + T('Austausch') + '</b><button class="toggle-btn" id="sgLrcOut">' + T('LRC exportieren') + '</button><button class="toggle-btn" id="sgLrcIn">' + T('LRC laden') + '</button><button class="toggle-btn" id="sgLead">' + T('Leadsheet (PDF)') + '</button><input type="file" id="sgLrcFile" accept=".lrc,.txt,text/plain" hidden></div>';
     if (src.kind === 'file') { const v = vox[src.id];
       h += '<div class="sg-vox" id="sgVoxBox"><b>🎙 ' + T('Gesangsspur') + '</b> ' + (v ? '<span class="caption" translate="no">' + esc(v.name) + '</span><span class="caption"> · ' + T('wird für Stimmkurve, Einrasten und Erkennung benutzt') + (Math.abs(v.off) > v.sr * 0.002 ? ' · ' + T('Versatz ') + Math.round(v.off / v.sr * 1000) + ' ms' : '') + '</span><button class="toggle-btn" id="sgVoxDel">' + T('entfernen') + '</button>'
@@ -869,6 +923,8 @@ const Sing = (() => {
       if (d.on) { box._dragged = true; setTimeout(() => { box._dragged = false; }, 300); if (d.to != null && curSrc) moveWord(curSrc, d.i, d.to); edSig = ''; } };
     box.addEventListener('pointerup', endDrag); box.addEventListener('pointercancel', endDrag);
     box.addEventListener('change', async e => {
+      if (e.target.id === 'sgTrainer') { ui.trainer = e.target.checked; lsS('3nps-sing-trainer', ui.trainer ? '1' : '0'); return; }
+      if (e.target.id === 'sgTrStart') { ui.trStart = +e.target.value; lsS('3nps-sing-trstart', String(ui.trStart)); return; }
       if (e.target.id === 'sgLrcFile') { const f = e.target.files && e.target.files[0]; e.target.value = ''; const src = curSrc; if (f && src && src.kind === 'file') lrcImport(src, await f.text()); return; }
       if (e.target.id !== 'sgVoxFile') return; const f = e.target.files && e.target.files[0]; e.target.value = ''; const src = curSrc; if (!f || !src || src.kind !== 'file') return;
       status(T('Lade die Gesangsspur …'));
@@ -882,6 +938,9 @@ const Sing = (() => {
       if (b.id === 'sgAuto') { recognize(src); return; }
       if (b.id === 'sgVoxAdd') { $('sgVoxFile').click(); return; }
       if (b.id === 'sgLrcOut') { lrcExport(src); return; }
+      if (b.dataset.ploop != null) { startPartLoop(+b.dataset.ploop); return; }
+      if (b.dataset.pplay != null) { const r = partRange(src, +b.dataset.pplay); if (r) { stopLoop(); killP(wordP); if (typeof Looper !== 'undefined' && Looper.running && Looper.running() && Looper.pauseToggle) Looper.pauseToggle(); wordP = mkPlayer(src, r[0], f2b(b2f(r[0], src.beats) + 30 * src.sr, src.beats), false, ui.rate); } return; }
+      if (b.id === 'sgPStop') { stopLoop(); return; }
       if (b.id === 'sgLrcIn') { $('sgLrcFile').click(); return; }
       if (b.id === 'sgLead') { leadsheetPdf(src); return; }
       if (b.id === 'sgVoxDel') { if (confirm(T('Gesangsspur für dieses Lied entfernen?'))) dropVox(src); return; }
@@ -1021,6 +1080,6 @@ const Sing = (() => {
   // Übersetzung je Zeile (v63)
   function setTr(src, arr) { const rec = src.kind === 'lied' ? db.l[src.id] : db.f[src.id]; if (!rec) return false; rec.tr = arr; changed(); return true; }
   function getTr(src) { const rec = src && (src.kind === 'lied' ? db.l[src.id] : db.f[src.id]); return rec && rec.tr || []; }
-  return { recognize: () => recognize(curSrc), rec: () => Object.assign({}, rec), wordsToTok, tick, tap, tokenize, merge, f2b, b2f, endOf, lines, setTr, getTr, ver: () => ver, focus: k => focus(k), unfocus, prec: () => { const E = envOf(curSrc); return { env: E ? { n: E.e.length, on: E.on.slice(), onB: E.onB.slice() } : null, loop: !!loopP, rate: loopP ? loopP.rate : null, word: !!wordP, tap: tapS ? { n: tapS.n, of: tapS.idx.length } : null, mag: ui.mag, sel: ui.sel }; }, voiceEnv: () => voiceEnv(curSrc), placeB: r => placeB(r, curSrc), undo: () => undoRedo(-1), redo: () => undoRedo(1), vox: () => { const v = curSrc && vox[curSrc.id]; return v ? { name: v.name, off: v.off, sr: v.sr, n: v.l.length } : null; }, lrcText: () => curSrc ? lrcText(curSrc) : '', lrcImport: t => curSrc && lrcImport(curSrc, t), leadsheet: () => curSrc ? leadsheetOf(curSrc) : null, loopNow: () => loopP ? loopP.nowB() : (wordP ? wordP.nowB() : null), onTempo: () => onTempo(), addClicks, recheck: () => recheck(), toggleLock: () => toggleLock(), insertAfter: () => insertAfter(), spread, playFrom, source: ci => source(ci), data: () => db, _reload: () => { db = load(); changed(); }, ui: () => ui };
+  return { recognize: () => recognize(curSrc), rec: () => Object.assign({}, rec), wordsToTok, tick, tap, tokenize, merge, f2b, b2f, endOf, lines, setTr, getTr, ver: () => ver, focus: k => focus(k), unfocus, prec: () => { const E = envOf(curSrc); return { env: E ? { n: E.e.length, on: E.on.slice(), onB: E.onB.slice() } : null, loop: !!loopP, rate: loopP ? loopP.rate : null, word: !!wordP, tap: tapS ? { n: tapS.n, of: tapS.idx.length } : null, mag: ui.mag, sel: ui.sel }; }, voiceEnv: () => voiceEnv(curSrc), placeB: r => placeB(r, curSrc), undo: () => undoRedo(-1), redo: () => undoRedo(1), vox: () => { const v = curSrc && vox[curSrc.id]; return v ? { name: v.name, off: v.off, sr: v.sr, n: v.l.length } : null; }, lrcText: () => curSrc ? lrcText(curSrc) : '', lrcImport: t => curSrc && lrcImport(curSrc, t), leadsheet: () => curSrc ? leadsheetOf(curSrc) : null, parts: () => curSrc ? partsOf(curSrc) : [], addPart: n => addPart(n), partLoop: i => startPartLoop(i), trainerState: () => trainer ? Object.assign({}, trainer) : null, loopRate: () => loopP ? loopP.rate : null, loopNow: () => loopP ? loopP.nowB() : (wordP ? wordP.nowB() : null), onTempo: () => onTempo(), addClicks, recheck: () => recheck(), toggleLock: () => toggleLock(), insertAfter: () => insertAfter(), spread, playFrom, source: ci => source(ci), data: () => db, _reload: () => { db = load(); changed(); }, ui: () => ui };
 })();
 window.Sing = Sing;

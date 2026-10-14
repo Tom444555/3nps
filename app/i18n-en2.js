@@ -402,3 +402,10 @@ Object.assign(window.__EN, { 'Gesangsspur': 'Vocal track', 'wird für Stimmkurve
 Object.assign(window.__EN, { 'Austausch': 'Exchange', 'LRC exportieren': 'Export LRC', 'LRC laden': 'Load LRC', 'Leadsheet (PDF)': 'Lead sheet (PDF)', 'Noch kein Text mit Zeiten.': 'No timed lyrics yet.', 'Noch kein Text.': 'No lyrics yet.',
   'In der Datei wurden keine Zeilen mit Zeiten gefunden.': 'No timed lines found in this file.', 'Der vorhandene Text wird durch den Text aus der LRC-Datei ersetzt (rückgängig mit ↶). Weiter?': 'The current lyrics will be replaced by the LRC file (undo with ↶). Continue?',
   ' Zeilen aus der LRC-Datei übernommen.': ' lines taken from the LRC file.', 'Leadsheet aus dem 3nps Looper': 'Lead sheet from the 3nps Looper' });
+Object.assign(window.__EN, { 'Strophe': 'Verse', 'Refrain': 'Chorus', 'Zwischenteil': 'Interlude', 'Teil': 'Part', '🏷 Teil hier': '🏷 Part here', 'Hier (Anfang dieses Taktes) beginnt ein Teil': 'A part starts here (start of this bar)',
+  'Teil „': 'Part “', '“ beginnt bei Takt ': '” starts at bar ', 'Teil-Marke – antippen zum Entfernen': 'Part marker – tap to remove', 'Teil-Marke „': 'Remove part marker “', '“ entfernen?': '”?',
+  'Teile': 'Parts', 'Ab hier abspielen': 'Play from here', 'Diesen Teil in Schleife': 'Loop this part', 'Noch keine Teile – Takt antippen (breit), dann in der Leiste „🏷 Teil hier“.': 'No parts yet – tap a bar (widen it), then “🏷 Part here” in the bar below.',
+  'Tempo-Trainer: ab': 'Tempo trainer: from', 'alle 2 Durchgänge +5 % bis 100 %': '+5 % every 2 passes up to 100 %', 'Teil-Schleife': 'Part loop', 'Teil-Schleife: ': 'Part loop: ',
+  ' – wird alle 2 Durchgänge 5 % schneller bis 100 %': ' – gets 5 % faster every 2 passes up to 100 %', ' – Zieltempo erreicht': ' – target tempo reached',
+  'Akkord ändern (z. B. Am, C7, F#m, Bbmaj7). Leer = wieder der erkannte Akkord:': 'Change chord (e.g. Am, C7, F#m, Bbmaj7). Empty = detected chord again:',
+  'Diesen Akkord kenne ich nicht. Beispiele: C, Am, G7, Dm7, Fmaj7, Bb, F#m7b5, Esus4.': 'I do not know this chord. Examples: C, Am, G7, Dm7, Fmaj7, Bb, F#m7b5, Esus4.' });

@@ -154,3 +154,5 @@
   .sf-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px !important; }
   .sf-zoom .toggle-btn { text-transform: none; letter-spacing: 0; }
   .sf-zoom .toggle-btn { padding: 2px 8px; font-size: .72rem; }
+  .sf-seg.fixed { border-style: dashed; border-color: #f0a030; }
+  .sf-seg.fixed b::after { content: '✎'; font-size: .6em; margin-left: 2px; color: #f0a030; }

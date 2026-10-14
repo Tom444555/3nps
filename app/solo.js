@@ -177,7 +177,7 @@
     ci.segs.forEach((s, i) => {
       const c = parseChord(s.name), w = px(s.e - s.a);
       if (!c) { h += '<div class="sf-seg rest" data-i="' + i + '" style="left:' + px(s.a).toFixed(1) + 'px;width:' + w.toFixed(1) + 'px"></div>'; return; }
-      h += '<button class="sf-seg' + (w < 54 ? ' tight' : '') + '" data-i="' + i + '" style="left:' + px(s.a).toFixed(1) + 'px;width:' + w.toFixed(1) + 'px"><b>' + chordName(c, k) + '</b><small>' + roman(c, k) + '</small></button>';
+      h += '<button class="sf-seg' + (w < 54 ? ' tight' : '') + (s.fixed ? ' fixed' : '') + '" data-i="' + i + '" style="left:' + px(s.a).toFixed(1) + 'px;width:' + w.toFixed(1) + 'px"><b>' + chordName(c, k) + '</b><small>' + roman(c, k) + '</small></button>';
     });
     h += '<div class="sf-ph" id="sfPh"></div>';
     strip.innerHTML = h; lastOn = -2;          // neu aufgebaut: Einrahmung beim nächsten Bild neu setzen
@@ -493,7 +493,28 @@
     if (sig !== state.sig || force) { state.sig = sig; renderFocus(ci, k, src); }
   }
   // Bedienung
+  // v83: Akkord gedrückt halten = von Hand ändern (nur bei geladenen Dateien)
+  const FLAT2 = { Db: 'C#', Eb: 'D#', Gb: 'F#', Ab: 'G#', Bb: 'A#', Cb: 'B', Fb: 'E', H: 'B', 'E#': 'F', 'B#': 'C' };
+  function normChord(v) {
+    v = String(v || '').trim().replace(/♭/g, 'b').replace(/♯/g, '#'); if (!v) return '';
+    const m = /^([A-H][b#]?)(.*)$/.exec(v); if (!m) return null;
+    const r = FLAT2[m[1]] || m[1], suf = m[2] === 'min' || m[2] === 'moll' ? 'm' : m[2] === 'maj' || m[2] === 'dur' ? '' : m[2];
+    return PC[r] != null && (suf === '' || CH[suf]) ? r + suf : null;
+  }
+  let holdT = null, held = false;
+  $('sfStrip').addEventListener('pointerdown', e => {
+    const b = e.target.closest('.sf-seg'); if (!b) return; held = false; clearTimeout(holdT);
+    holdT = setTimeout(() => {
+      const ci = info(), i = +b.dataset.i, s = ci.segs && ci.segs[i]; if (!s || ci.track < 0 || ci.jam || ci.lied) return;
+      held = true;
+      const v = prompt(T('Akkord ändern (z. B. Am, C7, F#m, Bbmaj7). Leer = wieder der erkannte Akkord:'), s.fixed ? s.name : (s.name === '–' ? '' : s.name)); if (v == null) return;
+      const n = normChord(v); if (n === null) { alert(T('Diesen Akkord kenne ich nicht. Beispiele: C, Am, G7, Dm7, Fmaj7, Bb, F#m7b5, Esus4.')); return; }
+      if (typeof Looper !== 'undefined' && Looper.setChordFix && Looper.setChordFix(ci.track, s.a, n)) { bandSig = ''; state.sig = ''; update(true); }
+    }, 550);
+  });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => $('sfStrip').addEventListener(ev, () => clearTimeout(holdT)));
   $('sfStrip').addEventListener('click', e => {
+    if (held) { held = false; return; }
     const b = e.target.closest('.sf-seg'); if (!b || b.classList.contains('rest')) return;
     const ci = info(), i = +b.dataset.i, s = ci.segs && ci.segs[i]; if (!s) return;
     const c = parseChord(s.name);
