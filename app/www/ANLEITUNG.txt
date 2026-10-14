@@ -670,3 +670,15 @@ Gut zu wissen
      (oder Leertaste), sobald ein Wort beginnt – Wort für Wort. Die Zeiten werden aufs normale Tempo umgerechnet
      und bei „♪ Stimme“ zusätzlich an den Silbenanfang gelegt.
    - Bei Songs aus dem Songwriting gibt es keine Audiodatei: dort Raster/frei, Feinschritte und Verteilen.
+
+59. Tempo in 1er-Schritten, Wort dazwischen, fertige Zeilen als Vorlage, Akkorde beim Mitsingen (v74)
+   - Oben neben dem Tempo-Regler: − und + ändern das Tempo um 1 BPM (gedrückt halten = schnell weiter).
+     In der Takt-Schleife und bei „Zeile üben“ (Mitsingen) ändern − / + das Abspieltempo um 1 %.
+   - „＋ Wort danach“ (Bearbeitungsleiste und Gesangstext-Karte): setzt ein neues Wort zwischen das ausgewählte
+     und das nächste. Mehrere Wörter eintippen = sie teilen sich den Platz.
+   - „🔒 Zeile fertig“: markiert die Zeile des ausgewählten Wortes als fertig (grün). Sie wird danach nie mehr
+     automatisch verändert – auch „Rest mitziehen“, „verteilen“ und „♪ an Stimme“ halten an ihr an.
+   - „✓ Rest nachprüfen“: lernt aus den fertigen Zeilen, wie weit die Erkennung danebenlag und wie du die
+     Wörter zur Silbe legst, und korrigiert damit alle anderen Wörter (fertige Zeilen bleiben, wie sie sind).
+     „↶“ nimmt die Nachprüfung zurück. Am besten wirkt es bei Texten aus der automatischen Erkennung.
+   - Mitsingen: Die Akkorde stehen jetzt über den Wörtern – beim ersten Wort der Zeile und bei jedem Wechsel.

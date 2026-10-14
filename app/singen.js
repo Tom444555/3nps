@@ -56,7 +56,17 @@ const Singen = (() => {
     const tr = Sing.getTr(src), sig = src.id + '|' + f.line + '|' + Sing.ver() + '|' + ($('sbTrOn').checked ? 1 : 0) + '|' + JSON.stringify(res).length;
     if (sig !== lineSig) {
       lineSig = sig;
-      $('sbLine').innerHTML = lineOf(src, f.line).map(t => '<span class="sb-w" data-i="' + t.i + '">' + esc(t.w) + '<i class="sb-fill"></i>' + mark(t.i) + '</span>').join(' ');
+      // v74: Akkorde über den Wörtern (beim ersten Wort der Zeile und bei jedem Wechsel)
+      const ci = window.SoloInfo ? SoloInfo() : null, chAt = b => {
+        if (!ci || !ci.segs || b == null) return ''; let f = src.toCi(b); if (f == null) return ''; if (ci.L) f = ((f % ci.L) + ci.L) % ci.L;
+        const sg = ci.segs.find(x => f >= x.a - 1 && f < x.e); return sg && sg.name && !/^(N|–|-)$/.test(sg.name) ? sg.name : '';
+      };
+      let lastCh = null, anyCh = false;
+      $('sbLine').innerHTML = lineOf(src, f.line).map(t => {
+        const c = chAt(t.b), show = c && c !== lastCh; if (c) lastCh = c; if (show) anyCh = true;
+        return '<span class="sb-w" data-i="' + t.i + '">' + (show ? '<b class="sb-ch">' + esc(c) + '</b>' : '') + esc(t.w) + '<i class="sb-fill"></i>' + mark(t.i) + '</span>';
+      }).join(' ');
+      $('sbLine').classList.toggle('has-ch', anyCh);
       wordEls = [...$('sbLine').querySelectorAll('.sb-w')].map(el => ({ el, bar: el.querySelector('.sb-fill'), i: +el.dataset.i, p: -1, on: false, done: false }));
       $('sbTr').textContent = $('sbTrOn').checked && tr[f.line] ? tr[f.line] : '';
       $('sbNext').textContent = lineOf(src, f.line + 1).map(t => t.w).join(' ');
@@ -159,11 +169,15 @@ const Singen = (() => {
     document.addEventListener('tabchange', () => setTimeout(run, 0));
     new MutationObserver(run).observe($('panel-singen'), { attributes: true, attributeFilter: ['hidden'] });
     $('sbLoop').addEventListener('click', () => { if (player) { stopPlayer(); return; } const src = getSrc(); if (src) startPlayer(focus(src).line); });
-    $('sbSpeed').addEventListener('click', e => {
-      const b = e.target.closest('button'); if (!b) return; speed = +b.dataset.s;
-      $('sbSpeed').querySelectorAll('button').forEach(x => x.classList.toggle('active', x === b));
-      if (player) startPlayer(player.line);
-    });
+    const setSpeed = v => {
+      speed = Math.max(0.4, Math.min(1, Math.round(v * 100) / 100));
+      $('sbSpeed').querySelectorAll('button').forEach(x => x.classList.toggle('active', +x.dataset.s === speed));
+      $('sbSpV').textContent = Math.round(speed * 100) + ' %';
+      clearTimeout(setSpeed.t); if (player) setSpeed.t = setTimeout(() => { if (player) startPlayer(player.line); }, 350);
+    };
+    $('sbSpeed').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setSpeed(+b.dataset.s); });
+    $('sbSpDn').addEventListener('click', () => setSpeed(speed - 0.01));
+    $('sbSpUp').addEventListener('click', () => setSpeed(speed + 0.01));
     const step = d => {
       const src = getSrc(); if (!src) return;
       const maxL = Math.max(0, ...src.tok.map(t => t.l)), l = Math.max(0, Math.min(maxL, (player ? player.line : focus(src).line) + d));

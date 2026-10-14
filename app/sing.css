@@ -63,3 +63,8 @@
   .sg-env { position: absolute; top: 16px; height: 80px; pointer-events: none; z-index: 1; color: var(--accent); }
   .sg-w { -webkit-touch-callout: none; }
   .sg-env-on .sg-w:not(.on):not(.sel) { background: color-mix(in srgb, var(--surface-2) 45%, transparent); }
+  .sg-rate { display: inline-flex; align-items: center; gap: 4px; }
+  .sg-rate b { font: 700 .8rem var(--f-mono); min-width: 3.6em; text-align: center; color: var(--ink); }
+  .sg-rate .toggle-btn { min-width: 34px; padding: 6px 8px; }
+  .sg-w.lk { border-left-color: #4caf7d; box-shadow: inset 0 -3px 0 #4caf7d; }
+  .sg-w.lk:not(.on):not(.sel) { background: color-mix(in srgb, #4caf7d 22%, var(--surface-2)) !important; }

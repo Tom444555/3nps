@@ -79,7 +79,7 @@ async def main():
         q = await pg.evaluate("[Sing.prec().loop, Looper.running(), Sing.loopNow(), document.getElementById('sgPh').style.display, (()=>{const ci=SoloInfo(),src=Sing.source(ci),k=SoloFocus.get(),D=ci.downs;return [src.fromCi(D[k])-1, src.fromCi(k+1<D.length?D[k+1]:ci.L)]})()]")
         check('⟲ Schleife spielt den Takt (mit Anlauf), Looper steht, Strich läuft', q[0] and not q[1] and q[4][0] - 0.01 <= q[2] <= q[4][1] + 0.01 and q[3] != 'none', q)
         a = await pg.evaluate("Sing.loopNow()"); await pg.wait_for_timeout(500); c = await pg.evaluate("Sing.loopNow()")
-        await pg.click('#sgFRate [data-r="0.5"]'); await pg.wait_for_timeout(300)
+        await pg.click('#sgFRate [data-r="0.5"]'); await pg.wait_for_timeout(800)
         a2 = await pg.evaluate("Sing.loopNow()"); await pg.wait_for_timeout(500); c2 = await pg.evaluate("Sing.loopNow()")
         check('50 %: Schleife läuft halb so schnell', await pg.evaluate("Sing.prec().rate") == 0.5 and 0.35 < (c2 - a2) / max(1e-6, c - a) < 0.65, (round(c - a, 3), round(c2 - a2, 3)))
         # Takt einklopfen (bei 50 %): Seite tippt genau, wenn die Schleife die Silbe erreicht

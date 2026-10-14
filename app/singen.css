@@ -20,3 +20,5 @@
   .sb-score { font: 600 0.95rem var(--f-body); color: var(--ink); min-height: 1.3em; margin: 6px 0 0; }
   .sb-tredit summary { cursor: pointer; color: var(--muted); font: 600 0.85rem var(--f-body); }
   .sb-tredit textarea { width: 100%; box-sizing: border-box; margin: 6px 0; font: 0.9rem var(--f-body); color: var(--ink); background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px; }
+  .sb-line.has-ch { padding-top: 1.15em; line-height: 2.15; }
+  .sb-ch { position: absolute; left: 0; bottom: calc(100% - 0.15em); font: 700 0.55em var(--f-mono); color: var(--accent); white-space: nowrap; letter-spacing: 0; pointer-events: none; }

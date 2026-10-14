@@ -71,7 +71,7 @@
   .lcd .v.small { font-size: 0.95rem; }
   #lcdPos.rec { color: var(--root-color); }
   #statusMirror { grid-column: 1 / -1; font-size: 0.66rem; color: var(--lcd-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .tempo-ctl { display: flex; align-items: center; gap: 8px; flex: 0 1 220px; min-width: 150px; }
+  .tempo-ctl { display: flex; align-items: center; gap: 6px; flex: 0 1 300px; min-width: 220px; }
   .tempo-ctl .lbl { font: 600 0.66rem var(--f-body); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
   .bpm-display { display: none; }
   @media (max-width: 640px) {
@@ -213,12 +213,14 @@
   .pf-note { margin: 8px 0 0; color: #8fa0ae; font-size: .68rem; line-height: 1.35; height: 5.4em; overflow: hidden; }
   .optik-pop select { width: 100%; min-height: 40px; }
   @media (prefers-reduced-motion: reduce) { .note-dot { transition: none; } }
+  .bpm-step { flex: 0 0 auto; width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); font: 700 1.05rem var(--f-body); cursor: pointer; touch-action: manipulation; padding: 0; }
+  .bpm-step:active { background: var(--accent); color: #000; }
 </style>
 
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v73</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v74</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -279,7 +281,9 @@
     </div>
     <div class="tempo-ctl">
       <span class="lbl">Tempo</span>
+      <button type="button" class="bpm-step" id="bpmDn" aria-label="Langsamer (−1)">−</button>
       <input type="range" id="bpm" min="40" max="200" step="1" value="80" aria-label="Tempo in BPM">
+      <button type="button" class="bpm-step" id="bpmUp" aria-label="Schneller (+1)">+</button>
     </div>
   </div>
 </header>

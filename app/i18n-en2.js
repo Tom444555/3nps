@@ -371,3 +371,11 @@ Object.assign(window.__EN, { '⟲ Schleife': '⟲ Loop', '■ Schleife': '■ Lo
   ' Wörter an die Stimme gelegt.': ' words moved to the voice.', 'In diesem Takt stehen keine Wörter.': 'There are no words in this bar.', 'Takt eingeklopft – hör es dir in der Schleife an.': 'Bar tapped – listen to it in the loop.',
   'Lege die Wörter an die Stimme …': 'Moving the words to the voice …', ' Wörter an die Stimme angepasst. ': ' words matched to the voice. ' });
 Object.assign(window.__EN, { 'Die Ideen konnten nicht gelesen werden: ': 'The ideas could not be read: ', 'Beschädigter Eintrag': 'Damaged entry', 'Die Idee konnte nicht geladen werden: ': 'The idea could not be loaded: ' });
+Object.assign(window.__EN, { 'Langsamer (−1)': 'Slower (−1)', 'Schneller (+1)': 'Faster (+1)', '1 % langsamer': '1 % slower', '1 % schneller': '1 % faster',
+  '＋ Wort danach': '＋ Word after', 'Neues Wort zwischen dem ausgewählten und dem nächsten einfügen': 'Insert a new word between the selected one and the next',
+  'Vorlage': 'Reference', '🔒 Zeile fertig': '🔒 Line done', '🔓 Zeile freigeben': '🔓 Unlock line', '✓ Rest nachprüfen': '✓ Check the rest', 'Nachprüfung zurücknehmen': 'Undo the check',
+  'Zeile des ausgewählten Wortes als fertig markieren – sie bleibt, wie sie ist, und dient als Vorlage': 'Mark the line of the selected word as done – it stays as it is and serves as a reference',
+  'Aus den fertigen Zeilen lernen und alle anderen Wörter nachprüfen – fertige Zeilen bleiben unverändert': 'Learn from the finished lines and check all other words – finished lines stay unchanged',
+  ' ist fertig (🔒) – sie dient als Vorlage und wird nicht mehr automatisch verändert.': ' is done (🔒) – it serves as a reference and is no longer changed automatically.', ' ist wieder frei.': ' is unlocked again.',
+  'Markiere zuerst mindestens eine fertige Zeile mit „🔒 Zeile fertig“.': 'First mark at least one finished line with “🔒 Line done”.', 'Prüfe den Rest …': 'Checking the rest …',
+  ' Wörter geprüft, ': ' words checked, ', ' korrigiert. Vorlage: ': ' corrected. Reference: ', ' Zeile(n)': ' line(s)', ', Versatz der Erkennung ': ', detection offset ', '. „↶“ nimmt es zurück.': '. “↶” undoes it.', 'Zurückgenommen.': 'Undone.' });
