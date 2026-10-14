@@ -136,7 +136,7 @@ const Sing = (() => {
   function tick(ci) {
     const band = $('sgBand'), strip = $('sgStrip'); if (!band) return;
     const live = source(ci);
-    if (live && live.kind !== 'none') { lastSrc = live; histSeen(live); }
+    if (live && live.kind !== 'none') { lastSrc = live; histSeen(live); if (live.kind === 'file' && !voxTried[live.id]) loadVoxFor(live); }
     // Editor bleibt nach dem Anhalten bei der zuletzt gespielten Quelle (zum Korrigieren in Ruhe)
     const src = live || (lastSrc ? Object.assign({}, lastSrc, { nowB: null }) : null); curSrc = src;
     if (ui.open) paintEditor(src);
@@ -349,6 +349,40 @@ const Sing = (() => {
   const lsS = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
   ui.mag = lsG('3nps-sing-mag', 'voice'); if (!['grid', 'voice', 'free'].includes(ui.mag)) ui.mag = 'voice';
   ui.click = lsG('3nps-sing-click', '0') === '1'; ui.rate = +lsG('3nps-sing-rate', '1'); if (!(ui.rate >= 0.4 && ui.rate <= 1)) ui.rate = 1;
+
+  // ---- v81: Gesangsspur (z. B. aus Moises) je Datei – Stimmkurve, Silbenanfänge und Erkennung arbeiten dann nur auf dem Gesang ----
+  const vox = {}, voxTried = {};
+  // Ausschnitt wie Looper.singAudio – aus der Gesangsspur (mit Versatz), sonst aus der Datei
+  function audioOf(src, f0, f1) {
+    const v = vox[src.id];
+    if (v) { const a = Math.max(0, Math.floor(f0 + v.off)), e = Math.min(v.l.length, Math.ceil(Math.min(f1, 1e12) + v.off)); if (e - a < 2) return null; const l = v.l.slice(a, e); return { l, r: l, length: l.length, sr: v.sr }; }
+    return typeof Looper !== 'undefined' && Looper.singAudio ? Looper.singAudio(src.track, f0, f1) : null;
+  }
+  // Versatz Gesangsspur ↔ Datei über die Hüllkurven der ersten 90 s (± 0,5 s), z. B. MP3-Vorlauf
+  function voxOffset(src, l, sr) {
+    const mix = Looper.singAudio(src.track, 0, sr * 90); if (!mix) return 0;
+    const hop = Math.round(sr * 0.005), env = (a, n) => { const o = new Float32Array(Math.floor(n / hop)); for (let i = 0; i < o.length; i++) { let q = 0; for (let j = 0; j < hop; j += 2) { const v = a(i * hop + j); q += v * v; } o[i] = Math.sqrt(q); } return o; };
+    const n = Math.min(mix.length, l.length, sr * 90), A = env(i => (mix.l[i] + mix.r[i]) * 0.5, n), B = env(i => l[i], n);
+    const dA = A.map((v, i) => i ? Math.max(0, v - A[i - 1]) : 0), dB = B.map((v, i) => i ? Math.max(0, v - B[i - 1]) : 0);
+    let best = 0, bv = -1; for (let k = -100; k <= 100; k++) { let q = 0; for (let i = 100; i < dA.length - 100; i++) q += dA[i] * dB[i + k]; if (q > bv) { bv = q; best = k; } }
+    return best * hop;
+  }
+  async function setVox(src, blob, name, persist) {
+    if (typeof ensureAudio === 'function') ensureAudio();
+    const buf = await audioCtx.decodeAudioData(await blob.arrayBuffer());
+    const n = buf.length, l = new Float32Array(n), c0 = buf.getChannelData(0), c1 = buf.numberOfChannels > 1 ? buf.getChannelData(1) : c0;
+    for (let i = 0; i < n; i++) l[i] = (c0[i] + c1[i]) * 0.5;
+    const off = voxOffset(src, l, buf.sampleRate);
+    vox[src.id] = { l, sr: buf.sampleRate, name, off };
+    if (persist) { try { await AppDB.put('meta', { key: 'vox:' + src.id, name, blob }); } catch (e) {} }
+    delete envs[src.id]; laneSig = ''; edSig = ''; focusSig = '*';
+    return vox[src.id];
+  }
+  async function loadVoxFor(src) {
+    if (!src || src.kind !== 'file' || voxTried[src.id]) return; voxTried[src.id] = true;
+    try { const r = await AppDB.get('meta', 'vox:' + src.id); if (r && r.blob) await setVox(src, r.blob, r.name, false); } catch (e) {}
+  }
+  async function dropVox(src) { delete vox[src.id]; delete envs[src.id]; try { await AppDB.del('meta', 'vox:' + src.id); } catch (e) {} laneSig = ''; edSig = ''; focusSig = '*'; }
   // Stimmkurve: Lautstärke im Stimmbereich (250–3500 Hz) alle 10 ms + Silbenanfänge, je Datei einmal berechnet
   const envs = {};
   function biq(type, f, sr) {
@@ -363,11 +397,11 @@ const Sing = (() => {
     if (envs[src.id]) return envs[src.id].p;
     const E = envs[src.id] = { ready: false };
     E.p = (async () => {
-      const probe = Looper.singAudio(src.track, 0, 1e4); if (!probe) return null;
+      const probe = audioOf(src, 0, 1e4); if (!probe) return null;
       const sr = probe.sr, hop = Math.round(sr * 0.01), CH = sr * 10, fl = [biq('hp', 250, sr), biq('hp', 250, sr), biq('lp', 3500, sr)];
       const dv = []; let acc = 0, n = 0;
       for (let a = 0; ; a += CH) {
-        const x = Looper.singAudio(src.track, a, a + CH); if (!x) break;
+        const x = audioOf(src, a, a + CH); if (!x) break;
         for (let i = 0; i < x.length; i++) { let v = (x.l[i] + x.r[i]) * 0.5; v = run(fl[2], run(fl[1], run(fl[0], v))); acc += v * v; if (++n === hop) { dv.push(10 * Math.log10(acc / hop + 1e-10)); acc = 0; n = 0; } }
         if (x.length < CH) break;
         await new Promise(r => setTimeout(r, 0));
@@ -721,6 +755,9 @@ const Sing = (() => {
       + '<label class="field sg-lang"><span>Sprache</span><select id="sgLang"><option value="de"' + (rec.lang === 'de' ? ' selected' : '') + '>Deutsch</option><option value="en"' + (rec.lang === 'en' ? ' selected' : '') + '>Englisch</option></select></label>'
       + '<span class="caption" id="sgAutoInfo">' + esc(rec.msg || 'Erkennt den gesungenen Text mit Zeitpunkten – danach nur noch ausbessern. Läuft komplett auf dem Gerät; beim ersten Mal werden etwa 100 MB geladen.') + '</span>'
       + (rec.busy ? '<div class="sg-prog"><i style="width:' + Math.round((rec.p || 0) * 100) + '%"></i></div>' : '') + '</div>';
+    if (src.kind === 'file') { const v = vox[src.id];
+      h += '<div class="sg-vox"><b>🎙 ' + T('Gesangsspur') + '</b> ' + (v ? '<span class="caption" translate="no">' + esc(v.name) + '</span><span class="caption"> · ' + T('wird für Stimmkurve, Einrasten und Erkennung benutzt') + (Math.abs(v.off) > v.sr * 0.002 ? ' · ' + T('Versatz ') + Math.round(v.off / v.sr * 1000) + ' ms' : '') + '</span><button class="toggle-btn" id="sgVoxDel">' + T('entfernen') + '</button>'
+        : '<button class="toggle-btn" id="sgVoxAdd">' + T('Gesangsspur dazuladen (z. B. aus Moises)') + '</button><span class="caption">' + T('Nur der Gesang, gleiche Länge wie das Lied – dann stören Gitarre und Schlagzeug nicht bei Stimmkurve und Erkennung.') + '</span>') + '<input type="file" id="sgVoxFile" accept="audio/*" hidden></div>'; }
     if (src.kind === 'file') h += '<details class="sg-paste"' + (src.tok.length ? '' : ' open') + '><summary>Text einfügen / ersetzen</summary><textarea id="sgText" rows="5" placeholder="Liedtext hier einfügen – eine Zeile pro gesungener Zeile">' + esc(lines(src.tok).map(l => l.map(t => t.w).join(' ')).join('\n')) + '</textarea><button class="toggle-btn" id="sgTake">Übernehmen</button></details>';
     if (src.tok.length) {
       h += '<div class="sg-tools"><button class="toggle-btn sg-tapbtn' + (ui.tapping ? ' active' : '') + '" id="sgTapMode">' + (ui.tapping ? '■ Einklopfen beenden' : '● Einklopfen') + '</button>'
@@ -766,11 +803,19 @@ const Sing = (() => {
     const endDrag = () => { if (!cd) return; const d = cd; cd = null; ui.chipDrag = false; d.el.style.transform = ''; d.el.classList.remove('drag'); box.querySelectorAll('.sg-chip.drop').forEach(x => x.classList.remove('drop'));
       if (d.on) { box._dragged = true; setTimeout(() => { box._dragged = false; }, 300); if (d.to != null && curSrc) moveWord(curSrc, d.i, d.to); edSig = ''; } };
     box.addEventListener('pointerup', endDrag); box.addEventListener('pointercancel', endDrag);
+    box.addEventListener('change', async e => {
+      if (e.target.id !== 'sgVoxFile') return; const f = e.target.files && e.target.files[0]; e.target.value = ''; const src = curSrc; if (!f || !src || src.kind !== 'file') return;
+      status(T('Lade die Gesangsspur …'));
+      try { const v = await setVox(src, f, f.name, true); status(T('Gesangsspur geladen') + (Math.abs(v.off) > v.sr * 0.002 ? ' (' + T('Versatz ') + Math.round(v.off / v.sr * 1000) + ' ms ' + T('ausgeglichen') + ')' : '') + '.'); }
+      catch (x) { status(T('Die Gesangsspur kann das iPad nicht öffnen.')); }
+    });
     box.addEventListener('click', e => {
       const src = curSrc; if (!src) return;
       const b = e.target.closest('button'); if (!b) return;
       const tok = src.tok;
       if (b.id === 'sgAuto') { recognize(src); return; }
+      if (b.id === 'sgVoxAdd') { $('sgVoxFile').click(); return; }
+      if (b.id === 'sgVoxDel') { if (confirm(T('Gesangsspur für dieses Lied entfernen?'))) dropVox(src); return; }
       if (b.id === 'sgTake') {
         const nt = tokenize($('sgText').value); if (!nt.length) return;
         const rec = db.f[src.id] = { name: src.name, tok: merge(tok, nt) }; src.tok = rec.tok; ui.sel = -1; changed(); return;
@@ -865,7 +910,7 @@ const Sing = (() => {
     if (rec.busy || !src || src.kind !== 'file' || typeof Looper === 'undefined' || !Looper.singAudio) return;
     if (src.tok.length && !confirm(T('Der vorhandene Text und sein Timing werden durch die Erkennung ersetzt. Weiter?'))) return;
     if (typeof Worker === 'undefined' || typeof WebAssembly === 'undefined') { say(T('Dieses Gerät kann die Erkennung nicht ausführen.')); return; }
-    const x = Looper.singAudio(src.track, 0, Infinity); if (!x) { say(T('Die Audiodatei ist nicht mehr im Speicher – bitte neu laden.')); return; }
+    const x = audioOf(src, 0, Infinity); if (!x) { say(T('Die Audiodatei ist nicht mehr im Speicher – bitte neu laden.')); return; }
     if (Looper.stopAll) Looper.stopAll();
     rec.busy = true; say(T('Sichere die Spuren …'), 0);
     try { if (Looper.autosaveNow) await Looper.autosaveNow(); } catch (e) {}
@@ -907,6 +952,6 @@ const Sing = (() => {
   // Übersetzung je Zeile (v63)
   function setTr(src, arr) { const rec = src.kind === 'lied' ? db.l[src.id] : db.f[src.id]; if (!rec) return false; rec.tr = arr; changed(); return true; }
   function getTr(src) { const rec = src && (src.kind === 'lied' ? db.l[src.id] : db.f[src.id]); return rec && rec.tr || []; }
-  return { recognize: () => recognize(curSrc), rec: () => Object.assign({}, rec), wordsToTok, tick, tap, tokenize, merge, f2b, b2f, endOf, lines, setTr, getTr, ver: () => ver, focus: k => focus(k), unfocus, prec: () => { const E = envOf(curSrc); return { env: E ? { n: E.e.length, on: E.on.slice(), onB: E.onB.slice() } : null, loop: !!loopP, rate: loopP ? loopP.rate : null, word: !!wordP, tap: tapS ? { n: tapS.n, of: tapS.idx.length } : null, mag: ui.mag, sel: ui.sel }; }, voiceEnv: () => voiceEnv(curSrc), placeB: r => placeB(r, curSrc), undo: () => undoRedo(-1), redo: () => undoRedo(1), loopNow: () => loopP ? loopP.nowB() : (wordP ? wordP.nowB() : null), onTempo: () => onTempo(), addClicks, recheck: () => recheck(), toggleLock: () => toggleLock(), insertAfter: () => insertAfter(), spread, playFrom, source: ci => source(ci), data: () => db, _reload: () => { db = load(); changed(); }, ui: () => ui };
+  return { recognize: () => recognize(curSrc), rec: () => Object.assign({}, rec), wordsToTok, tick, tap, tokenize, merge, f2b, b2f, endOf, lines, setTr, getTr, ver: () => ver, focus: k => focus(k), unfocus, prec: () => { const E = envOf(curSrc); return { env: E ? { n: E.e.length, on: E.on.slice(), onB: E.onB.slice() } : null, loop: !!loopP, rate: loopP ? loopP.rate : null, word: !!wordP, tap: tapS ? { n: tapS.n, of: tapS.idx.length } : null, mag: ui.mag, sel: ui.sel }; }, voiceEnv: () => voiceEnv(curSrc), placeB: r => placeB(r, curSrc), undo: () => undoRedo(-1), redo: () => undoRedo(1), vox: () => { const v = curSrc && vox[curSrc.id]; return v ? { name: v.name, off: v.off, sr: v.sr, n: v.l.length } : null; }, loopNow: () => loopP ? loopP.nowB() : (wordP ? wordP.nowB() : null), onTempo: () => onTempo(), addClicks, recheck: () => recheck(), toggleLock: () => toggleLock(), insertAfter: () => insertAfter(), spread, playFrom, source: ci => source(ci), data: () => db, _reload: () => { db = load(); changed(); }, ui: () => ui };
 })();
 window.Sing = Sing;

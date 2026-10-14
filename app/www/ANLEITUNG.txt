@@ -729,3 +729,11 @@ Gut zu wissen
      ⌘Z / ⇧⌘Z (Windows: Strg+Z / Strg+⇧+Z). Bis zu 80 Schritte je Lied, solange die App offen ist.
    - „Lieder mit Text“: Speichert man ein Lied erneut, bleibt der vorige Text als Version erhalten (bis zu 12).
      „Versionen (n)“ zeigt sie mit Datum; „zurückholen“ setzt den Text zurück, der jetzige Stand wird dabei als Version behalten.
+
+66. Gesangsspur dazuladen, z. B. aus Moises (v81)
+   - Karte „🎤 Gesangstext“ (bei geladenen Songdateien): „Gesangsspur dazuladen“ – die Gesang-Spur (Vocals) desselben
+     Liedes wählen. Abgespielt wird weiter das ganze Lied; Stimmkurve, Silbenanfänge, Einrasten an der Stimme,
+     „Rest nachprüfen“ und die automatische Erkennung arbeiten dann nur auf dem Gesang – deutlich genauer.
+   - Ein kleiner Versatz zwischen den Dateien (z. B. MP3-Vorlauf) wird beim Laden erkannt und ausgeglichen (Anzeige in ms).
+   - Die Gesangsspur wird auf dem Gerät gespeichert und beim nächsten Laden des Liedes automatisch wieder benutzt;
+     „Alles sichern“ nimmt sie mit. „entfernen“ löscht sie wieder.
