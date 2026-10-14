@@ -389,3 +389,7 @@ window.__EN_PAT.push(
   [/^Bestimme Takt und Schläge mit ([\d,.]+) BPM neu …$/, 'Recalculating bars and beats at $1 BPM …'],
 );
 Object.assign(window.__EN, { 'Das geht mit einer in dieser Sitzung geladenen Songdatei – lade die Datei dafür neu.': 'This works with a song file loaded in this session – load the file again.', 'Bitte ein Tempo zwischen 40 und 240 BPM eintragen.': 'Please enter a tempo between 40 and 240 BPM.' });
+Object.assign(window.__EN, { '↕ Wörter umsortieren': '↕ Reorder words', 'Wort ziehen und auf ein anderes fallen lassen – die Wörter tauschen ihre Plätze, die Zeiten bleiben.': 'Drag a word and drop it on another – the words change places, the times stay.',
+  '⇠ tauschen': '⇠ swap', 'tauschen ⇢': 'swap ⇢', 'Mit dem Wort davor tauschen': 'Swap with the previous word', 'Mit dem Wort danach tauschen': 'Swap with the next word',
+  'Hier liegen mehrere Wörter übereinander – antippen zum Auseinanderziehen': 'Several words lie on top of each other here – tap to spread them',
+  'Mehrere Wörter auf einer Stelle – „⇹ verteilen“ zieht sie auseinander, oder einzeln antippen und ziehen.': 'Several words on one spot – “⇹ Spread” pulls them apart, or tap and drag them one by one.' });

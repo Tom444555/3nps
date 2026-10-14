@@ -167,11 +167,18 @@ const Sing = (() => {
       ciBeats.forEach(x => { h += '<div class="sg-gbeat" style="left:' + px(x).toFixed(1) + 'px"></div>'; });
       downs.forEach((d, i) => { h += '<div class="sg-gbar" style="left:' + px(d).toFixed(1) + 'px"><span>' + (i + 1) + '</span></div>'; });
       // Wörter: alle auf einer Ebene; Breite = Zeit bis zum nächsten Wort (langes Wort wird gekürzt, ausgewählt/aktuell ganz sichtbar)
+      // v79: Wörter, die (fast) übereinander liegen, als Stapel kennzeichnen: leicht versetzt, orange, Zahl „+n“ am ersten
+      const stk = {}; { let g0 = -1, lastX = -1e9, n = 0, prevI = -1;
+        srcL.tok.forEach((t, i) => { if (t.b == null) return; const a = srcL.toCi(t.b); if (a == null || a < -1 || a >= ci.L) return; const x = px(a);
+          if (prevI >= 0 && x - lastX < 12) { if (g0 < 0) { g0 = prevI; stk[g0] = { lvl: 0, g: g0, first: true }; } n++; stk[i] = { lvl: Math.min(2, n), g: g0 }; stk[g0].cnt = n + 1; }
+          else { g0 = -1; n = 0; lastX = x; }
+          prevI = i; }); }
+      Object.keys(stk).forEach(k => { const v = stk[k]; if (v.first) { const t = srcL.tok[k], a = srcL.toCi(t.b); h += '<b class="sg-stkn" data-i="' + k + '" style="left:' + px(a).toFixed(1) + 'px" title="' + esc(T('Hier liegen mehrere Wörter übereinander – antippen zum Auseinanderziehen')) + '">+' + (v.cnt - 1) + '</b>'; } });
       srcL.tok.forEach((t, i) => {
         if (t.b == null) return;
         const a0 = srcL.toCi(t.b), e0 = srcL.toCi(endOf(srcL.tok, i)); if (a0 == null || a0 < -1 || a0 >= ci.L) return;
-        const wpx = Math.max(14, px(Math.min(ci.L, e0) - a0) - 2);
-        h += '<span class="sg-w' + (i === ui.sel ? ' sel' : '') + (t.k ? ' lk' : '') + '" data-i="' + i + '" style="left:' + px(a0).toFixed(1) + 'px;width:' + wpx.toFixed(1) + 'px;font-size:' + fitFont(t.w, wpx) + 'px">' + esc(t.w) + '</span>';
+        const wpx = Math.max(14, px(Math.min(ci.L, e0) - a0) - 2), sv = stk[i];
+        h += '<span class="sg-w' + (i === ui.sel ? ' sel' : '') + (t.k ? ' lk' : '') + (sv ? ' stk' : '') + '"' + (sv && sv.lvl ? ' data-lvl="' + sv.lvl + '"' : '') + ' data-i="' + i + '" style="left:' + px(a0).toFixed(1) + 'px;width:' + wpx.toFixed(1) + 'px;font-size:' + fitFont(t.w, wpx) + 'px">' + esc(t.w) + '</span>';
       });
       // v72: Stimmkurve im Bearbeitungs-Zoom (Takt davor bis Takt danach)
       let envBox = null;
@@ -532,6 +539,8 @@ const Sing = (() => {
     };
     strip.addEventListener('pointerdown', e => {
       if (!curSrc || ui.inline || e.target.closest('.sg-inline')) return;
+      const sk = e.target.closest('.sg-stkn');
+      if (sk) { e.preventDefault(); const ci = ciNow(), i = +sk.dataset.i; if (ci && curSrc.tok[i]) { select(i); focus(barOf(curSrc, ci, curSrc.tok[i].b)); status(T('Mehrere Wörter auf einer Stelle – „⇹ verteilen“ zieht sie auseinander, oder einzeln antippen und ziehen.')); } return; }
       const el = e.target.closest('.sg-w');
       const di = el ? +el.dataset.i : -1, tk = curSrc.tok;
       // Rest mitziehen: alle folgenden Wörter wandern mit (Abstände bleiben); nicht über das Wort davor hinaus
@@ -668,7 +677,8 @@ const Sing = (() => {
   function select(i) { ui.sel = i; edSig = ''; laneSig = ''; }
   function paintEditor(src) {
     const box = $('sgEdit'); if (!box) return;
-    const sig = (src ? src.id + '|' + src.tok.length + '|' + ver : 'none') + '|' + rec.busy + '|' + rec.msg + '|' + Math.round((rec.p || 0) * 50) + '|' + ui.sel + '|' + ui.tapping + '|' + ui.lineFrom + '|' + ui.snap;
+    if (ui.chipDrag) return;                       // während ein Wort-Chip gezogen wird, nicht neu zeichnen
+    const sig = (src ? src.id + '|' + src.tok.length + '|' + ver : 'none') + '|' + !!ui.sort + '|' + rec.busy + '|' + rec.msg + '|' + Math.round((rec.p || 0) * 50) + '|' + ui.sel + '|' + ui.tapping + '|' + ui.lineFrom + '|' + ui.snap;
     if (sig === edSig) return; edSig = sig;
     if (!src) { box.innerHTML = '<p class="caption">Spiel einen Song aus dem Songwriting oder einen Loop aus einer geladenen Datei ab – dann erscheint hier sein Gesangstext.</p>'; return; }
     if (src.kind === 'none') { box.innerHTML = '<p class="caption">Diese Spur wurde ins Tempo des Loops gedehnt – dafür ist kein Gesangstext möglich. Lade die Datei ohne Anpassung.</p>'; return; }
@@ -689,18 +699,39 @@ const Sing = (() => {
         const t = src.tok[ui.sel];
         h += '<div class="sg-selbar">' + (src.editable ? '<input type="text" id="sgWord" value="' + esc(t.w) + '" aria-label="Wort"><button class="toggle-btn" id="sgRepl">Ersetzen</button>' : '<b translate="no">' + esc(t.w) + '</b>')
           + '<button class="toggle-btn" data-n="-1" aria-label="früher">◀</button><button class="toggle-btn" data-n="1" aria-label="später">▶</button>'
-          + (src.editable ? '<button class="toggle-btn" id="sgMerge">Mit nächstem verbinden</button><button class="toggle-btn" id="sgInsA">＋ Wort danach</button>' : '')
+          + (src.editable ? '<button class="toggle-btn" id="sgMerge">Mit nächstem verbinden</button><button class="toggle-btn" id="sgInsA">＋ Wort danach</button><button class="toggle-btn" id="sgSwapL" title="Mit dem Wort davor tauschen">⇠ tauschen</button><button class="toggle-btn" id="sgSwapR" title="Mit dem Wort danach tauschen">tauschen ⇢</button>' : '')
           + '<button class="toggle-btn" id="sgClear">Zeit löschen</button><span class="caption">' + (t.b != null ? 'Takt ' + src.label(t.b) : 'noch ohne Zeit') + '</span></div>';
       }
-      h += '<div class="sg-lines">' + lines(src.tok).map((ln, li) => '<div class="sg-line"><button class="sg-lnum" data-l="' + li + '" title="Zeile neu einklopfen">' + (li + 1) + ' ↻</button>'
+      if (src.editable) h += '<div class="sg-sortbar"><button class="toggle-btn' + (ui.sort ? ' active' : '') + '" id="sgSort" aria-pressed="' + !!ui.sort + '">↕ Wörter umsortieren</button><span class="caption">' + (ui.sort ? T('Wort ziehen und auf ein anderes fallen lassen – die Wörter tauschen ihre Plätze, die Zeiten bleiben.') : '') + '</span></div>';
+      h += '<div class="sg-lines' + (ui.sort ? ' sorting' : '') + '">' + lines(src.tok).map((ln, li) => '<div class="sg-line"><button class="sg-lnum" data-l="' + li + '" title="Zeile neu einklopfen">' + (li + 1) + ' ↻</button>'
         + ln.map(t => '<button class="sg-chip' + (t.b == null ? ' none' : '') + (t.i === ui.sel ? ' sel' : '') + '" data-i="' + t.i + '" translate="no">' + esc(t.w) + '<small>' + (t.b != null ? src.label(t.b) : '–') + '</small></button>').join('') + '</div>').join('') + '</div>';
     }
     box.innerHTML = h;
   }
   function lines(tok) { const out = []; tok.forEach((t, i) => { (out[t.l] = out[t.l] || []).push(Object.assign({ i }, t)); }); return out.filter(Boolean); }
 
+  // v79: Wort an eine andere Stelle der Wortfolge setzen – die Zeitplätze bleiben, die Wörter rücken nach
+  function moveWord(src, from, to) {
+    const tok = src.tok; if (!src.editable || from === to || !tok[from] || !tok[to]) return;
+    const snap = tok.map(t => Object.assign({}, t)), ws = tok.map(t => t.w), w = ws.splice(from, 1)[0]; ws.splice(to, 0, w);
+    tok.forEach((t, i) => { t.w = ws[i]; }); ui.sel = to; changed();
+    if (!persist(src)) { tok.splice(0, tok.length, ...snap); changed(); }
+  }
   function bindEditor() {
     const box = $('sgEdit'); if (!box || box._b) return; box._b = true;
+    // Ziehen der Wort-Chips (nur im Umsortier-Modus)
+    let cd = null;
+    box.addEventListener('pointerdown', e => { const c = ui.sort && e.target.closest('.sg-chip'); if (!c) return; cd = { i: +c.dataset.i, x: e.clientX, y: e.clientY, el: c, on: false }; ui.chipDrag = true; try { c.setPointerCapture(e.pointerId); } catch (x) {} });
+    box.addEventListener('pointermove', e => {
+      if (!cd) return; if (!cd.on && Math.hypot(e.clientX - cd.x, e.clientY - cd.y) < 8) return;
+      if (!cd.on) { cd.on = true; cd.el.classList.add('drag'); }
+      cd.el.style.transform = 'translate(' + (e.clientX - cd.x) + 'px,' + (e.clientY - cd.y) + 'px)';
+      const t = document.elementsFromPoint(e.clientX, e.clientY).find(x => x !== cd.el && x.classList && x.classList.contains('sg-chip'));
+      box.querySelectorAll('.sg-chip.drop').forEach(x => { if (x !== t) x.classList.remove('drop'); }); if (t) t.classList.add('drop'); cd.to = t ? +t.dataset.i : null;
+    });
+    const endDrag = () => { if (!cd) return; const d = cd; cd = null; ui.chipDrag = false; d.el.style.transform = ''; d.el.classList.remove('drag'); box.querySelectorAll('.sg-chip.drop').forEach(x => x.classList.remove('drop'));
+      if (d.on) { box._dragged = true; setTimeout(() => { box._dragged = false; }, 300); if (d.to != null && curSrc) moveWord(curSrc, d.i, d.to); edSig = ''; } };
+    box.addEventListener('pointerup', endDrag); box.addEventListener('pointercancel', endDrag);
     box.addEventListener('click', e => {
       const src = curSrc; if (!src) return;
       const b = e.target.closest('button'); if (!b) return;
@@ -712,7 +743,7 @@ const Sing = (() => {
       }
       if (b.id === 'sgTapMode') { ui.tapping = !ui.tapping; ui.lineFrom = -1; edSig = ''; laneSig = ''; return; }
       if (b.id === 'sgTap') { tap(); return; }
-      if (b.classList.contains('sg-chip')) { select(+b.dataset.i); return; }
+      if (b.classList.contains('sg-chip')) { if (box._dragged) { box._dragged = false; return; } select(+b.dataset.i); return; }
       if (b.classList.contains('sg-lnum')) {
         const l = +b.dataset.l, ln = lines(tok)[l]; if (!ln) return;
         ln.forEach(t => { tok[t.i].b = null; }); ui.lineFrom = ln[0].l; ui.tapping = true; changed();
@@ -727,6 +758,8 @@ const Sing = (() => {
       }
       if (b.id === 'sgClear') { t.b = null; changed(); return; }
       if (b.id === 'sgInsA') { insertAfter(); return; }
+      if (b.id === 'sgSort') { ui.sort = !ui.sort; edSig = ''; return; }
+      if (b.id === 'sgSwapL' || b.id === 'sgSwapR') { const i = ui.sel, j = i + (b.id === 'sgSwapL' ? -1 : 1); if (i >= 0 && j >= 0 && j < tok.length) { moveWord(src, i, j); } return; }
       if (b.id === 'sgRepl') {
         const v = ($('sgWord').value || '').trim(); if (!v) return;
         const parts = v.split(/\s+/), nb = endOf(tok, i);

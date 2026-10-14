@@ -68,3 +68,11 @@
   .sg-rate .toggle-btn { min-width: 34px; padding: 6px 8px; }
   .sg-w.lk { border-left-color: #4caf7d; box-shadow: inset 0 -3px 0 #4caf7d; }
   .sg-w.lk:not(.on):not(.sel) { background: color-mix(in srgb, #4caf7d 22%, var(--surface-2)) !important; }
+  /* v79: übereinanderliegende Wörter, Umsortieren im Editor */
+  .sg-w.stk:not(.on):not(.sel) { border-left-color: #f0a030; box-shadow: inset 0 0 0 1px rgba(240,160,48,.55); }
+  .sg-w[data-lvl="1"] { top: 38px; } .sg-w[data-lvl="2"] { top: 44px; }
+  .sg-stkn { position: absolute; top: 16px; z-index: 6; transform: translateX(-2px); padding: 0 5px; border-radius: 8px; background: #f0a030; color: #111; font: 800 .68rem/16px var(--f-mono); cursor: pointer; }
+  .sg-sortbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 4px 0 8px; }
+  .sg-lines.sorting .sg-chip { touch-action: none; cursor: grab; border-style: dashed; }
+  .sg-chip.drag { position: relative; z-index: 20; opacity: .85; box-shadow: 0 6px 18px rgba(0,0,0,.5); cursor: grabbing; }
+  .sg-chip.drop { outline: 2px dashed var(--accent); outline-offset: 2px; }
