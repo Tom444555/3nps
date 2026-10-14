@@ -2963,6 +2963,9 @@ Object.assign(window.__EN, { 'Rückgängig gemacht.': 'Undone.', 'Wiederhergeste
 Object.assign(window.__EN, { 'Gesangsspur': 'Vocal track', 'wird für Stimmkurve, Einrasten und Erkennung benutzt': 'used for voice curve, snapping and detection', 'Versatz ': 'offset ', 'entfernen': 'remove',
   'Gesangsspur dazuladen (z. B. aus Moises)': 'Add vocal track (e.g. from Moises)', 'Nur der Gesang, gleiche Länge wie das Lied – dann stören Gitarre und Schlagzeug nicht bei Stimmkurve und Erkennung.': 'Vocals only, same length as the song – then guitar and drums no longer disturb the voice curve and detection.',
   'Gesangsspur für dieses Lied entfernen?': 'Remove the vocal track for this song?', 'Lade die Gesangsspur …': 'Loading the vocal track …', 'Gesangsspur geladen': 'Vocal track loaded', 'ausgeglichen': 'compensated', 'Die Gesangsspur kann das iPad nicht öffnen.': 'The iPad cannot open this vocal track.' });
+Object.assign(window.__EN, { 'Austausch': 'Exchange', 'LRC exportieren': 'Export LRC', 'LRC laden': 'Load LRC', 'Leadsheet (PDF)': 'Lead sheet (PDF)', 'Noch kein Text mit Zeiten.': 'No timed lyrics yet.', 'Noch kein Text.': 'No lyrics yet.',
+  'In der Datei wurden keine Zeilen mit Zeiten gefunden.': 'No timed lines found in this file.', 'Der vorhandene Text wird durch den Text aus der LRC-Datei ersetzt (rückgängig mit ↶). Weiter?': 'The current lyrics will be replaced by the LRC file (undo with ↶). Continue?',
+  ' Zeilen aus der LRC-Datei übernommen.': ' lines taken from the LRC file.', 'Leadsheet aus dem 3nps Looper': 'Lead sheet from the 3nps Looper' });
 
 // Sprache (v59): Deutsch ist der Quelltext. Nur im EN-Modus läuft hier etwas:
 // Ein Beobachter übersetzt neue/geänderte Texte im DOM (Text, title, placeholder, aria-label)
@@ -3068,7 +3071,7 @@ Object.assign(window.__EN, { 'Gesangsspur': 'Vocal track', 'wird für Stimmkurve
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v81</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v82</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -14376,6 +14379,70 @@ const Sing = (() => {
   ui.mag = lsG('3nps-sing-mag', 'voice'); if (!['grid', 'voice', 'free'].includes(ui.mag)) ui.mag = 'voice';
   ui.click = lsG('3nps-sing-click', '0') === '1'; ui.rate = +lsG('3nps-sing-rate', '1'); if (!(ui.rate >= 0.4 && ui.rate <= 1)) ui.rate = 1;
 
+
+  // ---- v82: Austausch – LRC (Liedtext mit Zeiten, auch je Wort) und Leadsheet als PDF ----
+  function deliver(file) {
+    if (navigator.canShare && navigator.canShare({ files: [file] })) { navigator.share({ files: [file], title: file.name }).catch(() => {}); return; }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = file.name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  }
+  const secOf = (src, b) => { const f = b2f(b, src.beats); return f == null ? null : f / src.sr; };
+  const lrcT = sec => { sec = Math.max(0, sec); const m = Math.floor(sec / 60), x = sec - m * 60; return String(m).padStart(2, '0') + ':' + x.toFixed(2).padStart(5, '0'); };
+  const baseName = src => String(src.name || 'Lied').replace(/\.[^.]+$/, '');
+  function lrcText(src) {
+    const out = ['[ti:' + baseName(src) + ']', '[re:3nps Looper]'];
+    lines(src.tok).forEach(ln => {
+      const w = ln.filter(t => t.b != null); if (!w.length) return;
+      out.push('[' + lrcT(secOf(src, w[0].b)) + ']' + ln.map(t => (t.b != null ? '<' + lrcT(secOf(src, t.b)) + '>' : '') + t.w).join(' '));
+    });
+    return out.join('\n') + '\n';
+  }
+  function lrcExport(src) { if (!src || src.kind !== 'file' || !src.tok.some(t => t.b != null)) { status(T('Noch kein Text mit Zeiten.')); return; } deliver(new File([lrcText(src)], baseName(src) + '.lrc', { type: 'text/plain' })); }
+  // LRC lesen: [mm:ss.xx] je Zeile, optional <mm:ss.xx> je Wort; ohne Wortzeiten werden die Wörter bis zur nächsten Zeile verteilt
+  function lrcParse(text) {
+    const rows = []; const tm = (m, s2) => +m * 60 + parseFloat(s2);
+    String(text).replace(/\r/g, '').split('\n').forEach(line => {
+      const m = /^\s*\[(\d+):(\d+(?:[.:]\d+)?)\](.*)$/.exec(line); if (!m) return;
+      let rest = m[3]; while (/^\[\d+:\d+(?:[.:]\d+)?\]/.test(rest)) rest = rest.replace(/^\[[^\]]*\]/, '');
+      const t0 = tm(m[1], m[2].replace(':', '.')), words = [];
+      const re = /(?:<(\d+):(\d+(?:[.:]\d+)?)>)?\s*([^<\s]+)/g; let w;
+      while ((w = re.exec(rest))) words.push({ w: w[3], t: w[1] != null ? tm(w[1], w[2].replace(':', '.')) : null });
+      if (words.length) rows.push({ t: t0, words });
+    });
+    rows.sort((a, b) => a.t - b.t);
+    rows.forEach((r, i) => { const nx = i + 1 < rows.length ? rows[i + 1].t : r.t + r.words.length * 0.45, span = Math.min(nx - r.t, r.words.length * 0.45) * 0.9;
+      r.words.forEach((w, k) => { if (w.t == null) w.t = r.t + span * k / r.words.length; }); if (r.words[0].t == null || r.words[0].t > r.t + 0.5) r.words[0].t = r.t; });
+    return rows;
+  }
+  function lrcImport(src, text) {
+    const rows = lrcParse(text); if (!rows.length) { status(T('In der Datei wurden keine Zeilen mit Zeiten gefunden.')); return false; }
+    if (src.tok.length && !confirm(T('Der vorhandene Text wird durch den Text aus der LRC-Datei ersetzt (rückgängig mit ↶). Weiter?'))) return false;
+    const tok = []; rows.forEach((r, l) => r.words.forEach(w => tok.push({ w: w.w, b: Math.round(f2b(w.t * src.sr, src.beats) * 1000) / 1000, l })));
+    for (let i = 1; i < tok.length; i++) if (tok[i].b <= tok[i - 1].b) tok[i].b = Math.round((tok[i - 1].b + 0.0625) * 1000) / 1000;
+    const rec = db.f[src.id] || (db.f[src.id] = { name: src.name, tok: [] }); rec.tok.splice(0, rec.tok.length, ...tok); src.tok = rec.tok; ui.sel = -1; changed();
+    status(tok.length + T(' Wörter in ') + rows.length + T(' Zeilen aus der LRC-Datei übernommen.')); return true;
+  }
+  // Leadsheet: Akkorde (aus der Akkordleiste) über den Wörtern, Abschnitte nach den Teil-Marken
+  function leadsheetOf(src) {
+    const ci = window.SoloInfo ? SoloInfo() : null, chAt = b => { if (!ci || !ci.segs || b == null) return ''; let f = src.toCi(b); if (f == null || !ci.L) return ''; f = ((f % ci.L) + ci.L) % ci.L; const sg = ci.segs.find(x => f >= x.a - 1 && f < x.e); return sg && sg.name && !/^(N|–|-)$/.test(sg.name) ? sg.name : ''; };
+    const rec = db.f[src.id] || {}, parts = (rec.parts || []).slice().sort((a, b) => a.b - b.b), sections = [];
+    let cur = { head: parts.length && parts[0].b <= (src.tok[0] || {}).b ? '' : T('Text'), rows: [] }, pi = 0, lastCh = null;
+    lines(src.tok).forEach(ln => {
+      const b0 = (ln.find(t => t.b != null) || {}).b;
+      while (b0 != null && pi < parts.length && parts[pi].b <= b0 + 0.01) { if (cur.rows.length) sections.push(cur); cur = { head: parts[pi].name, rows: [] }; pi++; }
+      let text = '', chords = [];
+      ln.forEach(t => { const c = chAt(t.b); if (c && c !== lastCh) chords.push({ i: text.length, n: c }); if (c) lastCh = c; text += (text ? ' ' : '') + t.w; if (chords.length && chords[chords.length - 1].i > text.length) chords[chords.length - 1].i = text.length; });
+      chords.forEach(c => { if (c.i > 0) c.i += 1; });             // Akkord steht über dem Wortanfang (nach dem Leerzeichen)
+      cur.rows.push({ text, chords });
+    });
+    if (cur.rows.length) sections.push(cur);
+    sections.forEach(sc => { if (!sc.head) sc.head = T('Text'); });
+    const bpm = src.grid ? src.grid.bpm : src.bpmDet;
+    return { title: baseName(src), info: (bpm ? Math.round(bpm) + ' BPM · ' : '') + T('Leadsheet aus dem 3nps Looper'), order: sections.map(x => x.head).join(' – '), sections };
+  }
+  function leadsheetPdf(src) {
+    if (!src || !src.tok.length || !window.LiedPdf) { status(T('Noch kein Text.')); return; }
+    const r = LiedPdf.build(leadsheetOf(src)); deliver(new File([r.bytes], baseName(src) + ' – Leadsheet.pdf', { type: 'application/pdf' }));
+  }
   // ---- v81: Gesangsspur (z. B. aus Moises) je Datei – Stimmkurve, Silbenanfänge und Erkennung arbeiten dann nur auf dem Gesang ----
   const vox = {}, voxTried = {};
   // Ausschnitt wie Looper.singAudio – aus der Gesangsspur (mit Versatz), sonst aus der Datei
@@ -14781,8 +14848,9 @@ const Sing = (() => {
       + '<label class="field sg-lang"><span>Sprache</span><select id="sgLang"><option value="de"' + (rec.lang === 'de' ? ' selected' : '') + '>Deutsch</option><option value="en"' + (rec.lang === 'en' ? ' selected' : '') + '>Englisch</option></select></label>'
       + '<span class="caption" id="sgAutoInfo">' + esc(rec.msg || 'Erkennt den gesungenen Text mit Zeitpunkten – danach nur noch ausbessern. Läuft komplett auf dem Gerät; beim ersten Mal werden etwa 100 MB geladen.') + '</span>'
       + (rec.busy ? '<div class="sg-prog"><i style="width:' + Math.round((rec.p || 0) * 100) + '%"></i></div>' : '') + '</div>';
+    if (src.kind === 'file') h += '<div class="sg-vox"><b>⇄ ' + T('Austausch') + '</b><button class="toggle-btn" id="sgLrcOut">' + T('LRC exportieren') + '</button><button class="toggle-btn" id="sgLrcIn">' + T('LRC laden') + '</button><button class="toggle-btn" id="sgLead">' + T('Leadsheet (PDF)') + '</button><input type="file" id="sgLrcFile" accept=".lrc,.txt,text/plain" hidden></div>';
     if (src.kind === 'file') { const v = vox[src.id];
-      h += '<div class="sg-vox"><b>🎙 ' + T('Gesangsspur') + '</b> ' + (v ? '<span class="caption" translate="no">' + esc(v.name) + '</span><span class="caption"> · ' + T('wird für Stimmkurve, Einrasten und Erkennung benutzt') + (Math.abs(v.off) > v.sr * 0.002 ? ' · ' + T('Versatz ') + Math.round(v.off / v.sr * 1000) + ' ms' : '') + '</span><button class="toggle-btn" id="sgVoxDel">' + T('entfernen') + '</button>'
+      h += '<div class="sg-vox" id="sgVoxBox"><b>🎙 ' + T('Gesangsspur') + '</b> ' + (v ? '<span class="caption" translate="no">' + esc(v.name) + '</span><span class="caption"> · ' + T('wird für Stimmkurve, Einrasten und Erkennung benutzt') + (Math.abs(v.off) > v.sr * 0.002 ? ' · ' + T('Versatz ') + Math.round(v.off / v.sr * 1000) + ' ms' : '') + '</span><button class="toggle-btn" id="sgVoxDel">' + T('entfernen') + '</button>'
         : '<button class="toggle-btn" id="sgVoxAdd">' + T('Gesangsspur dazuladen (z. B. aus Moises)') + '</button><span class="caption">' + T('Nur der Gesang, gleiche Länge wie das Lied – dann stören Gitarre und Schlagzeug nicht bei Stimmkurve und Erkennung.') + '</span>') + '<input type="file" id="sgVoxFile" accept="audio/*" hidden></div>'; }
     if (src.kind === 'file') h += '<details class="sg-paste"' + (src.tok.length ? '' : ' open') + '><summary>Text einfügen / ersetzen</summary><textarea id="sgText" rows="5" placeholder="Liedtext hier einfügen – eine Zeile pro gesungener Zeile">' + esc(lines(src.tok).map(l => l.map(t => t.w).join(' ')).join('\n')) + '</textarea><button class="toggle-btn" id="sgTake">Übernehmen</button></details>';
     if (src.tok.length) {
@@ -14830,6 +14898,7 @@ const Sing = (() => {
       if (d.on) { box._dragged = true; setTimeout(() => { box._dragged = false; }, 300); if (d.to != null && curSrc) moveWord(curSrc, d.i, d.to); edSig = ''; } };
     box.addEventListener('pointerup', endDrag); box.addEventListener('pointercancel', endDrag);
     box.addEventListener('change', async e => {
+      if (e.target.id === 'sgLrcFile') { const f = e.target.files && e.target.files[0]; e.target.value = ''; const src = curSrc; if (f && src && src.kind === 'file') lrcImport(src, await f.text()); return; }
       if (e.target.id !== 'sgVoxFile') return; const f = e.target.files && e.target.files[0]; e.target.value = ''; const src = curSrc; if (!f || !src || src.kind !== 'file') return;
       status(T('Lade die Gesangsspur …'));
       try { const v = await setVox(src, f, f.name, true); status(T('Gesangsspur geladen') + (Math.abs(v.off) > v.sr * 0.002 ? ' (' + T('Versatz ') + Math.round(v.off / v.sr * 1000) + ' ms ' + T('ausgeglichen') + ')' : '') + '.'); }
@@ -14841,6 +14910,9 @@ const Sing = (() => {
       const tok = src.tok;
       if (b.id === 'sgAuto') { recognize(src); return; }
       if (b.id === 'sgVoxAdd') { $('sgVoxFile').click(); return; }
+      if (b.id === 'sgLrcOut') { lrcExport(src); return; }
+      if (b.id === 'sgLrcIn') { $('sgLrcFile').click(); return; }
+      if (b.id === 'sgLead') { leadsheetPdf(src); return; }
       if (b.id === 'sgVoxDel') { if (confirm(T('Gesangsspur für dieses Lied entfernen?'))) dropVox(src); return; }
       if (b.id === 'sgTake') {
         const nt = tokenize($('sgText').value); if (!nt.length) return;
@@ -14854,6 +14926,9 @@ const Sing = (() => {
         ln.forEach(t => { tok[t.i].b = null; }); ui.lineFrom = ln[0].l; ui.tapping = true; changed();
         status('Zeile ' + (l + 1) + ' neu: abspielen und tippen.'); return;
       }
+      if (b.id === 'sgUndo') { undoRedo(-1); edSig = ''; return; }
+      if (b.id === 'sgRedo') { undoRedo(1); edSig = ''; return; }
+      if (b.id === 'sgSort') { ui.sort = !ui.sort; edSig = ''; return; }
       const i = ui.sel, t = tok[i]; if (!t) return;
       if (b.dataset.n) {
         if (t.b == null) return; const d = (+b.dataset.n) * (ui.snap ? 0.25 : 0.01);
@@ -14863,9 +14938,6 @@ const Sing = (() => {
       }
       if (b.id === 'sgClear') { t.b = null; changed(); return; }
       if (b.id === 'sgInsA') { insertAfter(); return; }
-      if (b.id === 'sgUndo') { undoRedo(-1); edSig = ''; return; }
-      if (b.id === 'sgRedo') { undoRedo(1); edSig = ''; return; }
-      if (b.id === 'sgSort') { ui.sort = !ui.sort; edSig = ''; return; }
       if (b.id === 'sgSwapL' || b.id === 'sgSwapR') { const i = ui.sel, j = i + (b.id === 'sgSwapL' ? -1 : 1); if (i >= 0 && j >= 0 && j < tok.length) { moveWord(src, i, j); } return; }
       if (b.id === 'sgRepl') {
         const v = ($('sgWord').value || '').trim(); if (!v) return;
@@ -14978,7 +15050,7 @@ const Sing = (() => {
   // Übersetzung je Zeile (v63)
   function setTr(src, arr) { const rec = src.kind === 'lied' ? db.l[src.id] : db.f[src.id]; if (!rec) return false; rec.tr = arr; changed(); return true; }
   function getTr(src) { const rec = src && (src.kind === 'lied' ? db.l[src.id] : db.f[src.id]); return rec && rec.tr || []; }
-  return { recognize: () => recognize(curSrc), rec: () => Object.assign({}, rec), wordsToTok, tick, tap, tokenize, merge, f2b, b2f, endOf, lines, setTr, getTr, ver: () => ver, focus: k => focus(k), unfocus, prec: () => { const E = envOf(curSrc); return { env: E ? { n: E.e.length, on: E.on.slice(), onB: E.onB.slice() } : null, loop: !!loopP, rate: loopP ? loopP.rate : null, word: !!wordP, tap: tapS ? { n: tapS.n, of: tapS.idx.length } : null, mag: ui.mag, sel: ui.sel }; }, voiceEnv: () => voiceEnv(curSrc), placeB: r => placeB(r, curSrc), undo: () => undoRedo(-1), redo: () => undoRedo(1), vox: () => { const v = curSrc && vox[curSrc.id]; return v ? { name: v.name, off: v.off, sr: v.sr, n: v.l.length } : null; }, loopNow: () => loopP ? loopP.nowB() : (wordP ? wordP.nowB() : null), onTempo: () => onTempo(), addClicks, recheck: () => recheck(), toggleLock: () => toggleLock(), insertAfter: () => insertAfter(), spread, playFrom, source: ci => source(ci), data: () => db, _reload: () => { db = load(); changed(); }, ui: () => ui };
+  return { recognize: () => recognize(curSrc), rec: () => Object.assign({}, rec), wordsToTok, tick, tap, tokenize, merge, f2b, b2f, endOf, lines, setTr, getTr, ver: () => ver, focus: k => focus(k), unfocus, prec: () => { const E = envOf(curSrc); return { env: E ? { n: E.e.length, on: E.on.slice(), onB: E.onB.slice() } : null, loop: !!loopP, rate: loopP ? loopP.rate : null, word: !!wordP, tap: tapS ? { n: tapS.n, of: tapS.idx.length } : null, mag: ui.mag, sel: ui.sel }; }, voiceEnv: () => voiceEnv(curSrc), placeB: r => placeB(r, curSrc), undo: () => undoRedo(-1), redo: () => undoRedo(1), vox: () => { const v = curSrc && vox[curSrc.id]; return v ? { name: v.name, off: v.off, sr: v.sr, n: v.l.length } : null; }, lrcText: () => curSrc ? lrcText(curSrc) : '', lrcImport: t => curSrc && lrcImport(curSrc, t), leadsheet: () => curSrc ? leadsheetOf(curSrc) : null, loopNow: () => loopP ? loopP.nowB() : (wordP ? wordP.nowB() : null), onTempo: () => onTempo(), addClicks, recheck: () => recheck(), toggleLock: () => toggleLock(), insertAfter: () => insertAfter(), spread, playFrom, source: ci => source(ci), data: () => db, _reload: () => { db = load(); changed(); }, ui: () => ui };
 })();
 window.Sing = Sing;
 

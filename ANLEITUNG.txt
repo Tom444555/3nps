@@ -737,3 +737,10 @@ Gut zu wissen
    - Ein kleiner Versatz zwischen den Dateien (z. B. MP3-Vorlauf) wird beim Laden erkannt und ausgeglichen (Anzeige in ms).
    - Die Gesangsspur wird auf dem Gerät gespeichert und beim nächsten Laden des Liedes automatisch wieder benutzt;
      „Alles sichern“ nimmt sie mit. „entfernen“ löscht sie wieder.
+
+67. Austausch: LRC und Leadsheet (v82)
+   - Karte „🎤 Gesangstext“ bei Songdateien, Zeile „⇄ Austausch“:
+     „LRC exportieren“ – der Text mit Zeiten als .lrc-Datei (Zeilenzeit und Zeit jedes Wortes), lesbar in vielen
+     Playern und Karaoke-Apps. „LRC laden“ – fertige LRC-Dateien übernehmen; ohne Wortzeiten werden die Wörter bis
+     zur nächsten Zeile verteilt (danach mit „♪ an Stimme“ oder „Rest nachprüfen“ verfeinern; ↶ nimmt es zurück).
+   - „Leadsheet (PDF)“: Text mit den Akkorden der Akkordleiste darüber, Abschnitte nach den Teil-Marken.
