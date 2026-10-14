@@ -722,3 +722,10 @@ Gut zu wissen
      wandern – auch in eine andere Zeile. Für ein ausgewähltes Wort gibt es außerdem „⇠ tauschen“ / „tauschen ⇢“.
    - Spur: Liegen mehrere Wörter (fast) auf derselben Stelle, stehen sie jetzt leicht versetzt mit orangem Rand,
      und am ersten steht „+2“ (Anzahl der verdeckten). Antippen macht den Takt breit; „⇹ verteilen“ zieht sie auseinander.
+
+65. Rückgängig, Wiederholen, Versionen (v80)
+   - Jede Änderung am Gesangstext (Ziehen, Feinschritt, Tauschen, Löschen, Einfügen, Verteilen, Einklopfen …) lässt sich
+     zurücknehmen: „↶“ / „↷“ in der Leiste unter dem breiten Takt und in der Karte „🎤 Gesangstext“, auf einer Tastatur
+     ⌘Z / ⇧⌘Z (Windows: Strg+Z / Strg+⇧+Z). Bis zu 80 Schritte je Lied, solange die App offen ist.
+   - „Lieder mit Text“: Speichert man ein Lied erneut, bleibt der vorige Text als Version erhalten (bis zu 12).
+     „Versionen (n)“ zeigt sie mit Datum; „zurückholen“ setzt den Text zurück, der jetzige Stand wird dabei als Version behalten.
