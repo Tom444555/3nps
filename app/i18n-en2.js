@@ -382,3 +382,4 @@ Object.assign(window.__EN, { 'Langsamer (−1)': 'Slower (−1)', 'Schneller (+1
 Object.assign(window.__EN, { '♩ Metronom': '♩ Metronome', 'Klick auf jeden Schlag beim Anhören (Schleife, Wort, ▶ ab hier)': 'Click on every beat while listening (loop, word, ▶ from here)',
   '↺ erkanntes Raster': '↺ Detected grid', 'Wieder das beim Laden erkannte Raster verwenden': 'Use the grid detected when loading again', 'Raster: ': 'Grid: ', ' BPM (Tempo oben)': ' BPM (tempo at the top)', 'Raster: erkannt': 'Grid: detected',
   'Raster jetzt ': 'Grid now ', ' BPM (Tempo oben) – Wörter bleiben an ihrer Stelle im Lied.': ' BPM (tempo at the top) – words keep their place in the song.', 'Wieder das erkannte Raster.': 'Back to the detected grid.' });
+Object.assign(window.__EN, { 'Klick auf jeden Schlag, solange der Loop läuft – so hörst du, ob er im Takt liegt': 'Click on every beat while the loop plays – so you hear whether it sits on the beat' });

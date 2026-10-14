@@ -2930,6 +2930,7 @@ Object.assign(window.__EN, { 'Langsamer (−1)': 'Slower (−1)', 'Schneller (+1
 Object.assign(window.__EN, { '♩ Metronom': '♩ Metronome', 'Klick auf jeden Schlag beim Anhören (Schleife, Wort, ▶ ab hier)': 'Click on every beat while listening (loop, word, ▶ from here)',
   '↺ erkanntes Raster': '↺ Detected grid', 'Wieder das beim Laden erkannte Raster verwenden': 'Use the grid detected when loading again', 'Raster: ': 'Grid: ', ' BPM (Tempo oben)': ' BPM (tempo at the top)', 'Raster: erkannt': 'Grid: detected',
   'Raster jetzt ': 'Grid now ', ' BPM (Tempo oben) – Wörter bleiben an ihrer Stelle im Lied.': ' BPM (tempo at the top) – words keep their place in the song.', 'Wieder das erkannte Raster.': 'Back to the detected grid.' });
+Object.assign(window.__EN, { 'Klick auf jeden Schlag, solange der Loop läuft – so hörst du, ob er im Takt liegt': 'Click on every beat while the loop plays – so you hear whether it sits on the beat' });
 
 // Sprache (v59): Deutsch ist der Quelltext. Nur im EN-Modus läuft hier etwas:
 // Ein Beobachter übersetzt neue/geänderte Texte im DOM (Text, title, placeholder, aria-label)
@@ -3035,7 +3036,7 @@ Object.assign(window.__EN, { '♩ Metronom': '♩ Metronome', 'Klick auf jeden S
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v75</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v76</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -3358,6 +3359,7 @@ Object.assign(window.__EN, { '♩ Metronom': '♩ Metronome', 'Klick auf jeden S
           <button class="toggle-btn" id="edNsR" title="1 Abtastwert nach rechts">1 ▶</button>
           <button class="toggle-btn" id="edNmR" title="1 Millisekunde nach rechts">1 ms ▶</button>
           <button class="toggle-btn" id="edMove" aria-pressed="false" title="Ganze Wellenform ziehen: Loop nach links/rechts verschieben">⇔ Loop verschieben</button>
+          <button class="toggle-btn" id="edClick" aria-pressed="false" title="Klick auf jeden Schlag, solange der Loop läuft – so hörst du, ob er im Takt liegt">♩ Metronom</button>
           <label class="ed-mag">Magnet <select id="edMag" aria-label="Magnet"><option value="bar" selected>Takt</option><option value="beat">Schlag</option><option value="sixteenth">16tel</option><option value="off">aus</option></select></label>
           <span class="caption ed-pos" id="edPos"></span>
         </div>
@@ -10150,6 +10152,22 @@ const Looper = (() => {
   magEl.value = loadPref('3nps-edmag', 'bar'); magEl.addEventListener('change', () => savePref('3nps-edmag', magEl.value));
   function setMove(on) { ed.moving = !!on; moveBtn.setAttribute('aria-pressed', String(!!on)); edEl.classList.toggle('ed-moving', !!on); kick(); }
   moveBtn.addEventListener('click', () => setMove(!ed.moving));
+  // v76: Metronom im Editor – klickt auf jeden Schlag des Rasters der bearbeiteten Spur (Eins höher), solange sie läuft
+  const clickBtn = $('edClick'); let edClick = loadPref('3nps-edclick', '0') === '1', clkNext = 0, clkKey = '';
+  const showClick = () => { if (!clickBtn) return; clickBtn.classList.toggle('active', edClick); clickBtn.setAttribute('aria-pressed', String(edClick)); };
+  if (clickBtn) { showClick(); clickBtn.addEventListener('click', () => { edClick = !edClick; savePref('3nps-edclick', edClick ? '1' : '0'); showClick(); clkNext = 0; }); }
+  setInterval(() => {
+    if (!edClick || !ed.t || !ed.t.L || !ed.t.src || !audioCtx || document.hidden) { clkNext = 0; return; }
+    const t = ed.t, L = t.L, key = anchor + '|' + L + '|' + t.mix;
+    let beats, bars; try { beats = gridPoints(4).filter(p => p < L - 2); bars = gridPoints(1).filter(p => p < L - 2); } catch (e) { return; }
+    if (!beats.length) return;
+    if (key !== clkKey) { clkKey = key; clkNext = 0; }
+    const now = nowFrame(), from = Math.max(now + Math.round(sr * 0.005), clkNext), until = now + Math.round(sr * 0.15), c0 = Math.floor((from - anchor) / L);
+    for (let c = c0; c <= c0 + 1; c++) for (const p of beats) {
+      const f = anchor + c * L + p; if (f < from || f >= until) continue;
+      scheduleClick(f / sr, bars.some(b => Math.abs(b - p) < 2)); clkNext = f + 1;
+    }
+  }, 30);
   function magPoints() { const g = magEl.value; return g === 'off' ? null : gridPoints(g === 'bar' ? 1 : g === 'beat' ? 4 : 16); }
   function moveTarget(clientX) {
     const r = edCv.getBoundingClientRect(), fpp = span() / Math.max(1, r.width), L = ed.t.L;
@@ -11516,7 +11534,7 @@ const Looper = (() => {
     _micKill: () => { if (stream) stream.getTracks().forEach(tr => tr.stop()); },
     _micDrop: () => { if (stream) stream.getAudioTracks()[0].dispatchEvent(new Event('ended')); },
     themeChanged: () => readNeon(), _zip: files => makeZip(files),
-    _mem: () => memState(), setLive: v => setLive(v), edPedal: id => edPedal(id), _edClip: () => edClip, _edMove: (on) => setMove(on), _grid: sub => ed.t ? gridPoints(sub) : [], _firstTone: i => firstTone(tracks[i]), _anchor: () => anchor, _setTrackRaw: (i, l) => { const t = tracks[i]; t.L = l.length; t.layers = [SP(l)]; rebuildMix(t); t.state = 'stopped'; update(); return true; }, _edSel: (a, b) => { if (ed.t) { ed.s = a; ed.e = b; edInfo(); } }, _trim: () => ed.t && trimTo(ed.s, ed.e, 'zugeschnitten'), _mixOf: i => tracks[i].mix, _ed: () => ed.t ? { s: ed.s, e: ed.e, h: ed.h, L: ed.t.L, zoom: ed.zoom, full: edEl.classList.contains('ed-full'), loop: !!ed.loop, onsets: trackOnsets(ed.t).length } : null, _onsets: i => tracks[i] && tracks[i].L ? trackOnsets(tracks[i]) : [],
+    _mem: () => memState(), setLive: v => setLive(v), edPedal: id => edPedal(id), _edClip: () => edClip, _edMove: (on) => setMove(on), _edClick: () => ({ on: edClick, next: clkNext }), _grid: sub => ed.t ? gridPoints(sub) : [], _firstTone: i => firstTone(tracks[i]), _anchor: () => anchor, _setTrackRaw: (i, l) => { const t = tracks[i]; t.L = l.length; t.layers = [SP(l)]; rebuildMix(t); t.state = 'stopped'; update(); return true; }, _edSel: (a, b) => { if (ed.t) { ed.s = a; ed.e = b; edInfo(); } }, _trim: () => ed.t && trimTo(ed.s, ed.e, 'zugeschnitten'), _mixOf: i => tracks[i].mix, _ed: () => ed.t ? { s: ed.s, e: ed.e, h: ed.h, L: ed.t.L, zoom: ed.zoom, full: edEl.classList.contains('ed-full'), loop: !!ed.loop, onsets: trackOnsets(ed.t).length } : null, _onsets: i => tracks[i] && tracks[i].L ? trackOnsets(tracks[i]) : [],
     perf: () => { let inLat = null, inSr = null; try { const st = stream && stream.getAudioTracks()[0].getSettings(); if (st) { inLat = typeof st.latency === 'number' ? st.latency : null; inSr = st.sampleRate || null; } } catch (e) {}
       const m = memState(); const r = { mic: micReady, sr, inLat, inSr, inChans, comp: parseInt(latEl.value || '0'), curMB: m.curMB, histMB: m.histMB, histMax: HIST_MB, gaps: perfIn.gaps, lagMs: perfIn.lagMs, lagMax: perfIn.lagMax, micErr: lastMicError };
       perfIn.lagMax = 0; return r; }, autosaveNow: () => doAutosave(), autosaveOn: v => { autoReady = v !== false; },

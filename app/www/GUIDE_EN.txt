@@ -43,6 +43,7 @@ Everything you record or write is stored only on this device (back it up, see se
 - Cut: trim, halve, double. Edit (selection): cut out, copy, paste, duplicate, silence, reverse,
   fade in/out, ±3 dB, normalize. The loop length always stays the same. Undo/redo for every step.
 - “⇔ Move loop”: drag the whole waveform; “Snap” locks the grabbed hit to bar, beat or 16th.
+- “♩ Metronome” (next to “⇔ Move loop”): clicks on every beat of the track's grid while it plays (the one higher).
 - Sync: shift by beats or 10 ms, fine align to the other tracks, first note on bar 1,
   fit to loop length (time-stretch, pitch unchanged), ½ or 2× tempo.
 - “Check loop” tests whole bars, bar 1 at the start and a clean transition; “Fix it” corrects them.

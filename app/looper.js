@@ -1627,6 +1627,22 @@ const Looper = (() => {
   magEl.value = loadPref('3nps-edmag', 'bar'); magEl.addEventListener('change', () => savePref('3nps-edmag', magEl.value));
   function setMove(on) { ed.moving = !!on; moveBtn.setAttribute('aria-pressed', String(!!on)); edEl.classList.toggle('ed-moving', !!on); kick(); }
   moveBtn.addEventListener('click', () => setMove(!ed.moving));
+  // v76: Metronom im Editor – klickt auf jeden Schlag des Rasters der bearbeiteten Spur (Eins höher), solange sie läuft
+  const clickBtn = $('edClick'); let edClick = loadPref('3nps-edclick', '0') === '1', clkNext = 0, clkKey = '';
+  const showClick = () => { if (!clickBtn) return; clickBtn.classList.toggle('active', edClick); clickBtn.setAttribute('aria-pressed', String(edClick)); };
+  if (clickBtn) { showClick(); clickBtn.addEventListener('click', () => { edClick = !edClick; savePref('3nps-edclick', edClick ? '1' : '0'); showClick(); clkNext = 0; }); }
+  setInterval(() => {
+    if (!edClick || !ed.t || !ed.t.L || !ed.t.src || !audioCtx || document.hidden) { clkNext = 0; return; }
+    const t = ed.t, L = t.L, key = anchor + '|' + L + '|' + t.mix;
+    let beats, bars; try { beats = gridPoints(4).filter(p => p < L - 2); bars = gridPoints(1).filter(p => p < L - 2); } catch (e) { return; }
+    if (!beats.length) return;
+    if (key !== clkKey) { clkKey = key; clkNext = 0; }
+    const now = nowFrame(), from = Math.max(now + Math.round(sr * 0.005), clkNext), until = now + Math.round(sr * 0.15), c0 = Math.floor((from - anchor) / L);
+    for (let c = c0; c <= c0 + 1; c++) for (const p of beats) {
+      const f = anchor + c * L + p; if (f < from || f >= until) continue;
+      scheduleClick(f / sr, bars.some(b => Math.abs(b - p) < 2)); clkNext = f + 1;
+    }
+  }, 30);
   function magPoints() { const g = magEl.value; return g === 'off' ? null : gridPoints(g === 'bar' ? 1 : g === 'beat' ? 4 : 16); }
   function moveTarget(clientX) {
     const r = edCv.getBoundingClientRect(), fpp = span() / Math.max(1, r.width), L = ed.t.L;
@@ -2993,7 +3009,7 @@ const Looper = (() => {
     _micKill: () => { if (stream) stream.getTracks().forEach(tr => tr.stop()); },
     _micDrop: () => { if (stream) stream.getAudioTracks()[0].dispatchEvent(new Event('ended')); },
     themeChanged: () => readNeon(), _zip: files => makeZip(files),
-    _mem: () => memState(), setLive: v => setLive(v), edPedal: id => edPedal(id), _edClip: () => edClip, _edMove: (on) => setMove(on), _grid: sub => ed.t ? gridPoints(sub) : [], _firstTone: i => firstTone(tracks[i]), _anchor: () => anchor, _setTrackRaw: (i, l) => { const t = tracks[i]; t.L = l.length; t.layers = [SP(l)]; rebuildMix(t); t.state = 'stopped'; update(); return true; }, _edSel: (a, b) => { if (ed.t) { ed.s = a; ed.e = b; edInfo(); } }, _trim: () => ed.t && trimTo(ed.s, ed.e, 'zugeschnitten'), _mixOf: i => tracks[i].mix, _ed: () => ed.t ? { s: ed.s, e: ed.e, h: ed.h, L: ed.t.L, zoom: ed.zoom, full: edEl.classList.contains('ed-full'), loop: !!ed.loop, onsets: trackOnsets(ed.t).length } : null, _onsets: i => tracks[i] && tracks[i].L ? trackOnsets(tracks[i]) : [],
+    _mem: () => memState(), setLive: v => setLive(v), edPedal: id => edPedal(id), _edClip: () => edClip, _edMove: (on) => setMove(on), _edClick: () => ({ on: edClick, next: clkNext }), _grid: sub => ed.t ? gridPoints(sub) : [], _firstTone: i => firstTone(tracks[i]), _anchor: () => anchor, _setTrackRaw: (i, l) => { const t = tracks[i]; t.L = l.length; t.layers = [SP(l)]; rebuildMix(t); t.state = 'stopped'; update(); return true; }, _edSel: (a, b) => { if (ed.t) { ed.s = a; ed.e = b; edInfo(); } }, _trim: () => ed.t && trimTo(ed.s, ed.e, 'zugeschnitten'), _mixOf: i => tracks[i].mix, _ed: () => ed.t ? { s: ed.s, e: ed.e, h: ed.h, L: ed.t.L, zoom: ed.zoom, full: edEl.classList.contains('ed-full'), loop: !!ed.loop, onsets: trackOnsets(ed.t).length } : null, _onsets: i => tracks[i] && tracks[i].L ? trackOnsets(tracks[i]) : [],
     perf: () => { let inLat = null, inSr = null; try { const st = stream && stream.getAudioTracks()[0].getSettings(); if (st) { inLat = typeof st.latency === 'number' ? st.latency : null; inSr = st.sampleRate || null; } } catch (e) {}
       const m = memState(); const r = { mic: micReady, sr, inLat, inSr, inChans, comp: parseInt(latEl.value || '0'), curMB: m.curMB, histMB: m.histMB, histMax: HIST_MB, gaps: perfIn.gaps, lagMs: perfIn.lagMs, lagMax: perfIn.lagMax, micErr: lastMicError };
       perfIn.lagMax = 0; return r; }, autosaveNow: () => doAutosave(), autosaveOn: v => { autoReady = v !== false; },
