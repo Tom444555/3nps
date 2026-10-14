@@ -16,7 +16,7 @@
   // Aufklappen merken (Standard: zu; im automatischen Test offen)
   ['ideaFold', 'lsFold'].forEach(id => {
     const d = $(id); if (!d) return;
-    let open = !!navigator.webdriver; try { const v = localStorage.getItem('3nps-fold-' + id); if (v != null) open = v === '1'; } catch (e) {}
+    let open = id === 'ideaFold' || !!navigator.webdriver; try { const v = localStorage.getItem('3nps-fold-' + id); if (v != null) open = v === '1'; } catch (e) {}
     d.open = open;
     d.addEventListener('toggle', () => { try { localStorage.setItem('3nps-fold-' + id, d.open ? '1' : '0'); } catch (e) {} if (d.open && id === 'lsFold') render(); });
   });
@@ -39,15 +39,17 @@
     const i = pick();
     if (i < 0) { say(T('Lade zuerst eine Songdatei in den Looper (aufgenommene Loops speicherst du unter „Ideen“).')); return false; }
     const f = Looper.fileOf(i), src = Looper.singSrc(i), r = liveRec(src.key);
-    let all = []; try { all = await AppDB.all('ideas'); } catch (e) {}
-    const old = all.find(x => x.kind === 'lied' && x.singKey === src.key), now = new Date();
+    let all = []; try { all = await AppDB.list('ideas', x => x.kind === 'lied' ? { id: x.id, name: x.name, singKey: x.singKey } : null); } catch (e) {}
+    const old = all.find(x => x.singKey === src.key), now = new Date();
+    // Kopie der Datei im Speicher ablegen (nicht nur einen Verweis auf die ausgewählte Datei – iPadOS räumt die weg)
+    let blob = f.file; try { blob = new Blob([await f.file.arrayBuffer()], { type: f.file.type || '' }); } catch (x) {}
     const name = String(nameIn || '').trim() || (old && old.name) || String(f.name).replace(/\.[^.]+$/, '');
     const bpmEl = $('bpm');
     const e = {
       id: old ? old.id : newId(), v: 2, kind: 'lied', name, ts: now.getTime(),
       dateStr: now.toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' }),
       root: $('root') ? $('root').value : '', mode: $('mode') ? $('mode').value : '', bpm: +f.bpm || (bpmEl ? parseFloat(bpmEl.value) : 0) || 0,
-      secs: secsOf(src.key), wav: f.file, fname: f.name, choice: f.choice, singKey: src.key,
+      secs: secsOf(src.key), wav: blob, fname: f.name, choice: f.choice, singKey: src.key,
       tok: r && r.tok ? r.tok : [], tr: r && r.tr ? r.tr : null, lang: r && r.auto ? r.auto.lang : null
     };
     try { await AppDB.put('ideas', e); }
@@ -86,7 +88,7 @@
   }
 
   async function render() {
-    let all = []; try { all = (await AppDB.all('ideas')).filter(x => x.kind === 'lied'); } catch (e) {}
+    let all = []; try { all = await AppDB.list('ideas', x => x.kind === 'lied' ? { id: x.id, name: x.name, singKey: x.singKey, tok: x.tok, secs: x.secs, lang: x.lang, dateStr: x.dateStr, ts: x.ts } : null); } catch (e) {}
     all.sort((a, b) => b.ts - a.ts);
     const cnt = $('lsCount'); if (cnt) cnt.textContent = all.length ? String(all.length) : '';
     if (!all.length) { list.innerHTML = '<p class="pattern-desc">' + esc(T('Noch keine Lieder. Lade eine Songdatei, bearbeite den Text in der Improvisation und tippe auf „Lied mit Text speichern“.')) + '</p>'; return; }

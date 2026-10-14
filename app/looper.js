@@ -3255,17 +3255,21 @@ const Pedal = (() => {
   function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 
   async function render() {
-    let ideas = [];
-    try { ideas = await AppDB.all('ideas'); } catch (e) {}
-    ideas = ideas.filter(i => i.kind !== 'lied');                  // Lieder mit Text haben eine eigene Liste (v71)
+    let ideas = [], err = '';
+    // nur die Kurzfassung je Idee lesen (nicht alle Audiodaten gleichzeitig – spart auf dem iPad viel Speicher)
+    try { ideas = await AppDB.list('ideas', i => i.kind === 'lied' ? null : { id: i.id, name: i.name, root: i.root, mode: i.mode, bpm: i.bpm, ts: i.ts, secs: i.secs, dateStr: i.dateStr, n: i.session ? i.session.tracks.filter(Boolean).length : 0, session: !!i.session, drumName: i.drumState ? i.drumState.name : null, drums: !!i.drums, drone: !!i.droneState }); }
+    catch (e) { err = String(e && e.message || e); }
+    if (err) { list.innerHTML = '<p class="pattern-desc">' + esc(T('Die Ideen konnten nicht gelesen werden: ') + err) + '</p>'; return; }                  // Lieder mit Text haben eine eigene Liste (v71)
     { const c = $('ideaCount'); if (c) c.textContent = ideas.length ? String(ideas.length) : ''; }
     ideas.sort((a, b) => b.ts - a.ts);
     if (!ideas.length) { list.innerHTML = '<p class="pattern-desc">Noch keine Ideen. Nimm einen Loop auf und tippe auf „Speichern“.</p>'; return; }
-    list.innerHTML = ideas.map(i => `
+    list.innerHTML = ideas.map(i => i.broken ? `
+      <div class="idea-row" data-id="${esc(i.id)}"><div class="idea-main"><div class="idea-name">${esc(T('Beschädigter Eintrag'))}</div><div class="log-meta" style="text-align:left">${esc(i.err)}</div></div>
+        <div class="idea-actions"><button class="toggle-btn" data-act="del">Löschen</button></div></div>` : `
       <div class="idea-row" data-id="${esc(i.id)}">
         <div class="idea-main">
           <div class="idea-name" translate="no">${esc(i.name)}</div>
-          <div class="log-meta" style="text-align:left">${esc(i.root)} ${esc(i.mode)} · ${String(Math.round(i.bpm * 10) / 10).replace('.', ',')} BPM · ${i.session ? i.session.tracks.filter(Boolean).length + ' Spur' + (i.session.tracks.filter(Boolean).length === 1 ? '' : 'en') + ' · ' : ''}${i.drumState ? 'Drums: ' + esc(i.drumState.name) + ' · ' : (i.drums ? 'Drums · ' : '')}${i.droneState ? 'Drone · ' : ''}${(+i.secs || 0).toFixed(1).replace('.', ',')} s · ${esc(i.dateStr)}</div>
+          <div class="log-meta" style="text-align:left">${esc(i.root)} ${esc(i.mode)} · ${String(Math.round(i.bpm * 10) / 10).replace('.', ',')} BPM · ${i.session ? i.n + ' Spur' + (i.n === 1 ? '' : 'en') + ' · ' : ''}${i.drumName ? 'Drums: ' + esc(i.drumName) + ' · ' : (i.drums ? 'Drums · ' : '')}${i.drone ? 'Drone · ' : ''}${(+i.secs || 0).toFixed(1).replace('.', ',')} s · ${esc(i.dateStr)}</div>
         </div>
         <div class="idea-actions">
           <button class="toggle-btn" data-act="load">Laden</button>
@@ -3303,11 +3307,15 @@ const Pedal = (() => {
     }
   });
 
-  list.addEventListener('click', async e => {
+  list.addEventListener('click', e => {
     const btn = e.target.closest('button'); if (!btn) return;
-    const row = btn.closest('.idea-row'); const id = row.dataset.id;
-    const idea = await AppDB.get('ideas', id); if (!idea) return;
-    const act = btn.dataset.act;
+    act(btn).catch(err => { $('loopStatus').textContent = T('Die Idee konnte nicht geladen werden: ') + (err && err.message || err); });
+  });
+  async function act(btn) {
+    const row = btn.closest('.idea-row'); const id = row.dataset.id, act = btn.dataset.act;
+    if (act === 'del' && btn.dataset.armed === '1') { await AppDB.del('ideas', id); render(); return; }
+    let idea = null; try { idea = await AppDB.get('ideas', id); } catch (x) { if (act !== 'del') throw x; }
+    if (!idea && act !== 'del') { render(); return; }
     if (act === 'load') {
       ensureAudio();
       rootSel.value = idea.root; modeSel.value = idea.mode; rebuild();
@@ -3342,7 +3350,7 @@ const Pedal = (() => {
       }
       await AppDB.del('ideas', id); render();
     }
-  });
+  }
 
   render();
   Looper.update();

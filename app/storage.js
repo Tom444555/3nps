@@ -34,6 +34,17 @@ const AppDB = (() => {
     put: (store, obj) => tx(store, 'readwrite', s => reqP(s.put(obj))),
     del: (store, id) => tx(store, 'readwrite', s => reqP(s.delete(id))),
     get: (store, id) => tx(store, 'readonly', s => reqP(s.get(id))),
+    // v73: Übersicht ohne alles auf einmal zu laden – Eintrag für Eintrag, nur die Kurzfassung bleibt im Speicher;
+    // ein beschädigter Eintrag blockiert die Liste nicht mehr
+    list: async (store, pick) => {
+      const keys = await tx(store, 'readonly', s => reqP(s.getAllKeys()));
+      const out = [];
+      for (const k of keys) {
+        try { const v = await tx(store, 'readonly', s => reqP(s.get(k))); if (v) { const r = pick(v); if (r) out.push(r); } }
+        catch (e) { out.push({ id: k, broken: true, err: String(e && e.message || e) }); }
+      }
+      return out;
+    },
   };
 })();
 

@@ -370,3 +370,4 @@ Object.assign(window.__EN, { '⟲ Schleife': '⟲ Loop', '■ Schleife': '■ Lo
   'Wort antippen = auswählen und anhören · nochmal antippen = ändern · gedrückt halten = anhören · ziehen = verschieben': 'Tap a word = select and hear it · tap again = change it · hold = hear it · drag = move it',
   ' Wörter an die Stimme gelegt.': ' words moved to the voice.', 'In diesem Takt stehen keine Wörter.': 'There are no words in this bar.', 'Takt eingeklopft – hör es dir in der Schleife an.': 'Bar tapped – listen to it in the loop.',
   'Lege die Wörter an die Stimme …': 'Moving the words to the voice …', ' Wörter an die Stimme angepasst. ': ' words matched to the voice. ' });
+Object.assign(window.__EN, { 'Die Ideen konnten nicht gelesen werden: ': 'The ideas could not be read: ', 'Beschädigter Eintrag': 'Damaged entry', 'Die Idee konnte nicht geladen werden: ': 'The idea could not be loaded: ' });
