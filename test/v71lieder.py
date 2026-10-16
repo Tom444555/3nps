@@ -56,12 +56,14 @@ async def main():
         await pg.click('#tab-solo'); await pg.wait_for_timeout(700)
         check('Improvisation zeigt den Text', await pg.evaluate("document.querySelectorAll('#sgStrip .sg-w').length") == 10)
         await pg.click('#tab-looper'); await pg.wait_for_timeout(300)
-        # zweites Laden bei belegter Spur 1 → Spur 2
+        # zweites Laden bei belegten Spuren → Spuren werden (nach Rückfrage) geleert, Lied wieder auf Spur 1 mit Text (v86)
+        await pg.evaluate("document.getElementById('lsInfo').textContent=''")
         await pg.click('#lsList [data-act="load"]')
         for _ in range(60):
             await pg.wait_for_timeout(250)
-            if 'Spur 2' in await pg.inner_text('#lsInfo'): break
-        check('belegte Spur bleibt, Lied kommt auf die nächste freie', 'Spur 2' in await pg.inner_text('#lsInfo'), await pg.inner_text('#lsInfo'))
+            if 'Spur 1' in await pg.inner_text('#lsInfo'): break
+        st = await pg.evaluate("[Looper.trackUsed(1), Looper.singSrc(0) && Looper.singSrc(0).key]")
+        check('belegte Spuren werden geleert, Lied auf Spur 1 im eigenen Tempo', 'Spur 1' in await pg.inner_text('#lsInfo') and st == [False, KEY], (await pg.inner_text('#lsInfo'), st))
         # EN
         await pg.evaluate("localStorage.setItem('3nps-lang','en')"); await pg.reload(); await pg.wait_for_timeout(900)
         en = await pg.evaluate("[document.querySelector('#lsFold h2').textContent, document.getElementById('lsSave').textContent, document.querySelector('#lsList .log-meta').textContent]")

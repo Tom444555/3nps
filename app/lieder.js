@@ -74,8 +74,12 @@
         if (window.Sing && Sing._reload) Sing._reload();
       }
     }
-    let i = [0, 1, 2].find(k => !Looper.trackUsed(k));
-    if (i == null) { if (!confirm(T('Alle Spuren sind belegt. Spur 1 durch das Lied ersetzen?'))) return false; i = 0; }
+    // v86: liegen schon Spuren, würde das Lied ins Loop-Tempo gedehnt – dann passt der Text nicht mehr. Darum vorher leeren.
+    let i = 0;
+    if ([0, 1, 2].some(k => Looper.trackUsed(k))) {
+      if (!confirm(T('Zum Laden werden die Spuren im Looper geleert – nur so bleibt das Lied in seinem Tempo und der Text passt. (Vorher ggf. als Idee speichern.) Weiter?'))) return false;
+      if (Looper.clearAll && !Looper.clearAll()) { say(T('Laden nicht möglich, während aufgenommen wird.')); return false; }
+    }
     say(T('Lade „') + e.name + '“ …');
     const ok = await Looper.importBlob(i, e.wav, e.fname, e.choice);
     say(ok ? '„' + e.name + T('“ liegt auf Spur ') + (i + 1) + T(' – mit Text. Improvisation und Mitsingen sind bereit.') : T('Laden nicht möglich, während aufgenommen wird.'));

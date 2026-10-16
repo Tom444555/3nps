@@ -49,6 +49,7 @@ const Looper = (() => {
     } catch (e) {}
     return Math.round((audioCtx.currentTime - (audioCtx.outputLatency || 0)) * sr);
   }
+  let lastLoaded = null;                                    // v86: zuletzt geladene Datei-Spur
   const MAXSEC = 600;                                       // v85: längste Datei 10 Minuten
   const bpm = () => parseFloat($('bpm').value) || 80;
   const barFrames = () => Math.round(4 * 60 / bpm() * sr);
@@ -995,12 +996,14 @@ const Looper = (() => {
   }
 
   // Vor dem Laden fragen: ganze Datei oder Ausschnitt (Analyse läuft schon im Hintergrund)
-  function askImport(t, name, secs, anaP, preBpm) {
+  function askImport(t, name, secs, anaP, preBpm, hasLyrics) {
     const dlg = $('impDlg'), from = $('impFrom'), bars = $('impBars'), anaEl = $('impAna');
     $('impTitle').textContent = 'Datei auf Spur ' + (t.i + 1);
     $('impName').textContent = name + ' · ' + Math.floor(secs / 60) + ':' + String(Math.round(secs % 60)).padStart(2, '0') + ' min';
     anaEl.textContent = 'Analysiere Takt und Tempo …'; anaEl.classList.remove('done');
     $('impAllInfo').textContent = 'komplett als Loop';
+    // v86: liegen andere Spuren, würde das Lied ins Loop-Tempo gedehnt – Gesangstext geht dann nicht. Mit Text: Leeren vorschlagen
+    { const os = others(t).length > 0; $('impClearRow').hidden = !os; $('impClear').checked = os && !!hasLyrics; }
     const bpmIn = $('impBpm'), altEl = $('impBpmAlt'); bpmIn.value = preBpm ? String(preBpm) : ''; altEl.innerHTML = '';
     dlg.querySelector('input[value="all"]').checked = true;
     let total = 0;
@@ -1038,6 +1041,7 @@ const Looper = (() => {
         const mode = dlg.querySelector('input[name="impMode"]:checked').value, fb = parseFloat(String($('impBpm').value).replace(',', '.'));
         const c = mode === 'all' ? { mode: 'all' } : { mode: 'part', from: parseInt(from.value) || 1, bars: parseInt(bars.value) || 8 };
         if (fb >= 40 && fb <= 240) c.bpm = fb; else if (preBpm) c.bpm = null;     // geleert = wieder automatisch
+        if (!$('impClearRow').hidden && $('impClear').checked) c.clear = true;
         done(c);
       };
       $('impCancel').onclick = () => done(null);
@@ -1067,7 +1071,9 @@ const Looper = (() => {
     // Längere Dateien: vorher fragen, wie viel davon in die Spur soll
     let choice = { mode: 'all' };
     if (secs > 20) {
-      choice = preChoice || await askImport(t, file.name, secs, anaP, memBpm);
+      let hasLyr = false; try { const sd = JSON.parse(localStorage.getItem('3nps-sing') || '{}'); hasLyr = !!(sd.f && sd.f[sKey] && sd.f[sKey].tok && sd.f[sKey].tok.length); } catch (e) {}
+      choice = preChoice || await askImport(t, file.name, secs, anaP, memBpm, hasLyr);
+      if (choice && choice.clear) { tracks.forEach(o => { if (o !== t && o.L) clearTrack(o); }); delete choice.clear; }
       if (!choice) { setStatus('Laden abgebrochen.'); return; }
     }
     let ana = await anaP;
@@ -1086,6 +1092,7 @@ const Looper = (() => {
     t.orig = null; t.origPos = null;
     let seg = null, L = 0, msg = '', warn = '';
     if (ana.kind !== 'none') {
+      lastLoaded = t.i;
       t.orig = ana.orig; t.orig.file = file; t.orig.choice = Object.assign({}, choice, ana.forced ? { bpm: ana.forced } : {});        // v71: Originaldatei für „Lieder mit Text“
       // v77: Mitsingen rechnet gespeicherte Wortzeiten aufs neue Raster um und merkt sich das vorgegebene Tempo
       document.dispatchEvent(new CustomEvent('origbeats', { detail: { key: sKey, oldBeats, newBeats: t.orig.beats, forced: ana.forced || null, sr } }));
@@ -3078,7 +3085,10 @@ const Looper = (() => {
     chordInfo: want => {
       const ok = t => !!(t.chords && t.chords.L === t.L && t.L && t.chords.segs.some(q => q.name !== '–'));
       const list = tracks.map(t => ({ i: t.i, has: ok(t), playing: !!t.src }));
-      let t = want != null && tracks[want] && ok(tracks[want]) ? tracks[want] : tracks.find(q => q.src && ok(q)) || tracks.find(ok);
+      // v86: automatisch – unter den laufenden Spuren die zuletzt geladene Datei bevorzugen (sonst zeigten Improvisation
+      // und Mitsingen den Text/die Akkorde einer älteren Spur)
+      const lt = lastLoaded != null && tracks[lastLoaded] && ok(tracks[lastLoaded]) && (tracks[lastLoaded].src || !tracks.some(q => q.src && ok(q))) ? tracks[lastLoaded] : null;
+      let t = want != null && tracks[want] && ok(tracks[want]) ? tracks[want] : lt || tracks.find(q => q.src && ok(q)) || tracks.find(ok);
       if (!t) return { tracks: list, track: -1 };
       const pos = t.src && audioCtx ? mod(playFrame() - anchor, t.L) : null;
       const downs = trackDowns(t).filter(x => x > -2 && x < t.L - 2).map(x => Math.max(0, x));
@@ -3092,6 +3102,7 @@ const Looper = (() => {
     fileOf: i => { const t = tracks[i]; return t && t.orig && t.orig.file ? { file: t.orig.file, name: t.orig.name || t.orig.file.name, choice: t.orig.choice || { mode: 'all' }, bpm: t.orig.bpm } : null; },
     importBlob: (i, blob, name, choice) => { const t = tracks[i]; if (!t || rec) return Promise.resolve(false); return importFile(t, new File([blob], name, { type: blob.type || '' }), choice || { mode: 'all' }).then(() => true); },
     trackUsed: i => !!(tracks[i] && tracks[i].L),
+    clearAll: () => { if (rec) return false; tracks.forEach(t => { if (t.L) clearTrack(t); }); update(); return true; },
     singSrc: i => {
       const t = tracks[i]; if (!t || !t.L || !t.orig || t.origPos == null || !t.orig.beats || t.orig.beats.length < 4) return null;
       const o = t.orig, len = o.data ? (o.data.l || o.data).length : 0;

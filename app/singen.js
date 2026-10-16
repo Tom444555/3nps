@@ -5,6 +5,7 @@ const Singen = (() => {
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const timed = src => src && src.tok && src.tok.some(t => t.b != null);
   let ciCache = null, ciAt = 0, wordEls = [], srcTxt = '', lastBeat = -2;
+  let emptyWhy = '', emptyTxt = '';
   let raf = 0, lastSrc = null, speed = 1, player = null, mic = null, lineSig = '', prevB = null, res = {}, scored = {};
 
   // ---- Quelle: laufender Übungsplayer, sonst was gerade spielt, sonst die zuletzt gespielte ----
@@ -15,6 +16,13 @@ const Singen = (() => {
     const ci = ciCache;
     const s = window.Sing ? Sing.source(ci) : null;
     if (s && s.kind !== 'none' && timed(s)) { lastSrc = s; return s; }
+    // v86: sonst eine andere laufende Spur mit getimtem Text (z. B. das gerade geladene Lied auf Spur 2)
+    if (window.Sing && (!ci || !ci.lied)) for (let i = 0; i < 3; i++) {
+      if (ci && i === ci.track) continue; const o = Sing.source({ track: i }); if (o && o.kind === 'file' && timed(o) && o.nowB != null) { lastSrc = o; return o; }
+    }
+    // läuft eine Datei ohne Text (oder ins Loop-Tempo gedehnt), nicht den Text eines anderen Liedes zeigen
+    if (s && ((s.kind === 'file' && s.nowB != null && lastSrc && lastSrc.id !== s.id) || (s.kind === 'none' && ci && ci.playing))) { lastSrc = null; emptyWhy = s.kind === 'none' ? 'stretch' : 'notext'; return null; }
+    emptyWhy = '';
     return lastSrc ? Object.assign({}, lastSrc, { nowB: null }) : null;
   }
   const lineOf = (src, l) => src.tok.map((t, i) => Object.assign({ i }, t)).filter(t => t.l === l);
@@ -31,7 +39,12 @@ const Singen = (() => {
     raf = requestAnimationFrame(frame);
     const src = getSrc(), has = timed(src);
     if ($('sbEmpty').hidden !== !!has) { $('sbEmpty').hidden = !!has; $('sbStage').hidden = !has; }
-    if (!has) { if (srcTxt !== '–') { srcTxt = '–'; $('sbSrc').textContent = '–'; } $('sbCount').textContent = ''; lineSig = ''; return; }
+    if (!has) {
+      if (srcTxt !== '–') { srcTxt = '–'; $('sbSrc').textContent = '–'; } $('sbCount').textContent = ''; lineSig = ''; listSig = '';
+      const why = emptyWhy === 'stretch' ? T('Das Lied läuft ins Tempo eines anderen Loops gedehnt – dafür gibt es keinen Gesangstext. Lade es mit „Andere Spuren vorher leeren“ (oder über „Lieder mit Text“).') : emptyWhy === 'notext' ? T('Für dieses Lied gibt es noch keinen Text mit Zeiten (Improvisation → „🎤 Gesangstext“).') : '';
+      if (why !== emptyTxt) { emptyTxt = why; $('sbEmpty').textContent = why || $('sbEmpty').dataset.def; }
+      return;
+    }
     const st = src.title + (player ? ' · ' + T('Übung') + ' ' + Math.round(speed * 100) + ' %' : ''); if (st !== srcTxt) { srcTxt = st; $('sbSrc').textContent = st; }
     const nb = src.nowB, f = focus(src);
     if (player && (f.cur < 0 || src.tok[f.cur].l !== player.line)) { f.cur = -1; f.line = player.line; }   // beim Üben nur die geübte Zeile
@@ -199,6 +212,7 @@ const Singen = (() => {
 
   function init() {
     if (!$('panel-singen')) return;
+    $('sbEmpty').dataset.def = $('sbEmpty').textContent;
     const vis = () => !$('panel-singen').hidden;
     const run = () => { if (vis()) { if (!raf) raf = requestAnimationFrame(frame); } else { cancelAnimationFrame(raf); raf = 0; stopPlayer(); stopMic(); } };
     document.addEventListener('tabchange', () => setTimeout(run, 0));

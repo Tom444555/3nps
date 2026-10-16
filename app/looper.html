@@ -406,6 +406,7 @@
         <h2 id="impTitle">Datei auf Spur 1</h2>
         <div class="imp-name" id="impName"></div>
         <div class="imp-ana caption" id="impAna">Analysiere Takt und Tempo …</div>
+        <label class="check imp-clear" id="impClearRow" hidden><input type="checkbox" id="impClear"> Andere Spuren vorher leeren – das Lied behält sein Tempo (nötig für Gesangstext und Mitsingen)</label>
         <div class="imp-bpm"><label>Tempo stimmt nicht? <input type="number" id="impBpm" min="40" max="240" step="0.1" inputmode="decimal" placeholder="z. B. 135" aria-label="Tempo vorgeben (BPM)"> BPM</label><span id="impBpmAlt"></span></div>
         <label class="imp-opt"><input type="radio" name="impMode" value="all" checked><span><b>Ganze Datei</b><em id="impAllInfo">komplett als Loop</em></span></label>
         <label class="imp-opt"><input type="radio" name="impMode" value="part"><span><b>Ausschnitt</b><em>ab <select id="impFrom" aria-label="ab Takt"><option value="1">Takt 1</option></select> für <select id="impBars" aria-label="Anzahl Takte"></select></em></span></label>
