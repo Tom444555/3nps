@@ -822,3 +822,12 @@ Gut zu wissen
    - „Takte ergänzen“ startet genau das, wenn noch kein Wort eine Zeit hat (mit Rückfrage).
    - Mit Gesangsspur aus Moises (🎙) ist die Erkennung deutlich sicherer.
    - Mitsingen läuft jetzt auch mit, wenn im Editor über „▶ ab hier“, Teil ▶ oder die Takt-Schleife abgespielt wird.
+
+76. Text ohne Zeilenumbrüche (v92)
+   - Gehen beim Einfügen die Zeilenumbrüche verloren, ist das ganze Lied EINE Zeile: Mitsingen färbte die Wörter, kam
+     aber nie in die nächste Zeile und scrollte nicht.
+   - Mitsingen teilt zu lange Zeilen (über 14 Wörter) jetzt beim Anzeigen selbst – an Pausen, nach Satzzeichen,
+     spätestens nach 10 Wörtern. Die Übersetzung steht unter dem ersten Teil.
+   - Die Karte „🎤 Gesangstext“ warnt „↵ Zeile 1 hat n Wörter“; „Zeilen teilen“ teilt sie dauerhaft (↶ nimmt es zurück).
+     Oder den Text mit Zeilenumbrüchen neu einfügen – die Zeiten bleiben erhalten.
+   - Einfügen erkennt jetzt alle Arten von Zeilenumbrüchen (auch von Mac/Windows/Webseiten).

@@ -9,7 +9,8 @@ const Singen = (() => {
   let raf = 0, lastSrc = null, speed = 1, player = null, mic = null, lineSig = '', prevB = null, res = {}, scored = {};
 
   // ---- Quelle: laufender Übungsplayer, sonst was gerade spielt, sonst die zuletzt gespielte ----
-  function getSrc() {
+  function getSrc() { return view(getSrc0()); }
+  function getSrc0() {
     if (player) return Object.assign({}, player.src, { nowB: player.nowB() });
     const now = performance.now();
     if (!ciCache || now - ciAt > 250) { ciCache = window.SoloInfo ? SoloInfo() : null; ciAt = now; }
@@ -24,6 +25,31 @@ const Singen = (() => {
     if (s && ((s.kind === 'file' && s.nowB != null && lastSrc && lastSrc.id !== s.id) || (s.kind === 'none' && ci && ci.playing))) { lastSrc = null; emptyWhy = s.kind === 'none' ? 'stretch' : 'notext'; return null; }
     emptyWhy = '';
     return lastSrc ? Object.assign({}, lastSrc, { nowB: null }) : null;
+  }
+  // v92: sehr lange Zeilen (z. B. Text ohne Zeilenumbrüche eingefügt → das ganze Lied ist EINE Zeile) nur für die Anzeige
+  // in Zeilen teilen: an Pausen, nach Satzzeichen, spätestens nach 10 Wörtern. Die gespeicherten Daten bleiben unverändert.
+  const MAXW = 14, viewCache = { k: '', v: null };
+  function view(src) {
+    if (!src || !src.tok) return src;
+    const cnt = {}; src.tok.forEach(t => { cnt[t.l] = (cnt[t.l] || 0) + 1; });
+    if (!Object.values(cnt).some(n => n > MAXW)) return src;
+    const k = src.id + '|' + Sing.ver() + '|' + src.tok.length;
+    if (viewCache.k !== k) {
+      const ms = b => (src.beatMs ? src.beatMs(b) : 500), map = [];
+      let nl = -1, prevL = null, n = 0, prevEnd = null;
+      src.tok.forEach((t, i) => {
+        let brk = t.l !== prevL;
+        if (!brk && cnt[t.l] > MAXW) {
+          const pw = src.tok[i - 1], gap = t.b != null && prevEnd != null ? (t.b - prevEnd) * ms(prevEnd) / 1000 : 0;
+          brk = n >= 10 || (n >= 3 && gap >= 0.6) || (n >= 5 && /[.,;:!?…]$/.test(pw.w));
+        }
+        if (brk) { nl++; n = 0; }
+        map.push(nl); n++; prevL = t.l; if (t.b != null) prevEnd = Sing.endOf(src.tok, i);
+      });
+      viewCache.k = k; viewCache.v = map;
+    }
+    const map = viewCache.v;
+    return Object.assign({}, src, { tok: src.tok.map((t, i) => Object.assign({}, t, { l: map[i], ol: t.l })), split: true });
   }
   const lineOf = (src, l) => src.tok.map((t, i) => Object.assign({ i }, t)).filter(t => t.l === l);
   function focus(src) {
@@ -102,6 +128,9 @@ const Singen = (() => {
   function buildList(src) {
     const chAt = chordFn(src), tr = Sing.getTr(src), trOn = $('sbTrOn').checked, ms = b => (src.beatMs ? src.beatMs(b) : 500);
     const n = Math.max(-1, ...src.tok.map(t => t.l)) + 1; let h = '', lastCh = null, prevEnd = null; gapEls = [];
+    // geteilte Zeilen: Übersetzung der Originalzeile nur unter ihrem ersten Teil
+    const firstOf = {}; src.tok.forEach(t => { const o = t.ol != null ? t.ol : t.l; if (firstOf[o] == null) firstOf[o] = t.l; });
+    const trOf = l => { const t = src.tok.find(x => x.l === l); if (!t) return ''; const o = t.ol != null ? t.ol : t.l; return firstOf[o] === l ? tr[o] : ''; };
     for (let l = 0; l < n; l++) {
       const ws = lineOf(src, l); if (!ws.length) continue;
       const first = ws.find(t => t.b != null);
@@ -109,7 +138,7 @@ const Singen = (() => {
       let anyCh = false;
       const words = ws.map(t => { const c = chAt(t.b), show = c && c !== lastCh; if (c) lastCh = c; if (show) anyCh = true;
         return '<span class="sb-w" data-i="' + t.i + '">' + (show ? '<b class="sb-ch">' + esc(c) + '</b>' : '') + esc(t.w) + '<i class="sb-fill"></i>' + mark(t.i) + '</span>'; }).join(' ');
-      h += '<div class="sb-row" data-l="' + l + '"><p class="sb-line' + (anyCh ? ' has-ch' : '') + '">' + words + '</p>' + (trOn && tr[l] ? '<p class="sb-tr">' + esc(tr[l]) + '</p>' : '<p class="sb-tr"></p>') + '</div>';
+      h += '<div class="sb-row" data-l="' + l + '"><p class="sb-line' + (anyCh ? ' has-ch' : '') + '">' + words + '</p>' + (trOn && trOf(l) ? '<p class="sb-tr">' + esc(trOf(l)) + '</p>' : '<p class="sb-tr"></p>') + '</div>';
       const last = ws.filter(t => t.b != null).pop(); if (last) prevEnd = Sing.endOf(src.tok, last.i);
     }
     const list = $('sbList'); list.innerHTML = h;
@@ -243,14 +272,14 @@ const Singen = (() => {
     $('sbPrev').addEventListener('click', () => step(-1)); $('sbNextL').addEventListener('click', () => step(1));
     $('sbMic').addEventListener('click', () => { if (mic) stopMic(); else startMic(); });
     $('sbTrOn').addEventListener('change', () => { lineSig = ''; listSig = ''; });
-    $('panel-singen').querySelector('.sb-tredit').addEventListener('toggle', e => { const src = getSrc(); if (e.target.open && src) $('sbTrText').value = trLines(src).join('\n'); });
+    $('panel-singen').querySelector('.sb-tredit').addEventListener('toggle', e => { const src = getSrc0(); if (e.target.open && src) $('sbTrText').value = trLines(src).join('\n'); });
     $('sbTrSave').addEventListener('click', () => {
-      const src = getSrc(); if (!src) return;
+      const src = getSrc0(); if (!src) return;
       const ok = Sing.setTr(src, $('sbTrText').value.replace(/\r/g, '').split('\n'));
       $('sbTrInfo').textContent = ok ? T('Übersetzung gespeichert.') : T('Erst Text und Timing anlegen (Improvisation → „🎤 Gesangstext“).');
     });
     $('sbTrClaude').addEventListener('click', async () => {
-      const src = getSrc(); if (!src) return;
+      const src = getSrc0(); if (!src) return;
       const n = Math.max(0, ...src.tok.map(t => t.l)) + 1, lyr = Array.from({ length: n }, (_, l) => lineOf(src, l).map(t => t.w).join(' ')).join('\n');
       const lang = window.__lang === 'en' ? 'English' : 'Deutsche';
       const txt = (window.__lang === 'en' ? 'Translate these song lyrics line by line into English. Reply with exactly ' + n + ' lines, no numbers, nothing else.' : 'Übersetze diesen Liedtext Zeile für Zeile ins ' + lang + '. Antworte mit genau ' + n + ' Zeilen, ohne Nummern und ohne weiteren Text.') + '\n\n' + lyr;

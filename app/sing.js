@@ -19,7 +19,7 @@ const Sing = (() => {
   // ---- Text → Wörter (Akkord-Marken [Am] fallen weg) ----
   function tokenize(text) {
     const out = [];
-    String(text || '').replace(/\r/g, '').split('\n').forEach(line => {
+    String(text || '').replace(/\r\n?|[\u2028\u2029\u0085\v\f]/g, '\n').split('\n').forEach(line => {
       const clean = line.replace(/\[[^\]]*\]/g, ' ').trim(); if (!clean) return;
       const l = out.length ? out[out.length - 1].l + 1 : 0;
       clean.split(/\s+/).forEach(w => { if (w) out.push({ w, b: null, l }); });
@@ -216,6 +216,21 @@ const Sing = (() => {
     }
     if (src.kind === 'file' && miss.length) alignIdx(src, miss, 0.3);
     return miss.length;
+  }
+
+  // v92: zu lange Zeilen (Text ohne Zeilenumbrüche eingefügt) dauerhaft teilen – an Pausen, nach Satzzeichen, spätestens nach 10 Wörtern
+  const LONG = 14;
+  const longLines = tok => { const c = {}; tok.forEach(t => { c[t.l] = (c[t.l] || 0) + 1; }); return Object.keys(c).filter(l => c[l] > LONG).map(Number); };
+  function splitLong(src) {
+    const tok = src.tok, long = new Set(longLines(tok)); if (!long.size) return 0;
+    const ms = b => (src.beatMs ? src.beatMs(b) : 500); let nl = -1, prevL = null, n = 0, prevEnd = null, before = new Set(tok.map(t => t.l)).size;
+    tok.forEach((t, i) => {
+      let brk = t.l !== prevL;
+      if (!brk && long.has(t.l)) { const pw = tok[i - 1], gap = t.b != null && prevEnd != null ? (t.b - prevEnd) * ms(prevEnd) / 1000 : 0;
+        brk = n >= 10 || (n >= 3 && gap >= 0.6) || (n >= 5 && /[.,;:!?…]$/.test(pw.w)); }
+      if (brk) { nl++; n = 0; } prevL = t.l; t.l = nl; n++; if (t.b != null) prevEnd = endOf(tok, i);
+    });
+    changed(); persist(src); return nl + 1 - before;
   }
 
   // ---- Spur unter der Akkordleiste ----
@@ -1008,6 +1023,7 @@ const Sing = (() => {
         + (loopP && loopP.part ? '<button class="toggle-btn active" id="sgPStop">■ ' + T('Teil-Schleife') + ' · ' + Math.round(loopP.rate * 100) + ' %</button>' : '') + '</div>';
     }
     { const nm = src.tok.filter(t => t.b == null).length, nt = src.tok.length - nm; if (nm && !ui.tapping) h += '<div class="sg-vox sg-warn"><b>⏱ ' + nm + T(' Wörter ohne Takt (–)') + '</b><span class="caption">' + (nt ? T('Sie erscheinen nicht in der Spur und beim Mitsingen.') : T('Noch kein Wort hat einen Takt – „Takte ergänzen“ hört den Gesang heraus und legt deinen Text darauf.')) + '</span><button class="toggle-btn" id="sgFill">' + T('Takte ergänzen') + '</button></div>'; }
+    { const lg = longLines(src.tok); if (lg.length && src.editable && src.kind === 'file') h += '<div class="sg-vox sg-warn"><b>↵ ' + T('Zeile ') + (lg[0] + 1) + T(' hat ') + src.tok.filter(t => t.l === lg[0]).length + T(' Wörter') + '</b><span class="caption">' + T('Beim Einfügen sind vermutlich die Zeilenumbrüche verloren gegangen. Mitsingen teilt sie beim Anzeigen selbst; hier kannst du sie dauerhaft teilen (an Pausen und Satzzeichen).') + '</span><button class="toggle-btn" id="sgSplit">' + T('Zeilen teilen') + '</button></div>'; }
     { const bad = outOfOrder(src.tok); if (bad.length && src.editable) h += '<div class="sg-vox sg-warn"><b>⚠ ' + bad.length + T(' Wörter stehen zeitlich nicht in der Reihenfolge des Textes') + '</b><span class="caption">' + T('(z. B. nach dem Einfügen eines ganzen Textes) – deshalb springt oder hängt das Mitsingen.') + '</span><button class="toggle-btn" id="sgFixOrder">' + T('Reihenfolge reparieren') + '</button></div>'; }
     if (src.kind === 'file' && src.tok.some(t => t.b != null)) h += '<details class="sg-paste"><summary>' + T('Text passt nicht mehr zum Lied (zu früh/zu spät, läuft nicht mit)?') + '</summary><div class="sg-vox"><span class="caption">' + T('Wurde der Text mit einem anderen Tempo erstellt (z. B. 90 statt jetzt erkannt ') + Math.round(src.grid ? src.grid.bpm : src.bpmDet || 0) + ' BPM)? ' + T('Tempo von damals eintragen:') + '</span><input type="number" id="sgOldBpm" min="40" max="240" step="0.1" inputmode="decimal" style="width:5.5em"> BPM<button class="toggle-btn" id="sgRegrid">' + T('Text umrechnen') + '</button><span class="caption">' + T('Danach mit „♪ an Stimme“ oder „Rest nachprüfen“ feinjustieren; ↶ nimmt es zurück.') + '</span></div></details>';
     if (src.kind === 'file') h += '<div class="sg-vox"><b>⇄ ' + T('Austausch') + '</b><button class="toggle-btn" id="sgLrcOut">' + T('LRC exportieren') + '</button><button class="toggle-btn" id="sgLrcIn">' + T('LRC laden') + '</button><button class="toggle-btn" id="sgLead">' + T('Leadsheet (PDF)') + '</button><input type="file" id="sgLrcFile" accept=".lrc,.txt,text/plain" hidden></div>';
@@ -1079,6 +1095,7 @@ const Sing = (() => {
       if (b.id === 'sgLrcOut') { lrcExport(src); return; }
       if ((b.id === 'sgFill' || b.id === 'sgFill2') && src.kind === 'file' && !tok.some(t => t.b != null)) { if (confirm(T('Noch kein Wort hat eine Zeit. Die App hört dafür den Gesang heraus und legt deinen Text darauf (dauert ein paar Minuten, beim ersten Mal wird das Erkennungsmodell geladen). Starten?'))) recognize(src, true); return; }
       if (b.id === 'sgFill' || b.id === 'sgFill2') { if (src.kind === 'file' && !envOf(src)) { status(T('Stimme wird ausgewertet …')); try { await voiceEnv(src); } catch (x) {} } const n = fillMissing(src); if (!n) { status(T('Keine Stimm-Einsätze gefunden – bitte „🤖 Text automatisch erkennen“ oder die ersten Wörter einklopfen, dann „Takte ergänzen“.')); return; } changed(); persist(src); status(n + T(' Wörter haben jetzt einen Takt (zwischen ihren Nachbarn, an die Stimme gelegt) – anhören und ggf. ziehen; ↶ nimmt es zurück.')); return; }
+      if (b.id === 'sgSplit') { const n = splitLong(src); status(T('Zeilen geteilt: ') + n + T(' neue Zeilen. Unten in der Wortliste kannst du Zeilen weiter anpassen – oder den Text mit Zeilenumbrüchen neu einfügen; die Zeiten bleiben erhalten.')); return; }
       if (b.id === 'sgFixOrder') { const n = fixOrder(src); status(n + T(' Wörter zwischen ihre Nachbarn gelegt – jetzt mit „♪ an Stimme“ oder Ziehen feinjustieren (↶ nimmt es zurück).')); return; }
       if (b.id === 'sgRegrid') { const v = parseFloat(String($('sgOldBpm').value).replace(',', '.')); if (!(v >= 40 && v <= 240)) { status(T('Bitte ein Tempo zwischen 40 und 240 BPM eintragen.')); return; } regridFrom(src, v); status(T('Text auf das jetzige Raster umgerechnet.')); return; }
       if (b.dataset.ploop != null) { startPartLoop(+b.dataset.ploop); return; }
@@ -1248,6 +1265,6 @@ const Sing = (() => {
   // Übersetzung je Zeile (v63)
   function setTr(src, arr) { const rec = src.kind === 'lied' ? db.l[src.id] : db.f[src.id]; if (!rec) return false; rec.tr = arr; changed(); return true; }
   function getTr(src) { const rec = src && (src.kind === 'lied' ? db.l[src.id] : db.f[src.id]); return rec && rec.tr || []; }
-  return { recognize: () => recognize(curSrc), rec: () => Object.assign({}, rec), wordsToTok, tick, tap, tokenize, merge, f2b, b2f, endOf, lines, setTr, getTr, ver: () => ver, focus: k => focus(k), unfocus, prec: () => { const E = envOf(curSrc); return { env: E ? { n: E.e.length, on: E.on.slice(), onB: E.onB.slice() } : null, loop: !!loopP, rate: loopP ? loopP.rate : null, word: !!wordP, tap: tapS ? { n: tapS.n, of: tapS.idx.length } : null, mag: ui.mag, sel: ui.sel }; }, voiceEnv: () => voiceEnv(curSrc), placeB: r => placeB(r, curSrc), undo: () => undoRedo(-1), redo: () => undoRedo(1), vox: () => { const v = curSrc && vox[curSrc.id]; return v ? { name: v.name, off: v.off, sr: v.sr, n: v.l.length } : null; }, lrcText: () => curSrc ? lrcText(curSrc) : '', lrcImport: t => curSrc && lrcImport(curSrc, t), leadsheet: () => curSrc ? leadsheetOf(curSrc) : null, parts: () => curSrc ? partsOf(curSrc) : [], addPart: n => addPart(n), partLoop: i => startPartLoop(i), trainerState: () => trainer ? Object.assign({}, trainer) : null, loopRate: () => loopP ? loopP.rate : null, pedal: id => pedal(id), regridFrom: b => curSrc && regridFrom(curSrc, b), outOfOrder: () => curSrc ? outOfOrder(curSrc.tok) : [], fillMissing: () => curSrc ? fillMissing(curSrc) : 0, fixOrder: () => curSrc && fixOrder(curSrc), loopNow: () => loopP ? loopP.nowB() : (wordP ? wordP.nowB() : null), onTempo: () => onTempo(), addClicks, recheck: () => recheck(), toggleLock: () => toggleLock(), insertAfter: () => insertAfter(), spread, playFrom, source: ci => source(ci), data: () => db, _reload: () => { db = load(); changed(); }, ui: () => ui };
+  return { recognize: () => recognize(curSrc), rec: () => Object.assign({}, rec), wordsToTok, tick, tap, tokenize, merge, f2b, b2f, endOf, lines, setTr, getTr, ver: () => ver, focus: k => focus(k), unfocus, prec: () => { const E = envOf(curSrc); return { env: E ? { n: E.e.length, on: E.on.slice(), onB: E.onB.slice() } : null, loop: !!loopP, rate: loopP ? loopP.rate : null, word: !!wordP, tap: tapS ? { n: tapS.n, of: tapS.idx.length } : null, mag: ui.mag, sel: ui.sel }; }, voiceEnv: () => voiceEnv(curSrc), placeB: r => placeB(r, curSrc), undo: () => undoRedo(-1), redo: () => undoRedo(1), vox: () => { const v = curSrc && vox[curSrc.id]; return v ? { name: v.name, off: v.off, sr: v.sr, n: v.l.length } : null; }, lrcText: () => curSrc ? lrcText(curSrc) : '', lrcImport: t => curSrc && lrcImport(curSrc, t), leadsheet: () => curSrc ? leadsheetOf(curSrc) : null, parts: () => curSrc ? partsOf(curSrc) : [], addPart: n => addPart(n), partLoop: i => startPartLoop(i), trainerState: () => trainer ? Object.assign({}, trainer) : null, loopRate: () => loopP ? loopP.rate : null, pedal: id => pedal(id), regridFrom: b => curSrc && regridFrom(curSrc, b), outOfOrder: () => curSrc ? outOfOrder(curSrc.tok) : [], fillMissing: () => curSrc ? fillMissing(curSrc) : 0, splitLong: () => curSrc ? splitLong(curSrc) : 0, fixOrder: () => curSrc && fixOrder(curSrc), loopNow: () => loopP ? loopP.nowB() : (wordP ? wordP.nowB() : null), onTempo: () => onTempo(), addClicks, recheck: () => recheck(), toggleLock: () => toggleLock(), insertAfter: () => insertAfter(), spread, playFrom, source: ci => source(ci), data: () => db, _reload: () => { db = load(); changed(); }, ui: () => ui };
 })();
 window.Sing = Sing;
