@@ -1344,6 +1344,25 @@ html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleis
   .sb-gap.on { opacity: 1; color: var(--ink); border-style: solid; border-color: var(--accent); font-size: 1.35rem; padding: 10px 18px; }
   .sb-gap span { color: var(--accent); }
   .sb-gapbar { position: absolute; left: 0; top: 0; bottom: 0; width: 100%; background: color-mix(in srgb, var(--accent) 22%, transparent); transform-origin: left center; transform: scaleX(0); z-index: -1; }
+  /* v92: Pausen zwischen Wörtern, große Akkorde mit Dauer-Balken, Pausenbalken */
+  .sb-row .sb-w { padding-left: var(--pl, 0); padding-right: .28em; }
+  .sb-row .sb-fill { left: var(--pl, 0); right: .28em; }
+  .sb-row .sb-line.has-ch { padding-top: 1.5em; line-height: 2.75; }
+  .sb-row .sb-ch { left: var(--pl, 0); bottom: calc(100% - .25em); font: 800 .9em var(--f-mono); padding: 0 .22em; letter-spacing: -.02em; }
+  .sb-cb { position: absolute; left: 0; right: 0; top: -.08em; height: .2em; border-radius: 0; background: rgba(255,210,94,.28); overflow: hidden; pointer-events: none; }
+  .sb-cb.c1 { background: rgba(120,200,255,.28); }
+  .sb-cb.st { left: var(--pl, 0); border-top-left-radius: .1em; border-bottom-left-radius: .1em; }
+  .sb-cb > i { position: absolute; inset: 0; background: #ffd25e; transform-origin: left center; transform: scaleX(0); }
+  .sb-cb.c1 > i { background: #7cc8ff; }
+  .sb-row:not(.cur) .sb-cb > i { display: none; }
+  .sb-row.past .sb-cb { opacity: .5; }
+  .sb-w.chon .sb-cb { box-shadow: 0 0 10px rgba(255,221,117,.55); }
+  .sb-w.chon .sb-ch { color: #fff2b8; }
+  .sb-gap { max-width: 560px; flex-wrap: wrap; row-gap: 6px; }
+  .sb-gaptrack { flex-basis: 100%; height: 8px; border-radius: 4px; background: color-mix(in srgb, var(--line) 70%, transparent); overflow: hidden; display: none; }
+  .sb-gap.on .sb-gaptrack { display: block; height: 12px; }
+  .sb-gaptrack > i { display: block; height: 100%; background: var(--accent); transform-origin: left center; transition: transform .1s linear; border-radius: 4px; }
+
   /* ===== Rost & Stahl: Hintergrund aus gerostetem Blech, darauf verschraubte Stahlplatten ===== */
   :root {
     --plate-hi: #3a3a40;
@@ -3036,7 +3055,8 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
   'Noch kein Wort hat eine Zeit. Die App hört dafür den Gesang heraus und legt deinen Text darauf (dauert ein paar Minuten, beim ersten Mal wird das Erkennungsmodell geladen). Starten?': 'No word has a time yet. The app will listen to the vocals and place your lyrics on them (takes a few minutes; the recognition model is downloaded the first time). Start?',
   'Noch kein Wort hat einen Takt – „Takte ergänzen“ hört den Gesang heraus und legt deinen Text darauf.': 'No word has a bar yet – “Fill in bars” listens to the vocals and places your lyrics on them.',
   ' hat ': ' has ', ' Wörter': ' words', 'Beim Einfügen sind vermutlich die Zeilenumbrüche verloren gegangen. Mitsingen teilt sie beim Anzeigen selbst; hier kannst du sie dauerhaft teilen (an Pausen und Satzzeichen).': 'The line breaks were probably lost when pasting. Sing along splits the line itself for display; here you can split it permanently (at pauses and punctuation).', 'Zeilen teilen': 'Split lines',
-  'Zeilen geteilt: ': 'Lines split: ', ' neue Zeilen. Unten in der Wortliste kannst du Zeilen weiter anpassen – oder den Text mit Zeilenumbrüchen neu einfügen; die Zeiten bleiben erhalten.': ' new lines. Adjust them further in the word list below – or paste the lyrics again with line breaks; the timing is kept.' });
+  'Zeilen geteilt: ': 'Lines split: ', ' neue Zeilen. Unten in der Wortliste kannst du Zeilen weiter anpassen – oder den Text mit Zeilenumbrüchen neu einfügen; die Zeiten bleiben erhalten.': ' new lines. Adjust them further in the word list below – or paste the lyrics again with line breaks; the timing is kept.',
+  'Der Text hatte zu lange Zeilen (fehlende Zeilenumbrüche?) – automatisch in ': 'The lyrics had overly long lines (missing line breaks?) – automatically split into ', ' zusätzliche Zeilen geteilt.': ' additional lines.' });
 
 // Sprache (v59): Deutsch ist der Quelltext. Nur im EN-Modus läuft hier etwas:
 // Ein Beobachter übersetzt neue/geänderte Texte im DOM (Text, title, placeholder, aria-label)
@@ -3142,7 +3162,7 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v92</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v93</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -14354,9 +14374,9 @@ const Sing = (() => {
   }
 
   // v89: Wörter ohne Takt („–“) bekommen einen: gleichmäßig zwischen die Nachbarn mit Zeit, danach an die Stimme eingerastet
-  function fillMissing(src) {
+  function fillMissing(src, rough) {
     const tok = src.tok, has = i => tok[i].b != null, miss = [];
-    if (!tok.some(t => t.b != null)) {                 // noch gar keine Zeiten: Wörter der Reihe nach auf die Stimm-Einsätze legen
+    if (!tok.some(t => t.b != null)) { if (!rough) return 0;  // grob auf die Stimm-Einsätze nur auf ausdrücklichen Wunsch (v92)                 // noch gar keine Zeiten: Wörter der Reihe nach auf die Stimm-Einsätze legen
       const E = envOf(src); if (!E || !E.onB.length) return 0;
       let last = -Infinity, k = 0;
       tok.forEach(t => { while (k < E.onB.length && (E.onB[k] < 0 || E.onB[k] < last + 0.25)) k++;
@@ -14381,14 +14401,18 @@ const Sing = (() => {
   // v92: zu lange Zeilen (Text ohne Zeilenumbrüche eingefügt) dauerhaft teilen – an Pausen, nach Satzzeichen, spätestens nach 10 Wörtern
   const LONG = 14;
   const longLines = tok => { const c = {}; tok.forEach(t => { c[t.l] = (c[t.l] || 0) + 1; }); return Object.keys(c).filter(l => c[l] > LONG).map(Number); };
+  // üblicher Abstand (Median, Sekunden) zwischen Wortanfängen je Zeile
+  function medIoi(tok, ms) { const d = {}; tok.forEach((t, i) => { const p = tok[i - 1]; if (i && p.l === t.l && t.b != null && p.b != null) (d[t.l] = d[t.l] || []).push((t.b - p.b) * ms(p.b) / 1000); });
+    const m = {}; Object.keys(d).forEach(l => { const a = d[l].sort((x, y) => x - y); m[l] = a[a.length >> 1]; }); return m; }
   function splitLong(src) {
     const tok = src.tok, long = new Set(longLines(tok)); if (!long.size) return 0;
-    const ms = b => (src.beatMs ? src.beatMs(b) : 500); let nl = -1, prevL = null, n = 0, prevEnd = null, before = new Set(tok.map(t => t.l)).size;
+    const ms = b => (src.beatMs ? src.beatMs(b) : 500); let nl = -1, prevL = null, n = 0, before = new Set(tok.map(t => t.l)).size;
+    const med = medIoi(tok, ms), ol = tok.map(t => t.l);
     tok.forEach((t, i) => {
-      let brk = t.l !== prevL;
-      if (!brk && long.has(t.l)) { const pw = tok[i - 1], gap = t.b != null && prevEnd != null ? (t.b - prevEnd) * ms(prevEnd) / 1000 : 0;
-        brk = n >= 10 || (n >= 3 && gap >= 0.6) || (n >= 5 && /[.,;:!?…]$/.test(pw.w)); }
-      if (brk) { nl++; n = 0; } prevL = t.l; t.l = nl; n++; if (t.b != null) prevEnd = endOf(tok, i);
+      let brk = ol[i] !== prevL;
+      if (!brk && long.has(ol[i])) { const pw = tok[i - 1], gap = t.b != null && pw.b != null ? (t.b - pw.b) * ms(pw.b) / 1000 : 0;
+        brk = n >= 10 || (n >= 3 && gap >= Math.max(1.2, 2 * (med[ol[i]] || 0))) || (n >= 5 && /[.,;:!?…]$/.test(pw.w)); }
+      if (brk) { nl++; n = 0; } prevL = ol[i]; t.l = nl; n++;
     });
     changed(); persist(src); return nl + 1 - before;
   }
@@ -15267,8 +15291,10 @@ const Sing = (() => {
       if (b.id === 'sgTake') {
         const nt = tokenize($('sgText').value); if (!nt.length) return;
         const rec = db.f[src.id] = Object.assign(db.f[src.id] || {}, { name: src.name, tok: merge(tok, nt) }); src.tok = rec.tok; ui.sel = -1;
-        const kept = rec.tok.filter(t => t.b != null).length, fil = fillMissing(src); changed();
-        status(fil ? kept + T(' Wörter behalten ihren Takt, ') + fil + T(' neue bekamen einen zwischen ihren Nachbarn (an die Stimme gelegt) – bitte anhören und ggf. ziehen; ↶ nimmt es zurück.') : T('Text übernommen.')); return;
+        const kept = rec.tok.filter(t => t.b != null).length, fil = fillMissing(src);
+        // v92: Text ohne Zeilenumbrüche (das ganze Lied eine Zeile) gleich beim Einfügen teilen
+        const sp = longLines(rec.tok).length ? splitLong(src) : 0; if (!sp) changed();
+        status((fil ? kept + T(' Wörter behalten ihren Takt, ') + fil + T(' neue bekamen einen zwischen ihren Nachbarn (an die Stimme gelegt) – bitte anhören und ggf. ziehen; ↶ nimmt es zurück.') : T('Text übernommen.')) + (sp ? ' ' + T('Der Text hatte zu lange Zeilen (fehlende Zeilenumbrüche?) – automatisch in ') + sp + T(' zusätzliche Zeilen geteilt.') : '')); return;
       }
       if (b.id === 'sgTapMode') { ui.tapping = !ui.tapping; ui.lineFrom = -1; edSig = ''; laneSig = ''; return; }
       if (b.id === 'sgTap') { tap(); return; }
@@ -15406,7 +15432,7 @@ const Sing = (() => {
         const hit = U.filter(t => !t.k && t.b != null).length;
         if (!pairs.length) { say(T('Die Erkennung passte zu keinem Wort deines Textes – ist die Sprache richtig eingestellt?')); }
         else {
-          const al = alignIdx(src, U.map((t, i) => i).filter(i => !U[i].k && U[i].b != null), 0.25), fil = fillMissing(src); ui.sel = -1; changed();
+          const al = alignIdx(src, U.map((t, i) => i).filter(i => !U[i].k && U[i].b != null), 0.25), fil = fillMissing(src); ui.sel = -1; if (!(longLines(U).length && splitLong(src))) changed();
           say(hit + T(' von ') + free.length + T(' Wörtern deines Textes haben ihre Zeit aus der Erkennung') + (fil ? ', ' + fil + T(' dazwischen ergänzt') : '') + (al ? ' · ' + al + T(' an die Stimme angepasst') : '') + T('. Jetzt anhören und ausbessern (↶ nimmt es zurück).'), 1);
         }
       }
@@ -15425,7 +15451,7 @@ const Sing = (() => {
   // Übersetzung je Zeile (v63)
   function setTr(src, arr) { const rec = src.kind === 'lied' ? db.l[src.id] : db.f[src.id]; if (!rec) return false; rec.tr = arr; changed(); return true; }
   function getTr(src) { const rec = src && (src.kind === 'lied' ? db.l[src.id] : db.f[src.id]); return rec && rec.tr || []; }
-  return { recognize: () => recognize(curSrc), rec: () => Object.assign({}, rec), wordsToTok, tick, tap, tokenize, merge, f2b, b2f, endOf, lines, setTr, getTr, ver: () => ver, focus: k => focus(k), unfocus, prec: () => { const E = envOf(curSrc); return { env: E ? { n: E.e.length, on: E.on.slice(), onB: E.onB.slice() } : null, loop: !!loopP, rate: loopP ? loopP.rate : null, word: !!wordP, tap: tapS ? { n: tapS.n, of: tapS.idx.length } : null, mag: ui.mag, sel: ui.sel }; }, voiceEnv: () => voiceEnv(curSrc), placeB: r => placeB(r, curSrc), undo: () => undoRedo(-1), redo: () => undoRedo(1), vox: () => { const v = curSrc && vox[curSrc.id]; return v ? { name: v.name, off: v.off, sr: v.sr, n: v.l.length } : null; }, lrcText: () => curSrc ? lrcText(curSrc) : '', lrcImport: t => curSrc && lrcImport(curSrc, t), leadsheet: () => curSrc ? leadsheetOf(curSrc) : null, parts: () => curSrc ? partsOf(curSrc) : [], addPart: n => addPart(n), partLoop: i => startPartLoop(i), trainerState: () => trainer ? Object.assign({}, trainer) : null, loopRate: () => loopP ? loopP.rate : null, pedal: id => pedal(id), regridFrom: b => curSrc && regridFrom(curSrc, b), outOfOrder: () => curSrc ? outOfOrder(curSrc.tok) : [], fillMissing: () => curSrc ? fillMissing(curSrc) : 0, splitLong: () => curSrc ? splitLong(curSrc) : 0, fixOrder: () => curSrc && fixOrder(curSrc), loopNow: () => loopP ? loopP.nowB() : (wordP ? wordP.nowB() : null), onTempo: () => onTempo(), addClicks, recheck: () => recheck(), toggleLock: () => toggleLock(), insertAfter: () => insertAfter(), spread, playFrom, source: ci => source(ci), data: () => db, _reload: () => { db = load(); changed(); }, ui: () => ui };
+  return { medIoi, recognize: () => recognize(curSrc), rec: () => Object.assign({}, rec), wordsToTok, tick, tap, tokenize, merge, f2b, b2f, endOf, lines, setTr, getTr, ver: () => ver, focus: k => focus(k), unfocus, prec: () => { const E = envOf(curSrc); return { env: E ? { n: E.e.length, on: E.on.slice(), onB: E.onB.slice() } : null, loop: !!loopP, rate: loopP ? loopP.rate : null, word: !!wordP, tap: tapS ? { n: tapS.n, of: tapS.idx.length } : null, mag: ui.mag, sel: ui.sel }; }, voiceEnv: () => voiceEnv(curSrc), placeB: r => placeB(r, curSrc), undo: () => undoRedo(-1), redo: () => undoRedo(1), vox: () => { const v = curSrc && vox[curSrc.id]; return v ? { name: v.name, off: v.off, sr: v.sr, n: v.l.length } : null; }, lrcText: () => curSrc ? lrcText(curSrc) : '', lrcImport: t => curSrc && lrcImport(curSrc, t), leadsheet: () => curSrc ? leadsheetOf(curSrc) : null, parts: () => curSrc ? partsOf(curSrc) : [], addPart: n => addPart(n), partLoop: i => startPartLoop(i), trainerState: () => trainer ? Object.assign({}, trainer) : null, loopRate: () => loopP ? loopP.rate : null, pedal: id => pedal(id), regridFrom: b => curSrc && regridFrom(curSrc, b), outOfOrder: () => curSrc ? outOfOrder(curSrc.tok) : [], fillMissing: () => curSrc ? fillMissing(curSrc, true) : 0, splitLong: () => curSrc ? splitLong(curSrc) : 0, fixOrder: () => curSrc && fixOrder(curSrc), loopNow: () => loopP ? loopP.nowB() : (wordP ? wordP.nowB() : null), onTempo: () => onTempo(), addClicks, recheck: () => recheck(), toggleLock: () => toggleLock(), insertAfter: () => insertAfter(), spread, playFrom, source: ci => source(ci), data: () => db, _reload: () => { db = load(); changed(); }, ui: () => ui };
 })();
 window.Sing = Sing;
 
@@ -15467,15 +15493,15 @@ const Singen = (() => {
     const k = src.id + '|' + Sing.ver() + '|' + src.tok.length;
     if (viewCache.k !== k) {
       const ms = b => (src.beatMs ? src.beatMs(b) : 500), map = [];
-      let nl = -1, prevL = null, n = 0, prevEnd = null;
+      let nl = -1, prevL = null, n = 0; const med = Sing.medIoi(src.tok, ms);
       src.tok.forEach((t, i) => {
         let brk = t.l !== prevL;
         if (!brk && cnt[t.l] > MAXW) {
-          const pw = src.tok[i - 1], gap = t.b != null && prevEnd != null ? (t.b - prevEnd) * ms(prevEnd) / 1000 : 0;
-          brk = n >= 10 || (n >= 3 && gap >= 0.6) || (n >= 5 && /[.,;:!?…]$/.test(pw.w));
+          const pw = src.tok[i - 1], gap = t.b != null && pw.b != null ? (t.b - pw.b) * ms(pw.b) / 1000 : 0;
+          brk = n >= 10 || (n >= 3 && gap >= Math.max(1.2, 2 * (med[t.l] || 0))) || (n >= 5 && /[.,;:!?…]$/.test(pw.w));
         }
         if (brk) { nl++; n = 0; }
-        map.push(nl); n++; prevL = t.l; if (t.b != null) prevEnd = Sing.endOf(src.tok, i);
+        map.push(nl); n++; prevL = t.l;
       });
       viewCache.k = k; viewCache.v = map;
     }
@@ -15526,7 +15552,7 @@ const Singen = (() => {
     const ce = $('sbCount'); if (ce.textContent !== cnt) { ce.textContent = cnt; ce.classList.toggle('go', cnt === '♪'); }
     // v85: ganzer Text als mitlaufende Liste – aktuelle Zeile groß in der Mitte, Akkorde darüber, Pausen mit Sekunden
     const trOn = $('sbTrOn').checked, sig = src.id + '|' + Sing.ver() + '|' + (trOn ? 1 : 0) + '|' + JSON.stringify(res).length + '|' + (player ? player.line : -1);
-    if (sig !== listSig) { listSig = sig; buildList(src); curRow = -2; }
+    if (sig !== listSig) { listSig = sig; buildList(src); curRow = -2; curCh = ''; }
     const ms = b => (src.beatMs ? src.beatMs(b) : 500);
     // Pause: vor dem nächsten Einsatz die Sekunden zeigen (in der Pausenzeile bzw. oben)
     let gapActive = -1, waitS = null;
@@ -15537,7 +15563,8 @@ const Singen = (() => {
     const row = gapActive >= 0 ? 'g' + gapActive : 'l' + f.line;
     if (row !== curRow) { curRow = row; setCurrent(src, f.line, gapActive); }
     gapEls.forEach((g, l) => { if (!g) return; const on = l === gapActive; if (on !== g.on) { g.on = on; g.el.classList.toggle('on', on); }
-      const txt = on && waitS != null ? T('noch ') + fmtS(waitS) : fmtS(g.dur) + ' ' + T('Pause'); if (txt !== g.txt) { g.txt = txt; g.t.textContent = txt; g.bar.style.transform = 'scaleX(' + (on && waitS != null ? Math.max(0, Math.min(1, waitS / g.dur)) : 0) + ')'; } });
+      const txt = on && waitS != null ? T('noch ') + fmtS(waitS) : fmtS(g.dur) + ' ' + T('Pause'); if (txt !== g.txt) { g.txt = txt; g.t.textContent = txt; g.bar.style.transform = 'scaleX(' + (on && waitS != null ? Math.max(0, Math.min(1, waitS / g.dur)) : 0) + ')'; }
+      if (on && waitS != null) { const r = Math.max(0, Math.min(1, waitS / g.dur)).toFixed(3); if (r !== g.r) { g.r = r; g.run.style.transform = 'scaleX(' + r + ')'; } } else if (g.r !== '1') { g.r = '1'; g.run.style.transform = 'scaleX(1)'; } });
     const wt = waitS != null && waitS >= 1.2 ? T('Einsatz in ') + fmtS(waitS) : ''; if (wt !== waitTxt) { waitTxt = wt; $('sbWait').textContent = wt; }
     // Füllung und Farbe: vergangene Wörter voll, aktuelles anteilig und eingefärbt
     wordEls.forEach(w => {
@@ -15545,10 +15572,14 @@ const Singen = (() => {
       if (t.b != null && nb != null) { const e = Sing.endOf(src.tok, w.i); p = nb <= t.b ? 0 : nb >= e ? 1 : (nb - t.b) / (e - t.b); }
       p = Math.round(p * 200) / 200; if (p !== w.p) { w.p = p; w.bar.style.transform = 'scaleX(' + p + ')'; const d = p >= 1; if (d !== w.done) { w.done = d; w.el.classList.toggle('done', d); } }
       const on = w.i === f.cur; if (on !== w.on) { w.on = on; w.el.classList.toggle('on', on); }
+      // Akkordbalken: läuft vom Wort bis zum nächsten Wort voll (zeigt, wie lange der Akkord schon klingt)
+      if (w.cb) { let q = 0; if (t.b != null && nb != null) { const nx = wordEls[wordEls.indexOf(w) + 1], e = nx && src.tok[nx.i] && src.tok[nx.i].b != null ? src.tok[nx.i].b : t.b + 2; q = nb <= t.b ? 0 : nb >= e ? 1 : (nb - t.b) / (e - t.b); }
+        q = Math.round(q * 100) / 100; if (q !== w.q) { w.q = q; w.cb.style.transform = 'scaleX(' + q + ')'; } }
     });
+    { const cc = (wordEls.find(w => w.on) || {}).c || (wordEls.filter(w => w.q > 0 && w.q < 1).pop() || {}).c || ''; if (cc !== curCh) { curCh = cc; $('sbList').querySelectorAll('.sb-w.chon').forEach(e => e.classList.remove('chon')); if (cc) $('sbList').querySelectorAll('.sb-w[data-c="' + cc + '"]').forEach(e => e.classList.add('chon')); } }
     if (mic) micFrame(src, nb, f);
   }
-  let listSig = '', curRow = -2, gapEls = [], waitTxt = '';
+  let listSig = '', curRow = -2, gapEls = [], waitTxt = '', curCh = '';
   const fmtS = x => (x >= 10 ? Math.round(x) : Math.round(x * 10) / 10).toString().replace('.', ',') + ' s';
   function chordFn(src) {
     const ci = window.SoloInfo ? SoloInfo() : null;
@@ -15558,22 +15589,28 @@ const Singen = (() => {
   // ganze Liste aufbauen: Zeilen mit Akkorden, Übersetzung, Pausenzeilen (≥ 2 s ohne Gesang)
   function buildList(src) {
     const chAt = chordFn(src), tr = Sing.getTr(src), trOn = $('sbTrOn').checked, ms = b => (src.beatMs ? src.beatMs(b) : 500);
-    const n = Math.max(-1, ...src.tok.map(t => t.l)) + 1; let h = '', lastCh = null, prevEnd = null; gapEls = [];
+    const n = Math.max(-1, ...src.tok.map(t => t.l)) + 1; let h = '', lastCh = null, prevEnd = null, chId = 0; gapEls = [];
     // geteilte Zeilen: Übersetzung der Originalzeile nur unter ihrem ersten Teil
     const firstOf = {}; src.tok.forEach(t => { const o = t.ol != null ? t.ol : t.l; if (firstOf[o] == null) firstOf[o] = t.l; });
     const trOf = l => { const t = src.tok.find(x => x.l === l); if (!t) return ''; const o = t.ol != null ? t.ol : t.l; return firstOf[o] === l ? tr[o] : ''; };
     for (let l = 0; l < n; l++) {
       const ws = lineOf(src, l); if (!ws.length) continue;
       const first = ws.find(t => t.b != null);
-      if (first && prevEnd != null) { const dur = (first.b - prevEnd) * ms(prevEnd) / 1000; if (dur >= 2) h += '<div class="sb-gap" data-g="' + l + '" data-from="' + prevEnd + '" data-dur="' + dur + '"><i class="sb-gapbar"></i><span>♪</span><b></b></div>'; }
+      if (first && prevEnd != null) { const dur = (first.b - prevEnd) * ms(prevEnd) / 1000; if (dur >= 2) h += '<div class="sb-gap" data-g="' + l + '" data-from="' + prevEnd + '" data-dur="' + dur + '"><i class="sb-gapbar"></i><span>♪</span><b></b><i class="sb-gaptrack"><i></i></i></div>'; }
       let anyCh = false;
-      const words = ws.map(t => { const c = chAt(t.b), show = c && c !== lastCh; if (c) lastCh = c; if (show) anyCh = true;
-        return '<span class="sb-w" data-i="' + t.i + '">' + (show ? '<b class="sb-ch">' + esc(c) + '</b>' : '') + esc(t.w) + '<i class="sb-fill"></i>' + mark(t.i) + '</span>'; }).join(' ');
+      // v92: kurze Pausen zwischen Wörtern sichtbar machen – Abstand wächst mit der Pause (gemessen am üblichen Wortabstand der Zeile)
+      const sec = t => t.b == null ? null : t.b * ms(t.b) / 1000, ioi = [];
+      ws.forEach((t, k) => { if (k && t.b != null && ws[k - 1].b != null) ioi.push(sec(t) - sec(ws[k - 1])); });
+      const med = ioi.length ? ioi.slice().sort((x, y) => x - y)[ioi.length >> 1] : 0;
+      const words = ws.map((t, k) => { const c = chAt(t.b), show = c && c !== lastCh; if (c && c !== lastCh) chId++; if (c) lastCh = c; if (show) anyCh = true;
+        let pl = 0; if (k && med > 0 && t.b != null && ws[k - 1].b != null) { const d = sec(t) - sec(ws[k - 1]); if (d > med * 1.5 && d > 0.4) pl = Math.min(3, (d / med - 1.5) * 0.45 + 0.35); }
+        return '<span class="sb-w' + (c ? ' hc' : '') + '" data-i="' + t.i + '"' + (c ? ' data-c="' + chId + '"' : '') + (pl ? ' style="--pl:' + pl.toFixed(2) + 'em"' : '') + '>' + (show ? '<b class="sb-ch">' + esc(c) + '</b>' : '')
+          + (c ? '<i class="sb-cb c' + (chId % 2) + (show ? ' st' : '') + '"><i></i></i>' : '') + esc(t.w) + '<i class="sb-fill"></i>' + mark(t.i) + '</span>'; }).join('\u200b');
       h += '<div class="sb-row" data-l="' + l + '"><p class="sb-line' + (anyCh ? ' has-ch' : '') + '">' + words + '</p>' + (trOn && trOf(l) ? '<p class="sb-tr">' + esc(trOf(l)) + '</p>' : '<p class="sb-tr"></p>') + '</div>';
       const last = ws.filter(t => t.b != null).pop(); if (last) prevEnd = Sing.endOf(src.tok, last.i);
     }
     const list = $('sbList'); list.innerHTML = h;
-    list.querySelectorAll('.sb-gap').forEach(el => { gapEls[+el.dataset.g] = { el, from: +el.dataset.from, dur: +el.dataset.dur, t: el.querySelector('b'), bar: el.querySelector('.sb-gapbar'), on: false, txt: '' }; });
+    list.querySelectorAll('.sb-gap').forEach(el => { gapEls[+el.dataset.g] = { el, from: +el.dataset.from, dur: +el.dataset.dur, t: el.querySelector('b'), bar: el.querySelector('.sb-gapbar'), run: el.querySelector('.sb-gaptrack i'), on: false, txt: '' }; });
     wordEls = [];
   }
   // aktuelle Zeile (bzw. Pause davor) hervorheben, Kennungen umhängen, Liste weich mitscrollen
@@ -15583,7 +15620,7 @@ const Singen = (() => {
     list.querySelectorAll('.sb-row').forEach(r => { const l = +r.dataset.l; r.classList.toggle('cur', l === line); r.classList.toggle('past', l < line); r.classList.toggle('next', l === line + 1); });
     const row = list.querySelector('.sb-row[data-l="' + line + '"]');
     if (row) { const p = row.querySelector('.sb-line'), t = row.querySelector('.sb-tr'); p.id = 'sbLine'; t.id = 'sbTr'; }
-    wordEls = row ? [...row.querySelectorAll('.sb-w')].map(el => ({ el, bar: el.querySelector('.sb-fill'), i: +el.dataset.i, p: -1, on: false, done: false })) : [];
+    wordEls = row ? [...row.querySelectorAll('.sb-w')].map(el => ({ el, bar: el.querySelector('.sb-fill'), cb: el.querySelector('.sb-cb i'), c: el.dataset.c, i: +el.dataset.i, p: -1, q: -1, on: false, done: false })) : [];
     list.querySelectorAll('.sb-row.past .sb-w').forEach(el => el.classList.add('done'));
     list.querySelectorAll('.sb-row:not(.past):not(.cur) .sb-w').forEach(el => el.classList.remove('done', 'on'));
     const nx = lineOf(src, line + 1).map(t => t.w).join(' '); $('sbNext').textContent = nx;

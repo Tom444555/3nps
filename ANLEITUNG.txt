@@ -831,3 +831,11 @@ Gut zu wissen
    - Die Karte „🎤 Gesangstext“ warnt „↵ Zeile 1 hat n Wörter“; „Zeilen teilen“ teilt sie dauerhaft (↶ nimmt es zurück).
      Oder den Text mit Zeilenumbrüchen neu einfügen – die Zeiten bleiben erhalten.
    - Einfügen erkennt jetzt alle Arten von Zeilenumbrüchen (auch von Mac/Windows/Webseiten).
+
+77. Mitsingen: Pausen, Akkorde mit Dauer, automatische Zeilen (v93)
+   - Beim Einfügen eines Textes werden zu lange Zeilen (fehlende Zeilenumbrüche) jetzt sofort automatisch geteilt –
+     an Pausen im Gesang, nach Satzzeichen, spätestens nach 10 Wörtern. Das gilt auch für „Nur Zeiten erkennen“.
+   - Pausen zwischen zwei Zeilen: großer Balken, der bis zum nächsten Einsatz herunterläuft, dazu die Sekunden.
+   - Kurze Pausen zwischen Wörtern: die Wörter rücken entsprechend auseinander.
+   - Akkorde fast so groß wie die Wörter. Darunter ein Balken über alle Wörter, über die der Akkord klingt
+     (abwechselnd gelb/blau); in der aktuellen Zeile läuft er mit und der klingende Akkord leuchtet.
