@@ -1,14 +1,14 @@
   <section class="panel" id="panel-singen" role="tabpanel" aria-labelledby="tab-singen" hidden>
     <div class="card sb-card">
       <div class="card-head"><h2>Mitsingen</h2><span class="caption" id="sbSrc">–</span></div>
-      <div class="sb-top">
-        <div class="sb-dots" id="sbDots" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-        <div class="sb-count" id="sbCount" aria-live="off"></div>
-      </div>
       <div class="sb-stage" id="sbStage" translate="no">
-        <p class="sb-line" id="sbLine"></p>
-        <p class="sb-tr" id="sbTr"></p>
-        <p class="sb-next" id="sbNext"></p>
+        <div class="sb-top">
+          <div class="sb-dots" id="sbDots" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="sb-wait" id="sbWait" aria-live="off"></div>
+          <div class="sb-count" id="sbCount" aria-live="off"></div>
+        </div>
+        <div class="sb-scroll" id="sbScroll"><div class="sb-list" id="sbList"></div></div>
+        <p class="sb-next" id="sbNext" hidden></p>
       </div>
       <p class="sb-empty caption" id="sbEmpty">Spiel einen Song aus dem Songwriting oder einen Loop aus einer geladenen Datei ab, dessen Gesangstext ein Timing hat (Improvisation → „🎤 Gesangstext“).</p>
     </div>

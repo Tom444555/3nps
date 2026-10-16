@@ -49,6 +49,7 @@ const Looper = (() => {
     } catch (e) {}
     return Math.round((audioCtx.currentTime - (audioCtx.outputLatency || 0)) * sr);
   }
+  const MAXSEC = 600;                                       // v85: längste Datei 10 Minuten
   const bpm = () => parseFloat($('bpm').value) || 80;
   const barFrames = () => Math.round(4 * 60 / bpm() * sr);
   const beatFrames = () => 60 / bpm() * sr;
@@ -1050,11 +1051,11 @@ const Looper = (() => {
     try { buf = await audioCtx.decodeAudioData(await file.arrayBuffer()); }
     catch (e) { setStatus('„' + file.name + '“ kann das iPad nicht öffnen. Wandle die Datei in MP3, WAV oder M4A um.'); return; }
     if (rec && rec.t === t) cancelRec();
-    // Stereo bleibt Stereo (Mono-Dateien: beide Seiten gleich). Höchstens 6 Minuten, damit der Speicher reicht.
-    const n = Math.min(buf.length, Math.round(buf.sampleRate * 360));
+    // Stereo bleibt Stereo (Mono-Dateien: beide Seiten gleich). Höchstens 10 Minuten (v85; vorher 6), damit der Speicher reicht.
+    const n = Math.min(buf.length, Math.round(buf.sampleRate * MAXSEC));
     const l = buf.getChannelData(0).slice(0, n);
     const data = buf.numberOfChannels > 1 ? monoIfSame(SP(l, buf.getChannelData(1).slice(0, n))) : SP(l);
-    if (buf.length > n) setStatus('Die Datei ist länger als 6 Minuten – die ersten 6 Minuten werden verwendet.');
+    if (buf.length > n) setStatus('Die Datei ist länger als 10 Minuten – die ersten 10 Minuten werden verwendet.');
     buf = null;
     const secs = n / sr;
     // v77: für diese Datei gemerktes Tempo (vorgegeben) – aus dem Gesangstext-Speicher
@@ -1883,7 +1884,7 @@ const Looper = (() => {
   $('edDouble').addEventListener('click', () => {
     const t = ed.t; if (!t) return;
     const f = fitLength(t, t.L * 2);
-    if (f.L > sr * 360) { setStatus('Verdoppeln geht nicht: Die Spur wäre länger als 6 Minuten (zu viel für den Speicher des iPads).'); return; }
+    if (f.L > sr * MAXSEC) { setStatus('Verdoppeln geht nicht: Die Spur wäre länger als 10 Minuten (zu viel für den Speicher des iPads).'); return; }
     edSnap('double');
     t.layers = [smap(t.mix, a => { const d = new Float32Array(a.length * 2); d.set(a, 0); d.set(a, a.length); return padTo(d, f.L); })]; t.L = f.L; baseL = f.base;
     afterEdit(t, false);
@@ -2103,7 +2104,8 @@ const Looper = (() => {
   function chordFixOf(t) {
     if (!t.orig || t.origPos == null || !t.orig.data) return null;
     if (!fixCache || performance.now() - fixAt > 500) { fixCache = loadFixes(); fixAt = performance.now(); }
-    return fixCache[fixKey(t)] || null;
+    const k = fixKey(t); if (fixCache[k]) return fixCache[k];
+    const old = (t.orig.name || 'Datei') + '|3600'; return fixCache[old] || null;     // v85: Dateien, die früher auf 6 Minuten gekürzt waren
   }
   // Taktraster der geladenen Datei mit umrechnen: 2× = jeder Takt wird zu zwei Takten, ½ = zwei Takte werden einer
   function regridOrig(t, factor) {

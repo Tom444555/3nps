@@ -761,3 +761,14 @@ Gut zu wissen
      Nach „✓ Fertig“ steuert das Pedal wieder die Looper-Spuren.
    - Die Leiste unter dem breiten Takt zeigt nur noch das Wichtigste; Vorlage (🔒, Rest nachprüfen), Teile, Raster und
      die Hinweise stehen unter „⋯ Mehr“ (die Einstellung wird gemerkt).
+
+70. Mitsingen neu, Lieder bis 10 Minuten (v85)
+   - Mitsingen zeigt den ganzen Text als mitlaufende Liste: die aktuelle Zeile groß in der Mitte, davor und danach
+     kleiner; der Text scrollt von selbst mit. Das gesungene Wort leuchtet in der Akzentfarbe und füllt sich,
+     die Akkorde stehen als gut lesbare Schilder über den Wörtern. Eine Zeile antippen = dorthin springen.
+   - Pausen (ab 2 s ohne Gesang) stehen als eigene Zeile mit ihrer Länge in der Liste. Während der Pause zählt sie
+     die Sekunden bis zum nächsten Einsatz herunter; oben steht zusätzlich „Einsatz in … s“. Vor dem Einsatz
+     zählt weiterhin 3 – 2 – 1 – ♪ mit.
+   - Songdateien dürfen jetzt bis 10 Minuten lang sein (vorher 6). Bei sehr langen Dateien braucht das iPad viel
+     Speicher – bei Problemen erst andere Apps schließen. Text, Gesangsspur und Akkord-Korrekturen von Dateien, die
+     früher bei 6 Minuten abgeschnitten wurden, ziehen automatisch mit um.

@@ -52,26 +52,22 @@ const Singen = (() => {
       }
     }
     const ce = $('sbCount'); if (ce.textContent !== cnt) { ce.textContent = cnt; ce.classList.toggle('go', cnt === '♪'); }
-    // Zeile
-    const tr = Sing.getTr(src), sig = src.id + '|' + f.line + '|' + Sing.ver() + '|' + ($('sbTrOn').checked ? 1 : 0) + '|' + JSON.stringify(res).length;
-    if (sig !== lineSig) {
-      lineSig = sig;
-      // v74: Akkorde über den Wörtern (beim ersten Wort der Zeile und bei jedem Wechsel)
-      const ci = window.SoloInfo ? SoloInfo() : null, chAt = b => {
-        if (!ci || !ci.segs || b == null) return ''; let f = src.toCi(b); if (f == null) return ''; if (ci.L) f = ((f % ci.L) + ci.L) % ci.L;
-        const sg = ci.segs.find(x => f >= x.a - 1 && f < x.e); return sg && sg.name && !/^(N|–|-)$/.test(sg.name) ? sg.name : '';
-      };
-      let lastCh = null, anyCh = false;
-      $('sbLine').innerHTML = lineOf(src, f.line).map(t => {
-        const c = chAt(t.b), show = c && c !== lastCh; if (c) lastCh = c; if (show) anyCh = true;
-        return '<span class="sb-w" data-i="' + t.i + '">' + (show ? '<b class="sb-ch">' + esc(c) + '</b>' : '') + esc(t.w) + '<i class="sb-fill"></i>' + mark(t.i) + '</span>';
-      }).join(' ');
-      $('sbLine').classList.toggle('has-ch', anyCh);
-      wordEls = [...$('sbLine').querySelectorAll('.sb-w')].map(el => ({ el, bar: el.querySelector('.sb-fill'), i: +el.dataset.i, p: -1, on: false, done: false }));
-      $('sbTr').textContent = $('sbTrOn').checked && tr[f.line] ? tr[f.line] : '';
-      $('sbNext').textContent = lineOf(src, f.line + 1).map(t => t.w).join(' ');
+    // v85: ganzer Text als mitlaufende Liste – aktuelle Zeile groß in der Mitte, Akkorde darüber, Pausen mit Sekunden
+    const trOn = $('sbTrOn').checked, sig = src.id + '|' + Sing.ver() + '|' + (trOn ? 1 : 0) + '|' + JSON.stringify(res).length + '|' + (player ? player.line : -1);
+    if (sig !== listSig) { listSig = sig; buildList(src); curRow = -2; }
+    const ms = b => (src.beatMs ? src.beatMs(b) : 500);
+    // Pause: vor dem nächsten Einsatz die Sekunden zeigen (in der Pausenzeile bzw. oben)
+    let gapActive = -1, waitS = null;
+    if (nb != null && f.cur < 0) {
+      const nx = src.tok.findIndex(t => t.b != null && t.b > nb);
+      if (nx >= 0) { waitS = (src.tok[nx].b - nb) * ms(nb) / 1000; const g = gapEls[src.tok[nx].l]; if (g && nb >= g.from - 0.01 && src.tok[nx] === src.tok.find(t => t.l === src.tok[nx].l && t.b != null)) gapActive = src.tok[nx].l; }
     }
-    // Füllung: vergangene Wörter voll, aktuelles anteilig
+    const row = gapActive >= 0 ? 'g' + gapActive : 'l' + f.line;
+    if (row !== curRow) { curRow = row; setCurrent(src, f.line, gapActive); }
+    gapEls.forEach((g, l) => { if (!g) return; const on = l === gapActive; if (on !== g.on) { g.on = on; g.el.classList.toggle('on', on); }
+      const txt = on && waitS != null ? T('noch ') + fmtS(waitS) : fmtS(g.dur) + ' ' + T('Pause'); if (txt !== g.txt) { g.txt = txt; g.t.textContent = txt; g.bar.style.transform = 'scaleX(' + (on && waitS != null ? Math.max(0, Math.min(1, waitS / g.dur)) : 0) + ')'; } });
+    const wt = waitS != null && waitS >= 1.2 ? T('Einsatz in ') + fmtS(waitS) : ''; if (wt !== waitTxt) { waitTxt = wt; $('sbWait').textContent = wt; }
+    // Füllung und Farbe: vergangene Wörter voll, aktuelles anteilig und eingefärbt
     wordEls.forEach(w => {
       const t = src.tok[w.i]; if (!t) return; let p = 0;
       if (t.b != null && nb != null) { const e = Sing.endOf(src.tok, w.i); p = nb <= t.b ? 0 : nb >= e ? 1 : (nb - t.b) / (e - t.b); }
@@ -79,6 +75,45 @@ const Singen = (() => {
       const on = w.i === f.cur; if (on !== w.on) { w.on = on; w.el.classList.toggle('on', on); }
     });
     if (mic) micFrame(src, nb, f);
+  }
+  let listSig = '', curRow = -2, gapEls = [], waitTxt = '';
+  const fmtS = x => (x >= 10 ? Math.round(x) : Math.round(x * 10) / 10).toString().replace('.', ',') + ' s';
+  function chordFn(src) {
+    const ci = window.SoloInfo ? SoloInfo() : null;
+    return b => { if (!ci || !ci.segs || b == null) return ''; let f = src.toCi(b); if (f == null) return ''; if (ci.L) f = ((f % ci.L) + ci.L) % ci.L;
+      const sg = ci.segs.find(x => f >= x.a - 1 && f < x.e); return sg && sg.name && !/^(N|–|-)$/.test(sg.name) ? sg.name : ''; };
+  }
+  // ganze Liste aufbauen: Zeilen mit Akkorden, Übersetzung, Pausenzeilen (≥ 2 s ohne Gesang)
+  function buildList(src) {
+    const chAt = chordFn(src), tr = Sing.getTr(src), trOn = $('sbTrOn').checked, ms = b => (src.beatMs ? src.beatMs(b) : 500);
+    const n = Math.max(-1, ...src.tok.map(t => t.l)) + 1; let h = '', lastCh = null, prevEnd = null; gapEls = [];
+    for (let l = 0; l < n; l++) {
+      const ws = lineOf(src, l); if (!ws.length) continue;
+      const first = ws.find(t => t.b != null);
+      if (first && prevEnd != null) { const dur = (first.b - prevEnd) * ms(prevEnd) / 1000; if (dur >= 2) h += '<div class="sb-gap" data-g="' + l + '" data-from="' + prevEnd + '" data-dur="' + dur + '"><i class="sb-gapbar"></i><span>♪</span><b></b></div>'; }
+      let anyCh = false;
+      const words = ws.map(t => { const c = chAt(t.b), show = c && c !== lastCh; if (c) lastCh = c; if (show) anyCh = true;
+        return '<span class="sb-w" data-i="' + t.i + '">' + (show ? '<b class="sb-ch">' + esc(c) + '</b>' : '') + esc(t.w) + '<i class="sb-fill"></i>' + mark(t.i) + '</span>'; }).join(' ');
+      h += '<div class="sb-row" data-l="' + l + '"><p class="sb-line' + (anyCh ? ' has-ch' : '') + '">' + words + '</p>' + (trOn && tr[l] ? '<p class="sb-tr">' + esc(tr[l]) + '</p>' : '<p class="sb-tr"></p>') + '</div>';
+      const last = ws.filter(t => t.b != null).pop(); if (last) prevEnd = Sing.endOf(src.tok, last.i);
+    }
+    const list = $('sbList'); list.innerHTML = h;
+    list.querySelectorAll('.sb-gap').forEach(el => { gapEls[+el.dataset.g] = { el, from: +el.dataset.from, dur: +el.dataset.dur, t: el.querySelector('b'), bar: el.querySelector('.sb-gapbar'), on: false, txt: '' }; });
+    wordEls = [];
+  }
+  // aktuelle Zeile (bzw. Pause davor) hervorheben, Kennungen umhängen, Liste weich mitscrollen
+  function setCurrent(src, line, gap) {
+    const list = $('sbList'); if (!list) return;
+    ['sbLine', 'sbTr'].forEach(id => { const o = document.getElementById(id); if (o && list.contains(o)) o.removeAttribute('id'); });
+    list.querySelectorAll('.sb-row').forEach(r => { const l = +r.dataset.l; r.classList.toggle('cur', l === line); r.classList.toggle('past', l < line); r.classList.toggle('next', l === line + 1); });
+    const row = list.querySelector('.sb-row[data-l="' + line + '"]');
+    if (row) { const p = row.querySelector('.sb-line'), t = row.querySelector('.sb-tr'); p.id = 'sbLine'; t.id = 'sbTr'; }
+    wordEls = row ? [...row.querySelectorAll('.sb-w')].map(el => ({ el, bar: el.querySelector('.sb-fill'), i: +el.dataset.i, p: -1, on: false, done: false })) : [];
+    list.querySelectorAll('.sb-row.past .sb-w').forEach(el => el.classList.add('done'));
+    list.querySelectorAll('.sb-row:not(.past):not(.cur) .sb-w').forEach(el => el.classList.remove('done', 'on'));
+    const nx = lineOf(src, line + 1).map(t => t.w).join(' '); $('sbNext').textContent = nx;
+    const target = gap >= 0 ? list.querySelector('.sb-gap[data-g="' + gap + '"]') : row;
+    if (target) { const box = $('sbScroll'), y = target.offsetTop + target.offsetHeight / 2 - box.clientHeight * 0.4; list.style.transform = 'translateY(' + (-Math.max(0, y)).toFixed(0) + 'px)'; }
   }
   function mark(i) {
     const d = res[i]; if (d == null) return '';
@@ -90,7 +125,7 @@ const Singen = (() => {
   function stopPlayer() {
     if (!player) return;
     try { player.node.stop(); player.node.disconnect(); player.g.disconnect(); } catch (e) {}
-    player = null; ciCache = null; $('sbLoop').classList.remove('active'); $('sbLoop').textContent = T('↻ Zeile üben'); lineSig = '';
+    player = null; ciCache = null; $('sbLoop').classList.remove('active'); $('sbLoop').textContent = T('↻ Zeile üben'); lineSig = ''; listSig = '';
   }
   async function startPlayer(line) {
     const src = getSrc();
@@ -115,7 +150,7 @@ const Singen = (() => {
       nowB: () => { const el = ctx.currentTime - t0 - (ctx.outputLatency || 0); if (el < 0) return b0; const pf = ((el * sr) % len); return Sing.f2b(f0 + pf * sp, beats); } };
     $('sbLoop').classList.add('active'); $('sbLoop').textContent = T('■ Üben beenden');
     info(T('Zeile ') + (line + 1) + ' · ' + Math.round(sp * 100) + ' % – ' + T('mit einem Takt Anlauf, in Schleife.'));
-    res = {}; scored = {}; lineSig = '';
+    res = {}; scored = {}; lineSig = ''; listSig = '';
   }
   function info(m) { $('sbLoopInfo').textContent = m; }
 
@@ -188,9 +223,10 @@ const Singen = (() => {
         if (f >= 0 && f < src.L) Looper.seek(src.track, f); else info(T('Diese Zeile liegt außerhalb des geloopten Ausschnitts – „Zeile üben“ spielt sie trotzdem.'));
       }
     };
+    $('sbList').addEventListener('click', e => { const r = e.target.closest('.sb-row'); if (!r) return; const src = getSrc(); if (!src) return; const cur = player ? player.line : focus(src).line; step(+r.dataset.l - cur); });
     $('sbPrev').addEventListener('click', () => step(-1)); $('sbNextL').addEventListener('click', () => step(1));
     $('sbMic').addEventListener('click', () => { if (mic) stopMic(); else startMic(); });
-    $('sbTrOn').addEventListener('change', () => { lineSig = ''; });
+    $('sbTrOn').addEventListener('change', () => { lineSig = ''; listSig = ''; });
     $('panel-singen').querySelector('.sb-tredit').addEventListener('toggle', e => { const src = getSrc(); if (e.target.open && src) $('sbTrText').value = trLines(src).join('\n'); });
     $('sbTrSave').addEventListener('click', () => {
       const src = getSrc(); if (!src) return;

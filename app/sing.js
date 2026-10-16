@@ -116,6 +116,8 @@ const Sing = (() => {
     }
     if (ci.track >= 0 && typeof Looper !== 'undefined' && Looper.singSrc) {
       const s = Looper.singSrc(ci.track); if (!s) return { kind: 'none', why: 'stretch' };
+      // v85: früher wurden Dateien auf 6 Minuten gekürzt (Schlüssel …|3600) – gespeicherten Text auf den neuen Schlüssel umziehen
+      if (!db.f[s.key] && s.len / s.sr > 360.5 && db.f[s.name + '|3600']) { db.f[s.key] = db.f[s.name + '|3600']; delete db.f[s.name + '|3600']; save(); }
       const rec = db.f[s.key] || null;
       // v75: eigenes Raster nach dem Tempo oben (gleichmäßig ab Takt 1), sonst das erkannte
       if (rec && rec.grid) { const g = synGrid(rec.grid, s); s.beats = g.beats; s.downs = g.downs; }
@@ -450,7 +452,7 @@ const Sing = (() => {
   }
   async function loadVoxFor(src) {
     if (!src || src.kind !== 'file' || voxTried[src.id]) return; voxTried[src.id] = true;
-    try { const r = await AppDB.get('meta', 'vox:' + src.id); if (r && r.blob) await setVox(src, r.blob, r.name, false); } catch (e) {}
+    try { let r = await AppDB.get('meta', 'vox:' + src.id); if (!r && src.name) r = await AppDB.get('meta', 'vox:' + src.name + '|3600'); if (r && r.blob) await setVox(src, r.blob, r.name, !!(r.key !== 'vox:' + src.id)); } catch (e) {}
   }
   async function dropVox(src) { delete vox[src.id]; delete envs[src.id]; try { await AppDB.del('meta', 'vox:' + src.id); } catch (e) {} laneSig = ''; edSig = ''; focusSig = '*'; }
   // Stimmkurve: Lautstärke im Stimmbereich (250–3500 Hz) alle 10 ms + Silbenanfänge, je Datei einmal berechnet
