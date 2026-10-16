@@ -648,6 +648,7 @@ html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleis
   .ed-rebpm { display: inline-flex; align-items: center; gap: 6px; font: .85rem var(--f-body); color: var(--muted); }
   .ls-vers { flex: 1 1 100%; display: flex; flex-direction: column; gap: 4px; padding: 6px 0 2px 10px; border-left: 2px solid var(--line-soft); }
   .ls-ver { display: flex; align-items: center; justify-content: space-between; gap: 8px; font: .8rem var(--f-body); color: var(--muted); }
+  .imp-clear { margin: 6px 0; font: .85rem var(--f-body); }
   /* ---- Quintenzirkel ---- */
   .qz-card { flex-direction: row; flex-wrap: wrap; align-items: flex-start; gap: 18px; }
   .qz-wrap { flex: 1 1 380px; max-width: 560px; margin: 0 auto; }
@@ -3016,6 +3017,10 @@ Object.assign(window.__EN, { 'Strophe': 'Verse', 'Refrain': 'Chorus', 'Zwischent
 Object.assign(window.__EN, { '⋯ Mehr': '⋯ More', 'Weitere Werkzeuge: Vorlage, Teile, Raster': 'More tools: reference, parts, grid',
   'Fußpedal: 1 Schleife · 2 Wort zurück · 3 Wort vor · 4 ▶ ab hier / ■ · beim Einklopfen ist jedes Pedal ein Tipp': 'Foot pedal: 1 loop · 2 previous word · 3 next word · 4 ▶ from here / ■ · while tapping, every pedal is a tap' });
 Object.assign(window.__EN, { 'noch ': 'in ', 'Einsatz in ': 'Next entry in ', 'Die Datei ist länger als 10 Minuten – die ersten 10 Minuten werden verwendet.': 'The file is longer than 10 minutes – the first 10 minutes are used.', 'Verdoppeln geht nicht: Die Spur wäre länger als 10 Minuten (zu viel für den Speicher des iPads).': 'Cannot double: the track would be longer than 10 minutes (too much for the iPad memory).' });
+Object.assign(window.__EN, { 'Zum Laden werden die Spuren im Looper geleert – nur so bleibt das Lied in seinem Tempo und der Text passt. (Vorher ggf. als Idee speichern.) Weiter?': 'The looper tracks will be cleared to load the song – only then does it keep its tempo and the lyrics fit. (Save them as an idea first if needed.) Continue?' });
+Object.assign(window.__EN, { 'Andere Spuren vorher leeren – das Lied behält sein Tempo (nötig für Gesangstext und Mitsingen)': 'Clear the other tracks first – the song keeps its tempo (needed for lyrics and sing along)',
+  'Das Lied läuft ins Tempo eines anderen Loops gedehnt – dafür gibt es keinen Gesangstext. Lade es mit „Andere Spuren vorher leeren“ (oder über „Lieder mit Text“).': 'The song is stretched to the tempo of another loop – no lyrics are possible then. Load it with “Clear the other tracks first” (or via “Songs with lyrics”).',
+  'Für dieses Lied gibt es noch keinen Text mit Zeiten (Improvisation → „🎤 Gesangstext“).': 'This song has no timed lyrics yet (Improvisation → “🎤 Lyrics”).' });
 
 // Sprache (v59): Deutsch ist der Quelltext. Nur im EN-Modus läuft hier etwas:
 // Ein Beobachter übersetzt neue/geänderte Texte im DOM (Text, title, placeholder, aria-label)
@@ -3121,7 +3126,7 @@ Object.assign(window.__EN, { 'noch ': 'in ', 'Einsatz in ': 'Next entry in ', 'D
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v85</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v86</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -3738,6 +3743,7 @@ Object.assign(window.__EN, { 'noch ': 'in ', 'Einsatz in ': 'Next entry in ', 'D
         <h2 id="impTitle">Datei auf Spur 1</h2>
         <div class="imp-name" id="impName"></div>
         <div class="imp-ana caption" id="impAna">Analysiere Takt und Tempo …</div>
+        <label class="check imp-clear" id="impClearRow" hidden><input type="checkbox" id="impClear"> Andere Spuren vorher leeren – das Lied behält sein Tempo (nötig für Gesangstext und Mitsingen)</label>
         <div class="imp-bpm"><label>Tempo stimmt nicht? <input type="number" id="impBpm" min="40" max="240" step="0.1" inputmode="decimal" placeholder="z. B. 135" aria-label="Tempo vorgeben (BPM)"> BPM</label><span id="impBpmAlt"></span></div>
         <label class="imp-opt"><input type="radio" name="impMode" value="all" checked><span><b>Ganze Datei</b><em id="impAllInfo">komplett als Loop</em></span></label>
         <label class="imp-opt"><input type="radio" name="impMode" value="part"><span><b>Ausschnitt</b><em>ab <select id="impFrom" aria-label="ab Takt"><option value="1">Takt 1</option></select> für <select id="impBars" aria-label="Anzahl Takte"></select></em></span></label>
@@ -8668,6 +8674,7 @@ const Looper = (() => {
     } catch (e) {}
     return Math.round((audioCtx.currentTime - (audioCtx.outputLatency || 0)) * sr);
   }
+  let lastLoaded = null;                                    // v86: zuletzt geladene Datei-Spur
   const MAXSEC = 600;                                       // v85: längste Datei 10 Minuten
   const bpm = () => parseFloat($('bpm').value) || 80;
   const barFrames = () => Math.round(4 * 60 / bpm() * sr);
@@ -9614,12 +9621,14 @@ const Looper = (() => {
   }
 
   // Vor dem Laden fragen: ganze Datei oder Ausschnitt (Analyse läuft schon im Hintergrund)
-  function askImport(t, name, secs, anaP, preBpm) {
+  function askImport(t, name, secs, anaP, preBpm, hasLyrics) {
     const dlg = $('impDlg'), from = $('impFrom'), bars = $('impBars'), anaEl = $('impAna');
     $('impTitle').textContent = 'Datei auf Spur ' + (t.i + 1);
     $('impName').textContent = name + ' · ' + Math.floor(secs / 60) + ':' + String(Math.round(secs % 60)).padStart(2, '0') + ' min';
     anaEl.textContent = 'Analysiere Takt und Tempo …'; anaEl.classList.remove('done');
     $('impAllInfo').textContent = 'komplett als Loop';
+    // v86: liegen andere Spuren, würde das Lied ins Loop-Tempo gedehnt – Gesangstext geht dann nicht. Mit Text: Leeren vorschlagen
+    { const os = others(t).length > 0; $('impClearRow').hidden = !os; $('impClear').checked = os && !!hasLyrics; }
     const bpmIn = $('impBpm'), altEl = $('impBpmAlt'); bpmIn.value = preBpm ? String(preBpm) : ''; altEl.innerHTML = '';
     dlg.querySelector('input[value="all"]').checked = true;
     let total = 0;
@@ -9657,6 +9666,7 @@ const Looper = (() => {
         const mode = dlg.querySelector('input[name="impMode"]:checked').value, fb = parseFloat(String($('impBpm').value).replace(',', '.'));
         const c = mode === 'all' ? { mode: 'all' } : { mode: 'part', from: parseInt(from.value) || 1, bars: parseInt(bars.value) || 8 };
         if (fb >= 40 && fb <= 240) c.bpm = fb; else if (preBpm) c.bpm = null;     // geleert = wieder automatisch
+        if (!$('impClearRow').hidden && $('impClear').checked) c.clear = true;
         done(c);
       };
       $('impCancel').onclick = () => done(null);
@@ -9686,7 +9696,9 @@ const Looper = (() => {
     // Längere Dateien: vorher fragen, wie viel davon in die Spur soll
     let choice = { mode: 'all' };
     if (secs > 20) {
-      choice = preChoice || await askImport(t, file.name, secs, anaP, memBpm);
+      let hasLyr = false; try { const sd = JSON.parse(localStorage.getItem('3nps-sing') || '{}'); hasLyr = !!(sd.f && sd.f[sKey] && sd.f[sKey].tok && sd.f[sKey].tok.length); } catch (e) {}
+      choice = preChoice || await askImport(t, file.name, secs, anaP, memBpm, hasLyr);
+      if (choice && choice.clear) { tracks.forEach(o => { if (o !== t && o.L) clearTrack(o); }); delete choice.clear; }
       if (!choice) { setStatus('Laden abgebrochen.'); return; }
     }
     let ana = await anaP;
@@ -9705,6 +9717,7 @@ const Looper = (() => {
     t.orig = null; t.origPos = null;
     let seg = null, L = 0, msg = '', warn = '';
     if (ana.kind !== 'none') {
+      lastLoaded = t.i;
       t.orig = ana.orig; t.orig.file = file; t.orig.choice = Object.assign({}, choice, ana.forced ? { bpm: ana.forced } : {});        // v71: Originaldatei für „Lieder mit Text“
       // v77: Mitsingen rechnet gespeicherte Wortzeiten aufs neue Raster um und merkt sich das vorgegebene Tempo
       document.dispatchEvent(new CustomEvent('origbeats', { detail: { key: sKey, oldBeats, newBeats: t.orig.beats, forced: ana.forced || null, sr } }));
@@ -11697,7 +11710,10 @@ const Looper = (() => {
     chordInfo: want => {
       const ok = t => !!(t.chords && t.chords.L === t.L && t.L && t.chords.segs.some(q => q.name !== '–'));
       const list = tracks.map(t => ({ i: t.i, has: ok(t), playing: !!t.src }));
-      let t = want != null && tracks[want] && ok(tracks[want]) ? tracks[want] : tracks.find(q => q.src && ok(q)) || tracks.find(ok);
+      // v86: automatisch – unter den laufenden Spuren die zuletzt geladene Datei bevorzugen (sonst zeigten Improvisation
+      // und Mitsingen den Text/die Akkorde einer älteren Spur)
+      const lt = lastLoaded != null && tracks[lastLoaded] && ok(tracks[lastLoaded]) && (tracks[lastLoaded].src || !tracks.some(q => q.src && ok(q))) ? tracks[lastLoaded] : null;
+      let t = want != null && tracks[want] && ok(tracks[want]) ? tracks[want] : lt || tracks.find(q => q.src && ok(q)) || tracks.find(ok);
       if (!t) return { tracks: list, track: -1 };
       const pos = t.src && audioCtx ? mod(playFrame() - anchor, t.L) : null;
       const downs = trackDowns(t).filter(x => x > -2 && x < t.L - 2).map(x => Math.max(0, x));
@@ -11711,6 +11727,7 @@ const Looper = (() => {
     fileOf: i => { const t = tracks[i]; return t && t.orig && t.orig.file ? { file: t.orig.file, name: t.orig.name || t.orig.file.name, choice: t.orig.choice || { mode: 'all' }, bpm: t.orig.bpm } : null; },
     importBlob: (i, blob, name, choice) => { const t = tracks[i]; if (!t || rec) return Promise.resolve(false); return importFile(t, new File([blob], name, { type: blob.type || '' }), choice || { mode: 'all' }).then(() => true); },
     trackUsed: i => !!(tracks[i] && tracks[i].L),
+    clearAll: () => { if (rec) return false; tracks.forEach(t => { if (t.L) clearTrack(t); }); update(); return true; },
     singSrc: i => {
       const t = tracks[i]; if (!t || !t.L || !t.orig || t.origPos == null || !t.orig.beats || t.orig.beats.length < 4) return null;
       const o = t.orig, len = o.data ? (o.data.l || o.data).length : 0;
@@ -12620,8 +12637,12 @@ const AppCfg = (() => {
         if (window.Sing && Sing._reload) Sing._reload();
       }
     }
-    let i = [0, 1, 2].find(k => !Looper.trackUsed(k));
-    if (i == null) { if (!confirm(T('Alle Spuren sind belegt. Spur 1 durch das Lied ersetzen?'))) return false; i = 0; }
+    // v86: liegen schon Spuren, würde das Lied ins Loop-Tempo gedehnt – dann passt der Text nicht mehr. Darum vorher leeren.
+    let i = 0;
+    if ([0, 1, 2].some(k => Looper.trackUsed(k))) {
+      if (!confirm(T('Zum Laden werden die Spuren im Looper geleert – nur so bleibt das Lied in seinem Tempo und der Text passt. (Vorher ggf. als Idee speichern.) Weiter?'))) return false;
+      if (Looper.clearAll && !Looper.clearAll()) { say(T('Laden nicht möglich, während aufgenommen wird.')); return false; }
+    }
     say(T('Lade „') + e.name + '“ …');
     const ok = await Looper.importBlob(i, e.wav, e.fname, e.choice);
     say(ok ? '„' + e.name + T('“ liegt auf Spur ') + (i + 1) + T(' – mit Text. Improvisation und Mitsingen sind bereit.') : T('Laden nicht möglich, während aufgenommen wird.'));
@@ -15236,6 +15257,7 @@ const Singen = (() => {
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const timed = src => src && src.tok && src.tok.some(t => t.b != null);
   let ciCache = null, ciAt = 0, wordEls = [], srcTxt = '', lastBeat = -2;
+  let emptyWhy = '', emptyTxt = '';
   let raf = 0, lastSrc = null, speed = 1, player = null, mic = null, lineSig = '', prevB = null, res = {}, scored = {};
 
   // ---- Quelle: laufender Übungsplayer, sonst was gerade spielt, sonst die zuletzt gespielte ----
@@ -15246,6 +15268,13 @@ const Singen = (() => {
     const ci = ciCache;
     const s = window.Sing ? Sing.source(ci) : null;
     if (s && s.kind !== 'none' && timed(s)) { lastSrc = s; return s; }
+    // v86: sonst eine andere laufende Spur mit getimtem Text (z. B. das gerade geladene Lied auf Spur 2)
+    if (window.Sing && (!ci || !ci.lied)) for (let i = 0; i < 3; i++) {
+      if (ci && i === ci.track) continue; const o = Sing.source({ track: i }); if (o && o.kind === 'file' && timed(o) && o.nowB != null) { lastSrc = o; return o; }
+    }
+    // läuft eine Datei ohne Text (oder ins Loop-Tempo gedehnt), nicht den Text eines anderen Liedes zeigen
+    if (s && ((s.kind === 'file' && s.nowB != null && lastSrc && lastSrc.id !== s.id) || (s.kind === 'none' && ci && ci.playing))) { lastSrc = null; emptyWhy = s.kind === 'none' ? 'stretch' : 'notext'; return null; }
+    emptyWhy = '';
     return lastSrc ? Object.assign({}, lastSrc, { nowB: null }) : null;
   }
   const lineOf = (src, l) => src.tok.map((t, i) => Object.assign({ i }, t)).filter(t => t.l === l);
@@ -15262,7 +15291,12 @@ const Singen = (() => {
     raf = requestAnimationFrame(frame);
     const src = getSrc(), has = timed(src);
     if ($('sbEmpty').hidden !== !!has) { $('sbEmpty').hidden = !!has; $('sbStage').hidden = !has; }
-    if (!has) { if (srcTxt !== '–') { srcTxt = '–'; $('sbSrc').textContent = '–'; } $('sbCount').textContent = ''; lineSig = ''; return; }
+    if (!has) {
+      if (srcTxt !== '–') { srcTxt = '–'; $('sbSrc').textContent = '–'; } $('sbCount').textContent = ''; lineSig = ''; listSig = '';
+      const why = emptyWhy === 'stretch' ? T('Das Lied läuft ins Tempo eines anderen Loops gedehnt – dafür gibt es keinen Gesangstext. Lade es mit „Andere Spuren vorher leeren“ (oder über „Lieder mit Text“).') : emptyWhy === 'notext' ? T('Für dieses Lied gibt es noch keinen Text mit Zeiten (Improvisation → „🎤 Gesangstext“).') : '';
+      if (why !== emptyTxt) { emptyTxt = why; $('sbEmpty').textContent = why || $('sbEmpty').dataset.def; }
+      return;
+    }
     const st = src.title + (player ? ' · ' + T('Übung') + ' ' + Math.round(speed * 100) + ' %' : ''); if (st !== srcTxt) { srcTxt = st; $('sbSrc').textContent = st; }
     const nb = src.nowB, f = focus(src);
     if (player && (f.cur < 0 || src.tok[f.cur].l !== player.line)) { f.cur = -1; f.line = player.line; }   // beim Üben nur die geübte Zeile
@@ -15430,6 +15464,7 @@ const Singen = (() => {
 
   function init() {
     if (!$('panel-singen')) return;
+    $('sbEmpty').dataset.def = $('sbEmpty').textContent;
     const vis = () => !$('panel-singen').hidden;
     const run = () => { if (vis()) { if (!raf) raf = requestAnimationFrame(frame); } else { cancelAnimationFrame(raf); raf = 0; stopPlayer(); stopMic(); } };
     document.addEventListener('tabchange', () => setTimeout(run, 0));

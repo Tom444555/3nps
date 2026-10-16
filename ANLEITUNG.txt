@@ -772,3 +772,11 @@ Gut zu wissen
    - Songdateien dürfen jetzt bis 10 Minuten lang sein (vorher 6). Bei sehr langen Dateien braucht das iPad viel
      Speicher – bei Problemen erst andere Apps schließen. Text, Gesangsspur und Akkord-Korrekturen von Dateien, die
      früher bei 6 Minuten abgeschnitten wurden, ziehen automatisch mit um.
+
+71. Mitsingen zeigt das richtige Lied (v86)
+   - Laufen mehrere Spuren, folgen Improvisation und Mitsingen jetzt der zuletzt geladenen Datei (vorher der ersten
+     Spur – dadurch erschien oft der Text eines älteren Liedes, der dann nicht mitlief).
+   - Eine Songdatei, die zu vorhandenen Spuren geladen wird, wird ins Loop-Tempo gedehnt – dann ist kein Gesangstext
+     möglich. Der Ladedialog bietet deshalb „Andere Spuren vorher leeren“ an (vorgewählt, wenn es zu der Datei schon
+     Text gibt). „Lieder mit Text → Laden“ leert die Spuren nach einer Rückfrage.
+   - Läuft nur ein Lied ohne Text, steht im Mitsingen ein Hinweis statt des Textes eines anderen Liedes.
