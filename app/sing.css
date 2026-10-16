@@ -87,3 +87,4 @@
   /* v84: selten Gebrauchtes unter „⋯ Mehr“ */
   .sg-focus:not(.more) .sg-more { display: none !important; }
   .sg-focus .sg-fmore[aria-expanded="true"] { background: var(--surface-2); border-color: var(--accent); }
+  .sg-warn { border-color: #f0a030; border-style: solid; }

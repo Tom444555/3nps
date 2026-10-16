@@ -29,8 +29,10 @@ const Singen = (() => {
   function focus(src) {
     const tok = src.tok, nb = src.nowB; let cur = -1, i = -1;
     if (nb != null) tok.forEach((t, j) => { if (t.b != null && nb >= t.b - 0.02 && nb < Sing.endOf(tok, j)) cur = j; });
-    i = cur >= 0 ? cur : nb != null ? tok.findIndex(t => t.b != null && t.b > nb) : -1;
-    if (i < 0) { const last = tok.map((t, j) => t.b != null ? j : -1).filter(j => j >= 0); i = nb != null && last.length && nb > tok[last[last.length - 1]].b ? last[last.length - 1] : tok.findIndex(t => t.b != null); }
+    // v88: nächstes Wort nach Zeit (nicht nach Listenplatz); vor dem ersten Wort = das zeitlich erste
+    const minBy = pred => { let k = -1; tok.forEach((t, j) => { if (t.b != null && pred(t) && (k < 0 || t.b < tok[k].b)) k = j; }); return k; };
+    i = cur >= 0 ? cur : nb != null ? minBy(t => t.b > nb) : -1;
+    if (i < 0) { let lastJ = -1; tok.forEach((t, j) => { if (t.b != null && (lastJ < 0 || t.b > tok[lastJ].b)) lastJ = j; }); i = nb != null && lastJ >= 0 && nb > tok[lastJ].b ? lastJ : minBy(() => true); }
     return { cur, line: i >= 0 ? tok[i].l : -1, idx: i };
   }
 
@@ -58,7 +60,7 @@ const Singen = (() => {
     // Einzähler vor einem Einsatz nach einer Pause
     let cnt = '';
     if (nb != null && f.cur < 0) {
-      const nx = src.tok.findIndex(t => t.b != null && t.b > nb);
+      let nx = -1; src.tok.forEach((t, j) => { if (t.b != null && t.b > nb && (nx < 0 || t.b < src.tok[nx].b)) nx = j; });
       if (nx >= 0) {
         const pv = nx - 1, gapStart = pv >= 0 && src.tok[pv].b != null ? Sing.endOf(src.tok, pv) : -1e9, d = src.tok[nx].b - nb;
         if (src.tok[nx].b - gapStart >= 1 && d <= 3.999) cnt = d < 0.35 ? '♪' : String(Math.ceil(d - 0.35));
@@ -72,7 +74,7 @@ const Singen = (() => {
     // Pause: vor dem nächsten Einsatz die Sekunden zeigen (in der Pausenzeile bzw. oben)
     let gapActive = -1, waitS = null;
     if (nb != null && f.cur < 0) {
-      const nx = src.tok.findIndex(t => t.b != null && t.b > nb);
+      let nx = -1; src.tok.forEach((t, j) => { if (t.b != null && t.b > nb && (nx < 0 || t.b < src.tok[nx].b)) nx = j; });
       if (nx >= 0) { waitS = (src.tok[nx].b - nb) * ms(nb) / 1000; const g = gapEls[src.tok[nx].l]; if (g && nb >= g.from - 0.01 && src.tok[nx] === src.tok.find(t => t.l === src.tok[nx].l && t.b != null)) gapActive = src.tok[nx].l; }
     }
     const row = gapActive >= 0 ? 'g' + gapActive : 'l' + f.line;
