@@ -194,9 +194,9 @@ const Sing = (() => {
   }
 
   // v89: Wörter ohne Takt („–“) bekommen einen: gleichmäßig zwischen die Nachbarn mit Zeit, danach an die Stimme eingerastet
-  function fillMissing(src) {
+  function fillMissing(src, rough) {
     const tok = src.tok, has = i => tok[i].b != null, miss = [];
-    if (!tok.some(t => t.b != null)) {                 // noch gar keine Zeiten: Wörter der Reihe nach auf die Stimm-Einsätze legen
+    if (!tok.some(t => t.b != null)) { if (!rough) return 0;  // grob auf die Stimm-Einsätze nur auf ausdrücklichen Wunsch (v92)                 // noch gar keine Zeiten: Wörter der Reihe nach auf die Stimm-Einsätze legen
       const E = envOf(src); if (!E || !E.onB.length) return 0;
       let last = -Infinity, k = 0;
       tok.forEach(t => { while (k < E.onB.length && (E.onB[k] < 0 || E.onB[k] < last + 0.25)) k++;
@@ -221,14 +221,18 @@ const Sing = (() => {
   // v92: zu lange Zeilen (Text ohne Zeilenumbrüche eingefügt) dauerhaft teilen – an Pausen, nach Satzzeichen, spätestens nach 10 Wörtern
   const LONG = 14;
   const longLines = tok => { const c = {}; tok.forEach(t => { c[t.l] = (c[t.l] || 0) + 1; }); return Object.keys(c).filter(l => c[l] > LONG).map(Number); };
+  // üblicher Abstand (Median, Sekunden) zwischen Wortanfängen je Zeile
+  function medIoi(tok, ms) { const d = {}; tok.forEach((t, i) => { const p = tok[i - 1]; if (i && p.l === t.l && t.b != null && p.b != null) (d[t.l] = d[t.l] || []).push((t.b - p.b) * ms(p.b) / 1000); });
+    const m = {}; Object.keys(d).forEach(l => { const a = d[l].sort((x, y) => x - y); m[l] = a[a.length >> 1]; }); return m; }
   function splitLong(src) {
     const tok = src.tok, long = new Set(longLines(tok)); if (!long.size) return 0;
-    const ms = b => (src.beatMs ? src.beatMs(b) : 500); let nl = -1, prevL = null, n = 0, prevEnd = null, before = new Set(tok.map(t => t.l)).size;
+    const ms = b => (src.beatMs ? src.beatMs(b) : 500); let nl = -1, prevL = null, n = 0, before = new Set(tok.map(t => t.l)).size;
+    const med = medIoi(tok, ms), ol = tok.map(t => t.l);
     tok.forEach((t, i) => {
-      let brk = t.l !== prevL;
-      if (!brk && long.has(t.l)) { const pw = tok[i - 1], gap = t.b != null && prevEnd != null ? (t.b - prevEnd) * ms(prevEnd) / 1000 : 0;
-        brk = n >= 10 || (n >= 3 && gap >= 0.6) || (n >= 5 && /[.,;:!?…]$/.test(pw.w)); }
-      if (brk) { nl++; n = 0; } prevL = t.l; t.l = nl; n++; if (t.b != null) prevEnd = endOf(tok, i);
+      let brk = ol[i] !== prevL;
+      if (!brk && long.has(ol[i])) { const pw = tok[i - 1], gap = t.b != null && pw.b != null ? (t.b - pw.b) * ms(pw.b) / 1000 : 0;
+        brk = n >= 10 || (n >= 3 && gap >= Math.max(1.2, 2 * (med[ol[i]] || 0))) || (n >= 5 && /[.,;:!?…]$/.test(pw.w)); }
+      if (brk) { nl++; n = 0; } prevL = ol[i]; t.l = nl; n++;
     });
     changed(); persist(src); return nl + 1 - before;
   }
@@ -1107,8 +1111,10 @@ const Sing = (() => {
       if (b.id === 'sgTake') {
         const nt = tokenize($('sgText').value); if (!nt.length) return;
         const rec = db.f[src.id] = Object.assign(db.f[src.id] || {}, { name: src.name, tok: merge(tok, nt) }); src.tok = rec.tok; ui.sel = -1;
-        const kept = rec.tok.filter(t => t.b != null).length, fil = fillMissing(src); changed();
-        status(fil ? kept + T(' Wörter behalten ihren Takt, ') + fil + T(' neue bekamen einen zwischen ihren Nachbarn (an die Stimme gelegt) – bitte anhören und ggf. ziehen; ↶ nimmt es zurück.') : T('Text übernommen.')); return;
+        const kept = rec.tok.filter(t => t.b != null).length, fil = fillMissing(src);
+        // v92: Text ohne Zeilenumbrüche (das ganze Lied eine Zeile) gleich beim Einfügen teilen
+        const sp = longLines(rec.tok).length ? splitLong(src) : 0; if (!sp) changed();
+        status((fil ? kept + T(' Wörter behalten ihren Takt, ') + fil + T(' neue bekamen einen zwischen ihren Nachbarn (an die Stimme gelegt) – bitte anhören und ggf. ziehen; ↶ nimmt es zurück.') : T('Text übernommen.')) + (sp ? ' ' + T('Der Text hatte zu lange Zeilen (fehlende Zeilenumbrüche?) – automatisch in ') + sp + T(' zusätzliche Zeilen geteilt.') : '')); return;
       }
       if (b.id === 'sgTapMode') { ui.tapping = !ui.tapping; ui.lineFrom = -1; edSig = ''; laneSig = ''; return; }
       if (b.id === 'sgTap') { tap(); return; }
@@ -1246,7 +1252,7 @@ const Sing = (() => {
         const hit = U.filter(t => !t.k && t.b != null).length;
         if (!pairs.length) { say(T('Die Erkennung passte zu keinem Wort deines Textes – ist die Sprache richtig eingestellt?')); }
         else {
-          const al = alignIdx(src, U.map((t, i) => i).filter(i => !U[i].k && U[i].b != null), 0.25), fil = fillMissing(src); ui.sel = -1; changed();
+          const al = alignIdx(src, U.map((t, i) => i).filter(i => !U[i].k && U[i].b != null), 0.25), fil = fillMissing(src); ui.sel = -1; if (!(longLines(U).length && splitLong(src))) changed();
           say(hit + T(' von ') + free.length + T(' Wörtern deines Textes haben ihre Zeit aus der Erkennung') + (fil ? ', ' + fil + T(' dazwischen ergänzt') : '') + (al ? ' · ' + al + T(' an die Stimme angepasst') : '') + T('. Jetzt anhören und ausbessern (↶ nimmt es zurück).'), 1);
         }
       }
@@ -1265,6 +1271,6 @@ const Sing = (() => {
   // Übersetzung je Zeile (v63)
   function setTr(src, arr) { const rec = src.kind === 'lied' ? db.l[src.id] : db.f[src.id]; if (!rec) return false; rec.tr = arr; changed(); return true; }
   function getTr(src) { const rec = src && (src.kind === 'lied' ? db.l[src.id] : db.f[src.id]); return rec && rec.tr || []; }
-  return { recognize: () => recognize(curSrc), rec: () => Object.assign({}, rec), wordsToTok, tick, tap, tokenize, merge, f2b, b2f, endOf, lines, setTr, getTr, ver: () => ver, focus: k => focus(k), unfocus, prec: () => { const E = envOf(curSrc); return { env: E ? { n: E.e.length, on: E.on.slice(), onB: E.onB.slice() } : null, loop: !!loopP, rate: loopP ? loopP.rate : null, word: !!wordP, tap: tapS ? { n: tapS.n, of: tapS.idx.length } : null, mag: ui.mag, sel: ui.sel }; }, voiceEnv: () => voiceEnv(curSrc), placeB: r => placeB(r, curSrc), undo: () => undoRedo(-1), redo: () => undoRedo(1), vox: () => { const v = curSrc && vox[curSrc.id]; return v ? { name: v.name, off: v.off, sr: v.sr, n: v.l.length } : null; }, lrcText: () => curSrc ? lrcText(curSrc) : '', lrcImport: t => curSrc && lrcImport(curSrc, t), leadsheet: () => curSrc ? leadsheetOf(curSrc) : null, parts: () => curSrc ? partsOf(curSrc) : [], addPart: n => addPart(n), partLoop: i => startPartLoop(i), trainerState: () => trainer ? Object.assign({}, trainer) : null, loopRate: () => loopP ? loopP.rate : null, pedal: id => pedal(id), regridFrom: b => curSrc && regridFrom(curSrc, b), outOfOrder: () => curSrc ? outOfOrder(curSrc.tok) : [], fillMissing: () => curSrc ? fillMissing(curSrc) : 0, splitLong: () => curSrc ? splitLong(curSrc) : 0, fixOrder: () => curSrc && fixOrder(curSrc), loopNow: () => loopP ? loopP.nowB() : (wordP ? wordP.nowB() : null), onTempo: () => onTempo(), addClicks, recheck: () => recheck(), toggleLock: () => toggleLock(), insertAfter: () => insertAfter(), spread, playFrom, source: ci => source(ci), data: () => db, _reload: () => { db = load(); changed(); }, ui: () => ui };
+  return { medIoi, recognize: () => recognize(curSrc), rec: () => Object.assign({}, rec), wordsToTok, tick, tap, tokenize, merge, f2b, b2f, endOf, lines, setTr, getTr, ver: () => ver, focus: k => focus(k), unfocus, prec: () => { const E = envOf(curSrc); return { env: E ? { n: E.e.length, on: E.on.slice(), onB: E.onB.slice() } : null, loop: !!loopP, rate: loopP ? loopP.rate : null, word: !!wordP, tap: tapS ? { n: tapS.n, of: tapS.idx.length } : null, mag: ui.mag, sel: ui.sel }; }, voiceEnv: () => voiceEnv(curSrc), placeB: r => placeB(r, curSrc), undo: () => undoRedo(-1), redo: () => undoRedo(1), vox: () => { const v = curSrc && vox[curSrc.id]; return v ? { name: v.name, off: v.off, sr: v.sr, n: v.l.length } : null; }, lrcText: () => curSrc ? lrcText(curSrc) : '', lrcImport: t => curSrc && lrcImport(curSrc, t), leadsheet: () => curSrc ? leadsheetOf(curSrc) : null, parts: () => curSrc ? partsOf(curSrc) : [], addPart: n => addPart(n), partLoop: i => startPartLoop(i), trainerState: () => trainer ? Object.assign({}, trainer) : null, loopRate: () => loopP ? loopP.rate : null, pedal: id => pedal(id), regridFrom: b => curSrc && regridFrom(curSrc, b), outOfOrder: () => curSrc ? outOfOrder(curSrc.tok) : [], fillMissing: () => curSrc ? fillMissing(curSrc, true) : 0, splitLong: () => curSrc ? splitLong(curSrc) : 0, fixOrder: () => curSrc && fixOrder(curSrc), loopNow: () => loopP ? loopP.nowB() : (wordP ? wordP.nowB() : null), onTempo: () => onTempo(), addClicks, recheck: () => recheck(), toggleLock: () => toggleLock(), insertAfter: () => insertAfter(), spread, playFrom, source: ci => source(ci), data: () => db, _reload: () => { db = load(); changed(); }, ui: () => ui };
 })();
 window.Sing = Sing;

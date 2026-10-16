@@ -36,15 +36,15 @@ const Singen = (() => {
     const k = src.id + '|' + Sing.ver() + '|' + src.tok.length;
     if (viewCache.k !== k) {
       const ms = b => (src.beatMs ? src.beatMs(b) : 500), map = [];
-      let nl = -1, prevL = null, n = 0, prevEnd = null;
+      let nl = -1, prevL = null, n = 0; const med = Sing.medIoi(src.tok, ms);
       src.tok.forEach((t, i) => {
         let brk = t.l !== prevL;
         if (!brk && cnt[t.l] > MAXW) {
-          const pw = src.tok[i - 1], gap = t.b != null && prevEnd != null ? (t.b - prevEnd) * ms(prevEnd) / 1000 : 0;
-          brk = n >= 10 || (n >= 3 && gap >= 0.6) || (n >= 5 && /[.,;:!?…]$/.test(pw.w));
+          const pw = src.tok[i - 1], gap = t.b != null && pw.b != null ? (t.b - pw.b) * ms(pw.b) / 1000 : 0;
+          brk = n >= 10 || (n >= 3 && gap >= Math.max(1.2, 2 * (med[t.l] || 0))) || (n >= 5 && /[.,;:!?…]$/.test(pw.w));
         }
         if (brk) { nl++; n = 0; }
-        map.push(nl); n++; prevL = t.l; if (t.b != null) prevEnd = Sing.endOf(src.tok, i);
+        map.push(nl); n++; prevL = t.l;
       });
       viewCache.k = k; viewCache.v = map;
     }
@@ -95,7 +95,7 @@ const Singen = (() => {
     const ce = $('sbCount'); if (ce.textContent !== cnt) { ce.textContent = cnt; ce.classList.toggle('go', cnt === '♪'); }
     // v85: ganzer Text als mitlaufende Liste – aktuelle Zeile groß in der Mitte, Akkorde darüber, Pausen mit Sekunden
     const trOn = $('sbTrOn').checked, sig = src.id + '|' + Sing.ver() + '|' + (trOn ? 1 : 0) + '|' + JSON.stringify(res).length + '|' + (player ? player.line : -1);
-    if (sig !== listSig) { listSig = sig; buildList(src); curRow = -2; }
+    if (sig !== listSig) { listSig = sig; buildList(src); curRow = -2; curCh = ''; }
     const ms = b => (src.beatMs ? src.beatMs(b) : 500);
     // Pause: vor dem nächsten Einsatz die Sekunden zeigen (in der Pausenzeile bzw. oben)
     let gapActive = -1, waitS = null;
@@ -106,7 +106,8 @@ const Singen = (() => {
     const row = gapActive >= 0 ? 'g' + gapActive : 'l' + f.line;
     if (row !== curRow) { curRow = row; setCurrent(src, f.line, gapActive); }
     gapEls.forEach((g, l) => { if (!g) return; const on = l === gapActive; if (on !== g.on) { g.on = on; g.el.classList.toggle('on', on); }
-      const txt = on && waitS != null ? T('noch ') + fmtS(waitS) : fmtS(g.dur) + ' ' + T('Pause'); if (txt !== g.txt) { g.txt = txt; g.t.textContent = txt; g.bar.style.transform = 'scaleX(' + (on && waitS != null ? Math.max(0, Math.min(1, waitS / g.dur)) : 0) + ')'; } });
+      const txt = on && waitS != null ? T('noch ') + fmtS(waitS) : fmtS(g.dur) + ' ' + T('Pause'); if (txt !== g.txt) { g.txt = txt; g.t.textContent = txt; g.bar.style.transform = 'scaleX(' + (on && waitS != null ? Math.max(0, Math.min(1, waitS / g.dur)) : 0) + ')'; }
+      if (on && waitS != null) { const r = Math.max(0, Math.min(1, waitS / g.dur)).toFixed(3); if (r !== g.r) { g.r = r; g.run.style.transform = 'scaleX(' + r + ')'; } } else if (g.r !== '1') { g.r = '1'; g.run.style.transform = 'scaleX(1)'; } });
     const wt = waitS != null && waitS >= 1.2 ? T('Einsatz in ') + fmtS(waitS) : ''; if (wt !== waitTxt) { waitTxt = wt; $('sbWait').textContent = wt; }
     // Füllung und Farbe: vergangene Wörter voll, aktuelles anteilig und eingefärbt
     wordEls.forEach(w => {
@@ -114,10 +115,14 @@ const Singen = (() => {
       if (t.b != null && nb != null) { const e = Sing.endOf(src.tok, w.i); p = nb <= t.b ? 0 : nb >= e ? 1 : (nb - t.b) / (e - t.b); }
       p = Math.round(p * 200) / 200; if (p !== w.p) { w.p = p; w.bar.style.transform = 'scaleX(' + p + ')'; const d = p >= 1; if (d !== w.done) { w.done = d; w.el.classList.toggle('done', d); } }
       const on = w.i === f.cur; if (on !== w.on) { w.on = on; w.el.classList.toggle('on', on); }
+      // Akkordbalken: läuft vom Wort bis zum nächsten Wort voll (zeigt, wie lange der Akkord schon klingt)
+      if (w.cb) { let q = 0; if (t.b != null && nb != null) { const nx = wordEls[wordEls.indexOf(w) + 1], e = nx && src.tok[nx.i] && src.tok[nx.i].b != null ? src.tok[nx.i].b : t.b + 2; q = nb <= t.b ? 0 : nb >= e ? 1 : (nb - t.b) / (e - t.b); }
+        q = Math.round(q * 100) / 100; if (q !== w.q) { w.q = q; w.cb.style.transform = 'scaleX(' + q + ')'; } }
     });
+    { const cc = (wordEls.find(w => w.on) || {}).c || (wordEls.filter(w => w.q > 0 && w.q < 1).pop() || {}).c || ''; if (cc !== curCh) { curCh = cc; $('sbList').querySelectorAll('.sb-w.chon').forEach(e => e.classList.remove('chon')); if (cc) $('sbList').querySelectorAll('.sb-w[data-c="' + cc + '"]').forEach(e => e.classList.add('chon')); } }
     if (mic) micFrame(src, nb, f);
   }
-  let listSig = '', curRow = -2, gapEls = [], waitTxt = '';
+  let listSig = '', curRow = -2, gapEls = [], waitTxt = '', curCh = '';
   const fmtS = x => (x >= 10 ? Math.round(x) : Math.round(x * 10) / 10).toString().replace('.', ',') + ' s';
   function chordFn(src) {
     const ci = window.SoloInfo ? SoloInfo() : null;
@@ -127,22 +132,28 @@ const Singen = (() => {
   // ganze Liste aufbauen: Zeilen mit Akkorden, Übersetzung, Pausenzeilen (≥ 2 s ohne Gesang)
   function buildList(src) {
     const chAt = chordFn(src), tr = Sing.getTr(src), trOn = $('sbTrOn').checked, ms = b => (src.beatMs ? src.beatMs(b) : 500);
-    const n = Math.max(-1, ...src.tok.map(t => t.l)) + 1; let h = '', lastCh = null, prevEnd = null; gapEls = [];
+    const n = Math.max(-1, ...src.tok.map(t => t.l)) + 1; let h = '', lastCh = null, prevEnd = null, chId = 0; gapEls = [];
     // geteilte Zeilen: Übersetzung der Originalzeile nur unter ihrem ersten Teil
     const firstOf = {}; src.tok.forEach(t => { const o = t.ol != null ? t.ol : t.l; if (firstOf[o] == null) firstOf[o] = t.l; });
     const trOf = l => { const t = src.tok.find(x => x.l === l); if (!t) return ''; const o = t.ol != null ? t.ol : t.l; return firstOf[o] === l ? tr[o] : ''; };
     for (let l = 0; l < n; l++) {
       const ws = lineOf(src, l); if (!ws.length) continue;
       const first = ws.find(t => t.b != null);
-      if (first && prevEnd != null) { const dur = (first.b - prevEnd) * ms(prevEnd) / 1000; if (dur >= 2) h += '<div class="sb-gap" data-g="' + l + '" data-from="' + prevEnd + '" data-dur="' + dur + '"><i class="sb-gapbar"></i><span>♪</span><b></b></div>'; }
+      if (first && prevEnd != null) { const dur = (first.b - prevEnd) * ms(prevEnd) / 1000; if (dur >= 2) h += '<div class="sb-gap" data-g="' + l + '" data-from="' + prevEnd + '" data-dur="' + dur + '"><i class="sb-gapbar"></i><span>♪</span><b></b><i class="sb-gaptrack"><i></i></i></div>'; }
       let anyCh = false;
-      const words = ws.map(t => { const c = chAt(t.b), show = c && c !== lastCh; if (c) lastCh = c; if (show) anyCh = true;
-        return '<span class="sb-w" data-i="' + t.i + '">' + (show ? '<b class="sb-ch">' + esc(c) + '</b>' : '') + esc(t.w) + '<i class="sb-fill"></i>' + mark(t.i) + '</span>'; }).join(' ');
+      // v92: kurze Pausen zwischen Wörtern sichtbar machen – Abstand wächst mit der Pause (gemessen am üblichen Wortabstand der Zeile)
+      const sec = t => t.b == null ? null : t.b * ms(t.b) / 1000, ioi = [];
+      ws.forEach((t, k) => { if (k && t.b != null && ws[k - 1].b != null) ioi.push(sec(t) - sec(ws[k - 1])); });
+      const med = ioi.length ? ioi.slice().sort((x, y) => x - y)[ioi.length >> 1] : 0;
+      const words = ws.map((t, k) => { const c = chAt(t.b), show = c && c !== lastCh; if (c && c !== lastCh) chId++; if (c) lastCh = c; if (show) anyCh = true;
+        let pl = 0; if (k && med > 0 && t.b != null && ws[k - 1].b != null) { const d = sec(t) - sec(ws[k - 1]); if (d > med * 1.5 && d > 0.4) pl = Math.min(3, (d / med - 1.5) * 0.45 + 0.35); }
+        return '<span class="sb-w' + (c ? ' hc' : '') + '" data-i="' + t.i + '"' + (c ? ' data-c="' + chId + '"' : '') + (pl ? ' style="--pl:' + pl.toFixed(2) + 'em"' : '') + '>' + (show ? '<b class="sb-ch">' + esc(c) + '</b>' : '')
+          + (c ? '<i class="sb-cb c' + (chId % 2) + (show ? ' st' : '') + '"><i></i></i>' : '') + esc(t.w) + '<i class="sb-fill"></i>' + mark(t.i) + '</span>'; }).join('\u200b');
       h += '<div class="sb-row" data-l="' + l + '"><p class="sb-line' + (anyCh ? ' has-ch' : '') + '">' + words + '</p>' + (trOn && trOf(l) ? '<p class="sb-tr">' + esc(trOf(l)) + '</p>' : '<p class="sb-tr"></p>') + '</div>';
       const last = ws.filter(t => t.b != null).pop(); if (last) prevEnd = Sing.endOf(src.tok, last.i);
     }
     const list = $('sbList'); list.innerHTML = h;
-    list.querySelectorAll('.sb-gap').forEach(el => { gapEls[+el.dataset.g] = { el, from: +el.dataset.from, dur: +el.dataset.dur, t: el.querySelector('b'), bar: el.querySelector('.sb-gapbar'), on: false, txt: '' }; });
+    list.querySelectorAll('.sb-gap').forEach(el => { gapEls[+el.dataset.g] = { el, from: +el.dataset.from, dur: +el.dataset.dur, t: el.querySelector('b'), bar: el.querySelector('.sb-gapbar'), run: el.querySelector('.sb-gaptrack i'), on: false, txt: '' }; });
     wordEls = [];
   }
   // aktuelle Zeile (bzw. Pause davor) hervorheben, Kennungen umhängen, Liste weich mitscrollen
@@ -152,7 +163,7 @@ const Singen = (() => {
     list.querySelectorAll('.sb-row').forEach(r => { const l = +r.dataset.l; r.classList.toggle('cur', l === line); r.classList.toggle('past', l < line); r.classList.toggle('next', l === line + 1); });
     const row = list.querySelector('.sb-row[data-l="' + line + '"]');
     if (row) { const p = row.querySelector('.sb-line'), t = row.querySelector('.sb-tr'); p.id = 'sbLine'; t.id = 'sbTr'; }
-    wordEls = row ? [...row.querySelectorAll('.sb-w')].map(el => ({ el, bar: el.querySelector('.sb-fill'), i: +el.dataset.i, p: -1, on: false, done: false })) : [];
+    wordEls = row ? [...row.querySelectorAll('.sb-w')].map(el => ({ el, bar: el.querySelector('.sb-fill'), cb: el.querySelector('.sb-cb i'), c: el.dataset.c, i: +el.dataset.i, p: -1, q: -1, on: false, done: false })) : [];
     list.querySelectorAll('.sb-row.past .sb-w').forEach(el => el.classList.add('done'));
     list.querySelectorAll('.sb-row:not(.past):not(.cur) .sb-w').forEach(el => el.classList.remove('done', 'on'));
     const nx = lineOf(src, line + 1).map(t => t.w).join(' '); $('sbNext').textContent = nx;
