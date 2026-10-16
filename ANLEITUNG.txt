@@ -780,3 +780,11 @@ Gut zu wissen
      möglich. Der Ladedialog bietet deshalb „Andere Spuren vorher leeren“ an (vorgewählt, wenn es zu der Datei schon
      Text gibt). „Lieder mit Text → Laden“ leert die Spuren nach einer Rückfrage.
    - Läuft nur ein Lied ohne Text, steht im Mitsingen ein Hinweis statt des Textes eines anderen Liedes.
+
+72. Text bleibt an seiner Stelle, auch wenn sich das Raster ändert (v87)
+   - Die Zeit jedes Wortes wird jetzt zusätzlich in Sekunden gemerkt. Ändert sich das Schlagraster einer Datei
+     (bessere Tempo-Erkennung, Tempo vorgegeben), bleibt der Text an seiner Stelle im Lied.
+   - Text, der vor dieser Version mit einem anderen Tempo erstellt wurde (z. B. bei 90 statt jetzt 135 BPM), steht
+     dann „mitten im Lied“ und läuft nicht passend mit. Rettung: Karte „🎤 Gesangstext“ → „Text passt nicht mehr zum
+     Lied?“ → Tempo von damals eintragen → „Text umrechnen“. Danach mit „♪ an Stimme“ oder „Rest nachprüfen“
+     feinjustieren; ↶ nimmt es zurück.

@@ -3021,6 +3021,8 @@ Object.assign(window.__EN, { 'Zum Laden werden die Spuren im Looper geleert – 
 Object.assign(window.__EN, { 'Andere Spuren vorher leeren – das Lied behält sein Tempo (nötig für Gesangstext und Mitsingen)': 'Clear the other tracks first – the song keeps its tempo (needed for lyrics and sing along)',
   'Das Lied läuft ins Tempo eines anderen Loops gedehnt – dafür gibt es keinen Gesangstext. Lade es mit „Andere Spuren vorher leeren“ (oder über „Lieder mit Text“).': 'The song is stretched to the tempo of another loop – no lyrics are possible then. Load it with “Clear the other tracks first” (or via “Songs with lyrics”).',
   'Für dieses Lied gibt es noch keinen Text mit Zeiten (Improvisation → „🎤 Gesangstext“).': 'This song has no timed lyrics yet (Improvisation → “🎤 Lyrics”).' });
+Object.assign(window.__EN, { 'Text passt nicht mehr zum Lied (zu früh/zu spät, läuft nicht mit)?': 'Lyrics no longer fit the song (too early/late, not following)?', 'Wurde der Text mit einem anderen Tempo erstellt (z. B. 90 statt jetzt erkannt ': 'Were the lyrics made with another tempo (e.g. 90 instead of the now detected ',
+  'Tempo von damals eintragen:': 'Enter the tempo used then:', 'Text umrechnen': 'Convert lyrics', 'Danach mit „♪ an Stimme“ oder „Rest nachprüfen“ feinjustieren; ↶ nimmt es zurück.': 'Then fine-tune with “♪ To voice” or “Check the rest”; ↶ undoes it.', 'Text auf das jetzige Raster umgerechnet.': 'Lyrics converted to the current grid.' });
 
 // Sprache (v59): Deutsch ist der Quelltext. Nur im EN-Modus läuft hier etwas:
 // Ein Beobachter übersetzt neue/geänderte Texte im DOM (Text, title, placeholder, aria-label)
@@ -3126,7 +3128,7 @@ Object.assign(window.__EN, { 'Andere Spuren vorher leeren – das Lied behält s
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v86</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v87</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -14223,8 +14225,9 @@ const Sing = (() => {
     const conv = b => b == null ? b : Math.round(f2b(b2f(b, oldB), newB) * 1000) / 1000;
     rec.tok.forEach(t => { t.b = conv(t.b); if (t.a != null) t.a = conv(t.a); });
     if (ng) rec.grid = ng; else delete rec.grid;
+    stampWith(rec, newB, s.sr); stamp.off = true;
     const E = envs[s.key]; if (E && E.ready) E.onB = E.on.map(x => f2b(x * E.sr, newB));
-    changed(); focusSig = '*'; laneSig = '';
+    changed(); stamp.off = false; focusSig = '*'; laneSig = '';
     status(ng ? T('Raster jetzt ') + v + T(' BPM (Tempo oben) – Wörter bleiben an ihrer Stelle im Lied.') : T('Wieder das erkannte Raster.'));
   }
   // v77: Datei wurde (mit anderem Tempo) neu gerastert – Wortzeiten über die Zeit im Lied umrechnen, Tempo merken
@@ -14236,7 +14239,8 @@ const Sing = (() => {
     if (oldB && !same) { const conv = b => b == null ? b : Math.round(f2b(b2f(b, oldB), d.newBeats) * 1000) / 1000; r.tok.forEach(t => { t.b = conv(t.b); if (t.a != null) t.a = conv(t.a); }); }
     if (oldB) delete r.grid;
     if (d.forced) r.force = d.forced; else delete r.force;
-    delete envs[d.key]; changed();
+    if (oldB && r.tok && !r.grid) stampWith(r, d.newBeats, d.sr);
+    delete envs[d.key]; stamp.off = true; changed(); stamp.off = false;
   });
   function resetGrid() { const src = lastSrc; if (!src || src.kind !== 'file') return; const s = Looper.singSrc(src.track); if (!s || !s.bpm) return; const el = $('bpm'); el.value = s.bpm; el.dispatchEvent(new Event('input', { bubbles: true })); onTempo(); }
   setTimeout(() => {
@@ -14265,6 +14269,17 @@ const Sing = (() => {
       const rec = db.f[s.key] || null;
       // v75: eigenes Raster nach dem Tempo oben (gleichmäßig ab Takt 1), sonst das erkannte
       if (rec && rec.grid) { const g = synGrid(rec.grid, s); s.beats = g.beats; s.downs = g.downs; }
+      // v87: Wortzeiten sind auch in Sekunden gemerkt – hat sich das Schlagraster der Datei geändert (andere Erkennung,
+      // anderes Tempo), werden die Schläge aus den Sekunden neu berechnet, statt dass der Text verrutscht
+      if (rec && rec.bsig && rec.bsig !== bsigOf(s.beats) && rec.tok.some(t => t.s != null)) {
+        rec.tok.forEach(t => { if (t.s != null) t.b = Math.round(f2b(t.s * s.sr, s.beats) * 1000) / 1000; if (t.as != null) t.a = Math.round(f2b(t.as * s.sr, s.beats) * 1000) / 1000; });
+        if (rec.parts) rec.parts.forEach(p => { if (p.s != null) p.b = Math.round(f2b(p.s * s.sr, s.beats) * 1000) / 1000; });
+        rec.bsig = bsigOf(s.beats); save();
+      } else if (rec && !rec.bsig && rec.tok && rec.tok.some(t => t.b != null)) {
+        // erstes Mal mit v87: Sekunden zum jetzigen Raster merken
+        rec.tok.forEach(t => { if (t.b != null) { const f = b2f(t.b, s.beats); t.s = f == null ? null : Math.round(f / s.sr * 1000) / 1000; } });
+        rec.bsig = bsigOf(s.beats); save();
+      }
       const toCi = b => { const f = b2f(b, s.beats); return f == null ? null : f - s.origPos; };
       const fromCi = f => f2b(f + s.origPos, s.beats);
       const label = b => { const f = b2f(b, s.beats), D = s.downs; let i = 0; while (i + 1 < D.length && D[i + 1] <= f + 2) i++; const bb = f2b(D[i] || 0, s.beats); return (i + 1) + '.' + (Math.floor(b - bb + 1e-6) + 1); };
@@ -14360,7 +14375,30 @@ const Sing = (() => {
   }
   // Schriftgröße so, dass das Wort möglichst in seine Breite passt (16 px, in engen Stellen bis 10 px)
   const fitFont = (w, wpx) => Math.max(10, Math.min(16, Math.floor((wpx - 9) / (String(w).length * 0.56 + 0.2))));
-  let ver = 0; const changed = () => { ver++; hist(); save(); laneSig = ''; edSig = ''; };
+  let ver = 0; const changed = () => { ver++; hist(); stamp(); save(); laneSig = ''; edSig = ''; };
+  // v87: Sekunden zu jedem Wort (Datei-Quellen) und Kennung des Rasters merken
+  const bsigOf = B => B.length + '|' + Math.round(B[0]) + '|' + Math.round(B[B.length - 1]);
+  function stampWith(r, B, sr) {
+    const sec = b => { const f = b2f(b, B); return f == null ? null : Math.round(f / sr * 1000) / 1000; };
+    r.tok.forEach(t => { t.s = t.b != null ? sec(t.b) : null; if (t.a != null) t.as = sec(t.a); });
+    if (r.parts) r.parts.forEach(p => { p.s = sec(p.b); });
+    r.bsig = bsigOf(B);
+  }
+  function stamp() {
+    if (stamp.off) return;
+    const src = curSrc || lastSrc; if (!src || src.kind !== 'file' || !src.beats) return; const r = db.f[src.id]; if (!r || !r.tok) return;
+    if (JSON.stringify(src.grid || null) !== JSON.stringify(r.grid || null)) return;      // Quelle noch mit altem Raster – nicht stempeln
+    stampWith(r, src.beats, src.sr);
+  }
+  // v87: Text, der mit einem anderen Tempo-Raster erstellt wurde (z. B. vor einer besseren Tempo-Erkennung), umrechnen:
+  // altes Raster gleichmäßig mit „bpm“ ab dem ersten Schlag angenommen
+  function regridFrom(src, bpm) {
+    const r = db.f[src.id]; if (!r || !(bpm > 20)) return false;
+    const per = src.sr * 60 / bpm, b0 = src.beats[0];
+    r.tok.forEach(t => { if (t.b != null) t.b = Math.round(f2b(b0 + t.b * per, src.beats) * 1000) / 1000; if (t.a != null) t.a = Math.round(f2b(b0 + t.a * per, src.beats) * 1000) / 1000; delete t.s; });
+    if (r.parts) r.parts.forEach(p => { p.b = Math.round(f2b(b0 + p.b * per, src.beats) * 1000) / 1000; });
+    delete envs[src.id]; changed(); return true;
+  }
   // ---- v80: Rückgängig / Wiederholen – jeder Stand des Textes der aktuellen Quelle (alle Änderungen laufen über changed) ----
   const H = {};                                     // id → { snap, undo: [], redo: [] }
   const recOf = src => !src ? null : src.kind === 'lied' ? db.l[src.id] : db.f[src.id];
@@ -15039,6 +15077,7 @@ const Sing = (() => {
         + '<label class="check"><input type="checkbox" id="sgTrainer"' + (ui.trainer ? ' checked' : '') + '> ' + T('Tempo-Trainer: ab') + ' <select id="sgTrStart">' + [0.5, 0.6, 0.7, 0.8].map(v => '<option value="' + v + '"' + (Math.abs(ui.trStart - v) < 0.001 ? ' selected' : '') + '>' + Math.round(v * 100) + ' %</option>').join('') + '</select> ' + T('alle 2 Durchgänge +5 % bis 100 %') + '</label>'
         + (loopP && loopP.part ? '<button class="toggle-btn active" id="sgPStop">■ ' + T('Teil-Schleife') + ' · ' + Math.round(loopP.rate * 100) + ' %</button>' : '') + '</div>';
     }
+    if (src.kind === 'file' && src.tok.some(t => t.b != null)) h += '<details class="sg-paste"><summary>' + T('Text passt nicht mehr zum Lied (zu früh/zu spät, läuft nicht mit)?') + '</summary><div class="sg-vox"><span class="caption">' + T('Wurde der Text mit einem anderen Tempo erstellt (z. B. 90 statt jetzt erkannt ') + Math.round(src.grid ? src.grid.bpm : src.bpmDet || 0) + ' BPM)? ' + T('Tempo von damals eintragen:') + '</span><input type="number" id="sgOldBpm" min="40" max="240" step="0.1" inputmode="decimal" style="width:5.5em"> BPM<button class="toggle-btn" id="sgRegrid">' + T('Text umrechnen') + '</button><span class="caption">' + T('Danach mit „♪ an Stimme“ oder „Rest nachprüfen“ feinjustieren; ↶ nimmt es zurück.') + '</span></div></details>';
     if (src.kind === 'file') h += '<div class="sg-vox"><b>⇄ ' + T('Austausch') + '</b><button class="toggle-btn" id="sgLrcOut">' + T('LRC exportieren') + '</button><button class="toggle-btn" id="sgLrcIn">' + T('LRC laden') + '</button><button class="toggle-btn" id="sgLead">' + T('Leadsheet (PDF)') + '</button><input type="file" id="sgLrcFile" accept=".lrc,.txt,text/plain" hidden></div>';
     if (src.kind === 'file') { const v = vox[src.id];
       h += '<div class="sg-vox" id="sgVoxBox"><b>🎙 ' + T('Gesangsspur') + '</b> ' + (v ? '<span class="caption" translate="no">' + esc(v.name) + '</span><span class="caption"> · ' + T('wird für Stimmkurve, Einrasten und Erkennung benutzt') + (Math.abs(v.off) > v.sr * 0.002 ? ' · ' + T('Versatz ') + Math.round(v.off / v.sr * 1000) + ' ms' : '') + '</span><button class="toggle-btn" id="sgVoxDel">' + T('entfernen') + '</button>'
@@ -15104,6 +15143,7 @@ const Sing = (() => {
       if (b.id === 'sgAuto') { recognize(src); return; }
       if (b.id === 'sgVoxAdd') { $('sgVoxFile').click(); return; }
       if (b.id === 'sgLrcOut') { lrcExport(src); return; }
+      if (b.id === 'sgRegrid') { const v = parseFloat(String($('sgOldBpm').value).replace(',', '.')); if (!(v >= 40 && v <= 240)) { status(T('Bitte ein Tempo zwischen 40 und 240 BPM eintragen.')); return; } regridFrom(src, v); status(T('Text auf das jetzige Raster umgerechnet.')); return; }
       if (b.dataset.ploop != null) { startPartLoop(+b.dataset.ploop); return; }
       if (b.dataset.pplay != null) { const r = partRange(src, +b.dataset.pplay); if (r) { stopLoop(); killP(wordP); if (typeof Looper !== 'undefined' && Looper.running && Looper.running() && Looper.pauseToggle) Looper.pauseToggle(); wordP = mkPlayer(src, r[0], f2b(b2f(r[0], src.beats) + 30 * src.sr, src.beats), false, ui.rate); } return; }
       if (b.id === 'sgPStop') { stopLoop(); return; }
@@ -15246,7 +15286,7 @@ const Sing = (() => {
   // Übersetzung je Zeile (v63)
   function setTr(src, arr) { const rec = src.kind === 'lied' ? db.l[src.id] : db.f[src.id]; if (!rec) return false; rec.tr = arr; changed(); return true; }
   function getTr(src) { const rec = src && (src.kind === 'lied' ? db.l[src.id] : db.f[src.id]); return rec && rec.tr || []; }
-  return { recognize: () => recognize(curSrc), rec: () => Object.assign({}, rec), wordsToTok, tick, tap, tokenize, merge, f2b, b2f, endOf, lines, setTr, getTr, ver: () => ver, focus: k => focus(k), unfocus, prec: () => { const E = envOf(curSrc); return { env: E ? { n: E.e.length, on: E.on.slice(), onB: E.onB.slice() } : null, loop: !!loopP, rate: loopP ? loopP.rate : null, word: !!wordP, tap: tapS ? { n: tapS.n, of: tapS.idx.length } : null, mag: ui.mag, sel: ui.sel }; }, voiceEnv: () => voiceEnv(curSrc), placeB: r => placeB(r, curSrc), undo: () => undoRedo(-1), redo: () => undoRedo(1), vox: () => { const v = curSrc && vox[curSrc.id]; return v ? { name: v.name, off: v.off, sr: v.sr, n: v.l.length } : null; }, lrcText: () => curSrc ? lrcText(curSrc) : '', lrcImport: t => curSrc && lrcImport(curSrc, t), leadsheet: () => curSrc ? leadsheetOf(curSrc) : null, parts: () => curSrc ? partsOf(curSrc) : [], addPart: n => addPart(n), partLoop: i => startPartLoop(i), trainerState: () => trainer ? Object.assign({}, trainer) : null, loopRate: () => loopP ? loopP.rate : null, pedal: id => pedal(id), loopNow: () => loopP ? loopP.nowB() : (wordP ? wordP.nowB() : null), onTempo: () => onTempo(), addClicks, recheck: () => recheck(), toggleLock: () => toggleLock(), insertAfter: () => insertAfter(), spread, playFrom, source: ci => source(ci), data: () => db, _reload: () => { db = load(); changed(); }, ui: () => ui };
+  return { recognize: () => recognize(curSrc), rec: () => Object.assign({}, rec), wordsToTok, tick, tap, tokenize, merge, f2b, b2f, endOf, lines, setTr, getTr, ver: () => ver, focus: k => focus(k), unfocus, prec: () => { const E = envOf(curSrc); return { env: E ? { n: E.e.length, on: E.on.slice(), onB: E.onB.slice() } : null, loop: !!loopP, rate: loopP ? loopP.rate : null, word: !!wordP, tap: tapS ? { n: tapS.n, of: tapS.idx.length } : null, mag: ui.mag, sel: ui.sel }; }, voiceEnv: () => voiceEnv(curSrc), placeB: r => placeB(r, curSrc), undo: () => undoRedo(-1), redo: () => undoRedo(1), vox: () => { const v = curSrc && vox[curSrc.id]; return v ? { name: v.name, off: v.off, sr: v.sr, n: v.l.length } : null; }, lrcText: () => curSrc ? lrcText(curSrc) : '', lrcImport: t => curSrc && lrcImport(curSrc, t), leadsheet: () => curSrc ? leadsheetOf(curSrc) : null, parts: () => curSrc ? partsOf(curSrc) : [], addPart: n => addPart(n), partLoop: i => startPartLoop(i), trainerState: () => trainer ? Object.assign({}, trainer) : null, loopRate: () => loopP ? loopP.rate : null, pedal: id => pedal(id), regridFrom: b => curSrc && regridFrom(curSrc, b), loopNow: () => loopP ? loopP.nowB() : (wordP ? wordP.nowB() : null), onTempo: () => onTempo(), addClicks, recheck: () => recheck(), toggleLock: () => toggleLock(), insertAfter: () => insertAfter(), spread, playFrom, source: ci => source(ci), data: () => db, _reload: () => { db = load(); changed(); }, ui: () => ui };
 })();
 window.Sing = Sing;
 
