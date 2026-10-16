@@ -26,15 +26,25 @@ const Sing = (() => {
     });
     return out;
   }
-  // neue Wörter übernehmen, vorhandene Zeiten behalten (gleiches Wort in der Nähe)
+  // neue Wörter übernehmen, vorhandene Zeiten behalten. v89: Wort-für-Wort-Zuordnung über den ganzen Text (längste gemeinsame
+  // Folge) statt nur ±3 Plätze – beim Einfügen eines kompletten Textes verschieben sich die Wörter oft viel weiter
+  const normW = w => { const x = String(w).toLowerCase().replace(/[^\p{L}\p{N}]/gu, ''); return x || String(w); };
   function merge(oldT, newT) {
-    const used = new Set();
-    newT.forEach((t, i) => {
-      for (let d = 0; d <= 3; d++) for (const j of [i + d, i - d]) {
-        const o = oldT[j]; if (!o || used.has(j) || o.w !== t.w) continue;
-        t.b = o.b; if (o.k) t.k = 1; if (o.a != null) t.a = o.a; used.add(j); return;
-      }
-    });
+    const n = oldT.length, m = newT.length; if (!n || !m) return newT;
+    const take = (t, o) => { t.b = o.b; if (o.k) t.k = 1; if (o.a != null) t.a = o.a; if (o.s != null) t.s = o.s; if (o.as != null) t.as = o.as; };
+    if (n * m > 6e6) {                                   // sehr lange Texte: wie früher (gleiches Wort in der Nähe)
+      const used = new Set();
+      newT.forEach((t, i) => { for (let d = 0; d <= 3; d++) for (const j of [i + d, i - d]) { const o = oldT[j]; if (!o || used.has(j) || o.w !== t.w) continue; take(t, o); used.add(j); return; } });
+      return newT;
+    }
+    const A = oldT.map(t => normW(t.w)), B = newT.map(t => normW(t.w)), W = m + 1, L = new Uint16Array((n + 1) * W);
+    for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--)
+      L[i * W + j] = A[i] === B[j] ? L[(i + 1) * W + j + 1] + 1 : Math.max(L[(i + 1) * W + j], L[i * W + j + 1]);
+    let i = 0, j = 0;
+    while (i < n && j < m) {
+      if (A[i] === B[j]) { take(newT[j], oldT[i]); i++; j++; }
+      else if (L[(i + 1) * W + j] >= L[i * W + j + 1]) i++; else j++;
+    }
     return newT;
   }
 
@@ -167,6 +177,25 @@ const Sing = (() => {
       let k = 0, m = 0; for (let j = p + 1; j < n; j++) if (bad.has(j)) { m++; if (j <= i) k++; }
       t.b = Math.round((a + (e - a) * k / (m + 1)) * 1000) / 1000; });
     changed(); persist(src); return bad.size;
+  }
+
+  // v89: Wörter ohne Takt („–“) bekommen einen: gleichmäßig zwischen die Nachbarn mit Zeit, danach an die Stimme eingerastet
+  function fillMissing(src) {
+    const tok = src.tok, has = i => tok[i].b != null, miss = [];
+    if (!tok.some(t => t.b != null)) return 0;
+    for (let i = 0; i < tok.length; i++) {
+      if (has(i)) continue;
+      let e = i; while (e < tok.length && !has(e)) e++;           // Lücke i … e-1
+      const p = i - 1, cnt = e - i;
+      let a, z;
+      if (p >= 0 && e < tok.length) { a = tok[p].b; z = tok[e].b; if (!(z > a)) z = a + 0.5 * (cnt + 1); }
+      else if (p < 0) { z = tok[e].b; a = z - 0.5 * (cnt + 1); }   // vor dem ersten Wort: halbe Schläge davor
+      else { a = tok[p].b; z = a + 0.5 * (cnt + 1); }              // nach dem letzten Wort: halbe Schläge danach
+      for (let k = 0; k < cnt; k++) { tok[i + k].b = Math.round((a + (z - a) * (k + 1) / (cnt + 1)) * 1000) / 1000; miss.push(i + k); }
+      i = e - 1;
+    }
+    if (src.kind === 'file' && miss.length) alignIdx(src, miss, 0.3);
+    return miss.length;
   }
 
   // ---- Spur unter der Akkordleiste ----
@@ -928,12 +957,12 @@ const Sing = (() => {
     status(nx >= 0 ? 'Nächstes Wort: „' + tok[nx].w + '“' : 'Fertig – alle Wörter haben eine Zeit.');
     if (nx < 0) stopTap();
   }
-  function stopTap() { ui.tapping = false; ui.lineFrom = -1; edSig = ''; }
-  function status(m) { const el = $('sgStatus'); if (el) el.textContent = m; const f = $('sgFMsg'); if (f) f.textContent = m; }
+  function stopTap() { ui.note = ''; ui.tapping = false; ui.lineFrom = -1; edSig = ''; }
+  function status(m) { ui.note = m; const el = $('sgStatus'); if (el) el.textContent = m; const f = $('sgFMsg'); if (f) f.textContent = m; }
 
   // ---- Editor ----
   let edSig = '';
-  function select(i) { ui.sel = i; edSig = ''; laneSig = ''; }
+  function select(i) { ui.sel = i; ui.note = ''; edSig = ''; laneSig = ''; }
   function paintEditor(src) {
     const box = $('sgEdit'); if (!box) return;
     if (ui.chipDrag) return;                       // während ein Wort-Chip gezogen wird, nicht neu zeichnen
@@ -954,6 +983,7 @@ const Sing = (() => {
         + '<label class="check"><input type="checkbox" id="sgTrainer"' + (ui.trainer ? ' checked' : '') + '> ' + T('Tempo-Trainer: ab') + ' <select id="sgTrStart">' + [0.5, 0.6, 0.7, 0.8].map(v => '<option value="' + v + '"' + (Math.abs(ui.trStart - v) < 0.001 ? ' selected' : '') + '>' + Math.round(v * 100) + ' %</option>').join('') + '</select> ' + T('alle 2 Durchgänge +5 % bis 100 %') + '</label>'
         + (loopP && loopP.part ? '<button class="toggle-btn active" id="sgPStop">■ ' + T('Teil-Schleife') + ' · ' + Math.round(loopP.rate * 100) + ' %</button>' : '') + '</div>';
     }
+    { const nm = src.tok.filter(t => t.b == null).length, nt = src.tok.length - nm; if (nm && nt && !ui.tapping) h += '<div class="sg-vox sg-warn"><b>⏱ ' + nm + T(' Wörter ohne Takt (–)') + '</b><span class="caption">' + T('Sie erscheinen nicht in der Spur und beim Mitsingen.') + '</span><button class="toggle-btn" id="sgFill">' + T('Takte ergänzen') + '</button></div>'; }
     { const bad = outOfOrder(src.tok); if (bad.length && src.editable) h += '<div class="sg-vox sg-warn"><b>⚠ ' + bad.length + T(' Wörter stehen zeitlich nicht in der Reihenfolge des Textes') + '</b><span class="caption">' + T('(z. B. nach dem Einfügen eines ganzen Textes) – deshalb springt oder hängt das Mitsingen.') + '</span><button class="toggle-btn" id="sgFixOrder">' + T('Reihenfolge reparieren') + '</button></div>'; }
     if (src.kind === 'file' && src.tok.some(t => t.b != null)) h += '<details class="sg-paste"><summary>' + T('Text passt nicht mehr zum Lied (zu früh/zu spät, läuft nicht mit)?') + '</summary><div class="sg-vox"><span class="caption">' + T('Wurde der Text mit einem anderen Tempo erstellt (z. B. 90 statt jetzt erkannt ') + Math.round(src.grid ? src.grid.bpm : src.bpmDet || 0) + ' BPM)? ' + T('Tempo von damals eintragen:') + '</span><input type="number" id="sgOldBpm" min="40" max="240" step="0.1" inputmode="decimal" style="width:5.5em"> BPM<button class="toggle-btn" id="sgRegrid">' + T('Text umrechnen') + '</button><span class="caption">' + T('Danach mit „♪ an Stimme“ oder „Rest nachprüfen“ feinjustieren; ↶ nimmt es zurück.') + '</span></div></details>';
     if (src.kind === 'file') h += '<div class="sg-vox"><b>⇄ ' + T('Austausch') + '</b><button class="toggle-btn" id="sgLrcOut">' + T('LRC exportieren') + '</button><button class="toggle-btn" id="sgLrcIn">' + T('LRC laden') + '</button><button class="toggle-btn" id="sgLead">' + T('Leadsheet (PDF)') + '</button><input type="file" id="sgLrcFile" accept=".lrc,.txt,text/plain" hidden></div>';
@@ -980,6 +1010,7 @@ const Sing = (() => {
         + ln.map(t => '<button class="sg-chip' + (t.b == null ? ' none' : '') + (t.i === ui.sel ? ' sel' : '') + '" data-i="' + t.i + '" translate="no">' + esc(t.w) + '<small>' + (t.b != null ? src.label(t.b) : '–') + '</small></button>').join('') + '</div>').join('') + '</div>';
     }
     box.innerHTML = h;
+    if (ui.note && !ui.tapping) { const st = $('sgStatus'); if (st) st.textContent = ui.note; }
   }
   function lines(tok) { const out = []; tok.forEach((t, i) => { (out[t.l] = out[t.l] || []).push(Object.assign({ i }, t)); }); return out.filter(Boolean); }
 
@@ -1021,6 +1052,7 @@ const Sing = (() => {
       if (b.id === 'sgAuto') { recognize(src); return; }
       if (b.id === 'sgVoxAdd') { $('sgVoxFile').click(); return; }
       if (b.id === 'sgLrcOut') { lrcExport(src); return; }
+      if (b.id === 'sgFill') { const n = fillMissing(src); changed(); persist(src); status(n + T(' Wörter haben jetzt einen Takt (zwischen ihren Nachbarn, an die Stimme gelegt) – anhören und ggf. ziehen; ↶ nimmt es zurück.')); return; }
       if (b.id === 'sgFixOrder') { const n = fixOrder(src); status(n + T(' Wörter zwischen ihre Nachbarn gelegt – jetzt mit „♪ an Stimme“ oder Ziehen feinjustieren (↶ nimmt es zurück).')); return; }
       if (b.id === 'sgRegrid') { const v = parseFloat(String($('sgOldBpm').value).replace(',', '.')); if (!(v >= 40 && v <= 240)) { status(T('Bitte ein Tempo zwischen 40 und 240 BPM eintragen.')); return; } regridFrom(src, v); status(T('Text auf das jetzige Raster umgerechnet.')); return; }
       if (b.dataset.ploop != null) { startPartLoop(+b.dataset.ploop); return; }
@@ -1031,7 +1063,9 @@ const Sing = (() => {
       if (b.id === 'sgVoxDel') { if (confirm(T('Gesangsspur für dieses Lied entfernen?'))) dropVox(src); return; }
       if (b.id === 'sgTake') {
         const nt = tokenize($('sgText').value); if (!nt.length) return;
-        const rec = db.f[src.id] = { name: src.name, tok: merge(tok, nt) }; src.tok = rec.tok; ui.sel = -1; changed(); return;
+        const rec = db.f[src.id] = Object.assign(db.f[src.id] || {}, { name: src.name, tok: merge(tok, nt) }); src.tok = rec.tok; ui.sel = -1;
+        const kept = rec.tok.filter(t => t.b != null).length, fil = fillMissing(src); changed();
+        status(fil ? kept + T(' Wörter behalten ihren Takt, ') + fil + T(' neue bekamen einen zwischen ihren Nachbarn (an die Stimme gelegt) – bitte anhören und ggf. ziehen; ↶ nimmt es zurück.') : T('Text übernommen.')); return;
       }
       if (b.id === 'sgTapMode') { ui.tapping = !ui.tapping; ui.lineFrom = -1; edSig = ''; laneSig = ''; return; }
       if (b.id === 'sgTap') { tap(); return; }
@@ -1165,6 +1199,6 @@ const Sing = (() => {
   // Übersetzung je Zeile (v63)
   function setTr(src, arr) { const rec = src.kind === 'lied' ? db.l[src.id] : db.f[src.id]; if (!rec) return false; rec.tr = arr; changed(); return true; }
   function getTr(src) { const rec = src && (src.kind === 'lied' ? db.l[src.id] : db.f[src.id]); return rec && rec.tr || []; }
-  return { recognize: () => recognize(curSrc), rec: () => Object.assign({}, rec), wordsToTok, tick, tap, tokenize, merge, f2b, b2f, endOf, lines, setTr, getTr, ver: () => ver, focus: k => focus(k), unfocus, prec: () => { const E = envOf(curSrc); return { env: E ? { n: E.e.length, on: E.on.slice(), onB: E.onB.slice() } : null, loop: !!loopP, rate: loopP ? loopP.rate : null, word: !!wordP, tap: tapS ? { n: tapS.n, of: tapS.idx.length } : null, mag: ui.mag, sel: ui.sel }; }, voiceEnv: () => voiceEnv(curSrc), placeB: r => placeB(r, curSrc), undo: () => undoRedo(-1), redo: () => undoRedo(1), vox: () => { const v = curSrc && vox[curSrc.id]; return v ? { name: v.name, off: v.off, sr: v.sr, n: v.l.length } : null; }, lrcText: () => curSrc ? lrcText(curSrc) : '', lrcImport: t => curSrc && lrcImport(curSrc, t), leadsheet: () => curSrc ? leadsheetOf(curSrc) : null, parts: () => curSrc ? partsOf(curSrc) : [], addPart: n => addPart(n), partLoop: i => startPartLoop(i), trainerState: () => trainer ? Object.assign({}, trainer) : null, loopRate: () => loopP ? loopP.rate : null, pedal: id => pedal(id), regridFrom: b => curSrc && regridFrom(curSrc, b), outOfOrder: () => curSrc ? outOfOrder(curSrc.tok) : [], fixOrder: () => curSrc && fixOrder(curSrc), loopNow: () => loopP ? loopP.nowB() : (wordP ? wordP.nowB() : null), onTempo: () => onTempo(), addClicks, recheck: () => recheck(), toggleLock: () => toggleLock(), insertAfter: () => insertAfter(), spread, playFrom, source: ci => source(ci), data: () => db, _reload: () => { db = load(); changed(); }, ui: () => ui };
+  return { recognize: () => recognize(curSrc), rec: () => Object.assign({}, rec), wordsToTok, tick, tap, tokenize, merge, f2b, b2f, endOf, lines, setTr, getTr, ver: () => ver, focus: k => focus(k), unfocus, prec: () => { const E = envOf(curSrc); return { env: E ? { n: E.e.length, on: E.on.slice(), onB: E.onB.slice() } : null, loop: !!loopP, rate: loopP ? loopP.rate : null, word: !!wordP, tap: tapS ? { n: tapS.n, of: tapS.idx.length } : null, mag: ui.mag, sel: ui.sel }; }, voiceEnv: () => voiceEnv(curSrc), placeB: r => placeB(r, curSrc), undo: () => undoRedo(-1), redo: () => undoRedo(1), vox: () => { const v = curSrc && vox[curSrc.id]; return v ? { name: v.name, off: v.off, sr: v.sr, n: v.l.length } : null; }, lrcText: () => curSrc ? lrcText(curSrc) : '', lrcImport: t => curSrc && lrcImport(curSrc, t), leadsheet: () => curSrc ? leadsheetOf(curSrc) : null, parts: () => curSrc ? partsOf(curSrc) : [], addPart: n => addPart(n), partLoop: i => startPartLoop(i), trainerState: () => trainer ? Object.assign({}, trainer) : null, loopRate: () => loopP ? loopP.rate : null, pedal: id => pedal(id), regridFrom: b => curSrc && regridFrom(curSrc, b), outOfOrder: () => curSrc ? outOfOrder(curSrc.tok) : [], fillMissing: () => curSrc ? fillMissing(curSrc) : 0, fixOrder: () => curSrc && fixOrder(curSrc), loopNow: () => loopP ? loopP.nowB() : (wordP ? wordP.nowB() : null), onTempo: () => onTempo(), addClicks, recheck: () => recheck(), toggleLock: () => toggleLock(), insertAfter: () => insertAfter(), spread, playFrom, source: ci => source(ci), data: () => db, _reload: () => { db = load(); changed(); }, ui: () => ui };
 })();
 window.Sing = Sing;

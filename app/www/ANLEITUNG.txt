@@ -798,3 +798,14 @@ Gut zu wissen
      feinjustieren (↶ nimmt es zurück).
    - Mitsingen und die Spur richten sich jetzt nach der Zeit der Wörter, nicht nach ihrem Platz in der Liste – ein
      einzelnes falsch liegendes Wort lässt den Text nicht mehr hängen.
+
+74. Wörter ohne Takt ergänzen (v89)
+   - Wörter ohne Zeit stehen unten in der Wortliste mit „–“ statt einer Taktangabe. Sie erscheinen weder in der Spur
+     noch beim Mitsingen.
+   - Die Karte „🎤 Gesangstext“ zeigt dann „⏱ n Wörter ohne Takt“. „Takte ergänzen“ setzt jedes dieser Wörter
+     gleichmäßig zwischen seine Nachbarn mit Zeit und legt es, wenn möglich, an den nächsten Stimm-Einsatz.
+     Danach anhören und bei Bedarf ziehen; ↶ nimmt es zurück.
+   - Beim Einfügen eines kompletten Textes ordnet die App neuen und alten Text jetzt Wort für Wort über das ganze
+     Lied zu (Groß-/Kleinschreibung und Satzzeichen egal). Vorhandene Zeiten bleiben dadurch auch erhalten, wenn
+     vorne Zeilen dazukommen. Nur wirklich neue Wörter werden ergänzt; die Meldung sagt, wie viele.
+   - Teile, Tempo-Einstellung und Raster der Datei bleiben beim Einfügen erhalten.
