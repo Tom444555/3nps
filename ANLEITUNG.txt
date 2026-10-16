@@ -812,3 +812,13 @@ Gut zu wissen
    - v90: Der Knopf „⏱ Takte ergänzen“ steht zusätzlich direkt über der Wortliste (neben „x von y Wörtern mit Zeit“)
      und erscheint, sobald ein Wort „–“ hat. Hat noch gar kein Wort einen Takt, legt er den Text der Reihe nach auf
      die Einsätze der Stimme (grob – danach nachziehen; mit Gesangsspur aus Moises genauer).
+
+75. Erkennung mit eigenem Text: „Nur Zeiten erkennen – mein Text bleibt“ (v91)
+   - Neben „🤖 Text automatisch erkennen“ (ersetzt den Text) gibt es, sobald ein Text da ist, „🤖 Nur Zeiten erkennen –
+     mein Text bleibt“. Die App hört den Gesang heraus und legt DEINEN Text darauf: Wörter, die zur Erkennung passen
+     (auch leicht anders gehört, z. B. „Strasse“/„Straße“), bekommen deren Zeit, der Rest kommt dazwischen.
+     Zeilen und Schreibweise bleiben genau wie eingegeben; 🔒-Zeilen werden nicht angefasst; ↶ nimmt es zurück.
+   - Wird eine Stelle zweimal gesungen (Refrain), bleibt die Zuordnung zusammenhängend in einem Durchgang.
+   - „Takte ergänzen“ startet genau das, wenn noch kein Wort eine Zeit hat (mit Rückfrage).
+   - Mit Gesangsspur aus Moises (🎙) ist die Erkennung deutlich sicherer.
+   - Mitsingen läuft jetzt auch mit, wenn im Editor über „▶ ab hier“, Teil ▶ oder die Takt-Schleife abgespielt wird.
