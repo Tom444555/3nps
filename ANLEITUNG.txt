@@ -788,3 +788,13 @@ Gut zu wissen
      dann „mitten im Lied“ und läuft nicht passend mit. Rettung: Karte „🎤 Gesangstext“ → „Text passt nicht mehr zum
      Lied?“ → Tempo von damals eintragen → „Text umrechnen“. Danach mit „♪ an Stimme“ oder „Rest nachprüfen“
      feinjustieren; ↶ nimmt es zurück.
+
+73. Wörter in falscher Reihenfolge reparieren (v88)
+   - Fügt man einen ganzen Text auf einmal ein, übernimmt die App vorhandene Zeiten für gleiche Wörter. Dabei kann ein
+     Wort eine Zeit von einer ganz anderen Stelle bekommen. Folge: Mitsingen beginnt nicht mit der ersten Zeile, springt
+     oder „hängt“.
+   - Die Karte „🎤 Gesangstext“ zeigt dann „⚠ n Wörter stehen zeitlich nicht in der Reihenfolge des Textes“.
+     „Reihenfolge reparieren“ legt genau diese Wörter zwischen ihre Nachbarn; danach mit „♪ an Stimme“ oder Ziehen
+     feinjustieren (↶ nimmt es zurück).
+   - Mitsingen und die Spur richten sich jetzt nach der Zeit der Wörter, nicht nach ihrem Platz in der Liste – ein
+     einzelnes falsch liegendes Wort lässt den Text nicht mehr hängen.
