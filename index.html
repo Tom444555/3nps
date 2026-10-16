@@ -1314,6 +1314,34 @@ html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleis
   .sb-tredit textarea { width: 100%; box-sizing: border-box; margin: 6px 0; font: 0.9rem var(--f-body); color: var(--ink); background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px; }
   .sb-line.has-ch { padding-top: 1.15em; line-height: 2.15; }
   .sb-ch { position: absolute; left: 0; bottom: calc(100% - 0.15em); font: 700 0.55em var(--f-mono); color: var(--accent); white-space: nowrap; letter-spacing: 0; pointer-events: none; }
+  /* v85: Mitsingen als mitlaufende Liste */
+  .sb-stage { position: relative; padding: 0; text-align: center; }
+  .sb-top { position: sticky; top: 0; z-index: 3; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; min-height: 56px; padding: 4px 6px; }
+  .sb-top .sb-count { justify-self: end; }
+  .sb-wait { font: 700 1.05rem var(--f-mono); color: var(--accent); white-space: nowrap; }
+  .sb-scroll { position: relative; height: min(62vh, 560px); overflow: hidden; border-radius: 12px; background: linear-gradient(to bottom, rgba(0,0,0,.25), transparent 22%, transparent 78%, rgba(0,0,0,.25));
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 12%, #000 86%, transparent 100%); mask-image: linear-gradient(to bottom, transparent 0, #000 12%, #000 86%, transparent 100%); }
+  .sb-list { position: absolute; left: 0; right: 0; top: 0; padding: 30vh 12px 40vh; transition: transform .45s cubic-bezier(.2,.7,.2,1); will-change: transform; }
+  .sb-row { margin: 0 auto; padding: 6px 0; max-width: 1100px; cursor: pointer; transition: opacity .3s; opacity: .45; }
+  .sb-row.next { opacity: .7; }
+  .sb-row.cur { opacity: 1; }
+  .sb-row .sb-line { font: 700 clamp(1.15rem, 2.6vw, 1.6rem) var(--f-body); line-height: 1.5; margin: 4px 0 0; color: var(--ink); transition: font-size .3s; }
+  .sb-row.cur .sb-line { font-size: clamp(1.7rem, 4.6vw, 2.9rem); }
+  .sb-row .sb-line.has-ch { padding-top: 1.05em; line-height: 2.05; }
+  .sb-row .sb-w { color: color-mix(in srgb, var(--ink) 80%, transparent); }
+  .sb-row.cur .sb-w { color: color-mix(in srgb, var(--ink) 62%, transparent); }
+  .sb-row.cur .sb-w.done { color: var(--ink); }
+  .sb-row.cur .sb-w.on { color: var(--accent); text-shadow: 0 0 18px color-mix(in srgb, var(--accent) 55%, transparent); }
+  .sb-row.past .sb-w { color: color-mix(in srgb, var(--ink) 70%, transparent); }
+  .sb-row:not(.cur) .sb-fill { display: none; }
+  .sb-ch { bottom: calc(100% - 0.05em); font: 800 0.62em var(--f-mono); color: #ffd25e; background: rgba(0,0,0,.35); padding: 0 .28em; border-radius: .25em; line-height: 1.25; }
+  .sb-row.cur .sb-ch { color: #ffdd75; box-shadow: 0 0 0 1px rgba(255,221,117,.35); }
+  .sb-row .sb-tr { font: italic .95rem var(--f-body); color: var(--muted); margin: 2px 0 0; min-height: 0; }
+  .sb-row.cur .sb-tr { font-size: 1.1rem; }
+  .sb-gap { position: relative; display: flex; align-items: center; justify-content: center; gap: 10px; margin: 8px auto; max-width: 420px; padding: 6px 14px; border-radius: 20px; border: 1px dashed var(--line); color: var(--muted); font: 700 .95rem var(--f-mono); overflow: hidden; opacity: .6; }
+  .sb-gap.on { opacity: 1; color: var(--ink); border-style: solid; border-color: var(--accent); font-size: 1.35rem; padding: 10px 18px; }
+  .sb-gap span { color: var(--accent); }
+  .sb-gapbar { position: absolute; left: 0; top: 0; bottom: 0; width: 100%; background: color-mix(in srgb, var(--accent) 22%, transparent); transform-origin: left center; transform: scaleX(0); z-index: -1; }
   /* ===== Rost & Stahl: Hintergrund aus gerostetem Blech, darauf verschraubte Stahlplatten ===== */
   :root {
     --plate-hi: #3a3a40;
@@ -2987,6 +3015,7 @@ Object.assign(window.__EN, { 'Strophe': 'Verse', 'Refrain': 'Chorus', 'Zwischent
   'Diesen Akkord kenne ich nicht. Beispiele: C, Am, G7, Dm7, Fmaj7, Bb, F#m7b5, Esus4.': 'I do not know this chord. Examples: C, Am, G7, Dm7, Fmaj7, Bb, F#m7b5, Esus4.' });
 Object.assign(window.__EN, { '⋯ Mehr': '⋯ More', 'Weitere Werkzeuge: Vorlage, Teile, Raster': 'More tools: reference, parts, grid',
   'Fußpedal: 1 Schleife · 2 Wort zurück · 3 Wort vor · 4 ▶ ab hier / ■ · beim Einklopfen ist jedes Pedal ein Tipp': 'Foot pedal: 1 loop · 2 previous word · 3 next word · 4 ▶ from here / ■ · while tapping, every pedal is a tap' });
+Object.assign(window.__EN, { 'noch ': 'in ', 'Einsatz in ': 'Next entry in ', 'Die Datei ist länger als 10 Minuten – die ersten 10 Minuten werden verwendet.': 'The file is longer than 10 minutes – the first 10 minutes are used.', 'Verdoppeln geht nicht: Die Spur wäre länger als 10 Minuten (zu viel für den Speicher des iPads).': 'Cannot double: the track would be longer than 10 minutes (too much for the iPad memory).' });
 
 // Sprache (v59): Deutsch ist der Quelltext. Nur im EN-Modus läuft hier etwas:
 // Ein Beobachter übersetzt neue/geänderte Texte im DOM (Text, title, placeholder, aria-label)
@@ -3092,7 +3121,7 @@ Object.assign(window.__EN, { '⋯ Mehr': '⋯ More', 'Weitere Werkzeuge: Vorlage
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v84</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v85</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -4060,14 +4089,14 @@ Object.assign(window.__EN, { '⋯ Mehr': '⋯ More', 'Weitere Werkzeuge: Vorlage
   <section class="panel" id="panel-singen" role="tabpanel" aria-labelledby="tab-singen" hidden>
     <div class="card sb-card">
       <div class="card-head"><h2>Mitsingen</h2><span class="caption" id="sbSrc">–</span></div>
-      <div class="sb-top">
-        <div class="sb-dots" id="sbDots" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-        <div class="sb-count" id="sbCount" aria-live="off"></div>
-      </div>
       <div class="sb-stage" id="sbStage" translate="no">
-        <p class="sb-line" id="sbLine"></p>
-        <p class="sb-tr" id="sbTr"></p>
-        <p class="sb-next" id="sbNext"></p>
+        <div class="sb-top">
+          <div class="sb-dots" id="sbDots" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="sb-wait" id="sbWait" aria-live="off"></div>
+          <div class="sb-count" id="sbCount" aria-live="off"></div>
+        </div>
+        <div class="sb-scroll" id="sbScroll"><div class="sb-list" id="sbList"></div></div>
+        <p class="sb-next" id="sbNext" hidden></p>
       </div>
       <p class="sb-empty caption" id="sbEmpty">Spiel einen Song aus dem Songwriting oder einen Loop aus einer geladenen Datei ab, dessen Gesangstext ein Timing hat (Improvisation → „🎤 Gesangstext“).</p>
     </div>
@@ -8639,6 +8668,7 @@ const Looper = (() => {
     } catch (e) {}
     return Math.round((audioCtx.currentTime - (audioCtx.outputLatency || 0)) * sr);
   }
+  const MAXSEC = 600;                                       // v85: längste Datei 10 Minuten
   const bpm = () => parseFloat($('bpm').value) || 80;
   const barFrames = () => Math.round(4 * 60 / bpm() * sr);
   const beatFrames = () => 60 / bpm() * sr;
@@ -9640,11 +9670,11 @@ const Looper = (() => {
     try { buf = await audioCtx.decodeAudioData(await file.arrayBuffer()); }
     catch (e) { setStatus('„' + file.name + '“ kann das iPad nicht öffnen. Wandle die Datei in MP3, WAV oder M4A um.'); return; }
     if (rec && rec.t === t) cancelRec();
-    // Stereo bleibt Stereo (Mono-Dateien: beide Seiten gleich). Höchstens 6 Minuten, damit der Speicher reicht.
-    const n = Math.min(buf.length, Math.round(buf.sampleRate * 360));
+    // Stereo bleibt Stereo (Mono-Dateien: beide Seiten gleich). Höchstens 10 Minuten (v85; vorher 6), damit der Speicher reicht.
+    const n = Math.min(buf.length, Math.round(buf.sampleRate * MAXSEC));
     const l = buf.getChannelData(0).slice(0, n);
     const data = buf.numberOfChannels > 1 ? monoIfSame(SP(l, buf.getChannelData(1).slice(0, n))) : SP(l);
-    if (buf.length > n) setStatus('Die Datei ist länger als 6 Minuten – die ersten 6 Minuten werden verwendet.');
+    if (buf.length > n) setStatus('Die Datei ist länger als 10 Minuten – die ersten 10 Minuten werden verwendet.');
     buf = null;
     const secs = n / sr;
     // v77: für diese Datei gemerktes Tempo (vorgegeben) – aus dem Gesangstext-Speicher
@@ -10473,7 +10503,7 @@ const Looper = (() => {
   $('edDouble').addEventListener('click', () => {
     const t = ed.t; if (!t) return;
     const f = fitLength(t, t.L * 2);
-    if (f.L > sr * 360) { setStatus('Verdoppeln geht nicht: Die Spur wäre länger als 6 Minuten (zu viel für den Speicher des iPads).'); return; }
+    if (f.L > sr * MAXSEC) { setStatus('Verdoppeln geht nicht: Die Spur wäre länger als 10 Minuten (zu viel für den Speicher des iPads).'); return; }
     edSnap('double');
     t.layers = [smap(t.mix, a => { const d = new Float32Array(a.length * 2); d.set(a, 0); d.set(a, a.length); return padTo(d, f.L); })]; t.L = f.L; baseL = f.base;
     afterEdit(t, false);
@@ -10693,7 +10723,8 @@ const Looper = (() => {
   function chordFixOf(t) {
     if (!t.orig || t.origPos == null || !t.orig.data) return null;
     if (!fixCache || performance.now() - fixAt > 500) { fixCache = loadFixes(); fixAt = performance.now(); }
-    return fixCache[fixKey(t)] || null;
+    const k = fixKey(t); if (fixCache[k]) return fixCache[k];
+    const old = (t.orig.name || 'Datei') + '|3600'; return fixCache[old] || null;     // v85: Dateien, die früher auf 6 Minuten gekürzt waren
   }
   // Taktraster der geladenen Datei mit umrechnen: 2× = jeder Takt wird zu zwei Takten, ½ = zwei Takte werden einer
   function regridOrig(t, factor) {
@@ -14208,6 +14239,8 @@ const Sing = (() => {
     }
     if (ci.track >= 0 && typeof Looper !== 'undefined' && Looper.singSrc) {
       const s = Looper.singSrc(ci.track); if (!s) return { kind: 'none', why: 'stretch' };
+      // v85: früher wurden Dateien auf 6 Minuten gekürzt (Schlüssel …|3600) – gespeicherten Text auf den neuen Schlüssel umziehen
+      if (!db.f[s.key] && s.len / s.sr > 360.5 && db.f[s.name + '|3600']) { db.f[s.key] = db.f[s.name + '|3600']; delete db.f[s.name + '|3600']; save(); }
       const rec = db.f[s.key] || null;
       // v75: eigenes Raster nach dem Tempo oben (gleichmäßig ab Takt 1), sonst das erkannte
       if (rec && rec.grid) { const g = synGrid(rec.grid, s); s.beats = g.beats; s.downs = g.downs; }
@@ -14542,7 +14575,7 @@ const Sing = (() => {
   }
   async function loadVoxFor(src) {
     if (!src || src.kind !== 'file' || voxTried[src.id]) return; voxTried[src.id] = true;
-    try { const r = await AppDB.get('meta', 'vox:' + src.id); if (r && r.blob) await setVox(src, r.blob, r.name, false); } catch (e) {}
+    try { let r = await AppDB.get('meta', 'vox:' + src.id); if (!r && src.name) r = await AppDB.get('meta', 'vox:' + src.name + '|3600'); if (r && r.blob) await setVox(src, r.blob, r.name, !!(r.key !== 'vox:' + src.id)); } catch (e) {}
   }
   async function dropVox(src) { delete vox[src.id]; delete envs[src.id]; try { await AppDB.del('meta', 'vox:' + src.id); } catch (e) {} laneSig = ''; edSig = ''; focusSig = '*'; }
   // Stimmkurve: Lautstärke im Stimmbereich (250–3500 Hz) alle 10 ms + Silbenanfänge, je Datei einmal berechnet
@@ -15250,26 +15283,22 @@ const Singen = (() => {
       }
     }
     const ce = $('sbCount'); if (ce.textContent !== cnt) { ce.textContent = cnt; ce.classList.toggle('go', cnt === '♪'); }
-    // Zeile
-    const tr = Sing.getTr(src), sig = src.id + '|' + f.line + '|' + Sing.ver() + '|' + ($('sbTrOn').checked ? 1 : 0) + '|' + JSON.stringify(res).length;
-    if (sig !== lineSig) {
-      lineSig = sig;
-      // v74: Akkorde über den Wörtern (beim ersten Wort der Zeile und bei jedem Wechsel)
-      const ci = window.SoloInfo ? SoloInfo() : null, chAt = b => {
-        if (!ci || !ci.segs || b == null) return ''; let f = src.toCi(b); if (f == null) return ''; if (ci.L) f = ((f % ci.L) + ci.L) % ci.L;
-        const sg = ci.segs.find(x => f >= x.a - 1 && f < x.e); return sg && sg.name && !/^(N|–|-)$/.test(sg.name) ? sg.name : '';
-      };
-      let lastCh = null, anyCh = false;
-      $('sbLine').innerHTML = lineOf(src, f.line).map(t => {
-        const c = chAt(t.b), show = c && c !== lastCh; if (c) lastCh = c; if (show) anyCh = true;
-        return '<span class="sb-w" data-i="' + t.i + '">' + (show ? '<b class="sb-ch">' + esc(c) + '</b>' : '') + esc(t.w) + '<i class="sb-fill"></i>' + mark(t.i) + '</span>';
-      }).join(' ');
-      $('sbLine').classList.toggle('has-ch', anyCh);
-      wordEls = [...$('sbLine').querySelectorAll('.sb-w')].map(el => ({ el, bar: el.querySelector('.sb-fill'), i: +el.dataset.i, p: -1, on: false, done: false }));
-      $('sbTr').textContent = $('sbTrOn').checked && tr[f.line] ? tr[f.line] : '';
-      $('sbNext').textContent = lineOf(src, f.line + 1).map(t => t.w).join(' ');
+    // v85: ganzer Text als mitlaufende Liste – aktuelle Zeile groß in der Mitte, Akkorde darüber, Pausen mit Sekunden
+    const trOn = $('sbTrOn').checked, sig = src.id + '|' + Sing.ver() + '|' + (trOn ? 1 : 0) + '|' + JSON.stringify(res).length + '|' + (player ? player.line : -1);
+    if (sig !== listSig) { listSig = sig; buildList(src); curRow = -2; }
+    const ms = b => (src.beatMs ? src.beatMs(b) : 500);
+    // Pause: vor dem nächsten Einsatz die Sekunden zeigen (in der Pausenzeile bzw. oben)
+    let gapActive = -1, waitS = null;
+    if (nb != null && f.cur < 0) {
+      const nx = src.tok.findIndex(t => t.b != null && t.b > nb);
+      if (nx >= 0) { waitS = (src.tok[nx].b - nb) * ms(nb) / 1000; const g = gapEls[src.tok[nx].l]; if (g && nb >= g.from - 0.01 && src.tok[nx] === src.tok.find(t => t.l === src.tok[nx].l && t.b != null)) gapActive = src.tok[nx].l; }
     }
-    // Füllung: vergangene Wörter voll, aktuelles anteilig
+    const row = gapActive >= 0 ? 'g' + gapActive : 'l' + f.line;
+    if (row !== curRow) { curRow = row; setCurrent(src, f.line, gapActive); }
+    gapEls.forEach((g, l) => { if (!g) return; const on = l === gapActive; if (on !== g.on) { g.on = on; g.el.classList.toggle('on', on); }
+      const txt = on && waitS != null ? T('noch ') + fmtS(waitS) : fmtS(g.dur) + ' ' + T('Pause'); if (txt !== g.txt) { g.txt = txt; g.t.textContent = txt; g.bar.style.transform = 'scaleX(' + (on && waitS != null ? Math.max(0, Math.min(1, waitS / g.dur)) : 0) + ')'; } });
+    const wt = waitS != null && waitS >= 1.2 ? T('Einsatz in ') + fmtS(waitS) : ''; if (wt !== waitTxt) { waitTxt = wt; $('sbWait').textContent = wt; }
+    // Füllung und Farbe: vergangene Wörter voll, aktuelles anteilig und eingefärbt
     wordEls.forEach(w => {
       const t = src.tok[w.i]; if (!t) return; let p = 0;
       if (t.b != null && nb != null) { const e = Sing.endOf(src.tok, w.i); p = nb <= t.b ? 0 : nb >= e ? 1 : (nb - t.b) / (e - t.b); }
@@ -15277,6 +15306,45 @@ const Singen = (() => {
       const on = w.i === f.cur; if (on !== w.on) { w.on = on; w.el.classList.toggle('on', on); }
     });
     if (mic) micFrame(src, nb, f);
+  }
+  let listSig = '', curRow = -2, gapEls = [], waitTxt = '';
+  const fmtS = x => (x >= 10 ? Math.round(x) : Math.round(x * 10) / 10).toString().replace('.', ',') + ' s';
+  function chordFn(src) {
+    const ci = window.SoloInfo ? SoloInfo() : null;
+    return b => { if (!ci || !ci.segs || b == null) return ''; let f = src.toCi(b); if (f == null) return ''; if (ci.L) f = ((f % ci.L) + ci.L) % ci.L;
+      const sg = ci.segs.find(x => f >= x.a - 1 && f < x.e); return sg && sg.name && !/^(N|–|-)$/.test(sg.name) ? sg.name : ''; };
+  }
+  // ganze Liste aufbauen: Zeilen mit Akkorden, Übersetzung, Pausenzeilen (≥ 2 s ohne Gesang)
+  function buildList(src) {
+    const chAt = chordFn(src), tr = Sing.getTr(src), trOn = $('sbTrOn').checked, ms = b => (src.beatMs ? src.beatMs(b) : 500);
+    const n = Math.max(-1, ...src.tok.map(t => t.l)) + 1; let h = '', lastCh = null, prevEnd = null; gapEls = [];
+    for (let l = 0; l < n; l++) {
+      const ws = lineOf(src, l); if (!ws.length) continue;
+      const first = ws.find(t => t.b != null);
+      if (first && prevEnd != null) { const dur = (first.b - prevEnd) * ms(prevEnd) / 1000; if (dur >= 2) h += '<div class="sb-gap" data-g="' + l + '" data-from="' + prevEnd + '" data-dur="' + dur + '"><i class="sb-gapbar"></i><span>♪</span><b></b></div>'; }
+      let anyCh = false;
+      const words = ws.map(t => { const c = chAt(t.b), show = c && c !== lastCh; if (c) lastCh = c; if (show) anyCh = true;
+        return '<span class="sb-w" data-i="' + t.i + '">' + (show ? '<b class="sb-ch">' + esc(c) + '</b>' : '') + esc(t.w) + '<i class="sb-fill"></i>' + mark(t.i) + '</span>'; }).join(' ');
+      h += '<div class="sb-row" data-l="' + l + '"><p class="sb-line' + (anyCh ? ' has-ch' : '') + '">' + words + '</p>' + (trOn && tr[l] ? '<p class="sb-tr">' + esc(tr[l]) + '</p>' : '<p class="sb-tr"></p>') + '</div>';
+      const last = ws.filter(t => t.b != null).pop(); if (last) prevEnd = Sing.endOf(src.tok, last.i);
+    }
+    const list = $('sbList'); list.innerHTML = h;
+    list.querySelectorAll('.sb-gap').forEach(el => { gapEls[+el.dataset.g] = { el, from: +el.dataset.from, dur: +el.dataset.dur, t: el.querySelector('b'), bar: el.querySelector('.sb-gapbar'), on: false, txt: '' }; });
+    wordEls = [];
+  }
+  // aktuelle Zeile (bzw. Pause davor) hervorheben, Kennungen umhängen, Liste weich mitscrollen
+  function setCurrent(src, line, gap) {
+    const list = $('sbList'); if (!list) return;
+    ['sbLine', 'sbTr'].forEach(id => { const o = document.getElementById(id); if (o && list.contains(o)) o.removeAttribute('id'); });
+    list.querySelectorAll('.sb-row').forEach(r => { const l = +r.dataset.l; r.classList.toggle('cur', l === line); r.classList.toggle('past', l < line); r.classList.toggle('next', l === line + 1); });
+    const row = list.querySelector('.sb-row[data-l="' + line + '"]');
+    if (row) { const p = row.querySelector('.sb-line'), t = row.querySelector('.sb-tr'); p.id = 'sbLine'; t.id = 'sbTr'; }
+    wordEls = row ? [...row.querySelectorAll('.sb-w')].map(el => ({ el, bar: el.querySelector('.sb-fill'), i: +el.dataset.i, p: -1, on: false, done: false })) : [];
+    list.querySelectorAll('.sb-row.past .sb-w').forEach(el => el.classList.add('done'));
+    list.querySelectorAll('.sb-row:not(.past):not(.cur) .sb-w').forEach(el => el.classList.remove('done', 'on'));
+    const nx = lineOf(src, line + 1).map(t => t.w).join(' '); $('sbNext').textContent = nx;
+    const target = gap >= 0 ? list.querySelector('.sb-gap[data-g="' + gap + '"]') : row;
+    if (target) { const box = $('sbScroll'), y = target.offsetTop + target.offsetHeight / 2 - box.clientHeight * 0.4; list.style.transform = 'translateY(' + (-Math.max(0, y)).toFixed(0) + 'px)'; }
   }
   function mark(i) {
     const d = res[i]; if (d == null) return '';
@@ -15288,7 +15356,7 @@ const Singen = (() => {
   function stopPlayer() {
     if (!player) return;
     try { player.node.stop(); player.node.disconnect(); player.g.disconnect(); } catch (e) {}
-    player = null; ciCache = null; $('sbLoop').classList.remove('active'); $('sbLoop').textContent = T('↻ Zeile üben'); lineSig = '';
+    player = null; ciCache = null; $('sbLoop').classList.remove('active'); $('sbLoop').textContent = T('↻ Zeile üben'); lineSig = ''; listSig = '';
   }
   async function startPlayer(line) {
     const src = getSrc();
@@ -15313,7 +15381,7 @@ const Singen = (() => {
       nowB: () => { const el = ctx.currentTime - t0 - (ctx.outputLatency || 0); if (el < 0) return b0; const pf = ((el * sr) % len); return Sing.f2b(f0 + pf * sp, beats); } };
     $('sbLoop').classList.add('active'); $('sbLoop').textContent = T('■ Üben beenden');
     info(T('Zeile ') + (line + 1) + ' · ' + Math.round(sp * 100) + ' % – ' + T('mit einem Takt Anlauf, in Schleife.'));
-    res = {}; scored = {}; lineSig = '';
+    res = {}; scored = {}; lineSig = ''; listSig = '';
   }
   function info(m) { $('sbLoopInfo').textContent = m; }
 
@@ -15386,9 +15454,10 @@ const Singen = (() => {
         if (f >= 0 && f < src.L) Looper.seek(src.track, f); else info(T('Diese Zeile liegt außerhalb des geloopten Ausschnitts – „Zeile üben“ spielt sie trotzdem.'));
       }
     };
+    $('sbList').addEventListener('click', e => { const r = e.target.closest('.sb-row'); if (!r) return; const src = getSrc(); if (!src) return; const cur = player ? player.line : focus(src).line; step(+r.dataset.l - cur); });
     $('sbPrev').addEventListener('click', () => step(-1)); $('sbNextL').addEventListener('click', () => step(1));
     $('sbMic').addEventListener('click', () => { if (mic) stopMic(); else startMic(); });
-    $('sbTrOn').addEventListener('change', () => { lineSig = ''; });
+    $('sbTrOn').addEventListener('change', () => { lineSig = ''; listSig = ''; });
     $('panel-singen').querySelector('.sb-tredit').addEventListener('toggle', e => { const src = getSrc(); if (e.target.open && src) $('sbTrText').value = trLines(src).join('\n'); });
     $('sbTrSave').addEventListener('click', () => {
       const src = getSrc(); if (!src) return;
