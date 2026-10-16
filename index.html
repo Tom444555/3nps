@@ -1363,6 +1363,8 @@ html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleis
   .sb-gap.on .sb-gaptrack { display: block; height: 12px; }
   .sb-gaptrack > i { display: block; height: 100%; background: var(--accent); transform-origin: left center; transition: transform .1s linear; border-radius: 4px; }
 
+  /* v94: Zeitbalken unter den Wörtern und Akkordbalken entfernt (zu unübersichtlich) – die Wortfarbe zeigt den Verlauf */
+  .sb-row .sb-fill, .sb-fill { display: none !important; }
   /* ===== Rost & Stahl: Hintergrund aus gerostetem Blech, darauf verschraubte Stahlplatten ===== */
   :root {
     --plate-hi: #3a3a40;
@@ -3162,7 +3164,7 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v93</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v94</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -15605,7 +15607,7 @@ const Singen = (() => {
       const words = ws.map((t, k) => { const c = chAt(t.b), show = c && c !== lastCh; if (c && c !== lastCh) chId++; if (c) lastCh = c; if (show) anyCh = true;
         let pl = 0; if (k && med > 0 && t.b != null && ws[k - 1].b != null) { const d = sec(t) - sec(ws[k - 1]); if (d > med * 1.5 && d > 0.4) pl = Math.min(3, (d / med - 1.5) * 0.45 + 0.35); }
         return '<span class="sb-w' + (c ? ' hc' : '') + '" data-i="' + t.i + '"' + (c ? ' data-c="' + chId + '"' : '') + (pl ? ' style="--pl:' + pl.toFixed(2) + 'em"' : '') + '>' + (show ? '<b class="sb-ch">' + esc(c) + '</b>' : '')
-          + (c ? '<i class="sb-cb c' + (chId % 2) + (show ? ' st' : '') + '"><i></i></i>' : '') + esc(t.w) + '<i class="sb-fill"></i>' + mark(t.i) + '</span>'; }).join('\u200b');
+          + esc(t.w) + '<i class="sb-fill"></i>' + mark(t.i) + '</span>'; }).join('\u200b');
       h += '<div class="sb-row" data-l="' + l + '"><p class="sb-line' + (anyCh ? ' has-ch' : '') + '">' + words + '</p>' + (trOn && trOf(l) ? '<p class="sb-tr">' + esc(trOf(l)) + '</p>' : '<p class="sb-tr"></p>') + '</div>';
       const last = ws.filter(t => t.b != null).pop(); if (last) prevEnd = Sing.endOf(src.tok, last.i);
     }

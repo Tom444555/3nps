@@ -839,3 +839,5 @@ Gut zu wissen
    - Kurze Pausen zwischen Wörtern: die Wörter rücken entsprechend auseinander.
    - Akkorde fast so groß wie die Wörter. Darunter ein Balken über alle Wörter, über die der Akkord klingt
      (abwechselnd gelb/blau); in der aktuellen Zeile läuft er mit und der klingende Akkord leuchtet.
+   - v94: Akkordbalken und die Zeitbalken unter den Wörtern wieder entfernt (zu unübersichtlich). Der Verlauf ist an
+     der Wortfarbe zu sehen (gesungen weiß, aktuelles Wort farbig, der klingende Akkord leuchtet).
