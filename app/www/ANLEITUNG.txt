@@ -809,3 +809,6 @@ Gut zu wissen
      Lied zu (Groß-/Kleinschreibung und Satzzeichen egal). Vorhandene Zeiten bleiben dadurch auch erhalten, wenn
      vorne Zeilen dazukommen. Nur wirklich neue Wörter werden ergänzt; die Meldung sagt, wie viele.
    - Teile, Tempo-Einstellung und Raster der Datei bleiben beim Einfügen erhalten.
+   - v90: Der Knopf „⏱ Takte ergänzen“ steht zusätzlich direkt über der Wortliste (neben „x von y Wörtern mit Zeit“)
+     und erscheint, sobald ein Wort „–“ hat. Hat noch gar kein Wort einen Takt, legt er den Text der Reihe nach auf
+     die Einsätze der Stimme (grob – danach nachziehen; mit Gesangsspur aus Moises genauer).

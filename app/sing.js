@@ -182,7 +182,13 @@ const Sing = (() => {
   // v89: Wörter ohne Takt („–“) bekommen einen: gleichmäßig zwischen die Nachbarn mit Zeit, danach an die Stimme eingerastet
   function fillMissing(src) {
     const tok = src.tok, has = i => tok[i].b != null, miss = [];
-    if (!tok.some(t => t.b != null)) return 0;
+    if (!tok.some(t => t.b != null)) {                 // noch gar keine Zeiten: Wörter der Reihe nach auf die Stimm-Einsätze legen
+      const E = envOf(src); if (!E || !E.onB.length) return 0;
+      let last = -Infinity, k = 0;
+      tok.forEach(t => { while (k < E.onB.length && (E.onB[k] < 0 || E.onB[k] < last + 0.25)) k++;
+        t.b = Math.round((k < E.onB.length ? E.onB[k] : last + 0.5) * 1000) / 1000; last = t.b; k++; });
+      return tok.length;
+    }
     for (let i = 0; i < tok.length; i++) {
       if (has(i)) continue;
       let e = i; while (e < tok.length && !has(e)) e++;           // Lücke i … e-1
@@ -983,7 +989,7 @@ const Sing = (() => {
         + '<label class="check"><input type="checkbox" id="sgTrainer"' + (ui.trainer ? ' checked' : '') + '> ' + T('Tempo-Trainer: ab') + ' <select id="sgTrStart">' + [0.5, 0.6, 0.7, 0.8].map(v => '<option value="' + v + '"' + (Math.abs(ui.trStart - v) < 0.001 ? ' selected' : '') + '>' + Math.round(v * 100) + ' %</option>').join('') + '</select> ' + T('alle 2 Durchgänge +5 % bis 100 %') + '</label>'
         + (loopP && loopP.part ? '<button class="toggle-btn active" id="sgPStop">■ ' + T('Teil-Schleife') + ' · ' + Math.round(loopP.rate * 100) + ' %</button>' : '') + '</div>';
     }
-    { const nm = src.tok.filter(t => t.b == null).length, nt = src.tok.length - nm; if (nm && nt && !ui.tapping) h += '<div class="sg-vox sg-warn"><b>⏱ ' + nm + T(' Wörter ohne Takt (–)') + '</b><span class="caption">' + T('Sie erscheinen nicht in der Spur und beim Mitsingen.') + '</span><button class="toggle-btn" id="sgFill">' + T('Takte ergänzen') + '</button></div>'; }
+    { const nm = src.tok.filter(t => t.b == null).length, nt = src.tok.length - nm; if (nm && !ui.tapping) h += '<div class="sg-vox sg-warn"><b>⏱ ' + nm + T(' Wörter ohne Takt (–)') + '</b><span class="caption">' + (nt ? T('Sie erscheinen nicht in der Spur und beim Mitsingen.') : T('Noch kein Wort hat einen Takt – „Takte ergänzen“ legt den Text grob auf die Einsätze der Stimme (danach nachziehen). Genauer: „🤖 Text automatisch erkennen“ oder „● Einklopfen“.')) + '</span><button class="toggle-btn" id="sgFill">' + T('Takte ergänzen') + '</button></div>'; }
     { const bad = outOfOrder(src.tok); if (bad.length && src.editable) h += '<div class="sg-vox sg-warn"><b>⚠ ' + bad.length + T(' Wörter stehen zeitlich nicht in der Reihenfolge des Textes') + '</b><span class="caption">' + T('(z. B. nach dem Einfügen eines ganzen Textes) – deshalb springt oder hängt das Mitsingen.') + '</span><button class="toggle-btn" id="sgFixOrder">' + T('Reihenfolge reparieren') + '</button></div>'; }
     if (src.kind === 'file' && src.tok.some(t => t.b != null)) h += '<details class="sg-paste"><summary>' + T('Text passt nicht mehr zum Lied (zu früh/zu spät, läuft nicht mit)?') + '</summary><div class="sg-vox"><span class="caption">' + T('Wurde der Text mit einem anderen Tempo erstellt (z. B. 90 statt jetzt erkannt ') + Math.round(src.grid ? src.grid.bpm : src.bpmDet || 0) + ' BPM)? ' + T('Tempo von damals eintragen:') + '</span><input type="number" id="sgOldBpm" min="40" max="240" step="0.1" inputmode="decimal" style="width:5.5em"> BPM<button class="toggle-btn" id="sgRegrid">' + T('Text umrechnen') + '</button><span class="caption">' + T('Danach mit „♪ an Stimme“ oder „Rest nachprüfen“ feinjustieren; ↶ nimmt es zurück.') + '</span></div></details>';
     if (src.kind === 'file') h += '<div class="sg-vox"><b>⇄ ' + T('Austausch') + '</b><button class="toggle-btn" id="sgLrcOut">' + T('LRC exportieren') + '</button><button class="toggle-btn" id="sgLrcIn">' + T('LRC laden') + '</button><button class="toggle-btn" id="sgLead">' + T('Leadsheet (PDF)') + '</button><input type="file" id="sgLrcFile" accept=".lrc,.txt,text/plain" hidden></div>';
@@ -994,7 +1000,7 @@ const Sing = (() => {
     if (src.tok.length) {
       h += '<div class="sg-tools"><button class="toggle-btn sg-tapbtn' + (ui.tapping ? ' active' : '') + '" id="sgTapMode">' + (ui.tapping ? '■ Einklopfen beenden' : '● Einklopfen') + '</button>'
         + '<label class="check"><input type="checkbox" id="sgSnap"' + (ui.snap ? ' checked' : '') + '> Magnet 16tel</label>'
-        + '<span class="caption">' + src.tok.filter(t => t.b != null).length + ' von ' + src.tok.length + ' Wörtern mit Zeit</span></div>';
+        + '<span class="caption">' + src.tok.filter(t => t.b != null).length + ' von ' + src.tok.length + ' Wörtern mit Zeit</span>' + (!ui.tapping && src.tok.some(t => t.b == null) ? '<button class="toggle-btn" id="sgFill2">⏱ ' + T('Takte ergänzen') + '</button>' : '') + '</div>';
       if (ui.tapping) h += '<button class="sg-tap" id="sgTap">Tippen = nächstes Wort</button>';
       h += '<p class="sg-status" id="sgStatus">' + (ui.tapping ? 'Abspielen und bei jeder Silbe bzw. jedem Wort auf den großen Knopf tippen.' : (src.editable ? 'In der Spur oben: Wort ziehen = Zeit verschieben, Wort antippen = ändern (leer = löschen), freie Stelle antippen = Wort einfügen. Hier unten: Wort antippen für Feinschritte.' : 'In der Spur oben: Wort ziehen = Zeit verschieben. Den Text selbst änderst du im Songwriting.')) + '</p>';
       if (ui.sel >= 0 && src.tok[ui.sel]) {
@@ -1045,14 +1051,14 @@ const Sing = (() => {
       try { const v = await setVox(src, f, f.name, true); status(T('Gesangsspur geladen') + (Math.abs(v.off) > v.sr * 0.002 ? ' (' + T('Versatz ') + Math.round(v.off / v.sr * 1000) + ' ms ' + T('ausgeglichen') + ')' : '') + '.'); }
       catch (x) { status(T('Die Gesangsspur kann das iPad nicht öffnen.')); }
     });
-    box.addEventListener('click', e => {
+    box.addEventListener('click', async e => {
       const src = curSrc; if (!src) return;
       const b = e.target.closest('button'); if (!b) return;
       const tok = src.tok;
       if (b.id === 'sgAuto') { recognize(src); return; }
       if (b.id === 'sgVoxAdd') { $('sgVoxFile').click(); return; }
       if (b.id === 'sgLrcOut') { lrcExport(src); return; }
-      if (b.id === 'sgFill') { const n = fillMissing(src); changed(); persist(src); status(n + T(' Wörter haben jetzt einen Takt (zwischen ihren Nachbarn, an die Stimme gelegt) – anhören und ggf. ziehen; ↶ nimmt es zurück.')); return; }
+      if (b.id === 'sgFill' || b.id === 'sgFill2') { if (src.kind === 'file' && !envOf(src)) { status(T('Stimme wird ausgewertet …')); try { await voiceEnv(src); } catch (x) {} } const n = fillMissing(src); if (!n) { status(T('Keine Stimm-Einsätze gefunden – bitte „🤖 Text automatisch erkennen“ oder die ersten Wörter einklopfen, dann „Takte ergänzen“.')); return; } changed(); persist(src); status(n + T(' Wörter haben jetzt einen Takt (zwischen ihren Nachbarn, an die Stimme gelegt) – anhören und ggf. ziehen; ↶ nimmt es zurück.')); return; }
       if (b.id === 'sgFixOrder') { const n = fixOrder(src); status(n + T(' Wörter zwischen ihre Nachbarn gelegt – jetzt mit „♪ an Stimme“ oder Ziehen feinjustieren (↶ nimmt es zurück).')); return; }
       if (b.id === 'sgRegrid') { const v = parseFloat(String($('sgOldBpm').value).replace(',', '.')); if (!(v >= 40 && v <= 240)) { status(T('Bitte ein Tempo zwischen 40 und 240 BPM eintragen.')); return; } regridFrom(src, v); status(T('Text auf das jetzige Raster umgerechnet.')); return; }
       if (b.dataset.ploop != null) { startPartLoop(+b.dataset.ploop); return; }
