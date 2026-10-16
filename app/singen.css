@@ -69,3 +69,5 @@
   .sb-gap.on .sb-gaptrack { display: block; height: 12px; }
   .sb-gaptrack > i { display: block; height: 100%; background: var(--accent); transform-origin: left center; transition: transform .1s linear; border-radius: 4px; }
 
+  /* v94: Zeitbalken unter den Wörtern und Akkordbalken entfernt (zu unübersichtlich) – die Wortfarbe zeigt den Verlauf */
+  .sb-row .sb-fill, .sb-fill { display: none !important; }

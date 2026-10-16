@@ -32,7 +32,7 @@ async def main():
         pls = [float(x[:-2]) for x in r['pl']]
         check('Pause zwischen „young“ und „and“: größerer Abstand, sonst normal', pls[3] > 20 and max(pls[:3] + pls[4:]) < 1, pls)
         check('Akkorde fast so groß wie die Wörter (≥ 85 %)', r['ch'] >= 1 and r['chf'] >= 0.85 * r['wf'], (r['chf'], r['wf']))
-        check('jedes Wort mit Akkord hat einen Akkordbalken, der aktuelle läuft voll und leuchtet', r['cb'] == 5 and any(x.startswith('scaleX(0.') for x in r['q']) and r['chon'] >= 1, (r['q'], r['chon']))
+        check('v94: keine Akkordbalken mehr, klingender Akkord leuchtet', r['cb'] == 0 and r['chon'] >= 1, (r['cb'], r['chon']))
         g = []
         for bb in (21.0, 23.5):
             await pg.evaluate(SEEK % bb); await pg.wait_for_timeout(700)
