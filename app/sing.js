@@ -28,23 +28,37 @@ const Sing = (() => {
   }
   // neue Wörter übernehmen, vorhandene Zeiten behalten. v89: Wort-für-Wort-Zuordnung über den ganzen Text (längste gemeinsame
   // Folge) statt nur ±3 Plätze – beim Einfügen eines kompletten Textes verschieben sich die Wörter oft viel weiter
-  const normW = w => { const x = String(w).toLowerCase().replace(/[^\p{L}\p{N}]/gu, ''); return x || String(w); };
+  const normW = w => { const x = String(w).toLowerCase().replace(/ß/g, 'ss').normalize('NFD').replace(/[^\p{L}\p{N}]/gu, ''); return x || String(w); };
+  // v91: ähnlich genug (Erkennung hört oft leicht anders: „Strasse“/„Straße“, „hab“/„habe“)
+  function lev(a, b) { if (Math.abs(a.length - b.length) > 2) return 9; let p = Array.from({ length: b.length + 1 }, (_, j) => j);
+    for (let i = 1; i <= a.length; i++) { const c = [i]; for (let j = 1; j <= b.length; j++) c[j] = Math.min(p[j] + 1, c[j - 1] + 1, p[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); p = c; } return p[b.length]; }
+  const near = (a, b) => a === b || (Math.min(a.length, b.length) >= 4 && lev(a, b) <= (Math.min(a.length, b.length) >= 7 ? 2 : 1));
+  // Wortfolgen A, B zuordnen → Liste [i, j]: möglichst viele gleiche Wörter, zusammenhängende Folgen zählen mehr
+  // (sonst springt die Zuordnung bei einem zweimal gesungenen Refrain zwischen den Durchgängen hin und her)
+  function lcsPairs(A, B, eq) {
+    const n = A.length, m = B.length, W = m + 1, F = new Float32Array((n + 1) * W), G = new Float32Array((n + 1) * W), E = new Uint8Array(n * m);
+    for (let i = 0; i < n; i++) for (let j = 0; j < m; j++) E[i * m + j] = eq(A[i], B[j]) ? 1 : 0;
+    for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--) {
+      const k = i * W + j, sk = Math.max(F[k + W], F[k + 1]);
+      if (E[i * m + j]) { const g = G[k + W + 1]; F[k] = Math.max(sk, 1 + g); G[k] = Math.max(sk, 1.5 + g); } else { F[k] = sk; G[k] = sk; }
+    }
+    const out = []; let i = 0, j = 0, inRun = false;
+    while (i < n && j < m) {
+      const k = i * W + j, T = inRun ? G : F, here = T[k];
+      if (E[i * m + j] && Math.abs(here - ((inRun ? 1.5 : 1) + G[k + W + 1])) < 1e-4) { out.push([i, j]); i++; j++; inRun = true; continue; }
+      inRun = false; if (F[k + W] >= F[k + 1]) i++; else j++;
+    }
+    return out;
+  }
   function merge(oldT, newT) {
     const n = oldT.length, m = newT.length; if (!n || !m) return newT;
     const take = (t, o) => { t.b = o.b; if (o.k) t.k = 1; if (o.a != null) t.a = o.a; if (o.s != null) t.s = o.s; if (o.as != null) t.as = o.as; };
-    if (n * m > 6e6) {                                   // sehr lange Texte: wie früher (gleiches Wort in der Nähe)
+    if (n * m > 3e6) {                                   // sehr lange Texte: wie früher (gleiches Wort in der Nähe)
       const used = new Set();
       newT.forEach((t, i) => { for (let d = 0; d <= 3; d++) for (const j of [i + d, i - d]) { const o = oldT[j]; if (!o || used.has(j) || o.w !== t.w) continue; take(t, o); used.add(j); return; } });
       return newT;
     }
-    const A = oldT.map(t => normW(t.w)), B = newT.map(t => normW(t.w)), W = m + 1, L = new Uint16Array((n + 1) * W);
-    for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--)
-      L[i * W + j] = A[i] === B[j] ? L[(i + 1) * W + j + 1] + 1 : Math.max(L[(i + 1) * W + j], L[i * W + j + 1]);
-    let i = 0, j = 0;
-    while (i < n && j < m) {
-      if (A[i] === B[j]) { take(newT[j], oldT[i]); i++; j++; }
-      else if (L[(i + 1) * W + j] >= L[i * W + j + 1]) i++; else j++;
-    }
+    lcsPairs(oldT.map(t => normW(t.w)), newT.map(t => normW(t.w)), (x, y) => x === y).forEach(([i, j]) => take(newT[j], oldT[i]));
     return newT;
   }
 
@@ -148,7 +162,7 @@ const Sing = (() => {
       const fromCi = f => f2b(f + s.origPos, s.beats);
       const label = b => { const f = b2f(b, s.beats), D = s.downs; let i = 0; while (i + 1 < D.length && D[i + 1] <= f + 2) i++; const bb = f2b(D[i] || 0, s.beats); return (i + 1) + '.' + (Math.floor(b - bb + 1e-6) + 1); };
       return { kind: 'file', id: s.key, rec, name: s.name, title: 'Datei „' + s.name + '“', tok: rec ? rec.tok : [], editable: true, toCi, fromCi,
-        nowB: s.pos != null ? fromCi(s.pos) : null, label, L: s.L, track: ci.track, beats: s.beats, downs: s.downs, sr: s.sr, origPos: s.origPos, grid: rec && rec.grid || null, bpmDet: s.bpm, len: s.len,
+        nowB: ownP(s.key) ? ownP(s.key).nowB() : s.pos != null ? fromCi(s.pos) : null, label, L: s.L, track: ci.track, beats: s.beats, downs: s.downs, sr: s.sr, origPos: s.origPos, grid: rec && rec.grid || null, bpmDet: s.bpm, len: s.len,
         beatMs: b => (b2f(b + 1, s.beats) - b2f(b, s.beats)) / s.sr * 1000 };
     }
     return null;
@@ -616,6 +630,8 @@ const Sing = (() => {
   }
   // eigener Player: Takt in Schleife (ein Schlag Anlauf), auch langsam; oder ein einzelnes Wort
   let loopP = null, wordP = null;
+  // v91: spielt einer der eigenen Player (Schleife, ▶ ab hier, Teil ▶), ist ER die aktuelle Stelle – auch für Mitsingen
+  const ownP = id => (loopP && loopP.id === id) ? loopP : (wordP && wordP.id === id ? wordP : null);
   function mkPlayer(src, b0, b1, loop, rate) {
     const f0 = b2f(b0, src.beats), f1 = b2f(b1, src.beats); if (f0 == null || f1 == null) return null;
     const x = Looper.singAudio(src.track, Math.max(0, f0), f1); if (!x) return null;
@@ -626,6 +642,7 @@ const Sing = (() => {
     const node = ctx.createBufferSource(), g = ctx.createGain(); node.buffer = buf; node.loop = loop;
     node.connect(g); g.connect(typeof ensureMasterBus === 'function' ? ensureMasterBus() : ctx.destination);
     const t0 = ctx.currentTime + 0.05, len = y.length, sr = x.sr, fs = Math.max(0, f0); node.start(t0);
+    if (!loop) node.onended = () => { if (wordP && wordP.node === node) { wordP = null; focusSig = '*'; } };
     return { node, g, id: src.id, b0, b1, rate,
       nowB: () => { const el = ctx.currentTime - t0 - (ctx.outputLatency || 0); if (el < 0) return b0; const pf = loop ? (el * sr) % len : Math.min(len, el * sr); return f2b(fs + pf * rate, src.beats); } };
   }
@@ -978,6 +995,7 @@ const Sing = (() => {
     if (src.kind === 'none') { box.innerHTML = '<p class="caption">Diese Spur wurde ins Tempo des Loops gedehnt – dafür ist kein Gesangstext möglich. Lade die Datei ohne Anpassung.</p>'; return; }
     let h = '<div class="sg-src"><b translate="no">' + esc(src.title) + '</b>' + (src.kind === 'lied' ? '<span class="caption"> · ' + (src.editable ? 'Text aus dem Songwriting – Änderungen hier landen dort' : 'Variante – Text im Songwriting ändern') + '</span>' : '') + '</div>';
     if (src.kind === 'file') h += '<div class="sg-auto"><button class="toggle-btn' + (rec.busy ? ' active' : '') + '" id="sgAuto"' + (rec.busy ? ' disabled' : '') + '>🤖 Text automatisch erkennen</button>'
+      + (src.tok.length ? '<button class="toggle-btn" id="sgAutoKeep"' + (rec.busy ? ' disabled' : '') + '>🤖 ' + T('Nur Zeiten erkennen – mein Text bleibt') + '</button>' : '')
       + '<label class="field sg-lang"><span>Erkennung</span><select id="sgModel"><option value="base"' + (rec.model === 'base' ? ' selected' : '') + '>Genau</option><option value="tiny"' + (rec.model === 'tiny' ? ' selected' : '') + '>Sparsam (weniger Speicher)</option></select></label>'
       + '<label class="field sg-lang"><span>Sprache</span><select id="sgLang"><option value="de"' + (rec.lang === 'de' ? ' selected' : '') + '>Deutsch</option><option value="en"' + (rec.lang === 'en' ? ' selected' : '') + '>Englisch</option></select></label>'
       + '<span class="caption" id="sgAutoInfo">' + esc(rec.msg || 'Erkennt den gesungenen Text mit Zeitpunkten – danach nur noch ausbessern. Läuft komplett auf dem Gerät; beim ersten Mal werden etwa 100 MB geladen.') + '</span>'
@@ -989,7 +1007,7 @@ const Sing = (() => {
         + '<label class="check"><input type="checkbox" id="sgTrainer"' + (ui.trainer ? ' checked' : '') + '> ' + T('Tempo-Trainer: ab') + ' <select id="sgTrStart">' + [0.5, 0.6, 0.7, 0.8].map(v => '<option value="' + v + '"' + (Math.abs(ui.trStart - v) < 0.001 ? ' selected' : '') + '>' + Math.round(v * 100) + ' %</option>').join('') + '</select> ' + T('alle 2 Durchgänge +5 % bis 100 %') + '</label>'
         + (loopP && loopP.part ? '<button class="toggle-btn active" id="sgPStop">■ ' + T('Teil-Schleife') + ' · ' + Math.round(loopP.rate * 100) + ' %</button>' : '') + '</div>';
     }
-    { const nm = src.tok.filter(t => t.b == null).length, nt = src.tok.length - nm; if (nm && !ui.tapping) h += '<div class="sg-vox sg-warn"><b>⏱ ' + nm + T(' Wörter ohne Takt (–)') + '</b><span class="caption">' + (nt ? T('Sie erscheinen nicht in der Spur und beim Mitsingen.') : T('Noch kein Wort hat einen Takt – „Takte ergänzen“ legt den Text grob auf die Einsätze der Stimme (danach nachziehen). Genauer: „🤖 Text automatisch erkennen“ oder „● Einklopfen“.')) + '</span><button class="toggle-btn" id="sgFill">' + T('Takte ergänzen') + '</button></div>'; }
+    { const nm = src.tok.filter(t => t.b == null).length, nt = src.tok.length - nm; if (nm && !ui.tapping) h += '<div class="sg-vox sg-warn"><b>⏱ ' + nm + T(' Wörter ohne Takt (–)') + '</b><span class="caption">' + (nt ? T('Sie erscheinen nicht in der Spur und beim Mitsingen.') : T('Noch kein Wort hat einen Takt – „Takte ergänzen“ hört den Gesang heraus und legt deinen Text darauf.')) + '</span><button class="toggle-btn" id="sgFill">' + T('Takte ergänzen') + '</button></div>'; }
     { const bad = outOfOrder(src.tok); if (bad.length && src.editable) h += '<div class="sg-vox sg-warn"><b>⚠ ' + bad.length + T(' Wörter stehen zeitlich nicht in der Reihenfolge des Textes') + '</b><span class="caption">' + T('(z. B. nach dem Einfügen eines ganzen Textes) – deshalb springt oder hängt das Mitsingen.') + '</span><button class="toggle-btn" id="sgFixOrder">' + T('Reihenfolge reparieren') + '</button></div>'; }
     if (src.kind === 'file' && src.tok.some(t => t.b != null)) h += '<details class="sg-paste"><summary>' + T('Text passt nicht mehr zum Lied (zu früh/zu spät, läuft nicht mit)?') + '</summary><div class="sg-vox"><span class="caption">' + T('Wurde der Text mit einem anderen Tempo erstellt (z. B. 90 statt jetzt erkannt ') + Math.round(src.grid ? src.grid.bpm : src.bpmDet || 0) + ' BPM)? ' + T('Tempo von damals eintragen:') + '</span><input type="number" id="sgOldBpm" min="40" max="240" step="0.1" inputmode="decimal" style="width:5.5em"> BPM<button class="toggle-btn" id="sgRegrid">' + T('Text umrechnen') + '</button><span class="caption">' + T('Danach mit „♪ an Stimme“ oder „Rest nachprüfen“ feinjustieren; ↶ nimmt es zurück.') + '</span></div></details>';
     if (src.kind === 'file') h += '<div class="sg-vox"><b>⇄ ' + T('Austausch') + '</b><button class="toggle-btn" id="sgLrcOut">' + T('LRC exportieren') + '</button><button class="toggle-btn" id="sgLrcIn">' + T('LRC laden') + '</button><button class="toggle-btn" id="sgLead">' + T('Leadsheet (PDF)') + '</button><input type="file" id="sgLrcFile" accept=".lrc,.txt,text/plain" hidden></div>';
@@ -1056,8 +1074,10 @@ const Sing = (() => {
       const b = e.target.closest('button'); if (!b) return;
       const tok = src.tok;
       if (b.id === 'sgAuto') { recognize(src); return; }
+      if (b.id === 'sgAutoKeep') { recognize(src, true); return; }
       if (b.id === 'sgVoxAdd') { $('sgVoxFile').click(); return; }
       if (b.id === 'sgLrcOut') { lrcExport(src); return; }
+      if ((b.id === 'sgFill' || b.id === 'sgFill2') && src.kind === 'file' && !tok.some(t => t.b != null)) { if (confirm(T('Noch kein Wort hat eine Zeit. Die App hört dafür den Gesang heraus und legt deinen Text darauf (dauert ein paar Minuten, beim ersten Mal wird das Erkennungsmodell geladen). Starten?'))) recognize(src, true); return; }
       if (b.id === 'sgFill' || b.id === 'sgFill2') { if (src.kind === 'file' && !envOf(src)) { status(T('Stimme wird ausgewertet …')); try { await voiceEnv(src); } catch (x) {} } const n = fillMissing(src); if (!n) { status(T('Keine Stimm-Einsätze gefunden – bitte „🤖 Text automatisch erkennen“ oder die ersten Wörter einklopfen, dann „Takte ergänzen“.')); return; } changed(); persist(src); status(n + T(' Wörter haben jetzt einen Takt (zwischen ihren Nachbarn, an die Stimme gelegt) – anhören und ggf. ziehen; ↶ nimmt es zurück.')); return; }
       if (b.id === 'sgFixOrder') { const n = fixOrder(src); status(n + T(' Wörter zwischen ihre Nachbarn gelegt – jetzt mit „♪ an Stimme“ oder Ziehen feinjustieren (↶ nimmt es zurück).')); return; }
       if (b.id === 'sgRegrid') { const v = parseFloat(String($('sgOldBpm').value).replace(',', '.')); if (!(v >= 40 && v <= 240)) { status(T('Bitte ein Tempo zwischen 40 und 240 BPM eintragen.')); return; } regridFrom(src, v); status(T('Text auf das jetzige Raster umgerechnet.')); return; }
@@ -1159,9 +1179,10 @@ const Sing = (() => {
     if (pk > 0.01) { const g = 0.9 / pk; for (let i = 0; i < out.length; i++) out[i] *= g; }
     return out;
   }
-  async function recognize(src) {
+  async function recognize(src, keep) {
     if (rec.busy || !src || src.kind !== 'file' || typeof Looper === 'undefined' || !Looper.singAudio) return;
-    if (src.tok.length && !confirm(T('Der vorhandene Text und sein Timing werden durch die Erkennung ersetzt. Weiter?'))) return;
+    if (keep && !src.tok.length) keep = false;
+    if (!keep && src.tok.length && !confirm(T('Der vorhandene Text und sein Timing werden durch die Erkennung ersetzt. Weiter?'))) return;
     if (typeof Worker === 'undefined' || typeof WebAssembly === 'undefined') { say(T('Dieses Gerät kann die Erkennung nicht ausführen.')); return; }
     const x = audioOf(src, 0, Infinity); if (!x) { say(T('Die Audiodatei ist nicht mehr im Speicher – bitte neu laden.')); return; }
     if (Looper.stopAll) Looper.stopAll();
@@ -1190,8 +1211,30 @@ const Sing = (() => {
       }).finally(() => clearInterval(tick));
       const tok = wordsToTok(res.words, src);
       if (!tok.length) { say(T('Kein Gesang erkannt. Ist der Gesang sehr leise, oder ist die Sprache falsch eingestellt?')); }
+      else if (keep) {
+        // v91: eigenen Text behalten, nur die Zeiten der erkannten Wörter übernehmen (ähnliche Wörter zählen auch);
+        // fest gesetzte 🔒-Zeilen bleiben, was keine Entsprechung hat, kommt zwischen die Nachbarn
+        const R = db.f[src.id] = Object.assign(db.f[src.id] || {}, { name: src.name }), U = src.tok;
+        R.auto = { lang: rec.lang, at: Date.now(), mode: res.mode, keep: true };
+        say(T('Lege die Wörter an die Stimme …'), 0.98);
+        try { await voiceEnv(src); } catch (x) {}
+        const free = U.map((t, i) => i).filter(i => !U[i].k);
+        const pairs = free.length ? lcsPairs(free.map(i => normW(U[i].w)), tok.map(t => normW(t.w)), near) : [];
+        if (pairs.length) {
+          free.forEach(i => { U[i].b = null; delete U[i].a; });
+          pairs.forEach(([fi, j]) => { const t = U[free[fi]]; t.b = tok[j].b; if (tok[j].a != null) t.a = tok[j].a; });
+          // was zeitlich nicht zu den 🔒-Zeilen passt, wieder freigeben
+          outOfOrder(U).forEach(i => { if (!U[i].k) U[i].b = null; });
+        }
+        const hit = U.filter(t => !t.k && t.b != null).length;
+        if (!pairs.length) { say(T('Die Erkennung passte zu keinem Wort deines Textes – ist die Sprache richtig eingestellt?')); }
+        else {
+          const al = alignIdx(src, U.map((t, i) => i).filter(i => !U[i].k && U[i].b != null), 0.25), fil = fillMissing(src); ui.sel = -1; changed();
+          say(hit + T(' von ') + free.length + T(' Wörtern deines Textes haben ihre Zeit aus der Erkennung') + (fil ? ', ' + fil + T(' dazwischen ergänzt') : '') + (al ? ' · ' + al + T(' an die Stimme angepasst') : '') + T('. Jetzt anhören und ausbessern (↶ nimmt es zurück).'), 1);
+        }
+      }
       else {
-        db.f[src.id] = { name: src.name, tok, auto: { lang: rec.lang, at: Date.now(), mode: res.mode } }; src.tok = tok; ui.sel = -1;
+        db.f[src.id] = Object.assign(db.f[src.id] || {}, { name: src.name, tok, auto: { lang: rec.lang, at: Date.now(), mode: res.mode } }); src.tok = tok; ui.sel = -1;
         // v72: Feinabgleich – jedes Wort an den nächsten Silbenanfang (± 0,25 s)
         say(T('Lege die Wörter an die Stimme …'), 0.98);
         let al = 0; try { await voiceEnv(src); al = alignIdx(src, tok.map((t, i) => i), 0.25); } catch (x) {}
