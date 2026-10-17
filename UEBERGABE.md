@@ -1,6 +1,6 @@
 # 3nps Looper – Übergabe (vollständiger Stand)
 
-Stand: **13. Oktober 2026 · Version v88** – live unter https://tom444555.github.io/3nps/ ·
+Stand: **17. Oktober 2026 · Version v95** – live unter https://tom444555.github.io/3nps/ ·
 stabile Rückfall-Fassung **v24** unter https://tom444555.github.io/3nps/stabil/
 
 Diese Datei ist das Gedächtnis des Projekts. Alles, was ein neuer Chat wissen muss, steht hier –
@@ -58,7 +58,11 @@ Danach als Kurzprüfung: `cd /home/claude/3nps/test && node liedcheck.js && pyth
 6. Branch `entwicklung` nachziehen: geänderte Dateien nach `/home/claude/3nps-src` kopieren (inkl. `app/www/index.html`,
    neue Tests/Generatoren, diese Datei), committen, pushen.
 
-Stolperfallen: Karten sind im Grundstil senkrechte Flexboxen – für eine Zeile `flex-direction: row` setzen.
+Stolperfallen (ergänzt v95): Testserver lieber per Hintergrund-Befehl starten (`cd app/www && python3 -m http.server 8765`) – er stirbt zwischen Zügen.
+In Playwright `pg.evaluate("…;window.confirm=m=>{…}")` endet mit einer Funktion → Playwright ruft sie auf; immer `;0` anhängen.
+Nie `git add -f app` – das zieht die Whisper-Modelle (`app/www/asr/models`, ~140 MB, gitignored) in `entwicklung`; Dateien einzeln hinzufügen.
+Für `v64asr`/`v91keep` die Modelle wie in `wiederherstellen.sh` aus Branch `modelle` nach `app/www/asr/` kopieren.
+Karten sind im Grundstil senkrechte Flexboxen – für eine Zeile `flex-direction: row` setzen.
 Der Testserver stirbt zwischen den Zügen → vor jedem Test `sh test/srv.sh`. `pkill -f` mit zu allgemeinem Muster beendet die eigene Shell → gezielt PIDs beenden.
 `raw.githubusercontent.com` und fremde Seiten sind aus der Sitzung gesperrt, PyPI teils auch (z. B. `mido` fehlt) →
 eigene kleine Leser/Schreiber verwenden (MIDI-Leser steht in `test/liedexport.js`).
