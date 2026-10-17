@@ -1362,9 +1362,28 @@ html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleis
   .sb-gaptrack { flex-basis: 100%; height: 8px; border-radius: 4px; background: color-mix(in srgb, var(--line) 70%, transparent); overflow: hidden; display: none; }
   .sb-gap.on .sb-gaptrack { display: block; height: 12px; }
   .sb-gaptrack > i { display: block; height: 100%; background: var(--accent); transform-origin: left center; transition: transform .1s linear; border-radius: 4px; }
+  /* v95: ruhiges Scrollen – alle Zeilen gleich groß (kein Umbauen beim Zeilenwechsel), nur Helligkeit wechselt;
+     Pausen ändern ihre Höhe nicht; die Liste fährt einmal weich zur neuen Zeile */
+  .sb-list { transition: transform .7s cubic-bezier(.33,0,.2,1); }
+  .sb-row, .sb-row.cur { transition: opacity .45s ease; }
+  .sb-row .sb-line, .sb-row.cur .sb-line { font-size: clamp(1.5rem, 3.8vw, 2.5rem); transition: none; }
+  .sb-row .sb-tr, .sb-row.cur .sb-tr { font-size: 1rem; }
+  .sb-row { opacity: .38; }
+  .sb-row.next { opacity: .62; }
+  .sb-row.cur { opacity: 1; }
+  .sb-row .sb-w { transition: color .2s; }
+  .sb-gap, .sb-gap.on { font-size: 1rem; padding: 8px 18px; transition: opacity .3s, border-color .3s, color .3s; }
+  .sb-gap .sb-gaptrack, .sb-gap.on .sb-gaptrack { display: block; height: 10px; opacity: 0; transition: opacity .3s; }
+  .sb-gap.on .sb-gaptrack { opacity: 1; }
 
-  /* v94: Zeitbalken unter den Wörtern und Akkordbalken entfernt (zu unübersichtlich) – die Wortfarbe zeigt den Verlauf */
-  .sb-row .sb-fill, .sb-fill { display: none !important; }
+  /* v95: kompakter – Platz für Akkorde je Wort (bleibt auch beim Umbruch), Balken dicht unter dem Wort */
+  .sb-row .sb-line, .sb-row .sb-line.has-ch { line-height: 1.25; padding-top: 0; margin: 2px 0 0; }
+  .sb-row .sb-line.has-ch .sb-w { margin-top: 1.05em; }
+  .sb-row .sb-w { padding-bottom: .16em; }
+  .sb-row .sb-ch { bottom: calc(100% + .02em); }
+  .sb-row { padding: 4px 0 8px; }
+  /* v95: Pausen ohne Balken – nur die Sekunden bis zum Einsatz */
+  .sb-gap .sb-gaptrack, .sb-gap.on .sb-gaptrack, .sb-gapbar { display: none !important; }
   /* ===== Rost & Stahl: Hintergrund aus gerostetem Blech, darauf verschraubte Stahlplatten ===== */
   :root {
     --plate-hi: #3a3a40;
@@ -3164,7 +3183,7 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v94</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v95</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -15626,8 +15645,9 @@ const Singen = (() => {
     list.querySelectorAll('.sb-row.past .sb-w').forEach(el => el.classList.add('done'));
     list.querySelectorAll('.sb-row:not(.past):not(.cur) .sb-w').forEach(el => el.classList.remove('done', 'on'));
     const nx = lineOf(src, line + 1).map(t => t.w).join(' '); $('sbNext').textContent = nx;
-    const target = gap >= 0 ? list.querySelector('.sb-gap[data-g="' + gap + '"]') : row;
-    if (target) { const box = $('sbScroll'), y = target.offsetTop + target.offsetHeight / 2 - box.clientHeight * 0.4; list.style.transform = 'translateY(' + (-Math.max(0, y)).toFixed(0) + 'px)'; }
+    // v95: immer zur Zeile fahren (in einer Pause zur kommenden Zeile – die Pause steht dann darüber), Zeilenanfang bei 30 % der Höhe
+    const target = gap >= 0 ? (list.querySelector('.sb-row[data-l="' + gap + '"]') || row) : row;
+    if (target) { const box = $('sbScroll'), y = Math.round(target.offsetTop - box.clientHeight * 0.3); if (y !== setCurrent.y) { setCurrent.y = y; list.style.transform = 'translateY(' + (-Math.max(0, y)) + 'px)'; } }
   }
   function mark(i) {
     const d = res[i]; if (d == null) return '';
