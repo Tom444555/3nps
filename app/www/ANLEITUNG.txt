@@ -841,3 +841,10 @@ Gut zu wissen
      (abwechselnd gelb/blau); in der aktuellen Zeile läuft er mit und der klingende Akkord leuchtet.
    - v94: Akkordbalken und die Zeitbalken unter den Wörtern wieder entfernt (zu unübersichtlich). Der Verlauf ist an
      der Wortfarbe zu sehen (gesungen weiß, aktuelles Wort farbig, der klingende Akkord leuchtet).
+
+78. Ruhiges Mitsingen (v95)
+   - Alle Zeilen sind gleich groß; die aktuelle ist hell, die nächste halb hell, der Rest gedämpft. Beim Zeilenwechsel
+     baut sich nichts mehr um – die Liste fährt einmal weich weiter, die aktuelle Zeile steht immer an derselben Stelle
+     (gut ein Viertel von oben, die vorige Zeile bleibt darüber sichtbar).
+   - In einer Pause fährt die Liste gleich zur kommenden Zeile; die Pause mit den Sekunden steht darüber.
+   - Der mitlaufende Balken unter den Wörtern ist wieder da; Akkord- und Pausenbalken bleiben weg.

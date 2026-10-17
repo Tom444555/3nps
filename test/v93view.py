@@ -37,7 +37,7 @@ async def main():
         for bb in (21.0, 23.5):
             await pg.evaluate(SEEK % bb); await pg.wait_for_timeout(700)
             g.append(await pg.evaluate("(()=>{const e=document.querySelector('#sbList .sb-gap.on .sb-gaptrack i');return e?parseFloat(e.style.transform.slice(7)):null})()"))
-        check('Pausenbalken sichtbar und läuft herunter', g[0] is not None and g[1] is not None and g[0] > g[1] > 0, g)
+        check('Pause: Balken wird noch berechnet, ist aber seit v95 ausgeblendet', g[0] is not None and g[1] is not None and g[0] > g[1] > 0 and await pg.evaluate("getComputedStyle(document.querySelector('.sb-gaptrack')).display") == 'none', g)
         # Einfügen eines Textes ohne Zeilenumbrüche → automatisch geteilt
         await pg.click('#tab-solo'); await pg.wait_for_timeout(300); await pg.click('#sgToggle'); await pg.wait_for_timeout(400)
         await pg.evaluate("document.querySelectorAll('#sgEdit details.sg-paste').forEach(d=>d.open=true)")

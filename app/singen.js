@@ -167,8 +167,9 @@ const Singen = (() => {
     list.querySelectorAll('.sb-row.past .sb-w').forEach(el => el.classList.add('done'));
     list.querySelectorAll('.sb-row:not(.past):not(.cur) .sb-w').forEach(el => el.classList.remove('done', 'on'));
     const nx = lineOf(src, line + 1).map(t => t.w).join(' '); $('sbNext').textContent = nx;
-    const target = gap >= 0 ? list.querySelector('.sb-gap[data-g="' + gap + '"]') : row;
-    if (target) { const box = $('sbScroll'), y = target.offsetTop + target.offsetHeight / 2 - box.clientHeight * 0.4; list.style.transform = 'translateY(' + (-Math.max(0, y)).toFixed(0) + 'px)'; }
+    // v95: immer zur Zeile fahren (in einer Pause zur kommenden Zeile – die Pause steht dann darüber), Zeilenanfang bei 30 % der Höhe
+    const target = gap >= 0 ? (list.querySelector('.sb-row[data-l="' + gap + '"]') || row) : row;
+    if (target) { const box = $('sbScroll'), y = Math.round(target.offsetTop - box.clientHeight * 0.3); if (y !== setCurrent.y) { setCurrent.y = y; list.style.transform = 'translateY(' + (-Math.max(0, y)) + 'px)'; } }
   }
   function mark(i) {
     const d = res[i]; if (d == null) return '';

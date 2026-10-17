@@ -29,7 +29,7 @@ async def main():
           f=x=>parseFloat(getComputedStyle(x).fontSize);return {n:rows.length,cur:+cur.dataset.l,big:f(cur.querySelector('.sb-line')),small:f(rows[3].querySelector('.sb-line')),
           on:w&&w.textContent.replace(/[+-]?\\d+/g,''),col:w&&getComputedStyle(w).color,acc:getComputedStyle(document.documentElement).getPropertyValue('--accent'),
           ch:cur.querySelector('.sb-ch')?f(cur.querySelector('.sb-ch')):0,y:document.getElementById('sbList').style.transform}})()""")
-        check('ganzer Text als Liste, aktuelle Zeile groß', st['n'] == 6 and st['cur'] == 0 and st['big'] > st['small'] * 1.4, st)
+        check('ganzer Text als Liste, alle Zeilen gleich groß (v95: ruhig, aktuelle nur heller)', st['n'] == 6 and st['cur'] == 0 and st['big'] == st['small'] and st['big'] >= 24, st)
         acc = st['acc'].strip().lstrip('#'); rgb = 'rgb(%d, %d, %d)' % tuple(int(acc[i:i + 2], 16) for i in (0, 2, 4)) if len(acc) == 6 else ''
         check('aktuelles Wort eingefärbt (Akzentfarbe)', st['on'] in ('on', 'to', 'the') and st['col'] == rgb, (st['on'], st['col'], st['acc']))
         check('Akkorde gut lesbar (≥ 25 px)', st['ch'] >= 25, st['ch'])
