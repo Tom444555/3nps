@@ -94,13 +94,14 @@ const Looper = (() => {
   const anyRunning = () => tracks.some(t => t.src);
   const anyContent = () => tracks.some(t => t.L);
 
-  // ---- 7-Band-EQ je Spur (aufklappbar unter den Reglern) ----
+  // ---- EQ je Spur (v99: 9 Bänder, Art Channel EQ) (aufklappbar unter den Reglern) ----
   tracks.forEach(t => {
-    let v = null; try { v = JSON.parse(loadPref('3nps-eq' + t.i, 'null')); } catch (e) {}
+    let v = null; try { v = JSON.parse(loadPref('3nps-eq2-' + t.i, 'null')) || JSON.parse(loadPref('3nps-eq' + t.i, 'null')); } catch (e) {}
     t.eqVals = EQ7.norm(v); t.eq = null;
     const btn = $('eqb' + t.i), panel = $('eqp' + t.i);
+    const eqHost = $('trackEqHost'); if (eqHost) { eqHost.appendChild(panel); panel.dataset.title = (typeof T === 'function' ? T('EQ · Spur ') : 'EQ · Spur ') + (t.i + 1); panel.classList.add('t' + (t.i + 1)); }   // v99: breit unter den Spuren
     t.eqBtn = btn;
-    t.eqUi = EQ7.widget(panel, { vals: t.eqVals, presets: EQ7.PRESETS_TRACK, onChange: vals => setTrackEq(t, vals, true) });
+    t.eqUi = EQ7.widget(panel, { vals: t.eqVals, presets: EQ7.PRESETS_TRACK, onChange: vals => setTrackEq(t, vals, true), analyser: () => audioCtx ? ensureTrackEq(t).analyser() : null });
     btn.addEventListener('click', () => { panel.hidden = !panel.hidden; btn.setAttribute('aria-expanded', String(!panel.hidden)); btn.classList.toggle('open', !panel.hidden); if (!panel.hidden) t.eqUi.draw(); });
     showEqBtn(t);
   });
@@ -114,7 +115,7 @@ const Looper = (() => {
     t.eqVals = EQ7.norm(vals);
     if (t.eq) t.eq.set(t.eqVals, true);
     if (!fromUi) t.eqUi.set(t.eqVals);
-    savePref('3nps-eq' + t.i, JSON.stringify(t.eqVals)); showEqBtn(t); markDirty();
+    savePref('3nps-eq' + t.i, JSON.stringify(EQ7.legacy(t.eqVals))); savePref('3nps-eq2-' + t.i, JSON.stringify(t.eqVals)); showEqBtn(t); markDirty();
   }
 
   // ---- Drums: gemeinsames Schlagzeug (rhythm.js) läuft im Raster des Loops ----
@@ -2987,7 +2988,7 @@ const Looper = (() => {
       tracks: tracks.map(t => {
         if (!t.L) return null;
         const m = t.mix, mono = sameData(m);
-        const o = { L: t.L, enc: 'i24', dl: enc24(m.l), vol: parseInt(t.vol.value), eq: t.eqVals.slice() };
+        const o = { L: t.L, enc: 'i24', dl: enc24(m.l), vol: parseInt(t.vol.value), eq: EQ7.legacy(t.eqVals), eq2: EQ7.norm(t.eqVals) };
         if (!mono) o.dr = enc24(m.r);
         return o;
       })
@@ -3011,12 +3012,12 @@ const Looper = (() => {
   }
   async function sessionMixEq(sess) {
     const ts = sess.tracks.filter(Boolean); if (!ts.length) return null;
-    if (ts.every(t => EQ7.isFlat(t.eq))) return sessionMix(sess);
+    if (ts.every(t => EQ7.isFlat(t.eq2 || t.eq))) return sessionMix(sess);
     const gcd = (a, b) => b ? gcd(b, a % b) : a; let mult = 1;
     ts.forEach(t => { const n = Math.max(1, Math.round(t.L / sess.baseL)); mult = mult * n / gcd(mult, n); });
     const total = sess.baseL * Math.min(mult, 16), out = S(total);
     for (const t of ts) {
-      const g = (t.vol != null ? t.vol : 90) / 100, d = await EQ7.render(sessTrackData(t), t.eq, sess.sr);
+      const g = (t.vol != null ? t.vol : 90) / 100, d = await EQ7.render(sessTrackData(t), t.eq2 || t.eq, sess.sr);
       for (let i = 0; i < total; i++) { const j = i % t.L; out.l[i] += d.l[j] * g; out.r[i] += d.r[j] * g; }
     }
     const keep = sr; sr = sess.sr; const w = toWav(out); sr = keep;
@@ -3036,7 +3037,7 @@ const Looper = (() => {
       const L = Math.max(1, Math.round(st.L / sess.baseL)) * baseL;
       t.layers = [Math.abs(q - 1) < 1e-6 ? f : resample(f, L)]; t.L = L; rebuildMix(t);
       if (st.vol != null) { t.vol.value = st.vol; t.volV.textContent = st.vol; }
-      setTrackEq(t, st.eq || EQ7.flat(), false);
+      setTrackEq(t, st.eq2 || st.eq || EQ7.flat(), false);
     });
     anchor = startAnchor('play');
     tracks.forEach(t => { if (t.L) { startTrack(t); t.state = 'playing'; detectTrackKey(t); } });
@@ -3090,7 +3091,7 @@ const Looper = (() => {
   }
 
   return {
-    getMix, loadSamples, update, position, getSession, sessionMix, sessionSecs, sessionMixEq, loadSession, setTrackEq: (i, v) => setTrackEq(tracks[i], v, false), getTrackEq: i => tracks[i].eqVals.slice(), getDroneState, setDroneState,
+    getMix, loadSamples, update, position, getSession, sessionMix, sessionSecs, sessionMixEq, loadSession, setTrackEq: (i, v) => setTrackEq(tracks[i], v, false), getTrackEq: i => EQ7.norm(tracks[i].eqVals), getDroneState, setDroneState,
     isEmpty: () => !anyContent(),
     foot: i => foot(tracks[i]),
     exportLogic: () => exportLogic(),

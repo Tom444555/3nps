@@ -100,6 +100,21 @@ function synthKit(sr) {
       return fadeTail(norm(o, [0.55, 0.7, 0.8][v]), 0.08);
     },
     tomh(v, r) { return tom(v, r, 148, 0.45); },
+    tomm(v, r) { return tom(v, r, 118, 0.55); },   // v99: drei Toms
+    // v99: halb offene Hi-Hat, Rimshot, Ride-Glocke, Kuhglocke
+    hhh(v, r) { const o = hat(v, r, 'o'), n = Math.min(o.length, N(0.6)), x = o.slice(0, n); for (let i = 0; i < n; i++) x[i] *= Math.exp(-i / (sr * 0.13)); return fadeTail(norm(x, [0.28, 0.36, 0.44][v]), 0.06); },
+    snrim(v, r) { const s = V.snare(Math.min(2, v + 1), r), c = V.rim(2, r); mulAdd(s, c, 0.55); sat(s, 1.3); return fadeTail(norm(s, 0.92), 0.1); },
+    bell(v, r) {
+      const n = N(2.2), hard = [0.5, 0.8, 1][v];
+      const o = partials(n, [[612 * (1 + (r() - 0.5) * 0.01), 0.5, 1.1], [1488, 0.38, 0.8], [2577, 0.28, 0.55], [3720, 0.18, 0.4], [5230, 0.1, 0.25]], r);
+      const tk = chain(noise(N(0.02), r), ['bp', 4800, 1]); mulAdd(o, tk, 0.6 * hard, env(tk.length, 0.0001, [0.003], [1]));
+      return fadeTail(norm(o, [0.32, 0.42, 0.5][v]), 0.3);
+    },
+    cowbell(v, r) {
+      const n = N(0.5), o = partials(n, [[562, 1, 0.09], [845, 0.75, 0.07], [1690, 0.2, 0.03]], r);
+      const c = chain(noise(N(0.01), r), ['bp', 2500, 1.2]); mulAdd(o, c, 0.5, env(c.length, 0.0001, [0.0015], [1]));
+      return fadeTail(norm(chain(o, ['bp', 800, 0.8]), [0.35, 0.45, 0.52][v]), 0.05);
+    },
     toml(v, r) { return tom(v, r, 94, 0.7); },
     hhc(v, r) { return hat(v, r, 'c'); },
     hho(v, r) { return hat(v, r, 'o'); },

@@ -1,6 +1,10 @@
-Echtes Schlagzeug (3nps v98)
+Echte Schlagzeuge (3nps v98/v99) – alle gemeinfrei (Creative Commons CC0 1.0)
 
-Die Schläge in kit.flac stammen aus „Virtuosity Drums“ (sfzinstruments/virtuosity_drums,
-https://github.com/sfzinstruments/virtuosity_drums), gespielt von Austin McMahon, aufgenommen bei
-Virtuosity Musical Instruments, Boston. Veröffentlicht unter Creative Commons CC0 1.0 (gemeinfrei).
-Für die App ausgewählt, gekürzt, im Pegel angeglichen und zu einer Datei zusammengefasst (test/gen_drumkit.py).
+jazz.flac  – „Virtuosity Drums“ (https://github.com/sfzinstruments/virtuosity_drums), gespielt von Austin McMahon,
+             aufgenommen bei Virtuosity Musical Instruments, Boston.
+rock.flac,
+brush.flac – „Big Rusty Drums“ von Karoryfer Samples (https://github.com/sfzinstruments/karoryfer.big-rusty-drums).
+Kuhglocke  – „Swirly Drums“ von Karoryfer Samples (https://github.com/sfzinstruments/karoryfer.swirly-drums).
+
+Für die App ausgewählt (je Instrument 3 Anschlagstärken, bis zu 2 Varianten), Mikrofone gemischt, gekürzt, im Pegel
+angeglichen und je Kit zu einer Datei zusammengefasst (test/gen_drumkit.py).

@@ -11,12 +11,17 @@ const Rhythm = (() => {
     { id: 'ride', name: 'Ride', midi: 51, pan: 0.32, gain: 0.85 },
     { id: 'hho', name: 'HH offen', midi: 46, pan: 0.22, gain: 0.8 },
     { id: 'hhc', name: 'HH zu', midi: 42, pan: 0.22, gain: 0.85 },
+    { id: 'hhh', name: 'HH halb', midi: 46, pan: 0.22, gain: 0.8 },
     { id: 'hhp', name: 'HH Fuß', midi: 44, pan: 0.2, gain: 0.8 },
+    { id: 'bell', name: 'Ride-Glocke', midi: 53, pan: 0.32, gain: 0.8 },
+    { id: 'cowbell', name: 'Kuhglocke', midi: 56, pan: -0.2, gain: 0.75 },
     { id: 'shaker', name: 'Shaker', midi: 70, pan: -0.32, gain: 0.8 },
     { id: 'rim', name: 'Rim', midi: 37, pan: 0.04, gain: 0.85 },
     { id: 'clap', name: 'Clap', midi: 39, pan: 0, gain: 0.8 },
     { id: 'snare', name: 'Snare', midi: 38, pan: 0.04, gain: 1 },
-    { id: 'tomh', name: 'Tom', midi: 48, pan: -0.16, gain: 0.9 },
+    { id: 'snrim', name: 'Rimshot', midi: 40, pan: 0.04, gain: 0.95 },
+    { id: 'tomh', name: 'Tom 1', midi: 48, pan: -0.16, gain: 0.9 },
+    { id: 'tomm', name: 'Tom 2', midi: 45, pan: 0.06, gain: 0.9 },
     { id: 'toml', name: 'Stand-Tom', midi: 43, pan: 0.26, gain: 0.95 },
     { id: 'kick', name: 'Kick', midi: 36, pan: 0, gain: 1 }
   ];
@@ -150,17 +155,17 @@ const Rhythm = (() => {
   let roomOn = true; try { roomOn = localStorage.getItem('3nps-drumroom') !== '0'; } catch (e) {}   // Raumhall der Drums
   // 7-Band-EQ für die Drums
   let drumEq = EQ7.flat();
-  try { drumEq = EQ7.norm(JSON.parse(localStorage.getItem('3nps-eq-drums') || 'null')); } catch (e) {}
+  try { drumEq = EQ7.norm(JSON.parse(localStorage.getItem('3nps-eq2-drums') || 'null') || JSON.parse(localStorage.getItem('3nps-eq-drums') || 'null')); } catch (e) {}
   const eqBtn = document.getElementById('drumEqBtn'), eqPanel = document.getElementById('drumEqPanel');
   const showEqBtn = () => { const on = !EQ7.isFlat(drumEq); eqBtn.classList.toggle('on', on); eqBtn.textContent = on ? 'EQ ●' : 'EQ'; };
   function setDrumEq(v, fromUi) {
     drumEq = EQ7.norm(v);
     if (bus) bus.eq.set(drumEq, true);
     if (!fromUi) eqUi.set(drumEq);
-    try { localStorage.setItem('3nps-eq-drums', JSON.stringify(drumEq)); } catch (e) {}
+    try { localStorage.setItem('3nps-eq-drums', JSON.stringify(EQ7.legacy(drumEq))); localStorage.setItem('3nps-eq2-drums', JSON.stringify(drumEq)); } catch (e) {}
     showEqBtn();
   }
-  const eqUi = EQ7.widget(eqPanel, { vals: drumEq, presets: EQ7.PRESETS_DRUMS, onChange: v => setDrumEq(v, true) });
+  const eqUi = EQ7.widget(eqPanel, { vals: drumEq, presets: EQ7.PRESETS_DRUMS, onChange: v => setDrumEq(v, true), analyser: () => { if (typeof audioCtx === 'undefined' || !audioCtx) return null; return ensureBus().eq.analyser(); } });
   eqBtn.addEventListener('click', () => { eqPanel.hidden = !eqPanel.hidden; eqBtn.setAttribute('aria-expanded', String(!eqPanel.hidden)); eqBtn.classList.toggle('active', !eqPanel.hidden); if (!eqPanel.hidden) eqUi.draw(); });
   showEqBtn();
   const KIT_SR = 48000;
@@ -226,22 +231,32 @@ const Rhythm = (() => {
     if (bus) { try { if (roomOn) bus.wet.connect(bus.sum); else bus.wet.disconnect(); } catch (e) {} }
   }
   if (roomBtn) { roomBtn.addEventListener('click', () => setRoom(!roomOn)); setRoom(roomOn); }
-  // ---- v98: echtes Schlagzeug (Aufnahmen „Virtuosity Drums“, CC0) als Option; Synthese bleibt (und spielt Clap/Shaker) ----
-  let realOn = false, kitReal = null, realBusy = null, realErr = '';
-  try { realOn = localStorage.getItem('3nps-drumkit') === 'real'; } catch (e) {}
-  const kitBtn = document.getElementById('drumKitBtn');
+  // ---- v98/v99: echte Schlagzeuge (Aufnahmen, alle CC0) als Option; Synthese bleibt ----
+  // Kits: jazz = „Virtuosity Drums“, rock = „Big Rusty Drums“ (Sticks), brush = „Big Rusty Drums“ (Besen)
+  const KITS = { synth: 'Synthese', jazz: 'Jazz / Club (echt)', rock: 'Rock (echt)', brush: 'Besen (echt)' };
+  const ALIAS = { tomm: 'tomh', snrim: 'snare', hhh: 'hho', bell: 'ride' };   // fehlt ein Instrument im Kit: nächstes passendes
+  let kitName = 'synth', kitReal = null, kitRealName = '', realBusy = null, realErr = '';
+  try { const k = localStorage.getItem('3nps-drumkit'); kitName = k === 'real' ? 'jazz' : KITS[k] ? k : 'synth'; } catch (e) {}
+  let realOn = kitName !== 'synth';
+  const kitSel = document.getElementById('drumKitSel');
+  const TT = x => (typeof T === 'function' ? T(x) : x);
+  if (kitSel) { kitSel.innerHTML = Object.entries(KITS).map(([k, n]) => '<option value="' + k + '">' + TT(n) + '</option>').join(''); }
   function paintKitBtn() {
-    if (!kitBtn) return;
-    const label = !realOn ? 'Kit: Synth' : kitReal ? 'Kit: Echt' : realBusy ? 'Kit: lädt …' : 'Kit: Echt';
-    kitBtn.textContent = typeof T === 'function' ? T(label) : label; kitBtn.classList.toggle('active', realOn && !!kitReal); kitBtn.setAttribute('aria-pressed', String(realOn));
-    kitBtn.title = (typeof T === 'function' ? T : x => x)(realErr ? 'Echtes Kit konnte nicht geladen werden – es spielt die Synthese.' : 'Schlagzeug-Klang: Synthese oder echtes Kit (Aufnahmen, einmalig ca. 4 MB)');
+    if (!kitSel) return;
+    kitSel.value = kitName;
+    const busyTxt = TT('lädt …'), o = kitSel.querySelector('option[value="' + kitName + '"]');
+    kitSel.querySelectorAll('option').forEach(x => { x.textContent = TT(KITS[x.value]) + (x === o && realBusy ? ' – ' + busyTxt : ''); });
+    kitSel.classList.toggle('active', realOn && !!kitReal);
+    kitSel.title = TT(realErr ? 'Echtes Kit konnte nicht geladen werden – es spielt die Synthese.' : 'Schlagzeug-Klang: Synthese oder echtes Kit (Aufnahmen, einmalig ca. 5 MB je Kit)');
   }
   function loadReal() {
-    if (kitReal || realBusy) return realBusy || Promise.resolve(kitReal);
+    const want = kitName; if (want === 'synth') return Promise.resolve(null);
+    if (kitReal && kitRealName === want) return Promise.resolve(kitReal);
+    if (realBusy && realBusy.kit === want) return realBusy;
     if (typeof ensureAudio === 'function') ensureAudio();
     realErr = '';
-    realBusy = (async () => {
-      const [ix, ab] = await Promise.all([fetch('drums/kit.json').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }), fetch('drums/kit.flac').then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })]);
+    const pr = (async () => {
+      const [ix, ab] = await Promise.all([fetch('drums/' + want + '.json').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }), fetch('drums/' + want + '.flac').then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })]);
       const all = await audioCtx.decodeAudioData(ab), sr = all.sampleRate, nc = all.numberOfChannels, g = 1 / (ix.gain || 1), K = {};
       const ch = [all.getChannelData(0), all.getChannelData(nc > 1 ? 1 : 0)];
       Object.entries(ix.hits).forEach(([id, layers]) => {
@@ -251,15 +266,20 @@ const Rhythm = (() => {
           return b;
         }));
       });
-      kitReal = K; return K;
-    })().catch(e => { realErr = String(e && e.message || e); realOn = false; return null; }).finally(() => { realBusy = null; paintKitBtn(); });
-    paintKitBtn(); return realBusy;
+      if (kitName === want) { kitReal = K; kitRealName = want; }   // nur das gewählte Kit im Speicher halten
+      return K;
+    })().catch(e => { realErr = String(e && e.message || e); if (kitName === want) { realOn = false; kitName = 'synth'; } return null; })
+      .finally(() => { if (realBusy === pr) realBusy = null; paintKitBtn(); });
+    pr.kit = want; realBusy = pr; paintKitBtn(); return pr;
   }
-  function setKit(real) {
-    realOn = !!real; try { localStorage.setItem('3nps-drumkit', realOn ? 'real' : 'synth'); } catch (e) {}
+  function setKit(k) {
+    k = k === true ? 'jazz' : k === false ? 'synth' : KITS[k] ? k : 'synth';
+    kitName = k; realOn = k !== 'synth'; if (kitRealName !== k) { kitReal = null; kitRealName = ''; }
+    try { localStorage.setItem('3nps-drumkit', k); } catch (e) {}
     if (realOn) loadReal(); paintKitBtn();
+    document.dispatchEvent(new CustomEvent('drumkit', { detail: k }));
   }
-  if (kitBtn) kitBtn.addEventListener('click', () => setKit(!realOn));
+  if (kitSel) kitSel.addEventListener('change', () => setKit(kitSel.value));
   if (realOn) setTimeout(loadReal, 600);
   paintKitBtn();
   function connectBus(v) {
@@ -269,12 +289,12 @@ const Rhythm = (() => {
   function setLite(v) { /* Klang bleibt im Sparmodus unverändert */ }
   function hit(id, t, v) {
     const b = ensureBus(); if (!b.linked) connectBus(true);
-    if (id === 'hhc' || id === 'hhp') { if (b.open) { try { b.open.gain.cancelScheduledValues(t); b.open.gain.setTargetAtTime(0, t, 0.012); } catch (e) {} b.open = null; } }
+    if (id === 'hhc' || id === 'hhp' || id === 'hhh') { if (b.open) { try { b.open.gain.cancelScheduledValues(t); b.open.gain.setTargetAtTime(0, t, 0.012); } catch (e) {} b.open = null; } }
     if (!kit) { // einfache Ersatzstimmen
       if (id === 'kick') playKick(t, b); else if (id === 'snare' || id === 'clap' || id === 'rim') playSnare(t, b); else if (id !== 'crash' && id !== 'tomh' && id !== 'toml') playHihat(t, v > 0.8, b);
       return;
     }
-    const real = realOn && kitReal && kitReal[id], layers = real || kit[id]; if (!layers) return;   // v98: echtes Kit, wo vorhanden
+    const real = realOn && kitReal && (kitReal[id] || kitReal[ALIAS[id]]), layers = real || kit[id] || kit[ALIAS[id]]; if (!layers) return;   // echtes Kit, wo vorhanden
     const L = v < 0.5 ? 0 : v < 0.86 ? 1 : 2, arr = layers[L], buf = arr[(Math.random() * arr.length) | 0];
     const s = audioCtx.createBufferSource(); s.buffer = buf;
     s.playbackRate.value = 1 + (Math.random() - 0.5) * 0.012;
@@ -282,7 +302,7 @@ const Rhythm = (() => {
     s.connect(g); g.connect(b.ch[id]); s.start(t);
     vEnd(s, [g]);                                   // nach dem Ausklingen abklemmen (Safari hält sonst alles im Graphen)
     pend.push([t, s]);
-    if (id === 'hho') b.open = g;
+    if (id === 'hho' || id === 'hhh') b.open = g;
   }
   // Geplante, noch nicht erklungene Schläge – bei einem Rastersprung (neuer Loop-Anfang) werden sie verworfen
   const pend = [];
@@ -327,12 +347,29 @@ const Rhythm = (() => {
     const isFill = ((bar % n) + n) % n === n - 1, after = bar > 0 && ((bar % n) + n) % n === 0;
     if (!isFill) return { p: pat, crash: after };
     const p = {}; IDS.forEach(id => { p[id] = pat[id].slice(); });
-    const from = res === 16 ? 8 : 6, z = (id, s, v) => { p[id][s] = v; };
-    for (let s = from; s < res; s++) ['hhc', 'hho', 'ride', 'shaker', 'rim', 'clap', 'snare', 'tomh', 'toml', 'crash'].forEach(id => z(id, s, 0));
-    if (res === 16) { [8, 9, 10, 11].forEach((s, i) => z('snare', s, i % 2 ? 1 : 2)); [12, 13].forEach(s => z('tomh', s, s === 12 ? 2 : 1)); [14, 15].forEach(s => z('toml', s, s === 14 ? 2 : 1)); z('kick', 12, 1); }
-    else { [6, 7, 8].forEach((s, i) => z('snare', s, i ? 1 : 2)); [9, 10].forEach(s => z('tomh', s, s === 9 ? 2 : 1)); z('toml', 11, 2); z('kick', 9, 1); }
+    // v99: Fill-Komplexität bestimmt Länge und Dichte (Snare → Toms, bei viel auch Kick darunter)
+    const fc = typeof dr !== 'undefined' ? dr.fcx : 50, beat = res / 4, from = fc < 30 ? 3 * beat : 2 * beat;
+    const step = fc < 55 && res === 16 ? 2 : 1;
+    for (let s = from; s < res; s++) ['hhc', 'hhh', 'hho', 'ride', 'bell', 'shaker', 'cowbell', 'rim', 'clap', 'snare', 'snrim', 'tomh', 'tomm', 'toml', 'crash'].forEach(id => { p[id][s] = 0; });
+    const drums = fc < 40 ? ['snare'] : fc < 70 ? ['snare', 'snare', 'tomh', 'toml'] : ['snare', 'tomh', 'tomm', 'toml'];
+    const hits = []; for (let s = from; s < res; s += step) hits.push(s);
+    hits.forEach((s, i) => { const seg = Math.min(drums.length - 1, Math.floor(i / hits.length * drums.length)), id = drums[seg]; p[id][s] = (s - from) % beat === 0 ? 2 : 1; });
+    if (fc >= 70) for (let s = from; s < res; s += beat / (res === 16 ? 2 : 1.5) | 0) p.kick[s] = 1;
+    else p.kick[from] = Math.max(p.kick[from], 1);
     return { p, crash: false };
   }
+  // v99: Swing auf Achteln (1/8) oder Sechzehnteln (1/16); Intensität/Dynamik; Feel (Pull = später, Push = früher)
+  function swingDelay(step, sw, sd) {
+    if (typeof dr !== 'undefined' && dr.swu === 16) return step % 2 === 1 ? sw * sd * 2 / 3 : 0;
+    return step % 4 === 2 ? sw * sd * 2 / 3 : step % 2 === 1 ? sw * sd / 3 : 0;
+  }
+  function drVel(v) {
+    if (typeof dr === 'undefined') return v;
+    v = 0.75 + (v - 0.75) * (dr.dyn / 50);
+    return Math.max(0.05, v * (0.62 + 0.5 * dr.inten / 100));
+  }
+  const FEEL_IDS = { snare: 1, snrim: 1, rim: 1, clap: 1, hhc: 1, hhh: 1, hho: 1, ride: 1, bell: 1, shaker: 1, cowbell: 1 };
+  function drFeel(id) { return typeof dr !== 'undefined' && FEEL_IDS[id] ? -dr.feel / 100 * 0.018 : 0; }
   let lastSd = 0;
   function tick() {
     if (!audioCtx) return;
@@ -355,7 +392,7 @@ const Rhythm = (() => {
     // 0,3 s Vorlauf: kurze Hänger der Oberfläche (Speicher aufräumen, Zeichnen, Laden) verschieben keinen Schlag
     while (nextT < now + AHEAD) {
       const si = stepInfo(nextT, g), step = si.step;
-      const delay = step % 4 === 2 ? sw * sd * 2 / 3 : step % 2 === 1 ? sw * sd / 3 : 0;
+      const delay = swingDelay(step, sw, sd);
       const tt = Math.max(now, nextT + delay);
       if (on) {
         const bp = barPattern(si.bar), beatLen = res / 4;
@@ -364,9 +401,10 @@ const Rhythm = (() => {
           if (bp.crash && step === 0 && (id === 'crash' || id === 'kick')) lv = Math.max(lv === 3 ? 1 : lv, 2);
           if (!lv || muted[id]) return;
           let v = VEL[lv];
-          if (lv === 1 && (id === 'hhc' || id === 'ride' || id === 'shaker' || id === 'hho')) v *= step % beatLen === 0 ? 1.08 : (res === 16 && step % 2 ? 0.82 : 0.92);
+          if (lv === 1 && (id === 'hhc' || id === 'hhh' || id === 'ride' || id === 'shaker' || id === 'hho')) v *= step % beatLen === 0 ? 1.08 : (res === 16 && step % 2 ? 0.82 : 0.92);
+          v = drVel(v);                                   // v99: Intensität und Dynamik
           v *= 1 + (Math.random() - 0.5) * 0.3 * hu;
-          const jt = (Math.random() - 0.5) * 0.012 * hu;
+          const jt = (Math.random() - 0.5) * 0.012 * hu + drFeel(id);
           if (tt + jt < now) lateHits++;
           hit(id, Math.max(now, tt + jt), Math.min(1.05, Math.max(0.08, v)));
         });
@@ -431,28 +469,33 @@ const Rhythm = (() => {
   }
   gridEl.addEventListener('click', e => {
     const c = e.target.closest('.dg-cell');
-    if (c) { const a = pat[c.dataset.i], k = +c.dataset.k; a[k] = [1, 2, 3, 0][a[k] | 0]; c.dataset.v = a[k]; saveCustom(); if (a[k] && !on) preview1(c.dataset.i, a[k]); return; }
+    if (c) { const a = pat[c.dataset.i], k = +c.dataset.k; a[k] = [1, 2, 3, 0][a[k] | 0]; c.dataset.v = a[k]; saveCustom(); markManual(); if (a[k] && !on) preview1(c.dataset.i, a[k]); return; }
     const m = e.target.closest('.dg-name');
     if (m) { muted[m.dataset.mute] = !muted[m.dataset.mute]; paint(); }
   });
+  function markManual() { if (typeof dr === 'undefined') return; dr.manual = true; setPref('3nps-drummer', JSON.stringify(dr)); if (typeof paintDr === 'function') paintDr(); }
   function preview1(id, lv) { ensureAudio(); ensureBus(); hit(id, audioCtx.currentTime + 0.01, VEL[lv]); }
   styleEl.addEventListener('change', () => {
     const v = styleEl.value;
     if (v === 'custom' || findUser(v)) { setPref('3nps-drumstyle', v); loadState(); if (findUser(v)) { swingEl.value = findUser(v).swing || 0; setPref('3nps-swing', swingEl.value); } }
     else { const pr = byKey[v]; presetKey = v; res = pr.res; pat = fromPreset(pr); swingEl.value = pr.swing; setPref('3nps-swing', swingEl.value); setPref('3nps-drumstyle', v); }
     buildGrid(); showSaveUi();
+    if (typeof dr !== 'undefined' && v !== 'custom') {   // v99: neuer Stil – Drummer-Stufen auf „Vorlage“
+      const bp = basePattern().p; dr.lvC = 4; dr.lvK = 4; dr.seed = 0; dr.cym = 'auto'; dr.tp = 'std'; dr.perc = bp.shaker.some(Boolean) || bp.cowbell.some(Boolean); if (dr.perc) dr.pc = bp.shaker.some(Boolean) ? 'shaker' : 'cowbell';
+      dr.cx = 43; applyDrummer(true);
+    } else if (typeof paintDr === 'function') paintDr();
   });
   resEl.addEventListener('change', () => {
     const nr = parseInt(resEl.value); if (nr === res) return;
     // Muster umrechnen: Schläge bleiben auf den Schlägen
     const np = blank(nr), bl = res / 4, nbl = nr / 4;
     IDS.forEach(id => { for (let s = 0; s < res; s++) if (pat[id][s]) { const beat = Math.floor(s / bl), frac = (s % bl) / bl, ns = beat * nbl + Math.round(frac * nbl); if (ns < nr && !np[id][ns]) np[id][ns] = pat[id][s]; } });
-    res = nr; pat = np; saveCustom(); buildGrid();
+    res = nr; pat = np; saveCustom(); markManual(); buildGrid();
   });
   swingEl.addEventListener('input', () => { setPref('3nps-swing', swingEl.value); paint(); });
   humanEl.addEventListener('input', () => { setPref('3nps-human', humanEl.value); paint(); });
   fillsEl.addEventListener('change', () => setPref('3nps-fills', fillsEl.value));
-  $('drumClear').addEventListener('click', () => { pat = blank(res); saveCustom(); paint(); });
+  $('drumClear').addEventListener('click', () => { pat = blank(res); saveCustom(); markManual(); paint(); });
   $('drumSaveBtn').addEventListener('click', () => {
     const nameIn = $('drumSaveName'); let name = nameIn.value.trim();
     if (!name) name = T('Mein Muster ') + (user.length + 1);
@@ -481,6 +524,200 @@ const Rhythm = (() => {
   dgBtn.addEventListener('click', () => showDesigner(dgPanel.hidden));
   showDesigner(pref('3nps-designer', '0') === '1');
   buildGrid(); showSaveUi();
+  // ================= v99: Drummer (Art Logic „Drummer“) =================
+  // Erzeugt das Muster aus dem gewählten Stil und Reglern: Komplexität/Intensität, Muster-Stufen für Becken und Kick/Snare (1–8,
+  // Stufe 4 = Vorlage), Fills, Swing, Ghost Notes, Feel, Dynamik, Snare-/Hi-Hat-Spielweise, Percussion, Tempo.
+  // „Manuell“ ist das bisherige Raster; wer dort etwas ändert, behält sein Muster, bis ein Drummer-Regler bewegt wird.
+  const DR0 = { cx: 50, inten: 60, lvC: 4, lvK: 4, cym: 'auto', perc: false, kick: true, snare: true, fill: 30, fcx: 50, swu: 16, ghost: 25, feel: 0, dyn: 50, sn: 'auto', hh: 'closed', pc: 'shaker', tp: 'std', seed: 0, manual: false };
+  let dr = Object.assign({}, DR0); try { dr = Object.assign({}, DR0, JSON.parse(pref('3nps-drummer', 'null')) || {}); } catch (e) {}
+  const saveDr = () => setPref('3nps-drummer', JSON.stringify(dr));
+  const CYMT = {
+    16: [null, 'X...x...x...x...', 'X.g.x.g.x.g.x.g.', 'X.x.x.x.X.x.x.x.', null, 'X.xgx.xgX.xgx.xg', 'XxxxXxxxXxxxXxxx', 'XxxxXxxxXxxxXxox', 'XxxxXxoxXxxxXxox'],
+    12: [null, 'X..x..x..x..', 'X.gx.gx.gx.g', 'X.xX.xX.xX.x', null, 'X.xXgxX.xXgx', 'XxxXxxXxxXxx', 'XxxXxxXxxXxo', 'XxxXxoXxxXxo']
+  };
+  const KT = {
+    16: [null, ['X.......X.......', '....X.......X...'], ['X.......X.x.....', '....X.......X...'], ['X.....x.X.......', '....X.......X...'], null,
+      ['X.....x.X.x.....', '....X..g....X...'], ['X..x..x.X.x.....', '....X..g.g..X..g'], ['X..x..x...x..x..', '....X..g.g..X.gx'], ['X.xx..x.X.xx..x.', 'g...X.gg.g.gX.gx']],
+    12: [null, ['X.....X.....', '...X.....X..'], ['X.....X..x..', '...X.....X..'], ['X..x..X..x..', '...X.....X..'], null,
+      ['X..x..X..x.x', '..gX.....X.g'], ['X..x.xX..x..', '..gX.g..gX.g'], ['X.xx..X.xx..', '..gX.gg.gX.g'], ['X.xx.xX.xx.x', 'g.gX.gg.gX.g']]
+  };
+  const GHOST = { 16: [7, 9, 15, 3, 10, 13, 1, 5, 11, 14], 12: [2, 8, 11, 5, 1, 7] };
+  const CYMIDS = ['hhc', 'hhh', 'hho', 'ride', 'bell'];
+  const lvOf = c => c === 'X' ? 2 : c === 'x' ? 1 : c === 'g' ? 3 : c === 'o' ? 1 : 0;
+  function rnd(seed) { let a = (seed * 2654435761 + 1013904223) >>> 0 || 1; return () => { a ^= a << 13; a ^= a >>> 17; a ^= a << 5; return (a >>> 0) / 4294967296; }; }
+  function basePattern() {
+    if (byKey[presetKey]) return { res: byKey[presetKey].res, p: fromPreset(byKey[presetKey]) };
+    const u = findUser(presetKey), src = u ? u : (() => { try { return JSON.parse(pref('3nps-drumpattern2', 'null')); } catch (e) { return null; } })();
+    if (src && src.steps) { const r = src.res === 12 ? 12 : 16, p = blank(r); IDS.forEach(id => { if (src.steps[id]) for (let k = 0; k < r; k++) p[id][k] = src.steps[id][k] | 0; }); return { res: r, p }; }
+    return { res, p: pat };
+  }
+  const cymOfBase = p => ['ride', 'hhc', 'hhh', 'hho'].find(id => p[id].some(Boolean)) || '';
+  function genPattern() {
+    const B = basePattern(), r = B.res, p = {}, rd = rnd(dr.seed * 7919 + r);
+    IDS.forEach(id => { p[id] = B.p[id].slice(); });
+    // ---- Becken ----
+    const bc = cymOfBase(B.p), mode = dr.cym === 'auto' ? (bc === 'ride' ? 'ride' : bc ? 'hh' : 'off') : dr.cym;
+    if (mode === 'off') CYMIDS.forEach(id => p[id].fill(0));
+    else {
+      let src = null;
+      if (dr.lvC === 4 && bc) { const row = B.p[bc]; src = row.map(v => v === 2 ? 'X' : v === 1 ? 'x' : v === 3 ? 'g' : '.'); if (bc !== 'hho') B.p.hho.forEach((v, k) => { if (v) src[k] = 'o'; }); }
+      else src = (CYMT[r][dr.lvC] || CYMT[r][3]).split('');
+      CYMIDS.forEach(id => p[id].fill(0));
+      const main = mode === 'ride' ? 'ride' : dr.hh === 'half' ? 'hhh' : 'hhc';
+      src.forEach((c, k) => {
+        if (c === '.') return;
+        if (c === 'o') { p[mode === 'ride' ? 'ride' : 'hho'][k] = 2; return; }
+        let id = main;
+        if (mode !== 'ride' && dr.hh === 'open' && c === 'X') id = 'hho';
+        if (mode === 'ride' && dr.inten >= 80 && c === 'X') id = 'bell';
+        p[id][k] = lvOf(c);
+      });
+    }
+    // ---- Kick & Snare ----
+    let K = null, S = null;
+    if (dr.lvK !== 4 || !B.p.kick.some(Boolean)) { const t = KT[r][dr.lvK === 4 ? 3 : dr.lvK]; K = t[0].split('').map(lvOf); S = t[1].split('').map(lvOf); }
+    else { K = B.p.kick.slice(); S = B.p.snare.slice(); if (!S.some(Boolean)) S = null; }
+    if (K) {
+      // kleine Varianten je „Neu würfeln“ (mehr bei hoher Komplexität)
+      if (dr.seed) for (let n = 0; n < 1 + Math.round(dr.cx / 40); n++) { const k = Math.floor(rd() * r); if (k % (r / 4) && !(S && S[k] === 2)) K[k] = K[k] ? (rd() < 0.5 ? 0 : K[k]) : 1; }
+      p.kick = K;
+    }
+    if (S) { p.snare = S.map(v => v); }
+    // Tempo: Halftime = Backbeat nur auf 3, Double = Backbeat auf jedem Achtel-„und“
+    const beat = r / 4;
+    if (dr.tp !== 'std') {
+      const sn = p.snare, acc = sn.map(v => v === 2 || v === 1); if (acc.some(Boolean)) {
+        for (let k = 0; k < r; k++) if (sn[k] === 2 || sn[k] === 1) sn[k] = 0;
+        if (dr.tp === 'half') sn[2 * beat] = 2;
+        else for (let b = 0; b < 4; b++) sn[b * beat + beat / 2 | 0] = b % 2 ? 2 : 1;
+        if (dr.tp === 'double') for (let b = 0; b < 4; b++) p.kick[b * beat] = Math.max(p.kick[b * beat], 1);
+      }
+    }
+    // Ghost Notes
+    const gs = GHOST[r], want = Math.round(dr.ghost / 100 * (r === 16 ? 6 : 4)), order = gs.slice().sort((a, b) => ((a * 31 + dr.seed * 17) % 11) - ((b * 31 + dr.seed * 17) % 11));
+    const hadG = p.snare.filter(v => v === 3).length;
+    if (dr.ghost < 10 || (dr.lvK !== 4 && dr.ghost < 25)) for (let k = 0; k < r; k++) if (p.snare[k] === 3) p.snare[k] = 0;
+    if (dr.snare && dr.ghost >= 10) {
+      let n = dr.lvK === 4 ? hadG : p.snare.filter(v => v === 3).length;
+      for (const k of order) { if (n >= want) break; const nb = v => v === 2 || v === 1; if (!p.snare[k] && !nb(p.snare[(k + 1) % r]) && !nb(p.snare[(k + r - 1) % r])) { p.snare[k] = 3; n++; } }
+    }
+    // Snare-Spielweise
+    const art = dr.sn === 'auto' ? (dr.inten >= 78 ? 'rimshot' : dr.inten <= 20 ? 'cross' : 'center') : dr.sn;
+    if (art === 'rimshot') for (let k = 0; k < r; k++) { if (p.snare[k] === 2) { p.snare[k] = 0; p.snrim[k] = 2; } }
+    if (art === 'cross') for (let k = 0; k < r; k++) { if (p.snare[k] === 2 || p.snare[k] === 1) { p.rim[k] = p.snare[k]; p.snare[k] = 0; } }
+    if (!dr.kick) p.kick.fill(0);
+    if (!dr.snare) { p.snare.fill(0); p.snrim.fill(0); }
+    // Percussion
+    ['shaker', 'cowbell'].forEach(id => { if (!dr.perc) p[id].fill(0); });
+    if (dr.perc) {
+      const pc = dr.pc, row = p[pc]; row.fill(0);
+      for (let k = 0; k < r; k++) {
+        if (pc === 'shaker') row[k] = r === 16 ? (k % 2 ? 3 : (k % 4 ? 1 : 2)) : (k % 3 ? 3 : 1);
+        else if (pc === 'cowbell') row[k] = k % beat === 0 ? (k === 0 ? 2 : 1) : (dr.lvC >= 6 && k % beat === beat / 2 ? 3 : 0);
+        else if (pc === 'clap') row[k] = (k === beat || k === 3 * beat) ? 2 : 0;
+      }
+    }
+    return { res: r, p };
+  }
+  function applyDrummer(fromCtl) {
+    if (fromCtl) dr.manual = false;
+    saveDr();
+    if (dr.manual) { paintDr(); return; }
+    const g = genPattern(); res = g.res; pat = g.p;
+    // Fills/Swing aus den Reglern in die bisherigen Felder (für Speichern, Export, Raster)
+    fillsEl.value = String(dr.fill < 5 ? 0 : dr.fill < 40 ? 8 : dr.fill < 75 ? 4 : 2); setPref('3nps-fills', fillsEl.value);
+    buildGrid(); paintDr();
+  }
+  // ---- Bedienelemente ----
+  const knobDefs = {
+    fill: { min: 0, max: 100, def: 30, get: () => dr.fill, set: v => { dr.fill = v; }, fmt: v => v < 5 ? T('aus') : v + ' %' },
+    fcx: { min: 0, max: 100, def: 50, get: () => dr.fcx, set: v => { dr.fcx = v; }, fmt: v => v + ' %' },
+    swing: { min: 0, max: 100, def: 0, get: () => parseInt(swingEl.value) || 0, set: v => { swingEl.value = v; setPref('3nps-swing', String(v)); }, fmt: v => v + ' %', regen: false },
+    ghost: { min: 0, max: 100, def: 25, get: () => dr.ghost, set: v => { dr.ghost = v; }, fmt: v => v + ' %' },
+    feel: { min: -100, max: 100, def: 0, get: () => dr.feel, set: v => { dr.feel = v; }, fmt: v => v === 0 ? T('Mitte') : (v < 0 ? 'Pull ' : 'Push ') + Math.abs(v), regen: false, bi: true },
+    dyn: { min: 0, max: 100, def: 50, get: () => dr.dyn, set: v => { dr.dyn = v; }, fmt: v => v + ' %', regen: false },
+    human: { min: 0, max: 100, def: 35, get: () => parseInt(humanEl.value) || 0, set: v => { humanEl.value = v; setPref('3nps-human', String(v)); }, fmt: v => v + ' %', regen: false }
+  };
+  const arc = (a0, a1, r) => { const p = a => [30 + r * Math.sin(a), 30 - r * Math.cos(a)]; const [x0, y0] = p(a0), [x1, y1] = p(a1); return 'M' + x0.toFixed(2) + ' ' + y0.toFixed(2) + ' A' + r + ' ' + r + ' 0 ' + (Math.abs(a1 - a0) > Math.PI ? 1 : 0) + ' ' + (a1 > a0 ? 1 : 0) + ' ' + x1.toFixed(2) + ' ' + y1.toFixed(2); };
+  const A0 = -0.75 * Math.PI, A1 = 0.75 * Math.PI;
+  function paintKnob(el) {
+    const d = knobDefs[el.dataset.k], v = d.get(), f = (v - d.min) / (d.max - d.min), a = A0 + f * (A1 - A0), mid = d.bi ? 0 : A0;
+    el.querySelector('.kd').setAttribute('d', arc(A0, A1, 24));
+    el.querySelector('.ka').setAttribute('d', Math.abs(a - mid) < 0.01 ? '' : arc(Math.min(mid, a), Math.max(mid, a), 24));
+    const p = el.querySelector('.kp'); p.setAttribute('x2', (30 + 15 * Math.sin(a)).toFixed(2)); p.setAttribute('y2', (30 - 15 * Math.cos(a)).toFixed(2));
+    el.querySelector('b').textContent = d.fmt(v); el.setAttribute('aria-valuenow', String(v)); el.setAttribute('aria-valuemin', String(d.min)); el.setAttribute('aria-valuemax', String(d.max));
+  }
+  function bindDrag(el, getV, setV, min, max, def, vertical) {
+    let st = null, lastT = 0;
+    el.addEventListener('pointerdown', e => {
+      if (e.target.closest('button, select')) return;   // Schalter im Regler (z. B. 1/8 · 1/16)
+      const now = performance.now(); if (now - lastT < 350) { setV(def, true); lastT = 0; return; } lastT = now;
+      st = { y: e.clientY, x: e.clientX, v: getV(), id: e.pointerId };
+      if (vertical) { const tr = el.querySelector('.dr-ftrack').getBoundingClientRect(); if (e.clientY >= tr.top && e.clientY <= tr.bottom) { const v = Math.round(min + (tr.bottom - e.clientY) / tr.height * (max - min)); setV(v, false); st.v = v; } }
+      try { el.setPointerCapture(e.pointerId); } catch (err) {} e.preventDefault();
+    });
+    el.addEventListener('pointermove', e => {
+      if (!st || e.pointerId !== st.id) return;
+      const h = vertical ? el.querySelector('.dr-ftrack').getBoundingClientRect().height : 150, dv = (st.y - e.clientY) / h * (max - min);
+      const v = Math.round(Math.max(min, Math.min(max, st.v + dv))); if (v !== getV()) setV(v, false);
+    });
+    const end = () => { if (st) { st = null; setV(getV(), true); } };
+    el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
+    el.addEventListener('keydown', e => { const d = /Up|Right/.test(e.key) ? 1 : /Down|Left/.test(e.key) ? -1 : 0; if (!d) return; setV(Math.max(min, Math.min(max, getV() + d * 5)), true); e.preventDefault(); e.stopPropagation(); });
+  }
+  dgPanel.querySelectorAll('.dr-knob').forEach(el => {
+    const d = knobDefs[el.dataset.k];
+    bindDrag(el, d.get, (v, done) => { d.set(v); paintKnob(el); if (d.regen === false) { saveDr(); paint(); } else if (done) applyDrummer(true); }, d.min, d.max, d.def, false);
+  });
+  const faders = { drCx: ['cx', 50], drIn: ['inten', 60] };
+  function paintFader(el) { const [k] = faders[el.id], v = dr[k]; el.style.setProperty('--fv', v + '%'); el.setAttribute('aria-valuenow', String(v)); el.querySelector('em').textContent = v; }
+  Object.keys(faders).forEach(id => {
+    const el = $(id), [k, def] = faders[id];
+    bindDrag(el, () => dr[k], (v, done) => {
+      dr[k] = v; paintFader(el);
+      if (k === 'cx') { const lv = Math.max(1, Math.min(8, 1 + Math.round(v / 100 * 7))); dr.lvC = lv; dr.lvK = lv; paintLv(); }
+      if (done) applyDrummer(true); else saveDr();
+    }, 0, 100, def, true);
+  });
+  function lvRow(host, key) {
+    let h = '<b class="dr-badge"></b>';
+    for (let i = 1; i <= 8; i++) h += '<button class="dr-lvb" data-l="' + i + '" aria-label="' + T('Stufe ') + i + (i === 4 ? ' (' + T('Vorlage') + ')' : '') + '">' + '<i></i>'.repeat(Math.min(4, Math.ceil(i / 2))) + '</button>';
+    host.innerHTML = h;
+    host.addEventListener('click', e => { const b = e.target.closest('.dr-lvb'); if (!b) return; dr[key] = +b.dataset.l; applyDrummer(true); });
+  }
+  lvRow($('drLvC'), 'lvC'); lvRow($('drLvK'), 'lvK');
+  function paintLv() {
+    [['drLvC', 'lvC'], ['drLvK', 'lvK']].forEach(([id, k]) => { const host = $(id); host.querySelector('.dr-badge').textContent = dr[k]; host.querySelectorAll('.dr-lvb').forEach(b => { const l = +b.dataset.l; b.classList.toggle('on', l <= dr[k]); b.classList.toggle('cur', l === dr[k]); }); });
+  }
+  dgPanel.querySelector('.dr-icons') && dgPanel.querySelectorAll('.dr-ic').forEach(b => b.addEventListener('click', () => {
+    const ic = b.dataset.ic, bc = cymOfBase(basePattern().p), cur = dr.cym === 'auto' ? (bc === 'ride' ? 'ride' : bc ? 'hh' : 'off') : dr.cym;
+    if (ic === 'hh' || ic === 'ride') dr.cym = cur === ic ? 'off' : ic;
+    else if (ic === 'perc') dr.perc = !dr.perc;
+    else dr[ic] = !dr[ic];
+    applyDrummer(true);
+  }));
+  $('drRegen').addEventListener('click', () => { dr.seed = (dr.seed || 0) + 1; applyDrummer(true); });
+  [['drSn', 'sn'], ['drHh', 'hh'], ['drPc', 'pc'], ['drTp', 'tp']].forEach(([id, k]) => $(id).addEventListener('change', e => { dr[k] = e.target.value; if (k === 'pc') dr.perc = true; applyDrummer(true); }));
+  dgPanel.querySelector('.dr-swu').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; dr.swu = +b.dataset.u; saveDr(); paintDr(); });
+  function showView(v) {
+    dgPanel.querySelectorAll('.dr-tabs button').forEach(b => { const on = b.dataset.v === v; b.classList.toggle('active', on); b.setAttribute('aria-pressed', String(on)); });
+    dgPanel.querySelectorAll('.dr-view').forEach(x => { x.hidden = x.dataset.v !== v; });
+    setPref('3nps-drview', v); if (v === 'man') paint();
+  }
+  dgPanel.querySelector('.dr-tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) showView(b.dataset.v); });
+  function paintDr() {
+    dgPanel.querySelectorAll('.dr-knob').forEach(paintKnob);
+    Object.keys(faders).forEach(id => paintFader($(id)));
+    paintLv();
+    const bc = cymOfBase(basePattern().p), cur = dr.cym === 'auto' ? (bc === 'ride' ? 'ride' : bc ? 'hh' : 'off') : dr.cym;
+    dgPanel.querySelectorAll('.dr-ic').forEach(b => { const ic = b.dataset.ic, on = ic === 'hh' || ic === 'ride' ? cur === ic : ic === 'perc' ? dr.perc : dr[ic]; b.classList.toggle('on', !!on); b.setAttribute('aria-pressed', String(!!on)); });
+    dgPanel.querySelectorAll('.dr-swu button').forEach(b => b.classList.toggle('active', +b.dataset.u === dr.swu));
+    $('drSn').value = dr.sn; $('drHh').value = dr.hh; $('drPc').value = dr.pc; $('drTp').value = dr.tp;
+    $('drStyle').textContent = styleEl.selectedOptions[0] ? styleEl.selectedOptions[0].text : '';
+    $('drHint').textContent = dr.manual ? T('Muster von Hand bearbeitet – ein Drummer-Regler übernimmt wieder.') : '';
+  }
+  showView(pref('3nps-drview', 'main'));
+  if (!dr.manual && (byKey[presetKey] || findUser(presetKey))) applyDrummer(false); else paintDr();
   let lastLit = -2;
   function currentStep() { if (!on || !audioCtx) return -1; const now = audioCtx.currentTime; let s = -1; for (const [t, st] of played) if (t <= now) s = st; return s; }
   function paintPlayhead() {
@@ -524,7 +761,7 @@ const Rhythm = (() => {
     for (let b = 0; b < bars; b++) {
       const bp = barPattern(b);
       for (let s = 0; s < res; s++) {
-        const delay = s % 4 === 2 ? sw * stepT * 2 / 3 : s % 2 === 1 ? sw * stepT / 3 : 0;
+        const delay = swingDelay(s, sw, stepT);
         const t = Math.round((b * res + s) * stepT + delay);
         INSTR.forEach(i => {
           let lv = bp.p[i.id][s];
@@ -548,7 +785,7 @@ const Rhythm = (() => {
 
   function getState() {
     return { on, key: presetKey, name: styleEl.selectedOptions[0] ? styleEl.selectedOptions[0].text : '', res, steps: stepsCopy(), swing: parseInt(swingEl.value),
-      human: parseInt(humanEl.value), fills: fillsEl.value, vol: parseInt(volEl.value), muted: Object.assign({}, muted), eq: drumEq.slice() };
+      human: parseInt(humanEl.value), fills: fillsEl.value, vol: parseInt(volEl.value), muted: Object.assign({}, muted), eq: EQ7.legacy(drumEq), eq2: EQ7.norm(drumEq), dr: Object.assign({}, dr) };
   }
   function setState(st) {
     if (!st || !st.steps) return;
@@ -558,14 +795,15 @@ const Rhythm = (() => {
     else { presetKey = 'custom'; styleEl.value = 'custom'; setPref('3nps-drumstyle', 'custom'); setPref('3nps-drumpattern2', JSON.stringify({ res, steps: stepsCopy() })); }
     swingEl.value = st.swing || 0; humanEl.value = st.human != null ? st.human : 35; fillsEl.value = st.fills || '0'; volEl.value = st.vol != null ? st.vol : 70;
     muted = Object.assign({}, st.muted || {});
-    if (st.eq) setDrumEq(st.eq, false);
+    if (st.eq2 || st.eq) setDrumEq(st.eq2 || st.eq, false);
+    if (st.dr) { dr = Object.assign({}, DR0, st.dr); setPref('3nps-drummer', JSON.stringify(dr)); }
     ['3nps-swing', '3nps-human', '3nps-fills', '3nps-drumvol'].forEach((k, i) => setPref(k, [swingEl, humanEl, fillsEl, volEl][i].value));
     if (bus) bus.master.gain.value = parseInt(volEl.value) / 100;
-    buildGrid(); showSaveUi();
+    buildGrid(); showSaveUi(); paintDr();
     setOn(!!st.on);
   }
   return {
-    getState, setState, setLite, setEq: v => setDrumEq(v, false), getEq: () => drumEq.slice(),
+    getState, setState, setLite, setEq: v => setDrumEq(v, false), getEq: () => EQ7.norm(drumEq),
     INSTR, on: () => on, setOn, setRoom, roomOn: () => roomOn, setGrid: fn => { gridFn = fn; },
     setBass: v => { bassNeed = !!v; clock(); },
     // Jam: hält den Taktgeber am Laufen und bekommt jeden Schritt vor dem Bass gemeldet (Akkordwechsel zuerst)
@@ -575,7 +813,8 @@ const Rhythm = (() => {
     nextBarTime: () => { const g = grid(), bd = barDur(), t = audioCtx.currentTime + 0.15; return g.anchor + Math.ceil((t - g.anchor) / bd) * bd; },
     resync: () => { lastAnchor = null; },
     stepDur, res: () => res, midiEvents, setDetected, name: () => styleEl.selectedOptions[0] ? styleEl.selectedOptions[0].text : '',
-    setKit, kitMode: () => (realOn && kitReal ? 'real' : 'synth'), loadReal,
+    drummer: () => ({ dr: Object.assign({}, dr), pat: stepsCopy(), res, fills: fillsEl.value }),
+    setKit, kitMode: () => (realOn && kitReal ? 'real' : 'synth'), kitName: () => (realOn && kitReal ? kitRealName : 'synth'), loadReal,
     debug: () => ({ on, res, steps: played.slice(-24), sd: stepDur(), kit: !!kit, real: !!(realOn && kitReal), preset: presetKey, late: lateHits, pending: pend.length })
   };
 })();

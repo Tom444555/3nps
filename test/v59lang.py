@@ -10,7 +10,7 @@ J = """()=>{const out=new Set();const roots=[document.querySelector('header'),do
   if(n.nodeType===3){const p=n.parentNode;if(p&&/SCRIPT|STYLE/.test(p.nodeName))continue;const v=n.nodeValue.trim();if(v)out.add(v);}
   else for(const a of ['title','placeholder','aria-label']){const v=n.getAttribute(a);if(v)out.add('@'+v);}}}
  return [...out];}"""
-OK_SAME = set(['visation', 'Impro', '@Name (optional)', '@Swing', '@Tempo in BPM', 'Improvisation ›', '→ Song'] + 'Looper Live Matrix Metal Mono REC Song Tempo Track Training Drums Drone Fills Designer Swing Audio Backing Bluetooth Bluetooth: CAGED Improvisation writing Neutral Kick Snare Clap Ride Rim Shaker Tom'.split())
+OK_SAME = set(['visation', 'Impro', '@Name (optional)', '@Swing', '@Tempo in BPM', 'Improvisation ›', '→ Song'] + 'Looper Live Matrix Metal Mono REC Song Tempo Track Training Drums Drone Fills Designer Swing Audio Backing Bluetooth Bluetooth: CAGED Improvisation writing Neutral Kick Snare Clap Ride Rim Shaker Tom Details Feel Analyzer Percussion Standard Pull Push Bass Rimshot Synth Hip-Hop Halftime Funk Rock Punk Metal Disco House Techno Samba Cumbia Boogie Motown Breakbeat'.split() + ['Ghost Notes', 'Low Cut', 'High Cut', 'Tom 1', 'Tom 2', '@Low Cut', '@High Cut', '@Ghost Notes', '@Feel', '@Bass', '@Percussion', '@Analyzer', '@Snare', '@Hi-Hat', 'Hi-Hat', '@Swing', '@Kick', '@Ride', 'Standard'])
 async def texts(b, q):
     ctx = await b.new_context(viewport={'width': 1180, 'height': 820}); pg = await ctx.new_page(); errs = []
     pg.on('pageerror', lambda e: errs.append(str(e)))

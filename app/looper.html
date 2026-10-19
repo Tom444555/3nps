@@ -41,7 +41,7 @@
           </div>
           <div class="fader"><span>Pegel</span><input type="range" id="vol0" min="0" max="100" step="5" value="90" aria-label="Lautstärke Spur 1"><b class="fv" id="volv0">90</b></div>
           <div class="fader in"><span>Eingang</span><input type="range" id="ing0" min="-12" max="24" step="1" value="0" aria-label="Eingangsverstärkung Spur 1"><b class="fv" id="ingv0">0 dB</b></div>
-          <button class="eq-btn" id="eqb0" aria-expanded="false" title="7-Band-Equalizer für Spur 1">EQ</button>
+          <button class="eq-btn" id="eqb0" aria-expanded="false" title="Equalizer für Spur 1">EQ</button>
           <div id="eqp0" hidden></div>
         </div>
         <div class="track t2" data-state="empty">
@@ -61,7 +61,7 @@
           </div>
           <div class="fader"><span>Pegel</span><input type="range" id="vol1" min="0" max="100" step="5" value="90" aria-label="Lautstärke Spur 2"><b class="fv" id="volv1">90</b></div>
           <div class="fader in"><span>Eingang</span><input type="range" id="ing1" min="-12" max="24" step="1" value="0" aria-label="Eingangsverstärkung Spur 2"><b class="fv" id="ingv1">0 dB</b></div>
-          <button class="eq-btn" id="eqb1" aria-expanded="false" title="7-Band-Equalizer für Spur 2">EQ</button>
+          <button class="eq-btn" id="eqb1" aria-expanded="false" title="Equalizer für Spur 2">EQ</button>
           <div id="eqp1" hidden></div>
         </div>
         <div class="track t3" data-state="empty">
@@ -81,10 +81,11 @@
           </div>
           <div class="fader"><span>Pegel</span><input type="range" id="vol2" min="0" max="100" step="5" value="90" aria-label="Lautstärke Spur 3"><b class="fv" id="volv2">90</b></div>
           <div class="fader in"><span>Eingang</span><input type="range" id="ing2" min="-12" max="24" step="1" value="0" aria-label="Eingangsverstärkung Spur 3"><b class="fv" id="ingv2">0 dB</b></div>
-          <button class="eq-btn" id="eqb2" aria-expanded="false" title="7-Band-Equalizer für Spur 3">EQ</button>
+          <button class="eq-btn" id="eqb2" aria-expanded="false" title="Equalizer für Spur 3">EQ</button>
           <div id="eqp2" hidden></div>
         </div>
       </div>
+      <div class="track-eqs" id="trackEqHost"></div>
       <div class="editor" id="loopEditor" hidden>
         <div class="editor-head">
           <span class="chip"></span><strong id="edTitle">Spur bearbeiten</strong>
@@ -230,16 +231,70 @@
             <button class="toggle-btn" id="drumEditBtn" aria-expanded="false">Designer</button>
             <button class="toggle-btn" id="drumEqBtn" aria-expanded="false" title="7-Band-Equalizer für die Drums">EQ</button>
             <button class="toggle-btn active" id="drumRoomBtn" aria-pressed="true" title="Raumhall der Drums – aus spart Rechenzeit, falls die Wiedergabe über ein USB-Gerät stockt">Raum</button>
-            <button class="toggle-btn" id="drumKitBtn" aria-pressed="false" title="Schlagzeug-Klang: Synthese oder echtes Kit (Aufnahmen, einmalig ca. 4 MB)">Kit: Synth</button>
+            <select id="drumKitSel" class="kit-sel" aria-label="Schlagzeug-Klang"></select>
           </div>
           <div id="drumEqPanel" class="drum-eq" hidden></div>
           <div class="drum-designer" id="drumDesigner" hidden>
+            <div class="dr-top">
+              <div class="seg dr-tabs" role="group" aria-label="Ansicht">
+                <button class="toggle-btn active" data-v="main">Hauptansicht</button><button class="toggle-btn" data-v="det">Details</button><button class="toggle-btn" data-v="man">Manuell</button>
+              </div>
+              <span class="caption dr-hint" id="drHint"></span>
+            </div>
+            <div class="dr-view dr-main" data-v="main">
+              <div class="dr-left">
+                <div class="dr-who"><svg viewBox="0 0 64 48" aria-hidden="true"><ellipse cx="32" cy="36" rx="13" ry="10"/><ellipse cx="32" cy="36" rx="6" ry="5"/><rect x="16" y="18" width="12" height="9" rx="2"/><rect x="36" y="18" width="12" height="9" rx="2"/><path d="M6 12 L22 9 M42 9 L58 12 M14 10 V40 M50 11 V40"/><ellipse cx="8" cy="30" rx="6" ry="2"/><rect x="2" y="32" width="12" height="6" rx="1.5"/></svg>
+                  <b id="drStyle" translate="no"></b><button class="toggle-btn" id="drRegen" title="Gleicher Stil, neue Variante">Neu würfeln</button></div>
+                <div class="dr-faders">
+                  <div class="dr-fader" id="drCx" role="slider" tabindex="0" aria-label="Komplexität"><span>Komplexität</span><div class="dr-ftrack"><i></i><em></em></div></div>
+                  <div class="dr-fader" id="drIn" role="slider" tabindex="0" aria-label="Intensität"><span>Intensität</span><div class="dr-ftrack"><i></i><em></em></div></div>
+                </div>
+              </div>
+              <div class="dr-mid">
+                <div class="dr-lane">
+                  <div class="dr-icons">
+                    <button class="dr-ic" data-ic="hh" title="Hi-Hat"><svg viewBox="0 0 40 28" aria-hidden="true"><ellipse cx="20" cy="9" rx="16" ry="3.5"/><ellipse cx="20" cy="13" rx="16" ry="3.5"/><path d="M20 13 V27"/></svg></button>
+                    <button class="dr-ic" data-ic="ride" title="Ride-Becken"><svg viewBox="0 0 40 28" aria-hidden="true"><ellipse cx="20" cy="11" rx="18" ry="4"/><circle cx="20" cy="9" r="3"/><path d="M20 15 V27"/></svg></button>
+                    <button class="dr-ic" data-ic="perc" title="Percussion"><svg viewBox="0 0 40 28" aria-hidden="true"><rect x="13" y="4" width="14" height="22" rx="7"/><path d="M13 12 H27 M13 18 H27"/></svg></button>
+                  </div>
+                  <div class="dr-lv" id="drLvC" role="group" aria-label="Becken-Muster"></div>
+                </div>
+                <div class="dr-lane">
+                  <div class="dr-icons">
+                    <button class="dr-ic" data-ic="kick" title="Kick"><svg viewBox="0 0 40 28" aria-hidden="true"><circle cx="20" cy="14" r="11"/><circle cx="20" cy="14" r="4"/></svg></button>
+                    <button class="dr-ic" data-ic="snare" title="Snare"><svg viewBox="0 0 40 28" aria-hidden="true"><ellipse cx="20" cy="8" rx="14" ry="4"/><path d="M6 8 V20 Q20 26 34 20 V8 M11 10 V22 M20 12 V24 M29 10 V22"/></svg></button>
+                  </div>
+                  <div class="dr-lv" id="drLvK" role="group" aria-label="Kick- und Snare-Muster"></div>
+                </div>
+              </div>
+              <div class="dr-right">
+                <div class="dr-knob" data-k="fill" role="slider" tabindex="0" aria-label="Fill-Stärke"><span>Fill-Stärke</span><svg viewBox="0 0 60 60" aria-hidden="true"><circle class="kb" cx="30" cy="30" r="21"/><path class="ka" d=""/><path class="kd" d=""/><line class="kp" x1="30" y1="30" x2="30" y2="14"/></svg><b></b></div>
+                <div class="dr-knob" data-k="fcx" role="slider" tabindex="0" aria-label="Fill-Komplexität"><span>Fill-Komplexität</span><svg viewBox="0 0 60 60" aria-hidden="true"><circle class="kb" cx="30" cy="30" r="21"/><path class="ka" d=""/><path class="kd" d=""/><line class="kp" x1="30" y1="30" x2="30" y2="14"/></svg><b></b></div>
+                <div class="dr-knob" data-k="swing" role="slider" tabindex="0" aria-label="Swing"><span>Swing</span><svg viewBox="0 0 60 60" aria-hidden="true"><circle class="kb" cx="30" cy="30" r="21"/><path class="ka" d=""/><path class="kd" d=""/><line class="kp" x1="30" y1="30" x2="30" y2="14"/></svg><b></b>
+                  <div class="seg dr-swu" role="group" aria-label="Swing-Raster"><button class="toggle-btn" data-u="8">1/8</button><button class="toggle-btn" data-u="16">1/16</button></div></div>
+              </div>
+            </div>
+            <div class="dr-view dr-det" data-v="det" hidden>
+              <div class="dr-knobs">
+                <div class="dr-knob" data-k="ghost" role="slider" tabindex="0" aria-label="Ghost Notes"><span>Ghost Notes</span><svg viewBox="0 0 60 60" aria-hidden="true"><circle class="kb" cx="30" cy="30" r="21"/><path class="ka" d=""/><path class="kd" d=""/><line class="kp" x1="30" y1="30" x2="30" y2="14"/></svg><b></b></div>
+                <div class="dr-knob" data-k="feel" role="slider" tabindex="0" aria-label="Feel"><span>Feel</span><svg viewBox="0 0 60 60" aria-hidden="true"><circle class="kb" cx="30" cy="30" r="21"/><path class="ka" d=""/><path class="kd" d=""/><line class="kp" x1="30" y1="30" x2="30" y2="14"/></svg><b></b><small class="dr-pp"><i>Pull</i><i>Push</i></small></div>
+                <div class="dr-knob" data-k="dyn" role="slider" tabindex="0" aria-label="Dynamik"><span>Dynamik</span><svg viewBox="0 0 60 60" aria-hidden="true"><circle class="kb" cx="30" cy="30" r="21"/><path class="ka" d=""/><path class="kd" d=""/><line class="kp" x1="30" y1="30" x2="30" y2="14"/></svg><b></b></div>
+                <div class="dr-knob" data-k="human" role="slider" tabindex="0" aria-label="Humanisieren"><span>Humanisieren</span><svg viewBox="0 0 60 60" aria-hidden="true"><circle class="kb" cx="30" cy="30" r="21"/><path class="ka" d=""/><path class="kd" d=""/><line class="kp" x1="30" y1="30" x2="30" y2="14"/></svg><b></b></div>
+              </div>
+              <div class="dr-opts">
+                <label class="field"><span>Snare</span><select id="drSn"><option value="auto">Automatisch</option><option value="center">Mitte</option><option value="rimshot">Rimshot</option><option value="cross">Seitenschlag (Cross-Stick)</option></select></label>
+                <label class="field"><span>Hi-Hat</span><select id="drHh"><option value="closed">Geschlossen</option><option value="half">Halbgeschlossen</option><option value="open">Offen</option></select></label>
+                <label class="field"><span>Percussion</span><select id="drPc"><option value="shaker">Shaker</option><option value="cowbell">Kuhglocke</option><option value="clap">Clap</option></select></label>
+                <label class="field"><span>Tempo</span><select id="drTp"><option value="std">Standard</option><option value="half">Halbes Tempo (Halftime)</option><option value="double">Doppeltes Tempo</option></select></label>
+              </div>
+            </div>
+            <div class="dr-view dr-man" data-v="man" hidden>
             <div class="dg-tools">
               <label class="field dg-sel"><span>Raster</span>
                 <select id="drumRes"><option value="16">16tel (gerade)</option><option value="12">Triolen (Shuffle, 12/8)</option></select>
               </label>
               <label class="field dg-sel"><span>Fills</span>
-                <select id="drumFills"><option value="0">aus</option><option value="4">alle 4 Takte</option><option value="8">alle 8 Takte</option><option value="12">alle 12 Takte (Blues)</option></select>
+                <select id="drumFills"><option value="0">aus</option><option value="2">alle 2 Takte</option><option value="4">alle 4 Takte</option><option value="8">alle 8 Takte</option><option value="12">alle 12 Takte (Blues)</option></select>
               </label>
               <label class="lane-fader"><span>Swing</span><input type="range" id="drumSwing" min="0" max="100" step="5" value="0" aria-label="Swing"><b id="drumSwingVal">0 %</b></label>
               <label class="lane-fader"><span>Gefühl</span><input type="range" id="drumHuman" min="0" max="100" step="5" value="35" aria-label="Menschliches Timing"><b id="drumHumanVal">35 %</b></label>
@@ -254,6 +309,7 @@
             </div>
             <div class="dg-grid" id="drumGrid"></div>
             <p class="caption">Feld antippen: an → betont → leise (Ghost) → aus. Instrument antippen: stumm. „Gefühl“ = kleine menschliche Schwankungen in Timing und Lautstärke. Änderungen an einer Vorlage landen im „Entwurf“ – mit „Muster speichern“ bekommt dein Groove einen eigenen Namen unter „Meine Muster“. Änderungen an einem eigenen Muster werden direkt dort gespeichert.</p>
+            </div>
           </div>
         </div>
         </div>

@@ -44,6 +44,7 @@ async def run(round_no):
         b = await p.chromium.launch(args=['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream', '--autoplay-policy=no-user-gesture-required'])
         ctx = await b.new_context(accept_downloads=True, viewport={'width': 1024, 'height': 1366})
         pg = await ctx.new_page(); errs = []
+        await pg.add_init_script("try{localStorage.setItem('3nps-drview','man')}catch(e){}")  # v99: Raster liegt unter „Manuell“
         pg.on('pageerror', lambda e: errs.append(str(e)))
         await pg.goto(URL); await pg.wait_for_timeout(1200)
         await pg.click('#tab-looper')

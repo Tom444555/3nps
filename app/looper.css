@@ -338,7 +338,7 @@
   .eq-panel { display: flex; flex-direction: column; gap: 6px; padding: 8px; border-radius: 8px; background: rgba(0,0,0,.42); border: 1px solid rgba(255,255,255,.06);
     box-shadow: inset 0 2px 8px rgba(0,0,0,.6); }
   .eq-panel[hidden] { display: none; }
-  .drum-eq { margin-top: 8px; max-width: 520px; }
+  .drum-eq { margin-top: 8px; max-width: 980px; }
   .eq-top { display: flex; gap: 6px; align-items: center; }
   .eq-top .eq-pre { flex: 1; min-width: 0; font-size: .74rem; padding: 4px 6px; }
   .eq-top .eq-flat { padding: 4px 10px; font-size: .72rem; }
@@ -414,3 +414,86 @@ html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleis
   .ls-vers { flex: 1 1 100%; display: flex; flex-direction: column; gap: 4px; padding: 6px 0 2px 10px; border-left: 2px solid var(--line-soft); }
   .ls-ver { display: flex; align-items: center; justify-content: space-between; gap: 8px; font: .8rem var(--f-body); color: var(--muted); }
   .imp-clear { margin: 6px 0; font: .85rem var(--f-body); }
+
+  /* v99: EQ in der Art „Channel EQ“ */
+  .eq2 { gap: 8px; }
+  .eq2-bands { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 4px; }
+  .eq2-bt { height: 30px; border-radius: 6px; border: 1px solid rgba(255,255,255,.08); background: rgba(0,0,0,.3); color: var(--bc); opacity: .45; display: grid; place-items: center; padding: 0; cursor: pointer; }
+  .eq2-bt svg { width: 26px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  .eq2-bt.on { opacity: 1; background: rgba(0,0,0,.45); }
+  .eq2-bt.sel { border-color: var(--bc); box-shadow: 0 0 0 1px var(--bc) inset; }
+  .eq2-graph { position: relative; height: clamp(170px, 34vw, 300px); border-radius: 8px; overflow: hidden; border: 1px solid rgba(120,160,255,.18); }
+  .eq2-graph canvas { width: 100%; height: 100%; display: block; touch-action: none; cursor: crosshair; }
+  .eq2-ctl { display: flex; flex-direction: column; gap: 6px; }
+  .eq2-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+  .eq2-row .eq-pre { flex: 1 1 140px; min-width: 0; font-size: .76rem; padding: 4px 6px; }
+  .eq2-row .toggle-btn { padding: 4px 10px; font-size: .74rem; }
+  .eq2-row label { display: flex; align-items: center; gap: 6px; font-size: .72rem; color: var(--muted); flex: 1 1 180px; min-width: 0; }
+  .eq2-row label[hidden], .eq2-slope[hidden] { display: none; }
+  .eq2-row label input[type=range] { flex: 1; min-width: 60px; }
+  .eq2-row label b { font: 700 .7rem var(--f-mono); color: var(--text, #ddd); min-width: 5.2em; text-align: right; }
+  .eq2-name { font: 700 .8rem var(--f-mono); min-width: 6.5em; }
+  .eq2-out { flex: 0 1 220px !important; }
+
+  /* v99: Drummer (Art Logic) */
+  .drum-designer { --dy: #f2c230; }
+  .dr-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 10px; }
+  .dr-tabs .toggle-btn { padding: 5px 14px; font-size: .78rem; }
+  .dr-hint { flex-basis: 100%; text-align: center; color: var(--dy); }
+  .dr-hint:empty { display: none; }
+  .dr-view[hidden] { display: none !important; }
+  .dr-main { display: grid; grid-template-columns: minmax(150px, 210px) 1fr minmax(170px, 230px); gap: 14px; align-items: stretch; }
+  .dr-left, .dr-mid, .dr-right, .dr-det { background: rgba(0,0,0,.32); border: 1px solid rgba(255,255,255,.06); border-radius: 12px; padding: 12px; }
+  .dr-left { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .dr-who { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
+  .dr-who svg { width: 74px; height: 56px; fill: none; stroke: var(--dy); stroke-width: 2; }
+  .dr-who b { color: var(--dy); font-size: .9rem; }
+  .dr-who .toggle-btn { font-size: .72rem; padding: 4px 10px; }
+  .dr-faders { display: flex; gap: 18px; justify-content: center; flex: 1; }
+  .dr-fader { display: flex; flex-direction: column; align-items: center; gap: 6px; touch-action: none; cursor: ns-resize; --fv: 50%; outline: none; }
+  .dr-fader > span { font-size: .7rem; color: var(--muted); }
+  .dr-fader:focus-visible .dr-ftrack { box-shadow: 0 0 0 2px var(--dy); }
+  .dr-ftrack { position: relative; width: 8px; height: 150px; border-radius: 4px; background: rgba(255,255,255,.1); }
+  .dr-ftrack i { position: absolute; left: 0; right: 0; bottom: 0; height: var(--fv); border-radius: 4px; background: var(--dy); }
+  .dr-ftrack em { position: absolute; left: 50%; bottom: calc(var(--fv) - 9px); transform: translateX(-50%); width: 34px; height: 18px; border-radius: 9px; background: #3a3a3e; border: 1px solid rgba(255,255,255,.2);
+    font: 700 .62rem var(--f-mono); font-style: normal; color: #eee; display: grid; place-items: center; box-shadow: 0 2px 4px rgba(0,0,0,.6); }
+  .dr-mid { display: flex; flex-direction: column; justify-content: space-around; gap: 16px; }
+  .dr-lane { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .dr-icons { display: flex; gap: 6px; min-width: 132px; }
+  .dr-ic { width: 42px; height: 34px; border-radius: 8px; border: 1px solid rgba(255,255,255,.08); background: rgba(0,0,0,.25); color: #77777f; display: grid; place-items: center; cursor: pointer; padding: 0; }
+  .dr-ic svg { width: 34px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; }
+  .dr-ic.on { color: var(--dy); border-color: rgba(242,194,48,.45); }
+  .dr-lv { display: flex; align-items: center; gap: 3px; flex: 1; min-width: 220px; }
+  .dr-badge { width: 26px; height: 26px; border-radius: 50%; background: #3a3a3e; color: var(--dy); display: grid; place-items: center; font: 700 .8rem var(--f-mono); margin-right: 6px; flex: none; }
+  .dr-lvb { flex: 1; height: 28px; border: 0; border-radius: 6px; background: transparent; display: flex; align-items: center; justify-content: center; gap: 3px; cursor: pointer; padding: 0; }
+  .dr-lvb i { width: 6px; height: 6px; border-radius: 50%; background: #55555c; }
+  .dr-lvb.on i { background: rgba(242,194,48,.55); }
+  .dr-lvb.cur i { background: var(--dy); box-shadow: 0 0 6px rgba(242,194,48,.7); }
+  .dr-lvb:nth-child(5) { border-right: 1px solid rgba(255,255,255,.12); border-radius: 6px 0 0 6px; }
+  .dr-right { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: start; }
+  .dr-right .dr-knob[data-k="swing"] { grid-column: 1 / -1; }
+  .dr-knob { display: flex; flex-direction: column; align-items: center; gap: 2px; touch-action: none; cursor: ns-resize; outline: none; }
+  .dr-knob > span { font-size: .7rem; color: var(--muted); text-align: center; }
+  .dr-knob svg { width: 62px; height: 62px; }
+  .dr-knob .kb { fill: #2b2b30; stroke: rgba(0,0,0,.6); stroke-width: 2; }
+  .dr-knob .kd { fill: none; stroke: rgba(255,255,255,.12); stroke-width: 4; stroke-linecap: round; }
+  .dr-knob .ka { fill: none; stroke: var(--dy); stroke-width: 4; stroke-linecap: round; }
+  .dr-knob .kp { stroke: var(--dy); stroke-width: 2.5; stroke-linecap: round; }
+  .dr-knob:focus-visible svg { filter: drop-shadow(0 0 4px var(--dy)); }
+  .dr-knob b { font: 700 .66rem var(--f-mono); color: #ddd; }
+  .dr-pp { display: flex; gap: 18px; font-size: .62rem; color: var(--muted); }
+  .dr-pp i { font-style: normal; }
+  .dr-swu { margin-top: 4px; }
+  .dr-swu .toggle-btn { padding: 3px 9px; font-size: .7rem; }
+  .dr-det { display: flex; flex-direction: column; gap: 14px; }
+  .dr-knobs { display: flex; justify-content: space-around; flex-wrap: wrap; gap: 12px; }
+  .dr-opts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+  .dr-opts .field select { color: var(--dy); }
+  .dr-man { margin-top: 2px; }
+  .kit-sel { max-width: 170px; }
+  .kit-sel.active { color: var(--tc); border-color: var(--tc); }
+  @media (max-width: 860px) { .dr-main { grid-template-columns: 1fr; } .dr-left { flex-direction: row; justify-content: space-around; } .dr-ftrack { height: 110px; } .dr-opts { grid-template-columns: 1fr 1fr; } }
+  .track-eqs { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+  .track-eqs:empty { display: none; }
+  .track-eqs .eq-panel::before { content: attr(data-title); font: 700 .78rem var(--f-mono); color: var(--tc); letter-spacing: .04em; }
+  .track-eqs .eq-panel.t1 { --tc: var(--t1); } .track-eqs .eq-panel.t2 { --tc: var(--t2); } .track-eqs .eq-panel.t3 { --tc: var(--t3); }

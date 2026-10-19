@@ -8,6 +8,7 @@ async def main():
         b = await p.chromium.launch(args=['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream', '--autoplay-policy=no-user-gesture-required', '--enable-precise-memory-info', '--js-flags=--expose-gc'])
         pg = await b.new_page(viewport={'width': 1024, 'height': 1366})
         errs = []; pg.on('pageerror', lambda e: errs.append(str(e)))
+        await pg.add_init_script("try{localStorage.setItem('3nps-drview','man')}catch(e){}")  # v99: Raster liegt unter „Manuell“
         await pg.goto('http://localhost:8765/index.html'); await pg.wait_for_timeout(1000)
         await pg.click('#tab-looper'); await pg.select_option('#loopCountIn', '0')
         for i, f in enumerate(['rock_120_2T', 'funk_104_3T', 'guitar_only_95_4T']):

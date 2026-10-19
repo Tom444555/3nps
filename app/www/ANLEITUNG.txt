@@ -880,3 +880,23 @@ Gut zu wissen
      Die Wahl bleibt gespeichert und gilt auch für Backing Track und Songwriting.
    - Klappt das Laden nicht, spielt einfach die Synthese weiter.
    - Herkunft: „Virtuosity Drums“ (gemeinfrei, CC0), siehe drums/LIZENZ.txt.
+
+82. Drummer, neuer EQ und mehr echte Schlagzeuge (v99)
+   - „Designer“ öffnet jetzt den Drummer mit drei Ansichten – wie in Logic:
+     „Hauptansicht“: links Stil, „Komplexität“ und „Intensität“ (Schieber hoch/runter ziehen, doppelt tippen = Mitte).
+     In der Mitte zwei Reihen: oben Becken (Hi-Hat, Ride, Percussion an/aus), unten Kick und Snare – je mit Stufen 1–8
+     (Stufe 4 = die Vorlage, weniger = einfacher, mehr = dichter). Rechts „Fill-Stärke“ (wie oft ein Fill kommt),
+     „Fill-Komplexität“ (wie lang und dicht) und „Swing“ mit 1/8 oder 1/16. „Neu würfeln“ = gleicher Stil, neue Variante.
+     „Details“: Ghost Notes, Feel (Pull = etwas hinter dem Takt, Push = davor), Dynamik, Humanisieren;
+     Snare (Automatisch, Mitte, Rimshot, Seitenschlag), Hi-Hat (geschlossen, halb, offen), Percussion (Shaker, Kuhglocke,
+     Clap), Tempo (Standard, halbes, doppeltes Tempo).
+     „Manuell“: das bisherige Raster zum Selbersetzen. Wer dort etwas ändert, behält sein Muster; bewegst du danach
+     wieder einen Drummer-Regler, arbeitet der Drummer mit deinem Muster weiter.
+   - Neue Instrumente: Tom 2, halb offene Hi-Hat, Rimshot, Ride-Glocke, Kuhglocke.
+   - EQ (Drums und jede Spur) neu, wie der „Channel EQ“: oben 9 Bänder an/aus (Low Cut, Bass, 5 Glocken, Höhen, High Cut),
+     darunter die Kurve – Punkte mit dem Finger ziehen (links/rechts = Frequenz, hoch/runter = lauter/leiser),
+     doppelt auf einen Punkt tippen = 0 dB. Unten Frequenz, Verstärkung, Güte (Q), beim Low/High Cut die Steilheit
+     (12 oder 24 dB/Okt), „Ausgang“ und „Analyzer“ (zeigt das Spektrum live). Der Spur-EQ öffnet jetzt breit unter den Spuren.
+     Alte EQ-Einstellungen werden übernommen.
+   - Kit-Auswahl rechts in der Drum-Zeile: Synthese, Jazz/Club (echt), Rock (echt), Besen (echt). Jedes echte Kit
+     lädt beim ersten Mal einmalig etwa 5 MB, danach geht es offline. Alle Aufnahmen sind gemeinfrei (drums/LIZENZ.txt).

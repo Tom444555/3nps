@@ -1,4 +1,4 @@
-# 7-Band-EQ: Bedienung, Wirkung auf den Klang, Speichern in Ideen, Export wie gehört, Drums
+# EQ (v99: 9 Bänder, Art Channel EQ; Werte über EQ7.legacy wie früher verglichen): Bedienung, Wirkung auf den Klang, Speichern in Ideen, Export wie gehört, Drums
 import asyncio, io, zipfile, struct, base64
 import numpy as np
 from playwright.async_api import async_playwright
@@ -25,7 +25,7 @@ async def main():
         await pg.add_init_script(PATCH)
         await pg.goto('http://localhost:8765/index.html'); await pg.wait_for_timeout(700)
         await pg.click('#tab-looper'); await pg.select_option('#loopCountIn', '0')
-        await pg.evaluate("localStorage.removeItem('3nps-eq0'); localStorage.removeItem('3nps-eq-drums')")
+        await pg.evaluate("['3nps-eq0','3nps-eq-drums','3nps-eq2-0','3nps-eq2-drums'].forEach(k=>localStorage.removeItem(k))")
         await pg.set_input_files('#file0', T + 'stereo/rock_120_2T_st.wav')
         for _ in range(60):
             await pg.wait_for_timeout(250)
@@ -34,19 +34,24 @@ async def main():
         await pg.evaluate("Looper.setTrackEq(0, [0,0,0,0,0,0,0])")
         # 1) Bedienung: aufklappen, Schieber ziehen
         await pg.click('#eqb0'); await pg.wait_for_timeout(200)
-        vis = await pg.is_visible('#eqp0 .eq-curve')
-        tr = await pg.query_selector('#eqp0 .eq-band[data-i="6"] .eq-track'); bb = await tr.bounding_box()
-        await pg.mouse.move(bb['x'] + bb['width'] / 2, bb['y'] + bb['height'] / 2); await pg.mouse.down()
-        await pg.mouse.move(bb['x'] + bb['width'] / 2, bb['y'] + bb['height'] - 1, steps=6); await pg.mouse.up()
-        v = await pg.evaluate('Looper.getTrackEq(0)')
-        check('EQ aufklappen und Schieber ziehen', vis and v[6] <= -11.5 and await pg.inner_text('#eqb0') == 'EQ ●', f'Werte {v}, Knopf „{await pg.inner_text("#eqb0")}“')
-        # Doppeltippen = 0 dB
-        await pg.mouse.dblclick(bb['x'] + bb['width'] / 2, bb['y'] + 10)
-        v2 = await pg.evaluate('Looper.getTrackEq(0)')
+        vis = await pg.is_visible('#eqp0 .eq2-graph canvas')
+        cv = await pg.query_selector('#eqp0 .eq2-graph canvas'); await cv.scroll_into_view_if_needed(); await pg.wait_for_timeout(150); bb = await cv.bounding_box()
+        # Höhen-Punkt (12 kHz, 0 dB) nach ganz unten ziehen
+        import math
+        G = await pg.evaluate("(()=>{const c=document.querySelector('#eqp0 .eq2-graph canvas');return {w:c.clientWidth,h:c.clientHeight}})()")
+        x0, x1, y0, y1 = 34, G['w'] - 30, 10, G['h'] - 22
+        px = bb['x'] + x0 + math.log(12000 / 20) / math.log(1000) * (x1 - x0); py = bb['y'] + (y0 + y1) / 2
+        await pg.mouse.move(px, py); await pg.mouse.down(); await pg.mouse.move(px, bb['y'] + y1 + 2, steps=6); await pg.mouse.up()
+        v = await pg.evaluate('EQ7.legacy(Looper.getTrackEq(0))')
+        check('EQ aufklappen und Punkt ziehen', vis and v[6] <= -14 and await pg.inner_text('#eqb0') == 'EQ ●', f'Werte {v}, Knopf „{await pg.inner_text("#eqb0")}“')
+        # Doppeltippen auf den Punkt = 0 dB
+        await pg.wait_for_timeout(400); fy = bb['y'] + y1
+        await pg.mouse.click(px, fy); await pg.mouse.click(px, fy)
+        v2 = await pg.evaluate('EQ7.legacy(Looper.getTrackEq(0))')
         check('Doppeltippen setzt das Band auf 0 dB', v2[6] == 0, v2)
         # Vorlage
         await pg.select_option('#eqp0 .eq-pre', 'Höhen weich'); await pg.wait_for_timeout(100)
-        v3 = await pg.evaluate('Looper.getTrackEq(0)')
+        v3 = await pg.evaluate('EQ7.legacy(Looper.getTrackEq(0))')
         check('Vorlage „Höhen weich“', v3 == [0, 0, 0, 0, -1.5, -4, -6], v3)
         # 2) Wirkung: Ausgang mitschneiden, flach vs. Höhen −12 dB
         await pg.evaluate("ensureAudio(); ensureMasterBus(); __rec()")
@@ -67,7 +72,7 @@ async def main():
         # 4) Drums-EQ
         await pg.click('#drumEqBtn'); await pg.wait_for_timeout(150)
         await pg.select_option('#drumEqPanel .eq-pre', 'Weniger Becken'); await pg.wait_for_timeout(100)
-        de = await pg.evaluate('Rhythm.getEq()'); st = await pg.evaluate('Rhythm.getState().eq')
+        de = await pg.evaluate('EQ7.legacy(Rhythm.getEq())'); st = await pg.evaluate('Rhythm.getState().eq')
         check('Drum-EQ: Vorlage, im Zustand enthalten', de == [0, 0, 0, 0, -1.5, -4, -6] and st == de and await pg.inner_text('#drumEqBtn') == 'EQ ●', de)
         await pg.click('#loopDrums'); await pg.wait_for_timeout(1500)
         # 5) Idee speichern und laden
@@ -75,11 +80,11 @@ async def main():
         await pg.fill('#ideaName', 'EQ-Idee'); await pg.click('#ideaSave'); await pg.wait_for_timeout(1200)
         await pg.evaluate("Looper.setTrackEq(0, [0,0,0,0,0,0,0]); Rhythm.setEq([0,0,0,0,0,0,0])")
         await pg.click('.idea-row [data-act="load"]'); await pg.wait_for_timeout(2000)
-        l1 = await pg.evaluate('Looper.getTrackEq(0)'); l2 = await pg.evaluate('Rhythm.getEq()')
+        l1 = await pg.evaluate('EQ7.legacy(Looper.getTrackEq(0))'); l2 = await pg.evaluate('EQ7.legacy(Rhythm.getEq())')
         check('Idee: EQ von Spur und Drums wiederhergestellt', l1 == [3, 0, 0, 0, 0, 0, -2] and l2 == [0, 0, 0, 0, -1.5, -4, -6], f'{l1} | {l2}')
         # 6) bleibt nach Neuladen
         await pg.reload(); await pg.wait_for_timeout(800)
-        r1 = await pg.evaluate("JSON.parse(localStorage.getItem('3nps-eq0'))"); r2 = await pg.evaluate('Rhythm.getEq()')
+        r1 = await pg.evaluate("JSON.parse(localStorage.getItem('3nps-eq0'))"); r2 = await pg.evaluate('EQ7.legacy(Rhythm.getEq())')
         check('EQ bleibt nach Neustart', r1 == l1 and r2 == l2, f'{r1} | {r2}')
         await pg.click('#tab-looper'); await pg.click('#eqb0'); await pg.click('#drumEqBtn'); await pg.wait_for_timeout(300)
         y = await pg.evaluate("document.querySelector('.tracks').getBoundingClientRect().top + scrollY")
