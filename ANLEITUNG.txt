@@ -848,3 +848,11 @@ Gut zu wissen
      (gut ein Viertel von oben, die vorige Zeile bleibt darüber sichtbar).
    - In einer Pause fährt die Liste gleich zur kommenden Zeile; die Pause mit den Sekunden steht darüber.
    - Der mitlaufende Balken unter den Wörtern ist wieder da; Akkord- und Pausenbalken bleiben weg.
+
+79. Besseres Verlangsamen (v96)
+   - „Zeile üben“ (Mitsingen), die Takt- und Teil-Schleife, der Tempo-Trainer und das Wort-Anhören im Text-Editor dehnen
+     jetzt mit einem deutlich besseren Verfahren (Signalsmith Stretch, freie MIT-Lizenz, läuft offline in der App):
+     Gesang und Gitarre klingen bei 50–75 % klarer, ohne Flattern und Hall-Effekt.
+   - Im Editor startet die Schleife sofort; nach einem kurzen Moment wird unhörbar auf die bessere Fassung umgeschaltet.
+     „Zeile üben“ braucht beim ersten Start einen Augenblick („Bereite die Zeile vor …“).
+   - Klappt das neue Verfahren auf einem Gerät nicht, nimmt die App automatisch das bisherige.
