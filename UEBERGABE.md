@@ -305,7 +305,7 @@ Testaudio-Generatoren (alle deterministisch, von `wiederherstellen.sh` aufgerufe
 
 ## 11. Offen / Ideen (warten auf den Nutzer)
 
-**NÄCHSTE SCHRITTE (Stand 19.10.2026, vom Nutzer beauftragt: „Nimm alles in Angriff“)** – Tom hat am 19.10. „Alles (A–E)“ gewählt
+**NÄCHSTE SCHRITTE (Stand 19.10.2026, vom Nutzer beauftragt: „Nimm alles in Angriff“)** – Tom hat am 19.10. „Alles (A–E)“ gewählt → A v96, B (M1) v97, C v98 erledigt; D wartet auf Antwort
 (Grund: Wochenvolumen war bei 81 %; Vorschlag: diese Woche nur A + B, Rest danach). Vor dem Start kurz fragen, falls er nicht schon geantwortet hat.
 
 - ~~**A. Besseres Verlangsamen**~~ **erledigt in v96.** Alter Plan: `Looper.stretchAudio` (eigenes Verfahren, für „Zeile üben“, Takt-/Teil-Schleife, Tempo-Trainer in
@@ -317,10 +317,10 @@ Testaudio-Generatoren (alle deterministisch, von `wiederherstellen.sh` aufgerufe
 - ~~**B. Mastering M1**~~ **erledigt in v97** (M2–M4 offen, siehe `KONZEPT-MASTERING.md`).
 - ~~**C. Echtes Schlagzeug**~~ **erledigt in v98** (Bässe `karoryfer.black-and-blue-basses` noch offen). Alter Plan: freie SFZ-Instrumente (z. B. `sfzinstruments/virtuosity_drums`, Bässe `karoryfer.black-and-blue-basses`) statt
   Kit-Synthese (`kit.js`) – Lizenz je Instrument prüfen, Größe/Cache (sw.js) beachten, als Option, Synthese bleibt.
-- **D. Gesang abtrennen in der App:** Spleeter 2-Stems als ONNX (`https://github.com/k2-fsa/sherpa-onnx/releases/download/source-separation-models/sherpa-onnx-spleeter-2stems.tar.bz2`)
+- **D. Gesang abtrennen in der App:** **Konzept + Messung fertig → `KONZEPT-GESANG-TRENNEN.md`, wartet auf Toms Antwort (75 MB ok? erst Testseite? Karaoke?).** Alter Plan: Spleeter 2-Stems als ONNX (`https://github.com/k2-fsa/sherpa-onnx/releases/download/source-separation-models/sherpa-onnx-spleeter-2stems.tar.bz2`)
   im Browser mit der vorhandenen ORT-Laufzeit (`asr/lib`) → ersetzt Moises für die Gesangsspur (`vox` in `sing.js`). Vorher Konzept an Tom
   (Speicher/Zeit auf dem iPad unbekannt), Modelle wie Whisper über Branch `modelle` bereitstellen.
-- **E. Video-Hilfe:** Skill „video“ (claude-video von bradautomates, eingerichtet und getestet) – Tom kann Bildschirmaufnahmen vom iPad schicken,
+- **E. Video-Hilfe:** (19.10.: Tom informiert – nichts zu bauen.) Skill „video“ (claude-video von bradautomates, eingerichtet und getestet) – Tom kann Bildschirmaufnahmen vom iPad schicken,
   wenn etwas ruckelt/hängt; YouTube-Links sind aus der Sitzung gesperrt, nur Dateien.
 - Weitere Skills für später: „musik-studio“/„transkription“ (Lieder hier analysieren, Erkennung der App gegenprüfen), „remotion“/„grafik-werkstatt“
   (App-Store-Video, Icon, Bilder), „klangstudio“ (Instrumente, Signalsmith).
