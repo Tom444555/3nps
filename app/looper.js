@@ -2036,6 +2036,38 @@ const Looper = (() => {
     if (n === x.length) return x.slice();
     return wsolaApply(x, n, wsolaPos(x, n));
   }
+  // v96: bessere Zeitdehnung (Signalsmith Stretch, MIT) offline im Worker; bei Fehler/Zeitüberschreitung das eigene Verfahren.
+  // loop=true: Ende und Anfang werden als Nachbarn mitgerechnet → nahtlose Schleife.
+  let ssW = null, ssBad = false, ssId = 0; const ssWait = {};
+  function ssWorker() {
+    if (ssW || ssBad) return ssW;
+    try {
+      ssW = new Worker('stretch/worker.js');
+      ssW.onmessage = e => { const p = ssWait[e.data.id]; if (p) { delete ssWait[e.data.id]; p(e.data); } };
+      ssW.onerror = () => { ssBad = true; Object.keys(ssWait).forEach(k => { ssWait[k]({ err: 'worker' }); delete ssWait[k]; }); };
+    } catch (e) { ssBad = true; ssW = null; }
+    return ssW;
+  }
+  function stretchHQ(x, n, loop) {
+    const old = () => stretch(x, n);
+    if (!x || !x.l || n === x.length) return Promise.resolve(old());
+    const w = ssWorker(); if (!w) return Promise.resolve(old());
+    const m = x.length, rate = m / n, P = loop ? Math.min(Math.round(0.25 * (x.sr || sr)), m >> 1) : 0;
+    const ext = c => { if (!P) return c.slice(); const o = new Float32Array(m + 2 * P); o.set(c.subarray(m - P), 0); o.set(c, P); o.set(c.subarray(0, P), P + m); return o; };
+    const L = ext(x.l), R = x.r && x.r !== x.l ? ext(x.r) : null, Pn = Math.round(P / rate), N = n + 2 * Pn;
+    const id = ++ssId, t0 = performance.now();
+    return new Promise(res => {
+      const tm = setTimeout(() => { delete ssWait[id]; res(old()); }, 4000 + m / (x.sr || sr) * 1500);
+      ssWait[id] = d => {
+        clearTimeout(tm);
+        if (d.err || !d.l || d.l.length !== N) { res(old()); return; }
+        const cut = a => Pn ? a.slice(Pn, Pn + n) : a, l = cut(d.l);
+        window.__ssMs = Math.round(performance.now() - t0);
+        res(SP(l, d.r ? cut(d.r) : l));
+      };
+      w.postMessage({ id, l: L, r: R, n: N, sr: x.sr || sr }, R ? [L.buffer, R.buffer] : [L.buffer]);
+    });
+  }
   const wsolaW = () => sr > 30000 ? 2048 : 1024;
   function wsolaPos(x, n) {
     const m = x.length, W = wsolaW(), Hs = W >> 1, Ha = Hs * m / n, D = W >> 2;
@@ -3117,6 +3149,7 @@ const Looper = (() => {
       const L = l.slice(a, e); return { l: L, r: r === l ? L : r.slice(a, e), length: e - a, sr };
     },
     stretchAudio: (x, n) => stretch(x, n),
+    stretchAudioHQ: (x, n, loop) => stretchHQ(x, n, loop),
     latencyMs: () => parseFloat(latEl.value) || 0,
     // Eingang für „Mithören“: öffnet ihn bei Bedarf (gleicher Zugriff wie der Looper), liefert einen Analyser
     openInput: () => ensureMic(),

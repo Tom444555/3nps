@@ -179,6 +179,7 @@ const Singen = (() => {
 
   // ---- Zeile üben: eigener Player (Ausschnitt der Originaldatei, gedehnt ohne Tonhöhenänderung) ----
   function stopPlayer() {
+    startPlayer.tok = (startPlayer.tok || 0) + 1;   // v96: laufende Vorbereitung verwerfen
     if (!player) return;
     try { player.node.stop(); player.node.disconnect(); player.g.disconnect(); } catch (e) {}
     player = null; ciCache = null; $('sbLoop').classList.remove('active'); $('sbLoop').textContent = T('↻ Zeile üben'); lineSig = ''; listSig = '';
@@ -194,7 +195,10 @@ const Singen = (() => {
     if (typeof Looper !== 'undefined' && Looper.stopAll) Looper.stopAll();
     info(T('Bereite die Zeile vor …'));
     await new Promise(r => setTimeout(r, 30));
-    const y = speed === 1 ? x : Looper.stretchAudio(x, Math.round(x.length / speed));
+    const tok0 = startPlayer.tok = (startPlayer.tok || 0) + 1;
+    const n = Math.round(x.length / speed);
+    const y = speed === 1 ? x : Looper.stretchAudioHQ ? await Looper.stretchAudioHQ(x, n, true) : Looper.stretchAudio(x, n);   // v96: Signalsmith
+    if (tok0 !== startPlayer.tok || !y) return;   // inzwischen neu gestartet
     if (typeof ensureAudio === 'function') ensureAudio();
     const ctx = audioCtx, buf = ctx.createBuffer(2, y.length, x.sr);
     buf.copyToChannel(y.l, 0); buf.copyToChannel(y.r || y.l, 1);

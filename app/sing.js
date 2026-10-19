@@ -651,19 +651,41 @@ const Sing = (() => {
   let loopP = null, wordP = null;
   // v91: spielt einer der eigenen Player (Schleife, ▶ ab hier, Teil ▶), ist ER die aktuelle Stelle – auch für Mitsingen
   const ownP = id => (loopP && loopP.id === id) ? loopP : (wordP && wordP.id === id ? wordP : null);
+  // v96: gedehnte Ausschnitte in besserer Qualität (Signalsmith) – erst sofort mit dem schnellen Verfahren, dann nahtlos umschalten
+  const hqCache = new Map();
+  const hqKey = (src, f0, f1, rate, loop) => [src.id, Math.round(f0), Math.round(f1), rate, loop ? 1 : 0].join('|');
+  function hqPut(k, y) { hqCache.delete(k); hqCache.set(k, y); while (hqCache.size > 6) hqCache.delete(hqCache.keys().next().value); }
+  const cpy = y => { const l = y.l.slice(); return { l, r: y.r && y.r !== y.l ? y.r.slice() : l, length: y.length }; };
   function mkPlayer(src, b0, b1, loop, rate) {
     const f0 = b2f(b0, src.beats), f1 = b2f(b1, src.beats); if (f0 == null || f1 == null) return null;
     const x = Looper.singAudio(src.track, Math.max(0, f0), f1); if (!x) return null;
-    const y = rate === 1 ? x : Looper.stretchAudio(x, Math.round(x.length / rate));
+    const n = Math.round(x.length / rate), k = rate === 1 ? null : hqKey(src, Math.max(0, f0), f1, rate, loop), hit = k && hqCache.get(k);
+    let y = rate === 1 ? x : hit ? cpy(hit) : Looper.stretchAudio(x, n);
     if (ui.click) addClicks(y, src, b0, b1, Math.max(0, f0), rate, x.sr);
     if (typeof ensureAudio === 'function') ensureAudio();
-    const ctx = audioCtx, buf = ctx.createBuffer(2, y.length, x.sr); buf.copyToChannel(y.l, 0); buf.copyToChannel(y.r || y.l, 1);
-    const node = ctx.createBufferSource(), g = ctx.createGain(); node.buffer = buf; node.loop = loop;
-    node.connect(g); g.connect(typeof ensureMasterBus === 'function' ? ensureMasterBus() : ctx.destination);
+    const ctx = audioCtx, mkBuf = y => { const buf = ctx.createBuffer(2, y.length, x.sr); buf.copyToChannel(y.l, 0); buf.copyToChannel(y.r || y.l, 1); return buf; };
+    const out = typeof ensureMasterBus === 'function' ? ensureMasterBus() : ctx.destination;
+    const node = ctx.createBufferSource(), g = ctx.createGain(); node.buffer = mkBuf(y); node.loop = loop;
+    node.connect(g); g.connect(out);
     const t0 = ctx.currentTime + 0.05, len = y.length, sr = x.sr, fs = Math.max(0, f0); node.start(t0);
-    if (!loop) node.onended = () => { if (wordP && wordP.node === node) { wordP = null; focusSig = '*'; } };
-    return { node, g, id: src.id, b0, b1, rate,
+    const p = { node, g, id: src.id, b0, b1, rate, hq: rate === 1 || !!hit,
       nowB: () => { const el = ctx.currentTime - t0 - (ctx.outputLatency || 0); if (el < 0) return b0; const pf = loop ? (el * sr) % len : Math.min(len, el * sr); return f2b(fs + pf * rate, src.beats); } };
+    const ended = nd => () => { if (wordP === p && p.node === nd) { wordP = null; focusSig = '*'; } };
+    if (!loop) node.onended = ended(node);
+    if (!p.hq && Looper.stretchAudioHQ) Looper.stretchAudioHQ(x, n, loop).then(h => {
+      if (!h || h.length !== len) return; hqPut(k, h);
+      if (loopP !== p && wordP !== p) return;               // Player schon beendet
+      const y2 = cpy(h); if (ui.click) addClicks(y2, src, b0, b1, fs, rate, sr);
+      const T = ctx.currentTime + 0.08, el = (T - t0) * sr; if (!loop && el >= len - sr * 0.1) return;
+      const off = (loop ? el % len : el) / sr, n2 = ctx.createBufferSource(), g2 = ctx.createGain(), X = 0.04;
+      n2.buffer = mkBuf(y2); n2.loop = loop; n2.connect(g2); g2.connect(out);
+      g2.gain.setValueAtTime(0, T); g2.gain.linearRampToValueAtTime(1, T + X);
+      p.g.gain.setValueAtTime(1, T); p.g.gain.linearRampToValueAtTime(0, T + X);
+      const o1 = p.node, og = p.g; o1.onended = null; n2.start(T, off); try { o1.stop(T + X + 0.01); } catch (e) {}
+      setTimeout(() => { try { o1.disconnect(); og.disconnect(); } catch (e) {} }, (X + 0.2) * 1000);
+      p.node = n2; p.g = g2; p.hq = true; if (!loop) n2.onended = ended(n2);
+    });
+    return p;
   }
 
   // v75: Metronom – Klicks auf jeden Schlag des Rasters direkt in den Ausschnitt mischen (Eins höher und lauter)

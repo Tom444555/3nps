@@ -33,7 +33,8 @@ mkdir -p "$ZIEL/app/www/asr/lib" "$ZIEL/app/www/asr/models"
 cp /home/claude/3nps-mod/asr/lib/transformers.min.js /home/claude/3nps-mod/asr/lib/ort-wasm-simd-threaded.jsep.* /home/claude/3nps-mod/asr/lib/LICENSE-transformers.txt "$ZIEL/app/www/asr/lib/"
 cp -r /home/claude/3nps-mod/asr/models/. "$ZIEL/app/www/asr/models/"
 # Testlieder mit Sprache (Musik aus corpus/ballad_72 + Sprache an 4 s und 22 s)
-python3 - <<'P'
+[ -f "$ZIEL/test/sing/sprache_de.wav" ] || echo "Hinweis: test/sing/sprache_*.wav fehlen (nicht im Repo) – Sprach-Testlieder werden übersprungen"
+[ -f "$ZIEL/test/sing/sprache_de.wav" ] && python3 - <<'P'
 import numpy as np, scipy.io.wavfile as wf, scipy.signal as ss
 T='/home/claude/3nps/test/'
 sr, song = wf.read(T+'corpus/ballad_72.wav'); song = song.astype(np.float32); song /= (np.abs(song).max() or 1)
