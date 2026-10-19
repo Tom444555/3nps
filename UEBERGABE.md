@@ -1,6 +1,6 @@
 # 3nps Looper – Übergabe (vollständiger Stand)
 
-Stand: **17. Oktober 2026 · Version v95** – live unter https://tom444555.github.io/3nps/ ·
+Stand: **19. Oktober 2026 · Version v95** – live unter https://tom444555.github.io/3nps/ ·
 stabile Rückfall-Fassung **v24** unter https://tom444555.github.io/3nps/stabil/
 
 Diese Datei ist das Gedächtnis des Projekts. Alles, was ein neuer Chat wissen muss, steht hier –
@@ -301,6 +301,28 @@ Testaudio-Generatoren (alle deterministisch, von `wiederherstellen.sh` aufgerufe
   Das Logic-Paket ist technisch geprüft (WAV/MIDI/ZIP), aber noch nicht vom Nutzer in Logic geöffnet worden.
 
 ## 11. Offen / Ideen (warten auf den Nutzer)
+
+**NÄCHSTE SCHRITTE (Stand 19.10.2026, vom Nutzer beauftragt: „Nimm alles in Angriff“)** – Reihenfolge-Vorschlag an Tom, Antwort steht noch aus
+(Grund: Wochenvolumen war bei 81 %; Vorschlag: diese Woche nur A + B, Rest danach). Vor dem Start kurz fragen, falls er nicht schon geantwortet hat.
+
+- **A. Besseres Verlangsamen (klein):** `Looper.stretchAudio` (eigenes Verfahren, für „Zeile üben“, Takt-/Teil-Schleife, Tempo-Trainer in
+  `sing.js` `mkPlayer` und `singen.js`) durch **Signalsmith Stretch** ersetzen. MIT-Lizenz, Browser-Fassung fertig:
+  `git clone --depth 1 https://github.com/Signalsmith-Audio/signalsmith-stretch` → `web/release/SignalsmithStretch.js` (114 KB, WASM eingebettet,
+  läuft als AudioWorklet; API `SignalsmithStretch(ctx)` → `node.addBuffers([l,r])`, `node.schedule({input, rate, …})`, `start()`).
+  Plan: offline über `OfflineAudioContext` + Worklet (Modul als Blob-URL wie der Tap-Worklet in `looper.js` ~312; CSP erlaubt `wasm-unsafe-eval`),
+  `mkPlayer` dafür asynchron machen; alte Funktion als Rückfall behalten. Lizenztext in `asr/LIZENZEN.txt`-Art beilegen. Hörvergleich 50/75 %.
+- **B. Mastering M1:** siehe `KONZEPT-MASTERING.md` (fertiger Auftrag + Konzept + Phasen M1–M4, Lautheitsziele 2026, Tests).
+- **C. Echtes Schlagzeug:** freie SFZ-Instrumente (z. B. `sfzinstruments/virtuosity_drums`, Bässe `karoryfer.black-and-blue-basses`) statt
+  Kit-Synthese (`kit.js`) – Lizenz je Instrument prüfen, Größe/Cache (sw.js) beachten, als Option, Synthese bleibt.
+- **D. Gesang abtrennen in der App:** Spleeter 2-Stems als ONNX (`https://github.com/k2-fsa/sherpa-onnx/releases/download/source-separation-models/sherpa-onnx-spleeter-2stems.tar.bz2`)
+  im Browser mit der vorhandenen ORT-Laufzeit (`asr/lib`) → ersetzt Moises für die Gesangsspur (`vox` in `sing.js`). Vorher Konzept an Tom
+  (Speicher/Zeit auf dem iPad unbekannt), Modelle wie Whisper über Branch `modelle` bereitstellen.
+- **E. Video-Hilfe:** Skill „video“ (claude-video von bradautomates, eingerichtet und getestet) – Tom kann Bildschirmaufnahmen vom iPad schicken,
+  wenn etwas ruckelt/hängt; YouTube-Links sind aus der Sitzung gesperrt, nur Dateien.
+- Weitere Skills für später: „musik-studio“/„transkription“ (Lieder hier analysieren, Erkennung der App gegenprüfen), „remotion“/„grafik-werkstatt“
+  (App-Store-Video, Icon, Bilder), „klangstudio“ (Instrumente, Signalsmith).
+- Nutzerwunsch Formatierung: am Ende jeder Antwort Volumenzeile mit Balken (Werkzeug `volumen`, Plugin „arbeitsbalken“).
+
 
 0. **App-Name „Loopsmiths“** (EUIPO + DPMA ohne Treffer, im App Store nichts gefunden). Nutzer: kein Gewerbe, kein Händler; Apple-Konto als
    Einzelperson in Arbeit. Erst kostenlos (Nicht-Händler) denkbar, Verkauf/Trinkgeld → Kleingewerbe + Händlerstatus.
