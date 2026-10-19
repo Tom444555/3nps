@@ -18,7 +18,7 @@ async def main():
         ctx = await b.new_context(viewport={'width': 1180, 'height': 860}, accept_downloads=True); pg = await ctx.new_page(); errs = []
         pg.on('pageerror', lambda e: errs.append(str(e)))
         await pg.goto(U); await pg.wait_for_timeout(900)
-        check('Version v97', 'v97' in await pg.inner_text('.brand'))
+        check('Version ≥ v97', int(re.search(r'v(\d+)', await pg.inner_text('.brand')).group(1)) >= 97)
         await pg.click('#tab-master'); await pg.wait_for_timeout(300)
         check('Reiter Mastering sichtbar', await pg.is_visible('#panel-master') and await pg.is_visible('#msLoad'))
         await pg.select_option('#msTarget', 'stream')

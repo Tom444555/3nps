@@ -505,4 +505,10 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
   "/01 Aufnahmen – ganzer Song – gemastert (": "/01 Recordings – whole song – mastered (",
   "/01 Mastering-Bericht.txt": "/01 Mastering report.txt",
   "Besseres Verlangsamen": "Better slow-down",
-  "Bereite die Zeile vor …": "Preparing the line …" });
+  "Bereite die Zeile vor …": "Preparing the line …",
+// ---- v98 echtes Schlagzeug ----
+  "Kit: Synth": "Kit: synth",
+  "Kit: Echt": "Kit: real",
+  "Kit: lädt …": "Kit: loading …",
+  "Echtes Kit konnte nicht geladen werden – es spielt die Synthese.": "The real kit could not be loaded – the synth kit is playing.",
+  "Schlagzeug-Klang: Synthese oder echtes Kit (Aufnahmen, einmalig ca. 4 MB)": "Drum sound: synth or real kit (recordings, one-time download of about 4 MB)" });

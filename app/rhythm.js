@@ -226,6 +226,42 @@ const Rhythm = (() => {
     if (bus) { try { if (roomOn) bus.wet.connect(bus.sum); else bus.wet.disconnect(); } catch (e) {} }
   }
   if (roomBtn) { roomBtn.addEventListener('click', () => setRoom(!roomOn)); setRoom(roomOn); }
+  // ---- v98: echtes Schlagzeug (Aufnahmen „Virtuosity Drums“, CC0) als Option; Synthese bleibt (und spielt Clap/Shaker) ----
+  let realOn = false, kitReal = null, realBusy = null, realErr = '';
+  try { realOn = localStorage.getItem('3nps-drumkit') === 'real'; } catch (e) {}
+  const kitBtn = document.getElementById('drumKitBtn');
+  function paintKitBtn() {
+    if (!kitBtn) return;
+    const label = !realOn ? 'Kit: Synth' : kitReal ? 'Kit: Echt' : realBusy ? 'Kit: lädt …' : 'Kit: Echt';
+    kitBtn.textContent = typeof T === 'function' ? T(label) : label; kitBtn.classList.toggle('active', realOn && !!kitReal); kitBtn.setAttribute('aria-pressed', String(realOn));
+    kitBtn.title = (typeof T === 'function' ? T : x => x)(realErr ? 'Echtes Kit konnte nicht geladen werden – es spielt die Synthese.' : 'Schlagzeug-Klang: Synthese oder echtes Kit (Aufnahmen, einmalig ca. 4 MB)');
+  }
+  function loadReal() {
+    if (kitReal || realBusy) return realBusy || Promise.resolve(kitReal);
+    if (typeof ensureAudio === 'function') ensureAudio();
+    realErr = '';
+    realBusy = (async () => {
+      const [ix, ab] = await Promise.all([fetch('drums/kit.json').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }), fetch('drums/kit.flac').then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })]);
+      const all = await audioCtx.decodeAudioData(ab), sr = all.sampleRate, nc = all.numberOfChannels, g = 1 / (ix.gain || 1), K = {};
+      const ch = [all.getChannelData(0), all.getChannelData(nc > 1 ? 1 : 0)];
+      Object.entries(ix.hits).forEach(([id, layers]) => {
+        K[id] = layers.map(row => row.map(([st, len]) => {
+          const a = Math.round(st * sr), n = Math.max(1, Math.round(len * sr)), b = audioCtx.createBuffer(2, n, sr);
+          for (let c = 0; c < 2; c++) { const d = b.getChannelData(c), src = ch[c]; for (let i = 0; i < n; i++) d[i] = (src[a + i] || 0) * g; }
+          return b;
+        }));
+      });
+      kitReal = K; return K;
+    })().catch(e => { realErr = String(e && e.message || e); realOn = false; return null; }).finally(() => { realBusy = null; paintKitBtn(); });
+    paintKitBtn(); return realBusy;
+  }
+  function setKit(real) {
+    realOn = !!real; try { localStorage.setItem('3nps-drumkit', realOn ? 'real' : 'synth'); } catch (e) {}
+    if (realOn) loadReal(); paintKitBtn();
+  }
+  if (kitBtn) kitBtn.addEventListener('click', () => setKit(!realOn));
+  if (realOn) setTimeout(loadReal, 600);
+  paintKitBtn();
   function connectBus(v) {
     if (!bus || bus.linked === v) return;
     try { if (v) bus.eq.output.connect(ensureMasterBus()); else bus.eq.output.disconnect(); bus.linked = v; } catch (e) {}
@@ -238,7 +274,7 @@ const Rhythm = (() => {
       if (id === 'kick') playKick(t, b); else if (id === 'snare' || id === 'clap' || id === 'rim') playSnare(t, b); else if (id !== 'crash' && id !== 'tomh' && id !== 'toml') playHihat(t, v > 0.8, b);
       return;
     }
-    const layers = kit[id]; if (!layers) return;
+    const real = realOn && kitReal && kitReal[id], layers = real || kit[id]; if (!layers) return;   // v98: echtes Kit, wo vorhanden
     const L = v < 0.5 ? 0 : v < 0.86 ? 1 : 2, arr = layers[L], buf = arr[(Math.random() * arr.length) | 0];
     const s = audioCtx.createBufferSource(); s.buffer = buf;
     s.playbackRate.value = 1 + (Math.random() - 0.5) * 0.012;
@@ -539,6 +575,7 @@ const Rhythm = (() => {
     nextBarTime: () => { const g = grid(), bd = barDur(), t = audioCtx.currentTime + 0.15; return g.anchor + Math.ceil((t - g.anchor) / bd) * bd; },
     resync: () => { lastAnchor = null; },
     stepDur, res: () => res, midiEvents, setDetected, name: () => styleEl.selectedOptions[0] ? styleEl.selectedOptions[0].text : '',
-    debug: () => ({ on, res, steps: played.slice(-24), sd: stepDur(), kit: !!kit, preset: presetKey, late: lateHits, pending: pend.length })
+    setKit, kitMode: () => (realOn && kitReal ? 'real' : 'synth'), loadReal,
+    debug: () => ({ on, res, steps: played.slice(-24), sd: stepDur(), kit: !!kit, real: !!(realOn && kitReal), preset: presetKey, late: lateHits, pending: pend.length })
   };
 })();

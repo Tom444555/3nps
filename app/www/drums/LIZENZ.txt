@@ -1,0 +1,6 @@
+Echtes Schlagzeug (3nps v98)
+
+Die Schläge in kit.flac stammen aus „Virtuosity Drums“ (sfzinstruments/virtuosity_drums,
+https://github.com/sfzinstruments/virtuosity_drums), gespielt von Austin McMahon, aufgenommen bei
+Virtuosity Musical Instruments, Boston. Veröffentlicht unter Creative Commons CC0 1.0 (gemeinfrei).
+Für die App ausgewählt, gekürzt, im Pegel angeglichen und zu einer Datei zusammengefasst (test/gen_drumkit.py).
