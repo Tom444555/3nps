@@ -18,7 +18,7 @@ async def main():
         pg = await (await b.new_context(viewport={'width': 1180, 'height': 820})).new_page(); errs = []
         pg.on('pageerror', lambda e: errs.append(str(e)))
         await pg.add_init_script(INIT); await pg.goto(U); await pg.wait_for_timeout(800)
-        check('Version v96', 'v96' in await pg.inner_text('.brand'))
+        import re as _re; check('Version ≥ v96', int(_re.search(r'v(\d+)', await pg.inner_text('.brand')).group(1)) >= 96)
         await pg.select_option('#loopCountIn', '0'); await pg.set_input_files('#file0', T + 'corpus/ballad_72.wav')
         for _ in range(80):
             await pg.wait_for_timeout(250)

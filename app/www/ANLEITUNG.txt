@@ -856,3 +856,18 @@ Gut zu wissen
    - Im Editor startet die Schleife sofort; nach einem kurzen Moment wird unhörbar auf die bessere Fassung umgeschaltet.
      „Zeile üben“ braucht beim ersten Start einen Augenblick („Bereite die Zeile vor …“).
    - Klappt das neue Verfahren auf einem Gerät nicht, nimmt die App automatisch das bisherige.
+
+80. Mastering – Lautheit für Spotify & Co. (v97)
+   - Neuer Reiter „Mastering“. Quelle wählen: „Datei vom iPad …“ (z. B. Mixdown aus Logic), eine Looper-Spur mit geladener
+     Datei oder „Song aus dem Songwriting“. Dann „Laden & messen“.
+   - Die Messwerte (nach EBU R128): Lautheit in LUFS, True Peak (echte Spitze zwischen den Abtastwerten), Lautheitsumfang (LRA),
+     Kurzzeit-Maximum und Dynamik (PLR).
+   - „Ziel“ wählen: Spotify/YouTube/Amazon/TIDAL −14 LUFS (Standard), Apple Music −16, Deezer −15, „Laut“ −9 (nur für Club/CD –
+     die Dienste drehen Lauteres ohnehin leiser) oder eine eigene Vorgabe. Die Spitze bleibt immer unter −1 dBTP.
+   - „Mastern“ bringt den Mix genau auf das Ziel; ein Begrenzer fängt die Spitzen ab. Muss er stark arbeiten (mehr als 6 dB),
+     erscheint ein Hinweis.
+   - „Vergleichen“: ▶ und zwischen „Original“ und „Master“ umschalten. Mit „gleich laut vergleichen“ wird der Master dabei auf die
+     Lautheit des Originals gedreht – so hörst du den Klang, nicht nur „lauter“.
+   - „WAV speichern“: 24 Bit, zum Hochladen oder für Logic.
+   - Songwriting: beim „Für Logic exportieren“ mit Haken „gemastert“ liegt zusätzlich der ganze Song gemastert im Paket,
+     dazu ein Mastering-Bericht (vorher/nachher).

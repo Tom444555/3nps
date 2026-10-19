@@ -183,6 +183,11 @@ const LiedExport = (() => {
     const audio = o.getRec ? await render(v, o.getRec, o.sr || 48000) : null;
     if (audio) {
       files.push({ name: base + TT('/01 Aufnahmen – ganzer Song – ') + tag + '.wav', data: wav24(audio.L, audio.R, audio.sr) });
+      if (o.master) {   // v97: zusätzlich gemastert (Lautheitsziel + True-Peak-Limiter), mit Bericht
+        const m = await o.master(audio.L, audio.R, audio.sr);
+        if (m) { files.push({ name: base + TT('/01 Aufnahmen – ganzer Song – gemastert (') + safe(m.label) + ') – ' + tag + '.wav', data: wav24(m.L, m.R, audio.sr) });
+          if (m.report) files.push({ name: base + TT('/01 Mastering-Bericht.txt'), data: new Uint8Array(enc(m.report)) }); }
+      }
       audio.parts.forEach((q, i) => files.push({ name: base + TT('/Teile einzeln/') + String(i + 1).padStart(2, '0') + ' ' + safe(q.p.name) + ' (' + C.beatsOf(q.p) / 4 + TT(' Takte) – ') + tag + '.wav', data: wav24(q.L, q.R, audio.sr) }));
     }
     files.push({ name: base + TT('/02 Tempo, Abschnitte, Akkorde, Bass') + (o.drums && o.drums.length ? ', Drums' : '') + ' – ' + tag + '.mid', data: midi(song, v, o) });

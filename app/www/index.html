@@ -1384,6 +1384,23 @@ html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleis
   .sb-row { padding: 4px 0 8px; }
   /* v95: Pausen ohne Balken – nur die Sekunden bis zum Einsatz */
   .sb-gap .sb-gaptrack, .sb-gap.on .sb-gaptrack, .sb-gapbar { display: none !important; }
+/* v97 Mastering */
+#panel-master .ms-fields { display: flex; flex-wrap: wrap; gap: 10px 14px; margin: 10px 0; }
+#panel-master .ms-fields .field { min-width: 0; }
+#panel-master .ms-fields select { max-width: 100%; }
+#panel-master .ms-own input { width: 6.5em; }
+#panel-master .ms-btns { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 10px; }
+#panel-master .ms-prog { height: 8px; border-radius: 4px; background: rgba(127,127,127,.22); overflow: hidden; margin: 6px 0; }
+#panel-master .ms-prog i { display: block; height: 100%; width: 0; background: var(--accent, #e0a030); transition: width .2s; }
+#panel-master .ms-hint { color: var(--warn, #e0a030); }
+#panel-master .ms-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+#panel-master .ms-table th, #panel-master .ms-table td { padding: 6px 8px; text-align: right; border-bottom: 1px solid rgba(127,127,127,.18); white-space: nowrap; }
+#panel-master .ms-table th:first-child, #panel-master .ms-table td:first-child { text-align: left; white-space: normal; }
+#panel-master .ms-table td.ok { color: var(--ok, #3fbf6f); }
+#panel-master .ms-table td.bad { color: var(--warn, #e05a3a); }
+#panel-master .ms-ab { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin-bottom: 10px; }
+#panel-master #msPos { width: 100%; }
+@media (max-width: 560px) { #panel-master .ms-table th, #panel-master .ms-table td { padding: 5px 4px; font-size: .9em; } #panel-master .ms-table th:nth-child(4), #panel-master .ms-table td:nth-child(4) { display: none; } }
   /* ===== Rost & Stahl: Hintergrund aus gerostetem Blech, darauf verschraubte Stahlplatten ===== */
   :root {
     --plate-hi: #3a3a40;
@@ -3077,7 +3094,81 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
   'Noch kein Wort hat einen Takt – „Takte ergänzen“ hört den Gesang heraus und legt deinen Text darauf.': 'No word has a bar yet – “Fill in bars” listens to the vocals and places your lyrics on them.',
   ' hat ': ' has ', ' Wörter': ' words', 'Beim Einfügen sind vermutlich die Zeilenumbrüche verloren gegangen. Mitsingen teilt sie beim Anzeigen selbst; hier kannst du sie dauerhaft teilen (an Pausen und Satzzeichen).': 'The line breaks were probably lost when pasting. Sing along splits the line itself for display; here you can split it permanently (at pauses and punctuation).', 'Zeilen teilen': 'Split lines',
   'Zeilen geteilt: ': 'Lines split: ', ' neue Zeilen. Unten in der Wortliste kannst du Zeilen weiter anpassen – oder den Text mit Zeilenumbrüchen neu einfügen; die Zeiten bleiben erhalten.': ' new lines. Adjust them further in the word list below – or paste the lyrics again with line breaks; the timing is kept.',
-  'Der Text hatte zu lange Zeilen (fehlende Zeilenumbrüche?) – automatisch in ': 'The lyrics had overly long lines (missing line breaks?) – automatically split into ', ' zusätzliche Zeilen geteilt.': ' additional lines.' });
+  'Der Text hatte zu lange Zeilen (fehlende Zeilenumbrüche?) – automatisch in ': 'The lyrics had overly long lines (missing line breaks?) – automatically split into ', ' zusätzliche Zeilen geteilt.': ' additional lines.',
+// ---- v97 Mastering ----
+  "Abspielposition": "Playback position",
+  "Bringt einen fertigen Mix auf die richtige Lautheit für Spotify, YouTube & Co. – ohne Übersteuern (True Peak). Gemessen nach EBU R128.": "Brings a finished mix to the right loudness for Spotify, YouTube & co. – without clipping (true peak). Measured to EBU R128.",
+  "Quelle": "Source",
+  "Datei vom iPad …": "File from the iPad …",
+  "Looper Spur 1": "Looper track 1",
+  "Looper Spur 2": "Looper track 2",
+  "Looper Spur 3": "Looper track 3",
+  "Song aus dem Songwriting": "Song from Songwriting",
+  "Ziel": "Target",
+  "Spotify, YouTube, Amazon, TIDAL (−14 LUFS)": "Spotify, YouTube, Amazon, TIDAL (−14 LUFS)",
+  "Laut – Club/CD (−9 LUFS)": "Loud – club/CD (−9 LUFS)",
+  "Eigene Vorgabe": "Custom",
+  "Laden & messen": "Load & measure",
+  "Mastern": "Master it",
+  "WAV speichern": "Save WAV",
+  "Quelle wählen und „Laden & messen“ tippen.": "Choose a source and tap “Load & measure”.",
+  "Messwerte": "Measurements",
+  "Vorher": "Before",
+  "Nachher": "After",
+  "Lautheit (integriert)": "Loudness (integrated)",
+  "Lautheitsumfang (LRA)": "Loudness range (LRA)",
+  "Kurzzeit max.": "Short-term max.",
+  "Dynamik (PLR)": "Dynamics (PLR)",
+  "Begrenzer": "Limiter",
+  "Vergleichen": "Compare",
+  "Abspielen": "Play",
+  "Original oder Master": "Original or master",
+  "gleich laut vergleichen": "compare at equal loudness",
+  "„Gleich laut“: der Master wird beim Vergleich auf die Lautheit des Originals gedreht – sonst klingt das Lautere immer „besser“.": "“Equal loudness”: the master is turned down to the loudness of the original while comparing – otherwise the louder one always sounds “better”.",
+  "Position": "Position",
+  " dB lauter": " dB louder",
+  " dB leiser": " dB quieter",
+  " dB) – das kann den Klang flacher machen. Ein leiseres Ziel oder ein Mix mit weniger Spitzen klingt oft besser.": " dB) – this can make the sound flatter. A quieter target or a mix with fewer peaks often sounds better.",
+  " – jetzt „Mastern“ tippen.": " – now tap “Master it”.",
+  "Abgebrochen.": "Cancelled.",
+  "Auf dieser Spur liegt keine geladene Datei. Mastering geht mit geladenen Dateien (z. B. aus Logic) – oder „Datei vom iPad …“ wählen.": "There is no loaded file on this track. Mastering works with loaded files (e.g. from Logic) – or choose “File from the iPad …”.",
+  "Begrenzer max. ": "Limiter max. ",
+  "Der Begrenzer musste stark arbeiten (": "The limiter had to work hard (",
+  "Der Song hat noch keine Aufnahmen.": "The song has no recordings yet.",
+  "Die Datei ließ sich nicht lesen: ": "The file could not be read: ",
+  "Die Quelle ist (fast) still.": "The source is (almost) silent.",
+  "Erstellt mit dem 3nps-Übungsprogramm (eigene Messung nach ITU-R BS.1770-4 / EBU R128).": "Made with the 3nps practice app (own measurement to ITU-R BS.1770-4 / EBU R128).",
+  "Fertig (Ziel nicht ganz erreicht): ": "Done (target not fully reached): ",
+  "Fertig: ": "Done: ",
+  "Für das Ziel ": "For the target ",
+  "Gemessen. ": "Measured. ",
+  "Gespeichert/geteilt: ": "Saved/shared: ",
+  "Heruntergeladen: ": "Downloaded: ",
+  "Im Songwriting ist noch kein Song.": "There is no song in Songwriting yet.",
+  "Lauter als −14 LUFS drehen Spotify, YouTube & Co. ohnehin leiser – lohnt sich nur für Club oder CD.": "Spotify, YouTube & co. turn anything louder than −14 LUFS down anyway – only worth it for club or CD.",
+  "Lese ": "Reading ",
+  "Liegt schon am Ziel.": "Already at the target.",
+  "Looper Spur ": "Looper track ",
+  "Länger als 10 Minuten – das wird für das iPad zu groß.": "Longer than 10 minutes – too big for the iPad.",
+  "Mastere … (bei langen Songs bis zu einer Minute)": "Mastering … (up to a minute for long songs)",
+  "Mastering fehlgeschlagen: ": "Mastering failed: ",
+  "Mastering-Bericht": "Mastering report",
+  "Messe … ": "Measuring … ",
+  "Messen fehlgeschlagen: ": "Measuring failed: ",
+  "Mit „Master“ / „Original“ vergleichen, dann „WAV speichern“.": "Compare with “Master” / “Original”, then “Save WAV”.",
+  "Verstärkung ": "Gain ",
+  "Ziel: ": "Target: ",
+  "Streaming −14 LUFS": "Streaming −14 LUFS",
+  "Apple Music −16 LUFS": "Apple Music −16 LUFS",
+  "Deezer −15 LUFS": "Deezer −15 LUFS",
+  "Laut −9 LUFS": "Loud −9 LUFS",
+  "Mastere den Song … (": "Mastering the song … (",
+  "gemastert": "mastered",
+  "Zusätzlich eine gemasterte Fassung des ganzen Songs (Ziel aus dem Reiter „Mastering“)": "Also a mastered version of the whole song (target from the “Mastering” tab)",
+  "/01 Aufnahmen – ganzer Song – gemastert (": "/01 Recordings – whole song – mastered (",
+  "/01 Mastering-Bericht.txt": "/01 Mastering report.txt",
+  "Besseres Verlangsamen": "Better slow-down",
+  "Bereite die Zeile vor …": "Preparing the line …" });
 
 // Sprache (v59): Deutsch ist der Quelltext. Nur im EN-Modus läuft hier etwas:
 // Ein Beobachter übersetzt neue/geänderte Texte im DOM (Text, title, placeholder, aria-label)
@@ -3183,7 +3274,7 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v96</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v97</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -3262,6 +3353,7 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
     <button class="tab" role="tab" id="tab-jam" data-tab="jam" aria-selected="false">Backing<wbr> Track</button>
     <button class="tab" role="tab" id="tab-lied" data-tab="lied" aria-selected="false">Song<wbr>writing</button>
     <button class="tab" role="tab" id="tab-singen" data-tab="singen" aria-selected="false">Mit<wbr>singen</button>
+    <button class="tab" role="tab" id="tab-master" data-tab="master" aria-selected="false">Mastering</button>
     <button class="tab" role="tab" id="tab-ueben" data-tab="ueben" aria-selected="false">Training</button>
     <button class="tab" role="tab" id="tab-griffbrett" data-tab="griffbrett" aria-selected="false">Technik</button>
   </nav>
@@ -4076,7 +4168,7 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
         <div class="ld-info" id="ldInfo"></div>
         <div class="ld-ver">
           <label class="field"><span>Version</span><select id="ldVer" aria-label="Version"></select></label>
-          <button class="toggle-btn" id="ldVerSave">Als neue Version sichern</button><button class="toggle-btn" id="ldExport" title="Ganzer Song als Paket für Logic Pro: Aufnahmen, MIDI (Tempo, Abschnitte, Akkorde, Bass, Drums, Text), Leadsheet">Für Logic exportieren</button>
+          <button class="toggle-btn" id="ldVerSave">Als neue Version sichern</button><button class="toggle-btn" id="ldExport" title="Ganzer Song als Paket für Logic Pro: Aufnahmen, MIDI (Tempo, Abschnitte, Akkorde, Bass, Drums, Text), Leadsheet">Für Logic exportieren</button><label class="check" title="Zusätzlich eine gemasterte Fassung des ganzen Songs (Ziel aus dem Reiter „Mastering“)"><input type="checkbox" id="ldTM"> gemastert</label>
         </div>
         <div class="ld-trans">
           <button class="play-btn" id="ldPlay" aria-label="Song abspielen">▶</button>
@@ -4185,6 +4277,62 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
         <div class="sb-tools"><button class="toggle-btn" id="sbTrSave">Speichern</button><button class="toggle-btn" id="sbTrClaude">Auftrag für Claude kopieren</button></div>
         <p class="caption" id="sbTrInfo">Selbst eintragen oder den Auftrag kopieren, in einen Chat mit Claude einfügen und die Antwort hier einsetzen – Zeile für Zeile.</p>
       </details>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-master" role="tabpanel" aria-labelledby="tab-master" hidden>
+    <div class="card">
+      <div class="card-head"><h2>Mastering</h2><span class="caption" id="msName" translate="no">–</span></div>
+      <p class="caption">Bringt einen fertigen Mix auf die richtige Lautheit für Spotify, YouTube &amp; Co. – ohne Übersteuern (True Peak). Gemessen nach EBU R128.</p>
+      <div class="ms-fields">
+        <label class="field"><span>Quelle</span><select id="msSrc" aria-label="Quelle">
+          <option value="file">Datei vom iPad …</option>
+          <option value="t0">Looper Spur 1</option><option value="t1">Looper Spur 2</option><option value="t2">Looper Spur 3</option>
+          <option value="song">Song aus dem Songwriting</option>
+        </select></label>
+        <label class="field"><span>Ziel</span><select id="msTarget" aria-label="Ziel">
+          <option value="stream">Spotify, YouTube, Amazon, TIDAL (−14 LUFS)</option>
+          <option value="apple">Apple Music (−16 LUFS)</option>
+          <option value="deezer">Deezer (−15 LUFS)</option>
+          <option value="loud">Laut – Club/CD (−9 LUFS)</option>
+          <option value="own">Eigene Vorgabe</option>
+        </select></label>
+        <label class="field ms-own" id="msOwnI" hidden><span>LUFS</span><input type="number" id="msI" min="-30" max="-6" step="0.5" value="-14"></label>
+        <label class="field ms-own" id="msOwnT" hidden><span>dBTP</span><input type="number" id="msT" min="-6" max="0" step="0.1" value="-1"></label>
+        <input type="file" id="msFile" accept="audio/*,.wav,.mp3,.m4a,.aif,.aiff,.flac" hidden>
+      </div>
+      <div class="ms-btns">
+        <button class="toggle-btn" id="msLoad">Laden &amp; messen</button>
+        <button class="toggle-btn" id="msRun" disabled>Mastern</button>
+        <button class="toggle-btn" id="msSave" disabled>WAV speichern</button>
+      </div>
+      <div class="ms-prog" id="msProg" hidden><i id="msBar"></i></div>
+      <p class="caption ms-hint" id="msHint" hidden></p>
+      <div class="status-line" id="msStatus">Quelle wählen und „Laden &amp; messen“ tippen.</div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Messwerte</h2><span class="caption">EBU R128 · ITU-R BS.1770-4</span></div>
+      <table class="ms-table" id="msTable">
+        <thead><tr><th></th><th>Vorher</th><th>Nachher</th><th>Ziel</th></tr></thead>
+        <tbody>
+          <tr><td>Lautheit (integriert)</td><td id="mvI0">–</td><td id="mvI1">–</td><td id="mvIz">–</td></tr>
+          <tr><td>True Peak</td><td id="mvT0">–</td><td id="mvT1">–</td><td id="mvTz">–</td></tr>
+          <tr><td>Lautheitsumfang (LRA)</td><td id="mvL0">–</td><td id="mvL1">–</td><td></td></tr>
+          <tr><td>Kurzzeit max.</td><td id="mvS0">–</td><td id="mvS1">–</td><td></td></tr>
+          <tr><td>Dynamik (PLR)</td><td id="mvP0">–</td><td id="mvP1">–</td><td></td></tr>
+          <tr><td>Begrenzer</td><td></td><td id="mvR1">–</td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Vergleichen</h2></div>
+      <div class="ms-ab">
+        <button class="play-btn" id="msPlay" aria-label="Abspielen" disabled>▶</button>
+        <div class="seg" id="msAB" role="group" aria-label="Original oder Master"><button class="toggle-btn active" data-ab="a">Original</button><button class="toggle-btn" data-ab="b">Master</button></div>
+        <label class="check"><input type="checkbox" id="msEq" checked> gleich laut vergleichen</label>
+      </div>
+      <input type="range" id="msPos" min="0" max="1000" value="0" aria-label="Abspielposition" disabled>
+      <p class="caption">„Gleich laut“: der Master wird beim Vergleich auf die Lautheit des Originals gedreht – sonst klingt das Lautere immer „besser“.</p>
     </div>
   </section>
 
@@ -17665,6 +17813,11 @@ const LiedExport = (() => {
     const audio = o.getRec ? await render(v, o.getRec, o.sr || 48000) : null;
     if (audio) {
       files.push({ name: base + TT('/01 Aufnahmen – ganzer Song – ') + tag + '.wav', data: wav24(audio.L, audio.R, audio.sr) });
+      if (o.master) {   // v97: zusätzlich gemastert (Lautheitsziel + True-Peak-Limiter), mit Bericht
+        const m = await o.master(audio.L, audio.R, audio.sr);
+        if (m) { files.push({ name: base + TT('/01 Aufnahmen – ganzer Song – gemastert (') + safe(m.label) + ') – ' + tag + '.wav', data: wav24(m.L, m.R, audio.sr) });
+          if (m.report) files.push({ name: base + TT('/01 Mastering-Bericht.txt'), data: new Uint8Array(enc(m.report)) }); }
+      }
       audio.parts.forEach((q, i) => files.push({ name: base + TT('/Teile einzeln/') + String(i + 1).padStart(2, '0') + ' ' + safe(q.p.name) + ' (' + C.beatsOf(q.p) / 4 + TT(' Takte) – ') + tag + '.wav', data: wav24(q.L, q.R, audio.sr) }));
     }
     files.push({ name: base + TT('/02 Tempo, Abschnitte, Akkorde, Bass') + (o.drums && o.drums.length ? ', Drums' : '') + ' – ' + tag + '.mid', data: midi(song, v, o) });
@@ -18257,7 +18410,12 @@ if (typeof module !== 'undefined') module.exports = LiedExport;
       let pdf = null; try { pdf = LiedPdf.build(X.leadsheet(s, v)).bytes; } catch (e) {}
       const r = await LiedExport.build(s, v, {
         getRec: id => AppDB.get('meta', 'lied-audio:' + id), sr: (typeof audioCtx !== 'undefined' && audioCtx && audioCtx.sampleRate) || 48000,
-        drums: useDrums ? Rhythm.midiEvents(Math.ceil(beats / 4), LiedExport.PPQ) : null, drumsName: useDrums ? Rhythm.name() : '', pdf, voice: voiceLabel(s), blob: true
+        drums: useDrums ? Rhythm.midiEvents(Math.ceil(beats / 4), LiedExport.PPQ) : null, drumsName: useDrums ? Rhythm.name() : '', pdf, voice: voiceLabel(s), blob: true,
+        master: $('ldTM') && $('ldTM').checked && window.Master ? async (L, R, sr) => {
+          const t = Master.target(); status(T('Mastere den Song … (') + t.label + ')');
+          const r = await Master.normalize(R ? [L, R] : [L], sr, t.I, t.T); window.__lastMaster = { I: r.after.I, TP: r.after.TP, label: t.label };
+          return { L: r.outs[0], R: r.outs[1] || null, label: t.label, report: Master.reportText(s.name + ' V' + v.n, r, t) };
+        } : null
       });
       window.__lastExport = { name: r.name, size: r.size, files: r.files, audio: r.audio };
       const mb = (r.size / 1048576).toFixed(1).replace('.', ',');
@@ -18300,6 +18458,339 @@ if (typeof module !== 'undefined') module.exports = LiedExport;
     db: () => db, song, ver, play, prompt: () => promptText(), readCode, imp: () => imp, stop, openCapture, render, now: () => { const n = now(); return n ? { part: n.entry.p.name, oi: n.entry.oi, chord: n.chord, beat: n.beat } : null; },
     _reload: () => { db = load(); render(); }
   };
+})();
+
+</script>
+<script>
+// v97 Mastering M1: Lautheitsmessung nach ITU-R BS.1770-4 / EBU R128 (LUFS, LRA, True Peak) und True-Peak-Limiter.
+// Reine Funktionen ohne DOM – laufen im Worker (per toString eingebettet) und in Node-Tests. Eigene DSP, kein fremder Code.
+
+function mdKCoeffs(sr) {
+  // Vorfilter (Hochregal ~1,68 kHz, +4 dB) und RLB-Hochpass (~38 Hz) für beliebige Abtastrate (bilineare Transformation)
+  let f0 = 1681.974450955533, G = 3.999843853973347, Q = 0.7071752369554196;
+  let K = Math.tan(Math.PI * f0 / sr), Vh = Math.pow(10, G / 20), Vb = Math.pow(Vh, 0.4996667741545416), a0 = 1 + K / Q + K * K;
+  const pb = [(Vh + Vb * K / Q + K * K) / a0, 2 * (K * K - Vh) / a0, (Vh - Vb * K / Q + K * K) / a0], pa = [2 * (K * K - 1) / a0, (1 - K / Q + K * K) / a0];
+  f0 = 38.13547087602444; Q = 0.5003270373238773; K = Math.tan(Math.PI * f0 / sr); a0 = 1 + K / Q + K * K;
+  const ra = [2 * (K * K - 1) / a0, (1 - K / Q + K * K) / a0];
+  return { pb, pa, ra };
+}
+
+// Interpolationsfilter für True Peak: 4-fach, ungerade Länge (Nyquist-Filter → Phase 0 = Originalwert), Kaiser-Fenster
+function mdTpFilter(taps) {
+  const T = taps || 48, N = 4 * T + 1, c = (N - 1) / 2, beta = 8, h = new Float64Array(N);
+  const I0 = x => { let s = 1, t = 1; for (let k = 1; k < 30; k++) { t *= (x / (2 * k)) * (x / (2 * k)); s += t; } return s; };
+  for (let i = 0; i < N; i++) {
+    const x = (i - c) / 4, sinc = x === 0 ? 1 : Math.sin(Math.PI * x) / (Math.PI * x), r = (i - c) / c;
+    h[i] = sinc * I0(beta * Math.sqrt(Math.max(0, 1 - r * r))) / I0(beta);
+  }
+  // Phasen 1..3 als Koeffizienten über die Originalwerte x[n-T+1 .. n+T]
+  const ph = [];
+  for (let p = 1; p < 4; p++) {
+    const k = []; for (let j = -T + 1; j <= T; j++) { const idx = c + p - 4 * j; k.push(idx >= 0 && idx < N ? h[idx] : 0); }
+    let s = 0; k.forEach(v => s += v); ph.push(Float64Array.from(k.map(v => v / s)));   // DC-Verstärkung 1 je Phase
+  }
+  let S = 1; ph.forEach(k => { let a = 0; k.forEach(v => a += Math.abs(v)); if (a > S) S = a; });   // obere Schranke Zwischenwert/Fenstermaximum
+  return { T, ph, S };
+}
+
+// True-Peak eines Kanals ab Index a bis e (exklusiv) in out[i-a] (Maximum aus Abtastwert und den 3 Zwischenwerten bis i+1).
+// thr: Stellen, deren Fenster sicher unter thr bleibt (Fenstermaximum × S ≤ thr), werden nur grob (Abtastwerte) bestimmt – schnell.
+function mdTpRun(x, a, e, F, out, thr) {
+  const T = F.T, n = x.length, p1 = F.ph[0], p2 = F.ph[1], p3 = F.ph[2], L2 = 2 * T, B = L2, lim = (thr || 0) / F.S;
+  const b0 = Math.floor(Math.max(0, a - T + 1) / B), b1 = Math.floor(Math.min(n - 1, e + T) / B), bm = new Float32Array(b1 - b0 + 1);
+  for (let k = b0; k <= b1; k++) { let m = 0; const z = Math.min(n, (k + 1) * B); for (let i = k * B; i < z; i++) { const v = x[i] < 0 ? -x[i] : x[i]; if (v > m) m = v; } bm[k - b0] = m; }
+  for (let i = a; i < e; i++) {
+    let m = Math.abs(x[i]);
+    if (i + 1 < n) { const nx = Math.abs(x[i + 1]); if (nx > m) m = nx; }
+    const b = i - T + 1;
+    if (lim > 0) { const k1 = Math.floor(Math.max(0, b) / B) - b0, k2 = Math.floor(Math.min(n - 1, i + T) / B) - b0, wm = bm[k1] > bm[k2] ? bm[k1] : bm[k2]; if (wm <= lim) { out[i - a] = m; continue; } }
+    let s1 = 0, s2 = 0, s3 = 0;
+    if (b >= 0 && b + L2 <= n) for (let j = 0; j < L2; j++) { const v = x[b + j]; s1 += v * p1[j]; s2 += v * p2[j]; s3 += v * p3[j]; }
+    else for (let j = 0; j < L2; j++) { const k = b + j; if (k < 0 || k >= n) continue; const v = x[k]; s1 += v * p1[j]; s2 += v * p2[j]; s3 += v * p3[j]; }
+    s1 = Math.abs(s1); s2 = Math.abs(s2); s3 = Math.abs(s3);
+    if (s1 > m) m = s1; if (s2 > m) m = s2; if (s3 > m) m = s3;
+    out[i - a] = m;
+  }
+}
+
+// Messung: chs = [L, R] oder [M]; liefert I (LUFS), LRA (LU), TP (dBTP), Spitze (dBFS), M/S max, PLR
+function mdMeasure(chs, sr, opts) {
+  opts = opts || {};
+  const K = mdKCoeffs(sr), n = chs[0].length, hop = Math.round(sr / 10), nb = Math.floor(n / hop), sub = new Float64Array(nb);
+  for (const x of chs) {
+    let x1 = 0, x2 = 0, y1 = 0, y2 = 0, z1 = 0, z2 = 0, acc = 0, bi = 0, cnt = 0;
+    const { pb, pa, ra } = K;
+    for (let i = 0; i < n; i++) {
+      const v = x[i], y = pb[0] * v + pb[1] * x1 + pb[2] * x2 - pa[0] * y1 - pa[1] * y2; x2 = x1; x1 = v;
+      const z = y - 2 * y1 + y2 - ra[0] * z1 - ra[1] * z2; y2 = y1; y1 = y; z2 = z1; z1 = z;
+      acc += z * z;
+      if (++cnt === hop) { if (bi < nb) sub[bi] += acc; bi++; acc = 0; cnt = 0; }
+    }
+  }
+  const L = e => e > 0 ? -0.691 + 10 * Math.log10(e) : -Infinity;
+  const blocks = (w) => { const out = []; let s = 0; for (let i = 0; i < nb; i++) { s += sub[i]; if (i >= w) s -= sub[i - w]; if (i >= w - 1) out.push(s / (w * hop)); } return out; };
+  const mom = blocks(4), st = blocks(30);
+  // integrierte Lautheit: absolutes (−70) und relatives (−10 LU) Tor
+  const g1 = mom.filter(e => L(e) > -70); let I = -Infinity;
+  if (g1.length) { const mean = g1.reduce((a, b) => a + b, 0) / g1.length, thr = L(mean) - 10; const g2 = g1.filter(e => L(e) > thr); if (g2.length) I = L(g2.reduce((a, b) => a + b, 0) / g2.length); }
+  // LRA (EBU Tech 3342): Kurzzeitwerte, Tore −70 / −20 LU, 10.–95. Perzentil
+  let LRA = 0; const s1 = st.filter(e => L(e) > -70);
+  if (s1.length) { const mean = s1.reduce((a, b) => a + b, 0) / s1.length, thr = L(mean) - 20; const v = s1.filter(e => L(e) > thr).map(L).sort((a, b) => a - b);
+    if (v.length > 1) { const q = p => { const k = (v.length - 1) * p, lo = Math.floor(k), hi = Math.ceil(k); return v[lo] + (v[hi] - v[lo]) * (k - lo); }; LRA = q(0.95) - q(0.10); } }
+  const Mmax = mom.length ? L(Math.max(...mom)) : -Infinity, Smax = st.length ? L(Math.max(...st)) : -Infinity;
+  // Spitzen
+  let sp = 0, tp = 0;
+  const F = opts.F || mdTpFilter(), CH = 65536, buf = new Float32Array(CH);
+  for (const x of chs) for (let i = 0; i < n; i++) { const a = Math.abs(x[i]); if (a > sp) sp = a; }
+  tp = sp;
+  if (!opts.noTp) for (const x of chs) for (let a = 0; a < n; a += CH) { const e = Math.min(n, a + CH); mdTpRun(x, a, e, F, buf, tp); for (let i = 0; i < e - a; i++) if (buf[i] > tp) tp = buf[i]; }
+  const db = v => v > 0 ? 20 * Math.log10(v) : -Infinity;
+  const TP = opts.noTp ? null : db(tp);
+  return { I, LRA, TP, SP: db(sp), Mmax, Smax, PLR: TP != null && isFinite(I) ? TP - I : null, secs: n / sr, sr };
+}
+
+// True-Peak-Limiter (offline, nicht kausal → keine Verzögerung): Verstärkung gainDb, Decke ceilDb (dBTP).
+// Stereo verkoppelt. Vorschau (lookMs) wird als gleitendes Minimum ±L und Mittelwert ±L umgesetzt → Verstärkung
+// ist an jeder Stelle ≤ der benötigten; Release exponentiell. Schreibt in outs (Float32Array je Kanal), liefert max. Reduktion.
+function mdLimit(chs, sr, gainDb, ceilDb, opts, outs, prog) {
+  opts = opts || {};
+  const n = chs[0].length, g = Math.pow(10, gainDb / 20), c = Math.pow(10, ceilDb / 20), L = Math.max(1, Math.round(sr * (opts.lookMs || 2) / 1000));
+  const relK = 1 - Math.exp(-1 / (sr * (opts.relMs || 80) / 1000)), F = opts.F || mdTpFilter(), CH = 1 << 16, M = 2 * L + 2;
+  const W = CH + 2 * M, tpb = new Float32Array(W), tpc = new Float32Array(W), r = new Float32Array(W), a = new Float32Array(W);
+  const sc = chs.map(() => new Float32Array(W + 2 * F.T + 2));
+  let gPrev = 1, maxRed = 1, dq = new Int32Array(W), sumBuf = new Float64Array(W + 1);
+  for (let s = 0; s < n; s += CH) {
+    const e = Math.min(n, s + CH), s0 = Math.max(0, s - M), e0 = Math.min(n, e + M), len = e0 - s0;
+    // skalierte Ausschnitte mit Rand für das Interpolationsfilter
+    const pad = F.T + 1, s1 = Math.max(0, s0 - pad), e1 = Math.min(n, e0 + pad);
+    for (let k = 0; k < chs.length; k++) { const x = chs[k], y = sc[k]; for (let i = s1; i < e1; i++) y[i - s1] = x[i] * g; }
+    for (let k = 0; k < chs.length; k++) {
+      const y = sc[k].subarray(0, e1 - s1);
+      mdTpRun(y, s0 - s1, e0 - s1, F, k ? tpc : tpb, c);
+      if (k) for (let i = 0; i < len; i++) if (tpc[i] > tpb[i]) tpb[i] = tpc[i];
+    }
+    for (let i = 0; i < len; i++) r[i] = tpb[i] > c ? c / tpb[i] : 1;
+    // gleitendes Minimum über ±L (Index i in [s0,e0))
+    let h = 0, t = 0;
+    for (let i = 0, j = 0; i < len; i++) {
+      while (j < len && j <= i + L) { while (t > h && r[dq[t - 1]] >= r[j]) t--; dq[t++] = j; j++; }
+      while (dq[h] < i - L) h++;
+      a[i] = r[dq[h]];
+    }
+    // Mittelwert über ±L → weiche Absenkung, dann Release
+    sumBuf[0] = 0; for (let i = 0; i < len; i++) sumBuf[i + 1] = sumBuf[i] + a[i];
+    for (let i = s; i < e; i++) {
+      const li = i - s0, lo = Math.max(0, li - L), hi = Math.min(len, li + L + 1);
+      let g2 = (sumBuf[hi] - sumBuf[lo]) / (hi - lo); if (g2 > a[li]) { /* Rand: nie über dem Minimum der eigenen Stelle */ }
+      const rr = r[li]; if (g2 > rr) g2 = rr;
+      let gg = gPrev + (1 - gPrev) * relK; if (gg > g2) gg = g2; gPrev = gg; if (gg < maxRed) maxRed = gg;
+      for (let k = 0; k < chs.length; k++) outs[k][i] = chs[k][i] * g * gg;
+    }
+    if (prog) prog(e / n);
+  }
+  return { maxRedDb: 20 * Math.log10(maxRed) };
+}
+
+// Auf Lautheitsziel bringen: Verstärkung + True-Peak-Limiter, so oft nachregeln, bis das Ziel auf 0,1 LU stimmt
+function mdNormalize(chs, sr, target, ceilDb, opts, prog) {
+  opts = opts || {};
+  const F = mdTpFilter(), before = opts.before || mdMeasure(chs, sr, { F }), outs = chs.map(x => new Float32Array(x.length));
+  if (!isFinite(before.I)) return { outs: chs.map(x => x.slice()), before, after: before, gainDb: 0, ceil: ceilDb, red: 0, steps: 0 };
+  let gain = target - before.I, ceil = ceilDb, after = null, red = 0, steps = 0;
+  const P = (a, b) => prog && (f => prog(a + (b - a) * f));
+  for (let it = 0; it < 6; it++) {
+    steps++;
+    red = mdLimit(chs, sr, gain, ceil, { F, lookMs: opts.lookMs, relMs: opts.relMs }, outs, P(it / 6, (it + 0.7) / 6)).maxRedDb;
+    after = mdMeasure(outs, sr, { F });
+    const dI = target - after.I, over = after.TP - ceilDb;
+    if (over > 0.05) ceil -= over + 0.02;                     // Zwischenwerte nach der Regelung: Decke minimal tiefer
+    if (Math.abs(dI) <= 0.05 && over <= 0.05) break;
+    if (Math.abs(dI) > 0.05) gain += dI * (red < -0.5 ? 1.15 : 1);   // beim Limitieren wirkt mehr Gain weniger stark
+    if (gain > 40) { gain = 40; }
+  }
+  if (prog) prog(1);
+  return { outs, before, after, gainDb: gain, ceil, red, steps };
+}
+
+// v97 Mastering M1: Quelle laden, messen (EBU R128), auf Lautheitsziel bringen (True-Peak-Limiter), A/B gleich laut, WAV 24 Bit.
+// Rechnen im Worker (Funktionen aus master-dsp.js), Oberfläche im Reiter „Mastering“. Schnittstelle window.Master auch für den Song-Export.
+(function () {
+  const $ = id => document.getElementById(id), TT = s => (typeof T === 'function' ? T(s) : s);
+  const TARGETS = {
+    stream: { I: -14, T: -1, label: 'Streaming −14 LUFS' }, apple: { I: -16, T: -1, label: 'Apple Music −16 LUFS' },
+    deezer: { I: -15, T: -1, label: 'Deezer −15 LUFS' }, loud: { I: -9, T: -1, label: 'Laut −9 LUFS' }, own: { I: -14, T: -1, label: 'Eigene Vorgabe' }
+  };
+  const KEY = '3nps-master-target';
+  const lsGet = () => { try { return JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { return null; } };
+  const lsSet = v => { try { localStorage.setItem(KEY, JSON.stringify(v)); } catch (e) {} };
+  function target() {
+    const s = lsGet() || {}, k = TARGETS[s.k] ? s.k : 'stream', t = Object.assign({ k }, TARGETS[k]);
+    if (k === 'own') { t.I = isFinite(s.I) ? Math.max(-30, Math.min(-6, +s.I)) : -14; t.T = isFinite(s.T) ? Math.max(-6, Math.min(0, +s.T)) : -1; t.label = TT('Eigene Vorgabe') + ' ' + fmt(t.I) + ' LUFS'; }
+    else t.label = TT(t.label);
+    return t;
+  }
+  const fmt = (v, d) => v == null || !isFinite(v) ? '–' : (Math.round(v * Math.pow(10, d == null ? 1 : d)) / Math.pow(10, d == null ? 1 : d)).toFixed(d == null ? 1 : d).replace('-', '−').replace('.', window.__lang === 'en' ? '.' : ',');
+
+  // ---------- Worker ----------
+  let W = null, wid = 0; const wait = {};
+  function worker() {
+    if (W) return W;
+    const src = [mdKCoeffs, mdTpFilter, mdTpRun, mdMeasure, mdLimit, mdNormalize].map(f => f.toString()).join('\n') + `
+      onmessage = e => { const d = e.data, id = d.id;
+        try {
+          if (d.type === 'measure') { postMessage({ id, res: mdMeasure(d.chs, d.sr) }); return; }
+          const r = mdNormalize(d.chs, d.sr, d.I, d.T, { before: d.before }, f => postMessage({ id, prog: f }));
+          postMessage({ id, res: { before: r.before, after: r.after, gainDb: r.gainDb, red: r.red, steps: r.steps, outs: r.outs } }, r.outs.map(o => o.buffer));
+        } catch (err) { postMessage({ id, err: String(err && err.message || err) }); } };`;
+    W = new Worker(URL.createObjectURL(new Blob([src], { type: 'application/javascript' })));
+    W.onmessage = e => { const p = wait[e.data.id]; if (!p) return; if (e.data.prog != null) { p.prog && p.prog(e.data.prog); return; } delete wait[e.data.id]; e.data.err ? p.rej(new Error(e.data.err)) : p.res(e.data.res); };
+    W.onerror = e => { Object.keys(wait).forEach(k => { wait[k].rej(new Error('Worker')); delete wait[k]; }); W = null; };
+    return W;
+  }
+  function call(msg, prog, transfer) { return new Promise((res, rej) => { const id = ++wid; wait[id] = { res, rej, prog }; worker().postMessage(Object.assign({ id }, msg), transfer || []); }); }
+  // chs werden kopiert (die Originale bleiben für den Vergleich)
+  const measure = (chs, sr) => { const c = chs.map(x => x.slice()); return call({ type: 'measure', chs: c, sr }, null, c.map(x => x.buffer)); };
+  const normalize = (chs, sr, I, Tp, prog, before) => { const c = chs.map(x => x.slice()); return call({ type: 'normalize', chs: c, sr, I, T: Tp, before }, prog, c.map(x => x.buffer)); };
+  function reportText(name, r, t) {
+    const a = r.before, b = r.after, row = (k, x, y, u) => k.padEnd(24) + (fmt(x) + ' ' + u).padStart(12) + (y === undefined ? '' : (fmt(y) + ' ' + u).padStart(12));
+    return [TT('Mastering-Bericht') + ' – ' + name, TT('Ziel: ') + t.label + ' · ' + fmt(t.T) + ' dBTP', '', ''.padEnd(24) + TT('Vorher').padStart(12) + TT('Nachher').padStart(12),
+      row(TT('Lautheit (integriert)'), a.I, b.I, 'LUFS'), row(TT('True Peak'), a.TP, b.TP, 'dBTP'), row(TT('Lautheitsumfang (LRA)'), a.LRA, b.LRA, 'LU'),
+      row(TT('Kurzzeit max.'), a.Smax, b.Smax, 'LUFS'), row(TT('Dynamik (PLR)'), a.PLR, b.PLR, 'dB'), '',
+      TT('Verstärkung ') + fmt(r.gainDb) + ' dB · ' + TT('Begrenzer max. ') + fmt(r.red) + ' dB', TT('Erstellt mit dem 3nps-Übungsprogramm (eigene Messung nach ITU-R BS.1770-4 / EBU R128).')].join('\n');
+  }
+
+  // ---------- Oberfläche ----------
+  const panel = $('panel-master'); if (!panel) { window.Master = { measure, normalize, target, reportText, TARGETS }; return; }
+  let cur = null;   // { name, chs, sr, before, res }
+  let play = null;  // { a, b, ga, gb, t0, off }
+  const status = m => { $('msStatus').textContent = m; };
+  const hint = m => { $('msHint').hidden = !m; $('msHint').textContent = m || ''; };
+  const prog = f => { $('msProg').hidden = f == null; $('msBar').style.width = Math.round((f || 0) * 100) + '%'; };
+  function paintTarget() {
+    const t = target(); $('msTarget').value = t.k; $('msOwnI').hidden = $('msOwnT').hidden = t.k !== 'own';
+    if (t.k === 'own') { $('msI').value = t.I; $('msT').value = t.T; }
+    $('mvIz').textContent = fmt(t.I) + ' LUFS'; $('mvTz').textContent = '≤ ' + fmt(t.T) + ' dBTP';
+    hint(t.I > -14 ? TT('Lauter als −14 LUFS drehen Spotify, YouTube & Co. ohnehin leiser – lohnt sich nur für Club oder CD.') : '');
+  }
+  function paintVals() {
+    const a = cur && cur.before, r = cur && cur.res, b = r && r.after, t = target();
+    const set = (id, v, u, cls) => { const el = $(id); el.textContent = v == null || !isFinite(v) ? '–' : fmt(v) + ' ' + u; el.className = cls || ''; };
+    set('mvI0', a && a.I, 'LUFS'); set('mvT0', a && a.TP, 'dBTP', a && a.TP > t.T + 0.05 ? 'bad' : ''); set('mvL0', a && a.LRA, 'LU'); set('mvS0', a && a.Smax, 'LUFS'); set('mvP0', a && a.PLR, 'dB');
+    set('mvI1', b && b.I, 'LUFS', b ? (Math.abs(b.I - t.I) <= 0.2 ? 'ok' : 'bad') : ''); set('mvT1', b && b.TP, 'dBTP', b ? (b.TP <= t.T + 0.05 ? 'ok' : 'bad') : '');
+    set('mvL1', b && b.LRA, 'LU'); set('mvS1', b && b.Smax, 'LUFS'); set('mvP1', b && b.PLR, 'dB'); set('mvR1', r && r.red, 'dB');
+    $('msRun').disabled = !cur; $('msSave').disabled = !(r && r.outs); $('msPlay').disabled = !cur; $('msPos').disabled = !cur;
+  }
+  async function getSource() {
+    const v = $('msSrc').value;
+    if (v === 'file') return null;   // über Dateiauswahl
+    if (v[0] === 't') {
+      const i = +v[1], x = typeof Looper !== 'undefined' && Looper.singAudio ? Looper.singAudio(i, 0, 1e12) : null;
+      if (!x) throw new Error(TT('Auf dieser Spur liegt keine geladene Datei. Mastering geht mit geladenen Dateien (z. B. aus Logic) – oder „Datei vom iPad …“ wählen.'));
+      return { name: TT('Looper Spur ') + (i + 1), chs: x.r && x.r !== x.l ? [x.l.slice(), x.r.slice()] : [x.l.slice()], sr: x.sr };
+    }
+    const L = window.Lied, s = L && L.song && L.song(), ver = L && L.ver && L.ver();
+    if (!s || !ver || !window.LiedExport) throw new Error(TT('Im Songwriting ist noch kein Song.'));
+    if (typeof ensureAudio === 'function') ensureAudio();
+    const sr = (typeof audioCtx !== 'undefined' && audioCtx && audioCtx.sampleRate) || 48000;
+    const a = await LiedExport.render(ver, id => AppDB.get('meta', 'lied-audio:' + id), sr);
+    if (!a) throw new Error(TT('Der Song hat noch keine Aufnahmen.'));
+    return { name: s.name + ' V' + ver.n, chs: a.R ? [a.L, a.R] : [a.L], sr: a.sr };
+  }
+  async function load(src) {
+    stopPlay(); cur = null; paintVals(); prog(0); status(TT('Messe … ') + src.name);
+    const secs = src.chs[0].length / src.sr;
+    if (secs > 600) { prog(null); status(TT('Länger als 10 Minuten – das wird für das iPad zu groß.')); return; }
+    try {
+      const before = await measure(src.chs, src.sr);
+      cur = Object.assign(src, { before, res: null }); $('msName').textContent = src.name + ' · ' + fmtTime(secs);
+      prog(null); paintVals();
+      const t = target(), d = t.I - before.I;
+      status(!isFinite(before.I) ? TT('Die Quelle ist (fast) still.') : TT('Gemessen. ') + (Math.abs(d) < 0.3 ? TT('Liegt schon am Ziel.') : (d > 0 ? TT('Für das Ziel ') + fmt(d) + TT(' dB lauter') : TT('Für das Ziel ') + fmt(-d) + TT(' dB leiser'))) + TT(' – jetzt „Mastern“ tippen.'));
+    } catch (e) { prog(null); status(TT('Messen fehlgeschlagen: ') + (e && e.message || e)); }
+  }
+  const fmtTime = s => Math.floor(s / 60) + ':' + String(Math.round(s % 60)).padStart(2, '0');
+  async function run() {
+    if (!cur) return; stopPlay();
+    const t = target(), b = $('msRun'); b.disabled = true; prog(0); status(TT('Mastere … (bei langen Songs bis zu einer Minute)'));
+    try {
+      const t0 = performance.now(), r = await normalize(cur.chs, cur.sr, t.I, t.T, f => prog(f), cur.before);
+      cur.res = r; cur.t = t; window.__msMs = Math.round(performance.now() - t0); prog(null); paintVals();
+      const a = r.after, okI = Math.abs(a.I - t.I) <= 0.2, okT = a.TP <= t.T + 0.05;
+      status((okI && okT ? TT('Fertig: ') : TT('Fertig (Ziel nicht ganz erreicht): ')) + fmt(a.I) + ' LUFS · ' + fmt(a.TP) + ' dBTP. ' + TT('Mit „Master“ / „Original“ vergleichen, dann „WAV speichern“.'));
+      if (r.red < -6) hint(TT('Der Begrenzer musste stark arbeiten (') + fmt(r.red) + TT(' dB) – das kann den Klang flacher machen. Ein leiseres Ziel oder ein Mix mit weniger Spitzen klingt oft besser.'));
+      else paintTarget();
+    } catch (e) { prog(null); status(TT('Mastering fehlgeschlagen: ') + (e && e.message || e)); }
+    b.disabled = !cur;
+  }
+  async function save() {
+    if (!cur || !cur.res || !window.LiedExport) return;
+    const o = cur.res.outs, t = cur.t || target(), name = String(cur.name).replace(/[\\/:*?"<>|]+/g, ' ').trim() + ' – Master ' + t.label.replace(/[−]/g, '-') + '.wav';
+    const f = new File([LiedExport.wav24(o[0], o[1] || null, cur.sr)], name, { type: 'audio/wav' });
+    window.__msLast = { name, size: f.size, report: reportText(cur.name, cur.res, t) };
+    try {
+      if (navigator.canShare && navigator.canShare({ files: [f] })) { await navigator.share({ files: [f], title: name }); status(TT('Gespeichert/geteilt: ') + name); return; }
+    } catch (e) { if (e && e.name === 'AbortError') { status(TT('Abgebrochen.')); return; } }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(f); a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 60000); status(TT('Heruntergeladen: ') + name);
+  }
+
+  // ---------- A/B ----------
+  const ab = () => (panel.querySelector('#msAB .active') || {}).dataset ? panel.querySelector('#msAB .active').dataset.ab : 'a';
+  function gains() {
+    const r = cur && cur.res, eq = $('msEq').checked && r && isFinite(r.after.I) && isFinite(cur.before.I) ? Math.pow(10, (cur.before.I - r.after.I) / 20) : 1;
+    return ab() === 'b' && r ? [0, eq] : [1, 0];
+  }
+  function stopPlay() {
+    if (!play) return; try { play.a.stop(); play.a.disconnect(); if (play.b) { play.b.stop(); play.b.disconnect(); } play.ga.disconnect(); play.gb.disconnect(); } catch (e) {}
+    clearInterval(play.iv); play = null; $('msPlay').textContent = '▶';
+  }
+  function startPlay(off) {
+    if (!cur) return; stopPlay();
+    if (typeof Looper !== 'undefined' && Looper.stopAll) try { Looper.stopAll(); } catch (e) {}
+    if (window.Lied && Lied.stop) try { Lied.stop(); } catch (e) {}
+    if (typeof ensureAudio === 'function') ensureAudio();
+    const ctx = audioCtx, mk = chs => { const b = ctx.createBuffer(2, chs[0].length, cur.sr); b.copyToChannel(chs[0], 0); b.copyToChannel(chs[1] || chs[0], 1); return b; };
+    if (!cur.bufA) cur.bufA = mk(cur.chs);
+    if (cur.res && !cur.bufB) cur.bufB = mk(cur.res.outs);
+    const a = ctx.createBufferSource(), ga = ctx.createGain(), gb = ctx.createGain(); a.buffer = cur.bufA; a.connect(ga); ga.connect(ctx.destination);
+    let b = null; if (cur.bufB) { b = ctx.createBufferSource(); b.buffer = cur.bufB; b.connect(gb); gb.connect(ctx.destination); }
+    const [x, y] = gains(); ga.gain.value = x; gb.gain.value = y;
+    const t0 = ctx.currentTime + 0.05, dur = cur.bufA.duration; off = Math.max(0, Math.min(dur - 0.1, off || 0));
+    a.start(t0, off); if (b) b.start(t0, off);
+    play = { a, b, ga, gb, t0, off, dur };
+    play.iv = setInterval(() => { const p = off + ctx.currentTime - t0; if (p >= dur) { stopPlay(); $('msPos').value = 0; return; } $('msPos').value = Math.round(p / dur * 1000); }, 200);
+    a.onended = () => { if (play && play.a === a) stopPlay(); };
+    $('msPlay').textContent = '■';
+  }
+  function setAB() { if (!play) return; const [x, y] = gains(), t = audioCtx.currentTime; play.ga.gain.setTargetAtTime(x, t, 0.01); play.gb.gain.setTargetAtTime(y, t, 0.01); }
+
+  // ---------- Bedienung ----------
+  $('msTarget').addEventListener('change', e => { const s = lsGet() || {}; s.k = e.target.value; lsSet(s); paintTarget(); paintVals(); });
+  ['msI', 'msT'].forEach(id => $(id).addEventListener('change', () => { const s = lsGet() || {}; s.k = 'own'; s.I = +$('msI').value; s.T = +$('msT').value; lsSet(s); paintTarget(); paintVals(); }));
+  $('msLoad').addEventListener('click', async () => {
+    if ($('msSrc').value === 'file') { $('msFile').value = ''; $('msFile').click(); return; }
+    try { const s = await getSource(); if (s) await load(s); } catch (e) { status(e.message || String(e)); }
+  });
+  $('msFile').addEventListener('change', async e => {
+    const f = e.target.files && e.target.files[0]; if (!f) return;
+    status(TT('Lese ') + f.name + ' …'); prog(0);
+    try {
+      if (typeof ensureAudio === 'function') ensureAudio();
+      const buf = await audioCtx.decodeAudioData(await f.arrayBuffer()), chs = [];
+      for (let c = 0; c < Math.min(2, buf.numberOfChannels); c++) chs.push(new Float32Array(buf.getChannelData(c)));
+      await load({ name: f.name.replace(/\.[a-z0-9]+$/i, ''), chs, sr: buf.sampleRate });
+    } catch (err) { prog(null); status(TT('Die Datei ließ sich nicht lesen: ') + (err && err.message || err)); }
+  });
+  $('msRun').addEventListener('click', run);
+  $('msSave').addEventListener('click', save);
+  $('msPlay').addEventListener('click', () => { if (play) stopPlay(); else startPlay(($('msPos').value / 1000) * (cur ? cur.chs[0].length / cur.sr : 0)); });
+  $('msAB').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; panel.querySelectorAll('#msAB button').forEach(x => x.classList.toggle('active', x === b)); setAB(); });
+  $('msEq').addEventListener('change', setAB);
+  $('msPos').addEventListener('change', () => { if (play) startPlay(($('msPos').value / 1000) * play.dur); });
+  document.addEventListener('tabchange', e => { if (e.detail !== 'master') stopPlay(); else paintTarget(); });
+  paintTarget(); paintVals();
+
+  window.Master = { measure, normalize, target, reportText, TARGETS, cur: () => cur, load, run, startPlay, stopPlay, playing: () => !!play };
 })();
 
 </script>

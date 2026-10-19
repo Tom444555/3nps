@@ -1,0 +1,55 @@
+  <section class="panel" id="panel-master" role="tabpanel" aria-labelledby="tab-master" hidden>
+    <div class="card">
+      <div class="card-head"><h2>Mastering</h2><span class="caption" id="msName" translate="no">–</span></div>
+      <p class="caption">Bringt einen fertigen Mix auf die richtige Lautheit für Spotify, YouTube &amp; Co. – ohne Übersteuern (True Peak). Gemessen nach EBU R128.</p>
+      <div class="ms-fields">
+        <label class="field"><span>Quelle</span><select id="msSrc" aria-label="Quelle">
+          <option value="file">Datei vom iPad …</option>
+          <option value="t0">Looper Spur 1</option><option value="t1">Looper Spur 2</option><option value="t2">Looper Spur 3</option>
+          <option value="song">Song aus dem Songwriting</option>
+        </select></label>
+        <label class="field"><span>Ziel</span><select id="msTarget" aria-label="Ziel">
+          <option value="stream">Spotify, YouTube, Amazon, TIDAL (−14 LUFS)</option>
+          <option value="apple">Apple Music (−16 LUFS)</option>
+          <option value="deezer">Deezer (−15 LUFS)</option>
+          <option value="loud">Laut – Club/CD (−9 LUFS)</option>
+          <option value="own">Eigene Vorgabe</option>
+        </select></label>
+        <label class="field ms-own" id="msOwnI" hidden><span>LUFS</span><input type="number" id="msI" min="-30" max="-6" step="0.5" value="-14"></label>
+        <label class="field ms-own" id="msOwnT" hidden><span>dBTP</span><input type="number" id="msT" min="-6" max="0" step="0.1" value="-1"></label>
+        <input type="file" id="msFile" accept="audio/*,.wav,.mp3,.m4a,.aif,.aiff,.flac" hidden>
+      </div>
+      <div class="ms-btns">
+        <button class="toggle-btn" id="msLoad">Laden &amp; messen</button>
+        <button class="toggle-btn" id="msRun" disabled>Mastern</button>
+        <button class="toggle-btn" id="msSave" disabled>WAV speichern</button>
+      </div>
+      <div class="ms-prog" id="msProg" hidden><i id="msBar"></i></div>
+      <p class="caption ms-hint" id="msHint" hidden></p>
+      <div class="status-line" id="msStatus">Quelle wählen und „Laden &amp; messen“ tippen.</div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Messwerte</h2><span class="caption">EBU R128 · ITU-R BS.1770-4</span></div>
+      <table class="ms-table" id="msTable">
+        <thead><tr><th></th><th>Vorher</th><th>Nachher</th><th>Ziel</th></tr></thead>
+        <tbody>
+          <tr><td>Lautheit (integriert)</td><td id="mvI0">–</td><td id="mvI1">–</td><td id="mvIz">–</td></tr>
+          <tr><td>True Peak</td><td id="mvT0">–</td><td id="mvT1">–</td><td id="mvTz">–</td></tr>
+          <tr><td>Lautheitsumfang (LRA)</td><td id="mvL0">–</td><td id="mvL1">–</td><td></td></tr>
+          <tr><td>Kurzzeit max.</td><td id="mvS0">–</td><td id="mvS1">–</td><td></td></tr>
+          <tr><td>Dynamik (PLR)</td><td id="mvP0">–</td><td id="mvP1">–</td><td></td></tr>
+          <tr><td>Begrenzer</td><td></td><td id="mvR1">–</td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Vergleichen</h2></div>
+      <div class="ms-ab">
+        <button class="play-btn" id="msPlay" aria-label="Abspielen" disabled>▶</button>
+        <div class="seg" id="msAB" role="group" aria-label="Original oder Master"><button class="toggle-btn active" data-ab="a">Original</button><button class="toggle-btn" data-ab="b">Master</button></div>
+        <label class="check"><input type="checkbox" id="msEq" checked> gleich laut vergleichen</label>
+      </div>
+      <input type="range" id="msPos" min="0" max="1000" value="0" aria-label="Abspielposition" disabled>
+      <p class="caption">„Gleich laut“: der Master wird beim Vergleich auf die Lautheit des Originals gedreht – sonst klingt das Lautere immer „besser“.</p>
+    </div>
+  </section>

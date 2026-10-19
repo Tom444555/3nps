@@ -554,7 +554,12 @@
       let pdf = null; try { pdf = LiedPdf.build(X.leadsheet(s, v)).bytes; } catch (e) {}
       const r = await LiedExport.build(s, v, {
         getRec: id => AppDB.get('meta', 'lied-audio:' + id), sr: (typeof audioCtx !== 'undefined' && audioCtx && audioCtx.sampleRate) || 48000,
-        drums: useDrums ? Rhythm.midiEvents(Math.ceil(beats / 4), LiedExport.PPQ) : null, drumsName: useDrums ? Rhythm.name() : '', pdf, voice: voiceLabel(s), blob: true
+        drums: useDrums ? Rhythm.midiEvents(Math.ceil(beats / 4), LiedExport.PPQ) : null, drumsName: useDrums ? Rhythm.name() : '', pdf, voice: voiceLabel(s), blob: true,
+        master: $('ldTM') && $('ldTM').checked && window.Master ? async (L, R, sr) => {
+          const t = Master.target(); status(T('Mastere den Song … (') + t.label + ')');
+          const r = await Master.normalize(R ? [L, R] : [L], sr, t.I, t.T); window.__lastMaster = { I: r.after.I, TP: r.after.TP, label: t.label };
+          return { L: r.outs[0], R: r.outs[1] || null, label: t.label, report: Master.reportText(s.name + ' V' + v.n, r, t) };
+        } : null
       });
       window.__lastExport = { name: r.name, size: r.size, files: r.files, audio: r.audio };
       const mb = (r.size / 1048576).toFixed(1).replace('.', ',');

@@ -70,7 +70,7 @@ Normen: ITU-R BS.1770-4 (K-Gewichtung, Gating, True Peak mit 4× Überabtastung)
   `lied-export.js` (`render`, `wav24`), `Looper.singAudio`/Spurdaten, `perf.js` für Lastmessung.
 - Vorbild für den Match-Ansatz: das Open-Source-Projekt „matchering“ (Referenz-basiertes Mastering) – nur als Ideengeber, keinen Code übernehmen.
 
-## Phasen
+## Phasen (M1 erledigt in v97)
 
 - **M1 – Messen und Lautheit (zuerst, größter Nutzen):** LUFS/TP/LRA-Messer, True-Peak-Limiter, „auf Ziel normalisieren“ beim
   Song-Export und für geladene Dateien, Bericht. Tests gegen EBU Tech 3341/3342-Signale und ffmpeg.
