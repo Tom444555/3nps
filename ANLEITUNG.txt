@@ -871,3 +871,12 @@ Gut zu wissen
    - „WAV speichern“: 24 Bit, zum Hochladen oder für Logic.
    - Songwriting: beim „Für Logic exportieren“ mit Haken „gemastert“ liegt zusätzlich der ganze Song gemastert im Paket,
      dazu ein Mastering-Bericht (vorher/nachher).
+
+81. Echtes Schlagzeug (v98)
+   - Im Looper in der Drum-Zeile gibt es den Schalter „Kit: Synth“ / „Kit: Echt“. „Echt“ spielt echte Aufnahmen eines
+     Jazz-/Club-Schlagzeugs (Kick, Snare, Rim, zwei Toms, Hi-Hat zu/offen/Fuß, Crash, Ride – je 3 Anschlagstärken mit Varianten).
+     Clap und Shaker kommen weiter aus der Synthese.
+   - Beim ersten Einschalten werden einmalig ca. 3–4 MB geladen („Kit: lädt …“), danach geht es auch offline.
+     Die Wahl bleibt gespeichert und gilt auch für Backing Track und Songwriting.
+   - Klappt das Laden nicht, spielt einfach die Synthese weiter.
+   - Herkunft: „Virtuosity Drums“ (gemeinfrei, CC0), siehe drums/LIZENZ.txt.
