@@ -21,7 +21,7 @@ async def main():
         for st, name in [('v9', 'Heldensaga'), ('v10', 'Kathedrale'), ('v11', 'Schlachtfeld')]:
             await pg.select_option('#droneStyle', st)
             await pg.evaluate("ensureAudio(); ensureMasterBus(); __rec()")
-            await pg.click('#droneBtn'); await pg.wait_for_timeout(16000)
+            await pg.click('#droneBtn'); await pg.wait_for_timeout(16000 if st != 'v11' else 21000)
             d = await pg.evaluate('__dump()'); x = np.frombuffer(base64.b64decode(d['b64']), dtype=np.float32); sr = d['sr']
             seg = x[int(9 * sr):]
             rms = float(np.sqrt(np.mean(seg ** 2))); pk = float(np.abs(seg).max())
@@ -32,6 +32,7 @@ async def main():
             if OUT:
                 import subprocess; y = (np.clip(x, -1, 1) * 32767).astype('<i2').tobytes()
                 subprocess.run(['ffmpeg', '-y', '-v', 'error', '-f', 's16le', '-ar', str(sr), '-ac', '1', '-i', '-', '-b:a', '160k', OUT + 'drone-%s.mp3' % st], input=y, check=True)
+            if st == 'v11': check('Schlachtfeld: Hornruf mit echtem Horn (Aufnahme geladen)', await pg.evaluate('window.__hornReal||0') >= 1, await pg.evaluate('window.__hornReal||0'))
             await pg.click('#droneBtn'); await pg.wait_for_timeout(1800)
             check('%s: stoppt' % name, 'Aus' in await pg.inner_text('#droneStatus'))
         check('keine Skriptfehler', not errs, errs[:3])

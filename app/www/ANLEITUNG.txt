@@ -916,3 +916,8 @@ Gut zu wissen
      Mit „Verzierungen“ kommen Pauken, Taiko, Becken-Schwellen und Hornrufe dazu.
    - Neue echte Kits: Studio Rock/Metal, Pop/Rock trocken, 70er Vintage, Lo-Fi Retro, Indie/Punk, Cajon & Percussion
      (je einmalig ca. 3–6 MB). Herkunft und Lizenzen: drums/LIZENZ.txt.
+
+84. Echtes Horn im Drone „Schlachtfeld“ (v101)
+   - Die Hornrufe in „Schlachtfeld – Hörner & Trommeln“ sind jetzt echte Horn-Aufnahmen (gemeinfrei, VSCO-2),
+     als raues, tiefes Kriegshorn bearbeitet und eine Oktave tiefer gespielt. Beim ersten Start lädt das Horn
+     einmalig ca. 1 MB; ohne Verbindung spielt der bisherige Klang. Hornrufe kommen mit „Verzierungen“.
