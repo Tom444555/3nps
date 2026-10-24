@@ -1,0 +1,6 @@
+Instrumente im Loopsmiths Studio (Klavier, Streicher, Blechbläser, Flöte, Orgel, Harfe, Marimba, Kontrabass)
+Aufnahmen aus „VSCO-2 Community Edition“ von Versilian Studios (https://github.com/sgossner/VSCO-2-CE),
+aufgenommen von Sam Gossner und Simon Dalzell (Ivy Audio), Schnitt Elan Hickler/Soundemote.
+Bedingungen der Community Edition: Nutzung für jeden Zweck erlaubt (gemeinfrei, CC0), die Samples selbst nicht verkaufen.
+Für das Studio ausgewählt, gekürzt, mit Schleifen für gehaltene Töne versehen und je Instrument zu einer Datei
+zusammengefasst (test/gen_inst.py). Tonhöhen wurden nachgemessen.

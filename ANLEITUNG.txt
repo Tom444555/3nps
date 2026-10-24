@@ -958,3 +958,23 @@ Gut zu wissen
    - Audio liegt auf dem Gerät (nicht im Arbeitsspeicher) und wird beim Abspielen stückweise gelesen: 16–24 Spuren
      gleichzeitig gehen ohne Ruckeln. Oben rechts: „Last“ (ok = flüssig) und belegter Speicher.
    - Tastatur: Leertaste ▶/■, Cmd+Z / Cmd+Umschalt+Z, Entf = Region löschen, C = Cycle, R = Aufnahme, K = Metronom, 1–4 = Ansichten.
+
+87. Studio: Instrumente, Noten-Editor, Drummer, Akkorde → Bass (v104, Studio s3)
+   - „+ Spur“ → „Instrument (Noten)“ oder „Drummer“. Instrumente mit echten Aufnahmen: Klavier, Streicher, Blechbläser,
+     Flöte, Orgel, Harfe, Marimba, Kontrabass (VSCO-2, gemeinfrei, inst/LIZENZ.txt; jedes lädt einmalig 0,3–5 MB,
+     danach offline). Dazu Synthesizer: E-Piano, Synth-Bass, Fläche (Pad), Lead, Pluck. Spur → „Instrument“ wechselt
+     es, ▶ in der Liste spielt eine Hörprobe.
+   - „Noten“ (oder Region doppelt antippen): Piano-Roll. Leere Stelle antippen = Note (Länge = Raster), Note ziehen =
+     verschieben (Zeit und Tonhöhe), rechten Rand ziehen = Länge, doppelt tippen = löschen, leere Fläche ziehen = blättern,
+     zwei Finger = zoomen. Tasten links = vorhören; mit „Schritt-Eingabe“ tragen sie Noten nacheinander ein.
+     Oben: Raster (1/4 … 1/32, Triolen), Quantisieren, Transponieren (±1, ±12), Alle, Löschen, Anschlag.
+   - Drummer: spielt von selbst auf echten Kits (dieselben wie im Looper). Region antippen → „Bearbeiten“: Stil (Rock,
+     Pop, Funk, Hip-Hop, Shuffle, Ballade, Halftime, Disco, Metal, Punk, Reggae, Bossa Nova, Jazz, Country),
+     Lautstärke, Kraft, Komplexität, Swing, Gefühl, Fill am Ende, Becken am Anfang, „Andere Variante“.
+     Tipp: Region teilen und je Teil (Strophe/Refrain) Stil und Kraft ändern. Spur → „Drummer“ wählt das Kit.
+     Ideen mit Drums aus dem Looper bringen ihr Muster 1:1 als Drummer-Region mit.
+   - Unten im Noten-Bereich: „Akkorde →“ z. B. „Am F C G“ (je 1 Takt, „C:2“ = 2 Takte) → „Bass erzeugen“
+     (Grundton lang, Achtel, Grundton–Quinte, laufend), „Flächen erzeugen“ (Streicher), „Arpeggio erzeugen“ (Harfe).
+     Kommt das Projekt von einem Song aus dem Songwriting, stehen dessen Akkorde schon drin.
+   - Startest du mitten in einer langen Note (Fläche, Bass), wird sie nachgeholt. Export „Für Logic Pro“ enthält alle
+     Spuren als WAV und die Noten/Drums als MIDI (Drums auf Kanal 10, General MIDI).
