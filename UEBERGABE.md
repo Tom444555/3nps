@@ -1,6 +1,6 @@
 # 3nps Looper – Übergabe (vollständiger Stand)
 
-Stand: **24. Oktober 2026 · Version v102** – live unter https://tom444555.github.io/3nps/ ·
+Stand: **24. Oktober 2026 · Version v103 (Studio s1)** – live unter https://tom444555.github.io/3nps/ ·
 stabile Rückfall-Fassung **v24** unter https://tom444555.github.io/3nps/stabil/
 
 Diese Datei ist das Gedächtnis des Projekts. Alles, was ein neuer Chat wissen muss, steht hier –
@@ -139,6 +139,7 @@ IDs `tab-…`/`panel-…`. Begleitung (Drone, Drums, Bass), alter Song-Player un
 | `app/www/` | `sw.js`, `ANLEITUNG.txt` (Abschnitte 1–32), Bilder/Icons, Manifest |
 | `app/tex/*.py` | erzeugen Texturen/Icons der Optiken (`matrix.py` → `www/bg-matrix.jpg`, neue Bilder auch in `sw.js` eintragen) |
 | `test/` | Tests, Generatoren, Auswertungen (Abschnitt 8) |
+| `app-studio/` | **Loopsmiths Studio** (eigene Seite `app/www/studio/`, gebaut mit `python3 app-studio/build.py`, nutzt `app/eq.js`, `master-dsp.js`, `lied-core/text/export.js`): `sdb.js` (eigene DB `3nps-studio`: projects/audio/chunks, 16-Bit-Blöcke à 65536, Spitzen; Looper-DB nur lesen + `looperPut` für „In den Looper“), `engine.js` (AudioWorklet `studio-eng` mit 24 Stereo-Ausgängen, Audio blockweise 32768 Bilder vom Gerät, je Spur Sättigung→EQ7→Kompressor→Pan→Fader→Mute, Sends Hall/Delay, Master EQ→Glue→Limiter), `project.js` (Modell, Undo 60, Autosicherung 800 ms), `sched.js` (Metronom, Automation vol/pan, Erzeuger-Schnittstelle `Sched.add`), `rec.js` (Worklet `studio-rec`, Latenz aus `3nps-latency`/`3nps-studio-lat`, Ersetzen), `imp.js` (Übernahme Ideen/Lieder/Songs, Signalsmith-Stretch über `../stretch/worker.js`), `ui-arr.js` (Canvas-Arrangement), `ui-mix.js`, `ui-brw.js`, `ui-main.js` (`UI`), `export.js` (Offline-Render mit demselben Graph, WAV/ZIP/MIDI, Mastering im Worker). Optionale Module (`inst.js`, `drum.js`, `ui-roll.js`) werden mitgebaut, wenn vorhanden; jedes setzt `window.X = X` (const ist sonst kein window-Feld!) |
 
 ## 7. Technische Eckpunkte und Regeln
 
@@ -208,6 +209,8 @@ Vergleich mit der stabilen v24 / Vorversion (Pages-Nachbau: `ln -s /home/claude/
 `vergleich.py URL gemeinsam|voll SEKUNDEN SEED` (Zufallsszenario, JSON mit Fehlern, Speicher, Bildzeiten, späten Drum-Schlägen) ·
 `aktionen.py URL` (Stocken je Bedienschritt) · `idle.py URL [zu]`. v35 = v24 (gemeinsam, 60 s, Seed 7): keine Fehler, Heap max 23,8 vs 26,4 MB, 0 späte Schläge.
 Pages-Nachbau mit neuer Fassung: `/home/claude/3nps-main` nach `/tmp/claude-0/pages/3nps` kopieren, `app/www/.` darüber, Server Port 8790.
+
+Studio (v103): `s1studio.py` 31/31 (Übernahme, Abspielen, Bearbeiten, Mischpult, Export WAV/ZIP/MIDI/Master, In den Looper), `s1mem.py` 8/8 (16 Spuren × 60 s: Start < 400 ms, Echtzeit, Heap < 80 MB, Ruckler < 3 %), `s2studio.py` 14/14 (Aufnahme mit Testmikrofon, Latenz, Ersetzen, Automation live/Export, Kompressor). Studio-Tests brauchen `bypass_csp=True` (wait_for_function).
 
 Testaudio-Generatoren (alle deterministisch, von `wiederherstellen.sh` aufgerufen): `gen_corpus.py` (corpus, valid), `gen_hard.py`,
 `gen_long.py`, `gen_chords.py`, `gen_align.py`, `gen_keys.py`, `gen_v25.py`, `gen_octave.py`, `gen_octave2.py`,
@@ -321,7 +324,7 @@ Testaudio-Generatoren (alle deterministisch, von `wiederherstellen.sh` aufgerufe
 - ~~**B. Mastering M1**~~ **erledigt in v97** (M2–M4 offen, siehe `KONZEPT-MASTERING.md`).
 - ~~**C. Echtes Schlagzeug**~~ **erledigt in v98** (Bässe `karoryfer.black-and-blue-basses` noch offen). Alter Plan: freie SFZ-Instrumente (z. B. `sfzinstruments/virtuosity_drums`, Bässe `karoryfer.black-and-blue-basses`) statt
   Kit-Synthese (`kit.js`) – Lizenz je Instrument prüfen, Größe/Cache (sw.js) beachten, als Option, Synthese bleibt.
-- **Studio (eigene App):** Konzept `KONZEPT-STUDIO.md` + Entwürfe `docs/studio/` (24.10.) – wartet auf Toms OK.
+- **Studio (eigene App):** Konzept `KONZEPT-STUDIO.md` + Entwürfe `docs/studio/`. Tom: „Fange an, mach alles fertig“ (24.10.). **S1 (Übernahme, Arrangement, Mischpult, Export) + S2 (Aufnahme, Effekte, Automation, Mastering-Export) fertig in v103 (Studio s1).** S3 (Noten-Editor, Instrumente, Drummer, MIDI) in Arbeit; S4 (eigene App mit Apple-Konto) wartet.
 - **D. Gesang abtrennen in der App:** **Konzept + Messung fertig → `KONZEPT-GESANG-TRENNEN.md`, wartet auf Toms Antwort (75 MB ok? erst Testseite? Karaoke?).** Alter Plan: Spleeter 2-Stems als ONNX (`https://github.com/k2-fsa/sherpa-onnx/releases/download/source-separation-models/sherpa-onnx-spleeter-2stems.tar.bz2`)
   im Browser mit der vorhandenen ORT-Laufzeit (`asr/lib`) → ersetzt Moises für die Gesangsspur (`vox` in `sing.js`). Vorher Konzept an Tom
   (Speicher/Zeit auf dem iPad unbekannt), Modelle wie Whisper über Branch `modelle` bereitstellen.

@@ -3440,6 +3440,7 @@ const Pedal = (() => {
           <select class="idea-move" aria-label="Ablage ändern">${Object.keys(CATS).map(c => '<option value="' + c + '"' + (c === i.cat ? ' selected' : '') + '>' + esc(T(CATS[c])) + '</option>').join('')}</select>
           <button class="toggle-btn" data-act="load">Laden</button>
           <button class="toggle-btn" data-act="share">Teilen</button>
+          <button class="toggle-btn" data-act="studio" title="Im Studio weiterbearbeiten">Studio</button>
           <button class="toggle-btn" data-act="del">Löschen</button>
         </div>
       </div>`).join('');
@@ -3515,6 +3516,10 @@ const Pedal = (() => {
         Looper.loadSamples(buf.numberOfChannels > 1 ? { l: l0, r: new Float32Array(buf.getChannelData(1)), length: l0.length } : l0);
         $('loopStatus').textContent = '„' + idea.name + '“ liegt auf Spur 1. Tonart und Tempo sind übernommen.';
       }
+    } else if (act === 'studio') {
+      // v103: Loopsmiths Studio ist eine eigene Seite – der Looper wird dabei geschlossen (Speicher frei für das Studio)
+      try { await Promise.race([AppDB.flush ? AppDB.flush() : null, new Promise(r => setTimeout(r, 400))]); } catch (x) {}
+      location.href = 'studio/?idea=' + encodeURIComponent(id);
     } else if (act === 'share') {
       const wav = idea.wav || (await Looper.sessionMixEq(idea.session)).wav;
       const file = new File([wav], idea.name.replace(/[\\/:*?"<>|]/g, '_') + '.wav', { type: 'audio/wav' });

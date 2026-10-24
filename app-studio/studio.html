@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="de"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob:; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' blob: data:; connect-src 'self' blob: data:; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="theme-color" content="#141416">
+<link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<title>Loopsmiths Studio</title>
+<style>
+:root{--bg:#141416;--surf:#1d1d21;--surf2:#25252b;--line:#34343b;--soft:#2a2a30;--ink:#ececf1;--mut:#8f909a;--acc:#4cc38a;--t1:#e4f2ff;--t2:#2de2ff;--t3:#86a8ff;--y:#f2c230;--r:#ff5d5d;--tc:#7fd8ff;--f-mono:ui-monospace,"SF Mono",Menlo,monospace;--text:#ececf1;--muted:#8f909a}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:14px/1.4 -apple-system,"SF Pro Text",system-ui,sans-serif;-webkit-font-smoothing:antialiased;overscroll-behavior:none}
+body{display:flex;flex-direction:column;height:100dvh;overflow:hidden;padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+.btn{appearance:none;padding:7px 12px;border-radius:9px;background:var(--surf2);border:1px solid var(--line);font-size:13px;white-space:nowrap;touch-action:manipulation}
+.btn:disabled{opacity:.4}.btn.p{background:var(--acc);color:#0c1a12;border-color:var(--acc);font-weight:600}.btn.on{border-color:var(--acc);color:var(--acc)}.btn.danger{border-color:var(--r);color:var(--r)}
+select,input[type=text],input[type=number]{background:var(--surf2);border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:13px}
+.top{flex:none;display:flex;align-items:center;gap:10px;padding:8px 12px;background:linear-gradient(#202026,#18181c);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.brand{white-space:nowrap;font:700 19px Georgia,serif}.brand span{color:var(--mut);font:500 11px var(--f-mono);margin-left:6px}
+.tp{display:flex;gap:5px}.tp .btn{width:42px;height:38px;padding:0;font-size:16px}.tp .rec{color:var(--r)}.tp .btn.rec.on{background:var(--r);color:#fff;border-color:var(--r)}.tp .btn.play.on{background:var(--acc);color:#0c1a12;border-color:var(--acc)}
+.lcd{display:flex;gap:14px;padding:4px 12px;border-radius:8px;background:#0b0f0d;border:1px solid #23302a;font-family:var(--f-mono);color:#9ff0c6;white-space:nowrap}
+.lcd small{display:block;font-size:9px;color:#5e8a73;letter-spacing:.12em}.lcd b{font-weight:500;font-size:16px}.lcd input{width:62px;background:transparent;border:0;padding:0;color:#9ff0c6;font:500 16px var(--f-mono)}
+.views{display:flex;background:var(--surf2);border:1px solid var(--line);border-radius:9px;padding:3px;margin-left:auto}
+.views button{appearance:none;border:0;background:none;padding:6px 10px;border-radius:7px;color:var(--mut);font-size:13px;white-space:nowrap}.views button.a{background:#3a3a42;color:var(--ink)}
+.cpu{font:11px var(--f-mono);color:var(--mut);text-align:right;white-space:nowrap}.cpu b{color:var(--acc);font-weight:500}.cpu b.warn{color:var(--y)}.cpu b.bad{color:var(--r)}
+main{flex:1;min-height:0;position:relative}
+.view{position:absolute;inset:0;display:flex;flex-direction:column}.view[hidden]{display:none}
+/* Arrangement */
+.tools{flex:none;display:flex;gap:6px;align-items:center;padding:6px 10px;border-bottom:1px solid var(--soft);overflow-x:auto;scrollbar-width:none}
+.tools::-webkit-scrollbar{display:none}.tools .sep{width:1px;height:24px;background:var(--line);flex:none}
+.tools .btn{padding:6px 10px;font-size:12px}
+.arr{flex:1;min-height:0;display:grid;grid-template-columns:184px 1fr}
+.heads{background:var(--surf);border-right:1px solid var(--line);overflow:hidden;position:relative}
+.heads-in{position:absolute;left:0;right:0;top:0}
+.ruler-pad{height:34px;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 8px;gap:6px;font-size:11px;color:var(--mut)}
+.th{border-bottom:1px solid var(--soft);display:flex;align-items:center;gap:7px;padding:0 8px;position:relative}
+.th.sel{background:#26262d}.th .c{width:6px;align-self:stretch;margin:8px 0;border-radius:3px}
+.th .n{flex:1;min-width:0}.th .n b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.th .n small{color:var(--mut);font-size:11px}
+.th .ms{display:flex;gap:3px}.th .ms button{appearance:none;width:24px;height:24px;border-radius:6px;background:var(--surf2);border:1px solid var(--line);font:700 10px system-ui;color:var(--mut);padding:0}
+.th .ms button.on.m{background:#6a6a72;color:#fff}.th .ms button.on.s{background:var(--y);color:#111;border-color:var(--y)}.th .ms button.on.r{background:var(--r);color:#fff;border-color:var(--r)}
+.lanes{position:relative;overflow:hidden;touch-action:none}.lanes canvas{position:absolute;inset:0;width:100%;height:100%}
+.dock{flex:none;height:132px;border-top:1px solid var(--line);display:grid;grid-template-columns:1.2fr 1fr 1.2fr;gap:8px;padding:8px 10px;background:#18181c}
+.box{background:var(--surf);border:1px solid var(--soft);border-radius:10px;padding:8px 10px;overflow:hidden;min-width:0}
+.box h3{margin:0 0 6px;font:700 10px system-ui;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chips{display:flex;flex-wrap:wrap;gap:5px}.chips .btn{padding:5px 9px;font-size:12px}
+.note{font-size:11px;color:var(--mut);margin:4px 0 0}
+.row{display:flex;align-items:center;gap:8px}.row label{font-size:12px;color:var(--mut);display:flex;align-items:center;gap:6px}
+#meterRow{width:100%;height:84px;display:block}
+/* Mischpult */
+.mix{flex:1;min-height:0;display:flex;gap:10px;padding:12px;overflow-x:auto}
+.strip{flex:none;width:112px;background:var(--surf);border:1px solid var(--soft);border-radius:12px;display:flex;flex-direction:column;align-items:center;padding:8px 6px;gap:6px}
+.strip.sel{border-color:#55555f}.strip .nm{font-weight:600;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}.strip .nm i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px}
+.strip canvas.eqm{width:100%;height:40px;border-radius:6px;background:#0b1c33;cursor:pointer}
+.slot{width:100%;padding:5px 4px;border-radius:6px;background:var(--surf2);border:1px solid var(--line);font-size:11px;text-align:center;white-space:nowrap;overflow:hidden}
+.slot.on{border-color:var(--acc);color:var(--acc)}
+.strip input[type=range].pan{width:92px;accent-color:var(--y)}
+.fz{flex:1;min-height:120px;width:100%;display:flex;justify-content:center;gap:6px}
+.fz input[type=range]{writing-mode:vertical-lr;direction:rtl;width:30px;height:100%;accent-color:#ddd}
+.fz canvas{width:14px;height:100%;border-radius:3px;background:#0c0c0e}
+.db{font:11px var(--f-mono);color:var(--mut)}
+.msb{display:flex;gap:3px}.msb button{appearance:none;width:28px;height:24px;border-radius:6px;background:var(--surf2);border:1px solid var(--line);font:700 11px system-ui;color:var(--mut);padding:0}
+.msb button.on.m{background:#6a6a72;color:#fff}.msb button.on.s{background:var(--y);color:#111}
+.strip.master{width:140px;border-color:#4a4a52}
+/* Aus dem Looper */
+.brw{flex:1;min-height:0;display:grid;grid-template-columns:330px 1fr}
+.side{background:var(--surf);border-right:1px solid var(--line);padding:12px;display:flex;flex-direction:column;gap:8px;overflow-y:auto}
+.seg{display:flex;flex-wrap:wrap;gap:5px}.seg button{appearance:none;padding:5px 10px;border-radius:8px;background:var(--surf2);border:1px solid var(--line);font-size:12px}.seg button.a{background:var(--acc);color:#0c1a12;border-color:var(--acc)}
+.item{display:flex;gap:10px;align-items:center;padding:8px 10px;border-radius:9px;background:var(--surf2);border:1px solid var(--line);cursor:pointer}
+.item.a{border-color:var(--t2);box-shadow:0 0 0 1px var(--t2) inset}.item .ic{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;font-size:15px;background:#2f2f37;flex:none}
+.item b{font-size:13px}.item small{display:block;color:var(--mut);font-size:11px}
+.tag{font-size:10px;padding:1px 6px;border-radius:7px;border:1px solid currentColor;margin-left:6px}
+.prev{padding:16px;display:flex;flex-direction:column;gap:12px;overflow-y:auto}
+.card{background:var(--surf);border:1px solid var(--soft);border-radius:12px;padding:14px}
+.card h2{margin:0 0 4px;font-size:18px}.card .meta{color:var(--mut);font-size:12px}
+.trk{display:flex;align-items:center;gap:10px;margin-top:8px}.trk span{width:120px;font-size:12px;color:var(--mut)}.trk canvas{flex:1;height:34px;border-radius:6px}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;align-items:center}
+.empty{color:var(--mut);font-size:13px;padding:20px}
+/* Noten */
+.rollwrap{flex:1;min-height:0;display:flex;flex-direction:column}
+.roll{flex:1;min-height:0;position:relative;touch-action:none}.roll canvas{position:absolute;inset:0;width:100%;height:100%}
+.rdock{flex:none;border-top:1px solid var(--line);padding:8px 10px;background:#18181c;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+/* Fenster */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:20;padding:16px}
+.modal[hidden]{display:none}.dlg{background:var(--surf);border:1px solid var(--line);border-radius:14px;padding:16px;width:min(960px,100%);max-height:92vh;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+.dlg h2{margin:0;font-size:17px}.dlg .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.plist{display:flex;flex-direction:column;gap:6px}.plist .item{justify-content:space-between}
+.status{flex:none;padding:4px 12px;font-size:12px;color:var(--mut);border-top:1px solid var(--soft);background:#141416;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:24px}
+.fxp{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}.fxp .card{padding:10px}.fxp label{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--mut);margin-top:6px}.fxp input[type=range]{width:100%}
+@media (max-width:900px){.arr{grid-template-columns:132px 1fr}.th .n small{display:none}.dock{grid-template-columns:1fr 1fr;height:auto}.dock .box:nth-child(2){display:none}.brw{grid-template-columns:1fr}.side{max-height:40vh}.lcd{gap:8px}.views{margin-left:0}}
+EQCSS
+</style></head>
+<body>
+<div class="top">
+  <div class="brand">Loopsmiths <span>Studio · SVER</span></div>
+  <div class="tp"><button class="btn" id="bHome" title="Zum Anfang">⏮</button><button class="btn play" id="bPlay" title="Abspielen / Stopp">▶</button><button class="btn rec" id="bRec" title="Aufnehmen">●</button><button class="btn" id="bCyc" title="Cycle (Schleife)">⟲</button><button class="btn" id="bClick" title="Metronom">♩</button></div>
+  <div class="lcd"><div><small>TAKT</small><b id="lPos">1.1.1</b></div><div><small>TEMPO</small><input id="lBpm" type="number" min="40" max="240" step="0.1" aria-label="Tempo"></div><div><small>TAKTART</small><b id="lSig">4/4</b></div><div><small>TONART</small><b id="lKey" translate="no">–</b></div></div>
+  <div class="views" id="views"><button data-v="arr" class="a">Arrangement</button><button data-v="mix">Mischpult</button><button data-v="roll">Noten</button><button data-v="brw">Aus dem Looper</button></div>
+  <button class="btn" id="bProj">Projekt ▾</button>
+  <div class="cpu">Last <b id="cLoad">–</b><br>Speicher <b id="cMem">–</b></div>
+</div>
+<main>
+  <section class="view" id="v-arr">
+    <div class="tools">
+      <button class="btn" id="tAdd">+ Spur</button>
+      <span class="sep"></span>
+      <label class="row" style="font-size:12px;color:var(--mut)">Einrasten <select id="tSnap"><option value="bar">Takt</option><option value="beat" selected>Schlag</option><option value="16">16tel</option><option value="off">aus</option></select></label>
+      <button class="btn" id="tZo">−</button><button class="btn" id="tZi">+</button><button class="btn" id="tZa">Alles</button>
+      <span class="sep"></span>
+      <button class="btn" id="tSplit" title="Ausgewählte Region an der Abspielposition teilen">Teilen</button>
+      <button class="btn" id="tDup">Duplizieren</button>
+      <button class="btn" id="tRep">Wiederholen ×4</button>
+      <button class="btn" id="tDel">Löschen</button>
+      <button class="btn" id="tMk">+ Marker</button>
+      <button class="btn" id="tUndo">↶</button><button class="btn" id="tRedo">↷</button>
+    </div>
+    <div class="arr"><div class="heads" id="heads"><div class="heads-in" id="headsIn"></div></div><div class="lanes" id="lanes"><canvas id="cv"></canvas></div></div>
+    <div class="dock">
+      <div class="box" id="dTrack"><h3 id="dTrackH">Spur</h3><div class="chips" id="dTrackC"></div><p class="note" id="dTrackN"></p></div>
+      <div class="box"><h3>Pegel</h3><canvas id="meterRow"></canvas></div>
+      <div class="box" id="dReg"><h3 id="dRegH">Region</h3><div class="chips" id="dRegC"></div><p class="note" id="dRegN">Region antippen zum Auswählen · ziehen = verschieben · Ränder ziehen = kürzen · obere Ecken = Blende.</p></div>
+    </div>
+  </section>
+  <section class="view" id="v-mix" hidden><div class="mix" id="mix"></div></section>
+  <section class="view" id="v-roll" hidden><div class="rollwrap"><div class="rdock" id="rTop"></div><div class="roll" id="roll"><canvas id="rcv"></canvas></div><div class="rdock" id="rDock"></div></div></section>
+  <section class="view" id="v-brw" hidden><div class="brw"><div class="side"><div class="seg" id="bFilt"></div><div id="bList" class="plist"></div><p class="note">Alles, was du im Looper speicherst, erscheint hier sofort – ohne Export. Geladen wird erst, wenn du es übernimmst.</p></div><div class="prev" id="bPrev"><p class="empty">Links etwas auswählen.</p></div></div></section>
+</main>
+<div class="status" id="status">Bereit.</div>
+<div class="modal" id="modal" hidden><div class="dlg" id="dlg"></div></div>
+SCRIPTS
+</body></html>

@@ -3372,7 +3372,9 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
   "Backing Tracks": "Backing tracks",
   "In dieser Ablage ist noch nichts.": "Nothing in this folder yet.",
   "Ablage ändern": "Change folder",
-  "Verschoben nach „": "Moved to “" });
+  "Verschoben nach „": "Moved to “",
+  "Studio": "Studio",
+  "Im Studio weiterbearbeiten": "Continue in the Studio" });
 
 // Sprache (v59): Deutsch ist der Quelltext. Nur im EN-Modus läuft hier etwas:
 // Ein Beobachter übersetzt neue/geänderte Texte im DOM (Text, title, placeholder, aria-label)
@@ -3478,7 +3480,7 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v102</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v103</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -13142,6 +13144,7 @@ const Pedal = (() => {
           <select class="idea-move" aria-label="Ablage ändern">${Object.keys(CATS).map(c => '<option value="' + c + '"' + (c === i.cat ? ' selected' : '') + '>' + esc(T(CATS[c])) + '</option>').join('')}</select>
           <button class="toggle-btn" data-act="load">Laden</button>
           <button class="toggle-btn" data-act="share">Teilen</button>
+          <button class="toggle-btn" data-act="studio" title="Im Studio weiterbearbeiten">Studio</button>
           <button class="toggle-btn" data-act="del">Löschen</button>
         </div>
       </div>`).join('');
@@ -13217,6 +13220,10 @@ const Pedal = (() => {
         Looper.loadSamples(buf.numberOfChannels > 1 ? { l: l0, r: new Float32Array(buf.getChannelData(1)), length: l0.length } : l0);
         $('loopStatus').textContent = '„' + idea.name + '“ liegt auf Spur 1. Tonart und Tempo sind übernommen.';
       }
+    } else if (act === 'studio') {
+      // v103: Loopsmiths Studio ist eine eigene Seite – der Looper wird dabei geschlossen (Speicher frei für das Studio)
+      try { await Promise.race([AppDB.flush ? AppDB.flush() : null, new Promise(r => setTimeout(r, 400))]); } catch (x) {}
+      location.href = 'studio/?idea=' + encodeURIComponent(id);
     } else if (act === 'share') {
       const wav = idea.wav || (await Looper.sessionMixEq(idea.session)).wav;
       const file = new File([wav], idea.name.replace(/[\\/:*?"<>|]/g, '_') + '.wav', { type: 'audio/wav' });

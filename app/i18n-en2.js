@@ -619,4 +619,6 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
   "Backing Tracks": "Backing tracks",
   "In dieser Ablage ist noch nichts.": "Nothing in this folder yet.",
   "Ablage ändern": "Change folder",
-  "Verschoben nach „": "Moved to “" });
+  "Verschoben nach „": "Moved to “",
+  "Studio": "Studio",
+  "Im Studio weiterbearbeiten": "Continue in the Studio" });
