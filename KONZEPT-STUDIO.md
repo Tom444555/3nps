@@ -58,3 +58,6 @@ das Studio ist eine eigene Web-App mit eigenem Symbol.
 
 Keine AUv3-/Drittanbieter-Plugins (Web-App), Stereo-Eingang statt Mehrkanal, Spurenzahl durch Safari begrenzt,
 Instrumente/Effekte eigene Entwicklung (nicht auf Logic-Niveau bei Klangbibliothek und Spezialwerkzeugen).
+
+## Stand 24.10.2026
+S1 + S2 fertig (v103), S3 fertig (v104, Studio s3). S4 (eigene App, Apple-Konto) wartet. Details: UEBERGABE.md, ANLEITUNG Abschnitte 86–87.

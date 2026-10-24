@@ -40,8 +40,8 @@ main{flex:1;min-height:0;position:relative}
 .th .ms{display:flex;gap:3px}.th .ms button{appearance:none;width:24px;height:24px;border-radius:6px;background:var(--surf2);border:1px solid var(--line);font:700 10px system-ui;color:var(--mut);padding:0}
 .th .ms button.on.m{background:#6a6a72;color:#fff}.th .ms button.on.s{background:var(--y);color:#111;border-color:var(--y)}.th .ms button.on.r{background:var(--r);color:#fff;border-color:var(--r)}
 .lanes{position:relative;overflow:hidden;touch-action:none}.lanes canvas{position:absolute;inset:0;width:100%;height:100%}
-.dock{flex:none;height:132px;border-top:1px solid var(--line);display:grid;grid-template-columns:1.2fr 1fr 1.2fr;gap:8px;padding:8px 10px;background:#18181c}
-.box{background:var(--surf);border:1px solid var(--soft);border-radius:10px;padding:8px 10px;overflow:hidden;min-width:0}
+.dock{flex:none;min-height:132px;max-height:42vh;overflow-y:auto;border-top:1px solid var(--line);display:grid;grid-template-columns:1.2fr 1fr 1.2fr;gap:8px;padding:8px 10px;background:#18181c}
+.box{background:var(--surf);border:1px solid var(--soft);border-radius:10px;padding:8px 10px;min-width:0}
 .box h3{margin:0 0 6px;font:700 10px system-ui;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .chips{display:flex;flex-wrap:wrap;gap:5px}.chips .btn{padding:5px 9px;font-size:12px}
 .note{font-size:11px;color:var(--mut);margin:4px 0 0}
@@ -87,6 +87,7 @@ main{flex:1;min-height:0;position:relative}
 .plist{display:flex;flex-direction:column;gap:6px}.plist .item{justify-content:space-between}
 .status{flex:none;padding:4px 12px;font-size:12px;color:var(--mut);border-top:1px solid var(--soft);background:#141416;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:24px}
 .fxp{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}.fxp .card{padding:10px}.fxp label{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--mut);margin-top:6px}.fxp input[type=range]{width:100%}
+@media (max-width:1320px){.brand span{display:none}.views button{padding:6px 7px}.lcd{gap:10px}.top{gap:8px}}
 @media (max-width:900px){.arr{grid-template-columns:132px 1fr}.th .n small{display:none}.dock{grid-template-columns:1fr 1fr;height:auto}.dock .box:nth-child(2){display:none}.brw{grid-template-columns:1fr}.side{max-height:40vh}.lcd{gap:8px}.views{margin-left:0}}
 EQCSS
 </style></head>

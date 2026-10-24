@@ -98,8 +98,11 @@ const Arr = (() => {
     ns.forEach(n => { const x = fx(r.start + n.t * spb), xe = fx(r.start + (n.t + n.d) * spb), yy = y + h - ((n.m - lo + 0.5) / span) * h; c.fillRect(x, yy - 1.5, Math.max(2, xe - x - 1), 3); });
   }
   function drawDrum(c, r, x0, x1, y, h) {
-    const spb = Proj.spb(), step = spb / 2; c.fillStyle = 'rgba(0,0,0,.55)';
-    for (let f = 0, k = 0; f < r.len; f += step, k++) { const x = fx(r.start + f); if (x < -4 || x > x1) continue; const yy = k % 4 === 0 ? y + h * 0.75 : k % 4 === 2 ? y + h * 0.35 : y + h * 0.55; c.fillRect(x, yy, 3, 3); }
+    const spb = Proj.spb(), bar = Proj.bar(), s16 = spb / 4; c.fillStyle = 'rgba(0,0,0,.6)';
+    if (!window.Drum || s16 / V.fpp < 1.2) { for (let f = 0, k = 0; f < r.len; f += spb / 2, k++) { const x = fx(r.start + f); if (x < -4 || x > x1) continue; c.fillRect(x, k % 4 === 0 ? y + h * 0.75 : k % 4 === 2 ? y + h * 0.4 : y + h * 0.1, 2, 2); } return; }
+    const n = Math.max(1, Math.round(r.len / bar)), row = id => id === 'kick' ? 0.78 : /snare|rim|clap/.test(id) ? 0.48 : /^tom/.test(id) ? 0.62 : 0.15;
+    for (let bi = 0; bi < n; bi++) { const xb = fx(r.start + bi * bar); if (xb > x1 || fx(r.start + (bi + 1) * bar) < 0) continue;
+      Drum.barHits(r.drum || {}, bi + Math.round(r.barOff || 0), n + Math.round(r.barOff || 0), Proj.P.sig).forEach(q => { const x = fx(r.start + bi * bar + q.s * s16); if (x > x1) return; const sz = 1.5 + q.v * 2.5; c.fillRect(x, y + h * row(q.id) - sz / 2, sz, sz); }); }
   }
   function drawAuto(c, t, ti, w) {
     const k = V.autoP, [lo, hi] = AR[k], pts = (t.auto && t.auto[k]) || [], y = tY(ti), hh = V.th, vy = v => y + 4 + (1 - (v - lo) / (hi - lo)) * (hh - 8), cur = t[k] || 0;

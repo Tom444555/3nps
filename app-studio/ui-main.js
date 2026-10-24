@@ -60,6 +60,23 @@ const UI = (() => {
     const pc = Math.round(busy * 100), el = $('cLoad'); el.textContent = pc < 3 ? 'ok' : pc + ' %'; el.className = pc > 25 ? 'bad' : pc > 10 ? 'warn' : '';
     try { const u = await SDB.usage(); const m = $('cMem'); m.textContent = Math.round(u / 1048576) + ' MB'; m.className = u > 3e9 ? 'warn' : ''; } catch (e) {}
   }, 2000);
+  // ---- Pegel im Dock (alle Spuren + Master), nur sichtbar und beim Abspielen ----
+  const mpk = []; let mm = 0, mfr = 0;
+  (function meters() {
+    requestAnimationFrame(meters); if (++mfr % 3) return;   // ~20 Bilder/s reichen für Pegel
+    const cv = $('meterRow'); if (view !== 'arr' || !cv.offsetParent) return; const P = Proj.P; if (!P) return;
+    if (!Engine.playing && !mpk.some(v => v > 0.002) && mm < 0.002 && cv.dataset.n == P.tracks.length) return;
+    const dpr = devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight; if (cv.width !== Math.round(w * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+    const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h); cv.dataset.n = P.tracks.length;
+    const n = P.tracks.length + 1, bw = Math.max(4, Math.min(22, (w - 4) / n - 3));
+    for (let i = 0; i < n; i++) {
+      const isM = i === n - 1, lv = isM ? Engine.masterLevel() : Engine.level(i);
+      if (isM) mm = Math.max(mm * 0.86, lv); else mpk[i] = Math.max((mpk[i] || 0) * 0.86, lv);
+      const v = isM ? mm : mpk[i], db = 20 * Math.log10(Math.max(1e-5, v)), y = Math.max(0, Math.min(1, (db + 54) / 54)), x = 2 + i * (bw + 3) + (isM ? 6 : 0);
+      g.fillStyle = '#0c0c0e'; g.fillRect(x, 0, bw, h - 12); g.fillStyle = db > -1 ? '#ff5d5d' : db > -9 ? '#d6d23a' : '#3ad07a'; g.fillRect(x, (h - 12) * (1 - y), bw, (h - 12) * y);
+      g.fillStyle = isM ? '#ececf1' : P.tracks[i].color; g.fillRect(x, h - 8, bw, 4);
+    }
+  })();
   // ---- Dock: Spur und Region ----
   const snapMode = () => $('tSnap').value;
   function inspect() {

@@ -8,6 +8,7 @@ const Exp = (() => {
     const proj = JSON.parse(JSON.stringify(P)); proj.cycle = { on: false, a: 0, b: 0 };
     if (opts.only) proj.tracks.forEach(t => { t.solo = t.id === opts.only; t.mute = t.id === opts.only ? false : t.mute; });
     if (opts.noMaster) { proj.master.glue = false; proj.master.lim = false; }
+    if (window.Inst) await Inst.ready(proj);
     const oc = new OfflineAudioContext(2, n, sr);
     const url = URL.createObjectURL(new Blob([Engine.WORKLET_SRC], { type: 'application/javascript' }));
     await oc.audioWorklet.addModule(url);

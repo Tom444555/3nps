@@ -32,8 +32,8 @@ const SDB = (() => {
     lp = new Promise(res => {
       let r; try { r = indexedDB.open('3nps-app'); } catch (e) { res(null); return; }
       r.onupgradeneeded = () => { try { r.transaction.abort(); } catch (e) {} };   // gibt es nicht → nicht anlegen
-      r.onsuccess = () => res(r.result); r.onerror = () => res(null);
-    });
+      r.onsuccess = () => { const d = r.result; d.onversionchange = () => { d.close(); lp = null; }; res(d); }; r.onerror = () => res(null);
+    }).then(d => { if (!d) lp = null; return d; });   // noch nicht da → beim nächsten Mal neu versuchen
     return lp;
   }
   async function looperList(map) {

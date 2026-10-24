@@ -5,7 +5,7 @@ import os, re, json
 S = os.path.dirname(os.path.abspath(__file__)) + '/'
 A = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/app/'
 OUT = A + 'www/studio/'
-SVER = 's1'
+SVER = 's3'
 rd = lambda p: open(p, encoding='utf8').read()
 
 # EQ-Aussehen wie im Looper: alle Regeln, deren Auswahl mit .eq beginnt (mehrzeilige Regeln vollständig)
