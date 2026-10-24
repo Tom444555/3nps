@@ -12,7 +12,8 @@ OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../app/www/drums
 REF = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'drumref.json')))
 SR, KITG = 48000, 0.6
 V, R, W = 'virtuosity_drums', 'karoryfer.big-rusty-drums', 'karoryfer.swirly-drums'
-MAXS = {'kick': 0.7, 'snare': 0.7, 'snrim': 0.8, 'rim': 0.35, 'tomh': 1.0, 'tomm': 1.1, 'toml': 1.2, 'hhc': 0.35, 'hhh': 0.7, 'hho': 1.1, 'hhp': 0.35,
+M, D, G = 'DrumGizmo.MuldjordKit', 'DrumGizmo.DRSKit', 'karoryfer.gogodze-phu-vol-ii'
+MAXS = {'_': 0, 'kick': 0.7, 'snare': 0.7, 'snrim': 0.8, 'rim': 0.35, 'tomh': 1.0, 'tomm': 1.1, 'toml': 1.2, 'hhc': 0.35, 'hhh': 0.7, 'hho': 1.1, 'hhp': 0.35,
         'crash': 2.2, 'ride': 1.5, 'bell': 1.4, 'cowbell': 0.5}
 FR = (0.4, 0.7, 0.97)   # gewählte Stärken als Anteil der vorhandenen Stufen
 # Eintrag: (Repo, Ordner, Dateiname-Muster mit {v}/{r}, Nahmikro (Ordner-Ersetzung, Faktor) oder None)
@@ -65,6 +66,42 @@ KITS = {
   'bell': (R, 'Samples/ride_22/bl/oh', 'rd_bl_vl{v}_rr{r}', ([('/oh/', '/cl/')], 0.3)),
   'cowbell': COW },
 }
+
+# v100: weitere Kits
+#   studio  – „MuldjordKit“ (DrumGizmo, CC BY 4.0, Lars Muldjord): Rock/Metal-Studiokit, Overheads L/R + Nahmikros
+#   drs     – „DRSKit“ (DrumGizmo, CC BY 4.0): trockenes Pop/Rock-Kit
+#   vintage – „Gogodze Phu Vol II“ (Karoryfer, CC0): 70er-Kit (ohne Becken → Becken aus der Synthese)
+#   lofi    – dasselbe Kit über das „Retro“-Mikrofon
+#   indie   – „Swirly Drums“ (Karoryfer, CC0): Punk/Indie-Kit
+#   perc    – „Swirly Drums“: Cajon, Darbuka, Bongos, Djembe, Kuhglocke (+ Hi-Hat/Becken)
+def DG(repo, kit, instr, close, cg):   # DrumGizmo: Overhead links/rechts als Stereo + Nahmikro
+    return (repo, 'DrumGizmo/%s/Samples/%s' % (kit, instr), '{v}-%s-OHL' % instr, ([('-OHL', '-' + close)], cg) if close else None, [('-OHL', '-OHR')])
+MK, DK = 'MuldjordKit', 'DRSKit'
+GG = lambda code, close=None, cg=0.5: (G, 'Samples/oh_mic', code + '_vl{v}_rr{r}', ([('/oh_mic/', '/' + close + '/')], cg) if close else None)
+GL = lambda code: (G, 'Samples/retro_mic', code + '_vl{v}_rr{r}', None)
+SW = lambda d, pat, close=None, cg=0.3: (W, 'Samples/' + d, pat, ([(close[0], close[1])], cg) if close else None)
+KITS.update({
+ 'studio': {'kick': DG(M, MK, 'KdrumL', 'KdrumL', 0.8), 'snare': DG(M, MK, 'Snare', 'Snare_top', 0.6), 'tomh': DG(M, MK, 'Tom1', 'Tom1', 0.6),
+   'tomm': DG(M, MK, 'Tom2', 'Tom2', 0.6), 'toml': DG(M, MK, 'Tom4', 'Tom4', 0.6), 'hhc': DG(M, MK, 'HihatClosed', 'Hihat', 0.4), 'hho': DG(M, MK, 'HihatOpen', 'Hihat', 0.4),
+   'crash': DG(M, MK, 'CrashL', None, 0), 'ride': DG(M, MK, 'RideR', 'RideR', 0.3), 'bell': DG(M, MK, 'RideRBell', 'RideR', 0.3)},
+ 'drs': {'kick': DG(D, DK, 'Kdrum_without_contact', 'Kdrum_front', 0.8), 'snare': DG(D, DK, 'Snare', 'Snare_top', 0.6), 'rim': DG(D, DK, 'Snare_rim', 'Snare_top', 0.5),
+   'tomh': DG(D, DK, 'Tom1', 'Tom1', 0.6), 'tomm': DG(D, DK, 'Tom2', 'Tom2', 0.6), 'toml': DG(D, DK, 'Tom3', 'Tom3', 0.6), 'hhc': DG(D, DK, 'Hihat_closed', 'Hihat', 0.4),
+   'hhh': DG(D, DK, 'Hihat_semi_open', 'Hihat', 0.4), 'hho': DG(D, DK, 'Hihat_open', 'Hihat', 0.4), 'hhp': DG(D, DK, 'Hihat_foot', 'Hihat', 0.4),
+   'crash': DG(D, DK, 'Crash_right_tip', None, 0), 'ride': DG(D, DK, 'Ride_tip', 'Ride', 0.3), 'bell': DG(D, DK, 'Ride_tip_bell', 'Ride', 0.3)},
+ 'vintage': {'kick': GG('ks', 'kick_mic', 0.7), 'snare': GG('sc', 'snare_mic', 0.5), 'snrim': GG('se', 'snare_mic', 0.5), 'rim': GG('ss', 'snare_mic', 0.4),
+   'tomh': GG('th'), 'tomm': GG('tm'), 'toml': GG('tl'), 'hhc': GG('hc'), 'hhh': GG('hh'), 'hho': GG('ho'), 'hhp': GG('hf')},
+ 'lofi': {'kick': GL('ks'), 'snare': GL('sc'), 'snrim': GL('se'), 'rim': GL('ss'), 'tomh': GL('th'), 'tomm': GL('tm'), 'toml': GL('tl'),
+   'hhc': GL('hc'), 'hhh': GL('hh'), 'hho': GL('ho'), 'hhp': GL('hf')},
+ 'indie': {'kick': SW('kick_buzz', 'buzz_kick_with_snare_buzz_vl{v}_rr{r}'), 'snare': SW('snare_main', 'snare_hit_vl{v}_rr{r}_top', ('_top', '_btm')),
+   'snrim': SW('snare_edge', 'snare_edge_vl{v}_rr{r}_top', ('_top', '_btm')), 'tomh': SW('tom_vhi', 'tom_vhi_vl{v}_rr{r}'), 'tomm': SW('tom_xmed', 'tom_xmed_vl{v}_rr{r}'),
+   'toml': SW('tom_floor', 'tom_floor_vl{v}_rr{r}'), 'hhc': SW('hat_closed', 'hh_closed_vl{v}_rr{r}'), 'hhh': SW('hat_half', 'hh_half_vl{v}_rr{r}'),
+   'hho': SW('hat_open', 'hh_open_vl{v}_rr{r}'), 'hhp': SW('hat_foot', 'hh_foot_vl{v}_rr{r}'), 'crash': SW('crash', 'crash_vl{v}_rr{r}'), 'ride': SW('ride', 'ride_vl{v}_rr{r}'),
+   'cowbell': SW('cowbell', 'cowbell_vl{v}_rr{r}')},
+ 'perc': {'kick': SW('cajon_kick', 'cajon_kick_vl{v}_rr{r}_front', ('_front', '_rear'), 0.5), 'snare': SW('darbouka', 'darbouka_vl{v}_rr{r}'),
+   'tomh': SW('hbongo', 'hbongo_vl{v}_rr{r}'), 'tomm': SW('lbongo', 'lbongo_vl{v}_rr{r}'), 'toml': SW('djembe', 'djembe_vl{v}_rr{r}'),
+   'hhc': SW('hat_closed', 'hh_closed_vl{v}_rr{r}'), 'hhh': SW('hat_half', 'hh_half_vl{v}_rr{r}'), 'hho': SW('hat_open', 'hh_open_vl{v}_rr{r}'), 'hhp': SW('hat_foot', 'hh_foot_vl{v}_rr{r}'),
+   'crash': SW('crash', 'crash_vl{v}_rr{r}'), 'ride': SW('ride', 'ride_vl{v}_rr{r}'), 'cowbell': SW('cowbell', 'cowbell_vl{v}_rr{r}')},
+})
 ONE = {'crash', 'hho'}
 def cpath(f, close):
     d, n = f.rsplit('/', 1)
@@ -75,7 +112,7 @@ def tree(repo):
     if repo not in _tree: _tree[repo] = subprocess.run(['git', '-C', EXT + repo, 'ls-tree', '-r', '--name-only', 'HEAD'], capture_output=True, text=True, check=True).stdout.split('\n')
     return _tree[repo]
 def pick(id, spec):
-    repo, d, pat, close = spec
+    repo, d, pat, close = spec[:4]
     rx = re.compile('^' + re.escape(d) + '/' + re.escape(pat).replace(r'\{v\}', r'(\d+)').replace(r'\{r\}', r'(\d+)') + r'\.(flac|wav)$')
     files = {}
     for f in tree(repo):
@@ -95,8 +132,10 @@ def rd(p):
     r = subprocess.run(['ffmpeg', '-v', 'error', '-i', p, '-f', 'f32le', '-ac', '2', '-ar', str(SR), '-'], capture_output=True, check=True)
     return np.frombuffer(r.stdout, dtype=np.float32).reshape(-1, 2).astype(np.float64)
 def hit(id, spec, f):
-    repo, d, pat, close = spec
+    repo, d, pat, close = spec[:4]
     x = rd(EXT + repo + '/' + f)
+    if len(spec) > 4 and spec[4]:   # Stereo aus zwei Mono-Overheads
+        xr = rd(EXT + repo + '/' + cpath(f, (spec[4], 0))); n = min(len(x), len(xr)); x = np.stack([x[:n, 0], xr[:n, 0]], 1)
     if close:
         c = rd(EXT + repo + '/' + cpath(f, close)); n = min(len(x), len(c)); x = x[:n] + c[:n].mean(1, keepdims=True) * close[1]
     a = np.abs(x).max(1); pk = a.max(); on = int(np.argmax(a > pk * 0.02)); on = max(0, on - int(0.0015 * SR))
@@ -111,6 +150,7 @@ def need(kits):   # alle benötigten Dateien auschecken (nur diese)
                 for f in row:
                     by.setdefault(spec[0], set()).add(f)
                     if spec[3]: by[spec[0]].add(cpath(f, spec[3]))
+                    if len(spec) > 4 and spec[4]: by[spec[0]].add(cpath(f, (spec[4], 0)))
     for repo, fs in by.items():
         miss = [f for f in sorted(fs) if not os.path.exists(EXT + repo + '/' + f)]
         for i in range(0, len(miss), 200): subprocess.run(['git', '-C', EXT + repo, 'checkout', 'HEAD', '--'] + miss[i:i + 200], check=True, capture_output=True)

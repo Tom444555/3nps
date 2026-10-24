@@ -3331,7 +3331,26 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
   "alle 2 Takte": "every 2 bars",
   "Percussion": "Percussion",
   "Snare": "Snare",
-  "Hi-Hat": "Hi-hat" });
+  "Hi-Hat": "Hi-hat",
+// ---- v100 ----
+  "Studio Rock/Metal (echt)": "Studio rock/metal (real)",
+  "Pop/Rock trocken (echt)": "Pop/rock dry (real)",
+  "70er Vintage (echt)": "70s vintage (real)",
+  "Lo-Fi Retro (echt)": "Lo-fi retro (real)",
+  "Indie/Punk (echt)": "Indie/punk (real)",
+  "Cajon & Percussion (echt)": "Cajon & percussion (real)",
+  "Heldensaga – Streicher & Blech": "Hero saga – strings & brass",
+  "Dunkle Kathedrale – Chor & Orgel": "Dark cathedral – choir & organ",
+  "Schlachtfeld – Hörner & Trommeln": "Battlefield – horns & drums",
+  "Heldensaga – Streicher & Blech (Orchester, Pauken)": "Hero saga – strings & brass (orchestra, timpani)",
+  "Dunkle Kathedrale – Chor & Orgel (Taiko, Becken)": "Dark cathedral – choir & organ (taiko, cymbals)",
+  "Schlachtfeld – Hörner & Trommeln (Tremolo, Hornrufe)": "Battlefield – horns & drums (tremolo, horn calls)",
+  "Auswahl entfernen (kürzer)": "Remove selection (shorter)",
+  "Markierten Teil entfernen – der Loop wird um diese Länge kürzer": "Remove the marked part – the loop gets shorter by that length",
+  "Tempo an neue Länge anpassen": "Adapt tempo to new length",
+  "Zieh die orangen Griffe auf Anfang und Ende, dann „Zuschneiden“. Ist ein Stück zu viel drin (z. B. eine halbe Sekunde zwischen zwei Takten): Raster auf „Frei“ oder „Anschlag“, das Stück markieren, „Auswahl entfernen (kürzer)“. Mit „Tempo an neue Länge anpassen“ stellt die App danach das Tempo so ein, dass der Loop wieder ganze Takte ergibt. Jeder Schritt lässt sich mit ↶ zurücknehmen.": "Drag the orange handles to start and end, then “Trim”. If there is a bit too much (e.g. half a second between two bars): set the grid to “Free” or “Onset”, mark that bit, “Remove selection (shorter)”. With “Adapt tempo to new length” the app then sets the tempo so the loop is whole bars again. Every step can be undone with ↶.",
+  "Alle Spuren starten oder stoppen (wie unten)": "Start or stop all tracks (same as below)",
+  "Schlagzeug-Klang: Synthese oder echtes Kit (Aufnahmen, einmalig ca. 5 MB je Kit)": "Drum sound: synth or real kit (recordings, one-time download of about 5 MB per kit)" });
 
 // Sprache (v59): Deutsch ist der Quelltext. Nur im EN-Modus läuft hier etwas:
 // Ein Beobachter übersetzt neue/geänderte Texte im DOM (Text, title, placeholder, aria-label)
@@ -3437,7 +3456,7 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v99</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v100</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -3583,6 +3602,9 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
           <option value="v6">Waldesruh – Elbenwald (Vögel, Bach, Flöte)</option>
           <option value="v7">Nachtbrandung – Küste & Fläche (Meer im Hintergrund, E-Piano)</option>
           <option value="v8">Maschinenhalle – Stahl & Takt (Presse, Ventile, Turbine)</option>
+          <option value="v9">Heldensaga – Streicher &amp; Blech (Orchester, Pauken)</option>
+          <option value="v10">Dunkle Kathedrale – Chor &amp; Orgel (Taiko, Becken)</option>
+          <option value="v11">Schlachtfeld – Hörner &amp; Trommeln (Tremolo, Hornrufe)</option>
         </select>
       </label>
       <div class="row">
@@ -3669,6 +3691,7 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
           <div class="meter-row">
             <div class="meter" id="loopMeterBox" aria-hidden="true"><div id="loopMeter"></div><div id="loopMeterR"></div><div class="thresh" id="loopThreshMark"></div></div>
             <button class="toggle-btn" id="loopMonitor">Eingang öffnen</button>
+            <button class="toggle-btn all-btn2" id="loopAll2" title="Alle Spuren starten oder stoppen (wie unten)">Alle starten</button>
           </div>
         </div>
       </div>
@@ -3787,8 +3810,10 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
             <button class="toggle-btn active" id="edTrim">Zuschneiden</button>
             <button class="toggle-btn" id="edHalf">Halbieren</button>
             <button class="toggle-btn" id="edDouble">Verdoppeln</button>
+            <button class="toggle-btn" id="edDel" title="Markierten Teil entfernen – der Loop wird um diese Länge kürzer">Auswahl entfernen (kürzer)</button>
+            <label class="check"><input type="checkbox" id="edAutoBpm" checked> Tempo an neue Länge anpassen</label>
           </div>
-          <p class="pattern-desc">Zieh die orangen Griffe auf Anfang und Ende, dann „Zuschneiden“. Jeder Schritt lässt sich mit ↶ zurücknehmen.</p>
+          <p class="pattern-desc">Zieh die orangen Griffe auf Anfang und Ende, dann „Zuschneiden“. Ist ein Stück zu viel drin (z. B. eine halbe Sekunde zwischen zwei Takten): Raster auf „Frei“ oder „Anschlag“, das Stück markieren, „Auswahl entfernen (kürzer)“. Mit „Tempo an neue Länge anpassen“ stellt die App danach das Tempo so ein, dass der Loop wieder ganze Takte ergibt. Jeder Schritt lässt sich mit ↶ zurücknehmen.</p>
         </div>
         <div class="ed-group ed-edit">
           <span class="ed-label">Bearbeiten (Auswahl) · die Loop-Länge bleibt gleich</span>
@@ -3988,6 +4013,9 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
               <option value="v6">Waldesruh – Elbenwald</option>
               <option value="v7">Nachtbrandung – Küste & Fläche</option>
               <option value="v8">Maschinenhalle – Stahl & Takt</option>
+              <option value="v9">Heldensaga – Streicher &amp; Blech</option>
+              <option value="v10">Dunkle Kathedrale – Chor &amp; Orgel</option>
+              <option value="v11">Schlachtfeld – Hörner &amp; Trommeln</option>
             </select>
             <label class="check lane-sync"><input type="checkbox" id="laneDroneOrn"> Verzierungen</label>
             <label class="lane-fader"><span>Pegel</span><input type="range" id="laneDroneVol" min="0" max="100" step="5" value="40" aria-label="Drone-Lautstärke"></label>
@@ -8217,8 +8245,9 @@ const Rhythm = (() => {
   }
   if (roomBtn) { roomBtn.addEventListener('click', () => setRoom(!roomOn)); setRoom(roomOn); }
   // ---- v98/v99: echte Schlagzeuge (Aufnahmen, alle CC0) als Option; Synthese bleibt ----
-  // Kits: jazz = „Virtuosity Drums“, rock = „Big Rusty Drums“ (Sticks), brush = „Big Rusty Drums“ (Besen)
-  const KITS = { synth: 'Synthese', jazz: 'Jazz / Club (echt)', rock: 'Rock (echt)', brush: 'Besen (echt)' };
+  // Kits: jazz = „Virtuosity Drums“, rock/brush = „Big Rusty Drums“, studio = MuldjordKit, drs = DRSKit (CC BY 4.0), vintage/lofi = „Gogodze Phu Vol II“, indie/perc = „Swirly Drums“
+  const KITS = { synth: 'Synthese', jazz: 'Jazz / Club (echt)', rock: 'Rock (echt)', brush: 'Besen (echt)', studio: 'Studio Rock/Metal (echt)', drs: 'Pop/Rock trocken (echt)',
+    vintage: '70er Vintage (echt)', lofi: 'Lo-Fi Retro (echt)', indie: 'Indie/Punk (echt)', perc: 'Cajon & Percussion (echt)' };
   const ALIAS = { tomm: 'tomh', snrim: 'snare', hhh: 'hho', bell: 'ride' };   // fehlt ein Instrument im Kit: nächstes passendes
   let kitName = 'synth', kitReal = null, kitRealName = '', realBusy = null, realErr = '';
   try { const k = localStorage.getItem('3nps-drumkit'); kitName = k === 'real' ? 'jazz' : KITS[k] ? k : 'synth'; } catch (e) {}
@@ -9417,8 +9446,176 @@ const NordDrones = (() => {
     return N;
   }
 
-  const NAMES = { v3: 'Nordmeer – Wikinger', v4: 'Nordlicht – Eis & Glas', v5: 'Elbenküste – Meer & Chor', v6: 'Waldesruh – Elbenwald', v7: 'Nachtbrandung – Küste & Fläche', v8: 'Maschinenhalle – Stahl & Takt' };
-  const STARTS = { v3: () => startV3(), v4: () => startV4(), v5: () => startV5(), v6: () => startV6(), v7: () => startV7(), v8: () => startV8() };
+
+  // ===================== IX–XI Orchester (v100): episch, groß, langsam atmend =====================
+  // Gemeinsame Bausteine: Streicher-Ensemble (verstimmte Sägezähne, Vibrato, Schwellen), Blech (helligkeitsgesteuert),
+  // Chor (Formantfilter), Pauken/Taiko, Becken-Schwellen, Horn-Rufe. Alles folgt Grundton/Modus.
+  function orchBase(hallSec, hallBright, rampSec) {
+    ensureAudio();
+    const vol = parseInt(document.getElementById('droneVolume').value) / 100, t0 = ac().currentTime;
+    const master = gain(0); master.connect(ensureMasterBus());
+    master.gain.setValueAtTime(0, t0); master.gain.linearRampToValueAtTime(vol * 2.6, t0 + (rampSec || 7));
+    const hall = tr(ac().createConvolver()); hall.buffer = hallIR(hallSec, 2.2, hallBright);   // „fett“: so laut wie Nordmeer
+    const wet = gain(0.62); hall.connect(wet); wet.connect(master);
+    const dry = gain(0.62); dry.connect(master);
+    const send = (node, amt) => { const sg = gain(amt); node.connect(sg); sg.connect(hall); };
+    const N = { master, voices: [], stops: [], timers: [], alive: true };
+    return { N, dry, send, k: keyMidiNotes() };
+  }
+  const ivNow = () => { const ov = window.droneKeyOverride || null; return MODES[ov && ov.mode ? ov.mode : modeSel.value] || [0, 2, 4, 5, 7, 9, 11]; };
+  const roleMidi = (kk, r) => {
+    const iv = ivNow();
+    if (r === 'third8') return kk.root8 + iv[2]; if (r === 'third') return kk.root + iv[2];
+    if (r === 'fifth8') return kk.fifth + 12; if (r === 'root16') return kk.root8 + 12; if (r === 'fifth16') return kk.fifth + 24;
+    if (r === 'third16') return kk.root8 + 12 + iv[2];
+    return kk[r];
+  };
+  // Streicher-Ensemble: je Ton 3 Stimmen, Vibrato, langsames An- und Abschwellen; trem = Tremolo (Hz) oder 0
+  function strings(B, roles, o) {
+    const { N, dry, send, k } = B, out = filt('lowpass', o.cut || 2200, 0.6), g = gain(o.amp || 0.05);
+    const hp = filt('highpass', 70, 0.7); out.connect(hp); hp.connect(g); g.connect(dry); send(g, o.wet || 1);
+    N.stops.push(lfo(o.swell || 0.045, (o.amp || 0.05) * 0.35, g.gain), lfo(0.023, (o.cut || 2200) * 0.3, out.frequency));
+    let tg = null; if (o.trem) { tg = gain(0.75); N.stops.push(lfo(o.trem, 0.25, tg.gain)); tg.connect(out); }
+    roles.forEach((role, ri) => [-7, 0, 7].forEach((det, j) => {
+      const os = osc('sawtooth', hz(roleMidi(k, role)), det + (Math.random() - 0.5) * 4), a = gain(0.33), pp = pan(((ri + j) % 3 - 1) * 0.55);
+      N.stops.push(lfo(4.6 + Math.random() * 1.1, 7, os.detune));
+      os.connect(a); a.connect(pp); pp.connect(tg || out); os.start(); N.voices.push({ o: os, role });
+    }));
+    return g;
+  }
+  // Blech: Sägezahn + Rechteck, Filter öffnet beim Anschwellen (wie ein Horn, das lauter wird)
+  function brass(B, roles, o) {
+    const { N, dry, send, k } = B, f = filt('lowpass', 500, 1.2), g = gain(0);
+    f.connect(g); g.connect(dry); send(g, o.wet || 0.9);
+    roles.forEach((role, ri) => [['sawtooth', -4], ['square', 5]].forEach(([ty, det]) => {
+      const os = osc(ty, hz(roleMidi(k, role)), det), a = gain(ty === 'square' ? 0.18 : 0.3), pp = pan((ri - (roles.length - 1) / 2) * 0.35);
+      N.stops.push(lfo(5 + Math.random(), 4, os.detune));
+      os.connect(a); a.connect(pp); pp.connect(f); os.start(); N.voices.push({ o: os, role });
+    }));
+    function swell() {
+      if (!N.alive) return;
+      const t = ac().currentTime + 0.05, up = o.up || (3 + Math.random() * 3), hold = 2 + Math.random() * 3, pk = (o.amp || 0.05) * (0.7 + Math.random() * 0.5);
+      g.gain.cancelScheduledValues(t); g.gain.setTargetAtTime(pk, t, up / 3); g.gain.setTargetAtTime(pk * 0.12, t + up + hold, 2.2);
+      f.frequency.cancelScheduledValues(t); f.frequency.setTargetAtTime(o.bright || 2400, t, up / 3); f.frequency.setTargetAtTime(450, t + up + hold, 2.5);
+      N.timers.push(T(swell, (up + hold + 6 + Math.random() * 6) * 1000));
+    }
+    N.timers.push(T(swell, o.delay || 1500));
+    return g;
+  }
+  // Chor „Aah/Ooh“: Pulswellen durch drei Formantfilter, Vokal wandert langsam
+  function choir(B, roles, o) {
+    const { N, dry, send, k } = B, src = gain(1), g = gain(o.amp || 0.05), F = [[800, 1150, 2900], [450, 800, 2830]];
+    const fs = F[0].map((fr, i) => { const b = filt('bandpass', fr, [7, 9, 12][i]), bg = gain([1, 0.55, 0.22][i]); src.connect(b); b.connect(bg); bg.connect(g); return b; });
+    g.connect(dry); send(g, o.wet || 1.3);
+    N.stops.push(lfo(0.05, (o.amp || 0.05) * 0.3, g.gain));
+    roles.forEach((role, ri) => [-9, -2, 4, 10].forEach((det, j) => {
+      const os = osc(j % 2 ? 'sawtooth' : 'triangle', hz(roleMidi(k, role)), det), a = gain(j % 2 ? 0.3 : 0.5), pp = pan(((ri * 4 + j) % 5 - 2) * 0.3);
+      N.stops.push(lfo(5.2 + Math.random() * 0.8, 9, os.detune));
+      os.connect(a); a.connect(pp); pp.connect(src); os.start(); N.voices.push({ o: os, role });
+    }));
+    function vowel() {
+      if (!N.alive) return;
+      const t = ac().currentTime, v = F[Math.random() < 0.5 ? 0 : 1];
+      fs.forEach((b, i) => b.frequency.setTargetAtTime(v[i], t, 2.5));
+      N.timers.push(T(vowel, (7 + Math.random() * 7) * 1000));
+    }
+    N.timers.push(T(vowel, 4000));
+    return g;
+  }
+  // Pauke (gestimmt auf Grundton) bzw. Taiko (tief, ohne Ton)
+  function drumHit(B, t, m, amp, taiko) {
+    const { dry, send } = B, f = taiko ? (m ? hz(m) : 58) : hz(m), o = osc('sine', f * 1.6), g = gain(0), p = pan((Math.random() - 0.5) * 0.5);
+    o.frequency.setValueAtTime(f * 1.6, t); o.frequency.exponentialRampToValueAtTime(f, t + 0.06);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(amp, t + 0.004); g.gain.setTargetAtTime(0, t + 0.02, taiko ? 0.35 : 0.7);
+    const n = noiseSrc(Math.random() * 5), nf = filt('lowpass', taiko ? 900 : 1600, 0.7), ng = gain(0);
+    ng.gain.setValueAtTime(amp * (taiko ? 0.9 : 0.5), t); ng.gain.setTargetAtTime(0, t + 0.005, 0.05);
+    o.connect(g); n.connect(nf); nf.connect(ng); g.connect(p); ng.connect(p); p.connect(dry); send(p, 1.1);
+    o.start(t); o.stop(t + 4); n.stop(t + 0.6);
+  }
+  // Becken-Schwelle (rückwärts klingend) bis Zeitpunkt t
+  function cymSwell(B, t, dur, amp) {
+    const { dry, send } = B, n = noiseSrc(Math.random() * 5), hp = filt('highpass', 4000, 0.7), g = gain(0);
+    g.gain.setValueAtTime(0.0001, t - dur); g.gain.exponentialRampToValueAtTime(amp, t); g.gain.setTargetAtTime(0, t, 0.08);
+    n.connect(hp); hp.connect(g); g.connect(dry); send(g, 1.2); n.stop(t + 1);
+  }
+  // Horn-Ruf: langsame Melodie aus Grundton, Quinte, Oktave
+  function hornCall(B, t, seq, amp) {
+    const { dry, send } = B, f = filt('lowpass', 700, 1.5), g = gain(0), p = pan((Math.random() - 0.5) * 0.6), o1 = osc('sawtooth', hz(seq[0][0])), o2 = osc('sawtooth', hz(seq[0][0]), 8);
+    o1.connect(f); o2.connect(f); f.connect(g); g.connect(p); p.connect(dry); send(p, 1.4);
+    let tt = t;
+    seq.forEach(([m, d], i) => {
+      [o1, o2].forEach(o => o.frequency.setTargetAtTime(hz(m), tt, i ? 0.05 : 0.001));
+      g.gain.setTargetAtTime(amp, tt, 0.25); f.frequency.setTargetAtTime(1800, tt, 0.4);
+      g.gain.setTargetAtTime(amp * 0.6, tt + d * 0.7, 0.3); f.frequency.setTargetAtTime(900, tt + d * 0.7, 0.4);
+      tt += d;
+    });
+    g.gain.setTargetAtTime(0, tt, 0.8);
+    [o1, o2].forEach(o => { o.start(t); o.stop(tt + 5); });
+  }
+  const retuneAll = N => () => { const kk = keyMidiNotes(), t = ac().currentTime; N.voices.forEach(v => v.o.frequency.setTargetAtTime(hz(roleMidi(kk, v.role)), t, 1.2)); };
+
+  // IX Heldensaga – Streicher & Blech: tiefe Streicher, hohe Streicher, Blechbläser-Schwellen, Pauken im Takt der Phrasen
+  function startV9() {
+    const B = orchBase(5.5, 0.3, 8), { N } = B;
+    strings(B, ['sub', 'root', 'fifth'], { amp: 0.06, cut: 1400, swell: 0.035 });
+    strings(B, ['root8', 'third8', 'fifth8', 'root16'], { amp: 0.035, cut: 3600, swell: 0.052, wet: 1.4 });
+    brass(B, ['root', 'fifth', 'root8'], { amp: 0.07, bright: 2600, delay: 5000 });
+    function timp() {
+      if (!N.alive) return;
+      const kk = keyMidiNotes(), t = ac().currentTime + 0.1, b = 60 / bpm();
+      if (Math.random() < 0.55) { drumHit(B, t, kk.root, 0.32); drumHit(B, t + b * 1.5, kk.fifth - 12, 0.22); }
+      else { let tt = t; for (let i = 0; i < 12; i++) { drumHit(B, tt, kk.root, 0.06 + i * 0.02); tt += b / 4; } drumHit(B, tt, kk.root, 0.38); cymSwell(B, tt, b * 3, 0.06); }
+      N.timers.push(T(timp, (orn() ? 9 + Math.random() * 7 : 18 + Math.random() * 10) * 1000));
+    }
+    N.timers.push(T(timp, 6000));
+    N.retune = retuneAll(N);
+    return N;
+  }
+  // X Dunkle Kathedrale – Chor & Orgelpedal: tiefer Chor, Orgel-Bordun, Taiko-Schläge mit Becken-Schwellen
+  function startV10() {
+    const B = orchBase(7.5, 0.22, 9), { N, dry, send, k } = B;
+    choir(B, ['root', 'fifth', 'root8'], { amp: 0.07 });
+    choir(B, ['third8', 'fifth8'], { amp: 0.03, wet: 1.6 });
+    const og = gain(0.05), of = filt('lowpass', 420, 0.7); of.connect(og); og.connect(dry); send(og, 0.7);
+    [['sub', 'sine', 0.8], ['sub', 'triangle', 0.3], ['root', 'square', 0.12]].forEach(([role, ty, a]) => { const o = osc(ty, hz(roleMidi(k, role))), g = gain(a); o.connect(g); g.connect(of); o.start(); N.voices.push({ o, role }); });
+    strings(B, ['root', 'fifth'], { amp: 0.025, cut: 900, trem: 7.5, wet: 1.2 });
+    function boom() {
+      if (!N.alive) return;
+      const t = ac().currentTime + 3.2;
+      if (orn()) cymSwell(B, t, 3, 0.05);
+      const sb = keyMidiNotes().sub; drumHit(B, t, sb, 0.42, true); if (Math.random() < 0.5) drumHit(B, t + 60 / bpm() * 0.75, sb, 0.25, true);
+      N.timers.push(T(boom, (orn() ? 10 + Math.random() * 9 : 20 + Math.random() * 12) * 1000));
+    }
+    N.timers.push(T(boom, 5000));
+    N.retune = retuneAll(N);
+    return N;
+  }
+  // XI Schlachtfeld – Hörner & Trommeln: Streicher-Tremolo, Hornrufe, Taiko-Rhythmus im Tempo
+  function startV11() {
+    const B = orchBase(4.5, 0.32, 6), { N } = B;
+    strings(B, ['sub', 'root', 'fifth'], { amp: 0.05, cut: 1600, trem: 10, swell: 0.06 });
+    strings(B, ['root8', 'fifth8'], { amp: 0.025, cut: 3200, wet: 1.3 });
+    brass(B, ['root', 'fifth'], { amp: 0.05, bright: 1800, up: 2, delay: 9000 });
+    function drums() {
+      if (!N.alive) return;
+      const b = 60 / bpm(), t = ac().currentTime + 0.1, pat = [[0, 0.4], [1.5, 0.22], [2, 0.32], [3, 0.2], [3.5, 0.26]];
+      const bars = 2, sb = keyMidiNotes().sub; for (let r = 0; r < bars; r++) pat.forEach(([x, a]) => drumHit(B, t + (r * 4 + x) * b, sb, a * (0.8 + Math.random() * 0.3), true));
+      N.timers.push(T(drums, (bars * 4 * b + (orn() ? 4 + Math.random() * 6 : 10 + Math.random() * 8)) * 1000));
+    }
+    function horn() {
+      if (!N.alive) return;
+      const kk = keyMidiNotes(), b = 60 / bpm(), r8 = kk.root8, f8 = kk.fifth + 12;
+      const calls = [[[r8, b * 2], [f8, b * 2], [r8 + 12, b * 4]], [[f8, b], [r8 + 12, b * 3], [f8, b * 4]], [[r8, b * 3], [r8 + ivNow()[2], b], [f8, b * 4]]];
+      if (orn()) hornCall(B, ac().currentTime + 0.1, calls[Math.floor(Math.random() * calls.length)], 0.07);
+      N.timers.push(T(horn, (14 + Math.random() * 12) * 1000));
+    }
+    N.timers.push(T(drums, 3000), T(horn, 7000));
+    N.retune = retuneAll(N);
+    return N;
+  }
+
+  const NAMES = { v3: 'Nordmeer – Wikinger', v4: 'Nordlicht – Eis & Glas', v5: 'Elbenküste – Meer & Chor', v6: 'Waldesruh – Elbenwald', v7: 'Nachtbrandung – Küste & Fläche', v8: 'Maschinenhalle – Stahl & Takt', v9: 'Heldensaga – Streicher & Blech', v10: 'Dunkle Kathedrale – Chor & Orgel', v11: 'Schlachtfeld – Hörner & Trommeln' };
+  const STARTS = { v3: () => startV3(), v4: () => startV4(), v5: () => startV5(), v6: () => startV6(), v7: () => startV7(), v8: () => startV8(), v9: () => startV9(), v10: () => startV10(), v11: () => startV11() };
   let cur = null;
   function start(style) {
     if (cur) stop(true);
@@ -9991,7 +10188,7 @@ const Looper = (() => {
 
   // ---- Spuren abspielen ----
   // ---- Automatische Sicherung der laufenden Sitzung (nach Absturz oder Neuladen wiederherstellbar) ----
-  const AUTO_MAX_MB = 150;
+  const AUTO_MAX_MB = 60;   // v100: vorher 150 – zwei lange Lieder (≈140 MB) blockierten beim Sichern das iPad (Kopie + Datenbank) für Sekunden; Lieder liegen ja als Datei vor
   let autoTimer = null, autoBusy = false, autoReady = false;
   let livePendSave = false;
   function markDirty() { if (!autoReady) return; if (window.__live) { livePendSave = true; return; } clearTimeout(autoTimer); autoTimer = setTimeout(doAutosave, 2500); }
@@ -10318,6 +10515,7 @@ const Looper = (() => {
     update();
   }
   function applySnap(t, sn) {
+    if (sn.bpmv && !others(t).length && Math.abs(sn.bpmv / bpm() - 1) > 1e-5) setTempo(sn.bpmv);   // v100: Tempo mit zurücknehmen
     const os = others(t), sameLen = sn.L === t.L;
     t.layers = sn.layers; t.L = sn.L; t.origPos = sn.origPos; t.origBars = sn.origBars; rebuildMix(t);
     if (sn.od && t.orig) Object.assign(t.orig, sn.od);
@@ -10380,7 +10578,7 @@ const Looper = (() => {
 
   // Ausschnitt aus dem Original: ab Takt „from“, „nb“ Takte – exakt von Eins zu Eins geschnitten.
   // Schlag 1 liegt genau auf dem Loopanfang, die 10 ms davor ans Loopende (sauberer Übergang).
-  function placeExcerpt(t, from, nb) {
+  function placeExcerpt(t, from, nb, defer) {   // v100 defer: lange Dehnung dem Aufrufer überlassen (im Hintergrund)
     const o = t.orig, os = others(t);
     from = Math.max(1, Math.min(from, o.bars)); nb = Math.max(1, Math.min(nb, o.bars - from + 1));
     const start = o.downs[from - 1], end = o.downs[from - 1 + nb];
@@ -10389,7 +10587,7 @@ const Looper = (() => {
     let seg = smap(o.data, a => { const g = new Float32Array(Ldet), s0 = Math.max(0, start), e0 = Math.min(a.length, start + Ldet - pre); if (e0 > s0) g.set(a.subarray(s0, e0), s0 - start); if (pre) g.set(a.subarray(start - pre, start), Ldet - pre); return g; });
     const exactBpm = 240 * nb / (Ldet / sr);
     const what = nb + ' Takt' + (nb === 1 ? '' : 'e') + (from > 1 ? ' ab Takt ' + from : ' ab Schlag 1') + (from === 1 && nb === o.bars ? (o.loopFile ? ' (Loop-Datei)' : ' (ganze Datei)') : '');
-    let L, msg;
+    let L, msg, pend = null;
     if (!os.length) {
       L = Ldet; baseL = L; setTempo(exactBpm);
       msg = what + ' · ' + bpmTxt(exactBpm) + ' BPM.';
@@ -10402,8 +10600,8 @@ const Looper = (() => {
       const os2 = os.every(o => o.L % Lb === 0) && Lb < baseL && baseL % Lb === 0;
       L = Lb >= baseL ? Math.ceil(Lb / baseL - 1e-6) * baseL : (os2 ? Lb : baseL);
       if (Math.abs(ratio - 1) <= 0.35) {
-        if (Math.abs(ratio - 1) > 0.0005) seg = stretch(seg, Lb);
-        seg = padS(seg, L);
+        if (Math.abs(ratio - 1) > 0.0005) { if (defer && seg.length > sr * 15) pend = { Lb }; else seg = stretch(seg, Lb); }
+        if (!pend) seg = padS(seg, L);
         msg = what + (Math.abs(ratio - 1) > 0.002 ? ', ins Tempo des Loops gebracht (' + bpmTxt(exactBpm) + ' → ' + bpmTxt(exactBpm / ratio) + ' BPM, Tonhöhe bleibt)' : ', passt zum Loop') + (L > Lb + 1 ? ' – auf ' + Math.round(L / barF) + ' Takte des Loops aufgefüllt' : '') + '.';
       } else {
         L = Math.max(1, Math.round(Ldet / baseL)) * baseL;
@@ -10413,7 +10611,7 @@ const Looper = (() => {
     }
     t.origPos = Math.abs(L - Ldet) <= 1 ? start : null;      // Zuordnung Loopanfang → Original (für „Prüfen“)
     t.origBars = nb;
-    return { seg, L, msg };
+    return { seg, L, msg, pend };
   }
 
   // Analyse einer geladenen Datei: Loop-Datei (ganze Takte) oder Song mit Taktraster
@@ -10450,7 +10648,7 @@ const Looper = (() => {
     anaEl.textContent = 'Analysiere Takt und Tempo …'; anaEl.classList.remove('done');
     $('impAllInfo').textContent = 'komplett als Loop';
     // v86: liegen andere Spuren, würde das Lied ins Loop-Tempo gedehnt – Gesangstext geht dann nicht. Mit Text: Leeren vorschlagen
-    { const os = others(t).length > 0; $('impClearRow').hidden = !os; $('impClear').checked = os && !!hasLyrics; }
+    { const os = others(t).length > 0; $('impClearRow').hidden = !os; $('impClear').checked = os && (!!hasLyrics || others(t).some(o => o.L > sr * 45)); }   // v100: liegt schon ein langes Lied drin → vorher leeren vorgeschlagen
     const bpmIn = $('impBpm'), altEl = $('impBpmAlt'); bpmIn.value = preBpm ? String(preBpm) : ''; altEl.innerHTML = '';
     dlg.querySelector('input[value="all"]').checked = true;
     let total = 0;
@@ -10504,8 +10702,9 @@ const Looper = (() => {
     if (rec && rec.t === t) cancelRec();
     // Stereo bleibt Stereo (Mono-Dateien: beide Seiten gleich). Höchstens 10 Minuten (v85; vorher 6), damit der Speicher reicht.
     const n = Math.min(buf.length, Math.round(buf.sampleRate * MAXSEC));
-    const l = buf.getChannelData(0).slice(0, n);
-    const data = buf.numberOfChannels > 1 ? monoIfSame(SP(l, buf.getChannelData(1).slice(0, n))) : SP(l);
+    // v100: ohne Kopie (die Kanaldaten des dekodierten Puffers werden direkt verwendet) – spart beim Laden langer Lieder viel Speicher
+    const ch0 = buf.getChannelData(0), l = n === buf.length ? ch0 : ch0.slice(0, n);
+    const data = buf.numberOfChannels > 1 ? monoIfSame(SP(l, n === buf.length ? buf.getChannelData(1) : buf.getChannelData(1).slice(0, n))) : SP(l);
     if (buf.length > n) setStatus('Die Datei ist länger als 10 Minuten – die ersten 10 Minuten werden verwendet.');
     buf = null;
     const secs = n / sr;
@@ -10523,6 +10722,9 @@ const Looper = (() => {
       if (choice && choice.clear) { tracks.forEach(o => { if (o !== t && o.L) clearTrack(o); }); delete choice.clear; }
       if (!choice) { setStatus('Laden abgebrochen.'); return; }
     }
+    // v100: alten Inhalt der Spur schon jetzt freigeben (sonst liegen altes und neues Lied gleichzeitig im Speicher)
+    const oldBeats0 = t.orig && t.orig.beats && t.orig.data && (t.orig.name + '|' + Math.round((t.orig.data.l || t.orig.data).length / sr * 10)) === sKey ? t.orig.beats : null;
+    if (t.L) { stopSrc(t); t.buf = null; t.bufFor = null; t.layers = []; t.mix = null; t.peaks = null; t.hist = []; t.L = 0; t.orig = null; t.origPos = null; t.state = 'empty'; if (ed.t === t) closeEditor && closeEditor(); update(); }
     let ana = await anaP;
     const forceB = choice && choice.bpm !== undefined ? choice.bpm : memBpm;
     if (forceB && ana.kind !== 'loop') {
@@ -10534,7 +10736,7 @@ const Looper = (() => {
         if (o2) ana = { kind: 'song', beat: bt, orig: o2, forced: forceB };
       } else ana.forced = forceB;
     }
-    const oldBeats = t.orig && t.orig.beats && t.orig.data && (t.orig.name + '|' + Math.round((t.orig.data.l || t.orig.data).length / sr * 10)) === sKey ? t.orig.beats : null;
+    const oldBeats = oldBeats0;
     const os = others(t);
     t.orig = null; t.origPos = null;
     let seg = null, L = 0, msg = '', warn = '';
@@ -10545,8 +10747,9 @@ const Looper = (() => {
       document.dispatchEvent(new CustomEvent('origbeats', { detail: { key: sKey, oldBeats, newBeats: t.orig.beats, forced: ana.forced || null, sr } }));
       const o = t.orig, from = choice.mode === 'part' ? Math.min(choice.from, o.bars) : 1;
       const nb = choice.mode === 'part' ? Math.min(choice.bars, o.bars - from + 1) : o.bars;
-      const r = placeExcerpt(t, from, nb);
+      const r = placeExcerpt(t, from, nb, true);
       seg = r.seg; L = r.L;
+      if (r.pend) { setStatus('Bringe „' + file.name + '“ ins Tempo des Loops …'); seg = padS(await stretchHQ(seg, r.pend.Lb, false), L); }
       if (ana.kind === 'loop') msg = 'Loop erkannt: ' + r.msg + (ana.lp.startKept ? ' Takt 1 = Dateianfang.' : ' Takt 1 wurde an den Anfang gelegt (' + Math.round(ana.lp.downOffsetSec * 1000) + ' ms).');
       else {
         msg = 'Takt erkannt: ' + r.msg + (ana.beat.steady ? '' : ' Das Tempo schwankt leicht, die Takte folgen der Aufnahme.');
@@ -10649,6 +10852,7 @@ const Looper = (() => {
     update();
   }
   allBtn.addEventListener('click', allStartStop);
+  { const b2 = $('loopAll2'); if (b2) b2.addEventListener('click', () => allBtn.click()); }   // v100: zweiter Knopf oben neben „Eingang öffnen“
   // Pause/Weiter (Improvisation): Stelle im Loop merken, Drums mit anhalten; weiter an derselben Stelle
   let pausedAt = null;
   function pauseToggle() {
@@ -10713,6 +10917,7 @@ const Looper = (() => {
       t.chB.title = st2 ? 'Diese Spur ist stereo (links und rechts verschieden)' : 'Diese Spur ist mono (links und rechts gleich)';
     });
     allBtn.textContent = (anyRunning() || rec) ? 'Alle stoppen' : 'Alle starten';
+    { const b2 = $('loopAll2'); if (b2) { b2.textContent = allBtn.textContent; b2.classList.toggle('active', anyRunning() || !!rec); b2.disabled = !anyContent() && !rec; } }
     allBtn.classList.toggle('active', anyRunning());
     $('ideaSave').disabled = !anyContent() || !!rec;
     if (baseL) {
@@ -11006,7 +11211,7 @@ const Looper = (() => {
     if (dropped && !trimHistory.told) { trimHistory.told = true; setTimeout(() => setStatus('Speicher schonen: ältere Rückgängig-Schritte wurden verworfen (lange Loops brauchen viel Platz).'), 50); }
     return m;
   }
-  function snapshot(t) { t.hist.push({ ts: performance.now(), layers: t.layers.slice(), L: t.L, baseL, origPos: t.origPos, origBars: t.origBars, od: t.orig ? { downs: t.orig.downs, bars: t.orig.bars, data: t.orig.data, bpm: t.orig.bpm, barMed: t.orig.barMed } : null }); if (t.hist.length > 25) t.hist.shift(); trimHistory(); }
+  function snapshot(t) { t.hist.push({ ts: performance.now(), layers: t.layers.slice(), L: t.L, baseL, bpmv: bpm(), origPos: t.origPos, origBars: t.origBars, od: t.orig ? { downs: t.orig.downs, bars: t.orig.bars, data: t.orig.data, bpm: t.orig.bpm, barMed: t.orig.barMed } : null }); if (t.hist.length > 25) t.hist.shift(); trimHistory(); }
   // Ein Rückgängig-Schritt pro Aktion; mehrere Verschiebungen hintereinander zählen als einer
   function edSnap(op) { if (!(op === 'nudge' && ed.lastOp === 'nudge')) snapshot(ed.t); ed.lastOp = op; ed.redo = []; edUR(); }
   function fmtLen(L) {
@@ -11034,7 +11239,7 @@ const Looper = (() => {
   const EDGE = () => Math.max(16, Math.round(sr * 0.003));          // 3-ms-Übergänge an den Kanten, damit nichts knackt
   let edClip = null;                                                // Zwischenablage (auch spurübergreifend)
   function edUR() { $('edUndo').disabled = !(ed.t && ed.t.hist.length); $('edRedo').disabled = !(ed.redo && ed.redo.length); $('edPaste').disabled = !edClip; $('edClipInfo').textContent = edClip ? 'Zwischenablage: ' + (edClip.l.length / sr).toFixed(3).replace('.', ',') + ' s' : ''; }
-  function snapOf(t) { return { ts: performance.now(), layers: t.layers.slice(), L: t.L, baseL, origPos: t.origPos, origBars: t.origBars, od: t.orig ? { downs: t.orig.downs, bars: t.orig.bars, data: t.orig.data, bpm: t.orig.bpm, barMed: t.orig.barMed } : null }; }
+  function snapOf(t) { return { ts: performance.now(), layers: t.layers.slice(), L: t.L, baseL, bpmv: bpm(), origPos: t.origPos, origBars: t.origBars, od: t.orig ? { downs: t.orig.downs, bars: t.orig.bars, data: t.orig.data, bpm: t.orig.bpm, barMed: t.orig.barMed } : null }; }
   // Gemeinsame Ausführung: fn(kanal, kopie) ändert die Kopie im Bereich [s, e)
   function edApply(label, fn, opts) {
     const t = ed.t; if (!t || !t.L || rec) return;
@@ -11287,8 +11492,15 @@ const Looper = (() => {
     }
     return out;
   }
+  // v100: nach Kürzen/Zuschneiden das Tempo so setzen, dass die Spur wieder ganze Takte ergibt (nur wenn sie allein ist)
+  function tempoToLength(t, oldL) {
+    if (!$('edAutoBpm') || !$('edAutoBpm').checked || others(t).length || !t.L) return '';
+    const bf = sr * 240 / bpm(), nb = Math.max(1, Math.round((oldL || t.L) / bf)), b = nb * 240 / (t.L / sr);
+    if (b < 40 || b > 220 || Math.abs(b / bpm() - 1) < 1e-5) return '';
+    setTempo(b); return ' Tempo angepasst: ' + bpmTxt(b) + ' BPM (' + nb + ' Takt' + (nb === 1 ? '' : 'e') + ').';
+  }
   function trimTo(s0, e0, label) {
-    const t = ed.t, len = e0 - s0;
+    const t = ed.t, len = e0 - s0, oldL = t.L;
     if (len < sr * 0.1) { setStatus('Die Auswahl ist zu kurz.'); return; }
     const f = fitLength(t, len);
     edSnap('trim');
@@ -11297,10 +11509,35 @@ const Looper = (() => {
     t.L = f.L; baseL = f.base;
     if (t.origPos != null) t.origPos += s0;
     afterEdit(t, true);
-    setStatus('Spur ' + (t.i + 1) + ' ' + label + ': ' + fmtLen(t.L) + (f.L !== len ? ' (an die anderen Spuren angepasst)' : '') + '.');
-    detectTrackKey(t);
+    const tm = tempoToLength(t, oldL);
+    setStatus('Spur ' + (t.i + 1) + ' ' + label + ': ' + fmtLen(t.L) + (f.L !== len ? ' (an die anderen Spuren angepasst)' : '') + '.' + tm);
+    detectTrackKey(t); if (tm) { edInfo(); update(); }
+  }
+  // v100: Auswahl herausschneiden – der Loop wird kürzer (z. B. eine halbe Sekunde zu viel zwischen zwei Takten)
+  function deleteSel() {
+    const t = ed.t; if (!t || !t.L) return;
+    const s0 = ed.s, e0 = ed.e, cut = e0 - s0, oldL = t.L;
+    if (cut <= 0 || (s0 === 0 && e0 === t.L)) { setStatus('Erst mit den Griffen den Teil markieren, der heraus soll.'); return; }
+    if (t.L - cut < sr * 0.1) { setStatus('Danach wäre der Loop zu kurz.'); return; }
+    if (others(t).length) { setStatus('Kürzer machen geht nur, wenn die Spur allein ist – sonst passt sie nicht mehr zu den anderen Spuren. Andere Spuren leeren oder „Ausschneiden“ (macht die Stelle still) verwenden.'); return; }
+    edSnap('delete');
+    const n = Math.min(Math.round((parseInt($('edFade').value) || 5) / 1000 * sr) || Math.round(sr * 0.005), s0, t.L - e0, Math.floor(cut / 2) || 1), L2 = t.L - cut;
+    t.layers = [smap(t.mix, a => {
+      const o = new Float32Array(L2); o.set(a.subarray(0, s0), 0); o.set(a.subarray(e0), s0);
+      // Übergang: Ende vor der Lücke in den Anfang nach der Lücke überblenden (gleiche Leistung) – kein Knacken
+      for (let i = 0; i < n; i++) { const g = (i + 0.5) / n, p = s0 - n + i; if (p < 0) continue; o[p] = a[p] * Math.cos(g * Math.PI / 2) + a[e0 - n + i] * Math.sin(g * Math.PI / 2); }
+      return o;
+    })];
+    t.L = L2; baseL = L2; t.origPos = null;
+    afterEdit(t, true);
+    const tm = tempoToLength(t, oldL);
+    setStatus('Spur ' + (t.i + 1) + ': ' + Math.round(cut / sr * 1000) + ' ms herausgeschnitten, Loop jetzt ' + fmtLen(t.L) + '.' + tm);
+    detectTrackKey(t); edInfo(); update();
   }
   $('edTrim').addEventListener('click', () => ed.t && trimTo(ed.s, ed.e, 'zugeschnitten'));
+  $('edDel').addEventListener('click', deleteSel);
+  $('edAutoBpm').checked = loadPref('3nps-edautobpm', '1') === '1';
+  $('edAutoBpm').addEventListener('change', () => savePref('3nps-edautobpm', $('edAutoBpm').checked ? '1' : '0'));
   $('edFade').value = loadPref('3nps-edfade', '5');
   $('edFade').addEventListener('change', () => savePref('3nps-edfade', $('edFade').value));
   // ---- Auswahl in Schleife hören (andere Spuren leise, danach wieder wie vorher) ----

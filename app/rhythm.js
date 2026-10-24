@@ -232,8 +232,9 @@ const Rhythm = (() => {
   }
   if (roomBtn) { roomBtn.addEventListener('click', () => setRoom(!roomOn)); setRoom(roomOn); }
   // ---- v98/v99: echte Schlagzeuge (Aufnahmen, alle CC0) als Option; Synthese bleibt ----
-  // Kits: jazz = „Virtuosity Drums“, rock = „Big Rusty Drums“ (Sticks), brush = „Big Rusty Drums“ (Besen)
-  const KITS = { synth: 'Synthese', jazz: 'Jazz / Club (echt)', rock: 'Rock (echt)', brush: 'Besen (echt)' };
+  // Kits: jazz = „Virtuosity Drums“, rock/brush = „Big Rusty Drums“, studio = MuldjordKit, drs = DRSKit (CC BY 4.0), vintage/lofi = „Gogodze Phu Vol II“, indie/perc = „Swirly Drums“
+  const KITS = { synth: 'Synthese', jazz: 'Jazz / Club (echt)', rock: 'Rock (echt)', brush: 'Besen (echt)', studio: 'Studio Rock/Metal (echt)', drs: 'Pop/Rock trocken (echt)',
+    vintage: '70er Vintage (echt)', lofi: 'Lo-Fi Retro (echt)', indie: 'Indie/Punk (echt)', perc: 'Cajon & Percussion (echt)' };
   const ALIAS = { tomm: 'tomh', snrim: 'snare', hhh: 'hho', bell: 'ride' };   // fehlt ein Instrument im Kit: nächstes passendes
   let kitName = 'synth', kitReal = null, kitRealName = '', realBusy = null, realErr = '';
   try { const k = localStorage.getItem('3nps-drumkit'); kitName = k === 'real' ? 'jazz' : KITS[k] ? k : 'synth'; } catch (e) {}

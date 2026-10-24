@@ -545,7 +545,7 @@ const Looper = (() => {
 
   // ---- Spuren abspielen ----
   // ---- Automatische Sicherung der laufenden Sitzung (nach Absturz oder Neuladen wiederherstellbar) ----
-  const AUTO_MAX_MB = 150;
+  const AUTO_MAX_MB = 60;   // v100: vorher 150 – zwei lange Lieder (≈140 MB) blockierten beim Sichern das iPad (Kopie + Datenbank) für Sekunden; Lieder liegen ja als Datei vor
   let autoTimer = null, autoBusy = false, autoReady = false;
   let livePendSave = false;
   function markDirty() { if (!autoReady) return; if (window.__live) { livePendSave = true; return; } clearTimeout(autoTimer); autoTimer = setTimeout(doAutosave, 2500); }
@@ -872,6 +872,7 @@ const Looper = (() => {
     update();
   }
   function applySnap(t, sn) {
+    if (sn.bpmv && !others(t).length && Math.abs(sn.bpmv / bpm() - 1) > 1e-5) setTempo(sn.bpmv);   // v100: Tempo mit zurücknehmen
     const os = others(t), sameLen = sn.L === t.L;
     t.layers = sn.layers; t.L = sn.L; t.origPos = sn.origPos; t.origBars = sn.origBars; rebuildMix(t);
     if (sn.od && t.orig) Object.assign(t.orig, sn.od);
@@ -934,7 +935,7 @@ const Looper = (() => {
 
   // Ausschnitt aus dem Original: ab Takt „from“, „nb“ Takte – exakt von Eins zu Eins geschnitten.
   // Schlag 1 liegt genau auf dem Loopanfang, die 10 ms davor ans Loopende (sauberer Übergang).
-  function placeExcerpt(t, from, nb) {
+  function placeExcerpt(t, from, nb, defer) {   // v100 defer: lange Dehnung dem Aufrufer überlassen (im Hintergrund)
     const o = t.orig, os = others(t);
     from = Math.max(1, Math.min(from, o.bars)); nb = Math.max(1, Math.min(nb, o.bars - from + 1));
     const start = o.downs[from - 1], end = o.downs[from - 1 + nb];
@@ -943,7 +944,7 @@ const Looper = (() => {
     let seg = smap(o.data, a => { const g = new Float32Array(Ldet), s0 = Math.max(0, start), e0 = Math.min(a.length, start + Ldet - pre); if (e0 > s0) g.set(a.subarray(s0, e0), s0 - start); if (pre) g.set(a.subarray(start - pre, start), Ldet - pre); return g; });
     const exactBpm = 240 * nb / (Ldet / sr);
     const what = nb + ' Takt' + (nb === 1 ? '' : 'e') + (from > 1 ? ' ab Takt ' + from : ' ab Schlag 1') + (from === 1 && nb === o.bars ? (o.loopFile ? ' (Loop-Datei)' : ' (ganze Datei)') : '');
-    let L, msg;
+    let L, msg, pend = null;
     if (!os.length) {
       L = Ldet; baseL = L; setTempo(exactBpm);
       msg = what + ' · ' + bpmTxt(exactBpm) + ' BPM.';
@@ -956,8 +957,8 @@ const Looper = (() => {
       const os2 = os.every(o => o.L % Lb === 0) && Lb < baseL && baseL % Lb === 0;
       L = Lb >= baseL ? Math.ceil(Lb / baseL - 1e-6) * baseL : (os2 ? Lb : baseL);
       if (Math.abs(ratio - 1) <= 0.35) {
-        if (Math.abs(ratio - 1) > 0.0005) seg = stretch(seg, Lb);
-        seg = padS(seg, L);
+        if (Math.abs(ratio - 1) > 0.0005) { if (defer && seg.length > sr * 15) pend = { Lb }; else seg = stretch(seg, Lb); }
+        if (!pend) seg = padS(seg, L);
         msg = what + (Math.abs(ratio - 1) > 0.002 ? ', ins Tempo des Loops gebracht (' + bpmTxt(exactBpm) + ' → ' + bpmTxt(exactBpm / ratio) + ' BPM, Tonhöhe bleibt)' : ', passt zum Loop') + (L > Lb + 1 ? ' – auf ' + Math.round(L / barF) + ' Takte des Loops aufgefüllt' : '') + '.';
       } else {
         L = Math.max(1, Math.round(Ldet / baseL)) * baseL;
@@ -967,7 +968,7 @@ const Looper = (() => {
     }
     t.origPos = Math.abs(L - Ldet) <= 1 ? start : null;      // Zuordnung Loopanfang → Original (für „Prüfen“)
     t.origBars = nb;
-    return { seg, L, msg };
+    return { seg, L, msg, pend };
   }
 
   // Analyse einer geladenen Datei: Loop-Datei (ganze Takte) oder Song mit Taktraster
@@ -1004,7 +1005,7 @@ const Looper = (() => {
     anaEl.textContent = 'Analysiere Takt und Tempo …'; anaEl.classList.remove('done');
     $('impAllInfo').textContent = 'komplett als Loop';
     // v86: liegen andere Spuren, würde das Lied ins Loop-Tempo gedehnt – Gesangstext geht dann nicht. Mit Text: Leeren vorschlagen
-    { const os = others(t).length > 0; $('impClearRow').hidden = !os; $('impClear').checked = os && !!hasLyrics; }
+    { const os = others(t).length > 0; $('impClearRow').hidden = !os; $('impClear').checked = os && (!!hasLyrics || others(t).some(o => o.L > sr * 45)); }   // v100: liegt schon ein langes Lied drin → vorher leeren vorgeschlagen
     const bpmIn = $('impBpm'), altEl = $('impBpmAlt'); bpmIn.value = preBpm ? String(preBpm) : ''; altEl.innerHTML = '';
     dlg.querySelector('input[value="all"]').checked = true;
     let total = 0;
@@ -1058,8 +1059,9 @@ const Looper = (() => {
     if (rec && rec.t === t) cancelRec();
     // Stereo bleibt Stereo (Mono-Dateien: beide Seiten gleich). Höchstens 10 Minuten (v85; vorher 6), damit der Speicher reicht.
     const n = Math.min(buf.length, Math.round(buf.sampleRate * MAXSEC));
-    const l = buf.getChannelData(0).slice(0, n);
-    const data = buf.numberOfChannels > 1 ? monoIfSame(SP(l, buf.getChannelData(1).slice(0, n))) : SP(l);
+    // v100: ohne Kopie (die Kanaldaten des dekodierten Puffers werden direkt verwendet) – spart beim Laden langer Lieder viel Speicher
+    const ch0 = buf.getChannelData(0), l = n === buf.length ? ch0 : ch0.slice(0, n);
+    const data = buf.numberOfChannels > 1 ? monoIfSame(SP(l, n === buf.length ? buf.getChannelData(1) : buf.getChannelData(1).slice(0, n))) : SP(l);
     if (buf.length > n) setStatus('Die Datei ist länger als 10 Minuten – die ersten 10 Minuten werden verwendet.');
     buf = null;
     const secs = n / sr;
@@ -1077,6 +1079,9 @@ const Looper = (() => {
       if (choice && choice.clear) { tracks.forEach(o => { if (o !== t && o.L) clearTrack(o); }); delete choice.clear; }
       if (!choice) { setStatus('Laden abgebrochen.'); return; }
     }
+    // v100: alten Inhalt der Spur schon jetzt freigeben (sonst liegen altes und neues Lied gleichzeitig im Speicher)
+    const oldBeats0 = t.orig && t.orig.beats && t.orig.data && (t.orig.name + '|' + Math.round((t.orig.data.l || t.orig.data).length / sr * 10)) === sKey ? t.orig.beats : null;
+    if (t.L) { stopSrc(t); t.buf = null; t.bufFor = null; t.layers = []; t.mix = null; t.peaks = null; t.hist = []; t.L = 0; t.orig = null; t.origPos = null; t.state = 'empty'; if (ed.t === t) closeEditor && closeEditor(); update(); }
     let ana = await anaP;
     const forceB = choice && choice.bpm !== undefined ? choice.bpm : memBpm;
     if (forceB && ana.kind !== 'loop') {
@@ -1088,7 +1093,7 @@ const Looper = (() => {
         if (o2) ana = { kind: 'song', beat: bt, orig: o2, forced: forceB };
       } else ana.forced = forceB;
     }
-    const oldBeats = t.orig && t.orig.beats && t.orig.data && (t.orig.name + '|' + Math.round((t.orig.data.l || t.orig.data).length / sr * 10)) === sKey ? t.orig.beats : null;
+    const oldBeats = oldBeats0;
     const os = others(t);
     t.orig = null; t.origPos = null;
     let seg = null, L = 0, msg = '', warn = '';
@@ -1099,8 +1104,9 @@ const Looper = (() => {
       document.dispatchEvent(new CustomEvent('origbeats', { detail: { key: sKey, oldBeats, newBeats: t.orig.beats, forced: ana.forced || null, sr } }));
       const o = t.orig, from = choice.mode === 'part' ? Math.min(choice.from, o.bars) : 1;
       const nb = choice.mode === 'part' ? Math.min(choice.bars, o.bars - from + 1) : o.bars;
-      const r = placeExcerpt(t, from, nb);
+      const r = placeExcerpt(t, from, nb, true);
       seg = r.seg; L = r.L;
+      if (r.pend) { setStatus('Bringe „' + file.name + '“ ins Tempo des Loops …'); seg = padS(await stretchHQ(seg, r.pend.Lb, false), L); }
       if (ana.kind === 'loop') msg = 'Loop erkannt: ' + r.msg + (ana.lp.startKept ? ' Takt 1 = Dateianfang.' : ' Takt 1 wurde an den Anfang gelegt (' + Math.round(ana.lp.downOffsetSec * 1000) + ' ms).');
       else {
         msg = 'Takt erkannt: ' + r.msg + (ana.beat.steady ? '' : ' Das Tempo schwankt leicht, die Takte folgen der Aufnahme.');
@@ -1203,6 +1209,7 @@ const Looper = (() => {
     update();
   }
   allBtn.addEventListener('click', allStartStop);
+  { const b2 = $('loopAll2'); if (b2) b2.addEventListener('click', () => allBtn.click()); }   // v100: zweiter Knopf oben neben „Eingang öffnen“
   // Pause/Weiter (Improvisation): Stelle im Loop merken, Drums mit anhalten; weiter an derselben Stelle
   let pausedAt = null;
   function pauseToggle() {
@@ -1267,6 +1274,7 @@ const Looper = (() => {
       t.chB.title = st2 ? 'Diese Spur ist stereo (links und rechts verschieden)' : 'Diese Spur ist mono (links und rechts gleich)';
     });
     allBtn.textContent = (anyRunning() || rec) ? 'Alle stoppen' : 'Alle starten';
+    { const b2 = $('loopAll2'); if (b2) { b2.textContent = allBtn.textContent; b2.classList.toggle('active', anyRunning() || !!rec); b2.disabled = !anyContent() && !rec; } }
     allBtn.classList.toggle('active', anyRunning());
     $('ideaSave').disabled = !anyContent() || !!rec;
     if (baseL) {
@@ -1560,7 +1568,7 @@ const Looper = (() => {
     if (dropped && !trimHistory.told) { trimHistory.told = true; setTimeout(() => setStatus('Speicher schonen: ältere Rückgängig-Schritte wurden verworfen (lange Loops brauchen viel Platz).'), 50); }
     return m;
   }
-  function snapshot(t) { t.hist.push({ ts: performance.now(), layers: t.layers.slice(), L: t.L, baseL, origPos: t.origPos, origBars: t.origBars, od: t.orig ? { downs: t.orig.downs, bars: t.orig.bars, data: t.orig.data, bpm: t.orig.bpm, barMed: t.orig.barMed } : null }); if (t.hist.length > 25) t.hist.shift(); trimHistory(); }
+  function snapshot(t) { t.hist.push({ ts: performance.now(), layers: t.layers.slice(), L: t.L, baseL, bpmv: bpm(), origPos: t.origPos, origBars: t.origBars, od: t.orig ? { downs: t.orig.downs, bars: t.orig.bars, data: t.orig.data, bpm: t.orig.bpm, barMed: t.orig.barMed } : null }); if (t.hist.length > 25) t.hist.shift(); trimHistory(); }
   // Ein Rückgängig-Schritt pro Aktion; mehrere Verschiebungen hintereinander zählen als einer
   function edSnap(op) { if (!(op === 'nudge' && ed.lastOp === 'nudge')) snapshot(ed.t); ed.lastOp = op; ed.redo = []; edUR(); }
   function fmtLen(L) {
@@ -1588,7 +1596,7 @@ const Looper = (() => {
   const EDGE = () => Math.max(16, Math.round(sr * 0.003));          // 3-ms-Übergänge an den Kanten, damit nichts knackt
   let edClip = null;                                                // Zwischenablage (auch spurübergreifend)
   function edUR() { $('edUndo').disabled = !(ed.t && ed.t.hist.length); $('edRedo').disabled = !(ed.redo && ed.redo.length); $('edPaste').disabled = !edClip; $('edClipInfo').textContent = edClip ? 'Zwischenablage: ' + (edClip.l.length / sr).toFixed(3).replace('.', ',') + ' s' : ''; }
-  function snapOf(t) { return { ts: performance.now(), layers: t.layers.slice(), L: t.L, baseL, origPos: t.origPos, origBars: t.origBars, od: t.orig ? { downs: t.orig.downs, bars: t.orig.bars, data: t.orig.data, bpm: t.orig.bpm, barMed: t.orig.barMed } : null }; }
+  function snapOf(t) { return { ts: performance.now(), layers: t.layers.slice(), L: t.L, baseL, bpmv: bpm(), origPos: t.origPos, origBars: t.origBars, od: t.orig ? { downs: t.orig.downs, bars: t.orig.bars, data: t.orig.data, bpm: t.orig.bpm, barMed: t.orig.barMed } : null }; }
   // Gemeinsame Ausführung: fn(kanal, kopie) ändert die Kopie im Bereich [s, e)
   function edApply(label, fn, opts) {
     const t = ed.t; if (!t || !t.L || rec) return;
@@ -1841,8 +1849,15 @@ const Looper = (() => {
     }
     return out;
   }
+  // v100: nach Kürzen/Zuschneiden das Tempo so setzen, dass die Spur wieder ganze Takte ergibt (nur wenn sie allein ist)
+  function tempoToLength(t, oldL) {
+    if (!$('edAutoBpm') || !$('edAutoBpm').checked || others(t).length || !t.L) return '';
+    const bf = sr * 240 / bpm(), nb = Math.max(1, Math.round((oldL || t.L) / bf)), b = nb * 240 / (t.L / sr);
+    if (b < 40 || b > 220 || Math.abs(b / bpm() - 1) < 1e-5) return '';
+    setTempo(b); return ' Tempo angepasst: ' + bpmTxt(b) + ' BPM (' + nb + ' Takt' + (nb === 1 ? '' : 'e') + ').';
+  }
   function trimTo(s0, e0, label) {
-    const t = ed.t, len = e0 - s0;
+    const t = ed.t, len = e0 - s0, oldL = t.L;
     if (len < sr * 0.1) { setStatus('Die Auswahl ist zu kurz.'); return; }
     const f = fitLength(t, len);
     edSnap('trim');
@@ -1851,10 +1866,35 @@ const Looper = (() => {
     t.L = f.L; baseL = f.base;
     if (t.origPos != null) t.origPos += s0;
     afterEdit(t, true);
-    setStatus('Spur ' + (t.i + 1) + ' ' + label + ': ' + fmtLen(t.L) + (f.L !== len ? ' (an die anderen Spuren angepasst)' : '') + '.');
-    detectTrackKey(t);
+    const tm = tempoToLength(t, oldL);
+    setStatus('Spur ' + (t.i + 1) + ' ' + label + ': ' + fmtLen(t.L) + (f.L !== len ? ' (an die anderen Spuren angepasst)' : '') + '.' + tm);
+    detectTrackKey(t); if (tm) { edInfo(); update(); }
+  }
+  // v100: Auswahl herausschneiden – der Loop wird kürzer (z. B. eine halbe Sekunde zu viel zwischen zwei Takten)
+  function deleteSel() {
+    const t = ed.t; if (!t || !t.L) return;
+    const s0 = ed.s, e0 = ed.e, cut = e0 - s0, oldL = t.L;
+    if (cut <= 0 || (s0 === 0 && e0 === t.L)) { setStatus('Erst mit den Griffen den Teil markieren, der heraus soll.'); return; }
+    if (t.L - cut < sr * 0.1) { setStatus('Danach wäre der Loop zu kurz.'); return; }
+    if (others(t).length) { setStatus('Kürzer machen geht nur, wenn die Spur allein ist – sonst passt sie nicht mehr zu den anderen Spuren. Andere Spuren leeren oder „Ausschneiden“ (macht die Stelle still) verwenden.'); return; }
+    edSnap('delete');
+    const n = Math.min(Math.round((parseInt($('edFade').value) || 5) / 1000 * sr) || Math.round(sr * 0.005), s0, t.L - e0, Math.floor(cut / 2) || 1), L2 = t.L - cut;
+    t.layers = [smap(t.mix, a => {
+      const o = new Float32Array(L2); o.set(a.subarray(0, s0), 0); o.set(a.subarray(e0), s0);
+      // Übergang: Ende vor der Lücke in den Anfang nach der Lücke überblenden (gleiche Leistung) – kein Knacken
+      for (let i = 0; i < n; i++) { const g = (i + 0.5) / n, p = s0 - n + i; if (p < 0) continue; o[p] = a[p] * Math.cos(g * Math.PI / 2) + a[e0 - n + i] * Math.sin(g * Math.PI / 2); }
+      return o;
+    })];
+    t.L = L2; baseL = L2; t.origPos = null;
+    afterEdit(t, true);
+    const tm = tempoToLength(t, oldL);
+    setStatus('Spur ' + (t.i + 1) + ': ' + Math.round(cut / sr * 1000) + ' ms herausgeschnitten, Loop jetzt ' + fmtLen(t.L) + '.' + tm);
+    detectTrackKey(t); edInfo(); update();
   }
   $('edTrim').addEventListener('click', () => ed.t && trimTo(ed.s, ed.e, 'zugeschnitten'));
+  $('edDel').addEventListener('click', deleteSel);
+  $('edAutoBpm').checked = loadPref('3nps-edautobpm', '1') === '1';
+  $('edAutoBpm').addEventListener('change', () => savePref('3nps-edautobpm', $('edAutoBpm').checked ? '1' : '0'));
   $('edFade').value = loadPref('3nps-edfade', '5');
   $('edFade').addEventListener('change', () => savePref('3nps-edfade', $('edFade').value));
   // ---- Auswahl in Schleife hören (andere Spuren leise, danach wieder wie vorher) ----

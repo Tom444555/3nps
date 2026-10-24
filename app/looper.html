@@ -20,6 +20,7 @@
           <div class="meter-row">
             <div class="meter" id="loopMeterBox" aria-hidden="true"><div id="loopMeter"></div><div id="loopMeterR"></div><div class="thresh" id="loopThreshMark"></div></div>
             <button class="toggle-btn" id="loopMonitor">Eingang öffnen</button>
+            <button class="toggle-btn all-btn2" id="loopAll2" title="Alle Spuren starten oder stoppen (wie unten)">Alle starten</button>
           </div>
         </div>
       </div>
@@ -138,8 +139,10 @@
             <button class="toggle-btn active" id="edTrim">Zuschneiden</button>
             <button class="toggle-btn" id="edHalf">Halbieren</button>
             <button class="toggle-btn" id="edDouble">Verdoppeln</button>
+            <button class="toggle-btn" id="edDel" title="Markierten Teil entfernen – der Loop wird um diese Länge kürzer">Auswahl entfernen (kürzer)</button>
+            <label class="check"><input type="checkbox" id="edAutoBpm" checked> Tempo an neue Länge anpassen</label>
           </div>
-          <p class="pattern-desc">Zieh die orangen Griffe auf Anfang und Ende, dann „Zuschneiden“. Jeder Schritt lässt sich mit ↶ zurücknehmen.</p>
+          <p class="pattern-desc">Zieh die orangen Griffe auf Anfang und Ende, dann „Zuschneiden“. Ist ein Stück zu viel drin (z. B. eine halbe Sekunde zwischen zwei Takten): Raster auf „Frei“ oder „Anschlag“, das Stück markieren, „Auswahl entfernen (kürzer)“. Mit „Tempo an neue Länge anpassen“ stellt die App danach das Tempo so ein, dass der Loop wieder ganze Takte ergibt. Jeder Schritt lässt sich mit ↶ zurücknehmen.</p>
         </div>
         <div class="ed-group ed-edit">
           <span class="ed-label">Bearbeiten (Auswahl) · die Loop-Länge bleibt gleich</span>
@@ -339,6 +342,9 @@
               <option value="v6">Waldesruh – Elbenwald</option>
               <option value="v7">Nachtbrandung – Küste & Fläche</option>
               <option value="v8">Maschinenhalle – Stahl & Takt</option>
+              <option value="v9">Heldensaga – Streicher &amp; Blech</option>
+              <option value="v10">Dunkle Kathedrale – Chor &amp; Orgel</option>
+              <option value="v11">Schlachtfeld – Hörner &amp; Trommeln</option>
             </select>
             <label class="check lane-sync"><input type="checkbox" id="laneDroneOrn"> Verzierungen</label>
             <label class="lane-fader"><span>Pegel</span><input type="range" id="laneDroneVol" min="0" max="100" step="5" value="40" aria-label="Drone-Lautstärke"></label>

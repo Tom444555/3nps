@@ -611,8 +611,176 @@ const NordDrones = (() => {
     return N;
   }
 
-  const NAMES = { v3: 'Nordmeer – Wikinger', v4: 'Nordlicht – Eis & Glas', v5: 'Elbenküste – Meer & Chor', v6: 'Waldesruh – Elbenwald', v7: 'Nachtbrandung – Küste & Fläche', v8: 'Maschinenhalle – Stahl & Takt' };
-  const STARTS = { v3: () => startV3(), v4: () => startV4(), v5: () => startV5(), v6: () => startV6(), v7: () => startV7(), v8: () => startV8() };
+
+  // ===================== IX–XI Orchester (v100): episch, groß, langsam atmend =====================
+  // Gemeinsame Bausteine: Streicher-Ensemble (verstimmte Sägezähne, Vibrato, Schwellen), Blech (helligkeitsgesteuert),
+  // Chor (Formantfilter), Pauken/Taiko, Becken-Schwellen, Horn-Rufe. Alles folgt Grundton/Modus.
+  function orchBase(hallSec, hallBright, rampSec) {
+    ensureAudio();
+    const vol = parseInt(document.getElementById('droneVolume').value) / 100, t0 = ac().currentTime;
+    const master = gain(0); master.connect(ensureMasterBus());
+    master.gain.setValueAtTime(0, t0); master.gain.linearRampToValueAtTime(vol * 2.6, t0 + (rampSec || 7));
+    const hall = tr(ac().createConvolver()); hall.buffer = hallIR(hallSec, 2.2, hallBright);   // „fett“: so laut wie Nordmeer
+    const wet = gain(0.62); hall.connect(wet); wet.connect(master);
+    const dry = gain(0.62); dry.connect(master);
+    const send = (node, amt) => { const sg = gain(amt); node.connect(sg); sg.connect(hall); };
+    const N = { master, voices: [], stops: [], timers: [], alive: true };
+    return { N, dry, send, k: keyMidiNotes() };
+  }
+  const ivNow = () => { const ov = window.droneKeyOverride || null; return MODES[ov && ov.mode ? ov.mode : modeSel.value] || [0, 2, 4, 5, 7, 9, 11]; };
+  const roleMidi = (kk, r) => {
+    const iv = ivNow();
+    if (r === 'third8') return kk.root8 + iv[2]; if (r === 'third') return kk.root + iv[2];
+    if (r === 'fifth8') return kk.fifth + 12; if (r === 'root16') return kk.root8 + 12; if (r === 'fifth16') return kk.fifth + 24;
+    if (r === 'third16') return kk.root8 + 12 + iv[2];
+    return kk[r];
+  };
+  // Streicher-Ensemble: je Ton 3 Stimmen, Vibrato, langsames An- und Abschwellen; trem = Tremolo (Hz) oder 0
+  function strings(B, roles, o) {
+    const { N, dry, send, k } = B, out = filt('lowpass', o.cut || 2200, 0.6), g = gain(o.amp || 0.05);
+    const hp = filt('highpass', 70, 0.7); out.connect(hp); hp.connect(g); g.connect(dry); send(g, o.wet || 1);
+    N.stops.push(lfo(o.swell || 0.045, (o.amp || 0.05) * 0.35, g.gain), lfo(0.023, (o.cut || 2200) * 0.3, out.frequency));
+    let tg = null; if (o.trem) { tg = gain(0.75); N.stops.push(lfo(o.trem, 0.25, tg.gain)); tg.connect(out); }
+    roles.forEach((role, ri) => [-7, 0, 7].forEach((det, j) => {
+      const os = osc('sawtooth', hz(roleMidi(k, role)), det + (Math.random() - 0.5) * 4), a = gain(0.33), pp = pan(((ri + j) % 3 - 1) * 0.55);
+      N.stops.push(lfo(4.6 + Math.random() * 1.1, 7, os.detune));
+      os.connect(a); a.connect(pp); pp.connect(tg || out); os.start(); N.voices.push({ o: os, role });
+    }));
+    return g;
+  }
+  // Blech: Sägezahn + Rechteck, Filter öffnet beim Anschwellen (wie ein Horn, das lauter wird)
+  function brass(B, roles, o) {
+    const { N, dry, send, k } = B, f = filt('lowpass', 500, 1.2), g = gain(0);
+    f.connect(g); g.connect(dry); send(g, o.wet || 0.9);
+    roles.forEach((role, ri) => [['sawtooth', -4], ['square', 5]].forEach(([ty, det]) => {
+      const os = osc(ty, hz(roleMidi(k, role)), det), a = gain(ty === 'square' ? 0.18 : 0.3), pp = pan((ri - (roles.length - 1) / 2) * 0.35);
+      N.stops.push(lfo(5 + Math.random(), 4, os.detune));
+      os.connect(a); a.connect(pp); pp.connect(f); os.start(); N.voices.push({ o: os, role });
+    }));
+    function swell() {
+      if (!N.alive) return;
+      const t = ac().currentTime + 0.05, up = o.up || (3 + Math.random() * 3), hold = 2 + Math.random() * 3, pk = (o.amp || 0.05) * (0.7 + Math.random() * 0.5);
+      g.gain.cancelScheduledValues(t); g.gain.setTargetAtTime(pk, t, up / 3); g.gain.setTargetAtTime(pk * 0.12, t + up + hold, 2.2);
+      f.frequency.cancelScheduledValues(t); f.frequency.setTargetAtTime(o.bright || 2400, t, up / 3); f.frequency.setTargetAtTime(450, t + up + hold, 2.5);
+      N.timers.push(T(swell, (up + hold + 6 + Math.random() * 6) * 1000));
+    }
+    N.timers.push(T(swell, o.delay || 1500));
+    return g;
+  }
+  // Chor „Aah/Ooh“: Pulswellen durch drei Formantfilter, Vokal wandert langsam
+  function choir(B, roles, o) {
+    const { N, dry, send, k } = B, src = gain(1), g = gain(o.amp || 0.05), F = [[800, 1150, 2900], [450, 800, 2830]];
+    const fs = F[0].map((fr, i) => { const b = filt('bandpass', fr, [7, 9, 12][i]), bg = gain([1, 0.55, 0.22][i]); src.connect(b); b.connect(bg); bg.connect(g); return b; });
+    g.connect(dry); send(g, o.wet || 1.3);
+    N.stops.push(lfo(0.05, (o.amp || 0.05) * 0.3, g.gain));
+    roles.forEach((role, ri) => [-9, -2, 4, 10].forEach((det, j) => {
+      const os = osc(j % 2 ? 'sawtooth' : 'triangle', hz(roleMidi(k, role)), det), a = gain(j % 2 ? 0.3 : 0.5), pp = pan(((ri * 4 + j) % 5 - 2) * 0.3);
+      N.stops.push(lfo(5.2 + Math.random() * 0.8, 9, os.detune));
+      os.connect(a); a.connect(pp); pp.connect(src); os.start(); N.voices.push({ o: os, role });
+    }));
+    function vowel() {
+      if (!N.alive) return;
+      const t = ac().currentTime, v = F[Math.random() < 0.5 ? 0 : 1];
+      fs.forEach((b, i) => b.frequency.setTargetAtTime(v[i], t, 2.5));
+      N.timers.push(T(vowel, (7 + Math.random() * 7) * 1000));
+    }
+    N.timers.push(T(vowel, 4000));
+    return g;
+  }
+  // Pauke (gestimmt auf Grundton) bzw. Taiko (tief, ohne Ton)
+  function drumHit(B, t, m, amp, taiko) {
+    const { dry, send } = B, f = taiko ? (m ? hz(m) : 58) : hz(m), o = osc('sine', f * 1.6), g = gain(0), p = pan((Math.random() - 0.5) * 0.5);
+    o.frequency.setValueAtTime(f * 1.6, t); o.frequency.exponentialRampToValueAtTime(f, t + 0.06);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(amp, t + 0.004); g.gain.setTargetAtTime(0, t + 0.02, taiko ? 0.35 : 0.7);
+    const n = noiseSrc(Math.random() * 5), nf = filt('lowpass', taiko ? 900 : 1600, 0.7), ng = gain(0);
+    ng.gain.setValueAtTime(amp * (taiko ? 0.9 : 0.5), t); ng.gain.setTargetAtTime(0, t + 0.005, 0.05);
+    o.connect(g); n.connect(nf); nf.connect(ng); g.connect(p); ng.connect(p); p.connect(dry); send(p, 1.1);
+    o.start(t); o.stop(t + 4); n.stop(t + 0.6);
+  }
+  // Becken-Schwelle (rückwärts klingend) bis Zeitpunkt t
+  function cymSwell(B, t, dur, amp) {
+    const { dry, send } = B, n = noiseSrc(Math.random() * 5), hp = filt('highpass', 4000, 0.7), g = gain(0);
+    g.gain.setValueAtTime(0.0001, t - dur); g.gain.exponentialRampToValueAtTime(amp, t); g.gain.setTargetAtTime(0, t, 0.08);
+    n.connect(hp); hp.connect(g); g.connect(dry); send(g, 1.2); n.stop(t + 1);
+  }
+  // Horn-Ruf: langsame Melodie aus Grundton, Quinte, Oktave
+  function hornCall(B, t, seq, amp) {
+    const { dry, send } = B, f = filt('lowpass', 700, 1.5), g = gain(0), p = pan((Math.random() - 0.5) * 0.6), o1 = osc('sawtooth', hz(seq[0][0])), o2 = osc('sawtooth', hz(seq[0][0]), 8);
+    o1.connect(f); o2.connect(f); f.connect(g); g.connect(p); p.connect(dry); send(p, 1.4);
+    let tt = t;
+    seq.forEach(([m, d], i) => {
+      [o1, o2].forEach(o => o.frequency.setTargetAtTime(hz(m), tt, i ? 0.05 : 0.001));
+      g.gain.setTargetAtTime(amp, tt, 0.25); f.frequency.setTargetAtTime(1800, tt, 0.4);
+      g.gain.setTargetAtTime(amp * 0.6, tt + d * 0.7, 0.3); f.frequency.setTargetAtTime(900, tt + d * 0.7, 0.4);
+      tt += d;
+    });
+    g.gain.setTargetAtTime(0, tt, 0.8);
+    [o1, o2].forEach(o => { o.start(t); o.stop(tt + 5); });
+  }
+  const retuneAll = N => () => { const kk = keyMidiNotes(), t = ac().currentTime; N.voices.forEach(v => v.o.frequency.setTargetAtTime(hz(roleMidi(kk, v.role)), t, 1.2)); };
+
+  // IX Heldensaga – Streicher & Blech: tiefe Streicher, hohe Streicher, Blechbläser-Schwellen, Pauken im Takt der Phrasen
+  function startV9() {
+    const B = orchBase(5.5, 0.3, 8), { N } = B;
+    strings(B, ['sub', 'root', 'fifth'], { amp: 0.06, cut: 1400, swell: 0.035 });
+    strings(B, ['root8', 'third8', 'fifth8', 'root16'], { amp: 0.035, cut: 3600, swell: 0.052, wet: 1.4 });
+    brass(B, ['root', 'fifth', 'root8'], { amp: 0.07, bright: 2600, delay: 5000 });
+    function timp() {
+      if (!N.alive) return;
+      const kk = keyMidiNotes(), t = ac().currentTime + 0.1, b = 60 / bpm();
+      if (Math.random() < 0.55) { drumHit(B, t, kk.root, 0.32); drumHit(B, t + b * 1.5, kk.fifth - 12, 0.22); }
+      else { let tt = t; for (let i = 0; i < 12; i++) { drumHit(B, tt, kk.root, 0.06 + i * 0.02); tt += b / 4; } drumHit(B, tt, kk.root, 0.38); cymSwell(B, tt, b * 3, 0.06); }
+      N.timers.push(T(timp, (orn() ? 9 + Math.random() * 7 : 18 + Math.random() * 10) * 1000));
+    }
+    N.timers.push(T(timp, 6000));
+    N.retune = retuneAll(N);
+    return N;
+  }
+  // X Dunkle Kathedrale – Chor & Orgelpedal: tiefer Chor, Orgel-Bordun, Taiko-Schläge mit Becken-Schwellen
+  function startV10() {
+    const B = orchBase(7.5, 0.22, 9), { N, dry, send, k } = B;
+    choir(B, ['root', 'fifth', 'root8'], { amp: 0.07 });
+    choir(B, ['third8', 'fifth8'], { amp: 0.03, wet: 1.6 });
+    const og = gain(0.05), of = filt('lowpass', 420, 0.7); of.connect(og); og.connect(dry); send(og, 0.7);
+    [['sub', 'sine', 0.8], ['sub', 'triangle', 0.3], ['root', 'square', 0.12]].forEach(([role, ty, a]) => { const o = osc(ty, hz(roleMidi(k, role))), g = gain(a); o.connect(g); g.connect(of); o.start(); N.voices.push({ o, role }); });
+    strings(B, ['root', 'fifth'], { amp: 0.025, cut: 900, trem: 7.5, wet: 1.2 });
+    function boom() {
+      if (!N.alive) return;
+      const t = ac().currentTime + 3.2;
+      if (orn()) cymSwell(B, t, 3, 0.05);
+      const sb = keyMidiNotes().sub; drumHit(B, t, sb, 0.42, true); if (Math.random() < 0.5) drumHit(B, t + 60 / bpm() * 0.75, sb, 0.25, true);
+      N.timers.push(T(boom, (orn() ? 10 + Math.random() * 9 : 20 + Math.random() * 12) * 1000));
+    }
+    N.timers.push(T(boom, 5000));
+    N.retune = retuneAll(N);
+    return N;
+  }
+  // XI Schlachtfeld – Hörner & Trommeln: Streicher-Tremolo, Hornrufe, Taiko-Rhythmus im Tempo
+  function startV11() {
+    const B = orchBase(4.5, 0.32, 6), { N } = B;
+    strings(B, ['sub', 'root', 'fifth'], { amp: 0.05, cut: 1600, trem: 10, swell: 0.06 });
+    strings(B, ['root8', 'fifth8'], { amp: 0.025, cut: 3200, wet: 1.3 });
+    brass(B, ['root', 'fifth'], { amp: 0.05, bright: 1800, up: 2, delay: 9000 });
+    function drums() {
+      if (!N.alive) return;
+      const b = 60 / bpm(), t = ac().currentTime + 0.1, pat = [[0, 0.4], [1.5, 0.22], [2, 0.32], [3, 0.2], [3.5, 0.26]];
+      const bars = 2, sb = keyMidiNotes().sub; for (let r = 0; r < bars; r++) pat.forEach(([x, a]) => drumHit(B, t + (r * 4 + x) * b, sb, a * (0.8 + Math.random() * 0.3), true));
+      N.timers.push(T(drums, (bars * 4 * b + (orn() ? 4 + Math.random() * 6 : 10 + Math.random() * 8)) * 1000));
+    }
+    function horn() {
+      if (!N.alive) return;
+      const kk = keyMidiNotes(), b = 60 / bpm(), r8 = kk.root8, f8 = kk.fifth + 12;
+      const calls = [[[r8, b * 2], [f8, b * 2], [r8 + 12, b * 4]], [[f8, b], [r8 + 12, b * 3], [f8, b * 4]], [[r8, b * 3], [r8 + ivNow()[2], b], [f8, b * 4]]];
+      if (orn()) hornCall(B, ac().currentTime + 0.1, calls[Math.floor(Math.random() * calls.length)], 0.07);
+      N.timers.push(T(horn, (14 + Math.random() * 12) * 1000));
+    }
+    N.timers.push(T(drums, 3000), T(horn, 7000));
+    N.retune = retuneAll(N);
+    return N;
+  }
+
+  const NAMES = { v3: 'Nordmeer – Wikinger', v4: 'Nordlicht – Eis & Glas', v5: 'Elbenküste – Meer & Chor', v6: 'Waldesruh – Elbenwald', v7: 'Nachtbrandung – Küste & Fläche', v8: 'Maschinenhalle – Stahl & Takt', v9: 'Heldensaga – Streicher & Blech', v10: 'Dunkle Kathedrale – Chor & Orgel', v11: 'Schlachtfeld – Hörner & Trommeln' };
+  const STARTS = { v3: () => startV3(), v4: () => startV4(), v5: () => startV5(), v6: () => startV6(), v7: () => startV7(), v8: () => startV8(), v9: () => startV9(), v10: () => startV10(), v11: () => startV11() };
   let cur = null;
   function start(style) {
     if (cur) stop(true);

@@ -1,10 +1,19 @@
-Echte Schlagzeuge (3nps v98/v99) – alle gemeinfrei (Creative Commons CC0 1.0)
+Echte Schlagzeuge in 3nps (v98–v100)
 
-jazz.flac  – „Virtuosity Drums“ (https://github.com/sfzinstruments/virtuosity_drums), gespielt von Austin McMahon,
-             aufgenommen bei Virtuosity Musical Instruments, Boston.
-rock.flac,
-brush.flac – „Big Rusty Drums“ von Karoryfer Samples (https://github.com/sfzinstruments/karoryfer.big-rusty-drums).
-Kuhglocke  – „Swirly Drums“ von Karoryfer Samples (https://github.com/sfzinstruments/karoryfer.swirly-drums).
+Gemeinfrei (Creative Commons CC0 1.0 – keine Bedingungen):
+  jazz      – „Virtuosity Drums“ (https://github.com/sfzinstruments/virtuosity_drums), gespielt von Austin McMahon,
+              aufgenommen bei Virtuosity Musical Instruments, Boston.
+  rock,
+  brush     – „Big Rusty Drums“ von Karoryfer Samples (https://github.com/sfzinstruments/karoryfer.big-rusty-drums).
+  vintage,
+  lofi      – „Gogodze Phu Vol II“ von Karoryfer Samples (https://github.com/sfzinstruments/karoryfer.gogodze-phu-vol-ii).
+  indie,
+  perc,
+  Kuhglocke – „Swirly Drums“ von Karoryfer Samples (https://github.com/sfzinstruments/karoryfer.swirly-drums).
 
-Für die App ausgewählt (je Instrument 3 Anschlagstärken, bis zu 2 Varianten), Mikrofone gemischt, gekürzt, im Pegel
-angeglichen und je Kit zu einer Datei zusammengefasst (test/gen_drumkit.py).
+Creative Commons Namensnennung 4.0 (CC BY 4.0, https://creativecommons.org/licenses/by/4.0/):
+  studio    – „MuldjordKit“ von Lars Muldjord / DrumGizmo (https://www.drumgizmo.org,
+              SFZ-Fassung https://github.com/sfzinstruments/DrumGizmo.MuldjordKit).
+  drs       – „DRSKit“ von DrumGizmo (https://www.drumgizmo.org, SFZ-Fassung https://github.com/sfzinstruments/DrumGizmo.DRSKit).
+  Änderungen: einzelne Schläge ausgewählt (3 Anschlagstärken, bis zu 2 Varianten), Mikrofone gemischt, gekürzt,
+  im Pegel angeglichen und je Kit zu einer Datei zusammengefasst (test/gen_drumkit.py).
