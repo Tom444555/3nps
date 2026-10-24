@@ -3456,7 +3456,7 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v100</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v101</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -9552,6 +9552,34 @@ const NordDrones = (() => {
     g.gain.setTargetAtTime(0, tt, 0.8);
     [o1, o2].forEach(o => { o.start(t); o.stop(tt + 5); });
   }
+  // v101: echtes Horn (VSCO-2 CE, CC0, F-Horn – als raues Kriegshorn bearbeitet), einmal geladen und im Speicher gehalten
+  let hornS = null, hornP = null;
+  function loadHorn() {
+    if (hornS || hornP) return hornP || Promise.resolve(hornS);
+    hornP = Promise.all([fetch('drones/horn.json').then(r => { if (!r.ok) throw 0; return r.json(); }), fetch('drones/horn.flac').then(r => { if (!r.ok) throw 0; return r.arrayBuffer(); })])
+      .then(([ix, ab]) => ac().decodeAudioData(ab).then(buf => {
+        const d = buf.getChannelData(0), sr = buf.sampleRate, g = 1 / (ix.gain || 1);
+        hornS = ix.notes.map(n => { const a = Math.round(n.s * sr), len = Math.round(n.l * sr), b = ac().createBuffer(1, len, sr), o = b.getChannelData(0); for (let i = 0; i < len; i++) o[i] = d[a + i] * g; return { m: n.m, b }; });
+        return hornS;
+      })).catch(() => null).finally(() => { hornP = null; });
+    return hornP;
+  }
+  // Ruf mit dem echten Horn: je Ton der nächstgelegene aufgenommene Ton, leicht von unten angeblasen, gebunden
+  function hornCallReal(B, t, seq, amp) {
+    window.__hornReal = (window.__hornReal || 0) + 1;
+    const { dry, send } = B, p = pan((Math.random() - 0.5) * 0.5), out = gain(amp * 3.2);
+    out.connect(p); p.connect(dry); send(p, 1.6);
+    let tt = t;
+    seq.forEach(([m, d], i) => {
+      const smp = hornS.reduce((a, b) => Math.abs(b.m - m) < Math.abs(a.m - m) ? b : a), rate = Math.pow(2, (m - smp.m) / 12);
+      const src = tr(ac().createBufferSource()), g = gain(0), len = Math.min(d + 0.5, smp.b.duration - 0.2);
+      src.buffer = smp.b; src.playbackRate.setValueAtTime(rate * (i ? 0.985 : 0.95), tt); src.playbackRate.exponentialRampToValueAtTime(rate, tt + (i ? 0.06 : 0.18));
+      g.gain.setValueAtTime(0, tt); g.gain.linearRampToValueAtTime(1, tt + (i ? 0.04 : 0.09));
+      g.gain.setValueAtTime(1, tt + len - 0.35); g.gain.linearRampToValueAtTime(0, tt + len);
+      src.connect(g); g.connect(out); src.start(tt); src.stop(tt + len + 0.05);
+      tt += d;
+    });
+  }
   const retuneAll = N => () => { const kk = keyMidiNotes(), t = ac().currentTime; N.voices.forEach(v => v.o.frequency.setTargetAtTime(hz(roleMidi(kk, v.role)), t, 1.2)); };
 
   // IX Heldensaga – Streicher & Blech: tiefe Streicher, hohe Streicher, Blechbläser-Schwellen, Pauken im Takt der Phrasen
@@ -9593,6 +9621,7 @@ const NordDrones = (() => {
   // XI Schlachtfeld – Hörner & Trommeln: Streicher-Tremolo, Hornrufe, Taiko-Rhythmus im Tempo
   function startV11() {
     const B = orchBase(4.5, 0.32, 6), { N } = B;
+    loadHorn();
     strings(B, ['sub', 'root', 'fifth'], { amp: 0.05, cut: 1600, trem: 10, swell: 0.06 });
     strings(B, ['root8', 'fifth8'], { amp: 0.025, cut: 3200, wet: 1.3 });
     brass(B, ['root', 'fifth'], { amp: 0.05, bright: 1800, up: 2, delay: 9000 });
@@ -9604,9 +9633,12 @@ const NordDrones = (() => {
     }
     function horn() {
       if (!N.alive) return;
-      const kk = keyMidiNotes(), b = 60 / bpm(), r8 = kk.root8, f8 = kk.fifth + 12;
-      const calls = [[[r8, b * 2], [f8, b * 2], [r8 + 12, b * 4]], [[f8, b], [r8 + 12, b * 3], [f8, b * 4]], [[r8, b * 3], [r8 + ivNow()[2], b], [f8, b * 4]]];
-      if (orn()) hornCall(B, ac().currentTime + 0.1, calls[Math.floor(Math.random() * calls.length)], 0.07);
+      const kk = keyMidiNotes(), b = 60 / bpm(), real = !!hornS;
+      // echtes Horn eine Oktave tiefer (dunkler Kriegshorn-Ruf), Ersatzklang wie bisher
+      const r8 = real ? kk.root : kk.root8, f8 = real ? kk.fifth : kk.fifth + 12;
+      const calls = [[[r8, b * 2], [f8, b * 2], [r8 + 12, b * 4]], [[f8, b], [r8 + 12, b * 3], [f8, b * 4]], [[r8, b * 3], [r8 + ivNow()[2], b], [f8, b * 4]], [[r8, b * 6]]];
+      const c = calls[Math.floor(Math.random() * calls.length)];
+      if (orn()) { if (real) hornCallReal(B, ac().currentTime + 0.1, c, 0.07); else hornCall(B, ac().currentTime + 0.1, c, 0.07); }
       N.timers.push(T(horn, (14 + Math.random() * 12) * 1000));
     }
     N.timers.push(T(drums, 3000), T(horn, 7000));

@@ -1,0 +1,4 @@
+Horn im Drone „Schlachtfeld – Hörner & Trommeln“ (3nps v101)
+Aufnahmen: F-Horn aus „VSCO-2 Community Edition“ von Versilian Studios (https://github.com/sgossner/VSCO-2-CE),
+gemeinfrei (Creative Commons CC0 1.0). Für die App als raues Kriegshorn bearbeitet (Mitten betont, Höhen gedämpft,
+angezerrt, gekürzt) und zu einer Datei zusammengefasst (test/gen_horn.py).
