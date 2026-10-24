@@ -321,6 +321,7 @@ Testaudio-Generatoren (alle deterministisch, von `wiederherstellen.sh` aufgerufe
 - ~~**B. Mastering M1**~~ **erledigt in v97** (M2–M4 offen, siehe `KONZEPT-MASTERING.md`).
 - ~~**C. Echtes Schlagzeug**~~ **erledigt in v98** (Bässe `karoryfer.black-and-blue-basses` noch offen). Alter Plan: freie SFZ-Instrumente (z. B. `sfzinstruments/virtuosity_drums`, Bässe `karoryfer.black-and-blue-basses`) statt
   Kit-Synthese (`kit.js`) – Lizenz je Instrument prüfen, Größe/Cache (sw.js) beachten, als Option, Synthese bleibt.
+- **Studio (eigene App):** Konzept `KONZEPT-STUDIO.md` + Entwürfe `docs/studio/` (24.10.) – wartet auf Toms OK.
 - **D. Gesang abtrennen in der App:** **Konzept + Messung fertig → `KONZEPT-GESANG-TRENNEN.md`, wartet auf Toms Antwort (75 MB ok? erst Testseite? Karaoke?).** Alter Plan: Spleeter 2-Stems als ONNX (`https://github.com/k2-fsa/sherpa-onnx/releases/download/source-separation-models/sherpa-onnx-spleeter-2stems.tar.bz2`)
   im Browser mit der vorhandenen ORT-Laufzeit (`asr/lib`) → ersetzt Moises für die Gesangsspur (`vox` in `sing.js`). Vorher Konzept an Tom
   (Speicher/Zeit auf dem iPad unbekannt), Modelle wie Whisper über Branch `modelle` bereitstellen.

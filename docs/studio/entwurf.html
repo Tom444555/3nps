@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Loopsmiths Studio – Entwurf</title>
+<style>
+:root{--bg:#141416;--surf:#1d1d21;--surf2:#25252b;--line:#34343b;--soft:#2a2a30;--ink:#ececf1;--mut:#8f909a;--acc:#4cc38a;--t1:#e4f2ff;--t2:#2de2ff;--t3:#86a8ff;--y:#f2c230;--o:#ff8a3d;--p:#c26bff;--r:#ff5d5d;--mono:ui-monospace,"SF Mono",Menlo,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 -apple-system,"SF Pro Text",system-ui,sans-serif;width:1180px;height:820px;overflow:hidden}
+.top{height:64px;display:flex;align-items:center;gap:14px;padding:0 16px;background:linear-gradient(#202026,#18181c);border-bottom:1px solid var(--line)}
+.brand{white-space:nowrap;font:700 20px Georgia,serif;letter-spacing:.02em}.brand span{color:var(--mut);font:500 12px var(--mono);margin-left:6px}
+.tp{display:flex;gap:6px}.tp b{width:40px;height:36px;border-radius:8px;background:var(--surf2);border:1px solid var(--line);display:grid;place-items:center;font-size:15px}
+.tp b.rec{color:var(--r)}.tp b.on{background:var(--acc);color:#0c1a12;border-color:var(--acc)}
+.lcd{display:flex;gap:16px;padding:5px 14px;white-space:nowrap;border-radius:8px;background:#0b0f0d;border:1px solid #23302a;font-family:var(--mono);color:#9ff0c6}
+.lcd small{display:block;font-size:9px;color:#5e8a73;letter-spacing:.12em}.lcd i{font-style:normal;font-size:17px}
+.views{margin-left:auto;display:flex;background:var(--surf2);border:1px solid var(--line);border-radius:9px;padding:3px}
+.views span{white-space:nowrap;padding:6px 10px;border-radius:7px;color:var(--mut);font-size:13px}.views span.a{background:#3a3a42;color:var(--ink)}
+.cpu{white-space:nowrap;font:11px var(--mono);color:var(--mut);text-align:right}.cpu b{color:var(--acc)}
+/* Arrangement */
+.arr{display:grid;grid-template-columns:200px 1fr;height:calc(820px - 64px - 150px)}
+.heads{background:var(--surf);border-right:1px solid var(--line)}
+.ruler{height:34px;border-bottom:1px solid var(--line);position:relative;background:#18181c}
+.ruler i{position:absolute;top:4px;font:11px var(--mono);color:var(--mut)}
+.mk{position:absolute;top:18px;height:14px;padding:0 6px;border-radius:3px;font:600 10px/14px system-ui;color:#111}
+.th{height:62px;border-bottom:1px solid var(--soft);display:flex;align-items:center;gap:8px;padding:0 10px}
+.th .c{width:6px;height:40px;border-radius:3px}.th .n{flex:1}.th .n b{display:block;font-size:13px}.th .n small{color:var(--mut);font-size:11px}
+.th .ms{display:flex;gap:3px}.th .ms span{width:22px;height:22px;border-radius:5px;background:var(--surf2);border:1px solid var(--line);font:700 10px/20px system-ui;text-align:center;color:var(--mut)}
+.th .ms span.s{background:var(--y);color:#111;border-color:var(--y)}
+.lanes{position:relative;overflow:hidden;background:repeating-linear-gradient(90deg,transparent 0 59px,#202026 59px 60px)}
+.lane{height:62px;border-bottom:1px solid var(--soft);position:relative}
+.reg{position:absolute;top:6px;height:50px;border-radius:6px;overflow:hidden;border:1px solid rgba(255,255,255,.18)}
+.reg b{position:absolute;left:6px;top:3px;font:600 10px system-ui;color:rgba(0,0,0,.75)}
+.reg svg{position:absolute;left:0;top:14px;width:100%;height:34px}
+.ph{position:absolute;top:0;bottom:0;left:452px;width:2px;background:#fff;box-shadow:0 0 6px #fff}
+.cyc{position:absolute;top:0;height:34px;background:rgba(242,194,48,.18);border-left:2px solid var(--y);border-right:2px solid var(--y)}
+/* untere Leiste */
+.dock{height:150px;border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr 1.1fr;gap:10px;padding:10px 12px;background:#18181c}
+.box{background:var(--surf);border:1px solid var(--soft);border-radius:10px;padding:10px 12px;overflow:hidden}
+.box h3{margin:0 0 6px;font:700 10px system-ui;letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chip{padding:5px 9px;border-radius:7px;background:var(--surf2);border:1px solid var(--line);font-size:12px}
+.chip.a{border-color:var(--acc);color:var(--acc)}
+.mini{display:flex;gap:8px;align-items:flex-end;height:90px}
+.mini div{flex:1;border-radius:4px;background:linear-gradient(0deg,var(--acc),#c7f36b 70%,var(--r))}
+.note{font-size:11px;color:var(--mut)}
+/* Mixer */
+.mix{display:flex;gap:10px;padding:14px;height:calc(820px - 64px)}
+.strip{width:118px;background:var(--surf);border:1px solid var(--soft);border-radius:12px;display:flex;flex-direction:column;align-items:center;padding:10px 8px;gap:8px}
+.strip .nm{font-weight:600;font-size:13px}.strip .nm i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px}
+.eqm{width:100%;height:46px;border-radius:6px;background:#0b1c33}
+.slot{width:100%;padding:5px 6px;border-radius:6px;background:var(--surf2);border:1px solid var(--line);font-size:11px;text-align:center}
+.slot.e{color:var(--mut);border-style:dashed}
+.knob{width:40px;height:40px;border-radius:50%;background:#2b2b30;border:2px solid #111;position:relative}
+.knob:after{content:"";position:absolute;left:18px;top:3px;width:2px;height:13px;background:var(--y);border-radius:2px;transform-origin:1px 16px}
+.fz{flex:1;width:100%;display:flex;justify-content:center;gap:8px;position:relative}
+.fz .tr{width:8px;border-radius:4px;background:#0c0c0e;position:relative}
+.fz .cap{position:absolute;left:-14px;width:36px;height:22px;border-radius:5px;background:linear-gradient(#f2f3f5,#9da1a8)}
+.fz .met{width:10px;border-radius:3px;background:#0c0c0e;position:relative;overflow:hidden}
+.fz .met i{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(0deg,var(--acc),#c7f36b 70%,var(--y) 85%,var(--r))}
+.db{font:11px var(--mono);color:var(--mut)}
+.msb{display:flex;gap:4px}.msb span{width:26px;height:22px;border-radius:5px;background:var(--surf2);border:1px solid var(--line);font:700 11px/20px system-ui;text-align:center;color:var(--mut)}
+.strip.master{width:150px;border-color:#4a4a52}
+/* Browser */
+.brw{display:grid;grid-template-columns:330px 1fr;height:calc(820px - 64px)}
+.side{background:var(--surf);border-right:1px solid var(--line);padding:14px;display:flex;flex-direction:column;gap:12px}
+.seg{display:flex;flex-wrap:wrap;gap:6px}.seg span{padding:6px 10px;border-radius:8px;background:var(--surf2);border:1px solid var(--line);font-size:12px}.seg span.a{background:var(--acc);color:#0c1a12;border-color:var(--acc)}
+.item{display:flex;gap:10px;align-items:center;padding:9px 10px;border-radius:9px;background:var(--surf2);border:1px solid var(--line)}
+.item.a{border-color:var(--t2);box-shadow:0 0 0 1px var(--t2) inset}
+.item .ic{width:34px;height:34px;border-radius:8px;display:grid;place-items:center;font-size:16px;background:#2f2f37}
+.item b{font-size:13px}.item small{display:block;color:var(--mut);font-size:11px}
+.tag{font-size:10px;padding:1px 6px;border-radius:7px;border:1px solid currentColor;margin-left:6px}
+.prev{padding:18px;display:flex;flex-direction:column;gap:14px}
+.card{background:var(--surf);border:1px solid var(--soft);border-radius:12px;padding:14px}
+.card h2{margin:0 0 4px;font-size:18px}.card .meta{color:var(--mut);font-size:12px}
+.trk{display:flex;align-items:center;gap:10px;margin-top:10px}.trk span{width:110px;font-size:12px;color:var(--mut)}.trk div{flex:1;height:34px;border-radius:6px}
+.btns{display:flex;gap:8px;margin-top:12px}.btn{padding:9px 14px;border-radius:9px;background:var(--surf2);border:1px solid var(--line);font-size:13px}.btn.p{background:var(--acc);color:#0c1a12;border-color:var(--acc);font-weight:600}
+.lyr{font-size:12px;color:var(--mut);line-height:1.6}.lyr b{color:var(--y);font-size:11px}
+/* Pianorolle */
+.pr{display:grid;grid-template-columns:60px 1fr;height:calc(820px - 64px - 210px)}
+.keys{background:repeating-linear-gradient(180deg,#e9e9ee 0 17px,#e9e9ee 17px 18px,#1a1a1d 18px 29px,#e9e9ee 29px 30px)}
+.grid{position:relative;background:repeating-linear-gradient(90deg,transparent 0 37px,#25252b 37px 38px),repeating-linear-gradient(180deg,#1b1b1f 0 11px,#202024 11px 12px)}
+.nt{position:absolute;height:10px;border-radius:3px;background:var(--t3);border:1px solid rgba(255,255,255,.35)}
+.vel{height:70px;border-top:1px solid var(--line);display:flex;align-items:flex-end;gap:2px;padding:4px 70px;background:#18181c}
+.vel i{width:6px;background:var(--t3);border-radius:2px 2px 0 0}
+.drm{height:140px;border-top:1px solid var(--line);display:flex;gap:12px;padding:12px;background:#18181c}
+</style></head><body>
+<div class="top">
+  <div class="brand">Loopsmiths <span>Studio</span></div>
+  <div class="tp"><b>⏮</b><b class="on">▶</b><b class="rec">●</b><b>⟲</b></div>
+  <div class="lcd"><div><small>TAKT</small><i>9.1.1</i></div><div><small>TEMPO</small><i>96,0</i></div><div><small>TAKTART</small><i>4/4</i></div><div><small>TONART</small><i>A Moll</i></div></div>
+  <div class="views" id="views"><span data-v="arr">Arrangement</span><span data-v="mix">Mischpult</span><span data-v="pr">Noten</span><span data-v="brw">Aus dem Looper</span></div>
+  <div class="cpu">Last <b>23 %</b><br>Speicher <b>310 MB</b></div>
+</div>
+<div id="screen"></div>
+<script>
+const V=new URLSearchParams(location.search).get('v')||'arr';
+document.querySelectorAll('#views span').forEach(s=>s.classList.toggle('a',s.dataset.v===V));
+function wave(seed,w,dense){let s=seed,p='M0 17';for(let x=0;x<=w;x+=3){s=(s*16807)%2147483647;const r=s/2147483647;const a=(dense?0.55:0.35)+0.45*Math.abs(Math.sin(x/(dense?9:23)))*r;p+=` L${x} ${17-a*15} L${x+1.5} ${17+a*15}`}return `<svg viewBox="0 0 ${w} 34" preserveAspectRatio="none"><path d="${p}" stroke="rgba(0,0,0,.55)" stroke-width="1" fill="none"/></svg>`}
+const el=document.getElementById('screen');
+if(V==='arr'){
+ const T=[['Gitarre Rhythmus','Spur 1 · Looper',  '#e4f2ff',[[0,4,'Intro-Loop'],[4,8,'Strophe'],[12,4,'Refrain'],[16,8,'Strophe'],[24,4,'Refrain']]],
+  ['Gitarre Lead','Spur 2 · Looper','#2de2ff',[[12,4,'Lick'],[24,6,'Solo']]],
+  ['Gesang','Mitsingen · Text','#ffd27a',[[4,8,'Str. 1'],[12,4,'Ref.'],[16,8,'Str. 2'],[24,4,'Ref.']]],
+  ['Bass','MIDI · Songwriting','#86a8ff',[[0,30,'Bass (Akkorde)']]],
+  ['Drums','Drummer · Rock (echt)','#f2c230',[[0,30,'Pop Rock · Komplexität 5']]],
+  ['Drone','Heldensaga','#c26bff',[[12,4,''],[24,6,'']]]];
+ const bw=31.5;
+ let h=`<div class="arr"><div class="heads"><div class="ruler"></div>`;
+ T.forEach(t=>{h+=`<div class="th"><div class="c" style="background:${t[2]}"></div><div class="n"><b>${t[0]}</b><small>${t[1]}</small></div><div class="ms"><span>M</span><span class="${t[0]==='Gesang'?'s':''}">S</span><span>R</span></div></div>`});
+ h+=`</div><div class="lanes"><div class="ruler">`;
+ for(let i=0;i<31;i+=2)h+=`<i style="left:${i*bw+3}px">${i+1}</i>`;
+ [[0,'Intro','#9ab'],[4,'Strophe 1','#8ad94e'],[12,'Refrain','#f2c230'],[16,'Strophe 2','#8ad94e'],[24,'Refrain + Solo','#f2c230']].forEach(m=>h+=`<span class="mk" style="left:${m[0]*bw}px;background:${m[2]}">${m[1]}</span>`);
+ h+=`<div class="cyc" style="left:${12*bw}px;width:${4*bw}px"></div></div>`;
+ T.forEach((t,ti)=>{h+=`<div class="lane">`;t[3].forEach((r,ri)=>{const w=r[1]*bw-3;h+=`<div class="reg" style="left:${r[0]*bw+1}px;width:${w}px;background:${t[2]}"><b>${r[2]}</b>${ti===3||ti===4?midi(w,ti):wave(ti*7+ri+3,Math.round(w),ti<2)}</div>`});h+=`</div>`});
+ h+=`<div class="ph"></div></div></div>
+ <div class="dock"><div class="box"><h3>Spur · Gitarre Rhythmus</h3><div class="chips"><span class="chip a">EQ ●</span><span class="chip a">Kompressor</span><span class="chip">Hall 18 %</span><span class="chip">Delay</span><span class="chip">+ Effekt</span></div><p class="note">Herkunft: Looper-Idee „Riff in A“ (Ablage Zusammenarbeit) · automatisch übernommen</p></div>
+ <div class="box"><h3>Pegel</h3><div class="mini">${[60,45,72,30,55,20].map(v=>`<div style="height:${v}%"></div>`).join('')}<div style="height:66%;flex:1.6"></div></div></div>
+ <div class="box"><h3>Teile &amp; Werkzeuge</h3><div class="chips"><span class="chip">Schneiden</span><span class="chip">Blende</span><span class="chip">Tempo dehnen</span><span class="chip">Takt einrasten</span><span class="chip a">Zurück in den Looper</span><span class="chip">Mastern</span><span class="chip">Für Logic exportieren</span></div></div></div>`;
+ el.innerHTML=h;
+}
+function midi(w,ti){let s='';for(let x=4;x<w-6;x+=(ti===4?9:22)){const y=ti===4?(x%36<9?24:x%18<9?10:17):6+((x*7)%20);s+=`<rect x="${x}" y="${y}" width="${ti===4?5:18}" height="4" rx="1" fill="rgba(0,0,0,.55)"/>`}return `<svg viewBox="0 0 ${w} 34" preserveAspectRatio="none">${s}</svg>`}
+if(V==='mix'){
+ const S=[['Gitarre R','#e4f2ff',['EQ','Kompressor','Hall'],62,-3.5,72],['Gitarre L','#2de2ff',['EQ','Delay','Hall'],55,-6,64],['Gesang','#ffd27a',['EQ','De-Esser','Kompressor','Hall'],70,-1.2,80],['Bass','#86a8ff',['Bass-Synth','EQ'],48,-8,58],['Drums','#f2c230',['Drummer','EQ','Bus-Komp.'],66,-2.5,76],['Drone','#c26bff',['Heldensaga','Hall'],35,-14,40],['Hall-Bus','#9ab',['Raum groß'],40,-10,45]];
+ let h='<div class="mix">';
+ S.forEach((s,i)=>{h+=`<div class="strip"><div class="nm"><i style="background:${s[1]}"></i>${s[0]}</div><svg class="eqm" viewBox="0 0 100 46" preserveAspectRatio="none"><path d="M0 ${28-i} C20 ${20+i*2} 40 30 60 ${22+(i%3)*3} S90 ${18+i} 100 ${26-i}" stroke="#d7e6ff" stroke-width="1.6" fill="none"/></svg>${s[2].map(x=>`<div class="slot">${x}</div>`).join('')}<div class="slot e">+ Effekt</div><div class="knob" style=""></div><div class="db">Pan ${['L 20','R 25','M','M','M','L/R','M'][i]}</div><div class="fz"><div class="tr"><div class="cap" style="bottom:${s[3]}%"></div></div><div class="met"><i style="height:${s[5]}%"></i></div><div class="met"><i style="height:${s[5]-6}%"></i></div></div><div class="db">${String(s[4]).replace('.',',')} dB</div><div class="msb"><span>M</span><span>S</span><span>R</span></div></div>`});
+ h+=`<div class="strip master"><div class="nm">Summe</div><div class="slot">EQ</div><div class="slot">Glue-Komp.</div><div class="slot">Limiter −1 dBTP</div><div class="slot e">Mastering →</div><div class="db" style="margin-top:6px">−14,2 LUFS</div><div class="fz"><div class="tr"><div class="cap" style="bottom:68%"></div></div><div class="met"><i style="height:78%"></i></div><div class="met"><i style="height:75%"></i></div></div><div class="db">0,0 dB</div></div></div>`;
+ el.innerHTML=h;
+}
+if(V==='brw'){
+ const it=[['🎸','Riff in A','Reiner Loop · 2 Spuren · 96 BPM','#7fd8ff','Loop'],['🥁','Shuffle-Begleitung','Backing Track · Drums + Drone','#f2c230','Backing'],['🤝','Refrain-Idee für Claude','Zusammenarbeit · 3 Spuren','#9be37a','Zusammenarbeit'],['💡','Idee 14.10. 21:30','Idee · 1 Spur · 82 BPM','#9ab','Idee'],['📝','Auf der Straße V3','Song · 6 Teile · Text + Akkorde','#ffd27a','Song']];
+ let h=`<div class="brw"><div class="side"><div class="seg"><span class="a">Alle</span><span>Ideen</span><span>Loops</span><span>Backing</span><span>Zusammenarbeit</span><span>Songs</span></div>`;
+ it.forEach((x,i)=>h+=`<div class="item ${i===2?'a':''}"><div class="ic">${x[0]}</div><div><b>${x[1]}</b><span class="tag" style="color:${x[3]}">${x[4]}</span><small>${x[2]}</small></div></div>`);
+ h+=`<p class="note">Alles, was du im Looper speicherst, erscheint hier sofort – ohne Export. Nur geöffnet wird geladen (spart Speicher).</p></div>
+ <div class="prev"><div class="card"><h2>Refrain-Idee für Claude</h2><div class="meta">A Moll · 96 BPM · 4 Takte · gespeichert 24.10. · Ablage Zusammenarbeit</div>
+ <div class="trk"><span>Spur 1 · Gitarre</span><div style="background:#e4f2ff">${wave(3,600,1)}</div></div>
+ <div class="trk"><span>Spur 2 · Lead</span><div style="background:#2de2ff">${wave(9,600,0)}</div></div>
+ <div class="trk"><span>Drums · Funk</span><div style="background:#f2c230">${midi(600,4)}</div></div>
+ <div class="btns"><span class="btn p">Ins Projekt ab Takt 13</span><span class="btn">Als neue Spuren</span><span class="btn">Anhören</span><span class="btn">Im Looper öffnen</span></div></div>
+ <div class="card"><h2 style="font-size:15px">Song: Auf der Straße V3</h2><div class="lyr"><b>[Refrain]</b> Am · F · C · G<br>Danach kommt nichts mehr, an der Grenze aus Licht …</div>
+ <div class="btns"><span class="btn">Ablauf als Marker übernehmen</span><span class="btn">Text als Gesangsspur-Hilfe</span><span class="btn">Akkorde → Bass-MIDI</span></div></div></div></div>`;
+ el.innerHTML=h;
+}
+if(V==='pr'){
+ let h=`<div class="pr"><div class="keys"></div><div class="grid">`;
+ const n=[[0,6,4],[4,10,2],[6,8,2],[8,6,4],[12,13,4],[16,11,2],[18,10,2],[20,8,4],[24,6,4],[28,10,2],[30,13,2]];
+ n.forEach(x=>{h+=`<div class="nt" style="left:${x[0]*38+2}px;top:${x[1]*12+60}px;width:${x[2]*38-4}px"></div>`});
+ [[0,22],[8,25],[16,27],[24,22]].forEach(c=>h+=`<span style="position:absolute;left:${c[0]*38+4}px;top:8px;font:700 13px system-ui;color:var(--y)">${['Am','F','C','G'][c[0]/8]}</span>`);
+ h+=`</div></div><div class="vel" style="position:relative;padding:0">${n.map(x=>`<i style="position:absolute;bottom:4px;left:${60+x[0]*38+2}px;height:${30+(x[1]*7)%34}px"></i>`).join('')}<span style="position:absolute;left:8px;top:6px;font:10px system-ui;color:var(--mut)">Anschlag</span></div>
+ <div class="drm"><div class="box" style="flex:1"><h3>Drummer auf der Zeitleiste</h3><div class="chips"><span class="chip a">Rock (echt)</span><span class="chip">Komplexität 5</span><span class="chip">Intensität 70</span><span class="chip">Fills alle 4 Takte</span><span class="chip">Folgt der Kick des Basses</span></div><p class="note">Teile im Arrangement bekommen eigene Drummer-Einstellungen (Strophe ruhig, Refrain kräftig).</p></div>
+ <div class="box" style="width:360px"><h3>Instrument · Bass</h3><div class="chips"><span class="chip a">E-Bass Finger</span><span class="chip">Synth-Bass</span><span class="chip">Kontrabass</span><span class="chip">Orchester (VSCO)</span></div></div></div>`;
+ el.innerHTML=h;
+}
+</script></body></html>
