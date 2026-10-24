@@ -732,6 +732,13 @@ html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleis
   .track-eqs:empty { display: none; }
   .track-eqs .eq-panel::before { content: attr(data-title); font: 700 .78rem var(--f-mono); color: var(--tc); letter-spacing: .04em; }
   .track-eqs .eq-panel.t1 { --tc: var(--t1); } .track-eqs .eq-panel.t2 { --tc: var(--t2); } .track-eqs .eq-panel.t3 { --tc: var(--t3); }
+  /* v102: Ablagen bei den Ideen */
+  .idea-cats { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 6px 0; }
+  .idea-cats .toggle-btn, .idea-filter .toggle-btn { padding: 4px 10px; font-size: .74rem; }
+  .idea-filter { display: flex; flex-wrap: wrap; margin: 8px 0 6px; }
+  .idea-cat { display: inline-block; font-size: .62rem; padding: 1px 6px; border-radius: 8px; border: 1px solid currentColor; opacity: .85; vertical-align: middle; }
+  .idea-cat.c-idee { color: #9ab; } .idea-cat.c-loop { color: #7fd8ff; } .idea-cat.c-backing { color: #f2c230; } .idea-cat.c-team { color: #9be37a; }
+  .idea-move { font-size: .72rem; padding: 3px 4px; max-width: 9.5em; }
   /* ---- Quintenzirkel ---- */
   .qz-card { flex-direction: row; flex-wrap: wrap; align-items: flex-start; gap: 18px; }
   .qz-wrap { flex: 1 1 380px; max-width: 560px; margin: 0 auto; }
@@ -3350,7 +3357,22 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
   "Tempo an neue Länge anpassen": "Adapt tempo to new length",
   "Zieh die orangen Griffe auf Anfang und Ende, dann „Zuschneiden“. Ist ein Stück zu viel drin (z. B. eine halbe Sekunde zwischen zwei Takten): Raster auf „Frei“ oder „Anschlag“, das Stück markieren, „Auswahl entfernen (kürzer)“. Mit „Tempo an neue Länge anpassen“ stellt die App danach das Tempo so ein, dass der Loop wieder ganze Takte ergibt. Jeder Schritt lässt sich mit ↶ zurücknehmen.": "Drag the orange handles to start and end, then “Trim”. If there is a bit too much (e.g. half a second between two bars): set the grid to “Free” or “Onset”, mark that bit, “Remove selection (shorter)”. With “Adapt tempo to new length” the app then sets the tempo so the loop is whole bars again. Every step can be undone with ↶.",
   "Alle Spuren starten oder stoppen (wie unten)": "Start or stop all tracks (same as below)",
-  "Schlagzeug-Klang: Synthese oder echtes Kit (Aufnahmen, einmalig ca. 5 MB je Kit)": "Drum sound: synth or real kit (recordings, one-time download of about 5 MB per kit)" });
+  "Schlagzeug-Klang: Synthese oder echtes Kit (Aufnahmen, einmalig ca. 5 MB je Kit)": "Drum sound: synth or real kit (recordings, one-time download of about 5 MB per kit)",
+// ---- v102 Ablagen ----
+  "Speichern als": "Save as",
+  "Ablage": "Folder",
+  "Idee": "Idea",
+  "Reiner Loop": "Pure loop",
+  "Backing Track": "Backing track",
+  "Zusammenarbeit": "Collaboration",
+  "Anzeigen": "Show",
+  "Alle": "All",
+  "Ideen": "Ideas",
+  "Loops": "Loops",
+  "Backing Tracks": "Backing tracks",
+  "In dieser Ablage ist noch nichts.": "Nothing in this folder yet.",
+  "Ablage ändern": "Change folder",
+  "Verschoben nach „": "Moved to “" });
 
 // Sprache (v59): Deutsch ist der Quelltext. Nur im EN-Modus läuft hier etwas:
 // Ein Beobachter übersetzt neue/geänderte Texte im DOM (Text, title, placeholder, aria-label)
@@ -3456,7 +3478,7 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v101</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v102</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -4097,10 +4119,15 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
         <input type="text" id="ideaName" class="text-in" placeholder="Name (optional)" maxlength="60">
         <button class="toggle-btn active" id="ideaSave">Speichern</button>
       </div>
+      <div class="idea-cats">
+        <span class="caption">Speichern als</span>
+        <div class="seg" id="ideaCat" role="group" aria-label="Ablage"><button class="toggle-btn active" data-c="idee">Idee</button><button class="toggle-btn" data-c="loop">Reiner Loop</button><button class="toggle-btn" data-c="backing">Backing Track</button><button class="toggle-btn" data-c="team">Zusammenarbeit</button></div>
+      </div>
       <div class="toggle-row idea-opts">
         <label class="check"><input type="checkbox" id="ideaWithDrums" checked> Drums mitspeichern</label>
         <label class="check"><input type="checkbox" id="ideaWithDrone" checked> Drone mitspeichern</label>
       </div>
+      <div class="seg idea-filter" id="ideaFilter" role="group" aria-label="Anzeigen"><button class="toggle-btn active" data-f="all">Alle</button><button class="toggle-btn" data-f="idee">Ideen</button><button class="toggle-btn" data-f="loop">Loops</button><button class="toggle-btn" data-f="backing">Backing Tracks</button><button class="toggle-btn" data-f="team">Zusammenarbeit</button></div>
       <div class="log-list" id="ideaList"><p class="pattern-desc">Wird geladen …</p></div>
       </div>
       </details>
@@ -13087,27 +13114,32 @@ const Pedal = (() => {
 (function () {
   const $ = id => document.getElementById(id);
   const list = $('ideaList'), nameEl = $('ideaName');
+  const CATS = { idee: 'Idee', loop: 'Reiner Loop', backing: 'Backing Track', team: 'Zusammenarbeit' }, FNAME = { all: 'Alle', idee: 'Ideen', loop: 'Loops', backing: 'Backing Tracks', team: 'Zusammenarbeit' };
 
   function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 
   async function render() {
     let ideas = [], err = '';
     // nur die Kurzfassung je Idee lesen (nicht alle Audiodaten gleichzeitig – spart auf dem iPad viel Speicher)
-    try { ideas = await AppDB.list('ideas', i => i.kind === 'lied' ? null : { id: i.id, name: i.name, root: i.root, mode: i.mode, bpm: i.bpm, ts: i.ts, secs: i.secs, dateStr: i.dateStr, n: i.session ? i.session.tracks.filter(Boolean).length : 0, session: !!i.session, drumName: i.drumState ? i.drumState.name : null, drums: !!i.drums, drone: !!i.droneState }); }
+    try { ideas = await AppDB.list('ideas', i => i.kind === 'lied' ? null : { id: i.id, cat: CATS[i.cat] ? i.cat : 'idee', name: i.name, root: i.root, mode: i.mode, bpm: i.bpm, ts: i.ts, secs: i.secs, dateStr: i.dateStr, n: i.session ? i.session.tracks.filter(Boolean).length : 0, session: !!i.session, drumName: i.drumState ? i.drumState.name : null, drums: !!i.drums, drone: !!i.droneState }); }
     catch (e) { err = String(e && e.message || e); }
     if (err) { list.innerHTML = '<p class="pattern-desc">' + esc(T('Die Ideen konnten nicht gelesen werden: ') + err) + '</p>'; return; }                  // Lieder mit Text haben eine eigene Liste (v71)
     { const c = $('ideaCount'); if (c) c.textContent = ideas.length ? String(ideas.length) : ''; }
     ideas.sort((a, b) => b.ts - a.ts);
-    if (!ideas.length) { list.innerHTML = '<p class="pattern-desc">Noch keine Ideen. Nimm einen Loop auf und tippe auf „Speichern“.</p>'; return; }
+    // v102: Ablagen (Idee, reiner Loop, Backing Track, Zusammenarbeit) – Filter mit Anzahl
+    $('ideaFilter').querySelectorAll('button').forEach(b => { const f = b.dataset.f, n = f === 'all' ? ideas.length : ideas.filter(i => i.cat === f).length; b.textContent = T(FNAME[f]) + (n ? ' ' + n : ''); b.classList.toggle('active', f === filt); });
+    const all = ideas.length; ideas = filt === 'all' ? ideas : ideas.filter(i => i.cat === filt);
+    if (!ideas.length) { list.innerHTML = '<p class="pattern-desc">' + (all ? T('In dieser Ablage ist noch nichts.') : 'Noch keine Ideen. Nimm einen Loop auf und tippe auf „Speichern“.') + '</p>'; return; }
     list.innerHTML = ideas.map(i => i.broken ? `
       <div class="idea-row" data-id="${esc(i.id)}"><div class="idea-main"><div class="idea-name">${esc(T('Beschädigter Eintrag'))}</div><div class="log-meta" style="text-align:left">${esc(i.err)}</div></div>
         <div class="idea-actions"><button class="toggle-btn" data-act="del">Löschen</button></div></div>` : `
       <div class="idea-row" data-id="${esc(i.id)}">
         <div class="idea-main">
-          <div class="idea-name" translate="no">${esc(i.name)}</div>
+          <div class="idea-name"><span translate="no">${esc(i.name)}</span> <span class="idea-cat c-${i.cat}">${esc(T(CATS[i.cat]))}</span></div>
           <div class="log-meta" style="text-align:left">${esc(i.root)} ${esc(i.mode)} · ${String(Math.round(i.bpm * 10) / 10).replace('.', ',')} BPM · ${i.session ? i.n + ' Spur' + (i.n === 1 ? '' : 'en') + ' · ' : ''}${i.drumName ? 'Drums: ' + esc(i.drumName) + ' · ' : (i.drums ? 'Drums · ' : '')}${i.drone ? 'Drone · ' : ''}${(+i.secs || 0).toFixed(1).replace('.', ',')} s · ${esc(i.dateStr)}</div>
         </div>
         <div class="idea-actions">
+          <select class="idea-move" aria-label="Ablage ändern">${Object.keys(CATS).map(c => '<option value="' + c + '"' + (c === i.cat ? ' selected' : '') + '>' + esc(T(CATS[c])) + '</option>').join('')}</select>
           <button class="toggle-btn" data-act="load">Laden</button>
           <button class="toggle-btn" data-act="share">Teilen</button>
           <button class="toggle-btn" data-act="del">Löschen</button>
@@ -13120,23 +13152,39 @@ const Pedal = (() => {
   const ps = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
   withDrums.checked = pl('3nps-idea-drums', '1') === '1'; withDrone.checked = pl('3nps-idea-drone', '1') === '1';
   withDrums.addEventListener('change', () => ps('3nps-idea-drums', withDrums.checked ? '1' : '0'));
+  // v102: Ablage beim Speichern; „Reiner Loop“ speichert ohne Drums/Drone, „Backing Track“ mit (Haken bleiben änderbar)
+  let curCat = CATS[pl('3nps-idea-cat', 'idee')] ? pl('3nps-idea-cat', 'idee') : 'idee', filt = pl('3nps-idea-filter', 'all');
+  function showCat() { $('ideaCat').querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.c === curCat)); }
+  $('ideaCat').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return; curCat = b.dataset.c; ps('3nps-idea-cat', curCat); showCat();
+    if (curCat === 'loop') { withDrums.checked = false; withDrone.checked = false; }
+    if (curCat === 'backing') { withDrums.checked = true; withDrone.checked = true; }
+  });
+  $('ideaFilter').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; filt = b.dataset.f; ps('3nps-idea-filter', filt); render(); });
+  list.addEventListener('change', async e => {
+    const sel = e.target.closest('.idea-move'); if (!sel) return;
+    const id = sel.closest('.idea-row').dataset.id; let idea = null; try { idea = await AppDB.get('ideas', id); } catch (x) {}
+    if (!idea) return; idea.cat = sel.value; await AppDB.put('ideas', idea); idea = null;
+    $('loopStatus').textContent = T('Verschoben nach „') + T(CATS[sel.value]) + '“.'; render();
+  });
+  showCat();
   withDrone.addEventListener('change', () => ps('3nps-idea-drone', withDrone.checked ? '1' : '0'));
   $('ideaSave').addEventListener('click', async () => {
     const sess = Looper.getSession(); if (!sess) return;
     const m = { secs: Looper.sessionSecs(sess) };                 // früher: kompletter Mix nur für die Länge → Speicherspitze
     const now = new Date();
     const name = nameEl.value.trim() || (T('Idee ') + now.toLocaleString(window.__lang === 'en' ? 'en-GB' : 'de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }));
-    const drumState = withDrums.checked ? Rhythm.getState() : null, droneState = withDrone.checked ? Looper.getDroneState() : null;
+    const drumState = withDrums.checked ? Rhythm.getState() : null, droneState = withDrone.checked ? Looper.getDroneState() : null, cat = curCat;
     try {
       await AppDB.put('ideas', {
         id: newId(), v: 2, name, ts: now.getTime(),
         dateStr: now.toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' }),
         root: rootSel.value, mode: modeSel.value, bpm: parseFloat($('bpm').value), secs: m.secs,
-        session: sess, drumState, droneState
+        session: sess, drumState, droneState, cat
       });
       nameEl.value = '';
       const n = sess.tracks.filter(Boolean).length;
-      $('loopStatus').textContent = 'Gespeichert als „' + name + '“: ' + n + ' Spur' + (n === 1 ? '' : 'en') + (drumState ? ', Drums (' + drumState.name + ')' : '') + (droneState ? ', Drone' : '') + '.';
+      $('loopStatus').textContent = 'Gespeichert als „' + name + '“ (' + T(CATS[cat]) + '): ' + n + ' Spur' + (n === 1 ? '' : 'en') + (drumState ? ', Drums (' + drumState.name + ')' : '') + (droneState ? ', Drone' : '') + '.';
       render();
     } catch (e) {
       $('loopStatus').textContent = 'Speichern fehlgeschlagen. Ist der Gerätespeicher voll?';

@@ -921,3 +921,10 @@ Gut zu wissen
    - Die Hornrufe in „Schlachtfeld – Hörner & Trommeln“ sind jetzt echte Horn-Aufnahmen (gemeinfrei, VSCO-2),
      als raues, tiefes Kriegshorn bearbeitet und eine Oktave tiefer gespielt. Beim ersten Start lädt das Horn
      einmalig ca. 1 MB; ohne Verbindung spielt der bisherige Klang. Hornrufe kommen mit „Verzierungen“.
+
+85. Ablagen beim Speichern (v102)
+   - Unter „Ideen“ wählst du vor „Speichern“: „Idee“, „Reiner Loop“ (ohne Drums und Drone), „Backing Track“
+     (mit Drums und Drone) oder „Zusammenarbeit“ (z. B. für das spätere Studio oder zum Weitergeben).
+     Die Haken „Drums/Drone mitspeichern“ kannst du danach trotzdem ändern.
+   - Darunter filterst du die Liste: Alle · Ideen · Loops · Backing Tracks · Zusammenarbeit (mit Anzahl).
+   - Jede Zeile hat ein Auswahlfeld zum Verschieben in eine andere Ablage. Ältere Einträge liegen unter „Ideen“.
