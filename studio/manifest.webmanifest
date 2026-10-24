@@ -1,0 +1,25 @@
+{
+  "id": "./",
+  "name": "Loopsmiths Studio",
+  "short_name": "Studio",
+  "description": "Tonstudio für Ideen aus dem Looper: Spuren, Mischpult, Export.",
+  "lang": "de",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#141416",
+  "theme_color": "#141416",
+  "icons": [
+    {
+      "src": "../icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "../icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

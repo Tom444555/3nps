@@ -1,8 +1,8 @@
 // Offline-Cache für die 3nps-App. Bei Updates CACHE-Version hochzählen.
-const CACHE = '3nps-v102';
+const CACHE = '3nps-v103';
 const ASR = 'asr-1';
 const DRUMS = 'drums-1';   // echtes Kit (v98): eigener Speicher, überlebt Updates (Version erhöhen, wenn sich kit.flac ändert)   // Name ohne „3nps-“: wird beim Update nicht gelöscht (Version erhöhen, wenn sich das Modell ändert)
-const CORE = ['./', 'index.html', 'stretch/worker.js', 'stretch/SignalsmithStretch.js', 'bg-metal.jpg', 'panel.jpg', 'panel-dark.jpg', 'runes.png', 'emblem.png', 'corner-tl.png', 'corner-tr.png', 'corner-bl.png', 'corner-br.png', 'bg-iron.jpg', 'panel-iron.jpg', 'stud-iron.png', 'studs-iron.png', 'emblem-iron.png', 'tolex.jpg', 'alu.jpg', 'alu-dark.jpg', 'grille.jpg', 'screw.png', 'jewel.png', 'bg-ice.jpg', 'panel-ice.jpg', 'icicles.png', 'rivet-ice.png', 'emblem-ice.png', 'bg-matrix.jpg', 'bg-dj.jpg', 'panel-dj.jpg', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
+const CORE = ['./', 'index.html', 'stretch/worker.js', 'stretch/SignalsmithStretch.js', 'bg-metal.jpg', 'panel.jpg', 'panel-dark.jpg', 'runes.png', 'emblem.png', 'corner-tl.png', 'corner-tr.png', 'corner-bl.png', 'corner-br.png', 'bg-iron.jpg', 'panel-iron.jpg', 'stud-iron.png', 'studs-iron.png', 'emblem-iron.png', 'tolex.jpg', 'alu.jpg', 'alu-dark.jpg', 'grille.jpg', 'screw.png', 'jewel.png', 'bg-ice.jpg', 'panel-ice.jpg', 'icicles.png', 'rivet-ice.png', 'emblem-ice.png', 'bg-matrix.jpg', 'bg-dj.jpg', 'panel-dj.jpg', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png', 'studio/index.html', 'studio/manifest.webmanifest'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));
@@ -27,10 +27,11 @@ self.addEventListener('fetch', e => {
   // App-Seite: sofort aus dem Speicher (auch ohne oder mit hängendem Internet), neue Fassung im Hintergrund holen –
   // sie gilt beim nächsten Öffnen. Nur beim allerersten Start (noch nichts gespeichert) wird auf das Netz gewartet.
   if (req.mode === 'navigate') {
-    const net = fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' }).then(r => { if (r.ok) { const copy = r.clone(); caches.open(CACHE).then(c => c.put('index.html', copy)); } return r; });
-    e.respondWith(caches.match('index.html').then(hit => {
+    const page = url.pathname.includes('/studio/') ? 'studio/index.html' : 'index.html';   // Studio ist eine eigene Seite
+    const net = fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' }).then(r => { if (r.ok) { const copy = r.clone(); caches.open(CACHE).then(c => c.put(page, copy)); } return r; });
+    e.respondWith(caches.open(CACHE).then(c => c.match(page)).then(hit => {
       if (hit) { e.waitUntil(net.catch(() => {})); return hit; }
-      return net.catch(() => caches.match('index.html'));
+      return net.catch(() => caches.open(CACHE).then(c => c.match(page)));
     }));
     return;
   }

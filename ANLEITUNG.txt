@@ -928,3 +928,33 @@ Gut zu wissen
      Die Haken „Drums/Drone mitspeichern“ kannst du danach trotzdem ändern.
    - Darunter filterst du die Liste: Alle · Ideen · Loops · Backing Tracks · Zusammenarbeit (mit Anzahl).
    - Jede Zeile hat ein Auswahlfeld zum Verschieben in eine andere Ablage. Ältere Einträge liegen unter „Ideen“.
+
+86. Loopsmiths Studio – Tonstudio als eigene App (v103, Studio s1)
+   - Öffnen: unter „Ideen“ an jeder gespeicherten Idee „Studio“ tippen (oder die Adresse …/3nps/studio/ aufrufen und
+     zum Home-Bildschirm hinzufügen). Der Looper wird dabei geschlossen – das Studio hat den ganzen Speicher für sich.
+     „Projekt ▾“ → „← Zurück zum Looper“ führt zurück. Im Looper ändert sich dadurch nichts, er bleibt so schnell wie vorher.
+   - „Aus dem Looper“: alles, was du im Looper speicherst (Ideen, Loops, Backing Tracks, Zusammenarbeit, Mitsingen-Lieder,
+     Songs aus dem Songwriting) erscheint dort sofort – ohne Export. Antippen zeigt die Spuren, „▶ Anhören“ spielt sie vor.
+     „Als neues Projekt“ oder „Ins Projekt …“ ab einem Takt, mit Wiederholen ×1/2/4/8 und „ins Projekttempo bringen“
+     (ohne Tonhöhenänderung). Von Songs kommen die Aufnahmen, der Ablauf als Marker, die Akkorde und der Text.
+   - Arrangement: Regionen antippen = auswählen, ziehen = verschieben (rastet auf Takt/Schlag/16tel, „Einrasten“),
+     Ränder ziehen = kürzen, obere Ecken = Ein-/Ausblende. Zwei Finger = zoomen, ein Finger auf leerer Fläche = blättern.
+     Lineal oben antippen = Abspielposition, im gelben Streifen ziehen = Cycle (Schleife), antippen = Cycle an/aus.
+     Werkzeuge: Teilen (an der Abspielposition), Duplizieren, Wiederholen ×4, Löschen, Marker, ↶/↷ (60 Schritte).
+     Unten: Spur (EQ, Effekte, Automation, Farbe, Reihenfolge, löschen) und Region (lauter/leiser, stumm, Normalisieren,
+     „ans Tempo anpassen“ = auf ganze Takte strecken, „Als Cycle“).
+   - Mischpult: je Spur EQ (derselbe 9-Band-EQ wie im Looper), Kompressor, Sättigung, Hall- und Delay-Anteil (mit
+     Vorlagen Gesang/Gitarre/Bass/Drums), Panorama, Fader, Pegel, M/S. Master: EQ, Bus-Kompressor, Limiter, Hall/Delay.
+     Doppelt tippen auf einen Regler = Mitte/0 dB.
+   - Aufnahme: Spur mit „R“ scharf schalten (oder eine leere Audiospur wählen – sonst legt das Studio „Aufnahme 1“ an),
+     Position setzen, ● tippen; Stopp mit ■ oder ●. Was in dem Bereich schon lag, wird ersetzt (↶ holt es zurück).
+     Spur → „Aufnahme …“: Stereo/Mono, Mithören, 1 Takt Vorzähler, Latenz-Ausgleich (übernimmt den Wert aus dem Looper).
+   - Automation: Spur → „Automation Lautst.“ oder „Automation Pan“, dann in die Spur tippen = Punkt, ziehen = verschieben,
+     doppelt tippen = löschen. Gilt beim Abspielen und im Export.
+   - Tempo oben im Display ändern: Regionen bleiben auf ihren Takten; Audio passt du mit „ans Tempo anpassen“ an.
+   - „Projekt ▾“: Projekte anlegen, öffnen, umbenennen, löschen; Taktart, Tonart. Export: Mix (WAV 24 Bit), Mix gemastert
+     (Ziel wie im Reiter Mastering), alle Spuren einzeln (ZIP), „Für Logic Pro“ (ZIP: Spuren ab Takt 1, Mix, MIDI mit Tempo
+     und Markern, Anleitung), „In den Looper“ (Cycle-Bereich oder gewählte Region als neue Idee unter „Zusammenarbeit“).
+   - Audio liegt auf dem Gerät (nicht im Arbeitsspeicher) und wird beim Abspielen stückweise gelesen: 16–24 Spuren
+     gleichzeitig gehen ohne Ruckeln. Oben rechts: „Last“ (ok = flüssig) und belegter Speicher.
+   - Tastatur: Leertaste ▶/■, Cmd+Z / Cmd+Umschalt+Z, Entf = Region löschen, C = Cycle, R = Aufnahme, K = Metronom, 1–4 = Ansichten.
