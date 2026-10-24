@@ -900,3 +900,19 @@ Gut zu wissen
      Alte EQ-Einstellungen werden übernommen.
    - Kit-Auswahl rechts in der Drum-Zeile: Synthese, Jazz/Club (echt), Rock (echt), Besen (echt). Jedes echte Kit
      lädt beim ersten Mal einmalig etwa 5 MB, danach geht es offline. Alle Aufnahmen sind gemeinfrei (drums/LIZENZ.txt).
+
+83. Stabiler beim Laden, Loop kürzer machen, „Alle starten/stoppen“ oben, epische Drones, sechs weitere echte Kits (v100)
+   - Beim Laden langer Lieder (z. B. mehrere 4-Minuten-Songs nacheinander) hängt die App nicht mehr:
+     Der alte Inhalt der Spur wird sofort freigegeben, das Lied ohne Kopie gelesen, das Anpassen ans Loop-Tempo
+     läuft im Hintergrund. Liegt schon ein langes Lied in einer anderen Spur, ist im Lade-Fenster
+     „Andere Spuren vorher leeren“ vorgewählt. Die automatische Sicherung pausiert bei sehr langen Spuren
+     (die Lieder hast du ja als Datei) – kurze Loops werden weiter gesichert.
+   - Editor → „Schneiden“: „Auswahl entfernen (kürzer)“ schneidet den markierten Teil heraus, z. B. eine halbe Sekunde
+     zu viel zwischen zwei Takten. Für ganz freie Stellen Raster „Frei“ oder „Anschlag“ wählen.
+     Mit „Tempo an neue Länge anpassen“ (an) setzt die App danach das Tempo so, dass der Loop wieder ganze Takte ergibt
+     – auch nach „Zuschneiden“. ↶ nimmt Schnitt und Tempo zurück. (Geht, wenn die Spur allein ist.)
+   - Oben neben „Eingang öffnen“: „Alle starten“ / „Alle stoppen“ – derselbe Knopf wie unten.
+   - Drones: „Heldensaga – Streicher & Blech“, „Dunkle Kathedrale – Chor & Orgel“, „Schlachtfeld – Hörner & Trommeln“.
+     Mit „Verzierungen“ kommen Pauken, Taiko, Becken-Schwellen und Hornrufe dazu.
+   - Neue echte Kits: Studio Rock/Metal, Pop/Rock trocken, 70er Vintage, Lo-Fi Retro, Indie/Punk, Cajon & Percussion
+     (je einmalig ca. 3–6 MB). Herkunft und Lizenzen: drums/LIZENZ.txt.
