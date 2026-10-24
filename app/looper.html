@@ -426,10 +426,15 @@
         <input type="text" id="ideaName" class="text-in" placeholder="Name (optional)" maxlength="60">
         <button class="toggle-btn active" id="ideaSave">Speichern</button>
       </div>
+      <div class="idea-cats">
+        <span class="caption">Speichern als</span>
+        <div class="seg" id="ideaCat" role="group" aria-label="Ablage"><button class="toggle-btn active" data-c="idee">Idee</button><button class="toggle-btn" data-c="loop">Reiner Loop</button><button class="toggle-btn" data-c="backing">Backing Track</button><button class="toggle-btn" data-c="team">Zusammenarbeit</button></div>
+      </div>
       <div class="toggle-row idea-opts">
         <label class="check"><input type="checkbox" id="ideaWithDrums" checked> Drums mitspeichern</label>
         <label class="check"><input type="checkbox" id="ideaWithDrone" checked> Drone mitspeichern</label>
       </div>
+      <div class="seg idea-filter" id="ideaFilter" role="group" aria-label="Anzeigen"><button class="toggle-btn active" data-f="all">Alle</button><button class="toggle-btn" data-f="idee">Ideen</button><button class="toggle-btn" data-f="loop">Loops</button><button class="toggle-btn" data-f="backing">Backing Tracks</button><button class="toggle-btn" data-f="team">Zusammenarbeit</button></div>
       <div class="log-list" id="ideaList"><p class="pattern-desc">Wird geladen …</p></div>
       </div>
       </details>

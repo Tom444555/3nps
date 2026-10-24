@@ -604,4 +604,19 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
   "Tempo an neue Länge anpassen": "Adapt tempo to new length",
   "Zieh die orangen Griffe auf Anfang und Ende, dann „Zuschneiden“. Ist ein Stück zu viel drin (z. B. eine halbe Sekunde zwischen zwei Takten): Raster auf „Frei“ oder „Anschlag“, das Stück markieren, „Auswahl entfernen (kürzer)“. Mit „Tempo an neue Länge anpassen“ stellt die App danach das Tempo so ein, dass der Loop wieder ganze Takte ergibt. Jeder Schritt lässt sich mit ↶ zurücknehmen.": "Drag the orange handles to start and end, then “Trim”. If there is a bit too much (e.g. half a second between two bars): set the grid to “Free” or “Onset”, mark that bit, “Remove selection (shorter)”. With “Adapt tempo to new length” the app then sets the tempo so the loop is whole bars again. Every step can be undone with ↶.",
   "Alle Spuren starten oder stoppen (wie unten)": "Start or stop all tracks (same as below)",
-  "Schlagzeug-Klang: Synthese oder echtes Kit (Aufnahmen, einmalig ca. 5 MB je Kit)": "Drum sound: synth or real kit (recordings, one-time download of about 5 MB per kit)" });
+  "Schlagzeug-Klang: Synthese oder echtes Kit (Aufnahmen, einmalig ca. 5 MB je Kit)": "Drum sound: synth or real kit (recordings, one-time download of about 5 MB per kit)",
+// ---- v102 Ablagen ----
+  "Speichern als": "Save as",
+  "Ablage": "Folder",
+  "Idee": "Idea",
+  "Reiner Loop": "Pure loop",
+  "Backing Track": "Backing track",
+  "Zusammenarbeit": "Collaboration",
+  "Anzeigen": "Show",
+  "Alle": "All",
+  "Ideen": "Ideas",
+  "Loops": "Loops",
+  "Backing Tracks": "Backing tracks",
+  "In dieser Ablage ist noch nichts.": "Nothing in this folder yet.",
+  "Ablage ändern": "Change folder",
+  "Verschoben nach „": "Moved to “" });

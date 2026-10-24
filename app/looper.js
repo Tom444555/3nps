@@ -3412,27 +3412,32 @@ const Pedal = (() => {
 (function () {
   const $ = id => document.getElementById(id);
   const list = $('ideaList'), nameEl = $('ideaName');
+  const CATS = { idee: 'Idee', loop: 'Reiner Loop', backing: 'Backing Track', team: 'Zusammenarbeit' }, FNAME = { all: 'Alle', idee: 'Ideen', loop: 'Loops', backing: 'Backing Tracks', team: 'Zusammenarbeit' };
 
   function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 
   async function render() {
     let ideas = [], err = '';
     // nur die Kurzfassung je Idee lesen (nicht alle Audiodaten gleichzeitig – spart auf dem iPad viel Speicher)
-    try { ideas = await AppDB.list('ideas', i => i.kind === 'lied' ? null : { id: i.id, name: i.name, root: i.root, mode: i.mode, bpm: i.bpm, ts: i.ts, secs: i.secs, dateStr: i.dateStr, n: i.session ? i.session.tracks.filter(Boolean).length : 0, session: !!i.session, drumName: i.drumState ? i.drumState.name : null, drums: !!i.drums, drone: !!i.droneState }); }
+    try { ideas = await AppDB.list('ideas', i => i.kind === 'lied' ? null : { id: i.id, cat: CATS[i.cat] ? i.cat : 'idee', name: i.name, root: i.root, mode: i.mode, bpm: i.bpm, ts: i.ts, secs: i.secs, dateStr: i.dateStr, n: i.session ? i.session.tracks.filter(Boolean).length : 0, session: !!i.session, drumName: i.drumState ? i.drumState.name : null, drums: !!i.drums, drone: !!i.droneState }); }
     catch (e) { err = String(e && e.message || e); }
     if (err) { list.innerHTML = '<p class="pattern-desc">' + esc(T('Die Ideen konnten nicht gelesen werden: ') + err) + '</p>'; return; }                  // Lieder mit Text haben eine eigene Liste (v71)
     { const c = $('ideaCount'); if (c) c.textContent = ideas.length ? String(ideas.length) : ''; }
     ideas.sort((a, b) => b.ts - a.ts);
-    if (!ideas.length) { list.innerHTML = '<p class="pattern-desc">Noch keine Ideen. Nimm einen Loop auf und tippe auf „Speichern“.</p>'; return; }
+    // v102: Ablagen (Idee, reiner Loop, Backing Track, Zusammenarbeit) – Filter mit Anzahl
+    $('ideaFilter').querySelectorAll('button').forEach(b => { const f = b.dataset.f, n = f === 'all' ? ideas.length : ideas.filter(i => i.cat === f).length; b.textContent = T(FNAME[f]) + (n ? ' ' + n : ''); b.classList.toggle('active', f === filt); });
+    const all = ideas.length; ideas = filt === 'all' ? ideas : ideas.filter(i => i.cat === filt);
+    if (!ideas.length) { list.innerHTML = '<p class="pattern-desc">' + (all ? T('In dieser Ablage ist noch nichts.') : 'Noch keine Ideen. Nimm einen Loop auf und tippe auf „Speichern“.') + '</p>'; return; }
     list.innerHTML = ideas.map(i => i.broken ? `
       <div class="idea-row" data-id="${esc(i.id)}"><div class="idea-main"><div class="idea-name">${esc(T('Beschädigter Eintrag'))}</div><div class="log-meta" style="text-align:left">${esc(i.err)}</div></div>
         <div class="idea-actions"><button class="toggle-btn" data-act="del">Löschen</button></div></div>` : `
       <div class="idea-row" data-id="${esc(i.id)}">
         <div class="idea-main">
-          <div class="idea-name" translate="no">${esc(i.name)}</div>
+          <div class="idea-name"><span translate="no">${esc(i.name)}</span> <span class="idea-cat c-${i.cat}">${esc(T(CATS[i.cat]))}</span></div>
           <div class="log-meta" style="text-align:left">${esc(i.root)} ${esc(i.mode)} · ${String(Math.round(i.bpm * 10) / 10).replace('.', ',')} BPM · ${i.session ? i.n + ' Spur' + (i.n === 1 ? '' : 'en') + ' · ' : ''}${i.drumName ? 'Drums: ' + esc(i.drumName) + ' · ' : (i.drums ? 'Drums · ' : '')}${i.drone ? 'Drone · ' : ''}${(+i.secs || 0).toFixed(1).replace('.', ',')} s · ${esc(i.dateStr)}</div>
         </div>
         <div class="idea-actions">
+          <select class="idea-move" aria-label="Ablage ändern">${Object.keys(CATS).map(c => '<option value="' + c + '"' + (c === i.cat ? ' selected' : '') + '>' + esc(T(CATS[c])) + '</option>').join('')}</select>
           <button class="toggle-btn" data-act="load">Laden</button>
           <button class="toggle-btn" data-act="share">Teilen</button>
           <button class="toggle-btn" data-act="del">Löschen</button>
@@ -3445,23 +3450,39 @@ const Pedal = (() => {
   const ps = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
   withDrums.checked = pl('3nps-idea-drums', '1') === '1'; withDrone.checked = pl('3nps-idea-drone', '1') === '1';
   withDrums.addEventListener('change', () => ps('3nps-idea-drums', withDrums.checked ? '1' : '0'));
+  // v102: Ablage beim Speichern; „Reiner Loop“ speichert ohne Drums/Drone, „Backing Track“ mit (Haken bleiben änderbar)
+  let curCat = CATS[pl('3nps-idea-cat', 'idee')] ? pl('3nps-idea-cat', 'idee') : 'idee', filt = pl('3nps-idea-filter', 'all');
+  function showCat() { $('ideaCat').querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.c === curCat)); }
+  $('ideaCat').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return; curCat = b.dataset.c; ps('3nps-idea-cat', curCat); showCat();
+    if (curCat === 'loop') { withDrums.checked = false; withDrone.checked = false; }
+    if (curCat === 'backing') { withDrums.checked = true; withDrone.checked = true; }
+  });
+  $('ideaFilter').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; filt = b.dataset.f; ps('3nps-idea-filter', filt); render(); });
+  list.addEventListener('change', async e => {
+    const sel = e.target.closest('.idea-move'); if (!sel) return;
+    const id = sel.closest('.idea-row').dataset.id; let idea = null; try { idea = await AppDB.get('ideas', id); } catch (x) {}
+    if (!idea) return; idea.cat = sel.value; await AppDB.put('ideas', idea); idea = null;
+    $('loopStatus').textContent = T('Verschoben nach „') + T(CATS[sel.value]) + '“.'; render();
+  });
+  showCat();
   withDrone.addEventListener('change', () => ps('3nps-idea-drone', withDrone.checked ? '1' : '0'));
   $('ideaSave').addEventListener('click', async () => {
     const sess = Looper.getSession(); if (!sess) return;
     const m = { secs: Looper.sessionSecs(sess) };                 // früher: kompletter Mix nur für die Länge → Speicherspitze
     const now = new Date();
     const name = nameEl.value.trim() || (T('Idee ') + now.toLocaleString(window.__lang === 'en' ? 'en-GB' : 'de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }));
-    const drumState = withDrums.checked ? Rhythm.getState() : null, droneState = withDrone.checked ? Looper.getDroneState() : null;
+    const drumState = withDrums.checked ? Rhythm.getState() : null, droneState = withDrone.checked ? Looper.getDroneState() : null, cat = curCat;
     try {
       await AppDB.put('ideas', {
         id: newId(), v: 2, name, ts: now.getTime(),
         dateStr: now.toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' }),
         root: rootSel.value, mode: modeSel.value, bpm: parseFloat($('bpm').value), secs: m.secs,
-        session: sess, drumState, droneState
+        session: sess, drumState, droneState, cat
       });
       nameEl.value = '';
       const n = sess.tracks.filter(Boolean).length;
-      $('loopStatus').textContent = 'Gespeichert als „' + name + '“: ' + n + ' Spur' + (n === 1 ? '' : 'en') + (drumState ? ', Drums (' + drumState.name + ')' : '') + (droneState ? ', Drone' : '') + '.';
+      $('loopStatus').textContent = 'Gespeichert als „' + name + '“ (' + T(CATS[cat]) + '): ' + n + ' Spur' + (n === 1 ? '' : 'en') + (drumState ? ', Drums (' + drumState.name + ')' : '') + (droneState ? ', Drone' : '') + '.';
       render();
     } catch (e) {
       $('loopStatus').textContent = 'Speichern fehlgeschlagen. Ist der Gerätespeicher voll?';

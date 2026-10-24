@@ -497,3 +497,10 @@ html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleis
   .track-eqs:empty { display: none; }
   .track-eqs .eq-panel::before { content: attr(data-title); font: 700 .78rem var(--f-mono); color: var(--tc); letter-spacing: .04em; }
   .track-eqs .eq-panel.t1 { --tc: var(--t1); } .track-eqs .eq-panel.t2 { --tc: var(--t2); } .track-eqs .eq-panel.t3 { --tc: var(--t3); }
+  /* v102: Ablagen bei den Ideen */
+  .idea-cats { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 6px 0; }
+  .idea-cats .toggle-btn, .idea-filter .toggle-btn { padding: 4px 10px; font-size: .74rem; }
+  .idea-filter { display: flex; flex-wrap: wrap; margin: 8px 0 6px; }
+  .idea-cat { display: inline-block; font-size: .62rem; padding: 1px 6px; border-radius: 8px; border: 1px solid currentColor; opacity: .85; vertical-align: middle; }
+  .idea-cat.c-idee { color: #9ab; } .idea-cat.c-loop { color: #7fd8ff; } .idea-cat.c-backing { color: #f2c230; } .idea-cat.c-team { color: #9be37a; }
+  .idea-move { font-size: .72rem; padding: 3px 4px; max-width: 9.5em; }
