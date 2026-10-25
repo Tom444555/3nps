@@ -502,7 +502,7 @@ const Looper = (() => {
     if (ctxHooked || !audioCtx) return; ctxHooked = true;
     audioCtx.addEventListener('statechange', () => {
       if (audioCtx.state === 'running') { if (needResume) { needResume = false; setStatus('Ton läuft wieder.'); } return; }
-      if (document.hidden) return;
+      if (document.hidden || window.__studioHold) return;   // v110: absichtlich angehalten (Studio) – nicht von selbst weiterlaufen
       audioCtx.resume().then(() => {}).catch(() => {});
       setTimeout(() => { if (audioCtx.state !== 'running') { needResume = true; setStatus('Der Ton wurde vom iPad unterbrochen (z. B. Ladekabel/USB-Gerät). Tippe einmal auf den Bildschirm, um weiterzumachen.'); } }, 400);
     });
@@ -510,6 +510,7 @@ const Looper = (() => {
   setInterval(hookCtx, 1000);
   // Erstes Tippen nach einer Unterbrechung: Ton fortsetzen und – war der Eingang offen – ihn gleich wieder öffnen
   ['pointerdown', 'keydown'].forEach(evn => window.addEventListener(evn, () => {
+    window.__studioHold = false;
     if (audioCtx && audioCtx.state !== 'running') audioCtx.resume().catch(() => {});
     if ((wasMic || micWanted) && !micReady && !micOpening && !document.hidden) { autoTries = 0; setTimeout(() => reopenMic(true), 50); }
   }, true));
@@ -517,7 +518,7 @@ const Looper = (() => {
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) { wasMic = micReady; return; }
     if (!audioCtx) return;
-    if (audioCtx.state !== 'running') audioCtx.resume().catch(() => {});
+    if (audioCtx.state !== 'running' && !window.__studioHold) audioCtx.resume().catch(() => {});
     ev('App vorne, Ton ' + audioCtx.state);
     if (micReady && stream && stream.getAudioTracks().every(tr => tr.readyState === 'ended')) micLost();
     else if (!micReady && wasMic) setTimeout(() => reopenMic(true), 500);
@@ -3624,10 +3625,13 @@ const Pedal = (() => {
 
   // v109: vor dem Wechsel ins Studio den Looper stumm schalten (sonst läuft er auf dem iPad im Hintergrund weiter)
   function goStudio(id, url) {
+    window.__studioHold = true; try { Looper.stopAll(); } catch (e) {}
     try { if (typeof audioCtx !== 'undefined' && audioCtx) audioCtx.suspend(); } catch (e) {}
     try { sessionStorage.setItem('3nps-to-studio', id); } catch (e) {}
     location.href = url || ('studio/?idea=' + encodeURIComponent(id) + '&from=looper');
   }
+  // v110: Das Studio meldet sich über einen Kanal – läuft der Looper noch (z. B. in einem zweiten Fenster), verstummt er sofort
+  try { const bc = new BroadcastChannel('3nps-audio'); bc.onmessage = e => { if (e.data !== 'studio') return; window.__studioHold = true; try { Looper.stopAll(); } catch (x) {} try { if (typeof audioCtx !== 'undefined' && audioCtx) audioCtx.suspend(); } catch (x) {} $('loopStatus').textContent = T('Looper angehalten – das Studio spielt.'); }; window.__looperBC = bc; } catch (e) {}
   // Kommt der Looper aus dem Zwischenspeicher zurück (Wischgeste/Zurück), frisch laden statt stumm weiterzulaufen
   window.addEventListener('pageshow', e => { let id = null; try { id = sessionStorage.getItem('3nps-to-studio'); sessionStorage.removeItem('3nps-to-studio'); } catch (x) {} if (e.persisted && id) location.replace('./?load=' + encodeURIComponent(id)); });
   // v107: „Im Studio ↗“ an der Spur – aktuellen Stand sichern (geladene Idee aktualisieren oder neu unter „Zusammenarbeit“), dann ins Studio

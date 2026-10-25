@@ -132,7 +132,7 @@ const Exp = (() => {
     const bar = Proj.bar(), cyc = P.cycle.on && P.cycle.b > P.cycle.a;
     const a = cyc ? P.cycle.a : 0, b = cyc ? P.cycle.b : Math.max(bar, Math.ceil((Proj.projEnd() - 64) / bar) * bar);
     const used = P.tracks.filter(t => !t.mute && P.regions.some(r => r.track === t.id && !r.muted && r.start < b && r.start + r.len > a));
-    if (!used.length) throw new Error('Im Bereich ist nichts zu hören.');
+    if (!used.length) { const muted = P.tracks.filter(t => t.mute && P.regions.some(r => r.track === t.id)).length; const e = new Error(muted ? 'Alle Spuren sind stumm geschaltet (M). Tippe bei den Spuren auf „M“, damit es aus ist, dann nochmal „↩ Looper“.' : 'Im Bereich ist nichts zu hören.'); e.muted = muted; throw e; }
     const groups = used.length <= 3 ? used.map(t => [t]) : [[used[0]], [used[1]], used.slice(2)];
     const enc24 = x => { const u = new Uint8Array(x.length * 3); for (let i = 0, o = 0; i < x.length; i++, o += 3) { let v = x[i]; v = v > 1 ? 1 : v < -1 ? -1 : v; const s = Math.round(v * 8388607); u[o] = s & 255; u[o + 1] = (s >> 8) & 255; u[o + 2] = (s >> 16) & 255; } return u; };
     const tracks = []; let sr = P.sr, L = 0;

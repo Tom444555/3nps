@@ -163,7 +163,12 @@ const UI = (() => {
     const b = $('bBack'); b.disabled = true;
     if (!Proj.P.fromIdea) { await Proj.save(); try { await Engine.ac().suspend(); } catch (e) {} location.href = '../'; return; }
     try { const it = await Exp.backToLooper(say); try { await Engine.ac().suspend(); } catch (e) {} setTimeout(() => { location.href = '../?load=' + encodeURIComponent(it.id); }, 300); }
-    catch (e) { console.error(e); say('Zurück in den Looper: ' + e.message); b.disabled = false; }
+    catch (e) {
+      console.error(e); b.disabled = false; say('Zurück in den Looper: ' + e.message);
+      dialog('<h2>Nicht gespeichert</h2><p>' + esc(e.message) + '</p><div class="btns">' + (e.muted ? '<button class="btn p" id="bkUnmute">Alle Spuren hörbar machen und speichern</button>' : '') + '<button class="btn" id="bkGo">Ohne Speichern zum Looper</button><button class="btn" data-close>Im Studio bleiben</button></div>');
+      if ($('bkUnmute')) $('bkUnmute').onclick = () => { Proj.change('mix', p => p.tracks.forEach(t => { t.mute = false; t.solo = false; })); Proj.P.tracks.forEach((_, i) => Engine.applyTrack(i, true)); Arr.heads(); close(); $('bBack').click(); };
+      $('bkGo').onclick = async () => { close(); await Proj.save(); location.href = '../'; };
+    }
   };
   async function projMenu() {
     const P = Proj.P, ps = await Proj.list(), usage = await SDB.usage().catch(() => 0);

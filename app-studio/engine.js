@@ -187,8 +187,12 @@ const Engine = (() => {
     const c = P && P.cycle; if (c && c.on && c.b > c.a && p >= c.b) p = c.a + ((p - c.a) % (c.b - c.a));
     return Math.round(p);
   }
+  let bc = null; try { bc = new BroadcastChannel('3nps-audio'); } catch (e) {}
+  const hush = () => { try { bc && bc.postMessage('studio'); } catch (e) {} };   // v110: Looper (falls er noch läuft) verstummen lassen
+  hush();
   async function play() {
     await ensure(); if (st.playing) return;
+    hush();
     await feed(true);
     const at = ctx.currentTime + 0.12; st.t0 = at; st.pos0 = st.pos; st.playing = true;
     node.port.postMessage({ t: 'cycle', on: !!(P.cycle && P.cycle.on && P.cycle.b > P.cycle.a), a: P.cycle ? P.cycle.a : 0, b: P.cycle ? P.cycle.b : 0 });

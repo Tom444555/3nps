@@ -657,4 +657,5 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
   "Aktualisieren": "Update",
   "Erst etwas aufnehmen oder laden.": "Record or load something first.",
   "Loop ": "Loop ",
-  "Aus dem Studio zurück – ": "Back from the Studio – " });
+  "Aus dem Studio zurück – ": "Back from the Studio – ",
+  "Looper angehalten – das Studio spielt.": "Looper stopped – the Studio is playing." });
