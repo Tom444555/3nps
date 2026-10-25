@@ -978,3 +978,11 @@ Gut zu wissen
      Kommt das Projekt von einem Song aus dem Songwriting, stehen dessen Akkorde schon drin.
    - Startest du mitten in einer langen Note (Fläche, Bass), wird sie nachgeholt. Export „Für Logic Pro“ enthält alle
      Spuren als WAV und die Noten/Drums als MIDI (Drums auf Kanal 10, General MIDI).
+
+88. Hall und Echo je Spur im Looper (v105)
+   - Unter jeder Spur neben „EQ“: „Hall/Echo“. Darin je Spur „Hall“ und „Echo“ (Anteil 0–100 %).
+   - Für alle Spuren gemeinsam: „Raum“ (Raum, Halle, Platte hell, Kathedrale), „Echo-Abstand“ (1/16 … 1/2, läuft im Tempo)
+     und „Wiederholungen“. Ist etwas eingestellt, zeigt der Knopf „Hall/Echo ●“.
+   - Wird mit der Idee gespeichert, kommt beim Export (Mix, Logic) wie gehört mit – nahtlos: der Ausklang am Loop-Ende
+     läuft am Loop-Anfang weiter. Das Studio übernimmt die Anteile.
+   - Leistung: Solange eine Spur 0 % hat, rechnet für sie kein Hall/Echo mit.

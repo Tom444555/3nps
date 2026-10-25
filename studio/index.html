@@ -1981,7 +1981,7 @@ const Imp = (() => {
         let x = await resample(trackData(t), ss.sr, sr);
         if (Math.abs(ratio - 1) > 0.002) { const y = await stretch(x, Math.round(x.l.length / ratio), sr); if (y) x = y; }
         const m = await SDB.putAudio(it.name + ' · Spur ' + (i + 1), sr, x.l, x.r !== x.l ? x.r : null);
-        tracks.push({ m, vol: t.vol != null ? 20 * Math.log10(Math.max(0.01, t.vol / 90)) : 0, eq: t.eq2 || t.eq, name: 'Spur ' + (i + 1) }); maxLen = Math.max(maxLen, m.frames);
+        tracks.push({ m, vol: t.vol != null ? 20 * Math.log10(Math.max(0.01, t.vol / 90)) : 0, eq: t.eq2 || t.eq, fx: t.fx, name: 'Spur ' + (i + 1) }); maxLen = Math.max(maxLen, m.frames);
       }
     } else if (it.wav) {
       const buf = await Engine.ac().decodeAudioData(await it.wav.arrayBuffer()); let x = { l: buf.getChannelData(0).slice(), r: buf.numberOfChannels > 1 ? buf.getChannelData(1).slice() : null }; x.r = x.r || x.l;
@@ -1990,7 +1990,7 @@ const Imp = (() => {
     Proj.change('regions', q => {
       tracks.forEach(tk => {
         let t = q.tracks.find(o => o.kind === 'audio' && o.src === it.id + ':' + tk.name);
-        if (!t) { t = Proj.track('audio', (opts.mode === 'new' ? '' : it.name + ' · ') + tk.name); t.src = it.id + ':' + tk.name; t.vol = Math.round(tk.vol * 10) / 10; if (tk.eq) t.eq = EQ7.norm(tk.eq); q.tracks.push(t); }
+        if (!t) { t = Proj.track('audio', (opts.mode === 'new' ? '' : it.name + ' · ') + tk.name); t.src = it.id + ':' + tk.name; t.vol = Math.round(tk.vol * 10) / 10; if (tk.eq) t.eq = EQ7.norm(tk.eq); if (tk.fx) { t.fx.rev = tk.fx.rev || 0; t.fx.dly = tk.fx.dly || 0; } q.tracks.push(t); }
         const L = tk.m.frames, n = Math.max(1, Math.round(maxLen / L)) * reps;   // kürzere Loops füllen die Länge der längsten Spur
         for (let k = 0; k < n; k++) q.regions.push({ id: Proj.nid('r'), track: t.id, kind: 'audio', audio: tk.m.id, start: at + k * L, offset: 0, len: L, gain: 0, fi: 0, fo: 0, name: it.name });
       });
