@@ -1009,3 +1009,15 @@ Gut zu wissen
 91. Spurköpfe ohne Überlappung (v108)
    - Der Name der geladenen Idee steht jetzt in einer eigenen Zeile unter „Spur n“ (zu lang → „…“), „Stereo“ neben dem
      Spurnamen. Ist es eng (iPad hochkant), rutschen Akkord/Danach in die nächste Zeile statt über den Text.
+
+92. Studio: Takte loopen, größere und schärfere Wellenform, Wechsel Looper ↔ Studio (v109)
+   - „⟲ Takte loopen“ (Werkzeugleiste): über die Spuren ziehen → die Takte werden ausgewählt und laufen in Schleife
+     (rastet auf ganze Takte). Nochmal tippen = wieder normal bearbeiten. ⟲ oben schaltet die Schleife an/aus.
+   - „↕+“ / „↕−“: Spuren höher/niedriger – die Wellenform wird entsprechend größer (bleibt gespeichert).
+   - Die Wellenform wird in voller Bildschirmschärfe gezeichnet; beim Hineinzoomen (+ oder zwei Finger) aus den echten
+     Abtastwerten – ganz nah sieht man die einzelne Schwingung. Neu übernommene Spuren haben eine 4× feinere Übersicht.
+   - Wechsel ins Studio schaltet den Looper stumm (er lief auf dem iPad weiter). „↩ Looper“ steht jetzt immer oben:
+     Projekte aus einer Idee werden in diese Idee zurückgeschrieben, sonst geht es einfach zurück zum Looper.
+     Auch über „Aus dem Looper“ → „Als neues Projekt“ übernommene Ideen können so zurückgeschrieben werden.
+   - Looper: Wellenform unter den Spuren höher (56 statt 38 Punkte) und genauer: helle Spitzen, satter Kern (Lautheit),
+     je Bildschirmpixel gezeichnet.
