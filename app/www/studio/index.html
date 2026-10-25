@@ -140,7 +140,7 @@ main{flex:1;min-height:0;position:relative}
   <div class="tp"><button class="btn" id="bHome" title="Zum Anfang">⏮</button><button class="btn play" id="bPlay" title="Abspielen / Stopp">▶</button><button class="btn rec" id="bRec" title="Aufnehmen">●</button><button class="btn" id="bCyc" title="Cycle (Schleife)">⟲</button><button class="btn" id="bClick" title="Metronom">♩</button></div>
   <div class="lcd"><div><small>TAKT</small><b id="lPos">1.1.1</b></div><div><small>TEMPO</small><input id="lBpm" type="number" min="40" max="240" step="0.1" aria-label="Tempo"></div><div><small>TAKTART</small><b id="lSig">4/4</b></div><div><small>TONART</small><b id="lKey" translate="no">–</b></div></div>
   <div class="views" id="views"><button data-v="arr" class="a">Arrangement</button><button data-v="mix">Mischpult</button><button data-v="roll">Noten</button><button data-v="brw">Aus dem Looper</button></div>
-  <button class="btn" id="bProj">Projekt ▾</button>
+  <button class="btn p" id="bBack" hidden title="Projekt in dieselbe Idee schreiben und im Looper weitermachen">↩ Looper</button><button class="btn" id="bProj">Projekt ▾</button>
   <div class="cpu">Last <b id="cLoad">–</b><br>Speicher <b id="cMem">–</b></div>
 </div>
 <main>
@@ -1994,7 +1994,7 @@ const Imp = (() => {
         const L = tk.m.frames, n = Math.max(1, Math.round(maxLen / L)) * reps;   // kürzere Loops füllen die Länge der längsten Spur
         for (let k = 0; k < n; k++) q.regions.push({ id: Proj.nid('r'), track: t.id, kind: 'audio', audio: tk.m.id, start: at + k * L, offset: 0, len: L, gain: 0, fi: 0, fo: 0, name: it.name });
       });
-      if (it.drumState && window.Drum && opts.drums !== false) Drum.fromLooper(q, it.drumState, at, maxLen * reps);
+      if (it.drumState && it.drumState.on !== false && window.Drum && opts.drums !== false) Drum.fromLooper(q, it.drumState, at, maxLen * reps);
     });
     Engine.dirty(true); say('„' + it.name + '“ übernommen: ' + tracks.length + ' Spur' + (tracks.length === 1 ? '' : 'en') + (reps > 1 ? ' ×' + reps : '') + (Math.abs(ratio - 1) > 0.002 ? ' · ins Projekttempo gebracht' : '') + '.');
   }
@@ -3050,7 +3050,7 @@ const Exp = (() => {
     const a = Math.max(0, Math.round(opts.a || 0)), e = Math.round(opts.b || Proj.projEnd()) + Math.round((opts.tail != null ? opts.tail : 1.5) * sr), n = Math.max(1, e - a);
     if (n > sr * 60 * 12) throw new Error('Länger als 12 Minuten – bitte einen Bereich (Cycle) wählen.');
     const proj = JSON.parse(JSON.stringify(P)); proj.cycle = { on: false, a: 0, b: 0 };
-    if (opts.only) proj.tracks.forEach(t => { t.solo = t.id === opts.only; t.mute = t.id === opts.only ? false : t.mute; });
+    if (opts.only) { const set = new Set([].concat(opts.only)); proj.tracks.forEach(t => { t.solo = set.has(t.id); if (set.has(t.id)) t.mute = false; }); }
     if (opts.noMaster) { proj.master.glue = false; proj.master.lim = false; }
     if (window.Inst) await Inst.ready(proj);
     const oc = new OfflineAudioContext(2, n, sr);
@@ -3170,7 +3170,34 @@ const Exp = (() => {
     say('Im Looper gespeichert als „' + name + '“ (Ablage Zusammenarbeit).');
     return name;
   }
-  return { render, run, wav24, zip, midi, toLooper, master };
+  // v107: Zurück in den Looper – Projekt (oder Cycle) als bis zu 3 Spuren in dieselbe Idee schreiben, dann den Looper öffnen
+  async function backToLooper(say) {
+    const P = Proj.P, id = P.fromIdea; if (!id) throw new Error('Dieses Projekt kommt nicht aus dem Looper.');
+    const bar = Proj.bar(), cyc = P.cycle.on && P.cycle.b > P.cycle.a;
+    const a = cyc ? P.cycle.a : 0, b = cyc ? P.cycle.b : Math.max(bar, Math.ceil((Proj.projEnd() - 64) / bar) * bar);
+    const used = P.tracks.filter(t => !t.mute && P.regions.some(r => r.track === t.id && !r.muted && r.start < b && r.start + r.len > a));
+    if (!used.length) throw new Error('Im Bereich ist nichts zu hören.');
+    const groups = used.length <= 3 ? used.map(t => [t]) : [[used[0]], [used[1]], used.slice(2)];
+    const enc24 = x => { const u = new Uint8Array(x.length * 3); for (let i = 0, o = 0; i < x.length; i++, o += 3) { let v = x[i]; v = v > 1 ? 1 : v < -1 ? -1 : v; const s = Math.round(v * 8388607); u[o] = s & 255; u[o + 1] = (s >> 8) & 255; u[o + 2] = (s >> 16) & 255; } return u; };
+    const tracks = []; let sr = P.sr, L = 0;
+    for (let k = 0; k < groups.length; k++) {
+      say('Rechne Spur ' + (k + 1) + ' von ' + groups.length + ' für den Looper …');
+      const x = await render({ a, b, tail: 0, noMaster: true, only: groups[k].map(t => t.id) }, null); sr = x.sr; L = x.l.length;
+      tracks.push({ L, enc: 'i24', dl: enc24(x.l), dr: enc24(x.r), vol: 100, eq: [0, 0, 0, 0, 0, 0, 0], fx: { rev: 0, dly: 0 } });
+    }
+    while (tracks.length < 3) tracks.push(null);
+    const old = await SDB.looperGet('ideas', id), now = new Date(), [root, ...md] = (P.key || 'C Dur').split(' ');
+    const idea = Object.assign({ id, v: 2, cat: 'team', droneState: null }, old || {}, {
+      name: (old && old.name) || P.name, ts: now.getTime(), dateStr: now.toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' }),
+      bpm: P.bpm, secs: L / sr, session: { sr, baseL: L, stereo: true, tracks }, drumState: P.tracks.some(t => t.kind === 'drum') ? null : (old && old.drumState) || null });
+    if (root && /Moll|Dur/.test(md.join(' '))) { idea.root = root; idea.mode = /Moll/.test(md.join(' ')) ? 'Äolisch (Moll)' : 'Ionisch (Dur)'; }
+    await SDB.looperPut('ideas', idea);
+    Proj.change('meta', p => { p.importTs = idea.ts; }, { noUndo: true }); await Proj.save();
+    say('In den Looper geschrieben (' + groups.length + ' Spur' + (groups.length === 1 ? '' : 'en') + ', ' + Math.round((b - a) / bar) + ' Takte). Öffne den Looper …');
+    window.__backDone = { n: groups.length, bars: Math.round((b - a) / bar), id };
+    return idea;
+  }
+  return { render, run, wav24, zip, midi, toLooper, master, backToLooper };
 })();
 
 </script>
@@ -3225,7 +3252,7 @@ const UI = (() => {
     $('bCyc').classList.toggle('on', !!(P && P.cycle.on && P.cycle.b > P.cycle.a)); $('bClick').classList.toggle('on', Sched.click);
     if (P) { if (document.activeElement !== $('lBpm')) $('lBpm').value = Math.round(P.bpm * 100) / 100; $('lSig').textContent = P.sig + '/4'; $('lKey').textContent = P.key || '–'; }
     $('tUndo').disabled = !Proj.canUndo(); $('tRedo').disabled = !Proj.canRedo();
-    $('lPos').textContent = fmtPos(Engine.curPos());
+    $('lPos').textContent = fmtPos(Engine.curPos()); $('bBack').hidden = !(P && P.fromIdea);
     document.title = (P ? P.name + ' · ' : '') + 'Loopsmiths Studio';
   }
   Engine.on('tick', () => { $('lPos').textContent = fmtPos(Engine.curPos()); });
@@ -3333,6 +3360,12 @@ const UI = (() => {
   $('tRedo').onclick = () => { if (Proj.redo()) { Engine.dirty(true); say('Wiederholt.'); } sync(); };
   // ---- Projekt-Menü ----
   $('bProj').onclick = projMenu;
+  $('bBack').onclick = async () => {
+    if (Engine.playing) Engine.stop(); if (window.Rec && Rec.active()) await Rec.stop();
+    const b = $('bBack'); b.disabled = true;
+    try { const it = await Exp.backToLooper(say); setTimeout(() => { location.href = '../?load=' + encodeURIComponent(it.id); }, 300); }
+    catch (e) { console.error(e); say('Zurück in den Looper: ' + e.message); b.disabled = false; }
+  };
   async function projMenu() {
     const P = Proj.P, ps = await Proj.list(), usage = await SDB.usage().catch(() => 0);
     dialog('<h2>Projekt</h2><div class="grid2"><div class="card"><b>' + esc(P.name) + '</b><div class="meta">' + P.tracks.length + ' Spuren · ' + P.regions.length + ' Regionen · ' + (Math.round(Proj.projEnd() / P.sr)) + ' s</div>' +
@@ -3379,6 +3412,17 @@ const UI = (() => {
     if (!(last && await Proj.load(last))) { const ps = await Proj.list(); if (ps.length) await Proj.load(ps[0].id); else await Proj.newProject('Mein erstes Projekt'); }
     Arr.heads(); Arr.zoomAll(); inspect(); sync();
     let v = 'arr'; try { v = localStorage.getItem('3nps-studio-view') || 'arr'; } catch (e) {}
+    if (idea && q.get('from') === 'looper') {
+      // v107: direkt von der Looper-Spur – passendes Projekt öffnen (unverändert seit dem letzten Zurückschreiben) oder neu übernehmen
+      history.replaceState(null, '', location.pathname);
+      const it = await SDB.looperGet('ideas', idea), ps = (await SDB.all('projects')).filter(p => p.fromIdea === idea).sort((x, y) => y.ts - x.ts);
+      if (it && ps.length && ps[0].importTs && ps[0].importTs >= it.ts) { await Proj.load(ps[0].id); say('Projekt „' + Proj.P.name + '“ geöffnet. „↩ Looper“ bringt es zurück.'); }
+      else if (it) {
+        try { await Imp.idea(idea, { mode: 'new', bar: 1, reps: 1, fit: false }, say); Proj.change('meta', p => { p.fromIdea = idea; p.importTs = it.ts; }, { noUndo: true }); await Proj.save(); say('„' + it.name + '“ aus dem Looper. Bearbeiten, dann „↩ Looper“.'); }
+        catch (e) { say('Übernahme fehlgeschlagen: ' + e.message); }
+      }
+      Arr.V.sel = Arr.V.selTrack = null; Arr.heads(); Arr.zoomAll(); inspect(); sync(); show('arr'); return;
+    }
     if (idea) { Brw.preselect(idea); v = 'brw'; history.replaceState(null, '', location.pathname); }
     else if (!Proj.P.tracks.length) v = 'brw';
     show(v);

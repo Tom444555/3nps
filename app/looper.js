@@ -191,6 +191,16 @@ const Looper = (() => {
     btn.addEventListener('click', () => { p.hidden = !p.hidden; btn.setAttribute('aria-expanded', String(!p.hidden)); btn.classList.toggle('open', !p.hidden); });
     paintFx(t);
   });
+  // v107: Name der geladenen Idee an der Spur, Knopf „Im Studio ↗“
+  tracks.forEach(t => {
+    const nm = t.chB && t.chB.parentNode && t.chB.parentNode.querySelector('.tname');
+    if (nm) { t.srcEl = document.createElement('span'); t.srcEl.className = 'tsrc'; nm.insertAdjacentElement('afterend', t.srcEl); }
+    const anchorB = t.fxBtn || $('eqb' + t.i); if (!anchorB) return;
+    const b = document.createElement('button'); b.className = 'eq-btn studio-btn'; b.id = 'studiob' + t.i; b.textContent = T('Im Studio ↗'); b.title = T('Alle Spuren im Studio weiterbearbeiten');
+    anchorB.insertAdjacentElement('afterend', b);
+    b.addEventListener('click', () => document.dispatchEvent(new CustomEvent('looper-studio', { detail: t.i })));
+  });
+  setInterval(() => tracks.forEach(t => { if (!t.L) t.srcName = ''; const v = t.srcName ? '· ' + t.srcName : ''; if (t.srcEl && t.srcEl.textContent !== v) { t.srcEl.textContent = v; t.srcEl.title = v ? T('Geladen aus der Idee ') + '„' + t.srcName + '“' : ''; } }), 700);
   // Export: Hall/Echo wie gehört dazurechnen – kreisförmig (der Ausklang am Loop-Ende läuft am Anfang weiter, nahtlos)
   async function fxRender(x, fx, srate) {
     if (!fx || (!fx.rev && !fx.dly)) return x;
@@ -635,7 +645,8 @@ const Looper = (() => {
   const AUTO_MAX_MB = 60;   // v100: vorher 150 – zwei lange Lieder (≈140 MB) blockierten beim Sichern das iPad (Kopie + Datenbank) für Sekunden; Lieder liegen ja als Datei vor
   let autoTimer = null, autoBusy = false, autoReady = false;
   let livePendSave = false;
-  function markDirty() { if (!autoReady) return; if (window.__live) { livePendSave = true; return; } clearTimeout(autoTimer); autoTimer = setTimeout(doAutosave, 2500); }
+  let changeN = 0;   // v107: zählt Änderungen (auch ohne Autosicherung) – „Im Studio ↗“ speichert nur, wenn sich etwas geändert hat
+  function markDirty() { changeN++; if (!autoReady) return; if (window.__live) { livePendSave = true; return; } clearTimeout(autoTimer); autoTimer = setTimeout(doAutosave, 2500); }
   async function doAutosave() {
     if (typeof AppDB === 'undefined') return;
     if (rec || autoBusy || ed.drag) { markDirty(); return; }
@@ -3151,7 +3162,7 @@ const Looper = (() => {
     const keep = sr; sr = sess.sr; const w = toWav(out); sr = keep;
     return { wav: w, secs: total / sess.sr };
   }
-  function loadSession(sess) {
+  function loadSession(sess, srcName) {
     ensureAudio(); sr = audioCtx.sampleRate;
     if (rec) cancelRec();
     cancelCountIn();
@@ -3167,7 +3178,9 @@ const Looper = (() => {
       if (st.vol != null) { t.vol.value = st.vol; t.volV.textContent = st.vol; }
       setTrackEq(t, st.eq2 || st.eq || EQ7.flat(), false);
       setTrackFx(t, st.fx || { rev: 0, dly: 0 }, false);
+      t.srcName = srcName || '';
     });
+    tracks.forEach(t => { if (!t.L) t.srcName = ''; });
     anchor = startAnchor('play');
     tracks.forEach(t => { if (t.L) { startTrack(t); t.state = 'playing'; detectTrackKey(t); } });
     update();
@@ -3220,7 +3233,7 @@ const Looper = (() => {
   }
 
   return {
-    getMix, loadSamples, update, position, getSession, sessionMix, sessionSecs, sessionMixEq, loadSession, setTrackEq: (i, v) => setTrackEq(tracks[i], v, false), getTrackEq: i => EQ7.norm(tracks[i].eqVals), setTrackFx: (i, v) => setTrackFx(tracks[i], v, false), getTrackFx: i => Object.assign({}, tracks[i].fx), fxBus: () => Object.assign({}, fxBusV), getDroneState, setDroneState,
+    getMix, loadSamples, update, position, getSession, sessionMix, sessionSecs, sessionMixEq, loadSession, setTrackEq: (i, v) => setTrackEq(tracks[i], v, false), getTrackEq: i => EQ7.norm(tracks[i].eqVals), setTrackFx: (i, v) => setTrackFx(tracks[i], v, false), changes: () => changeN, setSrcName: n => tracks.forEach(t => { if (t.L) t.srcName = n || ''; }), srcNames: () => tracks.map(t => t.L ? t.srcName || '' : null), getTrackFx: i => Object.assign({}, tracks[i].fx), fxBus: () => Object.assign({}, fxBusV), getDroneState, setDroneState,
     isEmpty: () => !anyContent(),
     foot: i => foot(tracks[i]),
     exportLogic: () => exportLogic(),
@@ -3502,6 +3515,14 @@ const Pedal = (() => {
   const $ = id => document.getElementById(id);
   const list = $('ideaList'), nameEl = $('ideaName');
   let selMode = false; const pick = new Set();   // v106: Mehrfachauswahl zum Verschieben
+  let loaded = null;                              // v107: zuletzt geladene/gespeicherte Idee { id, name, cat }
+  function paintLoaded() {
+    const h = $('ideaHint'); if (!h) return;
+    const same = loaded && nameEl.value.trim() === loaded.name;
+    h.textContent = !loaded ? '' : same ? T('„Speichern“ aktualisiert die Idee „') + loaded.name + T('“. Für eine neue Idee den Namen ändern.') : T('Neuer Name → wird als neue Idee gespeichert („') + loaded.name + T('“ bleibt).');
+    $('ideaSave').textContent = same ? T('Aktualisieren') : T('Speichern');
+  }
+  nameEl.addEventListener('input', paintLoaded);
   const CATS = { idee: 'Idee', loop: 'Reiner Loop', backing: 'Backing Track', team: 'Zusammenarbeit' }, FNAME = { all: 'Alle', idee: 'Ideen', loop: 'Loops', backing: 'Backing Tracks', team: 'Zusammenarbeit' };
 
   function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
@@ -3580,22 +3601,43 @@ const Pedal = (() => {
     const now = new Date();
     const name = nameEl.value.trim() || (T('Idee ') + now.toLocaleString(window.__lang === 'en' ? 'en-GB' : 'de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }));
     const drumState = withDrums.checked ? Rhythm.getState() : null, droneState = withDrone.checked ? Looper.getDroneState() : null, cat = curCat;
+    // v107: gleicher Name wie die geladene Idee → diese Idee aktualisieren; anderer Name → neue Idee
+    const same = loaded && name === loaded.name, id = same ? loaded.id : newId();
     try {
       await AppDB.put('ideas', {
-        id: newId(), v: 2, name, ts: now.getTime(),
+        id, v: 2, name, ts: now.getTime(),
         dateStr: now.toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' }),
         root: rootSel.value, mode: modeSel.value, bpm: parseFloat($('bpm').value), secs: m.secs,
         session: sess, drumState, droneState, cat
       });
-      nameEl.value = '';
+      loaded = { id, name, cat, saved: Date.now(), at: Looper.changes() }; Looper.setSrcName(name); paintLoaded();
       const n = sess.tracks.filter(Boolean).length;
-      $('loopStatus').textContent = 'Gespeichert als „' + name + '“ (' + T(CATS[cat]) + '): ' + n + ' Spur' + (n === 1 ? '' : 'en') + (drumState ? ', Drums (' + drumState.name + ')' : '') + (droneState ? ', Drone' : '') + '.';
+      $('loopStatus').textContent = (same ? T('Aktualisiert: „') : 'Gespeichert als „') + name + '“ (' + T(CATS[cat]) + '): ' + n + ' Spur' + (n === 1 ? '' : 'en') + (drumState ? ', Drums (' + drumState.name + ')' : '') + (droneState ? ', Drone' : '') + '.';
       render();
     } catch (e) {
       $('loopStatus').textContent = 'Speichern fehlgeschlagen. Ist der Gerätespeicher voll?';
     }
   });
 
+  // v107: „Im Studio ↗“ an der Spur – aktuellen Stand sichern (geladene Idee aktualisieren oder neu unter „Zusammenarbeit“), dann ins Studio
+  document.addEventListener('looper-studio', async () => {
+    const sess = Looper.getSession(); if (!sess) { $('loopStatus').textContent = T('Erst etwas aufnehmen oder laden.'); return; }
+    if (loaded && Looper.changes() === loaded.at) { location.href = 'studio/?idea=' + encodeURIComponent(loaded.id) + '&from=looper'; return; }   // unverändert: nicht neu speichern
+    if (!loaded) { if (!nameEl.value.trim()) nameEl.value = T('Loop ') + new Date().toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }); curCat = 'team'; showCat(); }
+    else nameEl.value = loaded.name;
+    const before = loaded && loaded.saved; $('ideaSave').click();
+    for (let k = 0; k < 80 && !(loaded && loaded.name === nameEl.value.trim() && loaded.saved !== before); k++) await new Promise(r => setTimeout(r, 50));
+    if (!loaded) return;
+    location.href = 'studio/?idea=' + encodeURIComponent(loaded.id) + '&from=looper';
+  });
+  // Zurück aus dem Studio: ../?load=<id> lädt die bearbeitete Idee
+  (async () => {
+    const q = new URLSearchParams(location.search), lid = q.get('load'); if (!lid) return;
+    history.replaceState(null, '', location.pathname);
+    await new Promise(r => setTimeout(r, 700));
+    const row = document.createElement('div'); row.className = 'idea-row'; row.dataset.id = lid; const b = document.createElement('button'); b.dataset.act = 'load'; row.appendChild(b);
+    try { await act(b); const st = $('loopStatus'); st.textContent = T('Aus dem Studio zurück – ') + st.textContent; } catch (e) { $('loopStatus').textContent = T('Die Idee konnte nicht geladen werden: ') + (e && e.message || e); }
+  })();
   list.addEventListener('click', e => {
     const btn = e.target.closest('button'); if (!btn) return;
     act(btn).catch(err => { $('loopStatus').textContent = T('Die Idee konnte nicht geladen werden: ') + (err && err.message || err); });
@@ -3610,8 +3652,10 @@ const Pedal = (() => {
       rootSel.value = idea.root; modeSel.value = idea.mode; rebuild();
       rootSel.dispatchEvent(new Event('change'));
       $('bpm').value = idea.bpm; $('bpm').dispatchEvent(new Event('input'));
+      loaded = { id: idea.id, name: idea.name, cat: CATS[idea.cat] ? idea.cat : 'idee', at: -1 }; nameEl.value = idea.name; setTimeout(() => { if (loaded && loaded.id === idea.id) loaded.at = Looper.changes(); }, 600);
+      curCat = loaded.cat; ps('3nps-idea-cat', curCat); showCat(); paintLoaded();
       if (idea.session) {
-        Looper.loadSession(idea.session);
+        Looper.loadSession(idea.session, idea.name);
         if (idea.drumState) Rhythm.setState(idea.drumState);
         if (idea.droneState) Looper.setDroneState(idea.droneState);
         const n = idea.session.tracks.filter(Boolean).length;
@@ -3619,7 +3663,7 @@ const Pedal = (() => {
       } else {
         const buf = await audioCtx.decodeAudioData(await idea.wav.arrayBuffer());
         const l0 = new Float32Array(buf.getChannelData(0));
-        Looper.loadSamples(buf.numberOfChannels > 1 ? { l: l0, r: new Float32Array(buf.getChannelData(1)), length: l0.length } : l0);
+        Looper.loadSamples(buf.numberOfChannels > 1 ? { l: l0, r: new Float32Array(buf.getChannelData(1)), length: l0.length } : l0); Looper.setSrcName(idea.name);
         $('loopStatus').textContent = '„' + idea.name + '“ liegt auf Spur 1. Tonart und Tempo sind übernommen.';
       }
     } else if (act === 'studio') {

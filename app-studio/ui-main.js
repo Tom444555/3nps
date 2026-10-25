@@ -48,7 +48,7 @@ const UI = (() => {
     $('bCyc').classList.toggle('on', !!(P && P.cycle.on && P.cycle.b > P.cycle.a)); $('bClick').classList.toggle('on', Sched.click);
     if (P) { if (document.activeElement !== $('lBpm')) $('lBpm').value = Math.round(P.bpm * 100) / 100; $('lSig').textContent = P.sig + '/4'; $('lKey').textContent = P.key || '–'; }
     $('tUndo').disabled = !Proj.canUndo(); $('tRedo').disabled = !Proj.canRedo();
-    $('lPos').textContent = fmtPos(Engine.curPos());
+    $('lPos').textContent = fmtPos(Engine.curPos()); $('bBack').hidden = !(P && P.fromIdea);
     document.title = (P ? P.name + ' · ' : '') + 'Loopsmiths Studio';
   }
   Engine.on('tick', () => { $('lPos').textContent = fmtPos(Engine.curPos()); });
@@ -156,6 +156,12 @@ const UI = (() => {
   $('tRedo').onclick = () => { if (Proj.redo()) { Engine.dirty(true); say('Wiederholt.'); } sync(); };
   // ---- Projekt-Menü ----
   $('bProj').onclick = projMenu;
+  $('bBack').onclick = async () => {
+    if (Engine.playing) Engine.stop(); if (window.Rec && Rec.active()) await Rec.stop();
+    const b = $('bBack'); b.disabled = true;
+    try { const it = await Exp.backToLooper(say); setTimeout(() => { location.href = '../?load=' + encodeURIComponent(it.id); }, 300); }
+    catch (e) { console.error(e); say('Zurück in den Looper: ' + e.message); b.disabled = false; }
+  };
   async function projMenu() {
     const P = Proj.P, ps = await Proj.list(), usage = await SDB.usage().catch(() => 0);
     dialog('<h2>Projekt</h2><div class="grid2"><div class="card"><b>' + esc(P.name) + '</b><div class="meta">' + P.tracks.length + ' Spuren · ' + P.regions.length + ' Regionen · ' + (Math.round(Proj.projEnd() / P.sr)) + ' s</div>' +
@@ -202,6 +208,17 @@ const UI = (() => {
     if (!(last && await Proj.load(last))) { const ps = await Proj.list(); if (ps.length) await Proj.load(ps[0].id); else await Proj.newProject('Mein erstes Projekt'); }
     Arr.heads(); Arr.zoomAll(); inspect(); sync();
     let v = 'arr'; try { v = localStorage.getItem('3nps-studio-view') || 'arr'; } catch (e) {}
+    if (idea && q.get('from') === 'looper') {
+      // v107: direkt von der Looper-Spur – passendes Projekt öffnen (unverändert seit dem letzten Zurückschreiben) oder neu übernehmen
+      history.replaceState(null, '', location.pathname);
+      const it = await SDB.looperGet('ideas', idea), ps = (await SDB.all('projects')).filter(p => p.fromIdea === idea).sort((x, y) => y.ts - x.ts);
+      if (it && ps.length && ps[0].importTs && ps[0].importTs >= it.ts) { await Proj.load(ps[0].id); say('Projekt „' + Proj.P.name + '“ geöffnet. „↩ Looper“ bringt es zurück.'); }
+      else if (it) {
+        try { await Imp.idea(idea, { mode: 'new', bar: 1, reps: 1, fit: false }, say); Proj.change('meta', p => { p.fromIdea = idea; p.importTs = it.ts; }, { noUndo: true }); await Proj.save(); say('„' + it.name + '“ aus dem Looper. Bearbeiten, dann „↩ Looper“.'); }
+        catch (e) { say('Übernahme fehlgeschlagen: ' + e.message); }
+      }
+      Arr.V.sel = Arr.V.selTrack = null; Arr.heads(); Arr.zoomAll(); inspect(); sync(); show('arr'); return;
+    }
     if (idea) { Brw.preselect(idea); v = 'brw'; history.replaceState(null, '', location.pathname); }
     else if (!Proj.P.tracks.length) v = 'brw';
     show(v);

@@ -67,7 +67,7 @@ const Imp = (() => {
         const L = tk.m.frames, n = Math.max(1, Math.round(maxLen / L)) * reps;   // kürzere Loops füllen die Länge der längsten Spur
         for (let k = 0; k < n; k++) q.regions.push({ id: Proj.nid('r'), track: t.id, kind: 'audio', audio: tk.m.id, start: at + k * L, offset: 0, len: L, gain: 0, fi: 0, fo: 0, name: it.name });
       });
-      if (it.drumState && window.Drum && opts.drums !== false) Drum.fromLooper(q, it.drumState, at, maxLen * reps);
+      if (it.drumState && it.drumState.on !== false && window.Drum && opts.drums !== false) Drum.fromLooper(q, it.drumState, at, maxLen * reps);
     });
     Engine.dirty(true); say('„' + it.name + '“ übernommen: ' + tracks.length + ' Spur' + (tracks.length === 1 ? '' : 'en') + (reps > 1 ? ' ×' + reps : '') + (Math.abs(ratio - 1) > 0.002 ? ' · ins Projekttempo gebracht' : '') + '.');
   }

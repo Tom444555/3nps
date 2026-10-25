@@ -645,4 +645,16 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
   " ausgewählt": " selected",
   " verschoben nach „": " moved to “",
   "Auswählen": "Select",
-  "In anderen Ordner verschieben": "Move to another folder" });
+  "In anderen Ordner verschieben": "Move to another folder",
+  "Im Studio ↗": "In the Studio ↗",
+  "Alle Spuren im Studio weiterbearbeiten": "Continue all tracks in the Studio",
+  "Geladen aus der Idee ": "Loaded from idea ",
+  "Aktualisiert: „": "Updated: “",
+  "„Speichern“ aktualisiert die Idee „": "“Save” updates the idea “",
+  "“. Für eine neue Idee den Namen ändern.": "”. Change the name for a new idea.",
+  "Neuer Name → wird als neue Idee gespeichert („": "New name → saved as a new idea (“",
+  "“ bleibt).": "” stays).",
+  "Aktualisieren": "Update",
+  "Erst etwas aufnehmen oder laden.": "Record or load something first.",
+  "Loop ": "Loop ",
+  "Aus dem Studio zurück – ": "Back from the Studio – " });

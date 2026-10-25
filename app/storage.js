@@ -11,15 +11,23 @@ const AppDB = (() => {
         if (!db.objectStoreNames.contains('ideas')) db.createObjectStore('ideas', { keyPath: 'id' });
         if (!db.objectStoreNames.contains('meta')) db.createObjectStore('meta', { keyPath: 'key' });
       };
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
+      req.onsuccess = () => {
+        const db = req.result;
+        // v107: iPadOS schließt die Verbindung manchmal (Hintergrund, Wechsel ins Studio) → beim nächsten Zugriff neu öffnen
+        db.onclose = () => { dbp = null; };
+        db.onversionchange = () => { try { db.close(); } catch (e) {} dbp = null; };
+        resolve(db);
+      };
+      req.onerror = () => { dbp = null; reject(req.error); };
     });
     return dbp;
   }
-  async function tx(store, mode, fn) {
+  async function tx(store, mode, fn, retry) {
     const db = await open();
+    let t;
+    try { t = db.transaction(store, mode); }
+    catch (e) { dbp = null; if (retry) throw e; return tx(store, mode, fn, true); }   // „connection is closing“ → einmal neu verbinden
     return new Promise((resolve, reject) => {
-      const t = db.transaction(store, mode);
       const s = t.objectStore(store);
       let result;
       Promise.resolve(fn(s)).then(r => { result = r; });

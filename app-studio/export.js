@@ -6,7 +6,7 @@ const Exp = (() => {
     const a = Math.max(0, Math.round(opts.a || 0)), e = Math.round(opts.b || Proj.projEnd()) + Math.round((opts.tail != null ? opts.tail : 1.5) * sr), n = Math.max(1, e - a);
     if (n > sr * 60 * 12) throw new Error('Länger als 12 Minuten – bitte einen Bereich (Cycle) wählen.');
     const proj = JSON.parse(JSON.stringify(P)); proj.cycle = { on: false, a: 0, b: 0 };
-    if (opts.only) proj.tracks.forEach(t => { t.solo = t.id === opts.only; t.mute = t.id === opts.only ? false : t.mute; });
+    if (opts.only) { const set = new Set([].concat(opts.only)); proj.tracks.forEach(t => { t.solo = set.has(t.id); if (set.has(t.id)) t.mute = false; }); }
     if (opts.noMaster) { proj.master.glue = false; proj.master.lim = false; }
     if (window.Inst) await Inst.ready(proj);
     const oc = new OfflineAudioContext(2, n, sr);
@@ -126,5 +126,32 @@ const Exp = (() => {
     say('Im Looper gespeichert als „' + name + '“ (Ablage Zusammenarbeit).');
     return name;
   }
-  return { render, run, wav24, zip, midi, toLooper, master };
+  // v107: Zurück in den Looper – Projekt (oder Cycle) als bis zu 3 Spuren in dieselbe Idee schreiben, dann den Looper öffnen
+  async function backToLooper(say) {
+    const P = Proj.P, id = P.fromIdea; if (!id) throw new Error('Dieses Projekt kommt nicht aus dem Looper.');
+    const bar = Proj.bar(), cyc = P.cycle.on && P.cycle.b > P.cycle.a;
+    const a = cyc ? P.cycle.a : 0, b = cyc ? P.cycle.b : Math.max(bar, Math.ceil((Proj.projEnd() - 64) / bar) * bar);
+    const used = P.tracks.filter(t => !t.mute && P.regions.some(r => r.track === t.id && !r.muted && r.start < b && r.start + r.len > a));
+    if (!used.length) throw new Error('Im Bereich ist nichts zu hören.');
+    const groups = used.length <= 3 ? used.map(t => [t]) : [[used[0]], [used[1]], used.slice(2)];
+    const enc24 = x => { const u = new Uint8Array(x.length * 3); for (let i = 0, o = 0; i < x.length; i++, o += 3) { let v = x[i]; v = v > 1 ? 1 : v < -1 ? -1 : v; const s = Math.round(v * 8388607); u[o] = s & 255; u[o + 1] = (s >> 8) & 255; u[o + 2] = (s >> 16) & 255; } return u; };
+    const tracks = []; let sr = P.sr, L = 0;
+    for (let k = 0; k < groups.length; k++) {
+      say('Rechne Spur ' + (k + 1) + ' von ' + groups.length + ' für den Looper …');
+      const x = await render({ a, b, tail: 0, noMaster: true, only: groups[k].map(t => t.id) }, null); sr = x.sr; L = x.l.length;
+      tracks.push({ L, enc: 'i24', dl: enc24(x.l), dr: enc24(x.r), vol: 100, eq: [0, 0, 0, 0, 0, 0, 0], fx: { rev: 0, dly: 0 } });
+    }
+    while (tracks.length < 3) tracks.push(null);
+    const old = await SDB.looperGet('ideas', id), now = new Date(), [root, ...md] = (P.key || 'C Dur').split(' ');
+    const idea = Object.assign({ id, v: 2, cat: 'team', droneState: null }, old || {}, {
+      name: (old && old.name) || P.name, ts: now.getTime(), dateStr: now.toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' }),
+      bpm: P.bpm, secs: L / sr, session: { sr, baseL: L, stereo: true, tracks }, drumState: P.tracks.some(t => t.kind === 'drum') ? null : (old && old.drumState) || null });
+    if (root && /Moll|Dur/.test(md.join(' '))) { idea.root = root; idea.mode = /Moll/.test(md.join(' ')) ? 'Äolisch (Moll)' : 'Ionisch (Dur)'; }
+    await SDB.looperPut('ideas', idea);
+    Proj.change('meta', p => { p.importTs = idea.ts; }, { noUndo: true }); await Proj.save();
+    say('In den Looper geschrieben (' + groups.length + ' Spur' + (groups.length === 1 ? '' : 'en') + ', ' + Math.round((b - a) / bar) + ' Takte). Öffne den Looper …');
+    window.__backDone = { n: groups.length, bars: Math.round((b - a) / bar), id };
+    return idea;
+  }
+  return { render, run, wav24, zip, midi, toLooper, master, backToLooper };
 })();

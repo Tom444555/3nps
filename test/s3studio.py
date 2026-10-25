@@ -86,7 +86,7 @@ async def main():
         # ---- Drums aus dem Looper übernehmen (Muster 1:1) ----
         pg2 = await ctx.new_page(); await pg2.goto(L); await pg2.wait_for_timeout(900)
         await pg2.evaluate("(()=>{ensureAudio(); const sr=audioCtx.sampleRate; const l=new Float32Array(sr*2).map((_, i)=>Math.sin(i/30)*0.2); Looper._setTrackRaw(0,l)})()")
-        await pg2.evaluate("AppDB.put('ideas',{id:'dr1',v:2,name:'Mit Drums',ts:Date.now(),dateStr:'x',root:'C',mode:'Ionisch (Dur)',bpm:120,secs:2,cat:'backing',session:Looper.getSession(),drumState:Rhythm.getState(),droneState:null})")
+        await pg2.evaluate("AppDB.put('ideas',{id:'dr1',v:2,name:'Mit Drums',ts:Date.now(),dateStr:'x',root:'C',mode:'Ionisch (Dur)',bpm:120,secs:2,cat:'backing',session:Looper.getSession(),drumState:Object.assign(Rhythm.getState(),{on:true}),droneState:null})")
         await pg2.close()
         await pg.click('#views [data-v="brw"]'); await pg.wait_for_timeout(800)
         await pg.click('#bList .item:has-text("Mit Drums")'); await pg.wait_for_timeout(800)
