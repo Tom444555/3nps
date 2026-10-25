@@ -97,7 +97,7 @@ EQCSS
   <div class="tp"><button class="btn" id="bHome" title="Zum Anfang">⏮</button><button class="btn play" id="bPlay" title="Abspielen / Stopp">▶</button><button class="btn rec" id="bRec" title="Aufnehmen">●</button><button class="btn" id="bCyc" title="Cycle (Schleife)">⟲</button><button class="btn" id="bClick" title="Metronom">♩</button></div>
   <div class="lcd"><div><small>TAKT</small><b id="lPos">1.1.1</b></div><div><small>TEMPO</small><input id="lBpm" type="number" min="40" max="240" step="0.1" aria-label="Tempo"></div><div><small>TAKTART</small><b id="lSig">4/4</b></div><div><small>TONART</small><b id="lKey" translate="no">–</b></div></div>
   <div class="views" id="views"><button data-v="arr" class="a">Arrangement</button><button data-v="mix">Mischpult</button><button data-v="roll">Noten</button><button data-v="brw">Aus dem Looper</button></div>
-  <button class="btn p" id="bBack" hidden title="Projekt in dieselbe Idee schreiben und im Looper weitermachen">↩ Looper</button><button class="btn" id="bProj">Projekt ▾</button>
+  <button class="btn p" id="bBack" title="Zurück zum Looper (Projekt aus einer Idee: wird in dieselbe Idee geschrieben)">↩ Looper</button><button class="btn" id="bProj">Projekt ▾</button>
   <div class="cpu">Last <b id="cLoad">–</b><br>Speicher <b id="cMem">–</b></div>
 </div>
 <main>
@@ -106,7 +106,9 @@ EQCSS
       <button class="btn" id="tAdd">+ Spur</button>
       <span class="sep"></span>
       <label class="row" style="font-size:12px;color:var(--mut)">Einrasten <select id="tSnap"><option value="bar">Takt</option><option value="beat" selected>Schlag</option><option value="16">16tel</option><option value="off">aus</option></select></label>
-      <button class="btn" id="tZo">−</button><button class="btn" id="tZi">+</button><button class="btn" id="tZa">Alles</button>
+      <button class="btn" id="tZo" title="Herauszoomen">−</button><button class="btn" id="tZi" title="Hineinzoomen">+</button><button class="btn" id="tZa">Alles</button><button class="btn" id="tTh0" title="Spuren niedriger">↕−</button><button class="btn" id="tTh1" title="Spuren höher (größere Wellenform)">↕+</button>
+      <span class="sep"></span>
+      <button class="btn" id="tLoop" title="Über die Spuren ziehen = Takte auswählen und loopen">⟲ Takte loopen</button>
       <span class="sep"></span>
       <button class="btn" id="tSplit" title="Ausgewählte Region an der Abspielposition teilen">Teilen</button>
       <button class="btn" id="tDup">Duplizieren</button>

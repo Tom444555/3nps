@@ -60,7 +60,7 @@ const SDB = (() => {
   // Schreiber: nimmt Stücke beliebiger Länge an (auch während der Aufnahme), schreibt volle Blöcke sofort
   function writer(name, sr, stereo) {
     const id = newId(); let frames = 0, n = 0, bl = new Float32Array(CH), br = stereo ? new Float32Array(CH) : null, fill = 0;
-    const peaks = [], PK = 512; let pmin = 0, pmax = 0, pc = 0, pending = Promise.resolve();
+    const peaks = [], PK = 128; let pmin = 0, pmax = 0, pc = 0, pending = Promise.resolve();
     function flush(len) {
       const k = n++, l = q16(bl, 0, len), r = br ? q16(br, 0, len) : null;
       pending = pending.then(() => put('chunks', { k: id + ':' + String(k).padStart(6, '0'), l, r }));

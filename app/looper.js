@@ -1547,18 +1547,21 @@ const Looper = (() => {
       return;
     }
     // eine Spalte je Gerätepixel, Spitzen aus den 64er-Blöcken (jeder Abtastwert zählt, nichts wird übersprungen)
+    // v109: zusätzlich Lautheit (RMS) als kräftiger Kern – Spitzen hell, Kern satt, scharf je Gerätepixel
     const n = Math.max(1, Math.round(w * dpr));
-    if (!t.peaks || t.peaks.length !== n * 2 || t.peaksFor !== t.mix) {
-      blockPeaks(t);
-      t.peaks = new Float32Array(n * 2); t.peaksFor = t.mix;
-      const step = t.L / n;
-      for (let x = 0; x < n; x++) { t.peaks[x] = peakRange(t, x * step, (x + 1) * step, 'l') / t.bpMax; t.peaks[n + x] = peakRange(t, x * step, (x + 1) * step, 'r') / t.bpMax; }
+    if (!t.peaks || t.peaks.length !== n * 4 || t.peaksFor !== t.mix) {
+      const bp = blockPeaks(t);
+      t.peaks = new Float32Array(n * 4); t.peaksFor = t.mix;
+      const step = t.L / n, rmsR = (a, b, arr) => { let p = 0; for (let k = Math.floor(a / 64), e = Math.max(k + 1, Math.ceil(b / 64)); k < e && k < arr.length; k++) if (arr[k] > p) p = arr[k]; return p; };
+      for (let x = 0; x < n; x++) { const a = x * step, b = (x + 1) * step; t.peaks[x] = peakRange(t, a, b, 'l') / t.bpMax; t.peaks[n + x] = peakRange(t, a, b, 'r') / t.bpMax; t.peaks[2 * n + x] = Math.min(1, rmsR(a, b, bp.rl) * 1.41 / t.bpMax); t.peaks[3 * n + x] = Math.min(1, rmsR(a, b, bp.rr) * 1.41 / t.bpMax); }
     }
-    ctx.fillStyle = tc; ctx.globalAlpha = t.src ? 0.22 : 0.1;
+    ctx.fillStyle = tc; ctx.globalAlpha = t.src ? 0.16 : 0.08;
     ctx.beginPath(); ctx.roundRect ? ctx.roundRect(0, 0, w, h, 4) : ctx.rect(0, 0, w, h); ctx.fill();
-    ctx.globalAlpha = t.src ? 0.95 : 0.45;
-    const cw = 1 / dpr, mid = h / 2, amp = (h - 4) / 2;
-    for (let x = 0; x < n; x++) { const up = Math.max(cw * 0.5, t.peaks[x] * amp), dn = Math.max(cw * 0.5, t.peaks[n + x] * amp); ctx.fillRect(x * cw, mid - up, cw, up + dn); }
+    const cw = 1 / dpr, mid = Math.round(h / 2 * dpr) / dpr, amp = (h - 4) / 2;
+    ctx.globalAlpha = t.src ? 0.5 : 0.25;                                            // Spitzen (oben links, unten rechts)
+    for (let x = 0; x < n; x++) { const up = Math.max(cw, Math.round(t.peaks[x] * amp * dpr) / dpr), dn = Math.max(cw, Math.round(t.peaks[n + x] * amp * dpr) / dpr); ctx.fillRect(x * cw, mid - up, cw, up + dn); }
+    ctx.globalAlpha = t.src ? 1 : 0.55;                                              // Kern (Lautheit)
+    for (let x = 0; x < n; x++) { const up = Math.round(t.peaks[2 * n + x] * amp * dpr) / dpr, dn = Math.round(t.peaks[3 * n + x] * amp * dpr) / dpr; if (up + dn > 0) ctx.fillRect(x * cw, mid - up, cw, up + dn); }
     ctx.globalAlpha = 1;
     // Raster aus der Erkennung: Takte als Linie, Schläge als kurze Striche oben und unten
     const bt = trackBeats(t), barPx = bt.length > 4 ? (bt[4].f - bt[0].f) / t.L * w : w;
@@ -3619,20 +3622,28 @@ const Pedal = (() => {
     }
   });
 
+  // v109: vor dem Wechsel ins Studio den Looper stumm schalten (sonst läuft er auf dem iPad im Hintergrund weiter)
+  function goStudio(id, url) {
+    try { if (typeof audioCtx !== 'undefined' && audioCtx) audioCtx.suspend(); } catch (e) {}
+    try { sessionStorage.setItem('3nps-to-studio', id); } catch (e) {}
+    location.href = url || ('studio/?idea=' + encodeURIComponent(id) + '&from=looper');
+  }
+  // Kommt der Looper aus dem Zwischenspeicher zurück (Wischgeste/Zurück), frisch laden statt stumm weiterzulaufen
+  window.addEventListener('pageshow', e => { let id = null; try { id = sessionStorage.getItem('3nps-to-studio'); sessionStorage.removeItem('3nps-to-studio'); } catch (x) {} if (e.persisted && id) location.replace('./?load=' + encodeURIComponent(id)); });
   // v107: „Im Studio ↗“ an der Spur – aktuellen Stand sichern (geladene Idee aktualisieren oder neu unter „Zusammenarbeit“), dann ins Studio
   document.addEventListener('looper-studio', async () => {
     const sess = Looper.getSession(); if (!sess) { $('loopStatus').textContent = T('Erst etwas aufnehmen oder laden.'); return; }
-    if (loaded && Looper.changes() === loaded.at) { location.href = 'studio/?idea=' + encodeURIComponent(loaded.id) + '&from=looper'; return; }   // unverändert: nicht neu speichern
+    if (loaded && Looper.changes() === loaded.at) { goStudio(loaded.id); return; }   // unverändert: nicht neu speichern
     if (!loaded) { if (!nameEl.value.trim()) nameEl.value = T('Loop ') + new Date().toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }); curCat = 'team'; showCat(); }
     else nameEl.value = loaded.name;
     const before = loaded && loaded.saved; $('ideaSave').click();
     for (let k = 0; k < 80 && !(loaded && loaded.name === nameEl.value.trim() && loaded.saved !== before); k++) await new Promise(r => setTimeout(r, 50));
     if (!loaded) return;
-    location.href = 'studio/?idea=' + encodeURIComponent(loaded.id) + '&from=looper';
+    goStudio(loaded.id);
   });
   // Zurück aus dem Studio: ../?load=<id> lädt die bearbeitete Idee
   (async () => {
-    const q = new URLSearchParams(location.search), lid = q.get('load'); if (!lid) return;
+    const q = new URLSearchParams(location.search), lid = q.get('load'); try { sessionStorage.removeItem('3nps-to-studio'); } catch (e) {} if (!lid) return;
     history.replaceState(null, '', location.pathname);
     await new Promise(r => setTimeout(r, 700));
     const row = document.createElement('div'); row.className = 'idea-row'; row.dataset.id = lid; const b = document.createElement('button'); b.dataset.act = 'load'; row.appendChild(b);
@@ -3669,7 +3680,7 @@ const Pedal = (() => {
     } else if (act === 'studio') {
       // v103: Loopsmiths Studio ist eine eigene Seite – der Looper wird dabei geschlossen (Speicher frei für das Studio)
       try { await Promise.race([AppDB.flush ? AppDB.flush() : null, new Promise(r => setTimeout(r, 400))]); } catch (x) {}
-      location.href = 'studio/?idea=' + encodeURIComponent(id);
+      goStudio(id, 'studio/?idea=' + encodeURIComponent(id));
     } else if (act === 'share') {
       const wav = idea.wav || (await Looper.sessionMixEq(idea.session)).wav;
       const file = new File([wav], idea.name.replace(/[\\/:*?"<>|]/g, '_') + '.wav', { type: 'audio/wav' });

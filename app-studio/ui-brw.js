@@ -80,6 +80,7 @@ const Brw = (() => {
     try {
       if (Proj.P && mode === 'into' && x.src === 'idea') { const it = list.find(q => q.id === x.id); if (it && it.n && Proj.P.tracks.length + it.n > Engine.MAXT) throw new Error('Mehr als ' + Engine.MAXT + ' Spuren gehen nicht. Erst Spuren löschen oder ein neues Projekt nehmen.'); }
       await (x.src === 'song' ? Imp.song : x.src === 'lied' ? Imp.lied : Imp.idea)(x.id, opts, UI.say);
+      if (x.src === 'idea' && mode === 'new') { const it = await SDB.looperGet('ideas', x.id); Proj.change('meta', p => { p.fromIdea = x.id; p.importTs = it ? it.ts : Date.now(); }, { noUndo: true }); await Proj.save(); }
       Arr.heads(); Arr.zoomAll(); UI.show('arr'); UI.sync();
     } catch (e) { console.error(e); UI.say('Übernahme fehlgeschlagen: ' + e.message); }
     finally { btns.forEach(b => b.disabled = false); }

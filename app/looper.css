@@ -36,7 +36,7 @@
   .chip { width: 10px; height: 10px; border-radius: 3px; background: var(--tc); box-shadow: 0 0 6px var(--tc); }
   .tname { font: 600 0.8rem var(--f-body); }
   .ring { width: 100%; aspect-ratio: 1; max-width: 100%; display: block; }
-  .wave { width: 100%; height: 38px; display: block; border-radius: 4px; background: #17171a; }
+  .wave { width: 100%; height: 56px; display: block; border-radius: 4px; background: #17171a; }
   .foot {
     position: relative; appearance: none; cursor: pointer; border-radius: 9px; min-width: 0; touch-action: manipulation;
     padding: 18px 4px 16px; border: 1px solid #0d0d0e;

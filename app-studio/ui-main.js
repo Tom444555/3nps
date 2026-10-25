@@ -48,7 +48,7 @@ const UI = (() => {
     $('bCyc').classList.toggle('on', !!(P && P.cycle.on && P.cycle.b > P.cycle.a)); $('bClick').classList.toggle('on', Sched.click);
     if (P) { if (document.activeElement !== $('lBpm')) $('lBpm').value = Math.round(P.bpm * 100) / 100; $('lSig').textContent = P.sig + '/4'; $('lKey').textContent = P.key || '–'; }
     $('tUndo').disabled = !Proj.canUndo(); $('tRedo').disabled = !Proj.canRedo();
-    $('lPos').textContent = fmtPos(Engine.curPos()); $('bBack').hidden = !(P && P.fromIdea);
+    $('lPos').textContent = fmtPos(Engine.curPos()); $('bBack').title = P && P.fromIdea ? 'In die Idee zurückschreiben und im Looper weitermachen' : 'Zurück zum Looper';
     document.title = (P ? P.name + ' · ' : '') + 'Loopsmiths Studio';
   }
   Engine.on('tick', () => { $('lPos').textContent = fmtPos(Engine.curPos()); });
@@ -145,6 +145,8 @@ const UI = (() => {
     $('dlg').querySelector('.plist').onclick = e => { const it = e.target.closest('.item'); if (!it) return; const k = it.dataset.k; close(); const t = Proj.addTrack(k, k === 'audio' ? null : k === 'midi' ? 'Instrument' : 'Drummer'); Arr.V.selTrack = t.id; if (k === 'drum' && window.Drum) Drum.addDefault(t.id); if (k === 'midi' && window.Inst) Inst.addDefault(t.id); inspect(); };
   };
   $('tZo').onclick = () => Arr.zoom(1.5); $('tZi').onclick = () => Arr.zoom(1 / 1.5); $('tZa').onclick = () => Arr.zoomAll();
+  $('tTh0').onclick = () => Arr.setTh(Arr.V.th / 1.35); $('tTh1').onclick = () => Arr.setTh(Arr.V.th * 1.35);
+  $('tLoop').onclick = () => { Arr.V.loopSel = !Arr.V.loopSel; $('tLoop').classList.toggle('on', Arr.V.loopSel); say(Arr.V.loopSel ? 'Takte loopen: über die Spuren ziehen (rastet auf ganze Takte). Nochmal tippen = aus. ⟲ oben schaltet den Loop an/aus.' : 'Normal bearbeiten.'); };
   try { $('tSnap').value = localStorage.getItem('3nps-studio-snap') || 'beat'; } catch (e) {}
   $('tSnap').onchange = () => { try { localStorage.setItem('3nps-studio-snap', $('tSnap').value); } catch (e) {} };
   $('tSplit').onclick = () => { const r = Arr.V.sel && Proj.reg(Arr.V.sel); if (!r) { say('Erst eine Region antippen, dann die Abspielposition auf die Schnittstelle setzen.'); return; } const at = Engine.curPos(); if (!Proj.split(r.id, at)) say('Die Abspielposition liegt nicht in der Region.'); };
@@ -159,7 +161,8 @@ const UI = (() => {
   $('bBack').onclick = async () => {
     if (Engine.playing) Engine.stop(); if (window.Rec && Rec.active()) await Rec.stop();
     const b = $('bBack'); b.disabled = true;
-    try { const it = await Exp.backToLooper(say); setTimeout(() => { location.href = '../?load=' + encodeURIComponent(it.id); }, 300); }
+    if (!Proj.P.fromIdea) { await Proj.save(); try { await Engine.ac().suspend(); } catch (e) {} location.href = '../'; return; }
+    try { const it = await Exp.backToLooper(say); try { await Engine.ac().suspend(); } catch (e) {} setTimeout(() => { location.href = '../?load=' + encodeURIComponent(it.id); }, 300); }
     catch (e) { console.error(e); say('Zurück in den Looper: ' + e.message); b.disabled = false; }
   };
   async function projMenu() {
