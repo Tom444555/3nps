@@ -743,7 +743,14 @@ html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleis
   .idea-filter { display: flex; flex-wrap: wrap; margin: 8px 0 6px; }
   .idea-cat { display: inline-block; font-size: .62rem; padding: 1px 6px; border-radius: 8px; border: 1px solid currentColor; opacity: .85; vertical-align: middle; }
   .idea-cat.c-idee { color: #9ab; } .idea-cat.c-loop { color: #7fd8ff; } .idea-cat.c-backing { color: #f2c230; } .idea-cat.c-team { color: #9be37a; }
-  .idea-move { font-size: .72rem; padding: 3px 4px; max-width: 9.5em; }
+  .idea-move { font-size: .74rem; padding: 4px 6px; max-width: 11em; border-color: var(--tc, #7fd8ff); }
+  .idea-bulk { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 8px; }
+  .idea-bulk .toggle-btn { padding: 4px 10px; font-size: .74rem; }
+  .idea-bulkbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  .idea-bulkbar .seg { display: flex; flex-wrap: wrap; gap: 4px; }
+  .idea-row .idea-pick { width: 22px; height: 22px; flex: none; margin-right: 8px; accent-color: var(--tc, #7fd8ff); }
+  .idea-row.picked { outline: 1px solid var(--tc, #7fd8ff); border-radius: 8px; }
+  @media (max-width: 560px) { .idea-row .idea-actions { flex-wrap: wrap; } .idea-row .idea-move { max-width: none; flex: 1 1 100%; } }
   /* ---- Quintenzirkel ---- */
   .qz-card { flex-direction: row; flex-wrap: wrap; align-items: flex-start; gap: 18px; }
   .qz-wrap { flex: 1 1 380px; max-width: 560px; margin: 0 auto; }
@@ -3395,7 +3402,15 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
   "Kathedrale": "Cathedral",
   "1/8 punktiert": "dotted 1/8",
   "1/4 punktiert": "dotted 1/4",
-  "Raum, Echo-Abstand und Wiederholungen gelten für alle Spuren; das Echo läuft im Tempo.": "Room, echo time and repeats apply to all tracks; the echo follows the tempo." });
+  "Raum, Echo-Abstand und Wiederholungen gelten für alle Spuren; das Echo läuft im Tempo.": "Room, echo time and repeats apply to all tracks; the echo follows the tempo.",
+  "Mehrere verschieben": "Move several",
+  "Verschieben nach": "Move to",
+  "Alle wählen": "Select all",
+  "Fertig": "Done",
+  " ausgewählt": " selected",
+  " verschoben nach „": " moved to “",
+  "Auswählen": "Select",
+  "In anderen Ordner verschieben": "Move to another folder" });
 
 // Sprache (v59): Deutsch ist der Quelltext. Nur im EN-Modus läuft hier etwas:
 // Ein Beobachter übersetzt neue/geänderte Texte im DOM (Text, title, placeholder, aria-label)
@@ -3501,7 +3516,7 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v105</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v106</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -4151,6 +4166,7 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
         <label class="check"><input type="checkbox" id="ideaWithDrone" checked> Drone mitspeichern</label>
       </div>
       <div class="seg idea-filter" id="ideaFilter" role="group" aria-label="Anzeigen"><button class="toggle-btn active" data-f="all">Alle</button><button class="toggle-btn" data-f="idee">Ideen</button><button class="toggle-btn" data-f="loop">Loops</button><button class="toggle-btn" data-f="backing">Backing Tracks</button><button class="toggle-btn" data-f="team">Zusammenarbeit</button></div>
+      <div class="idea-bulk" id="ideaBulk"><button class="toggle-btn" id="ideaSelBtn">Mehrere verschieben</button><span class="idea-bulkbar" id="ideaBulkBar" hidden><b id="ideaSelN">0 ausgewählt</b><span class="caption">Verschieben nach</span><span class="seg" id="ideaBulkTo"><button class="toggle-btn" data-c="idee">Idee</button><button class="toggle-btn" data-c="loop">Reiner Loop</button><button class="toggle-btn" data-c="backing">Backing Track</button><button class="toggle-btn" data-c="team">Zusammenarbeit</button></span><button class="toggle-btn" id="ideaSelAll">Alle wählen</button><button class="toggle-btn" id="ideaSelDone">Fertig</button></span></div>
       <div class="log-list" id="ideaList"><p class="pattern-desc">Wird geladen …</p></div>
       </div>
       </details>
@@ -13226,6 +13242,7 @@ const Pedal = (() => {
 (function () {
   const $ = id => document.getElementById(id);
   const list = $('ideaList'), nameEl = $('ideaName');
+  let selMode = false; const pick = new Set();   // v106: Mehrfachauswahl zum Verschieben
   const CATS = { idee: 'Idee', loop: 'Reiner Loop', backing: 'Backing Track', team: 'Zusammenarbeit' }, FNAME = { all: 'Alle', idee: 'Ideen', loop: 'Loops', backing: 'Backing Tracks', team: 'Zusammenarbeit' };
 
   function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
@@ -13245,13 +13262,14 @@ const Pedal = (() => {
     list.innerHTML = ideas.map(i => i.broken ? `
       <div class="idea-row" data-id="${esc(i.id)}"><div class="idea-main"><div class="idea-name">${esc(T('Beschädigter Eintrag'))}</div><div class="log-meta" style="text-align:left">${esc(i.err)}</div></div>
         <div class="idea-actions"><button class="toggle-btn" data-act="del">Löschen</button></div></div>` : `
-      <div class="idea-row" data-id="${esc(i.id)}">
+      <div class="idea-row${pick.has(i.id) ? ' picked' : ''}" data-id="${esc(i.id)}">
+        ${selMode ? '<input type="checkbox" class="idea-pick" aria-label="' + esc(T('Auswählen')) + '"' + (pick.has(i.id) ? ' checked' : '') + '>' : ''}
         <div class="idea-main">
           <div class="idea-name"><span translate="no">${esc(i.name)}</span> <span class="idea-cat c-${i.cat}">${esc(T(CATS[i.cat]))}</span></div>
           <div class="log-meta" style="text-align:left">${esc(i.root)} ${esc(i.mode)} · ${String(Math.round(i.bpm * 10) / 10).replace('.', ',')} BPM · ${i.session ? i.n + ' Spur' + (i.n === 1 ? '' : 'en') + ' · ' : ''}${i.drumName ? 'Drums: ' + esc(i.drumName) + ' · ' : (i.drums ? 'Drums · ' : '')}${i.drone ? 'Drone · ' : ''}${(+i.secs || 0).toFixed(1).replace('.', ',')} s · ${esc(i.dateStr)}</div>
         </div>
         <div class="idea-actions">
-          <select class="idea-move" aria-label="Ablage ändern">${Object.keys(CATS).map(c => '<option value="' + c + '"' + (c === i.cat ? ' selected' : '') + '>' + esc(T(CATS[c])) + '</option>').join('')}</select>
+          <select class="idea-move" aria-label="Ablage ändern" title="${esc(T('In anderen Ordner verschieben'))}">${Object.keys(CATS).map(c => '<option value="' + c + '"' + (c === i.cat ? ' selected' : '') + '>📁 ' + esc(T(CATS[c])) + '</option>').join('')}</select>
           <button class="toggle-btn" data-act="load">Laden</button>
           <button class="toggle-btn" data-act="share">Teilen</button>
           <button class="toggle-btn" data-act="studio" title="Im Studio weiterbearbeiten">Studio</button>
@@ -13279,6 +13297,21 @@ const Pedal = (() => {
     const id = sel.closest('.idea-row').dataset.id; let idea = null; try { idea = await AppDB.get('ideas', id); } catch (x) {}
     if (!idea) return; idea.cat = sel.value; await AppDB.put('ideas', idea); idea = null;
     $('loopStatus').textContent = T('Verschoben nach „') + T(CATS[sel.value]) + '“.'; render();
+  });
+  // v106: mehrere Ideen auf einmal in einen Ordner verschieben
+  function bulkPaint() { $('ideaBulkBar').hidden = !selMode; $('ideaSelBtn').hidden = selMode; $('ideaSelN').textContent = pick.size + T(' ausgewählt'); $('ideaBulkTo').querySelectorAll('button').forEach(b => b.disabled = !pick.size); }
+  $('ideaSelBtn').addEventListener('click', () => { selMode = true; pick.clear(); bulkPaint(); render(); });
+  $('ideaSelDone').addEventListener('click', () => { selMode = false; pick.clear(); bulkPaint(); render(); });
+  $('ideaSelAll').addEventListener('click', () => { list.querySelectorAll('.idea-row').forEach(r => pick.add(r.dataset.id)); bulkPaint(); render(); });
+  list.addEventListener('click', e => {
+    if (!selMode || e.target.closest('button, select')) return; const row = e.target.closest('.idea-row'); if (!row) return;
+    const id = row.dataset.id; if (pick.has(id)) pick.delete(id); else pick.add(id);
+    row.classList.toggle('picked', pick.has(id)); const cb = row.querySelector('.idea-pick'); if (cb) cb.checked = pick.has(id); bulkPaint();
+  });
+  $('ideaBulkTo').addEventListener('click', async e => {
+    const b = e.target.closest('button'); if (!b || !pick.size) return; const c = b.dataset.c, ids = [...pick]; let n = 0;
+    for (const id of ids) { let idea = null; try { idea = await AppDB.get('ideas', id); } catch (x) {} if (idea && idea.cat !== c) { idea.cat = c; await AppDB.put('ideas', idea); n++; } idea = null; }
+    $('loopStatus').textContent = ids.length + T(' verschoben nach „') + T(CATS[c]) + '“.'; pick.clear(); selMode = false; bulkPaint(); render();
   });
   showCat();
   withDrone.addEventListener('change', () => ps('3nps-idea-drone', withDrone.checked ? '1' : '0'));

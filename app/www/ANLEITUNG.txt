@@ -986,3 +986,9 @@ Gut zu wissen
    - Wird mit der Idee gespeichert, kommt beim Export (Mix, Logic) wie gehört mit – nahtlos: der Ausklang am Loop-Ende
      läuft am Loop-Anfang weiter. Das Studio übernimmt die Anteile.
    - Leistung: Solange eine Spur 0 % hat, rechnet für sie kein Hall/Echo mit.
+
+89. Ideen in Ordner verschieben (v106)
+   - Einzeln: in jeder Zeile das Feld „📁 …“ antippen und den Ordner wählen (Idee, Reiner Loop, Backing Track, Zusammenarbeit).
+   - Mehrere auf einmal: über der Liste „Mehrere verschieben“ → Ideen antippen (Häkchen) oder „Alle wählen“ →
+     unter „Verschieben nach“ den Ordner tippen. „Fertig“ beendet die Auswahl.
+   - Tipp: erst oben den Filter wählen (z. B. „Ideen“), dann „Alle wählen“ – so verschiebst du nur die angezeigten.

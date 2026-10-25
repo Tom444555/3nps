@@ -18,7 +18,7 @@ async def main():
         pg = await ctx.new_page(); errs = []
         pg.on('pageerror', lambda e: errs.append(str(e)))
         await pg.goto(U); await pg.wait_for_timeout(900)
-        check('Version v105', 'v105' in await pg.inner_text('.brand'))
+        check('Version ≥ v105', int(__import__('re').search(r'v(\d+)', await pg.inner_text('.brand')).group(1)) >= 105)
         check('Knopf „Hall/Echo“ an allen 3 Spuren', await pg.locator('.fx-btn').count() == 3)
         sr = await pg.evaluate("(ensureAudio(), audioCtx.sampleRate)")
         # Spur 1: kurzer Klick am Anfang eines 2-s-Loops

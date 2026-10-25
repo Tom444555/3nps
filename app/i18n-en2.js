@@ -637,4 +637,12 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
   "Kathedrale": "Cathedral",
   "1/8 punktiert": "dotted 1/8",
   "1/4 punktiert": "dotted 1/4",
-  "Raum, Echo-Abstand und Wiederholungen gelten für alle Spuren; das Echo läuft im Tempo.": "Room, echo time and repeats apply to all tracks; the echo follows the tempo." });
+  "Raum, Echo-Abstand und Wiederholungen gelten für alle Spuren; das Echo läuft im Tempo.": "Room, echo time and repeats apply to all tracks; the echo follows the tempo.",
+  "Mehrere verschieben": "Move several",
+  "Verschieben nach": "Move to",
+  "Alle wählen": "Select all",
+  "Fertig": "Done",
+  " ausgewählt": " selected",
+  " verschoben nach „": " moved to “",
+  "Auswählen": "Select",
+  "In anderen Ordner verschieben": "Move to another folder" });

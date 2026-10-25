@@ -508,4 +508,11 @@ html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleis
   .idea-filter { display: flex; flex-wrap: wrap; margin: 8px 0 6px; }
   .idea-cat { display: inline-block; font-size: .62rem; padding: 1px 6px; border-radius: 8px; border: 1px solid currentColor; opacity: .85; vertical-align: middle; }
   .idea-cat.c-idee { color: #9ab; } .idea-cat.c-loop { color: #7fd8ff; } .idea-cat.c-backing { color: #f2c230; } .idea-cat.c-team { color: #9be37a; }
-  .idea-move { font-size: .72rem; padding: 3px 4px; max-width: 9.5em; }
+  .idea-move { font-size: .74rem; padding: 4px 6px; max-width: 11em; border-color: var(--tc, #7fd8ff); }
+  .idea-bulk { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 8px; }
+  .idea-bulk .toggle-btn { padding: 4px 10px; font-size: .74rem; }
+  .idea-bulkbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  .idea-bulkbar .seg { display: flex; flex-wrap: wrap; gap: 4px; }
+  .idea-row .idea-pick { width: 22px; height: 22px; flex: none; margin-right: 8px; accent-color: var(--tc, #7fd8ff); }
+  .idea-row.picked { outline: 1px solid var(--tc, #7fd8ff); border-radius: 8px; }
+  @media (max-width: 560px) { .idea-row .idea-actions { flex-wrap: wrap; } .idea-row .idea-move { max-width: none; flex: 1 1 100%; } }

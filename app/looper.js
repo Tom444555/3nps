@@ -3501,6 +3501,7 @@ const Pedal = (() => {
 (function () {
   const $ = id => document.getElementById(id);
   const list = $('ideaList'), nameEl = $('ideaName');
+  let selMode = false; const pick = new Set();   // v106: Mehrfachauswahl zum Verschieben
   const CATS = { idee: 'Idee', loop: 'Reiner Loop', backing: 'Backing Track', team: 'Zusammenarbeit' }, FNAME = { all: 'Alle', idee: 'Ideen', loop: 'Loops', backing: 'Backing Tracks', team: 'Zusammenarbeit' };
 
   function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
@@ -3520,13 +3521,14 @@ const Pedal = (() => {
     list.innerHTML = ideas.map(i => i.broken ? `
       <div class="idea-row" data-id="${esc(i.id)}"><div class="idea-main"><div class="idea-name">${esc(T('Beschädigter Eintrag'))}</div><div class="log-meta" style="text-align:left">${esc(i.err)}</div></div>
         <div class="idea-actions"><button class="toggle-btn" data-act="del">Löschen</button></div></div>` : `
-      <div class="idea-row" data-id="${esc(i.id)}">
+      <div class="idea-row${pick.has(i.id) ? ' picked' : ''}" data-id="${esc(i.id)}">
+        ${selMode ? '<input type="checkbox" class="idea-pick" aria-label="' + esc(T('Auswählen')) + '"' + (pick.has(i.id) ? ' checked' : '') + '>' : ''}
         <div class="idea-main">
           <div class="idea-name"><span translate="no">${esc(i.name)}</span> <span class="idea-cat c-${i.cat}">${esc(T(CATS[i.cat]))}</span></div>
           <div class="log-meta" style="text-align:left">${esc(i.root)} ${esc(i.mode)} · ${String(Math.round(i.bpm * 10) / 10).replace('.', ',')} BPM · ${i.session ? i.n + ' Spur' + (i.n === 1 ? '' : 'en') + ' · ' : ''}${i.drumName ? 'Drums: ' + esc(i.drumName) + ' · ' : (i.drums ? 'Drums · ' : '')}${i.drone ? 'Drone · ' : ''}${(+i.secs || 0).toFixed(1).replace('.', ',')} s · ${esc(i.dateStr)}</div>
         </div>
         <div class="idea-actions">
-          <select class="idea-move" aria-label="Ablage ändern">${Object.keys(CATS).map(c => '<option value="' + c + '"' + (c === i.cat ? ' selected' : '') + '>' + esc(T(CATS[c])) + '</option>').join('')}</select>
+          <select class="idea-move" aria-label="Ablage ändern" title="${esc(T('In anderen Ordner verschieben'))}">${Object.keys(CATS).map(c => '<option value="' + c + '"' + (c === i.cat ? ' selected' : '') + '>📁 ' + esc(T(CATS[c])) + '</option>').join('')}</select>
           <button class="toggle-btn" data-act="load">Laden</button>
           <button class="toggle-btn" data-act="share">Teilen</button>
           <button class="toggle-btn" data-act="studio" title="Im Studio weiterbearbeiten">Studio</button>
@@ -3554,6 +3556,21 @@ const Pedal = (() => {
     const id = sel.closest('.idea-row').dataset.id; let idea = null; try { idea = await AppDB.get('ideas', id); } catch (x) {}
     if (!idea) return; idea.cat = sel.value; await AppDB.put('ideas', idea); idea = null;
     $('loopStatus').textContent = T('Verschoben nach „') + T(CATS[sel.value]) + '“.'; render();
+  });
+  // v106: mehrere Ideen auf einmal in einen Ordner verschieben
+  function bulkPaint() { $('ideaBulkBar').hidden = !selMode; $('ideaSelBtn').hidden = selMode; $('ideaSelN').textContent = pick.size + T(' ausgewählt'); $('ideaBulkTo').querySelectorAll('button').forEach(b => b.disabled = !pick.size); }
+  $('ideaSelBtn').addEventListener('click', () => { selMode = true; pick.clear(); bulkPaint(); render(); });
+  $('ideaSelDone').addEventListener('click', () => { selMode = false; pick.clear(); bulkPaint(); render(); });
+  $('ideaSelAll').addEventListener('click', () => { list.querySelectorAll('.idea-row').forEach(r => pick.add(r.dataset.id)); bulkPaint(); render(); });
+  list.addEventListener('click', e => {
+    if (!selMode || e.target.closest('button, select')) return; const row = e.target.closest('.idea-row'); if (!row) return;
+    const id = row.dataset.id; if (pick.has(id)) pick.delete(id); else pick.add(id);
+    row.classList.toggle('picked', pick.has(id)); const cb = row.querySelector('.idea-pick'); if (cb) cb.checked = pick.has(id); bulkPaint();
+  });
+  $('ideaBulkTo').addEventListener('click', async e => {
+    const b = e.target.closest('button'); if (!b || !pick.size) return; const c = b.dataset.c, ids = [...pick]; let n = 0;
+    for (const id of ids) { let idea = null; try { idea = await AppDB.get('ideas', id); } catch (x) {} if (idea && idea.cat !== c) { idea.cat = c; await AppDB.put('ideas', idea); n++; } idea = null; }
+    $('loopStatus').textContent = ids.length + T(' verschoben nach „') + T(CATS[c]) + '“.'; pick.clear(); selMode = false; bulkPaint(); render();
   });
   showCat();
   withDrone.addEventListener('change', () => ps('3nps-idea-drone', withDrone.checked ? '1' : '0'));
