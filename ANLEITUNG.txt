@@ -992,3 +992,16 @@ Gut zu wissen
    - Mehrere auf einmal: über der Liste „Mehrere verschieben“ → Ideen antippen (Häkchen) oder „Alle wählen“ →
      unter „Verschieben nach“ den Ordner tippen. „Fertig“ beendet die Auswahl.
    - Tipp: erst oben den Filter wählen (z. B. „Ideen“), dann „Alle wählen“ – so verschiebst du nur die angezeigten.
+
+90. Ideen weiterbearbeiten und Looper ↔ Studio (v107)
+   - Nach dem Laden einer Idee steht ihr Name im Speicherfeld und an den Spuren („Spur 1 · Name“).
+     „Speichern“ heißt dann „Aktualisieren“ und überschreibt diese Idee (keine Doppelten mehr). Für eine neue Idee
+     einfach den Namen ändern – der Hinweis unter „Speichern als“ zeigt, was passiert.
+   - Unter jeder Spur: „Im Studio ↗“. Sichert den aktuellen Stand (geladene Idee aktualisieren, sonst neue Idee unter
+     „Zusammenarbeit“) und öffnet ihn im Studio direkt im Arrangement.
+   - Im Studio oben „↩ Looper“: schreibt das Projekt (oder den Cycle-Bereich) zurück in dieselbe Idee – bis 3 Spuren
+     einzeln, mehr Spuren werden auf Spur 3 zusammengemischt, Drummer und Instrumente als Audio – und öffnet den Looper
+     mit der geladenen Idee. Gehst du ohne Änderung wieder ins Studio, öffnet sich dasselbe Projekt (Drummer, Noten
+     bleiben bearbeitbar).
+   - Behoben: „Die Ideen konnten nicht gelesen werden … connection is closing“ – die Verbindung zum Gerätespeicher
+     wird jetzt automatisch neu geöffnet (z. B. nach dem Wechsel ins Studio oder aus dem Hintergrund).
