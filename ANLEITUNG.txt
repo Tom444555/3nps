@@ -1005,3 +1005,7 @@ Gut zu wissen
      bleiben bearbeitbar).
    - Behoben: „Die Ideen konnten nicht gelesen werden … connection is closing“ – die Verbindung zum Gerätespeicher
      wird jetzt automatisch neu geöffnet (z. B. nach dem Wechsel ins Studio oder aus dem Hintergrund).
+
+91. Spurköpfe ohne Überlappung (v108)
+   - Der Name der geladenen Idee steht jetzt in einer eigenen Zeile unter „Spur n“ (zu lang → „…“), „Stereo“ neben dem
+     Spurnamen. Ist es eng (iPad hochkant), rutschen Akkord/Danach in die nächste Zeile statt über den Text.
