@@ -1021,3 +1021,10 @@ Gut zu wissen
      Auch über „Aus dem Looper“ → „Als neues Projekt“ übernommene Ideen können so zurückgeschrieben werden.
    - Looper: Wellenform unter den Spuren höher (56 statt 38 Punkte) und genauer: helle Spitzen, satter Kern (Lautheit),
      je Bildschirmpixel gezeichnet.
+
+93. Looper verstummt wirklich beim Studio, Zurückschreiben bei stummen Spuren (v110)
+   - Ursache „Looper läuft im Studio weiter“: Der Looper startet seinen Ton nach einer iPad-Unterbrechung von selbst
+     wieder – das tat er auch nach dem absichtlichen Anhalten fürs Studio. Jetzt bleibt er still, bis du im Looper
+     wieder tippst. Zusätzlich meldet sich das Studio beim Öffnen und bei ▶ – ein noch offener Looper hält dann an.
+   - „↩ Looper“ speichert nur hörbare Spuren. Sind alle stumm (M), erscheint ein Fenster: „Alle Spuren hörbar machen
+     und speichern“, „Ohne Speichern zum Looper“ oder „Im Studio bleiben“.

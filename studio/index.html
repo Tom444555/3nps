@@ -1756,8 +1756,12 @@ const Engine = (() => {
     const c = P && P.cycle; if (c && c.on && c.b > c.a && p >= c.b) p = c.a + ((p - c.a) % (c.b - c.a));
     return Math.round(p);
   }
+  let bc = null; try { bc = new BroadcastChannel('3nps-audio'); } catch (e) {}
+  const hush = () => { try { bc && bc.postMessage('studio'); } catch (e) {} };   // v110: Looper (falls er noch läuft) verstummen lassen
+  hush();
   async function play() {
     await ensure(); if (st.playing) return;
+    hush();
     await feed(true);
     const at = ctx.currentTime + 0.12; st.t0 = at; st.pos0 = st.pos; st.playing = true;
     node.port.postMessage({ t: 'cycle', on: !!(P.cycle && P.cycle.on && P.cycle.b > P.cycle.a), a: P.cycle ? P.cycle.a : 0, b: P.cycle ? P.cycle.b : 0 });
@@ -3202,7 +3206,7 @@ const Exp = (() => {
     const bar = Proj.bar(), cyc = P.cycle.on && P.cycle.b > P.cycle.a;
     const a = cyc ? P.cycle.a : 0, b = cyc ? P.cycle.b : Math.max(bar, Math.ceil((Proj.projEnd() - 64) / bar) * bar);
     const used = P.tracks.filter(t => !t.mute && P.regions.some(r => r.track === t.id && !r.muted && r.start < b && r.start + r.len > a));
-    if (!used.length) throw new Error('Im Bereich ist nichts zu hören.');
+    if (!used.length) { const muted = P.tracks.filter(t => t.mute && P.regions.some(r => r.track === t.id)).length; const e = new Error(muted ? 'Alle Spuren sind stumm geschaltet (M). Tippe bei den Spuren auf „M“, damit es aus ist, dann nochmal „↩ Looper“.' : 'Im Bereich ist nichts zu hören.'); e.muted = muted; throw e; }
     const groups = used.length <= 3 ? used.map(t => [t]) : [[used[0]], [used[1]], used.slice(2)];
     const enc24 = x => { const u = new Uint8Array(x.length * 3); for (let i = 0, o = 0; i < x.length; i++, o += 3) { let v = x[i]; v = v > 1 ? 1 : v < -1 ? -1 : v; const s = Math.round(v * 8388607); u[o] = s & 255; u[o + 1] = (s >> 8) & 255; u[o + 2] = (s >> 16) & 255; } return u; };
     const tracks = []; let sr = P.sr, L = 0;
@@ -3393,7 +3397,12 @@ const UI = (() => {
     const b = $('bBack'); b.disabled = true;
     if (!Proj.P.fromIdea) { await Proj.save(); try { await Engine.ac().suspend(); } catch (e) {} location.href = '../'; return; }
     try { const it = await Exp.backToLooper(say); try { await Engine.ac().suspend(); } catch (e) {} setTimeout(() => { location.href = '../?load=' + encodeURIComponent(it.id); }, 300); }
-    catch (e) { console.error(e); say('Zurück in den Looper: ' + e.message); b.disabled = false; }
+    catch (e) {
+      console.error(e); b.disabled = false; say('Zurück in den Looper: ' + e.message);
+      dialog('<h2>Nicht gespeichert</h2><p>' + esc(e.message) + '</p><div class="btns">' + (e.muted ? '<button class="btn p" id="bkUnmute">Alle Spuren hörbar machen und speichern</button>' : '') + '<button class="btn" id="bkGo">Ohne Speichern zum Looper</button><button class="btn" data-close>Im Studio bleiben</button></div>');
+      if ($('bkUnmute')) $('bkUnmute').onclick = () => { Proj.change('mix', p => p.tracks.forEach(t => { t.mute = false; t.solo = false; })); Proj.P.tracks.forEach((_, i) => Engine.applyTrack(i, true)); Arr.heads(); close(); $('bBack').click(); };
+      $('bkGo').onclick = async () => { close(); await Proj.save(); location.href = '../'; };
+    }
   };
   async function projMenu() {
     const P = Proj.P, ps = await Proj.list(), usage = await SDB.usage().catch(() => 0);
