@@ -260,7 +260,10 @@
     box-shadow: 0 1px 0 rgba(255,255,255,.04) inset;
   }
   .track.t2 { --tc: var(--t2); } .track.t3 { --tc: var(--t3); }
-  .track-head { display: flex; align-items: center; gap: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--line-soft); min-height: 52px; }
+  .track-head { display: flex; align-items: center; gap: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--line-soft); min-height: 96px; }
+  /* v96: Spurkopf höher und Namen nicht umbrechen, damit sich Schrift und Badges nicht überlappen */
+  .track-head .th-name { flex-wrap: nowrap; white-space: nowrap; }
+  .track-head .tname { white-space: nowrap; }
   .th-left { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-width: 0; }
   .th-name { display: flex; align-items: center; gap: 8px; }
   .th-chords { margin-left: auto; display: flex; gap: 6px; align-items: stretch; }
