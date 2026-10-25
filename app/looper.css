@@ -493,6 +493,11 @@ html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleis
   .kit-sel { max-width: 170px; }
   .kit-sel.active { color: var(--tc); border-color: var(--tc); }
   @media (max-width: 860px) { .dr-main { grid-template-columns: 1fr; } .dr-left { flex-direction: row; justify-content: space-around; } .dr-ftrack { height: 110px; } .dr-opts { grid-template-columns: 1fr 1fr; } }
+  .fx-panel .fx-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px 14px; }
+  .fx-panel label { display: flex; align-items: center; gap: 8px; font-size: .76rem; color: var(--muted); }
+  .fx-panel label span { min-width: 82px; } .fx-panel input[type=range] { flex: 1; min-width: 60px; } .fx-panel b { min-width: 38px; text-align: right; font: 600 .74rem var(--f-mono); color: var(--tc); }
+  .fx-panel select { flex: 1; font-size: .74rem; padding: 4px 6px; } .fx-panel .fx-note-t { margin: 2px 0 0; font-size: .7rem; color: var(--muted); }
+  .fx-btn { margin-top: 4px; }
   .track-eqs { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
   .track-eqs:empty { display: none; }
   .track-eqs .eq-panel::before { content: attr(data-title); font: 700 .78rem var(--f-mono); color: var(--tc); letter-spacing: .04em; }

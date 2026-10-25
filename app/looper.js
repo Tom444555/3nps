@@ -109,6 +109,7 @@ const Looper = (() => {
   function ensureTrackEq(t) {
     if (t.eq) return t.eq;
     t.eq = EQ7.chain(audioCtx); t.eq.output.connect(ensureMasterBus()); t.eq.set(t.eqVals);
+    connectTrackFx(t);
     return t.eq;
   }
   function setTrackEq(t, vals, fromUi) {
@@ -116,6 +117,92 @@ const Looper = (() => {
     if (t.eq) t.eq.set(t.eqVals, true);
     if (!fromUi) t.eqUi.set(t.eqVals);
     savePref('3nps-eq' + t.i, JSON.stringify(EQ7.legacy(t.eqVals))); savePref('3nps-eq2-' + t.i, JSON.stringify(t.eqVals)); showEqBtn(t); markDirty();
+  }
+
+  // ---- v105: Hall und Echo je Spur (gemeinsame Busse wie im Studio; Anteil je Spur, Art/Länge für alle) ----
+  const FX_ROOMS = { room: ['Raum', 0.9, 0.55], hall: ['Halle', 2.2, 0.45], plate: ['Platte (hell)', 1.6, 0.85], cathedral: ['Kathedrale', 4.5, 0.35] };
+  const FX_NOTES = [[0.25, '1/16'], [0.5, '1/8'], [0.75, '1/8 punktiert'], [1, '1/4'], [1.5, '1/4 punktiert'], [2, '1/2']];
+  let fxBusV = { room: 'hall', note: 0.75, fb: 35 };
+  try { fxBusV = Object.assign(fxBusV, JSON.parse(loadPref('3nps-fxbus', 'null')) || {}); } catch (e) {}
+  if (!FX_ROOMS[fxBusV.room]) fxBusV.room = 'hall';
+  let fxBus = null;
+  function fxIR(c, room) {
+    const [, sec, bright] = FX_ROOMS[room] || FX_ROOMS.hall, n = Math.round(c.sampleRate * sec), b = c.createBuffer(2, n, c.sampleRate);
+    for (let ch = 0; ch < 2; ch++) { const d = b.getChannelData(ch); let lp = 0, z = 1234567 + ch * 999;
+      for (let i = 0; i < n; i++) { z = (z * 16807) % 2147483647; const w = z / 1073741823.5 - 1, t = i / c.sampleRate; lp += (w - lp) * (bright - 0.3 * t / sec); d[i] = lp * Math.pow(1 - i / n, 2.2) * (t < 0.008 ? t / 0.008 : 1) * 0.5; } }
+    return b;
+  }
+  const fxDelaySec = () => Math.min(3.9, 60 / bpm() * fxBusV.note);
+  function buildFxBus(c, out) {
+    const rev = c.createConvolver(); rev.buffer = fxIR(c, fxBusV.room); const revG = c.createGain(); revG.gain.value = 1; rev.connect(revG); revG.connect(out);
+    const dly = c.createDelay(4), fb = c.createGain(), lp = c.createBiquadFilter(), dG = c.createGain(); lp.type = 'lowpass'; lp.frequency.value = 4200;
+    dly.delayTime.value = fxDelaySec(); fb.gain.value = fxBusV.fb / 100; dG.gain.value = 0.8;
+    dly.connect(lp); lp.connect(fb); fb.connect(dly); lp.connect(dG); dG.connect(out);
+    return { rev, dly, fb };
+  }
+  function ensureFxBus() { if (!fxBus) fxBus = buildFxBus(audioCtx, ensureMasterBus()); return fxBus; }
+  // Leistung: Sends hängen nur dann am Hall/Echo, wenn die Spur ihn nutzt (ein Faltungshall ohne Eingang rechnet nicht)
+  function connectTrackFx(t) {
+    if (!t.eq) return;
+    if (!t.sR) { t.sR = audioCtx.createGain(); t.sD = audioCtx.createGain(); t.eq.output.connect(t.sR); t.eq.output.connect(t.sD); t.sRon = t.sDon = false; }
+    t.sR.gain.setTargetAtTime(t.fx.rev / 100, audioCtx.currentTime, 0.02); t.sD.gain.setTargetAtTime(t.fx.dly / 100, audioCtx.currentTime, 0.02);
+    const wantR = t.fx.rev > 0, wantD = t.fx.dly > 0;
+    if (wantR !== t.sRon) { if (wantR) t.sR.connect(ensureFxBus().rev); else { const g = t.sR; setTimeout(() => { if (!t.sRon) try { g.disconnect(); } catch (e) {} }, 80); } t.sRon = wantR; }
+    if (wantD !== t.sDon) { if (wantD) t.sD.connect(ensureFxBus().dly); else { const g = t.sD; setTimeout(() => { if (!t.sDon) try { g.disconnect(); } catch (e) {} }, 80); } t.sDon = wantD; }
+  }
+  let fxLastBpm = 0;
+  setInterval(() => { if (fxBus && Math.abs(bpm() - fxLastBpm) > 0.01) { fxLastBpm = bpm(); fxBus.dly.delayTime.setTargetAtTime(fxDelaySec(), audioCtx.currentTime, 0.05); } }, 500);
+  function fxSetBus(v) {
+    const roomChanged = v.room && v.room !== fxBusV.room; Object.assign(fxBusV, v); savePref('3nps-fxbus', JSON.stringify(fxBusV));
+    if (fxBus) { if (roomChanged) fxBus.rev.buffer = fxIR(audioCtx, fxBusV.room); fxBus.fb.gain.setTargetAtTime(fxBusV.fb / 100, audioCtx.currentTime, 0.03); fxBus.dly.delayTime.setTargetAtTime(fxDelaySec(), audioCtx.currentTime, 0.05); }
+    tracks.forEach(paintFx); markDirty();
+  }
+  function setTrackFx(t, v, fromUi) {
+    t.fx = { rev: Math.max(0, Math.min(100, Math.round(+v.rev || 0))), dly: Math.max(0, Math.min(100, Math.round(+v.dly || 0))) };
+    if (t.eq) connectTrackFx(t);
+    savePref('3nps-fx-' + t.i, JSON.stringify(t.fx)); paintFx(t); if (!fromUi || fromUi === 'end') markDirty();
+  }
+  function paintFx(t) {
+    if (!t.fxBtn) return; const on = t.fx.rev > 0 || t.fx.dly > 0;
+    t.fxBtn.classList.toggle('on', on); t.fxBtn.textContent = on ? T('Hall/Echo') + ' ●' : T('Hall/Echo');
+    const p = t.fxPanel; if (!p) return;
+    p.querySelector('.fx-rev').value = t.fx.rev; p.querySelector('.fx-revv').textContent = t.fx.rev + ' %';
+    p.querySelector('.fx-dly').value = t.fx.dly; p.querySelector('.fx-dlyv').textContent = t.fx.dly + ' %';
+    p.querySelector('.fx-room').value = fxBusV.room; p.querySelector('.fx-note').value = String(fxBusV.note);
+    p.querySelector('.fx-fb').value = fxBusV.fb; p.querySelector('.fx-fbv').textContent = fxBusV.fb + ' %';
+  }
+  tracks.forEach(t => {
+    let v = null; try { v = JSON.parse(loadPref('3nps-fx-' + t.i, 'null')); } catch (e) {}
+    t.fx = { rev: v && +v.rev || 0, dly: v && +v.dly || 0 };
+    const eqb = $('eqb' + t.i); if (!eqb) return;
+    const btn = document.createElement('button'); btn.className = 'eq-btn fx-btn'; btn.id = 'fxb' + t.i; btn.setAttribute('aria-expanded', 'false'); btn.title = T('Hall und Echo für Spur ') + (t.i + 1);
+    eqb.insertAdjacentElement('afterend', btn); t.fxBtn = btn;
+    const p = document.createElement('div'); p.className = 'eq-panel fx-panel t' + (t.i + 1); p.id = 'fxp' + t.i; p.hidden = true; p.dataset.title = T('Hall/Echo · Spur ') + (t.i + 1);
+    p.innerHTML = '<div class="fx-grid">' +
+      '<label><span>' + T('Hall') + '</span><input type="range" class="fx-rev" min="0" max="100" step="1" aria-label="' + T('Hall-Anteil') + '"><b class="fx-revv"></b></label>' +
+      '<label><span>' + T('Echo') + '</span><input type="range" class="fx-dly" min="0" max="100" step="1" aria-label="' + T('Echo-Anteil') + '"><b class="fx-dlyv"></b></label>' +
+      '<label><span>' + T('Raum') + '</span><select class="fx-room">' + Object.entries(FX_ROOMS).map(([k, r]) => '<option value="' + k + '">' + T(r[0]) + '</option>').join('') + '</select></label>' +
+      '<label><span>' + T('Echo-Abstand') + '</span><select class="fx-note">' + FX_NOTES.map(([v, n]) => '<option value="' + v + '">' + T(n) + '</option>').join('') + '</select></label>' +
+      '<label><span>' + T('Wiederholungen') + '</span><input type="range" class="fx-fb" min="0" max="85" step="1" aria-label="' + T('Wiederholungen') + '"><b class="fx-fbv"></b></label>' +
+      '</div><p class="fx-note-t">' + T('Raum, Echo-Abstand und Wiederholungen gelten für alle Spuren; das Echo läuft im Tempo.') + '</p>';
+    const host = $('trackEqHost'); (host || eqb.parentNode).appendChild(p); t.fxPanel = p;
+    p.addEventListener('input', e => { const c = e.target.classList; if (c.contains('fx-rev') || c.contains('fx-dly')) setTrackFx(t, { rev: p.querySelector('.fx-rev').value, dly: p.querySelector('.fx-dly').value }, true); else if (c.contains('fx-fb')) { fxBusV.fb = +e.target.value; if (fxBus) fxBus.fb.gain.setTargetAtTime(fxBusV.fb / 100, audioCtx.currentTime, 0.03); tracks.forEach(paintFx); } });
+    p.addEventListener('change', e => { const c = e.target.classList; if (c.contains('fx-room')) fxSetBus({ room: e.target.value }); else if (c.contains('fx-note')) fxSetBus({ note: +e.target.value }); else if (c.contains('fx-fb')) fxSetBus({ fb: +e.target.value }); else setTrackFx(t, t.fx, 'end'); });
+    btn.addEventListener('click', () => { p.hidden = !p.hidden; btn.setAttribute('aria-expanded', String(!p.hidden)); btn.classList.toggle('open', !p.hidden); });
+    paintFx(t);
+  });
+  // Export: Hall/Echo wie gehört dazurechnen – kreisförmig (der Ausklang am Loop-Ende läuft am Anfang weiter, nahtlos)
+  async function fxRender(x, fx, srate) {
+    if (!fx || (!fx.rev && !fx.dly)) return x;
+    const n = x.l.length, tail = Math.round(srate * Math.min(12, (FX_ROOMS[fxBusV.room][1] + 0.3) + (fx.dly ? fxDelaySec() * 8 : 0)));
+    const oc = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(2, n + tail, srate);
+    const b = oc.createBuffer(2, n, srate); b.copyToChannel(x.l, 0); b.copyToChannel(x.r || x.l, 1);
+    const s = oc.createBufferSource(); s.buffer = b; const bus = buildFxBus(oc, oc.destination), gR = oc.createGain(), gD = oc.createGain(); gR.gain.value = fx.rev / 100; gD.gain.value = fx.dly / 100;
+    s.connect(gR); gR.connect(bus.rev); s.connect(gD); gD.connect(bus.dly); s.start(0);
+    const w = await oc.startRendering(), wl = w.getChannelData(0), wr = w.getChannelData(1), L = new Float32Array(n), R = new Float32Array(n);
+    for (let i = 0; i < n + tail; i++) { const j = i % n; L[j] += wl[i]; R[j] += wr[i]; }
+    for (let i = 0; i < n; i++) { L[i] += x.l[i]; R[i] += (x.r || x.l)[i]; }
+    return { l: L, r: R, length: n };
   }
 
   // ---- Drums: gemeinsames Schlagzeug (rhythm.js) läuft im Raster des Loops ----
@@ -2910,8 +2997,9 @@ const Looper = (() => {
     const stems = [];
     for (const t of used) {
       const src = await EQ7.render(t.mix, t.eqVals, sr);          // EQ wie gehört (nahtlos über den Loop-Übergang)
-      const g = parseInt(t.vol.value) / 100, out = S(total), ml = src.l, mr = src.r;
+      const g = parseInt(t.vol.value) / 100, ml = src.l, mr = src.r; let out = S(total);
       for (let i = 0; i < total; i++) { const j = i % t.L; out.l[i] = ml[j] * g; out.r[i] = mr[j] * g; }
+      out = await fxRender(out, t.fx, sr);                          // v105: Hall/Echo wie gehört
       stems.push({ t, data: out });
     }
     const mix = S(total);
@@ -3028,7 +3116,7 @@ const Looper = (() => {
       tracks: tracks.map(t => {
         if (!t.L) return null;
         const m = t.mix, mono = sameData(m);
-        const o = { L: t.L, enc: 'i24', dl: enc24(m.l), vol: parseInt(t.vol.value), eq: EQ7.legacy(t.eqVals), eq2: EQ7.norm(t.eqVals) };
+        const o = { L: t.L, enc: 'i24', dl: enc24(m.l), vol: parseInt(t.vol.value), eq: EQ7.legacy(t.eqVals), eq2: EQ7.norm(t.eqVals), fx: Object.assign({}, t.fx) };
         if (!mono) o.dr = enc24(m.r);
         return o;
       })
@@ -3052,12 +3140,12 @@ const Looper = (() => {
   }
   async function sessionMixEq(sess) {
     const ts = sess.tracks.filter(Boolean); if (!ts.length) return null;
-    if (ts.every(t => EQ7.isFlat(t.eq2 || t.eq))) return sessionMix(sess);
+    if (ts.every(t => EQ7.isFlat(t.eq2 || t.eq) && !(t.fx && (t.fx.rev || t.fx.dly)))) return sessionMix(sess);
     const gcd = (a, b) => b ? gcd(b, a % b) : a; let mult = 1;
     ts.forEach(t => { const n = Math.max(1, Math.round(t.L / sess.baseL)); mult = mult * n / gcd(mult, n); });
     const total = sess.baseL * Math.min(mult, 16), out = S(total);
     for (const t of ts) {
-      const g = (t.vol != null ? t.vol : 90) / 100, d = await EQ7.render(sessTrackData(t), t.eq2 || t.eq, sess.sr);
+      const g = (t.vol != null ? t.vol : 90) / 100, d = await fxRender(await EQ7.render(sessTrackData(t), t.eq2 || t.eq, sess.sr), t.fx, sess.sr);
       for (let i = 0; i < total; i++) { const j = i % t.L; out.l[i] += d.l[j] * g; out.r[i] += d.r[j] * g; }
     }
     const keep = sr; sr = sess.sr; const w = toWav(out); sr = keep;
@@ -3078,6 +3166,7 @@ const Looper = (() => {
       t.layers = [Math.abs(q - 1) < 1e-6 ? f : resample(f, L)]; t.L = L; rebuildMix(t);
       if (st.vol != null) { t.vol.value = st.vol; t.volV.textContent = st.vol; }
       setTrackEq(t, st.eq2 || st.eq || EQ7.flat(), false);
+      setTrackFx(t, st.fx || { rev: 0, dly: 0 }, false);
     });
     anchor = startAnchor('play');
     tracks.forEach(t => { if (t.L) { startTrack(t); t.state = 'playing'; detectTrackKey(t); } });
@@ -3131,7 +3220,7 @@ const Looper = (() => {
   }
 
   return {
-    getMix, loadSamples, update, position, getSession, sessionMix, sessionSecs, sessionMixEq, loadSession, setTrackEq: (i, v) => setTrackEq(tracks[i], v, false), getTrackEq: i => EQ7.norm(tracks[i].eqVals), getDroneState, setDroneState,
+    getMix, loadSamples, update, position, getSession, sessionMix, sessionSecs, sessionMixEq, loadSession, setTrackEq: (i, v) => setTrackEq(tracks[i], v, false), getTrackEq: i => EQ7.norm(tracks[i].eqVals), setTrackFx: (i, v) => setTrackFx(tracks[i], v, false), getTrackFx: i => Object.assign({}, tracks[i].fx), fxBus: () => Object.assign({}, fxBusV), getDroneState, setDroneState,
     isEmpty: () => !anyContent(),
     foot: i => foot(tracks[i]),
     exportLogic: () => exportLogic(),

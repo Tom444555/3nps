@@ -1,6 +1,6 @@
 # 3nps Looper – Übergabe (vollständiger Stand)
 
-Stand: **24. Oktober 2026 · Version v104 (Studio s3)** – live unter https://tom444555.github.io/3nps/ ·
+Stand: **25. Oktober 2026 · Version v105 (Studio s3)** – live unter https://tom444555.github.io/3nps/ ·
 stabile Rückfall-Fassung **v24** unter https://tom444555.github.io/3nps/stabil/
 
 Diese Datei ist das Gedächtnis des Projekts. Alles, was ein neuer Chat wissen muss, steht hier –
@@ -209,6 +209,8 @@ Vergleich mit der stabilen v24 / Vorversion (Pages-Nachbau: `ln -s /home/claude/
 `vergleich.py URL gemeinsam|voll SEKUNDEN SEED` (Zufallsszenario, JSON mit Fehlern, Speicher, Bildzeiten, späten Drum-Schlägen) ·
 `aktionen.py URL` (Stocken je Bedienschritt) · `idle.py URL [zu]`. v35 = v24 (gemeinsam, 60 s, Seed 7): keine Fehler, Heap max 23,8 vs 26,4 MB, 0 späte Schläge.
 Pages-Nachbau mit neuer Fassung: `/home/claude/3nps-main` nach `/tmp/claude-0/pages/3nps` kopieren, `app/www/.` darüber, Server Port 8790.
+
+Looper v105: Hall/Echo je Spur (`looper.js` nach dem EQ-Block: `FX_ROOMS`, gemeinsame Busse `ensureFxBus`, Sends nur verbunden bei > 0 %, Prefs `3nps-fx-<i>`/`3nps-fxbus`, Session-Feld `fx`, Export über `fxRender` kreisförmig) → `v105fx.py` 13/13.
 
 Studio (v103): `s1studio.py` 31/31 (Übernahme, Abspielen, Bearbeiten, Mischpult, Export WAV/ZIP/MIDI/Master, In den Looper), `s1mem.py` 8/8 (16 Spuren × 60 s: Start < 400 ms, Echtzeit, Heap < 80 MB, Ruckler < 3 %), `s2studio.py` 14/14 (Aufnahme mit Testmikrofon, Latenz, Ersetzen, Automation live/Export, Kompressor). `s3studio.py` 23/23 (Noten per Tippen, Instrumente laden, Drummer-Stile/Fills, Akkorde→Bass, MIDI, Looper-Drums), `s3pitch.py` 8/8 (Stimmung aller echten Instrumente ±35 Cent). Studio-Tests brauchen `bypass_csp=True` (wait_for_function).
 
