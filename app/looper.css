@@ -512,7 +512,15 @@ html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleis
   .idea-cat { display: inline-block; font-size: .62rem; padding: 1px 6px; border-radius: 8px; border: 1px solid currentColor; opacity: .85; vertical-align: middle; }
   .idea-cat.c-idee { color: #9ab; } .idea-cat.c-loop { color: #7fd8ff; } .idea-cat.c-backing { color: #f2c230; } .idea-cat.c-team { color: #9be37a; }
   .idea-move { font-size: .74rem; padding: 4px 6px; max-width: 11em; border-color: var(--tc, #7fd8ff); }
-  .tsrc { margin-left: 6px; font-size: .72rem; color: var(--muted); max-width: 14em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; vertical-align: bottom; }
+  /* v108: Spurkopf ohne Überlappung – Name der Idee in eigener Zeile, Kopf bricht um statt zu überlappen */
+  .track-head { flex-wrap: wrap; row-gap: 8px; }
+  .track-head .th-left { flex: 1 1 160px; min-width: 160px; }
+  .track-head .keybadge { white-space: nowrap; }
+  .track-head .th-name { flex-wrap: wrap; row-gap: 4px; max-width: 100%; }
+  .track-head .tname { white-space: nowrap; }
+  .track-head .th-chords { flex: none; margin-left: auto; }
+  .tsrc { font-size: .72rem; color: var(--muted); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tsrc:empty { display: none; }
   .studio-btn { margin-top: 4px; }
   .idea-hint { margin: 2px 0 6px; font-size: .74rem; } .idea-hint:empty { display: none; }
   .idea-bulk { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 8px; }

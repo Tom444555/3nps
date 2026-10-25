@@ -1,6 +1,6 @@
 # 3nps Looper – Übergabe (vollständiger Stand)
 
-Stand: **25. Oktober 2026 · Version v107 (Studio s3)** – live unter https://tom444555.github.io/3nps/ ·
+Stand: **25. Oktober 2026 · Version v108 (Studio s3)** – live unter https://tom444555.github.io/3nps/ ·
 stabile Rückfall-Fassung **v24** unter https://tom444555.github.io/3nps/stabil/
 
 Diese Datei ist das Gedächtnis des Projekts. Alles, was ein neuer Chat wissen muss, steht hier –
@@ -210,6 +210,7 @@ Vergleich mit der stabilen v24 / Vorversion (Pages-Nachbau: `ln -s /home/claude/
 `aktionen.py URL` (Stocken je Bedienschritt) · `idle.py URL [zu]`. v35 = v24 (gemeinsam, 60 s, Seed 7): keine Fehler, Heap max 23,8 vs 26,4 MB, 0 späte Schläge.
 Pages-Nachbau mit neuer Fassung: `/home/claude/3nps-main` nach `/tmp/claude-0/pages/3nps` kopieren, `app/www/.` darüber, Server Port 8790.
 
+Looper v108: Spurkopf bricht um (`.track-head` wrap, `.th-left` min 160px), Ideenname `.tsrc` eigene Zeile unter `.th-name`.
 Looper v107: `AppDB` öffnet nach „connection is closing“ neu (onclose/onversionchange, ein Wiederholversuch in `tx`); geladene Idee `loaded` → Name im Feld, „Aktualisieren“ überschreibt dieselbe id, `Looper.setSrcName`/`.tsrc` an der Spur; „Im Studio ↗“ (`#studiob<i>`, Ereignis `looper-studio`, speichert nur bei `Looper.changes()`-Änderung) → `studio/?idea=…&from=looper`; Studio `P.fromIdea/importTs`, `Exp.backToLooper` (≤3 Stems, Rest auf Spur 3, `drumState` null wenn Drummer-Spur) → `../?load=<id>`. Studio übernimmt Looper-Drums nur bei `drumState.on`. → `v107round.py` 16/16.
 Looper v106: Ideen mehrfach verschieben (`#ideaSelBtn`, `#ideaBulkTo`, Mehrfachauswahl `pick`; Zeilen-Auswahl mit 📁) → `v106move.py` 18/18 (iPad + Telefon).
 Looper v105: Hall/Echo je Spur (`looper.js` nach dem EQ-Block: `FX_ROOMS`, gemeinsame Busse `ensureFxBus`, Sends nur verbunden bei > 0 %, Prefs `3nps-fx-<i>`/`3nps-fxbus`, Session-Feld `fx`, Export über `fxRender` kreisförmig) → `v105fx.py` 13/13.

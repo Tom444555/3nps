@@ -194,13 +194,13 @@ const Looper = (() => {
   // v107: Name der geladenen Idee an der Spur, Knopf „Im Studio ↗“
   tracks.forEach(t => {
     const nm = t.chB && t.chB.parentNode && t.chB.parentNode.querySelector('.tname');
-    if (nm) { t.srcEl = document.createElement('span'); t.srcEl.className = 'tsrc'; nm.insertAdjacentElement('afterend', t.srcEl); }
+    if (nm) { t.srcEl = document.createElement('div'); t.srcEl.className = 'tsrc'; nm.closest('.th-name').insertAdjacentElement('afterend', t.srcEl); }   // eigene Zeile unter „Spur n“
     const anchorB = t.fxBtn || $('eqb' + t.i); if (!anchorB) return;
     const b = document.createElement('button'); b.className = 'eq-btn studio-btn'; b.id = 'studiob' + t.i; b.textContent = T('Im Studio ↗'); b.title = T('Alle Spuren im Studio weiterbearbeiten');
     anchorB.insertAdjacentElement('afterend', b);
     b.addEventListener('click', () => document.dispatchEvent(new CustomEvent('looper-studio', { detail: t.i })));
   });
-  setInterval(() => tracks.forEach(t => { if (!t.L) t.srcName = ''; const v = t.srcName ? '· ' + t.srcName : ''; if (t.srcEl && t.srcEl.textContent !== v) { t.srcEl.textContent = v; t.srcEl.title = v ? T('Geladen aus der Idee ') + '„' + t.srcName + '“' : ''; } }), 700);
+  setInterval(() => tracks.forEach(t => { if (!t.L) t.srcName = ''; const v = t.srcName || ''; if (t.srcEl && t.srcEl.textContent !== v) { t.srcEl.textContent = v; t.srcEl.title = v ? T('Geladen aus der Idee ') + '„' + t.srcName + '“' : ''; } }), 700);
   // Export: Hall/Echo wie gehört dazurechnen – kreisförmig (der Ausklang am Loop-Ende läuft am Anfang weiter, nahtlos)
   async function fxRender(x, fx, srate) {
     if (!fx || (!fx.rev && !fx.dly)) return x;
