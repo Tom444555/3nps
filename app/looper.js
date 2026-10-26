@@ -2639,6 +2639,9 @@ const Looper = (() => {
   let pinch = null;
   edGrip.addEventListener('pointerdown', e => {
     if (!ed.t) return;
+    // v115: Erster Finger einer neuen Berührung → alte, nie beendete Finger vergessen. Sonst zählte ein einzelner Finger
+    // auf dem iPad als „zwei“ (Zoomen statt Auswahl, Tippen in die Zeitleiste ohne Wirkung).
+    if (e.isPrimary || e.pointerType !== 'touch') { ptrs.clear(); pinch = null; }
     ptrs.set(e.pointerId, e.clientX);
     try { edGrip.setPointerCapture(e.pointerId); } catch (err) {}
     e.preventDefault();
@@ -2649,7 +2652,7 @@ const Looper = (() => {
       return;
     }
     const r = edCv.getBoundingClientRect();
-    if (e.clientY - r.top < 20) { ed.drag = 'seek'; seekTo(ed.t, edFrameAt(e.clientX)); return; }
+    if (e.clientY - r.top < 30) { ed.drag = 'seek'; seekTo(ed.t, edFrameAt(e.clientX)); kick(); return; }   // Zeitleiste oben (größerer Tippbereich)
     const f = edFrameAt(e.clientX);
     if (ed.moving) {
       // greifen: nächster Anschlag (±80 ms), sonst die Stelle selbst
@@ -2693,6 +2696,7 @@ const Looper = (() => {
   edGrip.addEventListener('pointermove', edMove);
   edGrip.addEventListener('pointerup', edUp);
   edGrip.addEventListener('pointercancel', edUp);
+  edGrip.addEventListener('lostpointercapture', e => { if (ptrs.has(e.pointerId)) edUp(e); });
   // Übersicht: ziehen = Ausschnitt verschieben
   let ovDrag = false;
   const ovMove = e => { if (!ovDrag || !ed.t) return; const r = edOv.getBoundingClientRect(); ed.v0 = (e.clientX - r.left) / r.width * ed.t.L - span() / 2; clampView(); kick(); };

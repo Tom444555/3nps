@@ -1,6 +1,6 @@
 # 3nps Looper – Übergabe (vollständiger Stand)
 
-Stand: **25. Oktober 2026 · Version v114 (Studio s3)** – live unter https://tom444555.github.io/3nps/ ·
+Stand: **25. Oktober 2026 · Version v115 (Studio s3)** – live unter https://tom444555.github.io/3nps/ ·
 stabile Rückfall-Fassung **v24** unter https://tom444555.github.io/3nps/stabil/
 
 Diese Datei ist das Gedächtnis des Projekts. Alles, was ein neuer Chat wissen muss, steht hier –
@@ -210,6 +210,7 @@ Vergleich mit der stabilen v24 / Vorversion (Pages-Nachbau: `ln -s /home/claude/
 `aktionen.py URL` (Stocken je Bedienschritt) · `idle.py URL [zu]`. v35 = v24 (gemeinsam, 60 s, Seed 7): keine Fehler, Heap max 23,8 vs 26,4 MB, 0 späte Schläge.
 Pages-Nachbau mit neuer Fassung: `/home/claude/3nps-main` nach `/tmp/claude-0/pages/3nps` kopieren, `app/www/.` darüber, Server Port 8790.
 
+Looper v115: Editor-Finger: `ptrs` (Map der Finger am `edGrip`) behielt auf dem iPad Finger ohne pointerup → 1 Finger = Pinch. Jetzt `ptrs.clear()` bei `isPrimary`, `lostpointercapture` = loslassen, Zeitleisten-Tippbereich 30 px. → `v115edtouch.py` 4/4 (reproduziert den Fehler vorher).
 Looper v113: Reiter „Anleitung“ (`#tab-hilfe`, Platz des alten Mastering): `app/hilfe-daten.js` (Gruppen/Themen: t, k Suchbegriffe, img, p, s, tip – bei neuen Funktionen hier ergänzen!), `app/hilfe.js` (baut beim ersten Öffnen, Suche mit Umlaut-Faltung, `Hilfe.go(id)`), `hilfe.html/.css`; Bilder `app/www/hilfe/*.jpg` aus `test/gen_hilfe_bilder.py` (echte Bildschirmfotos, neu erzeugen nach Optik-Änderungen). Inhalt `translate=no` (EN-Hinweis auf GUIDE_EN.txt). → `v113hilfe.py` 16/16; `v60lang`/`v63singen` mit Reiter hilfe.
 Looper/Studio v112: Reiter Mastering aus dem Looper entfernt (Tab-Knopf in `head_app.html`, `MASTER_PANEL` → ''), `master.js` liefert ohne Panel nur `window.Master` (Song-Export). Studio-Ansicht „Mastering“ (`v-mst`): `app-studio/build.py` bettet `app/master.html` (msSrc-Optionen ersetzt) + `master.css` + `master.js` ein, Anbindung `app-studio/mst.js` (`ensureAudio`/`audioCtx`/`Looper.stopAll`-Stellvertreter, `window.MasterSource` = Projekt-Mix per `Exp.render noMaster`). `v97master.py` ersetzt durch `v112mst.py` 10/10; `v63singen`/`v60lang`/`v100mem` ohne Reiter master.
 Looper/Studio v111: Tom meldete trotz v110 „Looper läuft weiter“ (über „Im Studio ↗“; Spuren waren aus einem früheren Versuch stumm). Jetzt `hardStop()` = `audioCtx.close()` + `Looper.closeInput()`; sichtbar werden des alten Fensters → `location.replace('./?load=…')`. Studio-Seite ohne `<link rel=manifest>` (Verdacht: iPadOS öffnet Seite mit eigenem Manifest als zweite Web-App). Quittung über BroadcastChannel ('looper-stopped' → „Looper angehalten ✓“). Wiederverwendetes Projekt mit nur stummen Spuren wird entstummt.
