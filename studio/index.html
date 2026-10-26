@@ -197,7 +197,7 @@ main{flex:1;min-height:0;position:relative}
       <div class="card-head"><h2>Mastering</h2><span class="caption" id="msName" translate="no">–</span></div>
       <p class="caption">Bringt einen fertigen Mix auf die richtige Lautheit für Spotify, YouTube &amp; Co. – ohne Übersteuern (True Peak). Gemessen nach EBU R128.</p>
       <div class="ms-fields">
-        <label class="field"><span>Quelle</span><select id="msSrc" aria-label="Quelle"><option value="mix">Projekt-Mix (ganzes Projekt)</option><option value="cycle">Projekt-Mix (nur Cycle-Bereich)</option><option value="file">Datei vom iPad …</option></select></label>
+        <label class="field"><span>Quelle</span><select id="msSrc" aria-label="Quelle"><option value="mix">Projekt-Mix (ganzes Projekt)</option><option value="cycle">Projekt-Mix (nur Cycle-Bereich)</option><option value="file">Datei laden …</option></select></label>
         <label class="field"><span>Ziel</span><select id="msTarget" aria-label="Ziel">
           <option value="stream">Spotify, YouTube, Amazon, TIDAL (−14 LUFS)</option>
           <option value="apple">Apple Music (−16 LUFS)</option>
@@ -3655,7 +3655,7 @@ window.MasterSource = async v => {
   async function load(src) {
     stopPlay(); cur = null; paintVals(); prog(0); status(TT('Messe … ') + src.name);
     const secs = src.chs[0].length / src.sr;
-    if (secs > 600) { prog(null); status(TT('Länger als 10 Minuten – das wird für das iPad zu groß.')); return; }
+    if (secs > 600) { prog(null); status(TT('Länger als 10 Minuten – das wird für das Gerät zu groß.')); return; }
     try {
       const before = await measure(src.chs, src.sr);
       cur = Object.assign(src, { before, res: null }); $('msName').textContent = src.name + ' · ' + fmtTime(secs);
