@@ -1049,3 +1049,8 @@ Gut zu wissen
    - Oben ins Suchfeld einen Begriff tippen (z. B. „Latenz“, „Drums“, „Takte loopen“, „Mastering“) – die passenden Themen
      erscheinen sofort, Antippen oder Enter springt hin. Umlaute und Groß-/Kleinschreibung sind egal.
    - Diese Textdatei bleibt als ausführliches Verzeichnis aller Änderungen.
+
+97. Anleitung für alle Geräte (v114)
+   - Die Anleitung erklärt jetzt iPad, iPhone, Mac, Windows-PC und Android: Installieren (Safari bzw. Chrome/Edge),
+     Eingang (Mono nur auf iPad/iPhone, am Computer in Chrome/Edge auch Stereo), Sichern und Mitnehmen zwischen Geräten.
+   - Im Studio-Mastering heißt die Quelle jetzt „Datei laden …“. Sprünge aus der Suche landen genau beim Thema.

@@ -23,7 +23,7 @@ for f in ['sdb.js', 'engine.js', 'project.js', 'sched.js', 'imp.js', 'rec.js', '
 parts.append(rd(S + 'mst.js'))
 parts.append(rd(A + 'master.js'))   # v112: Mastering-Reiter aus dem Looper (gleicher Code, Quellen aus dem Projekt)
 mh = rd(A + 'master.html').replace('<section class="panel" id="panel-master" role="tabpanel" aria-labelledby="tab-master" hidden>', '<div id="panel-master">').replace('</section>', '</div>')
-mh = re.sub(r'<select id="msSrc"[^>]*>.*?</select>', '<select id="msSrc" aria-label="Quelle"><option value="mix">Projekt-Mix (ganzes Projekt)</option><option value="cycle">Projekt-Mix (nur Cycle-Bereich)</option><option value="file">Datei vom iPad …</option></select>', mh, flags=re.S)
+mh = re.sub(r'<select id="msSrc"[^>]*>.*?</select>', '<select id="msSrc" aria-label="Quelle"><option value="mix">Projekt-Mix (ganzes Projekt)</option><option value="cycle">Projekt-Mix (nur Cycle-Bereich)</option><option value="file">Datei laden …</option></select>', mh, flags=re.S)
 html = rd(S + 'studio.html').replace('EQCSS', eqcss).replace('MASTERCSS', rd(A + 'master.css')).replace('MASTERHTML', mh).replace('SVER', SVER)
 html = html.replace('SCRIPTS', '<script>\n' + '\n</script>\n<script>\n'.join(parts) + '\n</script>')
 os.makedirs(OUT, exist_ok=True)

@@ -21,7 +21,8 @@
   function go(id) {
     build(); const el = $('hl-' + id); if (!el) return;
     const bar = document.querySelector('.control-bar'), off = bar && getComputedStyle(bar).position === 'sticky' ? bar.getBoundingClientRect().height : 0;   // feste Kopfleiste nicht über die Überschrift legen
-    window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - off - 12, behavior: 'smooth' });
+    const to = sm => window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - off - 12, behavior: sm ? 'smooth' : 'auto' });
+    to(true); [700, 1400].forEach(ms => setTimeout(() => { if (Math.abs(el.getBoundingClientRect().top - off - 12) > 20) to(false); }, ms));   // Bilder darüber laden nach und verschieben die Seite
     el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1600);
     panel.querySelectorAll('.hl-toc a').forEach(a => a.classList.toggle('on', a.dataset.id === id));
     try { localStorage.setItem('3nps-hilfe-last', id); } catch (e) {}

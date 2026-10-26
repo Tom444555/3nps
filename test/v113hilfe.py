@@ -28,7 +28,7 @@ async def main():
             await pg.fill('#hlQ', q); await pg.wait_for_timeout(150)
             hit = await pg.evaluate("(document.querySelector('.hl-hit')||{}).dataset ? document.querySelector('.hl-hit').dataset.id : null")
             check('Suche „%s“ → %s' % (q, want), hit == want, hit)
-        await pg.fill('#hlQ', 'drums kit'); await pg.press('#hlQ', 'Enter'); await pg.wait_for_timeout(900)
+        await pg.fill('#hlQ', 'drums kit'); await pg.press('#hlQ', 'Enter'); await pg.wait_for_timeout(1800)
         top = await pg.evaluate("document.getElementById('hl-drums').getBoundingClientRect().top")
         check('Enter springt zum ersten Treffer', 0 <= top < 300, top)
         img = await pg.evaluate("(()=>{const i=document.querySelector('#hl-drums .hl-img'); return i && i.complete && i.naturalWidth})()")

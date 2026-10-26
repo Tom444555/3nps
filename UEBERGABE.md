@@ -1,6 +1,6 @@
 # 3nps Looper – Übergabe (vollständiger Stand)
 
-Stand: **25. Oktober 2026 · Version v113 (Studio s3)** – live unter https://tom444555.github.io/3nps/ ·
+Stand: **25. Oktober 2026 · Version v114 (Studio s3)** – live unter https://tom444555.github.io/3nps/ ·
 stabile Rückfall-Fassung **v24** unter https://tom444555.github.io/3nps/stabil/
 
 Diese Datei ist das Gedächtnis des Projekts. Alles, was ein neuer Chat wissen muss, steht hier –

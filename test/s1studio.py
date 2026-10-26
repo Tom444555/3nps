@@ -22,7 +22,7 @@ async def main():
         pg.on('pageerror', lambda e: errs.append(str(e)))
         pg.on('console', lambda m: m.type == 'error' and errs.append(m.text))
         await pg.goto(L); await pg.wait_for_timeout(900)
-        check('Looper v113', 'v113' in await pg.inner_text('.brand'))
+        check('Looper v114', 'v114' in await pg.inner_text('.brand'))
         sr = await pg.evaluate("(ensureAudio(), audioCtx.sampleRate)")
         # 4 Takte bei 100 BPM = 9,6 s, 3 Spuren; dazu ein Loop mit 2 Takten bei 120 BPM
         await pg.evaluate(MK, [sr, 100, 3, 9.6, 'idee', 'idA', 'Testidee'])

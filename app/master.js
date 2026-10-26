@@ -86,7 +86,7 @@
   async function load(src) {
     stopPlay(); cur = null; paintVals(); prog(0); status(TT('Messe … ') + src.name);
     const secs = src.chs[0].length / src.sr;
-    if (secs > 600) { prog(null); status(TT('Länger als 10 Minuten – das wird für das iPad zu groß.')); return; }
+    if (secs > 600) { prog(null); status(TT('Länger als 10 Minuten – das wird für das Gerät zu groß.')); return; }
     try {
       const before = await measure(src.chs, src.sr);
       cur = Object.assign(src, { before, res: null }); $('msName').textContent = src.name + ' · ' + fmtTime(secs);

@@ -664,4 +664,5 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
   "In der Anleitung suchen": "Search the guide",
   "Inhalt": "Contents",
   " Themen": " topics",
-  "Nichts gefunden. Andere Wörter probieren, z. B. „Aufnahme“, „Takt“, „Export“.": "Nothing found. Try other (German) words, e.g. “Aufnahme”, “Takt”, “Export”." });
+  "Nichts gefunden. Andere Wörter probieren, z. B. „Aufnahme“, „Takt“, „Export“.": "Nothing found. Try other (German) words, e.g. “Aufnahme”, “Takt”, “Export”.",
+  "Länger als 10 Minuten – das wird für das Gerät zu groß.": "Longer than 10 minutes – too big for the device." });
