@@ -1517,6 +1517,31 @@ html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleis
 #panel-master .ms-ab { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin-bottom: 10px; }
 #panel-master #msPos { width: 100%; }
 @media (max-width: 560px) { #panel-master .ms-table th, #panel-master .ms-table td { padding: 5px 4px; font-size: .9em; } #panel-master .ms-table th:nth-child(4), #panel-master .ms-table td:nth-child(4) { display: none; } }
+/* v113 Anleitung */
+#panel-hilfe .hl-search { display: flex; gap: 8px; margin-top: 8px; }
+#panel-hilfe .hl-search input { flex: 1; font-size: 1rem; padding: 10px 12px; }
+#panel-hilfe .hl-results { margin-top: 8px; display: flex; flex-direction: column; gap: 4px; max-height: 46vh; overflow-y: auto; }
+#panel-hilfe .hl-hit { text-align: left; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); background: rgba(0,0,0,.25); cursor: pointer; }
+#panel-hilfe .hl-hit b { display: block; font-size: .92rem; } #panel-hilfe .hl-hit small { color: var(--muted); font-size: .76rem; }
+#panel-hilfe .hl-hit mark, #panel-hilfe .hl-main mark { background: rgba(240,190,60,.45); color: inherit; border-radius: 2px; }
+#panel-hilfe .hl-none { color: var(--muted); font-size: .85rem; }
+#panel-hilfe .hl-body { display: grid; grid-template-columns: 250px 1fr; gap: 14px; align-items: start; }
+#panel-hilfe .hl-toc { position: sticky; top: 140px; max-height: calc(100vh - 140px); overflow-y: auto; padding: 10px; }
+#panel-hilfe .hl-toc h4 { margin: 10px 0 4px; font: 700 .7rem var(--f-mono, monospace); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+#panel-hilfe .hl-toc a { display: block; padding: 4px 6px; border-radius: 6px; color: inherit; text-decoration: none; font-size: .86rem; }
+#panel-hilfe .hl-toc a.on { background: rgba(255,255,255,.08); }
+#panel-hilfe .hl-main { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+#panel-hilfe .hl-group { font: 700 .78rem var(--f-mono, monospace); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 10px 0 -4px; }
+#panel-hilfe .hl-topic { scroll-margin-top: 90px; }
+#panel-hilfe .hl-topic.flash { outline: 2px solid var(--accent, #e0a030); }
+#panel-hilfe .hl-topic h3 { margin: 0 0 8px; font-size: 1.15rem; }
+#panel-hilfe .hl-topic p { margin: 0 0 8px; line-height: 1.5; }
+#panel-hilfe .hl-topic ol { margin: 6px 0 8px; padding-left: 1.4em; line-height: 1.5; } #panel-hilfe .hl-topic ol li { margin: 4px 0; }
+#panel-hilfe .hl-topic h5 { margin: 10px 0 2px; font-size: .78rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+#panel-hilfe .hl-topic ul.tip { margin: 4px 0 0; padding-left: 1.2em; color: var(--muted); font-size: .9rem; }
+#panel-hilfe .hl-img { display: block; width: 100%; max-width: 900px; border-radius: 8px; border: 1px solid var(--line); margin: 6px 0 8px; background: #111; cursor: zoom-in; }
+#panel-hilfe .hl-img.big { max-width: none; cursor: zoom-out; }
+@media (max-width: 820px) { #panel-hilfe .hl-body { grid-template-columns: 1fr; } #panel-hilfe .hl-toc { position: static; max-height: none; } }
   /* ===== Rost & Stahl: Hintergrund aus gerostetem Blech, darauf verschraubte Stahlplatten ===== */
   :root {
     --plate-hi: #3a3a40;
@@ -3437,7 +3462,13 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
   "Erst etwas aufnehmen oder laden.": "Record or load something first.",
   "Loop ": "Loop ",
   "Aus dem Studio zurück – ": "Back from the Studio – ",
-  "Looper angehalten – das Studio spielt.": "Looper stopped – the Studio is playing." });
+  "Looper angehalten – das Studio spielt.": "Looper stopped – the Studio is playing.",
+  "Anleitung": "Guide",
+  "Suchen, z. B. Latenz, Drums, Mastering …": "Search (German words), e.g. Latenz, Drums, Mastering …",
+  "In der Anleitung suchen": "Search the guide",
+  "Inhalt": "Contents",
+  " Themen": " topics",
+  "Nichts gefunden. Andere Wörter probieren, z. B. „Aufnahme“, „Takt“, „Export“.": "Nothing found. Try other (German) words, e.g. “Aufnahme”, “Takt”, “Export”." });
 
 // Sprache (v59): Deutsch ist der Quelltext. Nur im EN-Modus läuft hier etwas:
 // Ein Beobachter übersetzt neue/geänderte Texte im DOM (Text, title, placeholder, aria-label)
@@ -3543,7 +3574,7 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v112</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v113</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -3622,6 +3653,7 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
     <button class="tab" role="tab" id="tab-jam" data-tab="jam" aria-selected="false">Backing<wbr> Track</button>
     <button class="tab" role="tab" id="tab-lied" data-tab="lied" aria-selected="false">Song<wbr>writing</button>
     <button class="tab" role="tab" id="tab-singen" data-tab="singen" aria-selected="false">Mit<wbr>singen</button>
+    <button class="tab" role="tab" id="tab-hilfe" data-tab="hilfe" aria-selected="false">Anleitung</button>
     <button class="tab" role="tab" id="tab-ueben" data-tab="ueben" aria-selected="false">Training</button>
     <button class="tab" role="tab" id="tab-griffbrett" data-tab="griffbrett" aria-selected="false">Technik</button>
   </nav>
@@ -4621,6 +4653,19 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
     </div>
   </section>
 
+
+  <section class="panel" id="panel-hilfe" role="tabpanel" aria-labelledby="tab-hilfe" hidden>
+    <div class="card hl-top">
+      <div class="card-head"><h2>Anleitung</h2><span class="caption" id="hlCount"></span></div>
+      <p class="caption hl-en" id="hlEn" hidden translate="no">This guide is written in German. An English guide is included as GUIDE_EN.txt.</p>
+      <div class="hl-search"><input type="search" id="hlQ" class="text-in" placeholder="Suchen, z. B. Latenz, Drums, Mastering …" aria-label="In der Anleitung suchen" autocomplete="off"><button class="toggle-btn" id="hlX" hidden>✕</button></div>
+      <div class="hl-results" id="hlRes" hidden></div>
+    </div>
+    <div class="hl-body">
+      <nav class="card hl-toc" id="hlToc" translate="no"></nav>
+      <div class="hl-main" id="hlMain" translate="no"></div>
+    </div>
+  </section>
 
 
   <!-- Üben -->
@@ -19924,6 +19969,176 @@ function mdNormalize(chs, sr, target, ceilDb, opts, prog) {
   paintTarget(); paintVals();
 
   window.Master = { measure, normalize, target, reportText, TARGETS, cur: () => cur, load, run, startPlay, stopPlay, playing: () => !!play };
+})();
+
+</script>
+<script>
+// v113: Inhalt des Reiters „Anleitung“. Gruppen → Themen. Jedes Thema: id, t (Titel), k (Suchbegriffe), img (Bild in hilfe/),
+// p (Grundsätzliches, Absätze), s (Schritt für Schritt), tip (Tipps). Knopfnamen in „…“ so, wie sie in der App stehen.
+const HILFE = [
+ { g: 'Grundlagen', items: [
+  { id: 'ueberblick', t: 'Was kann die App?', k: 'überblick übersicht start anfang einstieg reiter app was ist bedienung', img: 'looper',
+    p: ['Die App ist dein Übungs- und Ideen-Werkzeug für die Gitarre auf dem iPad. Im Mittelpunkt steht der <b>Looper</b> mit drei Stereo-Spuren: aufnehmen, Dateien laden, schneiden, mit Drums, Drone, EQ und Hall begleiten und als Idee speichern.',
+       'Oben wählst du die Reiter: <b>Looper</b> · <b>Improvisation</b> (was passt über den Akkord) · <b>CAGED</b> · <b>Quintenzirkel</b> · <b>Backing Track</b> · <b>Songwriting</b> · <b>Mitsingen</b> · <b>Anleitung</b> (diese Seite) · <b>Training</b> · <b>Technik</b>.',
+       'Für größere Arbeiten gibt es das <b>Loopsmiths Studio</b> – ein Tonstudio mit beliebig vielen Takten, Mischpult, Instrumenten, Drummer, Mastering und Export. Du erreichst es über „Im Studio ↗“ unter jeder Spur.',
+       'Alles bleibt auf deinem iPad. Es gibt kein Konto und keinen Server.'] },
+  { id: 'installieren', t: 'Installieren und aktualisieren', k: 'installieren home-bildschirm icon update aktualisieren version zweimal offline neu',
+    s: ['Adresse in Safari öffnen, Teilen-Symbol → „Zum Home-Bildschirm“ → „Hinzufügen“.', 'Ab jetzt die App immer über das Symbol starten – sie geht dann auch offline.',
+        'Neue Version: Die App lädt sie im Hintergrund. Öffne die App <b>zweimal</b>, bis oben die neue Nummer steht (z. B. „3nps · v113“).'],
+    tip: ['Eine ältere, stabile Fassung liegt unter …/3nps/stabil/ – falls einmal gar nichts geht.'] },
+  { id: 'eingang', t: 'Gitarre anschließen: Eingang öffnen', k: 'eingang mikrofon interface spark usb anschließen pegel mono stereo kopfhörer audio gerät', img: 'looper',
+    p: ['Die App hört über den Eingang des iPads: Mikrofon, USB-Interface oder z. B. Spark LIVE. Welches Gerät benutzt wird, entscheidet das iPad (zuletzt eingestecktes Gerät).',
+        'iPadOS gibt Web-Apps nur einen Eingangskanal: Aufnahmen über den Eingang sind <b>mono</b>. Geladene Dateien bleiben stereo.'],
+    s: ['Looper: oben „Eingang öffnen“ tippen und das Mikrofon erlauben.', 'Über dem Knopf steht das Gerät mit grünem Punkt; die Pegel neben den Spuren zeigen dein Signal.', 'Unter jeder Spur stellst du mit „Eingang“ die Aufnahme-Verstärkung ein (−12 bis +24 dB): Gelb ist kräftig, Rot oben kurz vor dem Übersteuern.', '„Eingang offen“ nochmal tippen schließt den Eingang.'],
+    tip: ['Mit Kopfhörern wird der Loop nicht mit aufgenommen.', 'Geht der Eingang nicht auf: siehe „Probleme lösen“.'] },
+  { id: 'latenz', t: 'Latenz einstellen (Overdubs sitzen nicht)', k: 'latenz verzögerung zu spät overdub versatz timing bluetooth ausgleich',
+    p: ['Zwischen Spielen und Aufnehmen vergeht ein wenig Zeit (Interface, Audio-Puffer). Die App gleicht das aus. Liegen Overdubs trotzdem hörbar zu spät oder zu früh, stellst du den Ausgleich nach.'],
+    s: ['Looper → Karte „Aufnahme“ → Regler „Latenz“.', 'Eine kurze Spur aufnehmen, eine zweite dazuspielen und anhören.', 'Zu spät: Wert erhöhen. Zu früh: Wert senken.'],
+    tip: ['Bluetooth-Kopfhörer machen die Latenz sehr groß – zum Aufnehmen Kabel nehmen.', 'Das Studio übernimmt diesen Wert für seine Aufnahmen.'] },
+  { id: 'sichern', t: 'Speicher, Sichern, Absturzschutz', k: 'sichern backup sicherung laden speicher verloren absturz wiederherstellen zip icloud',
+    p: ['Ideen, Songs, Einstellungen und Aufnahmen liegen nur auf diesem iPad. Wird die App gelöscht, sind sie weg – darum ab und zu sichern.',
+        'Die aktuellen Spuren sichert die App ein paar Sekunden nach jeder Änderung von selbst. Nach einem Absturz erscheint „Letzte Sitzung gefunden“ → „Wiederherstellen“.'],
+    s: ['Looper → „Alles sichern“ → im Teilen-Menü „In Dateien sichern“ (z. B. iCloud Drive).', 'Zurückholen (auch auf einem anderen iPad): „Sicherung laden“ und die ZIP-Datei wählen – nicht entpacken.'] },
+ ]},
+ { g: 'Looper Schritt für Schritt', items: [
+  { id: 'aufnehmen', t: 'Ersten Loop aufnehmen', k: 'aufnehmen rec record loop aufnahme erste spur vorzähler loop-länge takte eintakten frei', img: 'spur',
+    p: ['Du kannst frei aufnehmen (die App erkennt danach Tempo und Takt-Eins) oder mit fester Länge in Takten zum Tempo oben.'],
+    s: ['„Loop-Länge“ wählen: „Frei (Taster)“ oder z. B. 4 Takte.', 'Bei Spur 1 auf „REC“ tippen (oder Fußpedal A) und spielen.', 'Am Ende nochmal tippen. Bei „Frei“ taktet die App den Loop auf ganze Takte ein (Meldung „eingetaktet“).', 'Der Loop läuft sofort. Stopp mit ■ unter der Spur, alles zusammen mit „Alle stoppen“ oben.'],
+    tip: ['Vorzähler (1–8 Takte) in der Karte „Aufnahme“.', 'Eine Pause vor dem ersten Ton nimmt die App selbst weg (abschaltbar).', '↶ unter der Spur nimmt den letzten Schritt zurück.'] },
+  { id: 'overdub', t: 'Overdub und weitere Spuren', k: 'overdub spur 2 spur 3 dazuspielen schichten angleichen rückgängig alle starten stoppen',
+    s: ['Läuft Spur 1, auf der nächsten Spur „REC“ tippen – sie startet auf der nächsten Eins.', 'Auf einer vollen Spur heißt der Knopf „Overdub“: weitere Schicht auf dieselbe Spur.', 'Neue Spuren legt die App automatisch genau auf die Anschläge von Spur 1 (höchstens ±60 ms). ↶ nimmt nur den Abgleich zurück.', '„Pegel“ unter der Spur regelt die Lautstärke beim Abspielen.'] },
+  { id: 'laden', t: 'Datei laden (Song oder Loop)', k: 'datei laden import song mp3 wav ♫ ausschnitt ganze datei tempo vorgeben',
+    p: ['Über ♫ unter jeder Spur lädst du eine Audiodatei aus der Dateien-App. Fertige Loops bleiben unverändert, bei Songs legt die App ein Taktraster über die ganze Datei und erkennt Tonart und Akkorde.'],
+    s: ['♫ unter der Spur tippen und die Datei wählen.', 'Bei längeren Dateien: „ganze Datei“ oder Ausschnitt „ab Takt … für … Takte“.', 'Stimmt das erkannte Tempo nicht, im Dialog „Tempo stimmt nicht?“ das richtige eintragen oder einen Vorschlag (½, 2×, ⅔ …) antippen.', 'Läuft schon ein Loop, wird die Datei ins Tempo gedehnt (Tonhöhe bleibt). „Andere Spuren vorher leeren“, wenn du nur das Lied willst.'],
+    tip: ['Songs bis 10 Minuten.'] },
+  { id: 'editor', t: 'Editor (✂): schneiden, prüfen, Takt-Eins', k: 'editor schneiden ✂ kürzen zuschneiden takt-eins tempo halb doppelt auswahl entfernen verschieben metronom prüfen fade blende', img: 'editor',
+    s: ['✂ unter der Spur öffnet den Editor (Vollbild).', 'Orange Griffe auf Anfang und Ende ziehen; „Raster“ bestimmt, wo sie einrasten (Takt, Schlag, 16tel, Anschlag, frei).', '„Zuschneiden“ behält nur die Auswahl. „Auswahl entfernen (kürzer)“ schneidet ein Stück heraus – mit „Tempo an neue Länge anpassen“ stimmen danach wieder ganze Takte.', 'Takt-Eins daneben: „◀ 1 Schlag / 1 Schlag ▶“. Tempo doppelt/halb erkannt: „½ Tempo“ / „2× Tempo“.', '„⇔ Loop verschieben“ und die Wellenform ziehen; „♩ Metronom“ zum Prüfen.', '„Fertig“ schließt den Editor.'],
+    tip: ['Bearbeiten-Funktionen (Kopieren, Stille, Umkehren, Blenden, ±3 dB, Normalisieren) behalten die Loop-Länge.', '↶ / ↷ oben im Editor.'] },
+  { id: 'drums', t: 'Drums, Drummer und echte Schlagzeuge', k: 'drums schlagzeug drummer groove beat kit echt designer fill swing rhythmus', img: 'drums',
+    s: ['In der Zeile „Drums“ auf „Drums aus“ tippen – der Knopf zeigt dann „Drums an“, die Drums laufen im Takt des Loops.', 'Stil wählen (Blues, Rock, Funk, Latin, Elektronisch …).', 'Rechts das Kit: „Synthese“ oder ein echtes Schlagzeug (lädt einmalig ein paar MB).', '„Designer“ öffnet den Drummer: „Hauptansicht“ (Lautstärke, Komplexität wie in Logic), „Details“ (Fills, Swing, Gefühl) oder „Manuell“ (jedes Feld antippen).', '„Muster speichern“ legt eigene Muster an.'],
+    tip: ['„Raum“ aus entlastet das iPad.', 'Mit „Drums mitspeichern“ kommen sie in die Idee und ins Studio.'] },
+  { id: 'drone', t: 'Drone (Klangteppich)', k: 'drone teppich fläche bordun wikinger heldensaga schlachtfeld kathedrale orchester', img: 'drums',
+    s: ['Zeile „Drone“: auf „Drone aus“ tippen (zeigt dann „Drone an“).', 'Grundton und Dur/Moll wählen oder „Tonart aus Spur“.', 'Klang wählen (z. B. Pad & Chor, Nordmeer, Heldensaga, Schlachtfeld …). „Verzierungen“ schaltet Trommeln, Hornrufe und Glocken zu.', 'Haken „startet mit Alle starten“: läuft mit dem Loop an und aus.'] },
+  { id: 'eqhall', t: 'EQ, Hall und Echo je Spur', k: 'eq equalizer klang höhen bässe hall echo delay raum effekt', img: 'eq-hall',
+    s: ['Unter der Spur „EQ“: Punkte in der Kurve ziehen oder eine „Vorlage …“ wählen. Doppelt tippen setzt ein Band auf 0 dB.', '„Hall/Echo“: je Spur den Anteil für Hall und Echo einstellen.', 'Für alle Spuren gemeinsam: „Raum“ (Raum, Halle, Platte, Kathedrale), „Echo-Abstand“ (läuft im Tempo) und „Wiederholungen“.'],
+    tip: ['„EQ ●“ bzw. „Hall/Echo ●“ zeigt, dass etwas eingestellt ist. Alles kommt mit in Ideen und Export.'] },
+  { id: 'ideen', t: 'Ideen speichern, laden, Ordner', k: 'ideen speichern laden ordner ablage idee loop backing track zusammenarbeit verschieben aktualisieren teilen umbenennen', img: 'ideen',
+    s: ['Unten „Ideen“ aufklappen, Namen eintragen.', '„Speichern als“: Idee, Reiner Loop (ohne Drums/Drone), Backing Track (mit) oder Zusammenarbeit – dann „Speichern“.', '„Laden“ holt alles zurück. Der Name steht danach im Feld und an den Spuren; „Aktualisieren“ überschreibt dieselbe Idee, ein neuer Name speichert eine neue.', 'Ordner wechseln: in der Zeile „📁 …“ wählen. Mehrere: „Mehrere verschieben“ → antippen → Ordner tippen.', '„Teilen“ gibt einen WAV-Mix, „Studio“ öffnet die Idee im Studio.'] },
+  { id: 'logic', t: 'Export für Logic Pro', k: 'logic export zip wav midi airdrop mac spuren',
+    s: ['Looper unten „Für Logic exportieren“ (Name aus dem Ideen-Feld).', 'Im Teilen-Menü AirDrop an den Mac oder „In Dateien sichern“.', 'In Logic: neues Projekt, zuerst die MIDI-Datei auf Takt 1 ziehen (Tempo übernehmen: Ja), dann alle WAV-Dateien auf Takt 1.'],
+    tip: ['Im Studio gibt es „Für Logic Pro (ZIP)“ mit beliebig vielen Spuren.'] },
+  { id: 'pedal', t: 'Fußpedal (M-VAVE Chocolate)', k: 'pedal fußpedal mvave chocolate bluetooth tastatur keyboard footctrl',
+    s: ['In der App „CubeSuite“ den Modus „Keyboard A“ oder „B“ wählen, CubeSuite ganz schließen.', 'iPad-Einstellungen → Bluetooth → „FootCtrl“ verbinden.', 'In der App unter „Fußpedal“: Belegung „Automatisch“. A = Spur 1, B = Spur 2, C = Spur 3, D = alle. Halten = Rückgängig.', 'Steht bei „Pedal-Empfang“ „einmal in die App tippen“: auf eine freie Stelle tippen.'] },
+  { id: 'optik', t: 'Optik, Leistung, Live, Sprache', k: 'optik design aussehen leistung live sprache englisch en sparsam stabil puffer',
+    s: ['„App-Optik ▾“: Klar, Kühl, Nordisch, Metal, Verstärker, Matrix, DJ-Pult, Hell, Präzision.', '„Leistung ▾“: Rechenlast, Speicher und Latenz live; „Sparsam“ oder „Stabil – großer Audio-Puffer“, wenn es stockt.', '„Live“: Beim Spielen analysiert und sichert die App nichts nebenbei – maximal ruhig.', '„EN“ / „DE“ neben dem Namen wechselt die Sprache.'] },
+ ]},
+ { g: 'Üben und Improvisieren', items: [
+  { id: 'improvisation', t: 'Improvisation – was passt?', k: 'improvisation solo tonleiter pentatonik kirchentonarten akkord was passt griffbild mithören zielton', img: 'improvisation',
+    p: ['Zeigt zum klingenden Akkord, welche Töne passen: passende Tonleiter, Pentatonik, Akkordtöne als Zieltöne und den nächsten Wechsel. Im Looper oben gibt es dieselbe Hilfe kurz als Box „Was passt“.'],
+    s: ['Einen Loop oder Backing Track laufen lassen.', 'Reiter „Improvisation“: oben die Akkordleiste, der klingende Akkord leuchtet.', 'Eine Karte (z. B. Pentatonik) antippen – das Griffbild zeigt die Töne. Grundton rot, Akkordtöne blau, Charakterton gelb.', '„🎤 Mithören“ zeigt, welchen Ton du gerade spielst und ob er passt.'] },
+  { id: 'caged', t: 'CAGED', k: 'caged formen griffe dreiklänge arpeggio lage umkehrung', img: 'caged',
+    s: ['Akkord wählen (oder „folgt dem Loop“).', 'Form C · A · G · E · D oder „Alle“.', 'Ansicht: Griff, Arpeggio, Dreiklänge oder Tonleiter.', '„Lage“ wählen, um einen ganzen Loop an einer Stelle des Halses zu spielen.'] },
+  { id: 'quinten', t: 'Quintenzirkel', k: 'quintenzirkel tonart vorzeichen stufen dur moll', img: 'quintenzirkel',
+    s: ['Tonart antippen – sie klingt an, die sieben Akkorde der Tonart sind markiert.', '„Ins Griffbrett übernehmen“ stellt Grundton und Modus ein.', 'Läuft der Looper, leuchtet der klingende Akkord mit.'] },
+  { id: 'backing', t: 'Backing Track', k: 'backing track begleitung akkordfolge eintippen jam band bass fläche tempo-trainer', img: 'backing',
+    s: ['Tonart wählen, dann eine Vorlage oder Akkorde eintippen: „Am F C G“, „Am7:2 D7“ (2 Takte).', 'Akkord antippen: Länge, verschieben, verdoppeln, entfernen.', '▶ startet Drums, Bass und Fläche. „Beat“ und „Synth-Klang“ wählen den Sound.', 'Tempo-Trainer: Start, Ziel und Schritt – das Tempo steigt von selbst.'] },
+  { id: 'training', t: 'Training', k: 'training tagesübung gehörbildung licks intervalle solo auswertung', img: 'training',
+    s: ['„Tagesübung“: ca. 15 Minuten Plan mit Timer, erledigte Blöcke landen im Übungslog.', 'Gehörbildung: Intervalle, Akkordtypen, Stufen.', 'Licks: als Tabulatur und im Griffbild, in jeder Tonart, auch halbes Tempo.', 'Solo-Auswertung: Solo über eine Akkordspur einspielen, „Auswerten“.'] },
+  { id: 'technik', t: 'Technik (Griffbrett, Metronom, Begleitung)', k: 'technik griffbrett 3nps metronom übungslog begleitung positionen', img: 'technik',
+    s: ['Griffbild mit Tonleiter und Position wählen.', 'Metronom und Begleitung (Drone, Drums, Bass) starten.', 'Das Übungslog zählt deine Übungszeit.'] },
+ ]},
+ { g: 'Songs und Gesang', items: [
+  { id: 'songwriting', t: 'Songwriting – vom Loop zum Song', k: 'songwriting song teile strophe refrain bridge ablauf versionen prüfen → song', img: 'songwriting',
+    s: ['Im Looper etwas einspielen, unten „→ Song“: Song und Art des Teils wählen (Strophe, Refrain …).', 'Reiter „Songwriting“: Teile im „Ablauf“ verschieben, wiederholen, verdoppeln; ▶ spielt den ganzen Song.', 'Akkorde eines Teils antippen und korrigieren; Tonart und Tempo oben.', '„Song prüfen“ gibt Rückmeldung und Varianten zum Anhören.', 'Jede Änderung wird eine Version (V1, V2 …) – über „Version“ zurück.'] },
+  { id: 'text', t: 'Songtext, Leadsheet und Claude', k: 'text songtext reime silben leadsheet pdf claude song-code akkorde im text',
+    s: ['Unter „Text“ je Teil schreiben; links Silbenzahl und Reimbuchstabe.', 'Akkorde in den Text: „[Am]Ich fahr durch die [F]Nacht“.', '„Leadsheet (PDF)“ für Ausdruck oder Weitergabe.', 'Mit Claude: Aufgabe wählen → „Song-Code kopieren“ → im Chat einfügen → Antwort kopieren → „Einlesen“ → „Als neue Version übernehmen“.'] },
+  { id: 'gesangstext', t: 'Gesangstext mit Timing (Lied)', k: 'gesangstext timing text erkennen whisper wort einklopfen stimme moises lrc lied',
+    s: ['Songdatei in eine Spur laden, Reiter „Improvisation“ → „🎤 Gesangstext“.', '„🤖 Text automatisch erkennen“ (oder eigenen Text einfügen und „Nur Zeiten erkennen – mein Text bleibt“).', 'In der Spur unter den Akkorden Wörter ziehen; Wort antippen = ändern. Takt antippen macht ihn breit zum Feinarbeiten.', '„Lieder mit Text“ (Looper unten) speichert Datei und Text zusammen.'],
+    tip: ['Mit der Gesangsspur aus Moises („Gesangsspur dazuladen“) wird alles genauer.'] },
+  { id: 'mitsingen', t: 'Mitsingen', k: 'mitsingen karaoke text singen zeile üben timing prüfen übersetzung', img: 'mitsingen',
+    s: ['Ein Lied mit Text laufen lassen, Reiter „Mitsingen“.', 'Die aktuelle Zeile ist hell, das gesungene Wort füllt sich; vor Einsätzen zählt die App herunter.', '„↻ Zeile üben“ wiederholt eine Zeile, auch mit 75 % oder 50 %.', '„🎤 Timing prüfen“ zeigt je Wort, ob du zu früh oder zu spät bist (mit Kopfhörern).'] },
+ ]},
+ { g: 'Loopsmiths Studio', items: [
+  { id: 'studio-start', t: 'Ins Studio und zurück', k: 'studio öffnen wechseln zurück looper ↩ im studio', img: 'st-arr',
+    p: ['Das Studio ist ein Tonstudio für ganze Songs: viele Spuren, Arrangement über beliebig viele Takte, Mischpult, Instrumente, Drummer, Mastering und Export. Der Looper wird beim Wechsel ausgeschaltet, damit das Studio den ganzen Speicher hat.'],
+    s: ['Im Looper unter einer Spur „Im Studio ↗“ tippen – alle Spuren kommen ins Studio (die Idee wird vorher gesichert).', 'Bearbeiten (siehe unten).', 'Oben „↩ Looper“: Das Projekt wird in dieselbe Idee zurückgeschrieben (bis 3 Spuren, mehr werden auf Spur 3 gemischt) und der Looper öffnet sie.'],
+    tip: ['Unten im Studio steht „Looper angehalten ✓“, wenn der Looper wirklich aus ist.', 'Sind alle Spuren stumm (M), fragt „↩ Looper“ nach.'] },
+  { id: 'studio-uebernehmen', t: 'Ideen und Songs übernehmen', k: 'aus dem looper übernehmen browser ideen songs mitsingen neues projekt ins projekt', img: 'st-looper',
+    s: ['Oben „Aus dem Looper“: Ideen, Loops, Backing Tracks, Mitsingen-Lieder und Songs aus dem Songwriting.', 'Eintrag antippen, „▶ Anhören“.', '„Als neues Projekt“ oder „Ins Projekt …“ ab Takt, mit „Wiederholen“ und „ins Projekttempo bringen“.'] },
+  { id: 'studio-arrangement', t: 'Arrangement: Regionen, Takte loopen, Zoom', k: 'arrangement region verschieben kürzen teilen duplizieren loopen cycle takte zoom spurhöhe wellenform marker', img: 'st-arr',
+    s: ['Region antippen = auswählen, ziehen = verschieben, Ränder ziehen = kürzen, obere Ecken = Blende.', '„⟲ Takte loopen“ und über die Spuren ziehen: diese Takte laufen in Schleife. ⟲ oben schaltet die Schleife an/aus.', 'Zoomen mit + / − oder zwei Fingern; „↕+ / ↕−“ macht die Spuren (und die Wellenform) größer.', '„Teilen“ (an der Abspielposition), „Duplizieren“, „Wiederholen ×4“, „Löschen“, „+ Marker“, ↶ / ↷.'] },
+  { id: 'studio-mix', t: 'Mischpult und Effekte', k: 'mischpult fader panorama eq kompressor sättigung hall delay effekte master limiter', img: 'st-mix',
+    s: ['Oben „Mischpult“: je Spur Fader, Panorama, M/S, EQ-Kurve.', 'Felder „Kompressor“, „Sättigung“, „Hall“, „Delay“ antippen – mit Vorlagen für Gesang, Gitarre, Bass, Drums.', 'Master: EQ, Bus-Kompressor, Limiter, Hall- und Delay-Einstellungen.'] },
+  { id: 'studio-aufnahme', t: 'Aufnehmen und Automation', k: 'aufnehmen studio aufnahme automation lautstärke panorama punkte latenz vorzähler',
+    s: ['Spur mit „R“ scharf schalten (oder leere Audiospur wählen), Position setzen, ● tippen. Stopp mit ■ oder ●.', 'Spur → „Aufnahme …“: Stereo/Mono, Mithören, Vorzähler, Latenz.', 'Spur → „Automation Lautst.“ / „Automation Pan“: in die Spur tippen = Punkt, ziehen = verschieben, doppelt tippen = löschen.'] },
+  { id: 'studio-noten', t: 'Instrumente, Noten, Drummer, Akkorde → Bass', k: 'instrumente klavier streicher noten piano roll drummer akkorde bass flächen arpeggio midi', img: 'st-noten',
+    s: ['„+ Spur“ → „Instrument (Noten)“ oder „Drummer“.', '„Noten“: leere Stelle antippen = Note, ziehen = verschieben, rechter Rand = Länge, doppelt tippen = löschen.', 'Drummer-Region antippen → „Bearbeiten“: Stil, Kraft, Komplexität, Swing, Fill.', 'Unten „Akkorde →“ z. B. „Am F C G“ → „Bass erzeugen“, „Flächen erzeugen“ oder „Arpeggio erzeugen“.'] },
+  { id: 'mastering', t: 'Mastering (Lautheit für Spotify & Co.)', k: 'mastering master lufs lautheit spotify apple music true peak limiter laut', img: 'st-mastering',
+    p: ['Bringt einen fertigen Mix genau auf die Lautheit der Streaming-Dienste, ohne Übersteuern. Gemessen nach EBU R128.'],
+    s: ['Im Studio oben „Mastering“.', 'Quelle: „Projekt-Mix“, „nur Cycle-Bereich“ oder „Datei vom iPad …“; Ziel z. B. „Spotify … (−14 LUFS)“.', '„Laden & messen“, dann „Mastern“.', '„Original“ / „Master“ mit „gleich laut vergleichen“ anhören, dann „WAV speichern“.'] },
+  { id: 'studio-export', t: 'Export aus dem Studio', k: 'export mix wav spuren stems logic midi zip in den looper',
+    s: ['„Projekt ▾“ → Exportieren: „Mix (WAV)“, „Mix gemastert“, „Alle Spuren einzeln (ZIP)“, „Für Logic Pro (ZIP)“, „MIDI“.', '„nur den Cycle-Bereich“ für einen Ausschnitt.', '„In den Looper“ legt den Bereich als neue Idee unter „Zusammenarbeit“ ab.'] },
+ ]},
+ { g: 'Hilfe', items: [
+  { id: 'probleme', t: 'Probleme lösen', k: 'problem fehler hängt stockt eingang geht nicht ton weg looper läuft weiter kein ton absturz speicher voll',
+    s: ['Eingang geht nicht auf: „Kein Zugriff“ → Mikrofon erlauben (Einstellungen → Datenschutz → Mikrofon). „Belegt“ → andere Audio-App (Logic, GarageBand) ganz schließen.', 'Ton weg nach Kabel/USB-Wechsel oder Rückkehr in die App: einmal auf den Bildschirm tippen.', 'Es stockt (vor allem mit Drums): „Leistung ▾“ → „Stabil – großer Audio-Puffer“, App neu öffnen; bei den Drums „Raum“ aus.', 'Studio stumm: Sind die Spuren auf „M“ (stumm)? Fader im „Mischpult“ zu leise?', 'Neue Version erscheint nicht: App zweimal öffnen.'],
+    tip: ['„Leistung ▾“ → Hänger-Protokoll zeigt, was passiert ist („Kopieren“ zum Weiterschicken).'] },
+ ]},
+];
+
+// v113: Reiter „Anleitung“ – Inhalt aus hilfe-daten.js, erst beim Öffnen gebaut; Suche nach Begriffen (auch ohne Umlaute/Groß-Klein)
+(function () {
+  const $ = id => document.getElementById(id), panel = $('panel-hilfe'); if (!panel || typeof HILFE === 'undefined') return;
+  const TT = x => (typeof T === 'function' ? T(x) : x);
+  const fold = s => String(s).toLowerCase().replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss').replace(/[„“"'.,:;!?()…·→↗↩]/g, ' ');
+  const strip = h => String(h).replace(/<[^>]+>/g, '');
+  const all = []; HILFE.forEach(g => g.items.forEach(it => { it.g = g.g; it.txt = strip([it.t].concat(it.p || [], it.s || [], it.tip || []).join(' ')); it.idx = fold(it.t + ' ' + it.k + ' ' + it.txt); it.tf = fold(it.t + ' ' + it.k); all.push(it); }));
+  let built = false;
+  function build() {
+    if (built) return; built = true;
+    $('hlToc').innerHTML = HILFE.map(g => '<h4>' + g.g + '</h4>' + g.items.map(it => '<a href="#hl-' + it.id + '" data-id="' + it.id + '">' + it.t + '</a>').join('')).join('');
+    $('hlMain').innerHTML = HILFE.map(g => '<div class="hl-group">' + g.g + '</div>' + g.items.map(it =>
+      '<article class="card hl-topic" id="hl-' + it.id + '"><h3>' + it.t + '</h3>' +
+      (it.p ? it.p.map(x => '<p>' + x + '</p>').join('') : '') +
+      (it.img ? '<img class="hl-img" loading="lazy" decoding="async" src="hilfe/' + it.img + '.jpg" alt="Bild: ' + it.t + '">' : '') +
+      (it.s ? '<h5>Schritt für Schritt</h5><ol>' + it.s.map(x => '<li>' + x + '</li>').join('') + '</ol>' : '') +
+      (it.tip ? '<h5>Gut zu wissen</h5><ul class="tip">' + it.tip.map(x => '<li>' + x + '</li>').join('') + '</ul>' : '') + '</article>').join('')).join('');
+    $('hlCount').textContent = all.length + TT(' Themen');
+    $('hlEn').hidden = window.__lang !== 'en';
+  }
+  function go(id) {
+    build(); const el = $('hl-' + id); if (!el) return;
+    const bar = document.querySelector('.control-bar'), off = bar && getComputedStyle(bar).position === 'sticky' ? bar.getBoundingClientRect().height : 0;   // feste Kopfleiste nicht über die Überschrift legen
+    window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - off - 12, behavior: 'smooth' });
+    el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1600);
+    panel.querySelectorAll('.hl-toc a').forEach(a => a.classList.toggle('on', a.dataset.id === id));
+    try { localStorage.setItem('3nps-hilfe-last', id); } catch (e) {}
+  }
+  // Suche: alle Wörter müssen vorkommen; Treffer im Titel/Stichwort zählen mehr
+  function search(q) {
+    const w = fold(q).split(/\s+/).filter(x => x.length > 1); if (!w.length) return [];
+    return all.map(it => { let sc = 0; for (const x of w) { if (!it.idx.includes(x)) return null; sc += it.tf.includes(x) ? 10 : 1; if (fold(it.t).includes(x)) sc += 10; } return { it, sc }; }).filter(Boolean).sort((a, b) => b.sc - a.sc).map(r => r.it);
+  }
+  function snippet(it, q) {
+    const w = fold(q).split(/\s+/).filter(x => x.length > 1), f = fold(it.txt); let i = -1; for (const x of w) { i = f.indexOf(x); if (i >= 0) break; }
+    const a = Math.max(0, i - 40), s = (a ? '… ' : '') + it.txt.slice(a, a + 130) + (a + 130 < it.txt.length ? ' …' : '');
+    return s.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+  }
+  function showRes() {
+    const q = $('hlQ').value.trim(), box = $('hlRes'); $('hlX').hidden = !q;
+    if (!q) { box.hidden = true; return; }
+    const r = search(q); box.hidden = false;
+    box.innerHTML = r.length ? r.slice(0, 12).map(it => '<button class="hl-hit" data-id="' + it.id + '"><b translate="no">' + it.t + '</b><small translate="no">' + it.g + ' · ' + snippet(it, q) + '</small></button>').join('') : '<p class="hl-none">' + TT('Nichts gefunden. Andere Wörter probieren, z. B. „Aufnahme“, „Takt“, „Export“.') + '</p>';
+  }
+  $('hlQ').addEventListener('input', showRes);
+  $('hlQ').addEventListener('keydown', e => { if (e.key === 'Enter') { const r = search($('hlQ').value); if (r.length) { go(r[0].id); $('hlQ').blur(); } } });
+  $('hlX').addEventListener('click', () => { $('hlQ').value = ''; showRes(); });
+  $('hlRes').addEventListener('click', e => { const b = e.target.closest('.hl-hit'); if (b) go(b.dataset.id); });
+  $('hlToc').addEventListener('click', e => { const a = e.target.closest('a'); if (!a) return; e.preventDefault(); go(a.dataset.id); });
+  $('hlMain').addEventListener('click', e => { const im = e.target.closest('.hl-img'); if (im) im.classList.toggle('big'); });
+  document.addEventListener('tabchange', e => { if (e.detail === 'hilfe') build(); });
+  if (!panel.hidden) build();
+  window.Hilfe = { go, search, build, count: () => all.length };
 })();
 
 </script>
