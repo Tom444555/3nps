@@ -1054,3 +1054,9 @@ Gut zu wissen
    - Die Anleitung erklärt jetzt iPad, iPhone, Mac, Windows-PC und Android: Installieren (Safari bzw. Chrome/Edge),
      Eingang (Mono nur auf iPad/iPhone, am Computer in Chrome/Edge auch Stereo), Sichern und Mitnehmen zwischen Geräten.
    - Im Studio-Mastering heißt die Quelle jetzt „Datei laden …“. Sprünge aus der Suche landen genau beim Thema.
+
+98. Editor mit dem Finger (v115)
+   - Behoben: Auf dem iPad blieb manchmal ein Finger „hängen“ (das iPad meldete das Loslassen nicht). Danach zählte jeder
+     einzelne Finger als zwei – ein Finger zoomte, die Auswahl ging nur mit zwei Fingern, Tippen in die Zeitleiste wirkte nicht.
+     Jetzt gilt: ein Finger = Auswahl-Griffe ziehen, zwei Finger = zoomen, Tippen in die Zeitleiste oben = dorthin springen
+     (der Tippbereich ist etwas höher).
