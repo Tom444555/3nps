@@ -14,7 +14,8 @@ const UI = (() => {
   // ---- Ansichten ----
   function show(v) {
     view = v; document.querySelectorAll('#views button').forEach(b => b.classList.toggle('a', b.dataset.v === v));
-    ['arr', 'mix', 'roll', 'brw'].forEach(k => { $('v-' + k).hidden = k !== v; });
+    ['arr', 'mix', 'roll', 'brw', 'mst'].forEach(k => { $('v-' + k).hidden = k !== v; });
+    document.dispatchEvent(new CustomEvent('tabchange', { detail: v === 'mst' ? 'master' : v }));   // Mastering-Wiedergabe anhalten
     if (v !== 'brw') Brw.stopPrev();
     if (v === 'arr') { Arr.heads(); Arr.kick(); }
     if (v === 'mix') Mix.render();
@@ -25,7 +26,7 @@ const UI = (() => {
   $('views').addEventListener('click', e => { const b = e.target.closest('button'); if (b) show(b.dataset.v); });
   // ---- Transport ----
   const fmtPos = f => { const P = Proj.P; if (!P) return '1.1.1'; const spb = Proj.spb(), beats = f / spb, bar = Math.floor(beats / P.sig), bt = Math.floor(beats - bar * P.sig), s16 = Math.floor((beats - Math.floor(beats)) * 4); return (bar + 1) + '.' + (bt + 1) + '.' + (s16 + 1); };
-  async function togglePlay() { if (window.Rec && Rec.active()) { await Rec.stop(); sync(); return; } if (Engine.playing) Engine.stop(); else { Brw.stopPrev(); await Engine.play(); } sync(); }
+  async function togglePlay() { if (window.Master && Master.playing && Master.playing()) Master.stopPlay(); if (window.Rec && Rec.active()) { await Rec.stop(); sync(); return; } if (Engine.playing) Engine.stop(); else { Brw.stopPrev(); await Engine.play(); } sync(); }
   $('bPlay').onclick = togglePlay;
   $('bHome').onclick = () => { Engine.seek(Engine.playing && Engine.curPos() > Proj.bar() / 2 ? 0 : 0); Arr.V.x0 = 0; Arr.kick(); sync(); };
   $('bCyc').onclick = () => { const P = Proj.P; if (!P) return; const c = P.cycle; if (!(c.b > c.a)) { const s = Arr.V.sel && Proj.reg(Arr.V.sel); if (s) { c.a = Proj.snap(s.start, 'bar'); c.b = Math.max(c.a + Proj.bar(), Proj.snap(s.start + s.len, 'bar')); } else { c.a = 0; c.b = Proj.bar() * 4; } c.on = true; } else c.on = !c.on; Engine.setCycle(); Proj.save(); sync(); Arr.kick(); };
@@ -203,7 +204,7 @@ const UI = (() => {
     else if (e.key.toLowerCase() === 'c' && !e.metaKey) $('bCyc').click();
     else if (e.key.toLowerCase() === 'r' && !e.metaKey) $('bRec').click();
     else if (e.key.toLowerCase() === 'k' && !e.metaKey) $('bClick').click();
-    else if (e.key === '1') show('arr'); else if (e.key === '2') show('mix'); else if (e.key === '3') show('roll'); else if (e.key === '4') show('brw');
+    else if (e.key === '1') show('arr'); else if (e.key === '2') show('mix'); else if (e.key === '3') show('roll'); else if (e.key === '4') show('mst'); else if (e.key === '5') show('brw');
   });
   Proj.on(w => { sync(); if (view === 'mix' && w !== 'mix') Mix.render(); if (w === 'all' || w === 'regions' || w === 'tracks') inspect(); });
   // Speicher schonen: im Hintergrund anhalten und sichern

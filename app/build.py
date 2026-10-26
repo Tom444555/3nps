@@ -82,7 +82,8 @@ EARLY = "<script>try{var t=localStorage.getItem('3nps-theme')||'nordic',u=localS
 ACCEPT = 'audio/*,video/*,.mp3,.wav,.wave,.aif,.aiff,.aifc,.m4a,.m4b,.aac,.caf,.flac,.alac,.ogg,.oga,.opus,.mp4,.mov,.3gp,.webm,.amr'
 head = head.replace('</style>', lcss + metal + themecss + '</style>', 1)
 head = head.replace('step="1" value="80"', 'step="any" value="80"')
-head = head.replace('LOOPER_PANEL', lhtml).replace('CIRCLE_PANEL', rd(A + 'circle.html')).replace('SINGEN_PANEL', rd(A + 'singen.html')).replace('MASTER_PANEL', rd(A + 'master.html')).replace('SOLO_PANEL', rd(A + 'solo.html')).replace('CAGED_PANEL', rd(A + 'caged.html')).replace('JAM_PANEL', rd(A + 'jam.html')).replace('LIED_PANEL', rd(A + 'lied.html')).replace('UEBEN_PANEL', rd(A + 'uebung.html'))
+# v112: Mastering ist ins Studio umgezogen (master.js liefert weiter window.Master für den Song-Export)
+head = head.replace('LOOPER_PANEL', lhtml).replace('CIRCLE_PANEL', rd(A + 'circle.html')).replace('SINGEN_PANEL', rd(A + 'singen.html')).replace('MASTER_PANEL', '').replace('SOLO_PANEL', rd(A + 'solo.html')).replace('CAGED_PANEL', rd(A + 'caged.html')).replace('JAM_PANEL', rd(A + 'jam.html')).replace('LIED_PANEL', rd(A + 'lied.html')).replace('UEBEN_PANEL', rd(A + 'uebung.html'))
 head = head.replace('AUDIO_ACCEPT', ACCEPT)
 assert 'AUDIO_ACCEPT' not in head and 'LOOPER_PANEL' not in head and 'CIRCLE_PANEL' not in head and 'SOLO_PANEL' not in head and 'JAM_PANEL' not in head and 'LIED_PANEL' not in head and 'UEBEN_PANEL' not in head
 # Bass kann einem Akkord folgen (Jam): window.bassChordAt() liefert Grundton und Quinte des klingenden Akkords

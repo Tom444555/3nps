@@ -3543,7 +3543,7 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v111</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v112</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -3622,7 +3622,6 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
     <button class="tab" role="tab" id="tab-jam" data-tab="jam" aria-selected="false">Backing<wbr> Track</button>
     <button class="tab" role="tab" id="tab-lied" data-tab="lied" aria-selected="false">Song<wbr>writing</button>
     <button class="tab" role="tab" id="tab-singen" data-tab="singen" aria-selected="false">Mit<wbr>singen</button>
-    <button class="tab" role="tab" id="tab-master" data-tab="master" aria-selected="false">Mastering</button>
     <button class="tab" role="tab" id="tab-ueben" data-tab="ueben" aria-selected="false">Training</button>
     <button class="tab" role="tab" id="tab-griffbrett" data-tab="griffbrett" aria-selected="false">Technik</button>
   </nav>
@@ -4622,61 +4621,6 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
     </div>
   </section>
 
-  <section class="panel" id="panel-master" role="tabpanel" aria-labelledby="tab-master" hidden>
-    <div class="card">
-      <div class="card-head"><h2>Mastering</h2><span class="caption" id="msName" translate="no">–</span></div>
-      <p class="caption">Bringt einen fertigen Mix auf die richtige Lautheit für Spotify, YouTube &amp; Co. – ohne Übersteuern (True Peak). Gemessen nach EBU R128.</p>
-      <div class="ms-fields">
-        <label class="field"><span>Quelle</span><select id="msSrc" aria-label="Quelle">
-          <option value="file">Datei vom iPad …</option>
-          <option value="t0">Looper Spur 1</option><option value="t1">Looper Spur 2</option><option value="t2">Looper Spur 3</option>
-          <option value="song">Song aus dem Songwriting</option>
-        </select></label>
-        <label class="field"><span>Ziel</span><select id="msTarget" aria-label="Ziel">
-          <option value="stream">Spotify, YouTube, Amazon, TIDAL (−14 LUFS)</option>
-          <option value="apple">Apple Music (−16 LUFS)</option>
-          <option value="deezer">Deezer (−15 LUFS)</option>
-          <option value="loud">Laut – Club/CD (−9 LUFS)</option>
-          <option value="own">Eigene Vorgabe</option>
-        </select></label>
-        <label class="field ms-own" id="msOwnI" hidden><span>LUFS</span><input type="number" id="msI" min="-30" max="-6" step="0.5" value="-14"></label>
-        <label class="field ms-own" id="msOwnT" hidden><span>dBTP</span><input type="number" id="msT" min="-6" max="0" step="0.1" value="-1"></label>
-        <input type="file" id="msFile" accept="audio/*,.wav,.mp3,.m4a,.aif,.aiff,.flac" hidden>
-      </div>
-      <div class="ms-btns">
-        <button class="toggle-btn" id="msLoad">Laden &amp; messen</button>
-        <button class="toggle-btn" id="msRun" disabled>Mastern</button>
-        <button class="toggle-btn" id="msSave" disabled>WAV speichern</button>
-      </div>
-      <div class="ms-prog" id="msProg" hidden><i id="msBar"></i></div>
-      <p class="caption ms-hint" id="msHint" hidden></p>
-      <div class="status-line" id="msStatus">Quelle wählen und „Laden &amp; messen“ tippen.</div>
-    </div>
-    <div class="card">
-      <div class="card-head"><h2>Messwerte</h2><span class="caption">EBU R128 · ITU-R BS.1770-4</span></div>
-      <table class="ms-table" id="msTable">
-        <thead><tr><th></th><th>Vorher</th><th>Nachher</th><th>Ziel</th></tr></thead>
-        <tbody>
-          <tr><td>Lautheit (integriert)</td><td id="mvI0">–</td><td id="mvI1">–</td><td id="mvIz">–</td></tr>
-          <tr><td>True Peak</td><td id="mvT0">–</td><td id="mvT1">–</td><td id="mvTz">–</td></tr>
-          <tr><td>Lautheitsumfang (LRA)</td><td id="mvL0">–</td><td id="mvL1">–</td><td></td></tr>
-          <tr><td>Kurzzeit max.</td><td id="mvS0">–</td><td id="mvS1">–</td><td></td></tr>
-          <tr><td>Dynamik (PLR)</td><td id="mvP0">–</td><td id="mvP1">–</td><td></td></tr>
-          <tr><td>Begrenzer</td><td></td><td id="mvR1">–</td><td></td></tr>
-        </tbody>
-      </table>
-    </div>
-    <div class="card">
-      <div class="card-head"><h2>Vergleichen</h2></div>
-      <div class="ms-ab">
-        <button class="play-btn" id="msPlay" aria-label="Abspielen" disabled>▶</button>
-        <div class="seg" id="msAB" role="group" aria-label="Original oder Master"><button class="toggle-btn active" data-ab="a">Original</button><button class="toggle-btn" data-ab="b">Master</button></div>
-        <label class="check"><input type="checkbox" id="msEq" checked> gleich laut vergleichen</label>
-      </div>
-      <input type="range" id="msPos" min="0" max="1000" value="0" aria-label="Abspielposition" disabled>
-      <p class="caption">„Gleich laut“: der Master wird beim Vergleich auf die Lautheit des Originals gedreht – sonst klingt das Lautere immer „besser“.</p>
-    </div>
-  </section>
 
 
   <!-- Üben -->
@@ -19871,6 +19815,7 @@ function mdNormalize(chs, sr, target, ceilDb, opts, prog) {
   async function getSource() {
     const v = $('msSrc').value;
     if (v === 'file') return null;   // über Dateiauswahl
+    if (window.MasterSource) { const r = await window.MasterSource(v); if (r) return r; }   // v112: Studio liefert Projekt-Mix
     if (v[0] === 't') {
       const i = +v[1], x = typeof Looper !== 'undefined' && Looper.singAudio ? Looper.singAudio(i, 0, 1e12) : null;
       if (!x) throw new Error(TT('Auf dieser Spur liegt keine geladene Datei. Mastering geht mit geladenen Dateien (z. B. aus Logic) – oder „Datei vom iPad …“ wählen.'));

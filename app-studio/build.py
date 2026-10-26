@@ -20,7 +20,11 @@ eqcss = '\n'.join(css) + '\n.toggle-btn{appearance:none;padding:5px 10px;border-
 parts = ['window.__tr = null;'] + [rd(A + f) for f in ['eq.js', 'master-dsp.js', 'lied-core.js', 'lied-text.js', 'lied-export.js']]
 for f in ['sdb.js', 'engine.js', 'project.js', 'sched.js', 'imp.js', 'rec.js', 'inst.js', 'drum.js', 'ui-arr.js', 'ui-roll.js', 'ui-mix.js', 'ui-brw.js', 'export.js', 'ui-main.js']:
     if os.path.exists(S + f): parts.append(rd(S + f))
-html = rd(S + 'studio.html').replace('EQCSS', eqcss).replace('SVER', SVER)
+parts.append(rd(S + 'mst.js'))
+parts.append(rd(A + 'master.js'))   # v112: Mastering-Reiter aus dem Looper (gleicher Code, Quellen aus dem Projekt)
+mh = rd(A + 'master.html').replace('<section class="panel" id="panel-master" role="tabpanel" aria-labelledby="tab-master" hidden>', '<div id="panel-master">').replace('</section>', '</div>')
+mh = re.sub(r'<select id="msSrc"[^>]*>.*?</select>', '<select id="msSrc" aria-label="Quelle"><option value="mix">Projekt-Mix (ganzes Projekt)</option><option value="cycle">Projekt-Mix (nur Cycle-Bereich)</option><option value="file">Datei vom iPad …</option></select>', mh, flags=re.S)
+html = rd(S + 'studio.html').replace('EQCSS', eqcss).replace('MASTERCSS', rd(A + 'master.css')).replace('MASTERHTML', mh).replace('SVER', SVER)
 html = html.replace('SCRIPTS', '<script>\n' + '\n</script>\n<script>\n'.join(parts) + '\n</script>')
 os.makedirs(OUT, exist_ok=True)
 open(OUT + 'index.html', 'w', encoding='utf8').write(html)

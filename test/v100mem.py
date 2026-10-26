@@ -35,7 +35,7 @@ async def main():
                     await pg.click('#impOk')
                 st = await pg.inner_text('#loopStatus')
                 if st.startswith('Spur %d:' % (tr + 1)): break
-            for tab in ['solo', 'singen', 'master', 'looper']:
+            for tab in ['solo', 'singen', 'looper']:
                 await pg.click('#tab-' + tab); await pg.wait_for_timeout(600)
             await pg.evaluate("window.gc && gc()"); await pg.wait_for_timeout(500); await pg.evaluate("window.gc && gc()")
             h = await cdp.send('Runtime.getHeapUsage')

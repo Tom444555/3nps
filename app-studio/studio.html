@@ -90,13 +90,19 @@ main{flex:1;min-height:0;position:relative}
 @media (max-width:1320px){.brand span{display:none}.views button{padding:6px 7px}.lcd{gap:10px}.top{gap:8px}}
 @media (max-width:900px){.arr{grid-template-columns:132px 1fr}.th .n small{display:none}.dock{grid-template-columns:1fr 1fr;height:auto}.dock .box:nth-child(2){display:none}.brw{grid-template-columns:1fr}.side{max-height:40vh}.lcd{gap:8px}.views{margin-left:0}}
 EQCSS
+MASTERCSS
+.mstwrap{flex:1;min-height:0;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;max-width:980px;margin:0 auto;width:100%}
+#panel-master{display:flex;flex-direction:column;gap:12px}#panel-master .field[hidden]{display:none}#panel-master .card{margin:0}#panel-master .card-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px}#panel-master h2{margin:0 0 6px;font-size:17px}
+#panel-master .caption{color:var(--mut);font-size:12px}#panel-master .field{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--mut)}
+#panel-master .status-line{font-size:13px;margin-top:6px}#panel-master .play-btn{width:44px;height:40px;border-radius:9px;background:var(--surf2);border:1px solid var(--line);font-size:16px}
+#panel-master .seg{display:flex;gap:4px}#panel-master .check{font-size:12px;color:var(--mut);display:flex;gap:6px;align-items:center}#panel-master .toggle-btn{padding:7px 12px;font-size:13px}#panel-master .toggle-btn:disabled{opacity:.4}
 </style></head>
 <body>
 <div class="top">
   <div class="brand">Loopsmiths <span>Studio · SVER</span></div>
   <div class="tp"><button class="btn" id="bHome" title="Zum Anfang">⏮</button><button class="btn play" id="bPlay" title="Abspielen / Stopp">▶</button><button class="btn rec" id="bRec" title="Aufnehmen">●</button><button class="btn" id="bCyc" title="Cycle (Schleife)">⟲</button><button class="btn" id="bClick" title="Metronom">♩</button></div>
   <div class="lcd"><div><small>TAKT</small><b id="lPos">1.1.1</b></div><div><small>TEMPO</small><input id="lBpm" type="number" min="40" max="240" step="0.1" aria-label="Tempo"></div><div><small>TAKTART</small><b id="lSig">4/4</b></div><div><small>TONART</small><b id="lKey" translate="no">–</b></div></div>
-  <div class="views" id="views"><button data-v="arr" class="a">Arrangement</button><button data-v="mix">Mischpult</button><button data-v="roll">Noten</button><button data-v="brw">Aus dem Looper</button></div>
+  <div class="views" id="views"><button data-v="arr" class="a">Arrangement</button><button data-v="mix">Mischpult</button><button data-v="roll">Noten</button><button data-v="mst">Mastering</button><button data-v="brw">Aus dem Looper</button></div>
   <button class="btn p" id="bBack" title="Zurück zum Looper (Projekt aus einer Idee: wird in dieselbe Idee geschrieben)">↩ Looper</button><button class="btn" id="bProj">Projekt ▾</button>
   <div class="cpu">Last <b id="cLoad">–</b><br>Speicher <b id="cMem">–</b></div>
 </div>
@@ -126,6 +132,7 @@ EQCSS
   </section>
   <section class="view" id="v-mix" hidden><div class="mix" id="mix"></div></section>
   <section class="view" id="v-roll" hidden><div class="rollwrap"><div class="rdock" id="rTop"></div><div class="roll" id="roll"><canvas id="rcv"></canvas></div><div class="rdock" id="rDock"></div></div></section>
+  <section class="view" id="v-mst" hidden><div class="mstwrap">MASTERHTML</div></section>
   <section class="view" id="v-brw" hidden><div class="brw"><div class="side"><div class="seg" id="bFilt"></div><div id="bList" class="plist"></div><p class="note">Alles, was du im Looper speicherst, erscheint hier sofort – ohne Export. Geladen wird erst, wenn du es übernimmst.</p></div><div class="prev" id="bPrev"><p class="empty">Links etwas auswählen.</p></div></div></section>
 </main>
 <div class="status" id="status">Bereit.</div>

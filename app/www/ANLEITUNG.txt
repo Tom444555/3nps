@@ -1036,3 +1036,9 @@ Gut zu wissen
      als zweite App neben dem Looper öffnen. Läuft ein Looper trotzdem irgendwo noch, schaltet das Studio ihn ab;
      unten steht dann „Looper angehalten ✓“.
    - Sind beim Öffnen eines vorhandenen Projekts alle Spuren stumm, werden sie wieder hörbar gemacht.
+
+95. Mastering ist ins Studio umgezogen (v112)
+   - Im Looper gibt es den Reiter „Mastering“ nicht mehr. Im Studio oben: „Mastering“ – gleiche Bedienung wie vorher
+     (Ziel wählen, „Laden & messen“, „Mastern“, Original/Master gleich laut vergleichen, „WAV speichern“).
+   - Quellen: „Projekt-Mix (ganzes Projekt)“, „Projekt-Mix (nur Cycle-Bereich)“ oder „Datei vom iPad …“.
+   - Der Song-Export im Songwriting („gemastert“) funktioniert im Looper weiter, mit dem Ziel aus dem Mastering.

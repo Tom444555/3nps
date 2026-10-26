@@ -69,6 +69,7 @@
   async function getSource() {
     const v = $('msSrc').value;
     if (v === 'file') return null;   // über Dateiauswahl
+    if (window.MasterSource) { const r = await window.MasterSource(v); if (r) return r; }   // v112: Studio liefert Projekt-Mix
     if (v[0] === 't') {
       const i = +v[1], x = typeof Looper !== 'undefined' && Looper.singAudio ? Looper.singAudio(i, 0, 1e12) : null;
       if (!x) throw new Error(TT('Auf dieser Spur liegt keine geladene Datei. Mastering geht mit geladenen Dateien (z. B. aus Logic) – oder „Datei vom iPad …“ wählen.'));
