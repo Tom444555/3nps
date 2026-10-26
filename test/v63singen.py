@@ -22,7 +22,7 @@ async def main():
         pg.on('pageerror', lambda e: errs.append(str(e)))
         await pg.add_init_script(INIT); await pg.goto(U); await pg.wait_for_timeout(800)
         tabs = await pg.evaluate("[...document.querySelectorAll('[role=tab]')].map(t=>t.textContent.trim())")
-        check('Reiter „Mitsingen“ nach Songwriting', tabs == ['Looper', 'Improvisation', 'CAGED', 'Quintenzirkel', 'Backing Track', 'Songwriting', 'Mitsingen', 'Training', 'Technik'], tabs)
+        check('Reiter „Mitsingen“ nach Songwriting', tabs == ['Looper', 'Improvisation', 'CAGED', 'Quintenzirkel', 'Backing Track', 'Songwriting', 'Mitsingen', 'Anleitung', 'Training', 'Technik'], tabs)
         await pg.click('#tab-singen'); await pg.wait_for_timeout(300)
         check('ohne Quelle: Hinweis', await pg.is_visible('#sbEmpty'))
         await pg.click('#tab-looper'); await load(pg)

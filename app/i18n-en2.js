@@ -658,4 +658,10 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
   "Erst etwas aufnehmen oder laden.": "Record or load something first.",
   "Loop ": "Loop ",
   "Aus dem Studio zurück – ": "Back from the Studio – ",
-  "Looper angehalten – das Studio spielt.": "Looper stopped – the Studio is playing." });
+  "Looper angehalten – das Studio spielt.": "Looper stopped – the Studio is playing.",
+  "Anleitung": "Guide",
+  "Suchen, z. B. Latenz, Drums, Mastering …": "Search (German words), e.g. Latenz, Drums, Mastering …",
+  "In der Anleitung suchen": "Search the guide",
+  "Inhalt": "Contents",
+  " Themen": " topics",
+  "Nichts gefunden. Andere Wörter probieren, z. B. „Aufnahme“, „Takt“, „Export“.": "Nothing found. Try other (German) words, e.g. “Aufnahme”, “Takt”, “Export”." });

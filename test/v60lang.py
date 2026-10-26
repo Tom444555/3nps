@@ -4,7 +4,7 @@ from playwright.async_api import async_playwright
 ok = 0; tot = 0
 def check(n, c, info=''):
     global ok, tot; tot += 1; ok += bool(c); print(('OK    ' if c else 'FEHLER') + '  ' + n + ('  · ' + str(info) if info else ''))
-TABS=['solo','caged','quinten','jam','lied','singen','ueben','griffbrett']
+TABS=['solo','caged','quinten','jam','lied','singen','hilfe','ueben','griffbrett']
 J="""(id)=>{const out=new Set();const r=document.getElementById('panel-'+id);if(!r)return [];const w=document.createTreeWalker(r,NodeFilter.SHOW_TEXT|NodeFilter.SHOW_ELEMENT);let n;while((n=w.nextNode())){
  if(n.nodeType===3){const p=n.parentNode;if(p&&/SCRIPT|STYLE|TEXTAREA/.test(p.nodeName))continue;if(p&&p.closest&&p.closest('[translate=no]'))continue;const v=n.nodeValue.trim();if(v)out.add(v);}
  else for(const a of ['title','placeholder','aria-label']){const v=n.getAttribute(a);if(v)out.add('@'+v);}}return [...out];}"""
