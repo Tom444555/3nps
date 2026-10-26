@@ -187,7 +187,7 @@ const Engine = (() => {
     const c = P && P.cycle; if (c && c.on && c.b > c.a && p >= c.b) p = c.a + ((p - c.a) % (c.b - c.a));
     return Math.round(p);
   }
-  let bc = null; try { bc = new BroadcastChannel('3nps-audio'); } catch (e) {}
+  let bc = null; try { bc = new BroadcastChannel('3nps-audio'); bc.onmessage = e => { if (e.data === 'looper-stopped') { window.__looperAck = true; if (window.UI && UI.say) UI.say('Looper im Hintergrund angehalten ✓'); } }; } catch (e) {}
   const hush = () => { try { bc && bc.postMessage('studio'); } catch (e) {} };   // v110: Looper (falls er noch läuft) verstummen lassen
   hush();
   async function play() {

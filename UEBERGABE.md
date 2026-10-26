@@ -1,6 +1,6 @@
 # 3nps Looper – Übergabe (vollständiger Stand)
 
-Stand: **25. Oktober 2026 · Version v110 (Studio s3)** – live unter https://tom444555.github.io/3nps/ ·
+Stand: **25. Oktober 2026 · Version v111 (Studio s3)** – live unter https://tom444555.github.io/3nps/ ·
 stabile Rückfall-Fassung **v24** unter https://tom444555.github.io/3nps/stabil/
 
 Diese Datei ist das Gedächtnis des Projekts. Alles, was ein neuer Chat wissen muss, steht hier –
@@ -210,6 +210,7 @@ Vergleich mit der stabilen v24 / Vorversion (Pages-Nachbau: `ln -s /home/claude/
 `aktionen.py URL` (Stocken je Bedienschritt) · `idle.py URL [zu]`. v35 = v24 (gemeinsam, 60 s, Seed 7): keine Fehler, Heap max 23,8 vs 26,4 MB, 0 späte Schläge.
 Pages-Nachbau mit neuer Fassung: `/home/claude/3nps-main` nach `/tmp/claude-0/pages/3nps` kopieren, `app/www/.` darüber, Server Port 8790.
 
+Looper/Studio v111: Tom meldete trotz v110 „Looper läuft weiter“ (über „Im Studio ↗“; Spuren waren aus einem früheren Versuch stumm). Jetzt `hardStop()` = `audioCtx.close()` + `Looper.closeInput()`; sichtbar werden des alten Fensters → `location.replace('./?load=…')`. Studio-Seite ohne `<link rel=manifest>` (Verdacht: iPadOS öffnet Seite mit eigenem Manifest als zweite Web-App). Quittung über BroadcastChannel ('looper-stopped' → „Looper angehalten ✓“). Wiederverwendetes Projekt mit nur stummen Spuren wird entstummt.
 Looper/Studio v110: Ursache Looper-läuft-weiter = Auto-Resume (`hookCtx` statechange, visibilitychange) → Flag `window.__studioHold` (gesetzt in `goStudio` und per `BroadcastChannel('3nps-audio')`-Nachricht 'studio' vom Studio bei Start/▶, gelöscht beim nächsten Tippen im Looper). `backToLooper` meldet stumme Spuren (`e.muted`) → Dialog mit Entstummen. → `v110hush.py` 6/6.
 Looper/Studio v109: Looper `goStudio()` (AudioContext suspend, sessionStorage `3nps-to-studio`, `pageshow` persisted → `./?load=`); Studio: `drawWave` je Geräte-Pixel, nah aus `SDB.read` (Cache `raw`), unter 1,5 Bilder/Pixel als Linie, Zoom bis 0,25 Bilder/Pixel, Übersicht `PK=128`; Spurhöhe `Arr.setTh` (`3nps-studio-th`, ↕±); „⟲ Takte loopen“ `V.loopSel` (Ziehen = Cycle auf Takte); `#bBack` immer sichtbar (ohne `fromIdea` nur zurück); Brw „Als neues Projekt“ setzt `fromIdea`. → `v109wave.py` 9/9.
 Looper v108: Spurkopf bricht um (`.track-head` wrap, `.th-left` min 160px), Ideenname `.tsrc` eigene Zeile unter `.th-name`.

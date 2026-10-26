@@ -3,7 +3,7 @@ const UI = (() => {
   const $ = id => document.getElementById(id);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   let view = 'arr', closeFn = [];
-  function say(t) { $('status').textContent = t; }
+  function say(t) { $('status').textContent = t + (window.__looperAck && !/✓/.test(t) ? ' · Looper angehalten ✓' : ''); }
   // ---- Fenster ----
   function dialog(html) { closeFn = []; $('dlg').innerHTML = html; $('modal').hidden = false; }
   function close() { $('modal').hidden = true; const f = closeFn; closeFn = []; f.forEach(fn => { try { fn(); } catch (e) { console.error(e); } }); $('dlg').innerHTML = ''; }
@@ -220,7 +220,7 @@ const UI = (() => {
       // v107: direkt von der Looper-Spur – passendes Projekt öffnen (unverändert seit dem letzten Zurückschreiben) oder neu übernehmen
       history.replaceState(null, '', location.pathname);
       const it = await SDB.looperGet('ideas', idea), ps = (await SDB.all('projects')).filter(p => p.fromIdea === idea).sort((x, y) => y.ts - x.ts);
-      if (it && ps.length && ps[0].importTs && ps[0].importTs >= it.ts) { await Proj.load(ps[0].id); say('Projekt „' + Proj.P.name + '“ geöffnet. „↩ Looper“ bringt es zurück.'); }
+      if (it && ps.length && ps[0].importTs && ps[0].importTs >= it.ts) { await Proj.load(ps[0].id); const P = Proj.P, used = P.tracks.filter(t => P.regions.some(r => r.track === t.id)); if (used.length && used.every(t => t.mute)) { Proj.change('mix', p => p.tracks.forEach(t => { t.mute = false; })); Engine.dirty(true); } say('Projekt „' + Proj.P.name + '“ geöffnet. „↩ Looper“ bringt es zurück.'); }
       else if (it) {
         try { await Imp.idea(idea, { mode: 'new', bar: 1, reps: 1, fit: false }, say); Proj.change('meta', p => { p.fromIdea = idea; p.importTs = it.ts; }, { noUndo: true }); await Proj.save(); say('„' + it.name + '“ aus dem Looper. Bearbeiten, dann „↩ Looper“.'); }
         catch (e) { say('Übernahme fehlgeschlagen: ' + e.message); }

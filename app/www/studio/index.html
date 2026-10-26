@@ -5,7 +5,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob:; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' blob: data:; connect-src 'self' blob: data:; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="theme-color" content="#141416">
-<link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <title>Loopsmiths Studio</title>
 <style>
 :root{--bg:#141416;--surf:#1d1d21;--surf2:#25252b;--line:#34343b;--soft:#2a2a30;--ink:#ececf1;--mut:#8f909a;--acc:#4cc38a;--t1:#e4f2ff;--t2:#2de2ff;--t3:#86a8ff;--y:#f2c230;--r:#ff5d5d;--tc:#7fd8ff;--f-mono:ui-monospace,"SF Mono",Menlo,monospace;--text:#ececf1;--muted:#8f909a}
@@ -1756,7 +1756,7 @@ const Engine = (() => {
     const c = P && P.cycle; if (c && c.on && c.b > c.a && p >= c.b) p = c.a + ((p - c.a) % (c.b - c.a));
     return Math.round(p);
   }
-  let bc = null; try { bc = new BroadcastChannel('3nps-audio'); } catch (e) {}
+  let bc = null; try { bc = new BroadcastChannel('3nps-audio'); bc.onmessage = e => { if (e.data === 'looper-stopped') { window.__looperAck = true; if (window.UI && UI.say) UI.say('Looper im Hintergrund angehalten ✓'); } }; } catch (e) {}
   const hush = () => { try { bc && bc.postMessage('studio'); } catch (e) {} };   // v110: Looper (falls er noch läuft) verstummen lassen
   hush();
   async function play() {
@@ -3237,7 +3237,7 @@ const UI = (() => {
   const $ = id => document.getElementById(id);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   let view = 'arr', closeFn = [];
-  function say(t) { $('status').textContent = t; }
+  function say(t) { $('status').textContent = t + (window.__looperAck && !/✓/.test(t) ? ' · Looper angehalten ✓' : ''); }
   // ---- Fenster ----
   function dialog(html) { closeFn = []; $('dlg').innerHTML = html; $('modal').hidden = false; }
   function close() { $('modal').hidden = true; const f = closeFn; closeFn = []; f.forEach(fn => { try { fn(); } catch (e) { console.error(e); } }); $('dlg').innerHTML = ''; }
@@ -3454,7 +3454,7 @@ const UI = (() => {
       // v107: direkt von der Looper-Spur – passendes Projekt öffnen (unverändert seit dem letzten Zurückschreiben) oder neu übernehmen
       history.replaceState(null, '', location.pathname);
       const it = await SDB.looperGet('ideas', idea), ps = (await SDB.all('projects')).filter(p => p.fromIdea === idea).sort((x, y) => y.ts - x.ts);
-      if (it && ps.length && ps[0].importTs && ps[0].importTs >= it.ts) { await Proj.load(ps[0].id); say('Projekt „' + Proj.P.name + '“ geöffnet. „↩ Looper“ bringt es zurück.'); }
+      if (it && ps.length && ps[0].importTs && ps[0].importTs >= it.ts) { await Proj.load(ps[0].id); const P = Proj.P, used = P.tracks.filter(t => P.regions.some(r => r.track === t.id)); if (used.length && used.every(t => t.mute)) { Proj.change('mix', p => p.tracks.forEach(t => { t.mute = false; })); Engine.dirty(true); } say('Projekt „' + Proj.P.name + '“ geöffnet. „↩ Looper“ bringt es zurück.'); }
       else if (it) {
         try { await Imp.idea(idea, { mode: 'new', bar: 1, reps: 1, fit: false }, say); Proj.change('meta', p => { p.fromIdea = idea; p.importTs = it.ts; }, { noUndo: true }); await Proj.save(); say('„' + it.name + '“ aus dem Looper. Bearbeiten, dann „↩ Looper“.'); }
         catch (e) { say('Übernahme fehlgeschlagen: ' + e.message); }

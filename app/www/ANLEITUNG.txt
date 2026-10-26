@@ -1028,3 +1028,11 @@ Gut zu wissen
      wieder tippst. Zusätzlich meldet sich das Studio beim Öffnen und bei ▶ – ein noch offener Looper hält dann an.
    - „↩ Looper“ speichert nur hörbare Spuren. Sind alle stumm (M), erscheint ein Fenster: „Alle Spuren hörbar machen
      und speichern“, „Ohne Speichern zum Looper“ oder „Im Studio bleiben“.
+
+94. Looper ↔ Studio: Looper wird beim Wechsel ganz ausgeschaltet (v111)
+   - „Im Studio ↗“ schaltet den Ton des Loopers jetzt vollständig aus und schließt den Eingang (vorher nur angehalten).
+     Kommt man in dieses Looper-Fenster zurück, lädt es die Idee frisch.
+   - Die Studio-Seite gehört jetzt fest zur Looper-App (kein eigenes App-Manifest mehr) – das iPad soll sie nicht mehr
+     als zweite App neben dem Looper öffnen. Läuft ein Looper trotzdem irgendwo noch, schaltet das Studio ihn ab;
+     unten steht dann „Looper angehalten ✓“.
+   - Sind beim Öffnen eines vorhandenen Projekts alle Spuren stumm, werden sie wieder hörbar gemacht.

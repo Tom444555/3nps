@@ -16,8 +16,10 @@ async def main():
         check('Looper spielt', await lp.evaluate("audioCtx.state") == 'running' and await lp.evaluate("Looper.getSession() && 1") == 1)
         sp = await ctx.new_page(); sp.on('pageerror', lambda e: errs.append(str(e)))
         await sp.goto('http://localhost:8765/studio/'); await sp.wait_for_timeout(1500)
-        check('Studio öffnet → Looper im anderen Fenster verstummt', await lp.evaluate("audioCtx.state") == 'suspended', await lp.evaluate("audioCtx.state"))
+        check('Studio öffnet → Looper im anderen Fenster verstummt', await lp.evaluate("audioCtx.state") == 'closed', await lp.evaluate("audioCtx.state"))
         check('Looper sagt warum', 'Studio' in await lp.inner_text('#loopStatus'))
+        await sp.wait_for_timeout(1500); check('Studio bekommt Bestätigung „Looper angehalten ✓“', '✓' in await sp.inner_text('#status'), await sp.inner_text('#status'))
+        check('Studio-Seite ohne eigenes Manifest (bleibt in der Looper-App)', await sp.locator('link[rel=manifest]').count() == 0)
         # stumme Spuren beim Zurückschreiben
         await sp.evaluate("""(async () => { const sr = Engine.sr(), l = new Float32Array(sr * 2).map((_, i) => Math.sin(i / 20) * 0.3); const m = await SDB.putAudio('x', sr, l, null);
           Proj.change('regions', q => { const t = Proj.track('audio', 'X'); t.mute = true; q.tracks.push(t); q.regions.push({ id: Proj.nid('r'), track: t.id, kind: 'audio', audio: m.id, start: 0, offset: 0, len: m.frames, gain: 0, fi: 0, fo: 0, name: 'x' }); q.fromIdea = 'zz1'; });

@@ -3348,6 +3348,7 @@ const Looper = (() => {
     busy: () => !!rec || tracks.some(t => !!t.src),     // spielt oder nimmt gerade etwas auf (für den Jam)
     pauseToggle: () => pauseToggle(), running: () => anyRunning(), paused: () => !!pausedAt && !anyRunning(), hasLoop: () => anyContent(),
     stopAll: () => { const b = $('loopAll'); if (b && tracks.some(t => !!t.src) && !rec) b.click(); },
+    closeInput: () => { try { micWanted = false; if (micReady) closeMic(); else if (stream) stream.getTracks().forEach(tr => tr.stop()); } catch (e) {} },
     seek: (i, f) => { const t = tracks[i]; if (t && t.L && !rec) seekTo(t, f); },
     nowChord: () => {
       for (const t of tracks) {
@@ -3625,13 +3626,21 @@ const Pedal = (() => {
 
   // v109: vor dem Wechsel ins Studio den Looper stumm schalten (sonst läuft er auf dem iPad im Hintergrund weiter)
   function goStudio(id, url) {
-    window.__studioHold = true; try { Looper.stopAll(); } catch (e) {}
-    try { if (typeof audioCtx !== 'undefined' && audioCtx) audioCtx.suspend(); } catch (e) {}
+    hardStop();
     try { sessionStorage.setItem('3nps-to-studio', id); } catch (e) {}
     location.href = url || ('studio/?idea=' + encodeURIComponent(id) + '&from=looper');
   }
+  // v111: Looper endgültig still machen – Ton-Kontext schließen (kann nicht von selbst weiterlaufen), Eingang schließen.
+  // Kommt man danach in dieses Fenster zurück, lädt es neu (mit der Idee).
+  function hardStop() {
+    window.__studioHold = true; window.__looperClosed = true;
+    try { Looper.stopAll(); } catch (e) {}
+    try { Looper.closeInput(); } catch (e) {}
+    try { if (typeof audioCtx !== 'undefined' && audioCtx && audioCtx.state !== 'closed') audioCtx.close(); } catch (e) {}
+  }
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && window.__looperClosed) { let id = null; try { id = sessionStorage.getItem('3nps-to-studio'); } catch (e) {} location.replace('./' + (id || (loaded && loaded.id) ? '?load=' + encodeURIComponent(id || loaded.id) : '')); } });
   // v110: Das Studio meldet sich über einen Kanal – läuft der Looper noch (z. B. in einem zweiten Fenster), verstummt er sofort
-  try { const bc = new BroadcastChannel('3nps-audio'); bc.onmessage = e => { if (e.data !== 'studio') return; window.__studioHold = true; try { Looper.stopAll(); } catch (x) {} try { if (typeof audioCtx !== 'undefined' && audioCtx) audioCtx.suspend(); } catch (x) {} $('loopStatus').textContent = T('Looper angehalten – das Studio spielt.'); }; window.__looperBC = bc; } catch (e) {}
+  try { const bc = new BroadcastChannel('3nps-audio'); bc.onmessage = e => { if (e.data !== 'studio') return; hardStop(); try { bc.postMessage('looper-stopped'); } catch (x) {} $('loopStatus').textContent = T('Looper angehalten – das Studio spielt.'); }; window.__looperBC = bc; } catch (e) {}
   // Kommt der Looper aus dem Zwischenspeicher zurück (Wischgeste/Zurück), frisch laden statt stumm weiterzulaufen
   window.addEventListener('pageshow', e => { let id = null; try { id = sessionStorage.getItem('3nps-to-studio'); sessionStorage.removeItem('3nps-to-studio'); } catch (x) {} if (e.persisted && id) location.replace('./?load=' + encodeURIComponent(id)); });
   // v107: „Im Studio ↗“ an der Spur – aktuellen Stand sichern (geladene Idee aktualisieren oder neu unter „Zusammenarbeit“), dann ins Studio
