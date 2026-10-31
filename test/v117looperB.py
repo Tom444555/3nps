@@ -23,7 +23,7 @@ async def main():
         await pg.goto(U); await pg.wait_for_timeout(900)
         await pg.evaluate("localStorage.removeItem('3nps-amp');localStorage.removeItem('3nps-amp-on');localStorage.removeItem('3nps-pedal-acts');localStorage.setItem('3nps-countin','0');0")
         await pg.reload(); await pg.wait_for_timeout(900)
-        check('v117', 'v117' in await pg.inner_text('.brand'))
+        check('ab v117', int(__import__('re').search(r'v(\d+)', await pg.inner_text('.brand')).group(1)) >= 117)
         sr = await pg.evaluate("(ensureAudio(), audioCtx.sampleRate)")
         await pg.evaluate(THD)
         # ---------- 1. Amp ----------

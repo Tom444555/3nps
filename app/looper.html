@@ -33,6 +33,7 @@
             <button class="toggle-btn" id="loopTunerBtn" aria-pressed="false" title="Stimmgerät (nutzt den Eingang)">Stimmen</button>
             <button class="toggle-btn amp-btn" id="loopAmpBtn" aria-pressed="false" title="Amp-Simulation für die Gitarre (Mithören und Aufnahme)">Amp</button>
             <button class="toggle-btn amp-set" id="loopAmpSet" aria-expanded="false" title="Amp-Regler ein-/ausblenden">▾</button>
+            <button class="toggle-btn" id="loopSigBtn" aria-pressed="false" title="Signalweg mit Pegeln anzeigen">Signalweg</button>
             <button class="toggle-btn all-btn2" id="loopAll2" title="Alle Spuren starten oder stoppen (wie unten)">Alle starten</button>
           </div>
           <div class="amp-panel" id="ampPanel" hidden>
@@ -520,6 +521,13 @@
         <div class="tuner-read"><span id="tunerCents">– ct</span><span id="tunerFreq">– Hz</span></div>
         <div class="tuner-msg" id="tunerMsg">Spiel eine Saite an …</div>
         <div class="tuner-a4"><span>Kammerton a′</span><button class="toggle-btn" id="tunerA4m" aria-label="Kammerton tiefer">−</button><b id="tunerA4v">440 Hz</b><button class="toggle-btn" id="tunerA4p" aria-label="Kammerton höher">+</button></div>
+      </div>
+    </div>
+    <div class="modal sig-dlg" id="sigDlg" hidden role="dialog" aria-modal="true" aria-labelledby="sigTitle">
+      <div class="modal-card card sig-card">
+        <div class="tuner-head"><h2 id="sigTitle">Signalweg</h2><button class="toggle-btn" id="sigClose">Fertig</button></div>
+        <div class="sig-wrap" id="sigWrap"></div>
+        <p class="pattern-desc sig-note">Zeigt nur, was gerade aktiv ist. Pegel = Spitzenpegel in % von 0 dBFS (100 % = Vollaussteuerung). Gemessen wird nur, solange diese Ansicht offen ist.</p>
       </div>
     </div>
     <div class="modal" id="impDlg" hidden role="dialog" aria-modal="true" aria-labelledby="impTitle">

@@ -456,7 +456,7 @@ const Looper = (() => {
     const dly = c.createDelay(4), fb = c.createGain(), lp = c.createBiquadFilter(), dG = c.createGain(); lp.type = 'lowpass'; lp.frequency.value = 4200;
     dly.delayTime.value = fxDelaySec(); fb.gain.value = fxBusV.fb / 100; dG.gain.value = 0.8;
     dly.connect(lp); lp.connect(fb); fb.connect(dly); lp.connect(dG); dG.connect(out);
-    return { rev, dly, fb };
+    return { rev, dly, fb, revG, dG };
   }
   function ensureFxBus() { if (!fxBus) fxBus = buildFxBus(audioCtx, ensureMasterBus()); return fxBus; }
   // Leistung: Sends hängen nur dann am Hall/Echo, wenn die Spur ihn nutzt (ein Faltungshall ohne Eingang rechnet nicht)
@@ -3731,6 +3731,178 @@ const Looper = (() => {
     return null;
   }
 
+  // ---- v118: Signalweg-Ansicht (Fluss-Diagramm mit Live-Pegeln) ----
+  // Analyser werden NUR erzeugt/angeschlossen, solange die Ansicht offen ist; beim Schließen alles getrennt → geschlossen exakt der bisherige Graph.
+  const sigDlg = $('sigDlg'), sigBtn = $('loopSigBtn'), sigWrap = $('sigWrap');
+  const sg = { on: false, raf: 0, last: 0, fr: 0, sig: '', taps: new Map(), sink: null, buf: null, lv: {}, els: {}, gr: 0, made: 0, model: null };
+  const sgEsc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  function sigUntap(key) {
+    const tp = sg.taps.get(key); if (!tp) return;
+    tp.nodes.forEach(x => { try { x.disconnect(tp.an); } catch (e) {} });
+    try { tp.an.disconnect(); } catch (e) {}
+    sg.taps.delete(key);
+  }
+  function sigTap(key, want) {
+    want = (want || []).filter(Boolean);
+    const cur = sg.taps.get(key);
+    if (cur && cur.want.length === want.length && cur.want.every((x, i) => x === want[i])) return;
+    if (cur) sigUntap(key);
+    if (!want.length || !audioCtx) return;
+    if (!sg.sink) { sg.sink = audioCtx.createGain(); sg.sink.gain.value = 0; sg.sink.connect(audioCtx.destination); }
+    const an = audioCtx.createAnalyser(); an.fftSize = 2048; an.smoothingTimeConstant = 0; sg.made++;
+    const nodes = []; want.forEach(x => { try { x.connect(an); nodes.push(x); } catch (e) {} });
+    an.connect(sg.sink);
+    sg.taps.set(key, { an, want, nodes });
+  }
+  function sigReleaseAll() {
+    [...sg.taps.keys()].forEach(sigUntap);
+    if (sg.sink) { try { sg.sink.disconnect(); } catch (e) {} sg.sink = null; }
+    sg.buf = null; sg.lv = {};
+  }
+  const limOn = () => loadPref('3nps-limiter', '1') === '1';
+  // aktuelles Modell: Gruppen (nacheinander) mit Stationen (nebeneinander) + gewünschte Abgriffe
+  function sigModel() {
+    const G = [], taps = {}, mic = !!(micReady && micSource);
+    G.push([{ k: 'in', t: 'Eingang', s: mic ? 'offen' : 'geschlossen', off: !mic }]); if (mic) taps.in = [micSource];
+    if (amp.on) {
+      const n = amp.nodes, typ = { clean: 'Clean', crunch: 'Crunch', lead: 'Lead' }[amp.set.type] || amp.set.type;
+      const rows = [['ag', n && n.gate ? 'Gate' : 'Gate (aus)'], ['ad', 'Drive 4x'], ['ak', 'Klang'], ['ab', 'Box'], ['ap', 'Pegel']];
+      G.push([{ k: 'amp', t: 'Amp · ' + typ, s: n ? (amp.set.mon ? 'Mithören an' : 'nur Aufnahme') : 'wartet auf Eingang', rows, main: 'ap' }]);
+      if (n) { taps.ag = [n.gate || n.in]; taps.ad = [n.shp]; taps.ak = [n.tre]; taps.ab = [n.cabLp2]; taps.ap = [n.out]; }
+    }
+    const tr = tracks.filter(t => t.L), tg = [];
+    tr.forEach(t => {
+      const nl = Math.max(1, t.layers.length), off = t.layers.filter(ly => ly.off).length, vol = parseInt(t.vol.value) || 0;
+      const st = !t.src ? 'gestoppt' : vol === 0 ? 'stumm' : 'läuft';
+      tg.push({ k: 't' + t.i, t: T('Spur ') + (t.i + 1), s: T(st) + ' · ' + nl + ' ' + T(nl === 1 ? 'Ebene' : 'Ebenen') + (off ? ' (' + off + ' ' + T('stumm') + ')' : ''), off: !t.src || vol === 0 });
+      if (t.eq) taps['t' + t.i] = [t.eq.output];
+    });
+    G.push(tg.length ? tg : [{ k: 'tn', t: 'Spuren', s: 'leer', off: true }]);
+    const rv = tr.some(t => t.fx && t.fx.rev > 0), dl = tr.some(t => t.fx && t.fx.dly > 0);
+    if (rv || dl) {
+      const nm = FX_NOTES.find(x => x[0] === fxBusV.note);
+      G.push([{ k: 'fx', t: 'Hall/Echo-Bus', s: [rv ? T('Hall') + ' ' + T(FX_ROOMS[fxBusV.room][0]) : '', dl ? T('Echo') + ' ' + (nm ? nm[1] : '') : ''].filter(Boolean).join(' · ') }]);
+      if (fxBus) taps.fx = [rv ? fxBus.revG : null, dl ? fxBus.dG : null];
+    }
+    const sx = [];
+    if (drumsOnF()) { sx.push({ k: 'dr', t: 'Drums', s: 'an' }); const o = Rhythm.outNode && Rhythm.outNode(); if (o) taps.dr = [o]; }
+    if (typeof droneOn !== 'undefined' && droneOn) { sx.push({ k: 'dn', t: 'Drone', s: 'an' }); if (typeof droneNodes !== 'undefined' && droneNodes && droneNodes.master) taps.dn = [droneNodes.master]; }
+    if (sx.length) G.push(sx);
+    G.push([{ k: 'ms', t: limOn() ? 'Master/Limiter' : 'Master', s: (limOn() ? 'Limiter an' : 'Limiter aus') + ' · ' + masterEl.value + ' %', gr: limOn() }]);
+    if (window.masterOut) taps.ms = [window.masterOut];
+    G.push([{ k: 'out', t: 'Ausgang', s: amp.nodes && amp.set.mon ? 'Master + Amp' : 'Lautsprecher/Kopfhörer' }]);
+    if (window.masterOut || (amp.nodes && amp.set.mon)) taps.out = [window.masterOut || null, amp.nodes && amp.set.mon ? amp.nodes.mon : null];
+    return { G, taps };
+  }
+  const BW = 138, BH = 70, RH = 15, GAP = 36, PAD = 6, RG = 12;
+  const boxH = b => BH + (b.rows ? b.rows.length * RH + 4 : 0);
+  function sigRender(m, horiz) {
+    const G = m.G, dims = G.map(g => {
+      const hs = g.map(boxH), along = horiz ? Math.max(...hs) : Math.max(...hs), across = horiz ? hs.reduce((a, b) => a + b, 0) + RG * (g.length - 1) : g.length * BW + RG * (g.length - 1);
+      return { hs, along: horiz ? BW : along, across };
+    });
+    const maxAcross = Math.max(...dims.map(d => d.across));
+    let pos = PAD, out = [], lines = [];
+    const meter = (k, x, y, w) => '<rect class="sg-bg" x="' + x + '" y="' + y + '" width="' + w + '" height="6" rx="2"/><rect class="sg-bar" id="sgb-' + k + '" data-w="' + w + '" x="' + x + '" y="' + y + '" width="0" height="6" rx="2"/>';
+    const groupsGeo = [];
+    G.forEach((g, gi) => {
+      const d = dims[gi]; let off = PAD + (maxAcross - d.across) / 2; const geo = [];
+      g.forEach((b, bi) => {
+        const h = d.hs[bi], x = horiz ? pos : off, y = horiz ? off : pos + (d.along - h) / 2;
+        geo.push({ x, y, w: BW, h });
+        let s = '<g data-k="' + b.k + '"><rect class="sg-box' + (b.off ? ' off' : '') + '" x="' + x + '" y="' + y + '" width="' + BW + '" height="' + h + '" rx="8"/>';
+        s += '<text class="sg-t" x="' + (x + 9) + '" y="' + (y + 19) + '">' + sgEsc(T(b.t)) + '</text>';
+        s += '<text class="sg-s" x="' + (x + 9) + '" y="' + (y + 35) + '">' + sgEsc(T(b.s)) + '</text>';
+        s += '<text class="sg-v" translate="no" id="sgv-' + b.k + '" x="' + (x + 9) + '" y="' + (y + 53) + '">–</text>';
+        if (b.gr) s += '<text class="sg-gr" translate="no" id="sgg" x="' + (x + BW - 9) + '" y="' + (y + 53) + '" text-anchor="end">GR 0,0 dB</text>';
+        s += meter(b.k, x + 9, y + 59, BW - 18);
+        (b.rows || []).forEach((r, ri) => {
+          const ry = y + BH + 4 + ri * RH;
+          s += '<text class="sg-r" x="' + (x + 9) + '" y="' + (ry + 8) + '">' + sgEsc(T(r[1])) + '</text><text class="sg-r" translate="no" id="sgv-' + r[0] + '" x="' + (x + BW - 9) + '" y="' + (ry + 8) + '" text-anchor="end">–</text>';
+          s += '<rect class="sg-bg" x="' + (x + 62) + '" y="' + (ry + 3) + '" width="28" height="5" rx="2"/><rect class="sg-bar" id="sgb-' + r[0] + '" data-w="28" x="' + (x + 62) + '" y="' + (ry + 3) + '" width="0" height="5" rx="2"/>';
+        });
+        out.push(s + '</g>');
+        if (horiz) off += h + RG; else off += BW + RG;
+      });
+      groupsGeo.push(geo);
+      pos += d.along + GAP;
+    });
+    const total = pos - GAP + PAD;
+    // Verbindungen: Ausgänge einer Gruppe sammeln → Pfeil → auf die Stationen der nächsten Gruppe verteilen
+    for (let gi = 0; gi + 1 < groupsGeo.length; gi++) {
+      const A = groupsGeo[gi], B = groupsGeo[gi + 1], c = PAD + maxAcross / 2;
+      if (horiz) {
+        const xa = A[0].x + BW, xb = B[0].x, j1 = xa + 8, j2 = xb - 10;
+        A.forEach(r => lines.push('M' + xa + ' ' + (r.y + r.h / 2) + ' H' + j1 + ' V' + c));
+        lines.push('M' + j1 + ' ' + c + ' H' + j2);
+        B.forEach(r => lines.push('M' + j2 + ' ' + c + ' V' + (r.y + r.h / 2) + ' H' + (xb - 5)));
+        B.forEach(r => out.push('<path class="sg-ar" d="M' + (xb - 6) + ' ' + (r.y + r.h / 2 - 4) + ' L' + xb + ' ' + (r.y + r.h / 2) + ' L' + (xb - 6) + ' ' + (r.y + r.h / 2 + 4) + 'Z"/>'));
+      } else {
+        const ya = Math.max(...A.map(r => r.y + r.h)), yb = Math.min(...B.map(r => r.y)), j1 = ya + 8, j2 = yb - 10;
+        A.forEach(r => lines.push('M' + (r.x + BW / 2) + ' ' + (r.y + r.h) + ' V' + j1 + ' H' + c));
+        lines.push('M' + c + ' ' + j1 + ' V' + j2);
+        B.forEach(r => lines.push('M' + c + ' ' + j2 + ' H' + (r.x + BW / 2) + ' V' + (r.y - 5)));
+        B.forEach(r => out.push('<path class="sg-ar" d="M' + (r.x + BW / 2 - 4) + ' ' + (r.y - 6) + ' L' + (r.x + BW / 2) + ' ' + r.y + ' L' + (r.x + BW / 2 + 4) + ' ' + (r.y - 6) + 'Z"/>'));
+      }
+    }
+    const W = horiz ? total : maxAcross + 2 * PAD, H = horiz ? maxAcross + 2 * PAD : total;
+    sigWrap.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" style="max-width:' + Math.round(W * 1.5) + 'px" role="img" aria-label="' + sgEsc(T('Signalweg')) + '"><path class="sg-ln" d="' + lines.join(' ') + '"/>' + out.join('') + '</svg>';
+    sg.els = {};
+    sigWrap.querySelectorAll('[id^="sgv-"],[id^="sgb-"]').forEach(e => { sg.els[e.id] = e; });
+    sg.els.gr = sigWrap.querySelector('#sgg');
+  }
+  // Struktur abgleichen (≈4×/s): Abgriffe nachziehen, bei geänderter Kette neu zeichnen
+  function sigSync() {
+    const m = sigModel(), horiz = sigWrap.clientWidth >= 640 && window.innerWidth > window.innerHeight;
+    const keys = new Set(Object.keys(m.taps));
+    [...sg.taps.keys()].forEach(k => { if (!keys.has(k)) sigUntap(k); });
+    keys.forEach(k => sigTap(k, m.taps[k]));
+    const sig = (horiz ? 'h' : 'v') + JSON.stringify(m.G);
+    if (sig !== sg.sig) { sg.sig = sig; sigRender(m, horiz); }
+    sg.model = m;
+  }
+  const sgPct = v => Math.round(Math.min(1, v) * 100);
+  function sigPaint(k, v, has) {
+    const tx = sg.els['sgv-' + k], br = sg.els['sgb-' + k];
+    if (tx) { const s = has ? sgPct(v) + ' %' : '–'; if (tx.textContent !== s) tx.textContent = s; }
+    if (br) { br.setAttribute('width', (has ? Math.min(1, v) * (+br.dataset.w) : 0).toFixed(1)); br.setAttribute('class', 'sg-bar' + (v >= 0.99 ? ' clip' : v >= 0.7 ? ' hot' : '')); }
+  }
+  function sigTick(ts) {
+    if (!sg.on) return;
+    sg.raf = requestAnimationFrame(sigTick);
+    if (ts - sg.last < 62) return;                                    // ~15 Bilder/s
+    sg.last = ts;
+    if ((sg.fr++ & 3) === 0) sigSync();
+    if (!sg.buf) sg.buf = new Float32Array(2048);
+    const b = sg.buf, seen = new Set();
+    sg.taps.forEach((tp, k) => {
+      tp.an.getFloatTimeDomainData(b); let pk = 0;
+      for (let i = 0; i < b.length; i++) { const a = b[i] < 0 ? -b[i] : b[i]; if (a > pk) pk = a; }
+      const v = Math.max(pk, (sg.lv[k] || 0) * 0.82); sg.lv[k] = v; seen.add(k); sigPaint(k, v, true);
+    });
+    Object.keys(sg.lv).forEach(k => { if (!seen.has(k)) delete sg.lv[k]; });
+    if (sg.model) sg.model.G.forEach(g => g.forEach(bx => { if (!seen.has(bx.main || bx.k)) sigPaint(bx.main || bx.k, 0, false); if (bx.main) sigPaint(bx.k, sg.lv[bx.main] || 0, seen.has(bx.main)); (bx.rows || []).forEach(r => { if (!seen.has(r[0])) sigPaint(r[0], 0, false); }); }));
+    const L = window.masterLimiter;
+    if (L && sg.els.gr) { const r = typeof L.reduction === 'number' ? L.reduction : (L.reduction && L.reduction.value) || 0; sg.gr = limOn() ? r : 0; sg.els.gr.textContent = 'GR ' + (sg.gr < -0.05 ? '−' : '') + Math.abs(sg.gr).toFixed(1).replace('.', window.__lang === 'en' ? '.' : ',') + ' dB'; }
+  }
+  function sigOpen() {
+    if (sg.on) return;
+    sg.on = true; sg.sig = ''; sg.last = 0; sg.fr = 0;
+    sigDlg.hidden = false; document.documentElement.classList.add('sig-open'); sigBtn.classList.add('active'); sigBtn.setAttribute('aria-pressed', 'true');
+    sigSync(); sg.raf = requestAnimationFrame(sigTick);
+  }
+  function sigClose() {
+    if (!sg.on) return;
+    sg.on = false; cancelAnimationFrame(sg.raf); sg.raf = 0; sigReleaseAll(); sg.model = null; sg.sig = '';
+    sigDlg.hidden = true; document.documentElement.classList.remove('sig-open'); sigBtn.classList.remove('active'); sigBtn.setAttribute('aria-pressed', 'false'); sigWrap.innerHTML = ''; sg.els = {};
+  }
+  function sigToggle() { if (sg.on) sigClose(); else sigOpen(); return sg.on; }
+  sigBtn.addEventListener('click', sigToggle);
+  $('sigClose').addEventListener('click', sigClose);
+  sigDlg.addEventListener('click', e => { if (e.target === sigDlg) sigClose(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && sg.on) sigClose(); });
+  window.addEventListener('resize', () => { if (sg.on) sg.sig = ''; });
+
   return {
     getMix, loadSamples, update, position, getSession, sessionMix, sessionSecs, sessionMixEq, loadSession, setTrackEq: (i, v) => setTrackEq(tracks[i], v, false), getTrackEq: i => EQ7.norm(tracks[i].eqVals), setTrackFx: (i, v) => setTrackFx(tracks[i], v, false), changes: () => changeN, setSrcName: n => tracks.forEach(t => { if (t.L) t.srcName = n || ''; }), srcNames: () => tracks.map(t => t.L ? t.srcName || '' : null), getTrackFx: i => Object.assign({}, tracks[i].fx), fxBus: () => Object.assign({}, fxBusV), getDroneState, setDroneState,
     isEmpty: () => !anyContent(),
@@ -3876,6 +4048,9 @@ const Looper = (() => {
     _amp: () => ({ on: amp.on, built: !!amp.nodes, gate: !!(amp.nodes && amp.nodes.gate), gateOk: amp.gateOk, os: amp.nodes ? amp.nodes.shp.oversample : null, n: amp.nodes ? amp.nodes.list.length : 0 }),
     scenes: () => scenesOut(), sceneGo: (k, now) => sceneGo(k, now), sceneNext: () => sceneStep(1), scenePrev: () => sceneStep(-1), sceneAdd: n => sceneAdd(n), sceneUpd: () => sceneUpd(), sceneDel: () => sceneDel(),
     _scene: () => ({ cur: sceneCur, pend: scenePend ? { k: scenePend.k, at: scenePend.at } : null, n: scenes.length, next: nextLoopStart(0), now: audioCtx ? nowFrame() : 0, anchor }),
+    // v118: Signalweg
+    sigOpen: () => sigOpen(), sigClose: () => sigClose(), sigToggle: () => sigToggle(),
+    _sig: () => ({ on: sg.on, n: sg.taps.size, keys: [...sg.taps.keys()], conn: [...sg.taps.values()].reduce((a, t) => a + t.nodes.length, 0), sink: !!sg.sink, made: sg.made, lv: Object.assign({}, sg.lv), gr: sg.gr, groups: sg.model ? sg.model.G.map(g => g.map(b => b.k)) : [], titles: sg.model ? sg.model.G.map(g => g.map(b => b.t + '|' + b.s)) : [] }),
     all: allStartStop
   };
 })();

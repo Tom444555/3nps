@@ -805,7 +805,7 @@ const Rhythm = (() => {
   }
   return {
     getState, setState, setLite, setEq: v => setDrumEq(v, false), getEq: () => EQ7.norm(drumEq),
-    INSTR, on: () => on, setOn, setRoom, roomOn: () => roomOn, setGrid: fn => { gridFn = fn; },
+    INSTR, on: () => on, outNode: () => (bus && bus.linked ? bus.eq.output : null), setOn, setRoom, roomOn: () => roomOn, setGrid: fn => { gridFn = fn; },
     setBass: v => { bassNeed = !!v; clock(); },
     // Jam: hält den Taktgeber am Laufen und bekommt jeden Schritt vor dem Bass gemeldet (Akkordwechsel zuerst)
     setJam: v => { jamNeed = !!v; clock(); },

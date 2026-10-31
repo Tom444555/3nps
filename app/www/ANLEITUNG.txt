@@ -1083,3 +1083,11 @@ Gut zu wissen
      Loop-Anfang (Haken „Wechsel am Loop-Anfang“ aus = sofort). „Szene merken“ überschreibt, „Szene löschen“ entfernt.
      Szenen werden mit der Idee gespeichert.
    - Fußpedal: neue Aktionen „Nächste Szene“, „Vorherige Szene“, „Amp an / aus“.
+
+101. Signalweg (v118)
+   - „Signalweg“ (oben neben „Amp“) zeigt als Fluss-Bild die gerade aktive Kette: Eingang → Amp (nur wenn an,
+     mit Gate, Drive, Klang, Box, Pegel) → Spuren (mit Zahl der Ebenen, gestoppt/stumm) → Hall/Echo-Bus (nur wenn
+     eine Spur Hall oder Echo nutzt) → Drums/Drone (wenn an) → Master/Limiter → Ausgang.
+   - Jede Station zeigt live den Spitzenpegel in % (100 % = 0 dBFS) mit Balken; beim Limiter zusätzlich „GR“ =
+     wie viele dB er gerade herunterregelt. Hochformat: von oben nach unten, Querformat: von links nach rechts.
+   - Gemessen wird nur, solange die Ansicht offen ist; „Fertig“ schließt sie und trennt alle Messpunkte wieder.

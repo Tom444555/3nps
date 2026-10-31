@@ -588,3 +588,21 @@ html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleis
 .scene-list button.pend { outline: 2px dashed var(--root-color); outline-offset: 1px; animation: scenePend .5s steps(2) infinite; }
 .scene-list button.hold { opacity: .6; }
 @keyframes scenePend { 50% { opacity: .55; } }
+
+/* v118: Signalweg */
+html.sig-open .control-bar { visibility: hidden; }   /* Kopfleiste liegt sonst über der großen Ansicht */
+.sig-card { width: min(1180px, 100%); max-height: calc(100vh - 40px); overflow: auto; }
+.sig-wrap svg { display: block; margin: 0 auto; width: 100%; height: auto; max-height: calc(100vh - 190px); }
+.sig-wrap .sg-box { fill: var(--surface-2, #222); stroke: var(--line, #555); stroke-width: 1.2; }
+.sig-wrap .sg-box.off { opacity: .55; }
+.sig-wrap .sg-t { fill: var(--ink, #eee); font: 700 13px var(--f-body, sans-serif); }
+.sig-wrap .sg-s { fill: var(--muted, #999); font: 11px var(--f-body, sans-serif); }
+.sig-wrap .sg-v { fill: var(--ink, #eee); font: 600 12px var(--f-mono, monospace); }
+.sig-wrap .sg-r { fill: var(--muted, #999); font: 10.5px var(--f-mono, monospace); }
+.sig-wrap .sg-gr { fill: #ffb347; font: 600 11px var(--f-mono, monospace); }
+.sig-wrap .sg-bg { fill: rgba(0,0,0,.4); }
+.sig-wrap .sg-bar { fill: #3ddc76; }
+.sig-wrap .sg-bar.hot { fill: #ffb347; }
+.sig-wrap .sg-bar.clip { fill: #ff5a5a; }
+.sig-wrap .sg-ln { stroke: var(--muted, #999); stroke-width: 1.6; fill: none; }
+.sig-wrap .sg-ar { fill: var(--muted, #999); }

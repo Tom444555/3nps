@@ -11,7 +11,7 @@ async def main():
         pg = await (await b.new_context(viewport={'width': 1024, 'height': 1366}, bypass_csp=True)).new_page(); errs = []
         pg.on('pageerror', lambda e: errs.append(str(e)))
         await pg.goto(U); await pg.wait_for_timeout(900)
-        check('v117', 'v117' in await pg.inner_text('.brand'))
+        check('v118', 'v118' in await pg.inner_text('.brand'))
         sr = await pg.evaluate("(ensureAudio(), audioCtx.sampleRate)")
         await pg.evaluate("(sr=>{const l=new Float32Array(sr*2).map((_, i)=>Math.sin(i/20)*0.3); Looper._setTrackRaw(0,l); Looper._setTrackRaw(1,l.map(v=>v*0.5)); const se=Looper.getSession(); se.baseL=se.tracks[0].L; Looper.loadSession(se)})(%d)" % sr)
         n_ideas = lambda: pg.evaluate("AppDB.list('ideas', i => i.name).then(a=>a.length)")
