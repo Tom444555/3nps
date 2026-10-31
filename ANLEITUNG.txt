@@ -1060,3 +1060,14 @@ Gut zu wissen
      einzelne Finger als zwei – ein Finger zoomte, die Auswahl ging nur mit zwei Fingern, Tippen in die Zeitleiste wirkte nicht.
      Jetzt gilt: ein Finger = Auswahl-Griffe ziehen, zwei Finger = zoomen, Tippen in die Zeitleiste oben = dorthin springen
      (der Tippbereich ist etwas höher).
+
+99. Stimmgerät, Ebenen, Übe-Tempo, Fußpedal frei belegen (v116)
+   - „Stimmen“ (oben neben „Eingang öffnen“) öffnet ein großes Stimmgerät: Tonname, Zeiger in Cent, grün bei ±3 Cent,
+     Frequenz. Kammerton a′ mit − / + zwischen 430 und 450 Hz (gespeichert). Es misst nur, solange es offen ist.
+   - Overdubs sind jetzt eigene Ebenen. Ab zwei Ebenen steht unter der Spur die Leiste „Ebenen“ mit 1, 2, 3 …:
+     antippen = stumm/an, gedrückt halten = löschen (mit Rückfrage, ↶ holt sie zurück). Gespeichert und exportiert
+     wird nur, was hörbar ist; stumme Ebenen fallen beim Speichern weg. Der Editor fasst die hörbaren Ebenen zusammen.
+   - „Übe-Tempo“ (oben unter „Loop-Länge“): 90 %, 75 % oder 50 % – alle Spuren langsamer, Tonhöhe bleibt; Drums, Drone,
+     Vorzähler und Taktanzeige folgen. Aufnehmen ist dabei gesperrt. 100 % stellt alles exakt wieder her.
+   - Fußpedal: „Tasten belegen (Tippen · Halten · Doppelt tippen)“ – je Taste A–D frei wählbar (Spur REC/Overdub,
+     Spur Stopp, Rückgängig, Alle starten/stoppen, Pause, Übe-Tempo, Stimmgerät). Standard = wie bisher.
