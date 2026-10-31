@@ -316,7 +316,7 @@ const Rhythm = (() => {
   // ---- Taktgeber ----
   let gridFn = null, freeAnchor = 0, lastG = null, timer = null, nextT = 0, lastAnchor = null, lastRes = 0;
   const AHEAD = 0.3;
-  const bpmNow = () => parseFloat(document.getElementById('bpm').value) || 80;
+  const bpmNow = () => (parseFloat(document.getElementById('bpm').value) || 80) * (window.__tempoMul || 1);   // v116: Übe-Tempo des Loopers
   const barDur = () => 240 / bpmNow();
   const stepDur = () => barDur() / res;
   function grid() {

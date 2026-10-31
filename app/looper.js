@@ -56,6 +56,13 @@ const Looper = (() => {
   const beatFrames = () => 60 / bpm() * sr;
   const nowFrame = () => Math.round(audioCtx.currentTime * sr);
   const mod = (a, n) => ((a % n) + n) % n;
+  // v116: Übe-Tempo (50/75/90 %) – alle Spuren gedehnt (Tonhöhe bleibt), Positionen weiter in Original-Bildern
+  let pracRate = 1, pracBusy = false, pracGen = 0;
+  const pracPB = r => Math.max(1, Math.round(baseL / r));                    // Länge eines Grund-Loops im Übe-Tempo
+  const prR = () => (pracRate === 1 || !baseL) ? 1 : baseL / pracPB(pracRate); // tatsächlicher Faktor (ganzzahlige Längen)
+  function pracLen(t, r) { if (r === 1) return t.L; const k = t.L / baseL; return Math.abs(k - Math.round(k)) < 1e-9 ? Math.round(k) * pracPB(r) : Math.round(t.L / r); }
+  // Stelle im Loop (Original-Bilder) zu einem Zeitpunkt f
+  const phase = (f, L) => mod(pracRate === 1 ? f - anchor : Math.round((f - anchor) * prR()), L);
   // Taktlänge passend zur Loop-Länge (vermeidet Rundungsfehler bei krummen Tempi)
   function barOf(L) {
     const bf = barFrames();
@@ -93,6 +100,199 @@ const Looper = (() => {
   const monoIfSame = x => (x && x.r !== x.l && sameData(x)) ? SP(x.l) : x;
   const anyRunning = () => tracks.some(t => t.src);
   const anyContent = () => tracks.some(t => t.L);
+
+  // ---- v116: Ebenen (Overdubs) einzeln stumm schalten / löschen ----
+  const MAXLY = 8;                                               // mehr Ebenen werden zusammengefasst (Speicher)
+  const keepOff = (src, dst) => { dst.forEach((d, k) => { if (src[k] && src[k].off) d.off = true; }); return dst; };
+  function sumLy(a, b) {
+    const st = a.r !== a.l || b.r !== b.l, n = a.length, o = st ? S(n) : SP(new Float32Array(n));
+    for (let i = 0; i < n; i++) o.l[i] = a.l[i] + b.l[i];
+    if (st) for (let i = 0; i < n; i++) o.r[i] = a.r[i] + b.r[i];
+    if (a.off && b.off) o.off = true;
+    return o;
+  }
+  function capLayers(ls) {
+    while (ls.length > MAXLY) {
+      let k = 0; while (k < ls.length - 1 && !!ls[k].off !== !!ls[k + 1].off) k++;
+      if (k >= ls.length - 1) break;
+      ls = ls.slice(0, k).concat([sumLy(ls[k], ls[k + 1])], ls.slice(k + 2));
+    }
+    return ls;
+  }
+  function layerAction(t, k, del) {
+    if (rec && rec.t === t) return;
+    const ly = t.layers[k]; if (!ly || t.layers.length < 2) return;
+    if (del) { snapshot(t); t.layers = t.layers.filter((_, j) => j !== k); setStatus(T('Spur ') + (t.i + 1) + T(': Ebene ') + (k + 1) + T(' gelöscht (↶ holt sie zurück).')); }
+    else { ly.off = !ly.off; setStatus(T('Spur ') + (t.i + 1) + T(': Ebene ') + (k + 1) + (ly.off ? T(' stumm.') : T(' wieder an.'))); }
+    rebuildMix(t);
+    if (t.src) startTrack(t);
+    if (ed.t === t) { ed.peaks = null; edInfo(); }
+    update();
+  }
+  function paintLayers(t) {
+    if (!t.lyBar) {
+      const bar = t.lyBar = document.createElement('div'); bar.className = 'layer-bar'; bar.id = 'layers' + t.i; bar.hidden = true;
+      const mini = t.foot.closest('.track').querySelector('.mini'); mini.parentNode.insertBefore(bar, mini.nextSibling);
+      let hold = null, held = false;
+      const end = () => { clearTimeout(hold); hold = null; bar.querySelectorAll('.hold').forEach(b => b.classList.remove('hold')); };
+      bar.addEventListener('pointerdown', e => {
+        const b = e.target.closest('button[data-ly]'); if (!b) return;
+        held = false; end(); b.classList.add('hold');
+        hold = setTimeout(() => { hold = null; held = true; b.classList.remove('hold'); const k = +b.dataset.ly;
+          if (window.confirm(T('Ebene ') + (k + 1) + T(' von Spur ') + (t.i + 1) + T(' löschen?'))) layerAction(t, k, true); }, 650);
+      });
+      ['pointerup', 'pointercancel', 'pointerleave'].forEach(n => bar.addEventListener(n, end));
+      bar.addEventListener('contextmenu', e => e.preventDefault());
+      bar.addEventListener('click', e => { const b = e.target.closest('button[data-ly]'); if (!b) return; if (held) { held = false; return; } layerAction(t, +b.dataset.ly, false); });
+    }
+    const n = t.layers.length, show = n >= 2 && !(rec && rec.t === t);
+    const sig = show ? t.layers.map(ly => ly.off ? 0 : 1).join('') : '';
+    if (t.lySig === sig) return; t.lySig = sig;
+    t.lyBar.hidden = !show;
+    if (!show) { t.lyBar.innerHTML = ''; return; }
+    t.lyBar.innerHTML = '<span>' + T('Ebenen') + '</span>' + t.layers.map((ly, k) => '<button type="button" data-ly="' + k + '" class="' + (ly.off ? 'off' : '') + '" aria-pressed="' + (!ly.off) + '" title="' + T('Antippen = stumm/an · gedrückt halten = löschen') + '">' + (k + 1) + '</button>').join('');
+  }
+
+  // ---- v116: Übe-Tempo ----
+  const pracSel = $('loopPractice');
+  const RATES = [1, 0.9, 0.75, 0.5];
+  function pracBufOf(t) { return t.pb && t.pbFor === t.mix && t.pbRate === pracRate && t.pb.length === pracLen(t, pracRate) ? t.pb : null; }
+  function toBuf(x) { const mono = x.r === x.l, b = audioCtx.createBuffer(mono ? 1 : 2, x.length, sr); b.copyToChannel(x.l, 0); if (!mono) b.copyToChannel(x.r, 1); return b; }
+  async function pracMake(t, r) {
+    const mix = t.mix, n = pracLen(t, r);
+    const x = await stretchHQ(mix, n, true);
+    return { buf: toBuf(x), mix, r };
+  }
+  // Mix hat sich im Übe-Tempo geändert (Ebene stumm, Rückgängig …): im Hintergrund neu dehnen, dann einsetzen
+  function pracNeed(t) {
+    if (t.pbJob && t.pbJob.mix === t.mix && t.pbJob.r === pracRate) return;
+    const job = t.pbJob = { mix: t.mix, r: pracRate, gen: pracGen };
+    pracMake(t, pracRate).then(res => {
+      if (t.pbJob === job) t.pbJob = null;
+      if (job.gen !== pracGen || res.mix !== t.mix || pracRate !== res.r) return;
+      t.pb = res.buf; t.pbFor = res.mix; t.pbRate = res.r;
+      if (t.state === 'playing' && !t.src) startTrack(t);
+      update();
+    });
+  }
+  function pracDrop() { tracks.forEach(t => { t.pb = null; t.pbFor = null; t.pbJob = null; }); }
+  function pracApply(r) {
+    // Stelle im Loop beibehalten: verstrichene Original-Bilder seit dem Anker umrechnen
+    const now = nowFrame(), running = tracks.filter(t => t.src), e = (now - anchor) * prR();
+    pracRate = r; window.__tempoMul = r === 1 ? 1 : prR();
+    if (running.length) anchor = now - Math.round(e / prR());
+    pausedAt = null;
+    running.forEach(t => startTrack(t));
+    if (typeof Rhythm.resync === 'function') Rhythm.resync();
+    paintPrac(); update();
+  }
+  function pracOff(quiet) {
+    pracGen++; pracBusy = false;
+    if (pracRate !== 1) pracApply(1);
+    pracDrop(); paintPrac();
+  }
+  async function setPractice(v) {
+    v = RATES.includes(v) ? v : 1;
+    if (pracBusy) { paintPrac(); return false; }
+    if (v === pracRate) { paintPrac(); return true; }
+    if (rec) { setStatus(T('Erst die Aufnahme beenden, dann das Übe-Tempo ändern.')); paintPrac(); return false; }
+    if (v === 1) { pracOff(); setStatus(T('Übe-Tempo 100 % – alles wieder im Original.')); return true; }
+    if (!anyContent()) { setStatus(T('Erst einen Loop aufnehmen oder laden – dann spielt „Übe-Tempo“ ihn langsamer ab.')); paintPrac(); return false; }
+    ensureAudio(); sr = audioCtx.sampleRate;
+    if (ed.t) closeEditor();
+    try { localStorage.setItem('3nps-prac-last', String(v)); } catch (e) {}
+    const gen = ++pracGen; pracBusy = true; paintPrac();
+    setStatus(T('Übe-Tempo ') + Math.round(v * 100) + T(' % wird vorbereitet …'));
+    const res = [];
+    for (const t of tracks) { if (t.L) res.push([t, await pracMake(t, v)]); if (gen !== pracGen) return false; }
+    pracBusy = false;
+    if (rec || res.some(([t, x]) => x.mix !== t.mix)) { paintPrac(); setStatus(T('Übe-Tempo abgebrochen – die Spuren haben sich geändert.')); return false; }
+    pracDrop();
+    res.forEach(([t, x]) => { t.pb = x.buf; t.pbFor = x.mix; t.pbRate = v; });
+    pracApply(v);
+    setStatus(T('Übe-Tempo ') + Math.round(v * 100) + T(' %: alle Spuren langsamer, gleiche Tonhöhe. Drums und Drone folgen. Aufnehmen erst wieder bei 100 %.'));
+    return true;
+  }
+  function paintPrac() {
+    pracSel.value = String(Math.round(pracRate * 100));
+    pracSel.disabled = pracBusy;
+    pracSel.classList.toggle('on', pracRate !== 1);
+  }
+  pracSel.addEventListener('change', () => { setPractice(parseInt(pracSel.value) / 100); });
+  const pracLast = () => { let v = 0.75; try { v = parseFloat(localStorage.getItem('3nps-prac-last')) || 0.75; } catch (e) {} return RATES.includes(v) && v !== 1 ? v : 0.75; };
+  function pracToggle() { return setPractice(pracRate === 1 ? pracLast() : 1); }
+  function pracNext() { return setPractice(RATES[(RATES.indexOf(pracRate) + 1) % RATES.length]); }
+
+  // ---- v116: Stimmgerät (YIN aus pitch.js, eigener Abgriff am Eingang, läuft nur bei offener Anzeige) ----
+  const tunerDlg = $('tunerDlg'), tunerBtn = $('loopTunerBtn');
+  const NOTE = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'];
+  const tn = { on: false, an: null, buf: null, timer: 0, a4: 440, fs: [], midi: -1, quiet: 0 };
+  { const v = parseInt(loadPref('3nps-tuner-a4', '440')); tn.a4 = v >= 430 && v <= 450 ? v : 440; }
+  function tunerAn() {
+    if (!micReady || !micSource) return null;
+    if (!tn.an) { tn.an = audioCtx.createAnalyser(); tn.an.fftSize = 4096; tn.an.smoothingTimeConstant = 0; try { micSource.connect(tn.an); tn.an.connect(sinkNode); } catch (e) {} }
+    return tn.an;
+  }
+  function tunerRelease() { if (tn.an) { try { if (micSource) micSource.disconnect(tn.an); tn.an.disconnect(); } catch (e) {} tn.an = null; } }
+  // Erkennung (auch für Tests direkt aufrufbar): Puffer → { name, oct, midi, cents, f } oder null
+  function tunerDetect(x, rate, a4) {
+    if (typeof Pitch === 'undefined') return null;
+    const r = Pitch.detect(x, rate, { gate: 0.004, fmin: 50, fmax: 1400, a4: a4 || tn.a4, thr: 0.12 });
+    if (!r || r.conf < 0.85) return null;
+    const m = 69 + 12 * Math.log2(r.f / (a4 || tn.a4)), midi = Math.round(m);
+    return { f: r.f, midi, cents: (m - midi) * 100, name: NOTE[mod(midi, 12)], oct: Math.floor(midi / 12) - 1 };
+  }
+  function tunerShow(res) {
+    const has = !!res, ok = has && Math.abs(res.cents) <= 3;
+    tunerDlg.classList.toggle('has-note', has); tunerDlg.classList.toggle('in-tune', ok);
+    $('tunerName').textContent = has ? res.name : '–'; $('tunerOct').textContent = has ? String(res.oct) : '';
+    const c = has ? Math.max(-50, Math.min(50, res.cents)) : 0;
+    $('tunerNeedle').style.left = (50 + c) + '%';
+    $('tunerCents').textContent = has ? (res.cents > 0.5 ? '+' : '') + Math.round(res.cents) + ' ct' : '– ct';
+    $('tunerFreq').textContent = has ? res.f.toFixed(1).replace('.', ',') + ' Hz' : '– Hz';
+    $('tunerMsg').textContent = !has ? T(tn.msg || 'Spiel eine Saite an …') : ok ? T('Gestimmt ✓') : res.cents < 0 ? T('zu tief – etwas höher stimmen') : T('zu hoch – etwas tiefer stimmen');
+  }
+  function tunerTick() {
+    if (!tn.on) return;
+    const an = tunerAn();
+    if (!an) { tn.msg = 'Eingang geschlossen – tippe auf „Eingang öffnen“.'; tunerShow(null); return; }
+    if (!tn.buf || tn.buf.length !== an.fftSize) tn.buf = new Float32Array(an.fftSize);
+    an.getFloatTimeDomainData(tn.buf);
+    const r = tunerDetect(tn.buf, audioCtx.sampleRate);
+    if (r) {
+      tn.quiet = 0;
+      if (r.midi !== tn.midi) { tn.midi = r.midi; tn.fs = []; }
+      tn.fs.push(r.f); if (tn.fs.length > 5) tn.fs.shift();
+      const f = tn.fs.slice().sort((a, b) => a - b)[tn.fs.length >> 1], m = 69 + 12 * Math.log2(f / tn.a4);
+      tn.last = { f, midi: r.midi, cents: (m - r.midi) * 100, name: r.name, oct: r.oct };
+      tn.msg = ''; tunerShow(tn.last);
+    } else if (++tn.quiet >= 10) { tn.midi = -1; tn.fs = []; tn.last = null; tn.msg = ''; tunerShow(null); }
+  }
+  function showA4() { $('tunerA4v').textContent = tn.a4 + ' Hz'; }
+  function setA4(v) { tn.a4 = Math.max(430, Math.min(450, Math.round(v))); savePref('3nps-tuner-a4', String(tn.a4)); showA4(); tn.fs = []; }
+  async function tunerOpen() {
+    if (tn.on) return true;
+    tn.on = true; tn.msg = 'Eingang wird geöffnet …'; tn.midi = -1; tn.fs = []; tn.last = null;
+    tunerDlg.hidden = false; tunerBtn.classList.add('active'); tunerBtn.setAttribute('aria-pressed', 'true'); tunerShow(null);
+    let ok = false; try { ok = await ensureMic(); } catch (e) { ok = false; }
+    if (!tn.on) return false;
+    if (!ok) { tn.msg = 'Kein Zugriff auf den Eingang – erlaube das Mikrofon und versuche es nochmal.'; tunerShow(null); return false; }
+    tn.msg = ''; tunerShow(null);
+    clearInterval(tn.timer); tn.timer = setInterval(tunerTick, 50);
+    return true;
+  }
+  function tunerClose() {
+    tn.on = false; clearInterval(tn.timer); tn.timer = 0; tunerRelease(); tn.buf = null;
+    tunerDlg.hidden = true; tunerBtn.classList.remove('active'); tunerBtn.setAttribute('aria-pressed', 'false');
+  }
+  function tunerToggle() { if (tn.on) { tunerClose(); return Promise.resolve(false); } return tunerOpen(); }
+  tunerBtn.addEventListener('click', () => tunerToggle());
+  $('tunerClose').addEventListener('click', tunerClose);
+  tunerDlg.addEventListener('click', e => { if (e.target === tunerDlg) tunerClose(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && tn.on) tunerClose(); });
+  $('tunerA4m').addEventListener('click', () => setA4(tn.a4 - 1));
+  $('tunerA4p').addEventListener('click', () => setA4(tn.a4 + 1));
+  showA4();
 
   // ---- EQ je Spur (v99: 9 Bänder, Art Channel EQ) (aufklappbar unter den Reglern) ----
   tracks.forEach(t => {
@@ -217,7 +417,7 @@ const Looper = (() => {
 
   // ---- Drums: gemeinsames Schlagzeug (rhythm.js) läuft im Raster des Loops ----
   const drumsOnF = () => Rhythm.on();
-  Rhythm.setGrid(() => (baseL && anyRunning()) ? { anchor: anchor / sr, cycle: baseL / sr } : null);
+  Rhythm.setGrid(() => (baseL && anyRunning()) ? { anchor: anchor / sr, cycle: (pracRate === 1 ? baseL : pracPB(pracRate)) / sr } : null);
   const barDur = () => 240 / bpm();
   function nextBarFrame() { return Math.round(Rhythm.nextBarTime() * sr); }
   const flashBtn = $('loopFlash');
@@ -428,7 +628,8 @@ const Looper = (() => {
       tapNode.onaudioprocess = e => { const ib = e.inputBuffer; handleChunk(Math.round(e.playbackTime * sr) - 2048, SP(new Float32Array(ib.getChannelData(0)), new Float32Array(ib.getChannelData(ib.numberOfChannels > 1 ? 1 : 0)))); };
     }
     micSource.connect(tapNode); tapNode.connect(sinkNode); sinkNode.connect(audioCtx.destination);
-    if (extAnalyser) { try { micSource.connect(extAnalyser); extAnalyser.connect(sinkNode); } catch (e) {} }   // Mithören (Solo Finder) nach Neuverbindung weiter versorgen
+    if (extAnalyser) { try { micSource.connect(extAnalyser); extAnalyser.connect(sinkNode); } catch (e) {} }
+    if (tn.an) { try { micSource.connect(tn.an); tn.an.connect(sinkNode); } catch (e) {} }   // v116: Stimmgerät ebenso   // Mithören (Solo Finder) nach Neuverbindung weiter versorgen
     {
       const est = ((audioCtx.baseLatency || 0) + (audioCtx.outputLatency || 0)) * 1000 + 15;
       const prev = parseFloat(loadPref('3nps-lat-est', ''));
@@ -665,10 +866,11 @@ const Looper = (() => {
   }
   function rebuildMix(t) {
     markDirty();
-    if (t.layers.length === 1 && t.layers[0].length === t.L) { t.mix = t.layers[0]; t.mix._m = null; }
+    const on = t.layers.filter(ly => !ly.off);                   // v116: stumm geschaltete Ebenen zählen nicht
+    if (on.length === 1 && on[0].length === t.L) { t.mix = on[0]; t.mix._m = null; }
     else {
-      const m = S(t.L);
-      t.layers.forEach(ly => { const a = ly.l, b = ly.r; for (let i = 0; i < t.L; i++) { m.l[i] += a[i]; m.r[i] += b[i]; } });
+      const st = on.some(ly => ly.r !== ly.l), m = st ? S(t.L) : SP(new Float32Array(t.L));
+      on.forEach(ly => { const a = ly.l, b = ly.r; if (st) for (let i = 0; i < t.L; i++) { m.l[i] += a[i]; m.r[i] += b[i]; } else for (let i = 0; i < t.L; i++) m.l[i] += a[i]; });
       t.mix = m;
     }
     t.peaks = null;
@@ -677,6 +879,17 @@ const Looper = (() => {
   function startTrack(t) {
     stopSrc(t);
     if (!t.L) return;
+    if (pracRate !== 1) {                                         // v116: Übe-Tempo – gedehnter Puffer (nur im Speicher, solange benutzt)
+      const pb = pracBufOf(t); if (!pb) { pracNeed(t); return; }
+      const s = audioCtx.createBufferSource();
+      s.buffer = pb; s.loop = true;
+      t.gain = audioCtx.createGain(); t.gain.gain.value = parseInt(t.vol.value) / 100;
+      s.connect(t.gain); t.gain.connect(ensureTrackEq(t).input);
+      const now = nowFrame();
+      if (anchor > now) s.start(anchor / sr, 0);
+      else s.start(audioCtx.currentTime, mod(now - anchor, pb.length) / sr);
+      t.src = s; return;
+    }
     if (!t.buf || t.bufFor !== t.mix || t.buf.length !== t.L) {
       const mono = t.mix.r === t.mix.l;
       t.buf = null; t.bufFor = null;
@@ -732,7 +945,7 @@ const Looper = (() => {
   }
   function scheduleCountIn(startFrame, bars) {
     cancelCountIn();
-    const bt = beatFrames();
+    const bt = beatFrames() / prR();                                  // v116: Vorzähler im Übe-Tempo
     countBeats = bars * 4; countEnd = startFrame + Math.round(countBeats * bt);
     for (let i = 0; i < countBeats; i++) {
       const tm = (startFrame + i * bt) / sr;
@@ -827,12 +1040,11 @@ const Looper = (() => {
       for (let j = 0; j < raw.length; j++) { const k = mod(r.start + j - anchor, t.L); ly.l[k] += raw.l[j]; if (!mono) ly.r[k] += raw.r[j]; }
       t.layers = [ly]; t.hist = []; t.orig = null;
     } else {
-      // Overdub direkt in die Spur einrechnen: eine neue Fassung statt Schicht + Summe; die alte bleibt fürs Rückgängig
+      // v116: Overdub als eigene Ebene (einzeln stumm schaltbar/löschbar); der Mix wird daraus neu gebaut
       snapshot(t);
-      const raw = monoIfSame(joinChunks(r.chunks, r.n)), base = t.mix, st = base.r !== base.l || raw.r !== raw.l;
-      const out = st ? { l: base.l.slice(), r: base.r.slice(), length: t.L } : SP(base.l.slice());
-      for (let j = 0; j < raw.length; j++) { const k = mod(r.start + j - anchor, t.L); out.l[k] += raw.l[j]; if (st) out.r[k] += raw.r[j]; }
-      t.layers = [out];
+      const raw = monoIfSame(joinChunks(r.chunks, r.n)), mono = raw.r === raw.l, out = mono ? SP(new Float32Array(t.L)) : S(t.L);
+      for (let j = 0; j < raw.length; j++) { const k = mod(r.start + j - anchor, t.L); out.l[k] += raw.l[j]; if (!mono) out.r[k] += raw.r[j]; }
+      t.layers = capLayers(t.layers.concat([out]));
     }
     rebuildMix(t); ev('Aufnahme Ende Spur ' + (t.i + 1));
     const al = r.kind === 'new' ? alignNewTake(t) : '';
@@ -964,7 +1176,8 @@ const Looper = (() => {
     stopSrc(t);
     t.layers = []; t.L = 0; t.mix = null; t.peaks = null; t.state = 'empty'; t.hist = []; t.key = null; t.orig = null; t.origPos = null; t.buf = null; t.bufFor = null;
     clearTimeout(t.chTimer); t.chords = null; showChords(t); showKey();
-    if (!anyContent()) baseL = 0;
+    t.pb = null; t.pbFor = null;
+    if (!anyContent()) { baseL = 0; pracOff(true); }
     markDirty();
     if (ed.t === t) closeEditor();
     showKey();
@@ -973,6 +1186,7 @@ const Looper = (() => {
   function applySnap(t, sn) {
     if (sn.bpmv && !others(t).length && Math.abs(sn.bpmv / bpm() - 1) > 1e-5) setTempo(sn.bpmv);   // v100: Tempo mit zurücknehmen
     const os = others(t), sameLen = sn.L === t.L;
+    if (sn.offs) sn.layers.forEach((ly, k) => { ly.off = !!sn.offs[k]; });
     t.layers = sn.layers; t.L = sn.L; t.origPos = sn.origPos; t.origBars = sn.origBars; rebuildMix(t);
     if (sn.od && t.orig) Object.assign(t.orig, sn.od);
     if (!os.length || os.every(o => o.L % sn.baseL === 0)) baseL = sn.baseL;
@@ -1151,6 +1365,7 @@ const Looper = (() => {
 
   async function importFile(t, file, preChoice) {
     ensureAudio(); sr = audioCtx.sampleRate;
+    pracOff();
     setStatus('Lade „' + file.name + '“ …');
     let buf;
     try { buf = await audioCtx.decodeAudioData(await file.arrayBuffer()); }
@@ -1244,6 +1459,11 @@ const Looper = (() => {
       setStatus('Erst wird Spur ' + (rec.t.i + 1) + ' abgeschlossen, dann tippe erneut.');
       return;
     }
+    if (pracRate !== 1 && (t.state === 'empty' || t.state === 'playing')) {
+      setStatus(T('Im Übe-Tempo ist Aufnehmen gesperrt. Stelle „Übe-Tempo“ auf 100 %, dann kannst du aufnehmen.'));
+      pracSel.classList.add('warn'); setTimeout(() => pracSel.classList.remove('warn'), 900);
+      return;
+    }
     if (t.state === 'empty') {
       if (!(await ensureMic())) return;
       startNewRecording(t);
@@ -1315,7 +1535,7 @@ const Looper = (() => {
     ensureAudio(); sr = audioCtx.sampleRate;
     if (anyRunning() && !rec) {
       const maxL = Math.max(...tracks.map(t => t.L || 0)) || 1;
-      pausedAt = { pos: mod(nowFrame() - anchor, maxL), drums: drumsOnF(), drone: droneOn, list: tracks.filter(t => t.src) };
+      pausedAt = { pos: phase(nowFrame(), maxL), drums: drumsOnF(), drone: droneOn, list: tracks.filter(t => t.src) };
       cancelCountIn();
       tracks.forEach(t => { if (t.src) { stopSrc(t); t.state = 'stopped'; } });
       if (pausedAt.drums) Rhythm.setOn(false);
@@ -1324,7 +1544,7 @@ const Looper = (() => {
     } else if (!rec && anyContent()) {
       const p = pausedAt; pausedAt = null;
       if (p && p.drums && !drumsOnF()) Rhythm.setOn(true);
-      anchor = nowFrame() + Math.round(sr * 0.06) - (p ? p.pos : 0);
+      anchor = nowFrame() + Math.round(sr * 0.06) - (p ? Math.round(p.pos / prR()) : 0);
       if (!p) anchor = startAnchor('play');
       tracks.forEach(t => { if (t.L && (!p || p.list.includes(t))) { startTrack(t); t.state = 'playing'; } });
       if (typeof Rhythm.resync === 'function') Rhythm.resync();
@@ -1371,6 +1591,7 @@ const Looper = (() => {
       const st2 = !!(t.L && t.mix && t.mix.r !== t.mix.l);
       t.chB.hidden = !t.L; t.chB.textContent = st2 ? 'Stereo' : 'Mono'; t.chB.classList.toggle('st', st2);
       t.chB.title = st2 ? 'Diese Spur ist stereo (links und rechts verschieden)' : 'Diese Spur ist mono (links und rechts gleich)';
+      paintLayers(t);
     });
     allBtn.textContent = (anyRunning() || rec) ? 'Alle stoppen' : 'Alle starten';
     { const b2 = $('loopAll2'); if (b2) { b2.textContent = allBtn.textContent; b2.classList.toggle('active', anyRunning() || !!rec); b2.disabled = !anyContent() && !rec; } }
@@ -1378,7 +1599,8 @@ const Looper = (() => {
     $('ideaSave').disabled = !anyContent() || !!rec;
     if (baseL) {
       const secs = baseL / sr, bars = secs / barDur();
-      infoEl.textContent = 'Loop ' + (Math.abs(bars - Math.round(bars)) < 0.02 ? Math.round(bars) + ' Takt' + (Math.round(bars) === 1 ? '' : 'e') + ' · ' : '') + secs.toFixed(1).replace('.', ',') + ' s';
+      infoEl.textContent = 'Loop ' + (Math.abs(bars - Math.round(bars)) < 0.02 ? Math.round(bars) + ' Takt' + (Math.round(bars) === 1 ? '' : 'e') + ' · ' : '') + secs.toFixed(1).replace('.', ',') + ' s'
+      if (pracRate !== 1) infoEl.textContent += ' · ' + T('Übe-Tempo') + ' ' + Math.round(pracRate * 100) + ' %';
     } else infoEl.textContent = 'Kein Loop';
     kick();
   }
@@ -1521,12 +1743,12 @@ const Looper = (() => {
       const base = rec.kind === 'new' && rec.Lt ? rec.start : anchor;
       const sg = segsFor(Lr);
       ring(sg.S, mod(now - base, Lr) / Lr * sg.S, sg.perBar, col, false);
-      flash(rec.kind === 'overdub' ? mod(now - anchor, t.L) : mod(now - base, Lr), col);
-      center(pos(rec.kind === 'overdub' ? mod(now - anchor, t.L) : Math.max(0, now - rec.start)), rec.kind === 'overdub' ? 'Overdub' : 'Aufnahme', col, true);
+      flash(rec.kind === 'overdub' ? phase(now, t.L) : mod(now - base, Lr), col);
+      center(pos(rec.kind === 'overdub' ? phase(now, t.L) : Math.max(0, now - rec.start)), rec.kind === 'overdub' ? 'Overdub' : 'Aufnahme', col, true);
     } else if (t.L) {
       const sg = segsFor(t.L);
       if (t.src) {
-        const p = mod(now - anchor, t.L);
+        const p = phase(now, t.L);
         ring(sg.S, p / t.L * sg.S, sg.perBar, tc, false);
         flash(p, tc);
         center(pos(p), 'Spur ' + (t.i + 1), tc, true);
@@ -1572,7 +1794,7 @@ const Looper = (() => {
         if (b.bar) ctx.fillRect(x, 0, cw * Math.max(1, Math.round(dpr)), h);
         else if (barPx >= 40) { ctx.fillRect(x, 0, cw, 4); ctx.fillRect(x, h - 4, cw, 4); } });
     }
-    if (t.src) { const ph = mod(playFrame() - anchor, t.L) / t.L; const x = Math.round(ph * w * dpr) / dpr; ctx.fillStyle = C.ink; ctx.fillRect(x - 1, 0, 2, h); }
+    if (t.src) { const ph = phase(playFrame(), t.L) / t.L; const x = Math.round(ph * w * dpr) / dpr; ctx.fillStyle = C.ink; ctx.fillRect(x - 1, 0, 2, h); }
   }
 
   let lastDraw = 0;
@@ -1588,7 +1810,7 @@ const Looper = (() => {
       tracks.forEach(t => { drawRing(t, C); drawWave(t, C); });
       tracks.forEach(t => {                       // Spurkopf rechts: klingender und kommender Akkord
         const c = t.chords, has = !!(t.src && c && c.L === t.L && c.segs.some(q => q.name !== '–'));
-        const i = has ? chordAt(t, mod(playFrame() - anchor, t.L)) : -1;
+        const i = has ? chordAt(t, phase(playFrame(), t.L)) : -1;
         const nm = i >= 0 ? c.segs[i].name : null;
         if (nm === t.chdName) return;
         t.chdName = nm; if (!t.thC) return;
@@ -1614,7 +1836,7 @@ const Looper = (() => {
         const showPlay = !!(t.src && t.L && t.mix && !live && audioCtx);
         if (showPlay) {
           const g = parseInt(t.vol.value) / 100, now = nowFrame() - Math.round(((audioCtx.outputLatency || 0) + (audioCtx.baseLatency || 0)) * sr);
-          const p1 = mod(now - anchor, t.L), win = Math.min(t.L, Math.round(sr / 25)), ml = t.mix.l, mr = t.mix.r;
+          const p1 = phase(now, t.L), win = Math.min(t.L, Math.round(sr / 25)), ml = t.mix.l, mr = t.mix.r;
           let a = 0, b = 0;
           for (let k = 0; k < win; k += 2) { const j = (p1 - k + t.L) % t.L, x = ml[j], y = mr[j]; const ax = x < 0 ? -x : x, ay = y < 0 ? -y : y; if (ax > a) a = ax; if (ay > b) b = ay; }
           t.plL = Math.max((t.plL || 0) * 0.8, a * g); t.plR = Math.max((t.plR || 0) * 0.8, b * g);
@@ -1670,7 +1892,7 @@ const Looper = (() => {
     if (dropped && !trimHistory.told) { trimHistory.told = true; setTimeout(() => setStatus('Speicher schonen: ältere Rückgängig-Schritte wurden verworfen (lange Loops brauchen viel Platz).'), 50); }
     return m;
   }
-  function snapshot(t) { t.hist.push({ ts: performance.now(), layers: t.layers.slice(), L: t.L, baseL, bpmv: bpm(), origPos: t.origPos, origBars: t.origBars, od: t.orig ? { downs: t.orig.downs, bars: t.orig.bars, data: t.orig.data, bpm: t.orig.bpm, barMed: t.orig.barMed } : null }); if (t.hist.length > 25) t.hist.shift(); trimHistory(); }
+  function snapshot(t) { t.hist.push({ ts: performance.now(), layers: t.layers.slice(), offs: t.layers.map(ly => !!ly.off), L: t.L, baseL, bpmv: bpm(), origPos: t.origPos, origBars: t.origBars, od: t.orig ? { downs: t.orig.downs, bars: t.orig.bars, data: t.orig.data, bpm: t.orig.bpm, barMed: t.orig.barMed } : null }); if (t.hist.length > 25) t.hist.shift(); trimHistory(); }
   // Ein Rückgängig-Schritt pro Aktion; mehrere Verschiebungen hintereinander zählen als einer
   function edSnap(op) { if (!(op === 'nudge' && ed.lastOp === 'nudge')) snapshot(ed.t); ed.lastOp = op; ed.redo = []; edUR(); }
   function fmtLen(L) {
@@ -1679,6 +1901,7 @@ const Looper = (() => {
   }
   function openEditor(t, byUser) {
     if (!t.L || (rec && rec.t === t)) return;
+    if (pracRate !== 1) { pracOff(); setStatus(T('Übe-Tempo auf 100 % gestellt – der Editor arbeitet im Original-Tempo.')); }
     ed.t = t; ed.s = 0; ed.e = t.L; ed.lastOp = null; ed.offMs = 0; ed.peaks = null; ed.zoom = 1; ed.v0 = 0; showZoom();
     edEl.hidden = false; setEdFull(!!byUser && loadPref('3nps-edfull', '1') === '1'); setHandle('s'); ed.redo = []; edUR();   // Vollbild nur beim Antippen von ✂
     edEl.style.setProperty('--tc', NEON.t[t.i]);
@@ -1698,7 +1921,7 @@ const Looper = (() => {
   const EDGE = () => Math.max(16, Math.round(sr * 0.003));          // 3-ms-Übergänge an den Kanten, damit nichts knackt
   let edClip = null;                                                // Zwischenablage (auch spurübergreifend)
   function edUR() { $('edUndo').disabled = !(ed.t && ed.t.hist.length); $('edRedo').disabled = !(ed.redo && ed.redo.length); $('edPaste').disabled = !edClip; $('edClipInfo').textContent = edClip ? 'Zwischenablage: ' + (edClip.l.length / sr).toFixed(3).replace('.', ',') + ' s' : ''; }
-  function snapOf(t) { return { ts: performance.now(), layers: t.layers.slice(), L: t.L, baseL, bpmv: bpm(), origPos: t.origPos, origBars: t.origBars, od: t.orig ? { downs: t.orig.downs, bars: t.orig.bars, data: t.orig.data, bpm: t.orig.bpm, barMed: t.orig.barMed } : null }; }
+  function snapOf(t) { return { ts: performance.now(), layers: t.layers.slice(), offs: t.layers.map(ly => !!ly.off), L: t.L, baseL, bpmv: bpm(), origPos: t.origPos, origBars: t.origBars, od: t.orig ? { downs: t.orig.downs, bars: t.orig.bars, data: t.orig.data, bpm: t.orig.bpm, barMed: t.orig.barMed } : null }; }
   // Gemeinsame Ausführung: fn(kanal, kopie) ändert die Kopie im Bereich [s, e)
   function edApply(label, fn, opts) {
     const t = ed.t; if (!t || !t.L || rec) return;
@@ -2072,7 +2295,7 @@ const Looper = (() => {
   }
   function rotateTrack(t, k) {
     k = Math.round(k); if (!k) return;
-    t.layers = t.layers.map(ly => smap(ly, a => { const L = a.length, kk = mod(k, L), o = new Float32Array(L); o.set(a.subarray(L - kk), 0); o.set(a.subarray(0, L - kk), kk); return o; }));
+    t.layers = keepOff(t.layers, t.layers.map(ly => smap(ly, a => { const L = a.length, kk = mod(k, L), o = new Float32Array(L); o.set(a.subarray(L - kk), 0); o.set(a.subarray(0, L - kk), kk); return o; })));
     if (t.origPos != null) t.origPos -= k;
     rebuildMix(t); if (t.src) startTrack(t);
   }
@@ -2107,11 +2330,11 @@ const Looper = (() => {
     const t = ed.t; if (!t) return;
     k = Math.round(k); if (!k) return;
     edSnap('nudge');
-    t.layers = t.layers.map(ly => smap(ly, a => {
+    t.layers = keepOff(t.layers, t.layers.map(ly => smap(ly, a => {
       const L = a.length, kk = mod(k, L), o = new Float32Array(L);
       o.set(a.subarray(L - kk), 0); o.set(a.subarray(0, L - kk), kk);
       return o;
-    }));
+    })));
     ed.offMs += k / sr * 1000;
     if (t.origPos != null && !keepGrid) t.origPos -= k;
     rebuildMix(t); if (t.src) startTrack(t);
@@ -2257,7 +2480,7 @@ const Looper = (() => {
     if (Math.abs(ratio - 1) < 0.0005) { setStatus('Die Länge passt bereits genau.'); return; }
     if (Math.abs(ratio - 1) > 0.35) { setStatus('Der Unterschied ist größer als 35 %. Schneide die Spur zuerst ungefähr passend zu.'); return; }
     edSnap('fit');
-    t.layers = t.layers.map(ly => stretch(ly, target));
+    t.layers = keepOff(t.layers, t.layers.map(ly => stretch(ly, target)));
     t.L = target; if (!os.length) baseL = target;
     t.origPos = null;
     afterEdit(t, true);
@@ -2394,12 +2617,12 @@ const Looper = (() => {
       let layers = t.layers, L = t.L;
       const k = Math.round(-lp.downOffsetSec * sr);
       if (Math.abs(k) > sr * 0.003 && !lp.startKept) {
-        layers = layers.map(ly => smap(ly, a => { const n = a.length, kk = mod(k, n), o = new Float32Array(n); o.set(a.subarray(n - kk), 0); o.set(a.subarray(0, n - kk), kk); return o; }));
+        layers = keepOff(layers, layers.map(ly => smap(ly, a => { const n = a.length, kk = mod(k, n), o = new Float32Array(n); o.set(a.subarray(n - kk), 0); o.set(a.subarray(0, n - kk), kk); return o; })));
         steps.push('Takt 1 an den Anfang gelegt');
       }
       if (!lp.isLoop) {
         const barF = L / lp.barsF, nb = Math.max(1, Math.floor(lp.barsF + 0.02)), target = Math.min(L, Math.round(nb * barF));
-        layers = layers.map(ly => smap(ly, a => a.slice(0, target))); L = target;
+        layers = keepOff(layers, layers.map(ly => smap(ly, a => a.slice(0, target)))); L = target;
         steps.push('auf ' + nb + ' ganze Takt' + (nb === 1 ? '' : 'e') + ' gekürzt');
       }
       const nbBars = Math.max(1, Math.round(lp.barsF));
@@ -2408,15 +2631,15 @@ const Looper = (() => {
         steps.push('Tempo ' + bpmTxt(240 * nbBars / (L / sr)) + ' BPM übernommen');
       } else {
         const T = Math.max(1, Math.round(L / baseL)) * baseL, ratio = T / L;
-        if (Math.abs(ratio - 1) > 0.0005 && Math.abs(ratio - 1) <= 0.35) { layers = layers.map(ly => stretch(ly, T)); steps.push('ins Tempo des Loops gedehnt (Tonhöhe bleibt)'); }
-        else if (Math.abs(ratio - 1) > 0.35) { layers = layers.map(ly => padS(ly, T)); steps.push('auf Loop-Länge gebracht'); }
+        if (Math.abs(ratio - 1) > 0.0005 && Math.abs(ratio - 1) <= 0.35) { layers = keepOff(layers, layers.map(ly => stretch(ly, T))); steps.push('ins Tempo des Loops gedehnt (Tonhöhe bleibt)'); }
+        else if (Math.abs(ratio - 1) > 0.35) { layers = keepOff(layers, layers.map(ly => padS(ly, T))); steps.push('auf Loop-Länge gebracht'); }
         L = T;
       }
       t.layers = layers; t.L = L;
     }
     { // Übergang erst nach dem Neuschnitt bewerten
       const m = S(t.L); t.layers.forEach(ly => { for (let i = 0; i < t.L; i++) { m.l[i] += ly.l[i]; m.r[i] += ly.r[i]; } });
-      if (seamClickS(m) >= 1) { t.layers = t.layers.map(microFade); steps.push('Übergang geglättet'); }
+      if (seamClickS(m) >= 1) { t.layers = keepOff(t.layers, t.layers.map(microFade)); steps.push('Übergang geglättet'); }
     }
     afterEdit(t, true);
     detectTrackKey(t);
@@ -2619,7 +2842,7 @@ const Looper = (() => {
     ensureAudio(); sr = audioCtx.sampleRate;
     if (rec || !t || !t.L) return;
     cancelCountIn();
-    anchor = nowFrame() + Math.round(0.02 * sr) - Math.round(mod(f, t.L));
+    anchor = nowFrame() + Math.round(0.02 * sr) - Math.round(mod(f, t.L) / prR());
     tracks.forEach(o => { if (o.L && (o.src || o === t)) { startTrack(o); o.state = 'playing'; } });
     update(); kick();
   }
@@ -2765,7 +2988,7 @@ const Looper = (() => {
     ctx.fillStyle = 'rgba(255,138,26,.22)'; ctx.fillRect(ed.s / t.L * w, 0, (ed.e - ed.s) / t.L * w, h);
     const vx = ed.v0 / t.L * w, vw = Math.max(4, span() / t.L * w);
     ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 1.5; ctx.strokeRect(vx + 0.75, 0.75, vw - 1.5, h - 1.5);
-    if (t.src) { const p = mod(playFrame() - anchor, t.L) / t.L * w; ctx.fillStyle = '#fff'; ctx.fillRect(p - 0.5, 0, 1.5, h); }
+    if (t.src) { const p = phase(playFrame(), t.L) / t.L * w; ctx.fillStyle = '#fff'; ctx.fillRect(p - 0.5, 0, 1.5, h); }
   }
 
   function drawEditor(C) {
@@ -2803,7 +3026,7 @@ const Looper = (() => {
     // Akkordzeile: Name am Anfang jedes Akkords, klingender Akkord hervorgehoben
     if (hasCh) {
       ctx.fillStyle = 'rgba(255,255,255,.035)'; ctx.fillRect(0, 18, w, 18);
-      const cur = t.src ? chordAt(t, mod(playFrame() - anchor, t.L)) : -1;
+      const cur = t.src ? chordAt(t, phase(playFrame(), t.L)) : -1;
       ctx.font = '700 11px ui-monospace, Menlo, monospace';
       t.chords.segs.forEach((q, i) => {
         const xa = X(q.a), xe = X(q.e); if (xe < 0 || xa > w) return;
@@ -2887,7 +3110,7 @@ const Looper = (() => {
     // Abspielposition (hörbar, Ausgabelatenz herausgerechnet)
     let pf = null;
     if (ed.loop) { const el = Math.max(0, audioCtx.currentTime - (audioCtx.outputLatency || 0) - ed.loop.t0) * sr, ln = ed.loop.b - ed.loop.a; pf = ed.loop.a + (ln > 0 ? el % ln : 0); }
-    else if (t.src) pf = mod(playFrame() - anchor, t.L);
+    else if (t.src) pf = phase(playFrame(), t.L);
     if (pf != null) { const p = X(pf); if (p >= -2 && p <= w + 2) { ctx.fillStyle = '#ffffff'; ctx.fillRect(p - 1, 0, 2, h); ctx.beginPath(); ctx.moveTo(p - 6, 0); ctx.lineTo(p + 6, 0); ctx.lineTo(p, 8); ctx.fill(); } }
     drawOverview(t, tc);
   }
@@ -3172,6 +3395,7 @@ const Looper = (() => {
   }
   function loadSession(sess, srcName) {
     ensureAudio(); sr = audioCtx.sampleRate;
+    pracOff(true);
     if (rec) cancelRec();
     cancelCountIn();
     tracks.forEach(t => { stopSrc(t); t.layers = []; t.L = 0; t.mix = null; t.peaks = null; t.state = 'empty'; t.hist = []; t.key = null; t.orig = null; t.origPos = null; clearTimeout(t.chTimer); t.chords = null; showChords(t); });
@@ -3211,6 +3435,7 @@ const Looper = (() => {
 
   function loadSamples(data) {
     ensureAudio(); sr = audioCtx.sampleRate;
+    pracOff(true);
     rec = null;
     tracks.forEach(t => { stopSrc(t); t.layers = []; t.L = 0; t.mix = null; t.peaks = null; t.state = 'empty'; t.hist = []; t.key = null; t.orig = null; clearTimeout(t.chTimer); t.chords = null; showChords(t); });
     if (ed.t) closeEditor();
@@ -3234,7 +3459,7 @@ const Looper = (() => {
     if (rec && !rec.armed && now >= rec.start && rec.kind === 'first') return { text: fmt(now - rec.start), rec: true };
     if (anyRunning()) {
       const L = Math.max(...tracks.filter(t => t.src).map(t => t.L)), b = barOf(L);
-      const p = mod(playFrame() - anchor, L);
+      const p = phase(playFrame(), L);
       return { text: (Math.floor(p / b) + 1) + '.' + (Math.floor(mod(p, b) / (b / 4)) + 1), rec: !!(rec && !rec.armed) };
     }
     return null;
@@ -3273,7 +3498,7 @@ const Looper = (() => {
       const lt = lastLoaded != null && tracks[lastLoaded] && ok(tracks[lastLoaded]) && (tracks[lastLoaded].src || !tracks.some(q => q.src && ok(q))) ? tracks[lastLoaded] : null;
       let t = want != null && tracks[want] && ok(tracks[want]) ? tracks[want] : lt || tracks.find(q => q.src && ok(q)) || tracks.find(ok);
       if (!t) return { tracks: list, track: -1 };
-      const pos = t.src && audioCtx ? mod(playFrame() - anchor, t.L) : null;
+      const pos = t.src && audioCtx ? phase(playFrame(), t.L) : null;
       const downs = trackDowns(t).filter(x => x > -2 && x < t.L - 2).map(x => Math.max(0, x));
       // v83: von Hand korrigierte Akkorde (je Datei, nach Zeit im Original) ersetzen die erkannten
       const fx = chordFixOf(t), fixName = q => { if (!fx) return null; const k = Math.round((q.a + t.origPos) / (sr * 0.01)); for (let d = -5; d <= 5; d++) if (fx[k + d] != null) return fx[k + d]; return null; };
@@ -3290,7 +3515,7 @@ const Looper = (() => {
       const t = tracks[i]; if (!t || !t.L || !t.orig || t.origPos == null || !t.orig.beats || t.orig.beats.length < 4) return null;
       const o = t.orig, len = o.data ? (o.data.l || o.data).length : 0;
       return { key: (o.name || 'Datei') + '|' + Math.round(len / sr * 10), name: o.name || 'Datei', origPos: t.origPos, beats: o.beats, downs: o.downs || [], sr, L: t.L, len, bpm: o.bpm,
-        pos: t.src && audioCtx ? mod(playFrame() - anchor, t.L) : null };
+        pos: t.src && audioCtx ? phase(playFrame(), t.L) : null };
     },
     // Mitsingen-Übungsplayer (v63): Ausschnitt der Originaldatei (Bilder f0…f1) und Zeitdehnung ohne Tonhöhe – nur lesen/rechnen
     singAudio: (i, f0, f1) => {
@@ -3357,7 +3582,7 @@ const Looper = (() => {
     nowChord: () => {
       for (const t of tracks) {
         const c = t.chords; if (!t.src || !c || c.L !== t.L || !c.segs.some(q => q.name !== '–')) continue;
-        const i = chordAt(t, mod(playFrame() - anchor, t.L)); if (i < 0) continue;
+        const i = chordAt(t, phase(playFrame(), t.L)); if (i < 0) continue;
         return { name: c.segs[i].name, next: nextChord(c, i), track: t.i };
       }
       return null;
@@ -3371,6 +3596,15 @@ const Looper = (() => {
     // Test: Mono-Audio als fertige Aufnahme in Spur i legen (Länge = Loop-Länge, keine Import-Anpassung)
     _setTrack: (i, arr) => { const t = tracks[i]; if (!t || !baseL) return false; const x = new Float32Array(baseL); x.set(arr.length > baseL ? arr.slice(0, baseL) : arr); t.L = baseL; t.layers = [SP(x)]; rebuildMix(t); t.state = 'stopped'; update(); return true; },
     _playFrame: () => ({ play: playFrame(), now: audioCtx ? nowFrame() : 0 }),
+    // v116: Stimmgerät, Übe-Tempo, Ebenen, Pedal-Aktionen
+    tunerToggle: () => tunerToggle(), tunerOpen: () => tunerOpen(), tunerClose: () => tunerClose(), tunerOn: () => tn.on, _tuner: () => ({ on: tn.on, a4: tn.a4, last: tn.last || null, an: !!tn.an, timer: !!tn.timer }),
+    tunerDetect: (x, rate, a4) => tunerDetect(x, rate, a4),
+    practice: () => pracRate, setPractice: v => setPractice(v), pracToggle: () => pracToggle(), pracNext: () => pracNext(),
+    _prac: () => ({ rate: pracRate, eff: prR(), pos0: tracks[0].L && audioCtx ? phase(nowFrame(), tracks[0].L) : null, busy: pracBusy, mul: window.__tempoMul || 1, tracks: tracks.map(t => ({ L: t.L, src: t.src ? t.src.buffer.length : 0, pb: t.pb ? t.pb.length : 0, orig: !!(t.src && t.src.buffer === t.buf) })) }),
+    layers: i => tracks[i].layers.map(ly => !ly.off), setLayer: (i, k, on) => { const t = tracks[i], ly = t && t.layers[k]; if (ly && !!ly.off === !!on) layerAction(t, k, false); }, delLayer: (i, k) => layerAction(tracks[i], k, true),
+    stopTrack: i => { const t = tracks[i]; if (t) t.stopB.click(); },
+    undoLast: () => undoTrack(tracks[rec ? rec.t.i : (lastRecI >= 0 ? lastRecI : 0)]),
+    _addLayer: (i, arr) => { const t = tracks[i]; if (!t || !t.L) return false; snapshot(t); const x = new Float32Array(t.L); x.set(arr.length > t.L ? arr.slice(0, t.L) : arr); t.layers = capLayers(t.layers.concat([SP(x)])); rebuildMix(t); if (t.src) startTrack(t); update(); return true; },
     all: allStartStop
   };
 })();
@@ -3378,12 +3612,26 @@ const Looper = (() => {
 /* ---------- Fußpedal (M-VAVE Chocolate im Tastatur-Modus, jede Bluetooth-Tastatur) ---------- */
 const Pedal = (() => {
   const $ = id => document.getElementById(id);
+  // v116: vier Tasten A–D (Schlüssel wie bisher foot0/foot1/foot2/all); was sie tun, ist frei belegbar (Tippen, Halten, Doppelt)
   const ACTIONS = [
-    { id: 'foot0', label: 'Spur 1', run: () => Looper.foot(0), hold: () => Looper.undo(0) },
-    { id: 'foot1', label: 'Spur 2', run: () => Looper.foot(1), hold: () => Looper.undo(1) },
-    { id: 'foot2', label: 'Spur 3', run: () => Looper.foot(2), hold: () => Looper.undo(2) },
-    { id: 'all', label: 'Alle starten / stoppen', run: () => Looper.all(), hold: null }
+    { id: 'foot0', label: 'Taste A' }, { id: 'foot1', label: 'Taste B' }, { id: 'foot2', label: 'Taste C' }, { id: 'all', label: 'Taste D' }
   ];
+  const ACTS = [['none', '– nichts –'],
+    ['foot:0', 'Spur 1 REC / Overdub / Play'], ['foot:1', 'Spur 2 REC / Overdub / Play'], ['foot:2', 'Spur 3 REC / Overdub / Play'],
+    ['stop:0', 'Spur 1 Stopp'], ['stop:1', 'Spur 2 Stopp'], ['stop:2', 'Spur 3 Stopp'],
+    ['undo:0', 'Spur 1 Rückgängig'], ['undo:1', 'Spur 2 Rückgängig'], ['undo:2', 'Spur 3 Rückgängig'],
+    ['undo', 'Rückgängig (zuletzt benutzte Spur)'], ['all', 'Alle starten / stoppen'], ['pause', 'Pause / Weiter'],
+    ['prac', 'Übe-Tempo an / aus'], ['pracNext', 'Übe-Tempo nächste Stufe'], ['tuner', 'Stimmgerät an / aus']];
+  const ACT_NAME = Object.fromEntries(ACTS);
+  const DEF_ACTS = { foot0: { tap: 'foot:0', hold: 'undo:0', dbl: 'none' }, foot1: { tap: 'foot:1', hold: 'undo:1', dbl: 'none' },
+    foot2: { tap: 'foot:2', hold: 'undo:2', dbl: 'none' }, all: { tap: 'all', hold: 'none', dbl: 'none' } };
+  function runAct(id) {
+    if (!id || id === 'none') return;
+    const [k, n] = id.split(':'), i = n != null ? parseInt(n) : 0;
+    if (k === 'foot') Looper.foot(i); else if (k === 'stop') Looper.stopTrack(i); else if (k === 'undo') { if (n != null) Looper.undo(i); else Looper.undoLast(); }
+    else if (k === 'all') Looper.all(); else if (k === 'pause') Looper.pauseToggle(); else if (k === 'prac') Looper.pracToggle();
+    else if (k === 'pracNext') Looper.pracNext(); else if (k === 'tuner') Looper.tunerToggle();
+  }
   const PRESETS = {
     a: { foot0: 'ArrowUp', foot1: 'ArrowDown', foot2: 'ArrowLeft', all: 'ArrowRight' },
     b: { foot0: 'PageUp', foot1: 'PageDown', foot2: ' ', all: 'Enter' }
@@ -3411,6 +3659,24 @@ const Pedal = (() => {
   if (!['auto', 'a', 'b', 'custom'].includes(preset)) preset = 'auto';
   let custom = {}; try { custom = JSON.parse(load('3nps-pedal-custom', '{}')) || {}; } catch (e) {}
   holdEl.checked = load('3nps-pedal-hold', '1') === '1';
+  let acts = {};
+  function loadActs() {
+    let a = {}; try { a = JSON.parse(load('3nps-pedal-acts', '{}')) || {}; } catch (e) {}
+    acts = {}; ACTIONS.forEach(x => { const d = DEF_ACTS[x.id], o = a[x.id] || {}; acts[x.id] = {}; ['tap', 'hold', 'dbl'].forEach(w => { acts[x.id][w] = ACT_NAME[o[w]] ? o[w] : d[w]; }); });
+  }
+  loadActs();
+  const actsEl = $('pedalActs');
+  function renderActs() {
+    const opt = cur => ACTS.map(([v, l]) => '<option value="' + v + '"' + (v === cur ? ' selected' : '') + '>' + l + '</option>').join('');
+    actsEl.innerHTML = '<div class="pedal-act-row head"><span></span><span>Tippen</span><span>Gedrückt halten</span><span>Doppelt tippen</span></div>' + ACTIONS.map(a =>
+      '<div class="pedal-act-row"><b>' + a.label + '</b>' + ['tap', 'hold', 'dbl'].map(w => '<select data-slot="' + a.id + '" data-w="' + w + '" aria-label="' + a.label + ' · ' + ({ tap: 'Tippen', hold: 'Gedrückt halten', dbl: 'Doppelt tippen' })[w] + '">' + opt(acts[a.id][w]) + '</select>').join('') + '</div>').join('');
+  }
+  actsEl.addEventListener('change', e => {
+    const el = e.target.closest('select[data-slot]'); if (!el) return;
+    acts[el.dataset.slot][el.dataset.w] = el.value; save('3nps-pedal-acts', JSON.stringify(acts)); render();
+  });
+  $('pedalActsReset').addEventListener('click', () => { try { localStorage.removeItem('3nps-pedal-acts'); } catch (e) {} loadActs(); renderActs(); render(); });
+  renderActs();
   presetEl.value = preset;
   let learning = null;
   const map = () => preset === 'custom' ? Object.assign({}, PRESETS.a, custom) : preset === 'auto' ? PRESETS.a : PRESETS[preset];
@@ -3420,7 +3686,7 @@ const Pedal = (() => {
     const m = map();
     listEl.innerHTML = ACTIONS.map(a => `
       <div class="pedal-row">
-        <span class="pedal-act">${a.label}</span>
+        <span class="pedal-act">${a.label} <small>${ACT_NAME[acts[a.id].tap]}</small></span>
         <kbd>${learning === a.id ? 'Pedal drücken …' : String(showKeys(a.id)).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))}</kbd>
         <button class="toggle-btn" data-learn="${a.id}" ${preset !== 'custom' ? 'hidden' : ''}>${learning === a.id ? 'Abbrechen' : 'Anlernen'}</button>
       </div>`).join('');
@@ -3480,24 +3746,39 @@ const Pedal = (() => {
     let id = preset === 'auto' ? AUTO[key] : Object.keys(m).find(k => m[k] === key);
     id = id || FALLBACK[key];
     const a = id ? ACTIONS.find(x => x.id === id) : null;
-    lastEl.textContent = keyName(key) + (a ? ' → ' + a.label : ' (nicht belegt)');
+    lastEl.textContent = keyName(key) + (a ? ' → ' + a.label + ' · ' + ACT_NAME[acts[a.id].tap] : ' (nicht belegt)');
     lastEl.classList.add('hit'); clearTimeout(flashT); flashT = setTimeout(() => lastEl.classList.remove('hit'), 250);
     if (!a) return;
     e.preventDefault();
     if (Looper.edPedal && Looper.edPedal(a.id)) return;     // Vollbild-Editor: Feinschritte statt Spuren
     if (window.Sing && Sing.pedal && !e.repeat && Sing.pedal(a.id)) return;   // v84: Text bearbeiten (Takt breit): eigene Belegung
     if (e.repeat) return;
-    down[key] = { t: performance.now(), a };
-    a.run();
+    const cfg = acts[a.id], now = performance.now();
+    down[key] = { t: now, a, cfg };
+    if (cfg.dbl !== 'none') {                                   // Doppelt belegt: erst nach dem Loslassen entscheiden
+      const p = pend[a.id];
+      if (p && now - p.t < DBL_MS + 400) { clearTimeout(p.timer); delete pend[a.id]; down[key].dbl = true; runAct(cfg.dbl); }
+      return;
+    }
+    runAct(cfg.tap);                                             // sofort (wie bisher, keine Verzögerung)
   }, true);
+  const pend = {}, DBL_MS = 300;
   window.addEventListener('keyup', e => {
     const key = normKey(e);
     const d = down[key]; delete down[key];
-    if (!d || !holdEl.checked || !d.a.hold) return;
-    if (performance.now() - d.t >= 800) d.a.hold();
+    if (!d) return;
+    const long = performance.now() - d.t >= 800, hold = holdEl.checked && d.cfg.hold !== 'none';
+    if (d.cfg.dbl !== 'none') {
+      if (d.dbl) return;
+      if (long && hold) { runAct(d.cfg.hold); return; }
+      const id = d.a.id;
+      pend[id] = { t: performance.now(), timer: setTimeout(() => { delete pend[id]; runAct(d.cfg.tap); }, DBL_MS) };
+      return;
+    }
+    if (long && hold) runAct(d.cfg.hold);
   });
   render();
-  return { render };
+  return { render, acts: () => JSON.parse(JSON.stringify(acts)), run: runAct };
 })();
 
 /* ---------- LCD in der Kontrollleiste ---------- */

@@ -64,7 +64,7 @@ const NordDrones = (() => {
   function noiseSrc(offset) { const s = tr(ac().createBufferSource()); s.buffer = noise(); s.loop = true; s.start(ac().currentTime, offset || 0); return s; }
   const hz = m => 440 * Math.pow(2, (m - 69) / 12);
   const orn = () => { const el = document.getElementById('pianoShimmer'); return !el || el.checked; };
-  const bpm = () => parseFloat(document.getElementById('bpm').value) || 80;
+  const bpm = () => (parseFloat(document.getElementById('bpm').value) || 80) * (window.__tempoMul || 1);   // v116: Übe-Tempo
   function scaleMidis(lo, hi) {
     const k = keyMidiNotes(), ov = window.droneKeyOverride || null;
     const iv = MODES[ov && ov.mode ? ov.mode : modeSel.value], root = k.root % 12, out = [];

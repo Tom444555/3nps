@@ -36,7 +36,7 @@ const Pitch = (() => {
     // parabolische Verfeinerung
     let tt = tau;
     if (tau > 1 && tau < maxLag) { const a = dbuf[tau - 1], b = dbuf[tau], c = dbuf[tau + 1], den = a + c - 2 * b; if (Math.abs(den) > 1e-12) tt = tau + 0.5 * (a - c) / den; }
-    const f = s2 / tt, m = 69 + 12 * Math.log2(f / 440), midi = Math.round(m);
+    const f = s2 / tt, m = 69 + 12 * Math.log2(f / (opts.a4 || 440)), midi = Math.round(m);
     return { f, midi, cents: Math.round((m - midi) * 100), conf: 1 - dbuf[tau], rms };
   }
   return { detect };
