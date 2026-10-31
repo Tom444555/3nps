@@ -1071,3 +1071,15 @@ Gut zu wissen
      Vorzähler und Taktanzeige folgen. Aufnehmen ist dabei gesperrt. 100 % stellt alles exakt wieder her.
    - Fußpedal: „Tasten belegen (Tippen · Halten · Doppelt tippen)“ – je Taste A–D frei wählbar (Spur REC/Overdub,
      Spur Stopp, Rückgängig, Alle starten/stoppen, Pause, Übe-Tempo, Stimmgerät). Standard = wie bisher.
+
+100. Amp-Simulation und Szenen (v117)
+   - „Amp“ (oben neben „Stimmen“): Verstärker-Klang für die Gitarre direkt am Eingang – Noise-Gate, Verzerrung
+     („Clean“, „Crunch“, „Lead“), Bass/Mitte/Höhen, Box-Simulation und Pegel. „▾“ klappt die Regler auf,
+     „Voreinstellung“ bietet Clean, Blues-Crunch, Rock, Lead, Metal. Mithören und Aufnahme gehen durch den Amp
+     (die Spur klingt wie gehört). Am Interface den Direct-Monitor ausschalten, sonst hört man doppelt.
+     Ist der Amp aus, läuft der Eingang genau wie bisher. Einstellungen bleiben gespeichert.
+   - „Szenen“ (unter den Spuren): „+ Szene“ merkt, welche Spuren und Ebenen hörbar sind und die Lautstärken
+     (bis 8, z. B. Strophe/Refrain/Bridge; gedrückt halten = umbenennen). Antippen wechselt am nächsten
+     Loop-Anfang (Haken „Wechsel am Loop-Anfang“ aus = sofort). „Szene merken“ überschreibt, „Szene löschen“ entfernt.
+     Szenen werden mit der Idee gespeichert.
+   - Fußpedal: neue Aktionen „Nächste Szene“, „Vorherige Szene“, „Amp an / aus“.

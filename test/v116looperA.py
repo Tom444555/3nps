@@ -16,7 +16,7 @@ async def main():
         pg = await ctx.new_page(); errs = []
         pg.on('pageerror', lambda e: errs.append(str(e)))
         await pg.goto(U); await pg.wait_for_timeout(900)
-        check('v116', 'v116' in await pg.inner_text('.brand'))
+        check('ab v116', int(__import__('re').search(r'v(\d+)', await pg.inner_text('.brand')).group(1)) >= 116)
         sr = await pg.evaluate("(ensureAudio(), audioCtx.sampleRate)")
         # ---------- 1. Stimmgerät ----------
         d = await pg.evaluate("(()=>{const sr=audioCtx.sampleRate,x=new Float32Array(4096);for(let i=0;i<x.length;i++)x[i]=0.5*Math.sin(2*Math.PI*110*i/sr);return Looper.tunerDetect(x,sr,440)})()")

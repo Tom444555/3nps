@@ -294,6 +294,124 @@ const Looper = (() => {
   $('tunerA4p').addEventListener('click', () => setA4(tn.a4 + 1));
   showA4();
 
+  // ---- v117: Amp-Simulation am Eingang (nur aufgebaut, wenn eingeschaltet – sonst exakt der bisherige Signalweg) ----
+  // Kette (mono): Gate (Worklet) → Vorfilter → Drive → WaveShaper (4x) → Ausgleich → Bass/Mitte/Höhen → Box (HP 80, Resonanz 2 kHz, TP 5 kHz) → Pegel
+  // → Aufnahme (tapNode) und Mithören (direkt an die Ausgabe, ohne Limiter-Vorausschau → keine zusätzliche Latenz)
+  const AMP_TYPES = { clean: { k: 1.4, asym: 0, g0: 0.8, g1: 4, hp: 60, comp: 0.9 }, crunch: { k: 3, asym: 0.18, g0: 2, g1: 30, hp: 90, comp: 0.55 }, lead: { k: 6, asym: 0.08, g0: 8, g1: 140, hp: 150, comp: 0.4 } };
+  const AMP_PRESETS = {
+    clean: { type: 'clean', gate: -80, drive: 3, bass: 5, mid: 5, treble: 6, level: 0 },
+    blues: { type: 'crunch', gate: -65, drive: 4, bass: 5, mid: 6.5, treble: 5, level: 0 },
+    rock: { type: 'crunch', gate: -58, drive: 7.5, bass: 6, mid: 5.5, treble: 6, level: -2 },
+    lead: { type: 'lead', gate: -52, drive: 6, bass: 5, mid: 7, treble: 5.5, level: -3 },
+    metal: { type: 'lead', gate: -45, drive: 9, bass: 7, mid: 3, treble: 7, level: -4 }
+  };
+  const AMP_DEF = Object.assign({ mon: true }, AMP_PRESETS.blues);
+  const amp = { on: false, nodes: null, set: Object.assign({}, AMP_DEF), gateOk: false, curves: {} };
+  try { const v = JSON.parse(loadPref('3nps-amp', 'null')); if (v && typeof v === 'object') Object.keys(AMP_DEF).forEach(k => { if (v[k] != null && typeof v[k] === typeof AMP_DEF[k]) amp.set[k] = v[k]; }); } catch (e) {}
+  if (!AMP_TYPES[amp.set.type]) amp.set.type = 'crunch';
+  amp.on = loadPref('3nps-amp-on', '0') === '1';
+  function ampCurve(type) {
+    if (amp.curves[type]) return amp.curves[type];
+    const p = AMP_TYPES[type], n = 4096, c = new Float32Array(n), k = p.k, a = p.asym, t0 = Math.tanh(k * a);
+    let mx = 0;
+    for (let i = 0; i < n; i++) { const x = i / (n - 1) * 2 - 1; c[i] = Math.tanh(k * (x + a)) - t0; mx = Math.max(mx, Math.abs(c[i])); }
+    for (let i = 0; i < n; i++) c[i] /= mx;
+    return (amp.curves[type] = c);
+  }
+  const knobDb = v => (v - 5) * 2.4;                                   // 0…10 → −12…+12 dB
+  function ampParams(s) {
+    const p = AMP_TYPES[s.type] || AMP_TYPES.crunch;
+    return { p, drive: p.g0 * Math.pow(p.g1 / p.g0, Math.max(0, Math.min(10, s.drive)) / 10), bass: knobDb(s.bass), mid: knobDb(s.mid), treble: knobDb(s.treble), out: p.comp * Math.pow(10, s.level / 20), gate: s.gate <= -79.5 ? -100 : s.gate };
+  }
+  // Kette in einem beliebigen Kontext bauen (live und OfflineAudioContext für Tests/Messung)
+  function ampChain(ctx, s, withGate) {
+    const q = ampParams(s), mk = (type, f, Q, g) => { const b = ctx.createBiquadFilter(); b.type = type; b.frequency.value = f; if (Q != null) b.Q.value = Q; if (g != null) b.gain.value = g; return b; };
+    const n = {};
+    n.in = ctx.createGain(); n.in.channelCount = 1; n.in.channelCountMode = 'explicit'; n.in.channelInterpretation = 'speakers';
+    n.gate = withGate ? (() => { try { return new AudioWorkletNode(ctx, 'ampgate', { numberOfInputs: 1, numberOfOutputs: 1, channelCount: 1, channelCountMode: 'explicit', outputChannelCount: [1], parameterData: { thr: q.gate } }); } catch (e) { return null; } })() : null;
+    n.pre = mk('highpass', q.p.hp, 0.7);
+    n.drive = ctx.createGain(); n.drive.gain.value = q.drive;
+    n.shp = ctx.createWaveShaper(); n.shp.curve = ampCurve(s.type); n.shp.oversample = '4x';
+    n.comp = ctx.createGain(); n.comp.gain.value = 1;
+    n.bass = mk('lowshelf', 120, null, q.bass); n.mid = mk('peaking', 700, 0.8, q.mid); n.tre = mk('highshelf', 3000, null, q.treble);
+    n.cabHp = mk('highpass', 80, 0.7); n.cabRes = mk('peaking', 2000, 1.2, 3.5); n.cabLp = mk('lowpass', 5000, 0.8); n.cabLp2 = mk('lowpass', 6500, 0.5);
+    n.out = ctx.createGain(); n.out.gain.value = q.out;
+    const chain = [n.in, n.gate, n.pre, n.drive, n.shp, n.comp, n.bass, n.mid, n.tre, n.cabHp, n.cabRes, n.cabLp, n.cabLp2, n.out].filter(Boolean);
+    for (let i = 0; i + 1 < chain.length; i++) chain[i].connect(chain[i + 1]);
+    n.list = chain;
+    return n;
+  }
+  function ampApply() {                                              // Regler live übernehmen (ohne Neuaufbau)
+    const n = amp.nodes; if (!n) return;
+    const s = amp.set, q = ampParams(s), t = audioCtx.currentTime, st = (prm, v) => prm.setTargetAtTime(v, t, 0.015);
+    if (n.shp.curve !== ampCurve(s.type)) n.shp.curve = ampCurve(s.type);
+    st(n.pre.frequency, q.p.hp); st(n.drive.gain, q.drive); st(n.bass.gain, q.bass); st(n.mid.gain, q.mid); st(n.tre.gain, q.treble); st(n.out.gain, q.out);
+    if (n.gate) { const g = n.gate.parameters.get('thr'); if (g) g.setValueAtTime(q.gate, t); }
+    if (n.mon) st(n.mon.gain, s.mon ? 1 : 0);
+  }
+  function ampTear() {
+    const n = amp.nodes; if (!n) return; amp.nodes = null;
+    try { if (micSource) micSource.disconnect(n.in); } catch (e) {}
+    n.list.concat([n.mon]).forEach(x => { try { x && x.disconnect(); } catch (e) {} });
+  }
+  // Eingang verdrahten: Amp an → micSource → Kette → tapNode (+ Mithören); aus → micSource → tapNode (wie bisher)
+  function ampWire() {
+    if (!micSource || !tapNode) { if (!amp.on) ampTear(); return; }
+    if (amp.on && !amp.nodes) {
+      const n = ampChain(audioCtx, amp.set, amp.gateOk);
+      n.mon = audioCtx.createGain(); n.mon.gain.value = amp.set.mon ? 1 : 0;
+      n.out.connect(tapNode); n.out.connect(n.mon); n.mon.connect(audioCtx.destination);
+      try { micSource.disconnect(tapNode); } catch (e) {}
+      micSource.connect(n.in); amp.nodes = n;
+    } else if (!amp.on && amp.nodes) {
+      ampTear();
+      try { micSource.disconnect(tapNode); } catch (e) {}
+      micSource.connect(tapNode);
+    }
+  }
+  const ampBtn = $('loopAmpBtn'), ampSet = $('loopAmpSet'), ampPanel = $('ampPanel');
+  const AMP_UI = { gate: 'ampGate', drive: 'ampDrive', bass: 'ampBass', mid: 'ampMid', treble: 'ampTreble', level: 'ampLevel' };
+  const nf1 = v => (Math.round(v * 10) / 10).toFixed(1).replace('.', window.__lang === 'en' ? '.' : ',');
+  function paintAmp() {
+    ampBtn.classList.toggle('active', amp.on); ampBtn.setAttribute('aria-pressed', String(amp.on));
+    ampBtn.textContent = amp.on ? '● Amp' : 'Amp';
+    const s = amp.set;
+    $('ampType').value = s.type; $('ampMon').checked = !!s.mon;
+    Object.keys(AMP_UI).forEach(k => { $(AMP_UI[k]).value = s[k]; });
+    $('ampGateV').textContent = s.gate <= -79.5 ? T('aus') : Math.round(s.gate) + ' dB';
+    $('ampDriveV').textContent = nf1(s.drive); $('ampBassV').textContent = nf1(s.bass); $('ampMidV').textContent = nf1(s.mid); $('ampTrebleV').textContent = nf1(s.treble);
+    $('ampLevelV').textContent = (s.level > 0 ? '+' : '') + Math.round(s.level) + ' dB';
+    const pr = Object.keys(AMP_PRESETS).find(k => Object.keys(AMP_PRESETS[k]).every(x => AMP_PRESETS[k][x] === s[x]));
+    $('ampPreset').value = pr || '';
+  }
+  const ampSave = () => savePref('3nps-amp', JSON.stringify(amp.set));
+  async function setAmp(on) {
+    on = !!on;
+    if (on === amp.on) { paintAmp(); return true; }
+    if (rec) { setStatus(T('Erst die Aufnahme beenden, dann den Amp umschalten.')); paintAmp(); return false; }
+    amp.on = on; savePref('3nps-amp-on', on ? '1' : '0'); ev(on ? 'Amp an' : 'Amp aus');
+    paintAmp();
+    if (on && !micReady) { let ok = false; try { ok = await ensureMic(); } catch (e) {} if (!ok) return false; }
+    ampWire();
+    setStatus(on ? T('Amp an: Mithören und Aufnahme gehen durch die Amp-Simulation. Direct-Monitor am Interface ausschalten, sonst hörst du die Gitarre doppelt.') : T('Amp aus: Eingang wieder unbearbeitet.'));
+    return true;
+  }
+  ampBtn.addEventListener('click', () => setAmp(!amp.on));
+  ampSet.addEventListener('click', () => { ampPanel.hidden = !ampPanel.hidden; ampSet.setAttribute('aria-expanded', String(!ampPanel.hidden)); ampSet.textContent = ampPanel.hidden ? '▾' : '▴'; savePref('3nps-amp-panel', ampPanel.hidden ? '0' : '1'); });
+  if (loadPref('3nps-amp-panel', '0') === '1') { ampPanel.hidden = false; ampSet.textContent = '▴'; ampSet.setAttribute('aria-expanded', 'true'); }
+  Object.keys(AMP_UI).forEach(k => $(AMP_UI[k]).addEventListener('input', e => { amp.set[k] = parseFloat(e.target.value); ampSave(); paintAmp(); ampApply(); }));
+  $('ampType').addEventListener('change', e => { amp.set.type = AMP_TYPES[e.target.value] ? e.target.value : 'crunch'; ampSave(); paintAmp(); ampApply(); });
+  $('ampMon').addEventListener('change', e => { amp.set.mon = e.target.checked; ampSave(); ampApply(); });
+  $('ampPreset').addEventListener('change', e => { const p = AMP_PRESETS[e.target.value]; if (!p) return; Object.assign(amp.set, p); ampSave(); paintAmp(); ampApply(); });
+  paintAmp();
+  // Messung ohne Eingang (Test): Signal x (mono) mit Einstellung s durch die Kette rechnen
+  async function ampRender(x, rate, s) {
+    const ctx = new OfflineAudioContext(1, x.length, rate), b = ctx.createBuffer(1, x.length, rate); b.copyToChannel(x, 0);
+    const src = ctx.createBufferSource(); src.buffer = b;
+    const n = ampChain(ctx, Object.assign({}, AMP_DEF, s || amp.set), false); src.connect(n.in); n.out.connect(ctx.destination); src.start();
+    return (await ctx.startRendering()).getChannelData(0);
+  }
+
   // ---- EQ je Spur (v99: 9 Bänder, Art Channel EQ) (aufklappbar unter den Reglern) ----
   tracks.forEach(t => {
     let v = null; try { v = JSON.parse(loadPref('3nps-eq2-' + t.i, 'null')) || JSON.parse(loadPref('3nps-eq' + t.i, 'null')); } catch (e) {}
@@ -614,20 +732,34 @@ const Looper = (() => {
           process(inp){const c=inp[0]&&inp[0][0];if(!c){if(this.n)this.flush();return true;}const d=inp[0][1]||c;
           if(this.n===0)this.s=currentFrame;this.a.set(c,this.n);this.b.set(d,this.n);this.n+=c.length;
           if(this.n+c.length>this.a.length)this.flush();return true;}}
-          registerProcessor('tap',Tap);`;
+          registerProcessor('tap',Tap);
+          class Gate extends AudioWorkletProcessor{static get parameterDescriptors(){return[{name:'thr',defaultValue:-100,minValue:-100,maxValue:0,automationRate:'k-rate'}];}
+          constructor(){super();this.e=0;this.g=1;this.h=0;this.o=true;}
+          process(inp,out,p){const i=inp[0]&&inp[0][0],o=out[0][0];if(!i){o.fill(0);return true;}const thr=p.thr[0];
+          if(thr<=-99){o.set(i);this.g=1;this.o=true;return true;}
+          const on=Math.pow(10,thr/20),off=on*0.5,er=Math.exp(-1/(sampleRate*0.02)),ka=1-Math.exp(-1/(sampleRate*0.001)),kr=1-Math.exp(-1/(sampleRate*0.06)),hold=Math.round(sampleRate*0.05);
+          let e=this.e,g=this.g,h=this.h,op=this.o;
+          for(let n=0;n<i.length;n++){const a=i[n]<0?-i[n]:i[n];e=a>e?a:e*er;if(e>on){op=true;h=hold;}else if(e<off){if(h>0)h--;else op=false;}
+          const tg=op?1:0;g+=(tg-g)*(tg>g?ka:kr);o[n]=i[n]*g;}
+          this.e=e;this.g=g;this.h=h;this.o=op;return true;}}
+          registerProcessor('ampgate',Gate);`;
         const url = URL.createObjectURL(new Blob([code], { type: 'application/javascript' }));
         await within(audioCtx.audioWorklet.addModule(url), 4000);   // hängt es, nimmt der Ausweichweg unten
         tapNode = new AudioWorkletNode(audioCtx, 'tap', { numberOfInputs: 1, numberOfOutputs: 1, channelCount: 2, channelCountMode: 'explicit', outputChannelCount: [1] });
         tapNode.port.onmessage = e => handleChunk(e.data.f, SP(e.data.l, e.data.r));
         workletOk = true;
       } catch (e) { workletOk = false; }
+      amp.gateOk = workletOk;
     }
     if (!workletOk) {
       // Ausweichweg, falls das Aufnahme-Modul nicht lädt
       tapNode = audioCtx.createScriptProcessor(2048, 2, 1);
       tapNode.onaudioprocess = e => { const ib = e.inputBuffer; handleChunk(Math.round(e.playbackTime * sr) - 2048, SP(new Float32Array(ib.getChannelData(0)), new Float32Array(ib.getChannelData(ib.numberOfChannels > 1 ? 1 : 0)))); };
     }
-    micSource.connect(tapNode); tapNode.connect(sinkNode); sinkNode.connect(audioCtx.destination);
+    amp.nodes = null;                                             // v117: alte Kette gehört zum alten Eingang
+    if (!amp.on) micSource.connect(tapNode);
+    ampWire();
+    tapNode.connect(sinkNode); sinkNode.connect(audioCtx.destination);
     if (extAnalyser) { try { micSource.connect(extAnalyser); extAnalyser.connect(sinkNode); } catch (e) {} }
     if (tn.an) { try { micSource.connect(tn.an); tn.an.connect(sinkNode); } catch (e) {} }   // v116: Stimmgerät ebenso   // Mithören (Solo Finder) nach Neuverbindung weiter versorgen
     {
@@ -666,6 +798,7 @@ const Looper = (() => {
     if (!micReady) return;
     ev('Eingang zu (' + (reason || 'Gerät beendet') + ')');
     micReady = false;
+    ampTear();                                                    // v117
     try { micSource && micSource.disconnect(); tapNode && tapNode.disconnect(); } catch (e) {}
     try { stream && stream.getTracks().forEach(tr => tr.stop()); } catch (e) {}
     micSource = null; tapNode = null; stream = null; stereoSeen = false; showInChans();
@@ -876,8 +1009,14 @@ const Looper = (() => {
     t.peaks = null;
     if (autoReady || t.hist.length) setTimeout(trimHistory, 0);     // nach der Änderung: Verlauf im Speicherbudget halten
   }
-  function startTrack(t) {
-    stopSrc(t);
+  function startTrack(t, at) {
+    if (at == null) stopSrc(t);
+    else {                                                        // v117: Wechsel genau bei Bild „at“ (Szenen) – alte Quelle endet dort
+      const os = t.src, og = t.gain; t.src = null; t.gain = null;
+      if (os) { try { os.stop(at / sr); } catch (e) {} }
+      const ms = Math.max(0, (at / sr - audioCtx.currentTime) * 1000) + 120;
+      setTimeout(() => { try { os && os.disconnect(); og && og.disconnect(); } catch (e) {} }, ms);
+    }
     if (!t.L) return;
     if (pracRate !== 1) {                                         // v116: Übe-Tempo – gedehnter Puffer (nur im Speicher, solange benutzt)
       const pb = pracBufOf(t); if (!pb) { pracNeed(t); return; }
@@ -885,9 +1024,9 @@ const Looper = (() => {
       s.buffer = pb; s.loop = true;
       t.gain = audioCtx.createGain(); t.gain.gain.value = parseInt(t.vol.value) / 100;
       s.connect(t.gain); t.gain.connect(ensureTrackEq(t).input);
-      const now = nowFrame();
+      const now = at != null ? at : nowFrame();
       if (anchor > now) s.start(anchor / sr, 0);
-      else s.start(audioCtx.currentTime, mod(now - anchor, pb.length) / sr);
+      else s.start(at != null ? at / sr : audioCtx.currentTime, mod(now - anchor, pb.length) / sr);
       t.src = s; return;
     }
     if (!t.buf || t.bufFor !== t.mix || t.buf.length !== t.L) {
@@ -901,9 +1040,9 @@ const Looper = (() => {
     s.buffer = t.buf; s.loop = true;
     t.gain = audioCtx.createGain(); t.gain.gain.value = parseInt(t.vol.value) / 100;
     s.connect(t.gain); t.gain.connect(ensureTrackEq(t).input);
-    const now = nowFrame();
+    const now = at != null ? at : nowFrame();
     if (anchor > now) s.start(anchor / sr, 0);
-    else s.start(audioCtx.currentTime, mod(now - anchor, t.L) / sr);
+    else s.start(at != null ? at / sr : audioCtx.currentTime, mod(now - anchor, t.L) / sr);
     t.src = s;
   }
   function stopSrc(t) {
@@ -1553,6 +1692,124 @@ const Looper = (() => {
     }
     update();
   }
+  // ---- v117: Szenen (Song-Modus) – welche Spuren/Ebenen hörbar sind + Lautstärken; Wechsel am Loop-Anfang ----
+  const MAXSC = 8;
+  let scenes = [], sceneCur = -1, scenePend = null;               // scenePend = { k, at (Bild), timers }
+  const sceneQEl = $('sceneQ'), sceneListEl = $('sceneList');
+  sceneQEl.checked = loadPref('3nps-scene-q', '1') === '1';
+  sceneQEl.addEventListener('change', () => savePref('3nps-scene-q', sceneQEl.checked ? '1' : '0'));
+  sceneListEl.dataset.empty = T('noch keine – „+ Szene“ merkt den aktuellen Zustand');
+  function sceneSnap() {
+    return tracks.map(t => ({ on: !!(t.L && (t.src || t.state === 'playing' || t.state === 'overdub' || t.state === 'recording')), vol: parseInt(t.vol.value), offs: t.layers.length >= 2 ? t.layers.map(ly => !!ly.off) : null }));
+  }
+  function setVolUi(t, v) { t.vol.value = v; t.volV.textContent = t.vol.value; savePref('3nps-vol' + t.i, t.vol.value); }
+  // Ende des längsten laufenden Loops (= nächster gemeinsamer Loop-Anfang) in Bildern
+  function nextLoopStart(lead) {
+    const run = tracks.filter(t => t.src && t.L); if (!run.length) return null;
+    const tm = run.reduce((a, t) => t.L > a.L ? t : a), Lp = pracRate === 1 ? tm.L : pracLen(tm, pracRate);
+    const now = nowFrame() + lead;
+    if (now < anchor) return anchor;
+    return anchor + Math.ceil((now - anchor) / Lp) * Lp;
+  }
+  function sceneCancel() { if (scenePend) { scenePend.timers.forEach(clearTimeout); scenePend = null; } }
+  function sceneDo(k, at) {                                       // at = Bild des Wechsels (null = sofort)
+    const sc = scenes[k]; if (!sc) return;
+    const when = at == null ? null : at, wt = when == null ? 0 : when / sr;
+    tracks.forEach((t, i) => {
+      const st = sc.t[i]; if (!st || !t.L || (rec && rec.t === t)) return;
+      const lyCh = st.offs && st.offs.length === t.layers.length && st.offs.some((o, j) => o !== !!t.layers[j].off);
+      if (lyCh) { st.offs.forEach((o, j) => { t.layers[j].off = o; }); rebuildMix(t); t.lySig = null; }
+      setVolUi(t, st.vol);
+      const g = st.vol / 100;
+      if (!st.on) {
+        if (t.src) {
+          if (when == null) { stopSrc(t); t.state = 'stopped'; }
+          else { const s0 = t.src; try { s0.stop(wt); } catch (e) {} scenePend.timers.push(setTimeout(() => { if (t.src === s0) { stopSrc(t); t.state = 'stopped'; update(); } }, Math.max(0, (wt - audioCtx.currentTime) * 1000) + 30)); }
+        } else t.state = 'stopped';
+      } else if (!t.src || lyCh) {
+        if (!anyRunning() && when == null) { t.state = 'stopped'; return; }  // nichts läuft: nur Lautstärke/Ebenen
+        startTrack(t, when); t.state = 'playing';
+        if (t.gain) t.gain.gain.value = g;
+      } else if (t.gain) {
+        if (when == null) t.gain.gain.setTargetAtTime(g, audioCtx.currentTime, 0.02);
+        else t.gain.gain.setValueAtTime(g, wt);
+      }
+    });
+    if (ed.t) { ed.peaks = null; }
+    markDirty();
+  }
+  function sceneGo(k, now) {
+    if (!scenes[k]) return false;
+    ensureAudio(); sr = audioCtx.sampleRate;
+    sceneCancel();
+    const q = !now && sceneQEl.checked && anyRunning();
+    if (!q) { sceneDo(k, null); sceneCur = k; paintScenes(); update(); setStatus(T('Szene „') + scenes[k].name + T('“ aktiv.')); return true; }
+    let at = nextLoopStart(Math.round(sr * 0.12));
+    scenePend = { k, at, timers: [] };
+    const prepIn = Math.max(0, (at / sr - audioCtx.currentTime) * 1000 - 220);
+    scenePend.timers.push(setTimeout(() => {
+      if (!scenePend || scenePend.k !== k) return;
+      if (at / sr - audioCtx.currentTime < 0.03) at = nextLoopStart(Math.round(sr * 0.12)) || at;   // Zeitgeber zu spät → nächster Loop-Anfang
+      scenePend.at = at;
+      sceneDo(k, at);
+      scenePend.timers.push(setTimeout(() => { if (scenePend && scenePend.k === k) { scenePend = null; sceneCur = k; paintScenes(); update(); } }, Math.max(0, (at / sr - audioCtx.currentTime) * 1000)));
+      update();
+    }, prepIn));
+    paintScenes();
+    setStatus(T('Szene „') + scenes[k].name + T('“ kommt am nächsten Loop-Anfang.'));
+    return true;
+  }
+  function sceneStep(d) {
+    if (!scenes.length) { setStatus(T('Noch keine Szenen – „+ Szene“ merkt den aktuellen Zustand.')); return false; }
+    const base = scenePend ? scenePend.k : sceneCur;
+    return sceneGo(base < 0 ? (d > 0 ? 0 : scenes.length - 1) : mod(base + d, scenes.length));
+  }
+  function sceneAdd(name) {
+    if (!anyContent()) { setStatus(T('Erst etwas aufnehmen oder laden – dann Szenen anlegen.')); return -1; }
+    if (scenes.length >= MAXSC) { setStatus(T('Höchstens 8 Szenen.')); return -1; }
+    let n = scenes.length + 1; const names = new Set(scenes.map(s => s.name)); while (names.has(T('Szene ') + n)) n++;
+    scenes.push({ name: name || (T('Szene ') + n), t: sceneSnap() }); sceneCur = scenes.length - 1;
+    markDirty(); paintScenes(); setStatus(T('Szene „') + scenes[sceneCur].name + T('“ gemerkt.'));
+    return sceneCur;
+  }
+  function sceneUpd() { if (!scenes[sceneCur]) return false; scenes[sceneCur].t = sceneSnap(); markDirty(); setStatus(T('Szene „') + scenes[sceneCur].name + T('“ aktualisiert.')); return true; }
+  function sceneDel() {
+    if (!scenes[sceneCur]) return false; sceneCancel();
+    const nm = scenes[sceneCur].name; scenes.splice(sceneCur, 1); sceneCur = -1;
+    markDirty(); paintScenes(); setStatus(T('Szene „') + nm + T('“ gelöscht.')); return true;
+  }
+  function paintScenes() {
+    const pk = scenePend ? scenePend.k : -1;
+    const sig = scenes.map(s => s.name).join('\u0001') + '|' + sceneCur + '|' + pk;
+    if (paintScenes.sig !== sig) {
+      paintScenes.sig = sig;
+      sceneListEl.innerHTML = scenes.map((s, k) => '<button type="button" data-sc="' + k + '" class="' + (k === sceneCur ? 'on' : '') + (k === pk ? ' pend' : '') + '" aria-pressed="' + (k === sceneCur) + '" title="' + T('Antippen = wechseln · gedrückt halten = umbenennen') + '">' + s.name.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]) + '</button>').join('');
+    }
+    $('sceneAdd').disabled = scenes.length >= MAXSC;
+    $('sceneUpd').disabled = $('sceneDel').disabled = !scenes[sceneCur];
+  }
+  {
+    let hold = null, held = false;
+    sceneListEl.addEventListener('pointerdown', e => {
+      const b = e.target.closest('button[data-sc]'); if (!b) return; held = false; clearTimeout(hold); b.classList.add('hold');
+      hold = setTimeout(() => { hold = null; held = true; b.classList.remove('hold'); const k = +b.dataset.sc, s = scenes[k]; if (!s) return;
+        const v = window.prompt(T('Name der Szene (z. B. Strophe, Refrain, Bridge):'), s.name);
+        if (v && v.trim()) { s.name = v.trim().slice(0, 24); markDirty(); paintScenes(); } }, 650);
+    });
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach(n => sceneListEl.addEventListener(n, () => { clearTimeout(hold); hold = null; sceneListEl.querySelectorAll('.hold').forEach(b => b.classList.remove('hold')); }));
+    sceneListEl.addEventListener('contextmenu', e => e.preventDefault());
+    sceneListEl.addEventListener('click', e => { const b = e.target.closest('button[data-sc]'); if (!b) return; if (held) { held = false; return; } sceneGo(+b.dataset.sc); });
+  }
+  $('sceneAdd').addEventListener('click', () => sceneAdd());
+  $('sceneUpd').addEventListener('click', () => sceneUpd());
+  $('sceneDel').addEventListener('click', () => { if (scenes[sceneCur] && window.confirm(T('Szene löschen') + ': „' + scenes[sceneCur].name + '“?')) sceneDel(); });
+  function scenesOut() { return scenes.length ? { list: scenes.map(s => ({ name: s.name, t: s.t.map(x => x && { on: !!x.on, vol: x.vol, offs: x.offs ? x.offs.slice() : null }) })), cur: sceneCur } : null; }
+  function scenesIn(o) {
+    sceneCancel();
+    scenes = o && Array.isArray(o.list) ? o.list.slice(0, MAXSC).filter(s => s && Array.isArray(s.t)).map(s => ({ name: String(s.name || T('Szene')).slice(0, 24), t: [0, 1, 2].map(i => { const x = s.t[i] || {}; return { on: !!x.on, vol: x.vol != null ? Math.max(0, Math.min(100, +x.vol)) : 90, offs: Array.isArray(x.offs) ? x.offs.map(Boolean) : null }; }) })) : [];
+    sceneCur = o && scenes[o.cur] ? o.cur : -1; paintScenes();
+  }
+  paintScenes();
   const masterEl = $('loopMaster'), limBtn = $('loopLimiter');
   masterEl.value = loadPref('3nps-master', '100');
   const showMaster = () => { $('loopMasterV').textContent = masterEl.value + ' %'; const on = loadPref('3nps-limiter', '1') === '1'; limBtn.classList.toggle('active', on); limBtn.textContent = on ? 'Limiter an' : 'Limiter aus'; };
@@ -3360,8 +3617,12 @@ const Looper = (() => {
         const m = t.mix, mono = sameData(m);
         const o = { L: t.L, enc: 'i24', dl: enc24(m.l), vol: parseInt(t.vol.value), eq: EQ7.legacy(t.eqVals), eq2: EQ7.norm(t.eqVals), fx: Object.assign({}, t.fx) };
         if (!mono) o.dr = enc24(m.r);
+        // v117: Szenen schalten Ebenen dieser Spur → Ebenen einzeln mitsichern (dl bleibt der hörbare Mix, ältere Fassungen lesen nur dl)
+        if (t.layers.length >= 2 && scenes.some(sc => sc.t[t.i] && sc.t[t.i].offs && sc.t[t.i].offs.length === t.layers.length))
+          o.lys = t.layers.map(ly => { const q = { dl: enc24(ly.l), off: !!ly.off }; if (!sameData(ly)) q.dr = enc24(ly.r); return q; });
         return o;
-      })
+      }),
+      scenes: scenesOut()
     };
   }
   // Länge des gemeinsamen Durchlaufs in Sekunden – nur rechnen, nichts mischen (spart beim Speichern hunderte MB)
@@ -3406,13 +3667,17 @@ const Looper = (() => {
       if (!st) return;
       const t = tracks[i], f = sessTrackData(st);
       const L = Math.max(1, Math.round(st.L / sess.baseL)) * baseL;
-      t.layers = [Math.abs(q - 1) < 1e-6 ? f : resample(f, L)]; t.L = L; rebuildMix(t);
+      if (Array.isArray(st.lys) && st.lys.length >= 2) {           // v117: einzeln gesicherte Ebenen (für Szenen)
+        t.layers = st.lys.map(y => { const d = sessTrackData({ enc: 'i24', L: st.L, dl: y.dl, dr: y.dr }), x = Math.abs(q - 1) < 1e-6 ? d : resample(d, L); x.off = !!y.off; return x; });
+      } else t.layers = [Math.abs(q - 1) < 1e-6 ? f : resample(f, L)];
+      t.L = L; rebuildMix(t);
       if (st.vol != null) { t.vol.value = st.vol; t.volV.textContent = st.vol; }
       setTrackEq(t, st.eq2 || st.eq || EQ7.flat(), false);
       setTrackFx(t, st.fx || { rev: 0, dly: 0 }, false);
       t.srcName = srcName || '';
     });
     tracks.forEach(t => { if (!t.L) t.srcName = ''; });
+    scenesIn(sess.scenes);                                         // v117
     anchor = startAnchor('play');
     tracks.forEach(t => { if (t.L) { startTrack(t); t.state = 'playing'; detectTrackKey(t); } });
     update();
@@ -3439,6 +3704,7 @@ const Looper = (() => {
     rec = null;
     tracks.forEach(t => { stopSrc(t); t.layers = []; t.L = 0; t.mix = null; t.peaks = null; t.state = 'empty'; t.hist = []; t.key = null; t.orig = null; clearTimeout(t.chTimer); t.chords = null; showChords(t); });
     if (ed.t) closeEditor();
+    scenesIn(null);                                                // v117: neue Datei → Szenen der alten Sitzung passen nicht mehr
     const t = tracks[0];
     if (!data.l) data = SP(data);
     t.L = data.length; t.layers = [data]; rebuildMix(t);
@@ -3605,6 +3871,11 @@ const Looper = (() => {
     stopTrack: i => { const t = tracks[i]; if (t) t.stopB.click(); },
     undoLast: () => undoTrack(tracks[rec ? rec.t.i : (lastRecI >= 0 ? lastRecI : 0)]),
     _addLayer: (i, arr) => { const t = tracks[i]; if (!t || !t.L) return false; snapshot(t); const x = new Float32Array(t.L); x.set(arr.length > t.L ? arr.slice(0, t.L) : arr); t.layers = capLayers(t.layers.concat([SP(x)])); rebuildMix(t); if (t.src) startTrack(t); update(); return true; },
+    // v117: Amp und Szenen
+    ampOn: () => amp.on, setAmp: v => setAmp(v), ampToggle: () => setAmp(!amp.on), ampSettings: () => Object.assign({}, amp.set), ampRender: (x, rate, s) => ampRender(x, rate, s),
+    _amp: () => ({ on: amp.on, built: !!amp.nodes, gate: !!(amp.nodes && amp.nodes.gate), gateOk: amp.gateOk, os: amp.nodes ? amp.nodes.shp.oversample : null, n: amp.nodes ? amp.nodes.list.length : 0 }),
+    scenes: () => scenesOut(), sceneGo: (k, now) => sceneGo(k, now), sceneNext: () => sceneStep(1), scenePrev: () => sceneStep(-1), sceneAdd: n => sceneAdd(n), sceneUpd: () => sceneUpd(), sceneDel: () => sceneDel(),
+    _scene: () => ({ cur: sceneCur, pend: scenePend ? { k: scenePend.k, at: scenePend.at } : null, n: scenes.length, next: nextLoopStart(0), now: audioCtx ? nowFrame() : 0, anchor }),
     all: allStartStop
   };
 })();
@@ -3621,7 +3892,8 @@ const Pedal = (() => {
     ['stop:0', 'Spur 1 Stopp'], ['stop:1', 'Spur 2 Stopp'], ['stop:2', 'Spur 3 Stopp'],
     ['undo:0', 'Spur 1 Rückgängig'], ['undo:1', 'Spur 2 Rückgängig'], ['undo:2', 'Spur 3 Rückgängig'],
     ['undo', 'Rückgängig (zuletzt benutzte Spur)'], ['all', 'Alle starten / stoppen'], ['pause', 'Pause / Weiter'],
-    ['prac', 'Übe-Tempo an / aus'], ['pracNext', 'Übe-Tempo nächste Stufe'], ['tuner', 'Stimmgerät an / aus']];
+    ['prac', 'Übe-Tempo an / aus'], ['pracNext', 'Übe-Tempo nächste Stufe'], ['tuner', 'Stimmgerät an / aus'],
+    ['sceneNext', 'Nächste Szene'], ['scenePrev', 'Vorherige Szene'], ['amp', 'Amp an / aus']];
   const ACT_NAME = Object.fromEntries(ACTS);
   const DEF_ACTS = { foot0: { tap: 'foot:0', hold: 'undo:0', dbl: 'none' }, foot1: { tap: 'foot:1', hold: 'undo:1', dbl: 'none' },
     foot2: { tap: 'foot:2', hold: 'undo:2', dbl: 'none' }, all: { tap: 'all', hold: 'none', dbl: 'none' } };
@@ -3631,6 +3903,7 @@ const Pedal = (() => {
     if (k === 'foot') Looper.foot(i); else if (k === 'stop') Looper.stopTrack(i); else if (k === 'undo') { if (n != null) Looper.undo(i); else Looper.undoLast(); }
     else if (k === 'all') Looper.all(); else if (k === 'pause') Looper.pauseToggle(); else if (k === 'prac') Looper.pracToggle();
     else if (k === 'pracNext') Looper.pracNext(); else if (k === 'tuner') Looper.tunerToggle();
+    else if (k === 'sceneNext') Looper.sceneNext(); else if (k === 'scenePrev') Looper.scenePrev(); else if (k === 'amp') Looper.ampToggle();
   }
   const PRESETS = {
     a: { foot0: 'ArrowUp', foot1: 'ArrowDown', foot2: 'ArrowLeft', all: 'ArrowRight' },

@@ -31,7 +31,20 @@
             <div class="meter" id="loopMeterBox" aria-hidden="true"><div id="loopMeter"></div><div id="loopMeterR"></div><div class="thresh" id="loopThreshMark"></div></div>
             <button class="toggle-btn" id="loopMonitor">Eingang öffnen</button>
             <button class="toggle-btn" id="loopTunerBtn" aria-pressed="false" title="Stimmgerät (nutzt den Eingang)">Stimmen</button>
+            <button class="toggle-btn amp-btn" id="loopAmpBtn" aria-pressed="false" title="Amp-Simulation für die Gitarre (Mithören und Aufnahme)">Amp</button>
+            <button class="toggle-btn amp-set" id="loopAmpSet" aria-expanded="false" title="Amp-Regler ein-/ausblenden">▾</button>
             <button class="toggle-btn all-btn2" id="loopAll2" title="Alle Spuren starten oder stoppen (wie unten)">Alle starten</button>
+          </div>
+          <div class="amp-panel" id="ampPanel" hidden>
+            <label class="amp-f"><span>Voreinstellung</span><select id="ampPreset"><option value="">– eigene –</option><option value="clean">Clean</option><option value="blues">Blues-Crunch</option><option value="rock">Rock</option><option value="lead">Lead</option><option value="metal">Metal</option></select></label>
+            <label class="amp-f"><span>Typ</span><select id="ampType"><option value="clean">Clean</option><option value="crunch">Crunch</option><option value="lead">Lead</option></select></label>
+            <label class="amp-f"><span>Gate</span><input type="range" id="ampGate" min="-80" max="-20" step="1" value="-80" aria-label="Noise-Gate Schwelle"><b id="ampGateV">aus</b></label>
+            <label class="amp-f"><span>Drive</span><input type="range" id="ampDrive" min="0" max="10" step="0.1" value="4" aria-label="Drive-Regler"><b id="ampDriveV">4,0</b></label>
+            <label class="amp-f"><span>Bass</span><input type="range" id="ampBass" min="0" max="10" step="0.1" value="5" aria-label="Bass"><b id="ampBassV">5,0</b></label>
+            <label class="amp-f"><span>Mitte</span><input type="range" id="ampMid" min="0" max="10" step="0.1" value="5" aria-label="Mitte"><b id="ampMidV">5,0</b></label>
+            <label class="amp-f"><span>Höhen</span><input type="range" id="ampTreble" min="0" max="10" step="0.1" value="5" aria-label="Höhen"><b id="ampTrebleV">5,0</b></label>
+            <label class="amp-f"><span>Pegel</span><input type="range" id="ampLevel" min="-24" max="12" step="1" value="0" aria-label="Ausgangspegel"><b id="ampLevelV">0 dB</b></label>
+            <label class="check amp-mon"><input type="checkbox" id="ampMon" checked> Mithören (Direct-Monitor am Interface aus)</label>
           </div>
         </div>
       </div>
@@ -370,6 +383,14 @@
         <button class="toggle-btn export-btn" id="loopExport">Für Logic exportieren</button>
         <label class="lane-fader master-fader"><span>Gesamt</span><input type="range" id="loopMaster" min="0" max="150" step="5" value="100" aria-label="Gesamtlautstärke"><b id="loopMasterV">100 %</b></label>
         <button class="toggle-btn" id="loopLimiter" title="Begrenzer gegen Übersteuern im Gesamtmix">Limiter an</button>
+      </div>
+      <div class="scene-row" id="sceneRow">
+        <span class="scene-lbl">Szenen</span>
+        <div class="scene-list" id="sceneList"></div>
+        <button class="toggle-btn" id="sceneAdd" title="Aktuellen Zustand (welche Spuren/Ebenen hörbar, Lautstärken) als neue Szene merken">+ Szene</button>
+        <button class="toggle-btn" id="sceneUpd" title="Aktive Szene mit dem aktuellen Zustand überschreiben" disabled>Szene merken</button>
+        <button class="toggle-btn" id="sceneDel" title="Aktive Szene löschen" disabled>Szene löschen</button>
+        <label class="check"><input type="checkbox" id="sceneQ" checked> Wechsel am Loop-Anfang</label>
       </div>
       <div class="restore-bar" id="restoreBar" hidden>
         <span id="restoreText">Letzte Sitzung gefunden.</span>
