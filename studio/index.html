@@ -286,27 +286,57 @@ const EQ7 = (() => {
   const legacy = v => { const s = norm(v); return OLD.map(i => s.b[i].on ? Math.round(s.b[i].g * 2) / 2 : 0); };
 
   // ---- Filterkette ----
+  // v119: Filter, die gerade nichts tun (Glocke/Kuhschwanz mit 0 dB, Low/High Cut aus), werden aus der Kette genommen –
+  // ein flacher EQ rechnet dann gar nicht mehr (vorher 11 Biquads je Spur/Drums dauerhaft). Klang identisch: ein 0-dB-Filter
+  // gibt das Signal unverändert weiter. Wird ein Filter gebraucht, kommt ein frischer Knoten (Ruhezustand → kein Knacken)
+  // in die Kette; beim weichen Abschalten bleibt er bis zum Ende der Blende (≈ 0,15 s) drin.
   function chain(ctx) {
     const mk = () => { const f = ctx.createBiquadFilter(); f.type = 'peaking'; f.gain.value = 0; return f; };
-    const hpA = mk(), hpB = mk(), mids = [1, 2, 3, 4, 5, 6, 7].map(() => mk()), lpA = mk(), lpB = mk(), out = ctx.createGain();
-    const all = [hpA, hpB, ...mids, lpA, lpB];
-    for (let i = 0; i < all.length - 1; i++) all[i].connect(all[i + 1]);
-    lpB.connect(out);
+    const inp = ctx.createGain(), out = ctx.createGain(), N = 11;
+    const all = []; for (let i = 0; i < N; i++) all.push(mk());
+    const live = new Array(N).fill(false); let idle = new Array(N).fill(true), wired = '', tmr = 0;
+    function wire() {
+      const key = live.join(''); if (key === wired) return; wired = key;
+      try { inp.disconnect(); } catch (e) {}
+      all.forEach(f => { try { f.disconnect(); } catch (e) {} });
+      let prev = inp; all.forEach((f, i) => { if (live[i]) { prev.connect(f); prev = f; } }); prev.connect(out);
+    }
+    wire();
     let an = null;
     const k = {
-      input: hpA, output: out, filters: all,
+      input: inp, output: out, filters: all,
+      active: () => live.filter(Boolean).length,
       set(vals, smooth) {
         const s = norm(vals), t = ctx.currentTime, sm = smooth && ctx.state === 'running';
         const P = (p, v) => { if (sm) p.setTargetAtTime(v, t, 0.015); else p.value = v; };
-        const cut = (A, B, type, b, slope) => {
-          if (!b.on) { [A, B].forEach(f => { if (f.type !== 'peaking') f.type = 'peaking'; P(f.gain, 0); }); return; }
+        // Wunsch je Filter: [Typ, Frequenz, Q, Verstärkung]; Q/Frequenz null = unverändert lassen
+        const cfg = new Array(N), peak0 = ['peaking', null, null, 0];
+        const cut = (iA, iB, type, b, slope) => {
+          if (!b.on) { cfg[iA] = peak0; cfg[iB] = peak0; return; }
           const f0 = Math.min(b.f, ctx.sampleRate * 0.45);
-          A.type = type; P(A.frequency, f0); P(A.Q, slope === 24 ? 0.54 * b.q / 0.71 : b.q);
-          if (slope === 24) { B.type = type; P(B.frequency, f0); P(B.Q, 1.31 * b.q / 0.71); } else { if (B.type !== 'peaking') B.type = 'peaking'; P(B.gain, 0); }
+          cfg[iA] = [type, f0, slope === 24 ? 0.54 * b.q / 0.71 : b.q, null];
+          cfg[iB] = slope === 24 ? [type, f0, 1.31 * b.q / 0.71, null] : peak0;
         };
-        cut(hpA, hpB, 'highpass', s.b[0], s.sl); cut(lpA, lpB, 'lowpass', s.b[8], s.sh);
-        mids.forEach((f, j) => { const b = s.b[j + 1], bd = BANDS[j + 1]; f.type = bd.type; P(f.frequency, Math.min(b.f, ctx.sampleRate * 0.45)); if (bd.type === 'peaking') P(f.Q, b.q); P(f.gain, b.on ? b.g : 0); });
+        cut(0, 1, 'highpass', s.b[0], s.sl); cut(9, 10, 'lowpass', s.b[8], s.sh);
+        for (let j = 0; j < 7; j++) { const b = s.b[j + 1], bd = BANDS[j + 1]; cfg[j + 2] = [bd.type, Math.min(b.f, ctx.sampleRate * 0.45), bd.type === 'peaking' ? b.q : null, b.on ? b.g : 0]; }
+        const noop = c => (c[0] === 'peaking' || c[0] === 'lowshelf' || c[0] === 'highshelf') && Math.abs(c[3] || 0) < 0.01;
+        idle = cfg.map(noop);
+        cfg.forEach((c, i) => {
+          if (!live[i] && idle[i]) return;                       // bleibt draußen
+          let f = all[i];
+          if (!live[i]) {                                        // neu in die Kette: frischer Knoten, startet bei 0 dB
+            f = all[i] = mk(); f.type = c[0]; if (c[1] != null) f.frequency.value = c[1]; if (c[2] != null) f.Q.value = c[2];
+            if (c[3] != null) { if (sm) { f.gain.value = 0; f.gain.setTargetAtTime(c[3], t, 0.015); } else f.gain.value = c[3]; }
+            live[i] = true; return;
+          }
+          if (f.type !== c[0]) f.type = c[0];
+          if (c[1] != null) P(f.frequency, c[1]); if (c[2] != null) P(f.Q, c[2]); if (c[3] != null) P(f.gain, c[3]);
+          if (idle[i] && !sm) live[i] = false;
+        });
         P(out.gain, Math.pow(10, s.out / 20));
+        wire();
+        clearTimeout(tmr);
+        if (sm && idle.some((x, i) => x && live[i])) tmr = setTimeout(() => { idle.forEach((x, i) => { if (x) live[i] = false; }); wire(); }, 150);
       },
       analyser() { if (!an) { an = ctx.createAnalyser(); an.fftSize = 4096; an.smoothingTimeConstant = 0.8; out.connect(an); } return an; }
     };

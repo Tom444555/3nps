@@ -841,6 +841,15 @@ html.sig-open .control-bar { visibility: hidden; }   /* Kopfleiste liegt sonst �
 .sig-wrap .sg-bar.clip { fill: #ff5a5a; }
 .sig-wrap .sg-ln { stroke: var(--muted, #999); stroke-width: 1.6; fill: none; }
 .sig-wrap .sg-ar { fill: var(--muted, #999); }
+/* v119: Leistung */
+.sig-perf { display: flex; align-items: center; gap: 10px; margin: 2px 0 10px; font: 600 14px var(--f-body, sans-serif); }
+.sig-perf .sig-pbar { flex: 1; height: 10px; border-radius: 5px; background: rgba(0,0,0,.4); overflow: hidden; min-width: 80px; }
+.sig-perf .sig-pbar i { display: block; height: 100%; width: 0; background: #3ddc76; transition: width .25s; }
+.sig-perf .sig-pbar i.warn { background: #ffb347; }
+.sig-perf .sig-pbar i.hot { background: #ff5a5a; }
+.sig-perf b { font: 700 15px var(--f-mono, monospace); min-width: 4.2em; text-align: right; }
+.sig-perf em { font-style: normal; font-weight: 400; color: var(--muted, #999); font-size: 12px; min-width: 7.5em; }
+.sig-wrap .sg-ld { fill: #8fc9ff; font: 600 11px var(--f-mono, monospace); }
   /* ---- Quintenzirkel ---- */
   .qz-card { flex-direction: row; flex-wrap: wrap; align-items: flex-start; gap: 18px; }
   .qz-wrap { flex: 1 1 380px; max-width: 560px; margin: 0 auto; }
@@ -3662,7 +3671,12 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
   "Master/Limiter": "Master/limiter",
   "Master + Amp": "master + amp",
   "Lautsprecher/Kopfhörer": "speakers/headphones",
-  "Zeigt nur, was gerade aktiv ist. Pegel = Spitzenpegel in % von 0 dBFS (100 % = Vollaussteuerung). Gemessen wird nur, solange diese Ansicht offen ist.": "Shows only what is active right now. Level = peak level in % of 0 dBFS (100 % = full scale). Measuring only happens while this view is open." });
+  "Zeigt nur, was gerade aktiv ist. Pegel = Spitzenpegel in % von 0 dBFS (100 % = Vollaussteuerung). Gemessen wird nur, solange diese Ansicht offen ist.": "Shows only what is active right now. Level = peak level in % of 0 dBFS (100 % = full scale). Measuring only happens while this view is open.",
+  "Leistung": "Load",
+  "gemessen": "measured",
+  "geschätzt": "estimated",
+  "geschätzt (Modell)": "estimated (model)",
+  "Leistung = Auslastung der Audio-Berechnung (gelb ab 70 %, rot ab 90 %). Die Prozentzahl oben rechts in jeder Station ist ihr Anteil daran – Anteile geschätzt aus gemessenen Grundkosten je Baustein.": "Load = how busy the audio processing is (yellow from 70 %, red from 90 %). The percentage at the top right of each station is its share of it – shares estimated from measured base costs per building block." });
 
 // Sprache (v59): Deutsch ist der Quelltext. Nur im EN-Modus läuft hier etwas:
 // Ein Beobachter übersetzt neue/geänderte Texte im DOM (Text, title, placeholder, aria-label)
@@ -3768,7 +3782,7 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v118</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v119</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -4509,8 +4523,10 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
     <div class="modal sig-dlg" id="sigDlg" hidden role="dialog" aria-modal="true" aria-labelledby="sigTitle">
       <div class="modal-card card sig-card">
         <div class="tuner-head"><h2 id="sigTitle">Signalweg</h2><button class="toggle-btn" id="sigClose">Fertig</button></div>
+        <div class="sig-perf" id="sigPerf"><span class="sig-pl">Leistung</span><span class="sig-pbar"><i id="sigPerfBar"></i></span><b id="sigPerfVal" translate="no">–</b><em id="sigPerfSrc"></em></div>
         <div class="sig-wrap" id="sigWrap"></div>
         <p class="pattern-desc sig-note">Zeigt nur, was gerade aktiv ist. Pegel = Spitzenpegel in % von 0 dBFS (100 % = Vollaussteuerung). Gemessen wird nur, solange diese Ansicht offen ist.</p>
+        <p class="pattern-desc sig-note">Leistung = Auslastung der Audio-Berechnung (gelb ab 70 %, rot ab 90 %). Die Prozentzahl oben rechts in jeder Station ist ihr Anteil daran – Anteile geschätzt aus gemessenen Grundkosten je Baustein.</p>
       </div>
     </div>
     <div class="modal" id="impDlg" hidden role="dialog" aria-modal="true" aria-labelledby="impTitle">
@@ -5918,17 +5934,27 @@ let activeDroneStyle = null;
 function startDrone() {
   if (droneOn && droneNodes) return;
   activeDroneStyle = document.getElementById('droneStyle').value;
-  if (activeDroneStyle === 'v2') startDroneV2();
-  else if ((typeof NordDrones !== 'undefined' && NordDrones.has(activeDroneStyle))) NordDrones.start(activeDroneStyle);
+  startDroneLive(activeDroneStyle);
+  if (typeof DroneLoop !== 'undefined') DroneLoop.begin(activeDroneStyle);   // v119: im Hintergrund als Schleife vorrechnen, dann umblenden
+}
+// Die eigentliche Klangerzeugung (live, wie bis v118) – DroneLoop nutzt sie auch zum Vorrechnen
+function startDroneLive(st) {
+  if (st === 'v2') startDroneV2();
+  else if ((typeof NordDrones !== 'undefined' && NordDrones.has(st))) NordDrones.start(st);
   else startDroneV1();
 }
-function stopDrone() {
-  if (activeDroneStyle === 'v2') stopDroneV2();
-  else if ((typeof NordDrones !== 'undefined' && NordDrones.has(activeDroneStyle))) NordDrones.stop();
+function stopDroneLive(st) {
+  if (st === 'v2') stopDroneV2();
+  else if ((typeof NordDrones !== 'undefined' && NordDrones.has(st))) NordDrones.stop();
   else stopDroneV1();
+}
+function stopDrone() {
+  if (typeof DroneLoop !== 'undefined' && DroneLoop.stop()) { activeDroneStyle = null; return; }   // spielt gerade die Schleife
+  stopDroneLive(activeDroneStyle);
   activeDroneStyle = null;
 }
 function updateDroneFreq() {
+  if (typeof DroneLoop !== 'undefined' && DroneLoop.changed()) return;     // Schleife: kurz live weiter, neu vorrechnen
   if (activeDroneStyle === 'v2') updateDroneFreqV2();
   else if ((typeof NordDrones !== 'undefined' && NordDrones.has(activeDroneStyle))) NordDrones.retune();
   else updateDroneFreqV1();
@@ -6136,6 +6162,7 @@ function stopDroneV1() {
     [lfo, lfoSlow, panLfo, pulseLfo, noiseSweepLfo, macroLfo].forEach(o => { try { o.stop(); } catch (e) {} });
     try { noise.stop(); } catch (e) {}
     try { ppd.output.disconnect(); } catch (e) {}
+    try { master.disconnect(); } catch (e) {}   // v119: sonst rechnet der gemeinsame Hall am stillen Rest weiter
   }, 900);
   droneNodes = null;
   droneOn = false;
@@ -6554,6 +6581,7 @@ function stopDroneV2() {
     voices.forEach(v => { try { v.osc.stop(); } catch (e) {} });
     [lfoSlow, tremLfo, panLfo].forEach(o => { try { o.stop(); } catch (e) {} });
     try { ppd.output.disconnect(); } catch (e) {}
+    try { master.disconnect(); } catch (e) {}   // v119
   }, 900);
   droneNodes = null;
   droneOn = false;
@@ -7942,27 +7970,57 @@ const EQ7 = (() => {
   const legacy = v => { const s = norm(v); return OLD.map(i => s.b[i].on ? Math.round(s.b[i].g * 2) / 2 : 0); };
 
   // ---- Filterkette ----
+  // v119: Filter, die gerade nichts tun (Glocke/Kuhschwanz mit 0 dB, Low/High Cut aus), werden aus der Kette genommen –
+  // ein flacher EQ rechnet dann gar nicht mehr (vorher 11 Biquads je Spur/Drums dauerhaft). Klang identisch: ein 0-dB-Filter
+  // gibt das Signal unverändert weiter. Wird ein Filter gebraucht, kommt ein frischer Knoten (Ruhezustand → kein Knacken)
+  // in die Kette; beim weichen Abschalten bleibt er bis zum Ende der Blende (≈ 0,15 s) drin.
   function chain(ctx) {
     const mk = () => { const f = ctx.createBiquadFilter(); f.type = 'peaking'; f.gain.value = 0; return f; };
-    const hpA = mk(), hpB = mk(), mids = [1, 2, 3, 4, 5, 6, 7].map(() => mk()), lpA = mk(), lpB = mk(), out = ctx.createGain();
-    const all = [hpA, hpB, ...mids, lpA, lpB];
-    for (let i = 0; i < all.length - 1; i++) all[i].connect(all[i + 1]);
-    lpB.connect(out);
+    const inp = ctx.createGain(), out = ctx.createGain(), N = 11;
+    const all = []; for (let i = 0; i < N; i++) all.push(mk());
+    const live = new Array(N).fill(false); let idle = new Array(N).fill(true), wired = '', tmr = 0;
+    function wire() {
+      const key = live.join(''); if (key === wired) return; wired = key;
+      try { inp.disconnect(); } catch (e) {}
+      all.forEach(f => { try { f.disconnect(); } catch (e) {} });
+      let prev = inp; all.forEach((f, i) => { if (live[i]) { prev.connect(f); prev = f; } }); prev.connect(out);
+    }
+    wire();
     let an = null;
     const k = {
-      input: hpA, output: out, filters: all,
+      input: inp, output: out, filters: all,
+      active: () => live.filter(Boolean).length,
       set(vals, smooth) {
         const s = norm(vals), t = ctx.currentTime, sm = smooth && ctx.state === 'running';
         const P = (p, v) => { if (sm) p.setTargetAtTime(v, t, 0.015); else p.value = v; };
-        const cut = (A, B, type, b, slope) => {
-          if (!b.on) { [A, B].forEach(f => { if (f.type !== 'peaking') f.type = 'peaking'; P(f.gain, 0); }); return; }
+        // Wunsch je Filter: [Typ, Frequenz, Q, Verstärkung]; Q/Frequenz null = unverändert lassen
+        const cfg = new Array(N), peak0 = ['peaking', null, null, 0];
+        const cut = (iA, iB, type, b, slope) => {
+          if (!b.on) { cfg[iA] = peak0; cfg[iB] = peak0; return; }
           const f0 = Math.min(b.f, ctx.sampleRate * 0.45);
-          A.type = type; P(A.frequency, f0); P(A.Q, slope === 24 ? 0.54 * b.q / 0.71 : b.q);
-          if (slope === 24) { B.type = type; P(B.frequency, f0); P(B.Q, 1.31 * b.q / 0.71); } else { if (B.type !== 'peaking') B.type = 'peaking'; P(B.gain, 0); }
+          cfg[iA] = [type, f0, slope === 24 ? 0.54 * b.q / 0.71 : b.q, null];
+          cfg[iB] = slope === 24 ? [type, f0, 1.31 * b.q / 0.71, null] : peak0;
         };
-        cut(hpA, hpB, 'highpass', s.b[0], s.sl); cut(lpA, lpB, 'lowpass', s.b[8], s.sh);
-        mids.forEach((f, j) => { const b = s.b[j + 1], bd = BANDS[j + 1]; f.type = bd.type; P(f.frequency, Math.min(b.f, ctx.sampleRate * 0.45)); if (bd.type === 'peaking') P(f.Q, b.q); P(f.gain, b.on ? b.g : 0); });
+        cut(0, 1, 'highpass', s.b[0], s.sl); cut(9, 10, 'lowpass', s.b[8], s.sh);
+        for (let j = 0; j < 7; j++) { const b = s.b[j + 1], bd = BANDS[j + 1]; cfg[j + 2] = [bd.type, Math.min(b.f, ctx.sampleRate * 0.45), bd.type === 'peaking' ? b.q : null, b.on ? b.g : 0]; }
+        const noop = c => (c[0] === 'peaking' || c[0] === 'lowshelf' || c[0] === 'highshelf') && Math.abs(c[3] || 0) < 0.01;
+        idle = cfg.map(noop);
+        cfg.forEach((c, i) => {
+          if (!live[i] && idle[i]) return;                       // bleibt draußen
+          let f = all[i];
+          if (!live[i]) {                                        // neu in die Kette: frischer Knoten, startet bei 0 dB
+            f = all[i] = mk(); f.type = c[0]; if (c[1] != null) f.frequency.value = c[1]; if (c[2] != null) f.Q.value = c[2];
+            if (c[3] != null) { if (sm) { f.gain.value = 0; f.gain.setTargetAtTime(c[3], t, 0.015); } else f.gain.value = c[3]; }
+            live[i] = true; return;
+          }
+          if (f.type !== c[0]) f.type = c[0];
+          if (c[1] != null) P(f.frequency, c[1]); if (c[2] != null) P(f.Q, c[2]); if (c[3] != null) P(f.gain, c[3]);
+          if (idle[i] && !sm) live[i] = false;
+        });
         P(out.gain, Math.pow(10, s.out / 20));
+        wire();
+        clearTimeout(tmr);
+        if (sm && idle.some((x, i) => x && live[i])) tmr = setTimeout(() => { idle.forEach((x, i) => { if (x) live[i] = false; }); wire(); }, 150);
       },
       analyser() { if (!an) { an = ctx.createAnalyser(); an.fftSize = 4096; an.smoothingTimeConstant = 0.8; out.connect(an); } return an; }
     };
@@ -8531,6 +8589,8 @@ const Rhythm = (() => {
     const k = {};
     Object.entries(kitRaw).forEach(([id, layers]) => { k[id] = layers.map(l => l.map(a => { const b = audioCtx.createBuffer(1, a.length, KIT_SR); b.copyToChannel(a, 0); return b; })); });
     kit = k; kitRaw = null;
+    setTimeout(() => { ensureTails('synth'); wkStart(); }, 0);      // Hall-Puffer und Worklet schon vor dem ersten Schlag bereit
+    if (wk) wkSend('synth');
     if (wantOn) { wantOn = false; setOn(true); }
   }
   function makeKit() {
@@ -8556,6 +8616,8 @@ const Rhythm = (() => {
     }
     return b;
   }
+  let roomIRb = null;                              // eine Impulsantwort für Faltungshall und vorberechnete Hall-Puffer
+  const roomBuf = () => roomIRb || (roomIRb = roomIR(audioCtx.sampleRate));
   function ensureBus() {
     if (bus) return bus;
     ensureAudio(); makeKit();
@@ -8565,19 +8627,153 @@ const Rhythm = (() => {
     const sum = audioCtx.createGain(); sum.gain.value = 0.9;
     const eq = EQ7.chain(audioCtx); eq.set(drumEq);
     sum.connect(comp); comp.connect(master); master.connect(eq.input); eq.output.connect(ensureMasterBus());
-    const room = audioCtx.createConvolver(); room.buffer = roomIR(audioCtx.sampleRate);
+    const room = audioCtx.createConvolver(); room.buffer = roomBuf();
     const wet = audioCtx.createGain(); wet.gain.value = 0.22; room.connect(wet); wet.connect(sum);
-    const ch = {};
-    INSTR.forEach(i => {
+    // v119: je Instrument zwei Kanäle (mit Raum-Send / trocken für Schläge mit vorberechnetem Hall). Angeschlossen sind sie nur,
+    // solange dort ein Schlag klingt – ruhende Kanäle (meist 30 von 34) kosten sonst in jedem Audio-Block mit.
+    const ch = {}, chD = {}, lk = {};
+    const mkCh = (i, wet) => {
       const g = audioCtx.createGain(); g.gain.value = i.gain;
       let p = null; try { p = audioCtx.createStereoPanner(); p.pan.value = i.pan; } catch (e) {}
-      if (p) { g.connect(p); p.connect(sum); p.connect(room); } else { g.connect(sum); g.connect(room); }
-      ch[i.id] = g;
-    });
+      if (p) g.connect(p);
+      lk[(wet ? 'w' : 'd') + i.id] = { o: p || g, wet, on: false, until: 0 };
+      return g;
+    };
+    INSTR.forEach(i => { ch[i.id] = mkCh(i, true); chD[i.id] = mkCh(i, false); });
     // Fallback-Stimmen, solange das Kit noch erzeugt wird (erste Sekunde nach dem Start)
-    bus = { master, sum, ch, open: null, dryGain: sum, reverbSend: room, room, wet, eq, linked: true };
+    bus = { master, sum, ch, chD, lk, open: null, openT: null, dryGain: sum, reverbSend: room, room, wet, eq, linked: true };
     if (!roomOn) { try { wet.disconnect(); } catch (e) {} }
+    if (kit) setTimeout(() => ensureTails('synth'), 0);
+    setTimeout(wkStart, 0);
     return bus;
+  }
+  function chLink(key, until) {
+    const l = bus.lk[key]; if (!l) return;
+    if (until > l.until) l.until = until;
+    if (!l.on) { try { l.o.connect(bus.sum); if (l.wet) l.o.connect(bus.room); l.on = true; } catch (e) {} }
+  }
+  function chSweep(now) {                          // Kanal 0,3 s nach dem Ausklingen seines letzten Schlags trennen
+    if (!bus) return;
+    for (const k in bus.lk) { const l = bus.lk[k]; if (l.on && now > l.until + 0.3) { try { l.o.disconnect(); } catch (e) {} l.on = false; } }
+  }
+  // ---- v119: Raumhall je Instrument vorberechnen (statt Faltungshall, der bei laufenden Drums dauernd rechnet) ----
+  // Je Instrument wird die lauteste Anschlagstufe (Variante 1) einmal offline durch denselben Raum geschickt (gleiche
+  // Impulsantwort, Panorama und Kanal-Verstärkung); jeder Schlag spielt dann seinen Hall als fertigen Puffer mit
+  // (Pegel nach Effektivwert der gespielten Variante). Faltung ist linear → bis auf die Variante gleich.
+  // Einmalig ≈ 0,1–0,5 s Rechnen im Hintergrund je Kit und ≈ 10 MB Puffer; der Faltungshall wird abgehängt.
+  const TL = {}; let tlBusy = '';
+  const rmsOf = b => { if (b.__rms != null) return b.__rms; let e = 0, n = 0; for (let c = 0; c < b.numberOfChannels; c++) { const d = b.getChannelData(c); for (let i = 0; i < d.length; i += 2) { e += d[i] * d[i]; n++; } } return (b.__rms = Math.sqrt(e / Math.max(1, n))); };
+  async function buildTails(K) {
+    const ir = roomBuf(), sr = audioCtx.sampleRate, irLen = ir.duration;
+    const items = INSTR.map(i => ({ i, layers: K[i.id] || K[ALIAS[i.id]] })).filter(x => x.layers && x.layers[2] && x.layers[2][0] && !x.layers[2][0].__w);
+    let pos = 0.02;
+    items.forEach(x => { x.rep = x.layers[2][0]; x.at = pos; x.len = x.rep.duration + irLen; pos += x.len + 0.05; });
+    const oc = new OfflineAudioContext(2, Math.ceil((pos + 0.05) * sr), sr);
+    const cv = oc.createConvolver(); cv.buffer = ir; cv.connect(oc.destination);
+    items.forEach(x => {
+      const src = oc.createBufferSource(); src.buffer = x.rep; const g = oc.createGain(); g.gain.value = x.i.gain;
+      let p = null; try { p = oc.createStereoPanner(); p.pan.value = x.i.pan; } catch (e) {}
+      src.connect(g); if (p) { g.connect(p); p.connect(cv); } else g.connect(cv); src.start(x.at);
+    });
+    const out = await oc.startRendering(), A = out.getChannelData(0), B = out.getChannelData(1), M = {};
+    items.forEach(x => {
+      const a = Math.round(x.at * sr), n0 = Math.min(A.length - a, Math.round(x.len * sr));
+      let pk = 0; for (let k = 0; k < n0; k++) pk = Math.max(pk, Math.abs(A[a + k]), Math.abs(B[a + k]));
+      let n = n0; const lim = pk * 3e-4; while (n > 1 && Math.abs(A[a + n - 1]) < lim && Math.abs(B[a + n - 1]) < lim) n--;   // Ende unter −70 dB weg
+      const b = audioCtx.createBuffer(2, Math.max(1, n), sr); b.copyToChannel(A.subarray(a, a + n), 0); b.copyToChannel(B.subarray(a, a + n), 1);
+      M[x.i.id] = { b, rr: rmsOf(x.rep) || 1 };
+    });
+    return M;
+  }
+  function ensureTails(tag) {
+    if (typeof audioCtx === 'undefined' || !audioCtx || TL[tag] || tlBusy === tag || typeof OfflineAudioContext === 'undefined') return;
+    const K = tag === 'synth' ? kit : (kitRealName === tag ? kitReal : null); if (!K) return;
+    tlBusy = tag;
+    buildTails(K).then(M => { Object.keys(TL).forEach(k => { if (k !== 'synth' && k !== tag) delete TL[k]; }); TL[tag] = M; if (wk) wkSend(tag); })   // nur ein echtes Kit im Speicher
+      .catch(() => {}).finally(() => { if (tlBusy === tag) tlBusy = ''; });
+  }
+  // ---- v119: Drum-Stimmen in EINEM AudioWorklet (statt je Schlag Quelle + Verstärker + Hall-Puffer) ----
+  // Mischt alle Schläge selbst: lineare Interpolation wie AudioBufferSourceNode, Panorama-Formel wie StereoPannerNode,
+  // Abdämpfen der offenen HiHat wie setTargetAtTime, Raumhall aus den vorberechneten Puffern. Die Klangdaten wandern
+  // ins Worklet (übertragen, nicht kopiert). Ohne AudioWorklet (oder bei Fehler) spielt der Knoten-Weg darunter.
+  const WK_SRC = `class DrumVox extends AudioWorkletProcessor{
+constructor(){super();this.S={};this.T={};this.v=[];this.open=null;this.port.onmessage=e=>this.msg(e.data);}
+msg(m){if(m.k==='kit')this.S[m.tag]=m.d;else if(m.k==='tails')this.T[m.tag]=m.d;else if(m.k==='free'){delete this.S[m.tag];delete this.T[m.tag];}
+else if(m.k==='cnt')this.port.postMessage({cnt:this.v.length});
+else if(m.k==='drop'){const a=m.at*sampleRate;this.v=this.v.filter(x=>x.st<=a);}
+else if(m.k==='hit'){const S=this.S[m.tag],c=S&&S[m.id]&&S[m.id][m.L]&&S[m.id][m.L][m.n];if(!c)return;const st=m.at*sampleRate;
+if(m.choke&&this.open){this.open.forEach(x=>{if(x.ck<0)x.ck=st;});this.open=null;}
+const th=(m.pan+1)*Math.PI/4,x={a:c[0],b:c[1]||null,st,r:m.r,g:m.g,ck:-1,tau:0.012,o:m.room?[0,1]:[0],
+p:c[1]?(m.pan<=0?[1,Math.cos((m.pan+1)*Math.PI/2),0,Math.sin((m.pan+1)*Math.PI/2)]:[Math.cos(m.pan*Math.PI/2),0,Math.sin(m.pan*Math.PI/2),1]):[Math.cos(th),Math.sin(th)]};
+this.v.push(x);const grp=[x];
+const T=m.tg>0&&this.T[m.tag]&&this.T[m.tag][m.tid];if(T){const y={a:T[0],b:T[1],st,r:1,g:m.tg,ck:-1,tau:0.17,o:[2],p:[1,0,0,1]};this.v.push(y);grp.push(y);}
+if(m.open)this.open=grp;}}
+process(_,O){const f0=currentFrame,n=O[0][0].length,keep=[];if(!this.A)this.A=[0,1,2].map(()=>[new Float32Array(n),new Float32Array(n)]);const A=this.A,used=[false,false,false];
+for(const x of this.v){let i=Math.ceil(x.st-f0);if(i<0)i=0;if(i>=n){keep.push(x);continue;}
+const a=x.a,b=x.b,r=x.r,last=a.length-1,p=x.p;let e=Math.ceil(x.st-f0+last/r),done=false;if(e<=n)done=true;else e=n;
+let q=(f0+i-x.st)*r,g=x.g,dk=1,ci=e;
+if(x.ck>=0){dk=Math.exp(-1/(sampleRate*x.tau));const c0=x.ck-f0;if(c0<=i){g=x.g*Math.exp(-(f0+i-x.ck)/(sampleRate*x.tau));ci=i;if(g<1e-6)done=true;}else ci=Math.ceil(c0);}
+for(let oi=0;oi<x.o.length;oi++){const w=x.o[oi],o=A[w];if(!used[w]){used[w]=true;o[0].fill(0);o[1].fill(0);}const L=o[0],R=o[1];let qq=q,gg=g;
+if(b){const p0=p[0],p1=p[1],p2=p[2],p3=p[3];for(let j=i;j<e;j++){const k=qq|0,fr=qq-k,s0=a[k]+(a[k+1]-a[k])*fr,s1=b[k]+(b[k+1]-b[k])*fr;L[j]+=(s0*p0+s1*p1)*gg;R[j]+=(s0*p2+s1*p3)*gg;qq+=r;if(j>=ci)gg*=dk;}}
+else{const gl=p[0],gr=p[1];for(let j=i;j<e;j++){const k=qq|0,s0=(a[k]+(a[k+1]-a[k])*(qq-k))*gg;L[j]+=s0*gl;R[j]+=s0*gr;qq+=r;if(j>=ci)gg*=dk;}}}
+if(!done)keep.push(x);}
+this.v=keep;for(let w=0;w<3;w++)if(used[w]&&O[w]){O[w][0].set(A[w][0]);O[w][1].set(A[w][1]);}return true;}}
+registerProcessor('drumvox',DrumVox);`;
+  let wk = null, wkBusy = false, wkDead = false;
+  const WK = {};                                   // tag → { ok, rr? } (Klangdaten liegen im Worklet)
+  let wkMod = null;
+  function wkStart() {
+    if (window.__drumNodes || wk || wkBusy || wkDead || typeof audioCtx === 'undefined' || !audioCtx || !audioCtx.audioWorklet || typeof AudioWorkletNode === 'undefined') return;
+    if (!wkMod) { const url = URL.createObjectURL(new Blob([WK_SRC], { type: 'application/javascript' })); wkMod = Promise.race([audioCtx.audioWorklet.addModule(url), new Promise((_, no) => setTimeout(() => no(new Error('Zeit')), 4000))]); wkMod.catch(() => { wkDead = true; }); }
+    if (!bus) return;                              // Knoten erst mit dem Drum-Bus
+    wkBusy = true;
+    wkMod.then(() => {
+      const n = new AudioWorkletNode(audioCtx, 'drumvox', { numberOfInputs: 0, numberOfOutputs: 3, outputChannelCount: [2, 2, 2] });
+      n.connect(bus.sum, 0); n.connect(bus.wet, 2);
+      n.onprocessorerror = () => { wkDead = true; wk = null; try { n.disconnect(); } catch (e) {} };
+      wk = n;
+      if (kit) wkSend('synth'); if (kitReal) wkSend(kitRealName);
+    }).catch(() => { wkDead = true; }).finally(() => { wkBusy = false; });
+  }
+  // Klangdaten (und, sobald gerechnet, die Hall-Puffer) ins Worklet; im Hauptteil bleiben nur Kennzahlen
+  function wkSend(tag) {
+    const K = tag === 'synth' ? kit : (kitRealName === tag ? kitReal : null); if (!wk || !K) return;
+    let st = WK[tag];
+    if (!st) {
+      st = WK[tag] = { ok: false, tails: false };
+      const d = {}, tr = [];
+      Object.entries(K).forEach(([id, layers]) => {
+        d[id] = layers.map(row => row.map(b => { if (b.__w) return null; rmsOf(b); const chs = []; for (let c = 0; c < b.numberOfChannels; c++) { const x = new Float32Array(b.getChannelData(c)); chs.push(x); tr.push(x.buffer); } return chs; }));
+      });
+      wk.port.postMessage({ k: 'kit', tag, d }, tr);
+      st.ok = true;
+    }
+    if (!st.tails && TL[tag]) {
+      const td = {}, t2 = [];
+      Object.entries(TL[tag]).forEach(([id, x]) => { if (!x.b) return; const L = new Float32Array(x.b.getChannelData(0)), R = new Float32Array(x.b.getChannelData(1)); td[id] = [L, R]; t2.push(L.buffer, R.buffer); x.b = null; });
+      wk.port.postMessage({ k: 'tails', tag, d: td }, t2); st.tails = true;
+    }
+    // Puffer im Hauptteil durch Kennzahlen ersetzen, sobald auch der Hall drüben ist (bis dahin braucht ihn buildTails)
+    if (st.tails || !roomOn) Object.values(K).forEach(layers => layers.forEach(row => row.forEach((b, i) => { if (!b.__w) row[i] = { __w: true, duration: b.duration, sampleRate: b.sampleRate, __rms: b.__rms }; })));
+  }
+  function wkHit(id, t, v, layers, L, n, real) {
+    const tag = real ? kitRealName : 'synth', st = WK[tag]; if (!wk || !st || !st.ok) return false;
+    const i = INSTR_BY[id], buf = layers[L][n], rate = 1 + (Math.random() - 0.5) * 0.012, gv = Math.pow(v / [0.4, 0.75, 1][L], 0.9);
+    const tl = roomOn && st.tails && TL[tag] && TL[tag][id], room = roomOn && !tl;
+    if (room) { roomUse = Math.max(roomUse, t + buf.duration + 0.1); roomLink(true); if (!wkRoom) { try { wk.connect(bus.room, 1); wkRoom = true; } catch (e) {} } }
+    if (roomOn && !TL[tag]) ensureTails(tag);
+    const K = real ? kitReal : kit, src = K[id] ? id : ALIAS[id];
+    wk.port.postMessage({ k: 'hit', tag, id: src, tid: id, L, n, at: t, r: rate * (buf.sampleRate || 48000) / audioCtx.sampleRate, g: gv * i.gain, pan: i.pan, room,
+      tg: tl ? gv * (buf.__rms || 0) / tl.rr : 0, choke: id === 'hhc' || id === 'hhp' || id === 'hhh', open: id === 'hho' || id === 'hhh' });
+    return true;
+  }
+  let wkRoom = false;
+  const INSTR_BY = {}; INSTR.forEach(i => { INSTR_BY[i.id] = i; });
+  // Faltungshall nur angeschlossen, solange ein Schlag ohne fertigen Hall-Puffer klingt (er rechnet sonst auch bei Stille)
+  let roomUse = -1e9, roomLinked = true;
+  function roomLink(v) {
+    if (!bus || roomLinked === v) return;
+    try { if (v) bus.room.connect(bus.wet); else bus.room.disconnect(); roomLinked = v; } catch (e) {}
   }
   // ---- Raumhall an/aus (aus: Hall-Berechnung entfällt – hilft bei Aussetzern mit kleinem USB-Puffer) ----
   const roomBtn = document.getElementById('drumRoomBtn');
@@ -8624,7 +8820,9 @@ const Rhythm = (() => {
           return b;
         }));
       });
-      if (kitName === want) { kitReal = K; kitRealName = want; }   // nur das gewählte Kit im Speicher halten
+      if (kitName === want) { kitReal = K; kitRealName = want; setTimeout(() => ensureTails(want), 0);
+        Object.keys(WK).forEach(tg => { if (tg !== 'synth' && tg !== want) { delete WK[tg]; if (wk) wk.port.postMessage({ k: 'free', tag: tg }); } });
+        if (wk) wkSend(want); }   // nur das gewählte Kit im Speicher halten
       return K;
     })().catch(e => { realErr = String(e && e.message || e); if (kitName === want) { realOn = false; kitName = 'synth'; } return null; })
       .finally(() => { if (realBusy === pr) realBusy = null; paintKitBtn(); });
@@ -8647,25 +8845,44 @@ const Rhythm = (() => {
   function setLite(v) { /* Klang bleibt im Sparmodus unverändert */ }
   function hit(id, t, v) {
     const b = ensureBus(); if (!b.linked) connectBus(true);
-    if (id === 'hhc' || id === 'hhp' || id === 'hhh') { if (b.open) { try { b.open.gain.cancelScheduledValues(t); b.open.gain.setTargetAtTime(0, t, 0.012); } catch (e) {} b.open = null; } }
+    if (id === 'hhc' || id === 'hhp' || id === 'hhh') {
+      if (b.open) { try { b.open.gain.cancelScheduledValues(t); b.open.gain.setTargetAtTime(0, t, 0.012); } catch (e) {} b.open = null; }
+      if (b.openT) { try { b.openT.gain.cancelScheduledValues(t); b.openT.gain.setTargetAtTime(0, t, 0.17); } catch (e) {} b.openT = null; }   // Hall klingt wie im Raum aus
+    }
     if (!kit) { // einfache Ersatzstimmen
+      roomUse = Math.max(roomUse, t + 0.6); roomLink(true);
       if (id === 'kick') playKick(t, b); else if (id === 'snare' || id === 'clap' || id === 'rim') playSnare(t, b); else if (id !== 'crash' && id !== 'tomh' && id !== 'toml') playHihat(t, v > 0.8, b);
       return;
     }
     const real = realOn && kitReal && (kitReal[id] || kitReal[ALIAS[id]]), layers = real || kit[id] || kit[ALIAS[id]]; if (!layers) return;   // echtes Kit, wo vorhanden
-    const L = v < 0.5 ? 0 : v < 0.86 ? 1 : 2, arr = layers[L], buf = arr[(Math.random() * arr.length) | 0];
+    const L = v < 0.5 ? 0 : v < 0.86 ? 1 : 2, arr = layers[L], ni = (Math.random() * arr.length) | 0, buf = arr[ni];
+    if (wkHit(id, t, v, layers, L, ni, !!real)) { pend.push([t, null]); return; }
+    if (buf.__w) { if (id === 'kick') playKick(t, b); else if (id === 'snare') playSnare(t, b); else playHihat(t, v > 0.8, b); return; }   // Worklet ausgefallen
     const s = audioCtx.createBufferSource(); s.buffer = buf;
     s.playbackRate.value = 1 + (Math.random() - 0.5) * 0.012;
-    const g = audioCtx.createGain(); g.gain.value = Math.pow(v / [0.4, 0.75, 1][L], 0.9) * (L === 2 ? 1 : 1);
-    s.connect(g); g.connect(b.ch[id]); s.start(t);
+    const gv = Math.pow(v / [0.4, 0.75, 1][L], 0.9), g = audioCtx.createGain(); g.gain.value = gv;
+    const tag = real ? kitRealName : 'synth', tl = roomOn && TL[tag] && TL[tag][id] && TL[tag][id].b ? TL[tag][id] : null, end = t + buf.duration / s.playbackRate.value;
+    if (roomOn && !tl) ensureTails(tag);
+    if (tl || !roomOn) { chLink('d' + id, end); g.connect(b.chD[id]); }
+    else { chLink('w' + id, end); g.connect(b.ch[id]); roomUse = Math.max(roomUse, end); roomLink(true); }
+    s.start(t);
+    s.connect(g);
     vEnd(s, [g]);                                   // nach dem Ausklingen abklemmen (Safari hält sonst alles im Graphen)
     pend.push([t, s]);
+    if (tl) {                                       // v119: vorberechneter Raumhall dieses Schlags
+      const s2 = audioCtx.createBufferSource(); s2.buffer = tl.b;
+      const g2 = audioCtx.createGain(); g2.gain.value = gv * rmsOf(buf) / tl.rr;
+      s2.connect(g2); g2.connect(b.wet); s2.start(t);
+      vEnd(s2, [g2]); pend.push([t, s2]);
+      if (id === 'hho' || id === 'hhh') b.openT = g2;
+    }
     if (id === 'hho' || id === 'hhh') b.open = g;
   }
   // Geplante, noch nicht erklungene Schläge – bei einem Rastersprung (neuer Loop-Anfang) werden sie verworfen
   const pend = [];
   function dropPending(after) {
-    for (const [t, s] of pend) if (t > after) { try { s.stop(); } catch (e) {} }
+    for (const [t, s] of pend) if (t > after && s) { try { s.stop(); } catch (e) {} }
+    if (wk) wk.port.postMessage({ k: 'drop', at: after });
     pend.length = 0;
   }
   let lateHits = 0;
@@ -8746,6 +8963,8 @@ const Rhythm = (() => {
       else nextT = firstAfter(g, Math.max(now + 0.03, nextT - 0.001));
     }
     while (pend.length && pend[0][0] < now - 0.05) pend.shift();
+    chSweep(now);
+    if (roomLinked && now > roomUse + 1.2) { roomLink(false); if (wkRoom) { try { wk.disconnect(bus.room); } catch (e) {} wkRoom = false; } }           // Faltungshall abhängen, wenn sein Nachhall vorbei ist
     const sw = res === 16 ? parseInt(swingEl.value) / 100 : 0, hu = parseInt(humanEl.value) / 100;
     // 0,3 s Vorlauf: kurze Hänger der Oberfläche (Speicher aufräumen, Zeichnen, Laden) verschieben keinen Schlag
     while (nextT < now + AHEAD) {
@@ -9173,6 +9392,9 @@ const Rhythm = (() => {
     stepDur, res: () => res, midiEvents, setDetected, name: () => styleEl.selectedOptions[0] ? styleEl.selectedOptions[0].text : '',
     drummer: () => ({ dr: Object.assign({}, dr), pat: stepsCopy(), res, fills: fillsEl.value }),
     setKit, kitMode: () => (realOn && kitReal ? 'real' : 'synth'), kitName: () => (realOn && kitReal ? kitRealName : 'synth'), loadReal,
+    _wk: () => wk,
+    engine: () => ({ worklet: !!wk, wk: Object.fromEntries(Object.entries(WK).map(([k, x]) => [k, { ok: x.ok, tails: x.tails }])), tails: Object.fromEntries(Object.entries(TL).map(([k, M]) => [k, { n: Object.keys(M).length, mb: +(Object.values(M).reduce((a, x) => a + (x.b ? x.b.length * 8 : 0), 0) / 1048576).toFixed(1) }])), room: roomLinked,
+      linked: bus ? Object.values(bus.lk).filter(l => l.on).length : 0 }),
     debug: () => ({ on, res, steps: played.slice(-24), sd: stepDur(), kit: !!kit, real: !!(realOn && kitReal), preset: presetKey, late: lateHits, pending: pend.length })
   };
 })();
@@ -10012,8 +10234,181 @@ const NordDrones = (() => {
     if (!quiet) { droneNodes = null; droneOn = false; btnOn(false); setStatus('Aus'); }
   }
   function retune() { if (cur && cur.retune) { cur.retune(); setStatus('An — ' + droneKeyText() + ' (' + NAMES[cur.style] + ')'); } }
-  return { start, stop, retune, has: st => !!STARTS[st] };
+  // v119: Klang bauen, ohne den laufenden Zustand (cur, Knopf, Status) anzufassen – für das Vorrechnen in DroneLoop
+  function build(style) {
+    const prevV = vNodes; vNodes = []; let N = null;
+    try { N = (STARTS[style] || STARTS.v4)(); } finally { if (N) N.all = vNodes; vNodes = prevV; }
+    return N;
+  }
+  return { start, stop, retune, build, has: st => !!STARTS[st], _clear: () => { irCache = {}; noiseBuf = null; } };
 })();
+
+/* ---------- v119: Drone als vorgerechnete Schleife ----------
+   Eine Drone ist ein großer Klang-Graph (viele Oszillatoren, LFOs, Filter und ein Faltungshall), der live
+   ≈ 30 % der Audio-Rechenzeit kostete. Jetzt startet sie wie bisher live (sofort hörbar), rechnet im Hintergrund
+   mit GENAU DEMSELBEN Code in einem OfflineAudioContext eine Schleife (ganze Takte, ≈ 32 s, nach dem Einschwingen)
+   und blendet dann auf diese um; live läuft danach nichts mehr. Die Zeitsteuerung der Verzierungen (setTimeout im
+   Stil-Code) wird beim Vorrechnen auf die Offline-Zeit umgelenkt (suspend/resume), Takt-Bezug über ein eigenes Raster.
+   Naht: 2 s gleich laute Überblendung von Ende in Anfang. Ändern sich Tonart, Modus, Tempo, Stil-Verzierung →
+   sofort wieder live, neu rechnen, umblenden. Alle ~3 Durchläufe wird im Hintergrund eine neue Variante gerechnet
+   (die Zufallsereignisse wiederholen sich so nicht endlos). Ausschalten: localStorage 3nps-drone-live = 1. */
+const DroneLoop = (() => {
+  const XF = 2, FADE = 1.2;
+  const WARM = { v1: 7, v2: 7, v3: 6, v4: 6.5, v5: 7.5, v6: 7.5, v7: 8.5, v8: 6.5, v9: 11, v10: 12, v11: 9 };
+  let S = null, gen = 0;                          // S: { style, mode:'live'|'loop', loop:{src,g,buf,L,t0}, master, wrap, timer, ... }
+  const st = { renders: 0, lastMs: 0, mb: 0, mode: 'aus', err: '' };
+  const ok = () => { try { if (localStorage.getItem('3nps-drone-live') === '1') return false; } catch (e) {} return typeof OfflineAudioContext !== 'undefined' && !!OfflineAudioContext.prototype.suspend; };
+  const bpmNow = () => (parseFloat(document.getElementById('bpm').value) || 80) * (window.__tempoMul || 1);
+  const sig = () => { const o = document.getElementById('pianoShimmer'); return JSON.stringify([S && S.style, rootSel.value, modeSel.value, window.droneKeyOverride || null, Math.round(bpmNow() * 100), !o || o.checked]); };
+  // ---- Vorrechnen ----
+  async function render(style, my) {
+    const sr = audioCtx.sampleRate, bd = 240 / bpmNow();
+    const bars = Math.max(1, Math.round(32 / bd)), L = bars * bd, W = Math.ceil((WARM[style] || 9) / bd) * bd;
+    const total = W + L + XF + 0.1, oc = new OfflineAudioContext(2, Math.ceil(total * sr), sr), Q = 128 / sr;
+    const sink = oc.createGain(); sink.connect(oc.destination);
+    const q = []; let nid = 1;
+    const fakeSet = (fn, ms, ...a) => { const id = 'dl' + (nid++); q.push({ id, at: oc.currentTime + Math.max(0, +ms || 0) / 1000, fn, a }); return id; };
+    const fakeClr = id => { const i = q.findIndex(x => x.id === id); if (i >= 0) q.splice(i, 1); };
+    const E = { audioCtx: oc, masterBus: sink, reverbNode: null, pingPong: null, noiseBuffer: null, droneNodes: null, droneOn: false };
+    const volEl = document.getElementById('droneVolume');
+    let saved = null;
+    const enter = () => {
+      saved = { audioCtx, masterBus, reverbNode, pingPong, noiseBuffer, droneNodes, droneOn, st: window.setTimeout, ct: window.clearTimeout, ea: window.ensureAudio, nb: Rhythm.nextBarTime };
+      audioCtx = E.audioCtx; masterBus = E.masterBus; reverbNode = E.reverbNode; pingPong = E.pingPong; noiseBuffer = E.noiseBuffer; droneNodes = E.droneNodes; droneOn = E.droneOn;
+      window.setTimeout = fakeSet; window.clearTimeout = fakeClr; window.ensureAudio = () => {};
+      Rhythm.nextBarTime = () => { const t = oc.currentTime + 0.15; return Math.ceil(t / bd - 1e-9) * bd; };
+    };
+    const leave = () => {
+      E.reverbNode = reverbNode; E.pingPong = pingPong; E.noiseBuffer = noiseBuffer; E.droneNodes = droneNodes; E.droneOn = droneOn;
+      audioCtx = saved.audioCtx; masterBus = saved.masterBus; reverbNode = saved.reverbNode; pingPong = saved.pingPong; noiseBuffer = saved.noiseBuffer; droneNodes = saved.droneNodes; droneOn = saved.droneOn;
+      window.setTimeout = saved.st; window.clearTimeout = saved.ct; window.ensureAudio = saved.ea; Rhythm.nextBarTime = saved.nb;
+    };
+    const t0 = performance.now(), v0 = volEl.value; let N = null;
+    enter();
+    try {
+      volEl.value = '100';                                 // Lautstärke regelt danach der Echtzeit-Verstärker
+      if (style === 'v2') startDroneV2(); else if (NordDrones.has(style)) N = NordDrones.build(style); else startDroneV1();
+    } finally { volEl.value = v0; leave(); }
+    // Zeitgeber der Verzierungen in Offline-Zeit ausführen
+    const arm = () => {
+      const due = q.length ? Math.min(...q.map(x => x.at)) : Infinity;
+      let t = Math.max(oc.currentTime + Q, due); t = Math.ceil(t / Q - 1e-9) * Q;
+      if (t >= total - 2 * Q) return;
+      oc.suspend(t).then(() => {
+        if (my !== gen) { oc.resume(); return; }
+        enter();
+        try { for (let g = 0; g < 200; g++) { let k = -1; for (let i = 0; i < q.length; i++) if (q[i].at <= oc.currentTime + 1e-6 && (k < 0 || q[i].at < q[k].at)) k = i; if (k < 0) break; const x = q.splice(k, 1)[0]; try { x.fn(...x.a); } catch (e) { st.err = String(e); } } }
+        finally { leave(); }
+        arm(); oc.resume();
+      }).catch(() => {});
+    };
+    arm();
+    const buf = await oc.startRendering();
+    q.length = 0; if (N) { N.alive = false; (N.all || []).forEach(x => { try { x.disconnect(); } catch (e) {} }); }
+    if (my !== gen) return null;
+    const a = Math.round(W * sr), n = Math.round(L * sr), x = Math.round(XF * sr), out = audioCtx.createBuffer(2, n, sr);
+    for (let c = 0; c < 2; c++) {
+      const s = buf.getChannelData(c), d = out.getChannelData(c);
+      d.set(s.subarray(a, a + n));
+      for (let i = 0; i < x; i++) { const w = i / x; d[i] = s[a + i] * Math.sin(w * Math.PI / 2) + s[a + n + i] * Math.cos(w * Math.PI / 2); }   // Naht
+    }
+    st.renders++; st.lastMs = Math.round(performance.now() - t0); st.mb = +(n * 8 / 1048576).toFixed(1);
+    return { buf: out, L, bd };
+  }
+  // ---- Abspielen / Umblenden ----
+  function playLoop(R, at, fadeIn) {
+    const src = audioCtx.createBufferSource(); src.buffer = R.buf; src.loop = true;
+    const g = audioCtx.createGain(); g.gain.setValueAtTime(fadeIn ? 0 : 1, at); if (fadeIn) g.gain.linearRampToValueAtTime(1, at + FADE);
+    src.connect(g); g.connect(S.master); src.start(at);
+    return { src, g, L: R.L, t0: at };
+  }
+  function endLoop(lp, at) {
+    if (!lp) return;
+    try { lp.g.gain.cancelScheduledValues(at); lp.g.gain.setValueAtTime(1, at); lp.g.gain.linearRampToValueAtTime(0, at + FADE); lp.src.stop(at + FADE + 0.05); } catch (e) {}
+    lp.src.onended = () => { try { lp.src.disconnect(); lp.g.disconnect(); } catch (e) {} };
+  }
+  const barAt = () => { const now = audioCtx.currentTime + 0.25; try { const t = Rhythm.nextBarTime(); return t >= now - 0.1 ? Math.max(t, now) : now; } catch (e) { return now; } };
+  function liveToLoop(R) {
+    const at = barAt(), style = S.style;
+    const btn = document.getElementById('droneBtn'), stat = document.getElementById('droneStatus'), txt = stat ? stat.textContent : '';
+    if (!S.master) { S.master = audioCtx.createGain(); S.master.connect(ensureMasterBus()); }
+    S.master.gain.value = parseInt(document.getElementById('droneVolume').value) / 100;
+    S.loop = playLoop(R, at, true); S.mode = 'loop'; st.mode = 'Schleife'; S.passes = 0;
+    const live = droneNodes;
+    // live ausblenden und stoppen (die Stopp-Funktionen blenden selbst ab ≈ 0,8–1,2 s)
+    const doStop = () => {
+      if (!S || S.mode !== 'loop') return;
+      if (droneNodes === live) { stopDroneLive(style); }
+      droneNodes = S.wrap = { master: S.master, loop: true }; droneOn = true;
+      if (btn) { btn.textContent = '■'; btn.classList.add('playing'); } if (stat && txt) stat.textContent = txt;
+    };
+    S.stopT = setTimeout(doStop, Math.max(0, (at - audioCtx.currentTime) * 1000));
+  }
+  function loopToLoop(R) {
+    const at = barAt(), old = S.loop;
+    S.loop = playLoop(R, at, true); endLoop(old, at); S.passes = 0;
+  }
+  async function cycle(kind) {
+    const my = ++gen, style = S.style; S.busy = true;
+    let R = null; try { R = await render(style, my); } catch (e) { st.err = String(e && e.message || e); R = null; }
+    if (!S || my !== gen) return;
+    S.busy = false; S.sig = sig();
+    if (!R) { st.mode = 'live (Vorrechnen fehlgeschlagen)'; return; }
+    if (kind === 'refresh' && S.mode === 'loop') loopToLoop(R); else liveToLoop(R);
+  }
+  function tick() {
+    if (!S) return;
+    if (S.busy) return;
+    if (sig() !== S.sig) { changed(); return; }
+    if (S.mode === 'loop' && S.loop) {                     // Abwechslung: nach ~3 Durchläufen neue Variante
+      const p = (audioCtx.currentTime - S.loop.t0) / S.loop.L;
+      if (p > 2.6 && !S.busy) cycle('refresh');
+    }
+  }
+  // ---- Schnittstelle (aus script.part) ----
+  function begin(style) {
+    cancel();
+    if (!ok() || !droneOn) { st.mode = 'live'; return; }
+    S = { style, mode: 'live', master: null, loop: null, sig: '', busy: false, timer: setInterval(tick, 1000) };
+    st.mode = 'live (rechnet vor)'; S.sig = sig();
+    cycle('first');
+  }
+  function cancel() {
+    if (!S) return; gen++;
+    clearInterval(S.timer); clearTimeout(S.stopT); clearTimeout(S.chT);
+    S = null;
+  }
+  // true = Schleife spielte und ist jetzt aus (stopDrone soll sonst normal stoppen)
+  function stop() {
+    if (!S) return false;
+    const was = S.mode === 'loop' && droneNodes === S.wrap, lp = S.loop, m = S.master;
+    if (S.mode === 'loop' && !was) { /* Umblendung lief noch: live läuft weiter → normal stoppen */ }
+    cancel();
+    if (lp) { endLoop(lp, audioCtx.currentTime); setTimeout(() => { try { m.disconnect(); } catch (e) {} }, (FADE + 0.3) * 1000); }
+    st.mode = 'aus';
+    if (!was) return false;
+    droneNodes = null; droneOn = false;
+    const btn = document.getElementById('droneBtn'); if (btn) { btn.textContent = '▶'; btn.classList.remove('playing'); }
+    const s = document.getElementById('droneStatus'); if (s) s.textContent = 'Aus';
+    return true;
+  }
+  // Tonart/Modus/Tempo/Verzierung geändert: true = übernommen (läuft wieder live und rechnet neu)
+  function changed() {
+    if (!S) return false;
+    if (S.mode === 'live') { S.sig = ''; gen++; S.busy = false; clearTimeout(S.chT); S.chT = setTimeout(() => { if (S && S.mode === 'live') cycle('first'); }, 700); return false; }
+    // Schleife spielt: sofort wieder live (folgt sofort), Schleife ausblenden, neu rechnen
+    const style = S.style, lp = S.loop, m = S.master, btn = document.getElementById('droneBtn');
+    gen++; clearTimeout(S.stopT);
+    if (droneNodes === S.wrap) { droneNodes = null; droneOn = false; }
+    startDroneLive(style);
+    if (lp) { endLoop(lp, audioCtx.currentTime); setTimeout(() => { try { m.disconnect(); } catch (e) {} }, (FADE + 0.3) * 1000); }
+    S.loop = null; S.master = null; S.wrap = null; S.mode = 'live'; st.mode = 'live (rechnet vor)'; S.busy = false;
+    clearTimeout(S.chT); S.chT = setTimeout(() => { if (S && S.mode === 'live') cycle('first'); }, 700);
+    return true;
+  }
+  return { begin, stop, changed, cancel, _buf: () => (S && S.loop ? S.loop.src.buffer : null), _render: style => render(style, gen), _warm: style => WARM[style], state: () => Object.assign({ on: !!S, style: S && S.style, loop: !!(S && S.mode === 'loop'), busy: !!(S && S.busy) }, st) };
+})();
+window.DroneLoop = DroneLoop;
 
 </script>
 <script>
@@ -13767,11 +14162,85 @@ const Looper = (() => {
     if (cur && cur.want.length === want.length && cur.want.every((x, i) => x === want[i])) return;
     if (cur) sigUntap(key);
     if (!want.length || !audioCtx) return;
-    if (!sg.sink) { sg.sink = audioCtx.createGain(); sg.sink.gain.value = 0; sg.sink.connect(audioCtx.destination); }
+    sigSink();
     const an = audioCtx.createAnalyser(); an.fftSize = 2048; an.smoothingTimeConstant = 0; sg.made++;
     const nodes = []; want.forEach(x => { try { x.connect(an); nodes.push(x); } catch (e) {} });
     an.connect(sg.sink);
     sg.taps.set(key, { an, want, nodes });
+  }
+  function sigSink() { if (!sg.sink) { sg.sink = audioCtx.createGain(); sg.sink.gain.value = 0; sg.sink.connect(audioCtx.destination); } return sg.sink; }
+  // ---- v119: Leistung (Audio-Rechenlast) oben in der Ansicht, Anteil je Station ----
+  // Messung nur, solange die Ansicht offen ist: 1) AudioContext.renderCapacity, wo der Browser es kann („gemessen“);
+  // 2) sonst ein winziges Mess-Worklet: Der Audio-Takt rechnet Blöcke in Schüben (z. B. 8 × 128 Abtastwerte, dann Pause).
+  //    Die Zeit vom ersten bis zum letzten Block eines Schubs (Date.now im Worklet) × k/(k−1) = Rechenzeit des Schubs;
+  //    Summe / Wanduhr = Auslastung („geschätzt“). 3) Ohne Worklet/Schübe: Summe der Grundkosten („geschätzt (Modell)“).
+  // Anteile je Station = gemessene Grundkosten je Baustein (ms Rechenzeit je s Audio, Chrome/Mac-Modell, v119) × aktiver Zustand,
+  // auf 100 % normiert – daher „Anteile geschätzt“.
+  const SIG_COST = { in: 1.4, amp: 13.5, trk: 4, fx: 36.7, dr: 45, dnLoop: 5, dnLive: 90, ms: 1, base: 4 };
+  const LM_SRC = `class LoadMeter extends AudioWorkletProcessor{constructor(){super();this.w0=0;this.t0=0;this.last=0;this.k=0;this.busy=0;this.nb=0;this.multi=0;}
+end(){if(this.k>=2){this.busy+=(this.last-this.t0)*this.k/(this.k-1);this.multi++;}this.nb++;}
+process(){const t=Date.now();if(!this.w0){this.w0=this.t0=this.last=t;this.k=1;return true;}
+if(t-this.last>2){this.end();this.t0=t;this.k=1;}else this.k++;this.last=t;
+if(t-this.w0>=1000){this.end();this.port.postMessage({load:this.multi>=Math.max(3,this.nb*0.5)?this.busy/(t-this.w0):null,bursts:this.nb});this.w0=this.t0=t;this.k=1;this.busy=0;this.nb=0;this.multi=0;}
+return true;}}registerProcessor('loadmeter',LoadMeter);`;
+  const pf = { mod: null, node: null, rc: null, load: null, src: '', gen: 0, made: 0 };
+  function perfStart() {
+    pf.load = null; pf.src = ''; const my = ++pf.gen;
+    if (!audioCtx) { pf.src = 'model'; return; }
+    try {
+      if (audioCtx.renderCapacity && typeof audioCtx.renderCapacity.start === 'function') {
+        pf.rc = audioCtx.renderCapacity; pf.rc.onupdate = e => { if (pf.gen === my) { pf.load = e.averageLoad; pf.src = 'rc'; } };
+        pf.rc.start({ updateInterval: 0.5 }); pf.src = 'rc'; return;
+      }
+    } catch (e) { pf.rc = null; }
+    if (!audioCtx.audioWorklet || typeof AudioWorkletNode === 'undefined') { pf.src = 'model'; return; }
+    if (!pf.mod) { pf.mod = audioCtx.audioWorklet.addModule(URL.createObjectURL(new Blob([LM_SRC], { type: 'application/javascript' }))); pf.mod.catch(() => {}); }
+    pf.src = 'model';
+    pf.mod.then(() => {
+      if (!sg.on || pf.gen !== my) return;
+      const n = new AudioWorkletNode(audioCtx, 'loadmeter', { numberOfInputs: 0, numberOfOutputs: 1, outputChannelCount: [1] }); pf.made++;
+      n.port.onmessage = e => { if (pf.gen !== my) return; pf.load = e.data.load; pf.src = e.data.load == null ? 'model' : 'wk'; };
+      n.connect(sigSink()); pf.node = n;
+    }).catch(() => { pf.src = 'model'; });
+  }
+  function perfStop() {
+    pf.gen++;
+    try { if (pf.rc) { pf.rc.stop(); pf.rc.onupdate = null; } } catch (e) {}
+    pf.rc = null;
+    if (pf.node) { try { pf.node.port.onmessage = null; pf.node.disconnect(); } catch (e) {} pf.node = null; }
+    pf.load = null; pf.src = '';
+  }
+  // Grundkosten je Station im aktuellen Zustand (ms/s)
+  function sigCosts(m) {
+    const c = {};
+    m.G.forEach(g => g.forEach(b => {
+      const k = b.k;
+      if (k === 'in') c[k] = b.off ? 0 : SIG_COST.in;
+      else if (k === 'amp') c[k] = amp.nodes ? SIG_COST.amp : 0;
+      else if (/^t\d$/.test(k)) { const t = tracks[+k.slice(1)]; c[k] = t && t.src ? SIG_COST.trk + (t.eq && t.eq.active ? t.eq.active() * 1.1 : 0) : 0; }
+      else if (k === 'fx') c[k] = SIG_COST.fx;
+      else if (k === 'dr') c[k] = SIG_COST.dr;
+      else if (k === 'dn') c[k] = typeof DroneLoop !== 'undefined' && DroneLoop.state().loop ? SIG_COST.dnLoop : SIG_COST.dnLive;
+      else if (k === 'ms') c[k] = SIG_COST.ms;
+      else c[k] = 0;
+    }));
+    return c;
+  }
+  function sigPerfPaint() {
+    if (!sg.model) return;
+    const c = sigCosts(sg.model), sum = Object.values(c).reduce((a, b) => a + b, 0);
+    let load = pf.load, src = pf.src;
+    if (load == null) { load = (sum + SIG_COST.base) / 1000; src = 'model'; }
+    const f = Math.max(0, Math.min(1, load)), bar = $('sigPerfBar'), val = $('sigPerfVal'), sl = $('sigPerfSrc');
+    if (bar) { bar.style.width = (f * 100).toFixed(1) + '%'; bar.className = f >= 0.9 ? 'hot' : f >= 0.7 ? 'warn' : ''; }
+    const txt = Math.round(load * 100) + ' %'; if (val && val.textContent !== txt) val.textContent = txt;
+    const st = T(src === 'rc' ? 'gemessen' : src === 'wk' ? 'geschätzt' : 'geschätzt (Modell)'); if (sl && sl.textContent !== st) sl.textContent = st;
+    sg.share = {};
+    Object.keys(c).forEach(k => {
+      const p = sum > 0 ? Math.round(c[k] / sum * 100) : 0; sg.share[k] = p;
+      const e = sg.els['sgl-' + k]; if (e) { const s2 = c[k] > 0 ? p + ' %' : ''; if (e.textContent !== s2) e.textContent = s2; }
+    });
+    sg.load = load; sg.loadSrc = src;
   }
   function sigReleaseAll() {
     [...sg.taps.keys()].forEach(sigUntap);
@@ -13831,6 +14300,7 @@ const Looper = (() => {
         geo.push({ x, y, w: BW, h });
         let s = '<g data-k="' + b.k + '"><rect class="sg-box' + (b.off ? ' off' : '') + '" x="' + x + '" y="' + y + '" width="' + BW + '" height="' + h + '" rx="8"/>';
         s += '<text class="sg-t" x="' + (x + 9) + '" y="' + (y + 19) + '">' + sgEsc(T(b.t)) + '</text>';
+        s += '<text class="sg-ld" translate="no" id="sgl-' + b.k + '" x="' + (x + BW - 8) + '" y="' + (y + 19) + '" text-anchor="end"></text>';
         s += '<text class="sg-s" x="' + (x + 9) + '" y="' + (y + 35) + '">' + sgEsc(T(b.s)) + '</text>';
         s += '<text class="sg-v" translate="no" id="sgv-' + b.k + '" x="' + (x + 9) + '" y="' + (y + 53) + '">–</text>';
         if (b.gr) s += '<text class="sg-gr" translate="no" id="sgg" x="' + (x + BW - 9) + '" y="' + (y + 53) + '" text-anchor="end">GR 0,0 dB</text>';
@@ -13867,7 +14337,7 @@ const Looper = (() => {
     const W = horiz ? total : maxAcross + 2 * PAD, H = horiz ? maxAcross + 2 * PAD : total;
     sigWrap.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" style="max-width:' + Math.round(W * 1.5) + 'px" role="img" aria-label="' + sgEsc(T('Signalweg')) + '"><path class="sg-ln" d="' + lines.join(' ') + '"/>' + out.join('') + '</svg>';
     sg.els = {};
-    sigWrap.querySelectorAll('[id^="sgv-"],[id^="sgb-"]').forEach(e => { sg.els[e.id] = e; });
+    sigWrap.querySelectorAll('[id^="sgv-"],[id^="sgb-"],[id^="sgl-"]').forEach(e => { sg.els[e.id] = e; });
     sg.els.gr = sigWrap.querySelector('#sgg');
   }
   // Struktur abgleichen (≈4×/s): Abgriffe nachziehen, bei geänderter Kette neu zeichnen
@@ -13891,7 +14361,7 @@ const Looper = (() => {
     sg.raf = requestAnimationFrame(sigTick);
     if (ts - sg.last < 62) return;                                    // ~15 Bilder/s
     sg.last = ts;
-    if ((sg.fr++ & 3) === 0) sigSync();
+    if ((sg.fr++ & 3) === 0) { sigSync(); sigPerfPaint(); }
     if (!sg.buf) sg.buf = new Float32Array(2048);
     const b = sg.buf, seen = new Set();
     sg.taps.forEach((tp, k) => {
@@ -13908,11 +14378,11 @@ const Looper = (() => {
     if (sg.on) return;
     sg.on = true; sg.sig = ''; sg.last = 0; sg.fr = 0;
     sigDlg.hidden = false; document.documentElement.classList.add('sig-open'); sigBtn.classList.add('active'); sigBtn.setAttribute('aria-pressed', 'true');
-    sigSync(); sg.raf = requestAnimationFrame(sigTick);
+    sigSync(); perfStart(); sigPerfPaint(); sg.raf = requestAnimationFrame(sigTick);
   }
   function sigClose() {
     if (!sg.on) return;
-    sg.on = false; cancelAnimationFrame(sg.raf); sg.raf = 0; sigReleaseAll(); sg.model = null; sg.sig = '';
+    sg.on = false; cancelAnimationFrame(sg.raf); sg.raf = 0; perfStop(); sigReleaseAll(); sg.model = null; sg.sig = '';
     sigDlg.hidden = true; document.documentElement.classList.remove('sig-open'); sigBtn.classList.remove('active'); sigBtn.setAttribute('aria-pressed', 'false'); sigWrap.innerHTML = ''; sg.els = {};
   }
   function sigToggle() { if (sg.on) sigClose(); else sigOpen(); return sg.on; }
@@ -14069,7 +14539,8 @@ const Looper = (() => {
     _scene: () => ({ cur: sceneCur, pend: scenePend ? { k: scenePend.k, at: scenePend.at } : null, n: scenes.length, next: nextLoopStart(0), now: audioCtx ? nowFrame() : 0, anchor }),
     // v118: Signalweg
     sigOpen: () => sigOpen(), sigClose: () => sigClose(), sigToggle: () => sigToggle(),
-    _sig: () => ({ on: sg.on, n: sg.taps.size, keys: [...sg.taps.keys()], conn: [...sg.taps.values()].reduce((a, t) => a + t.nodes.length, 0), sink: !!sg.sink, made: sg.made, lv: Object.assign({}, sg.lv), gr: sg.gr, groups: sg.model ? sg.model.G.map(g => g.map(b => b.k)) : [], titles: sg.model ? sg.model.G.map(g => g.map(b => b.t + '|' + b.s)) : [] }),
+    _sigLoad: v => { pf.load = v; pf.src = 'wk'; sigPerfPaint(); return [$('sigPerfBar').className, $('sigPerfVal').textContent]; },
+    _sig: () => ({ on: sg.on, n: sg.taps.size, keys: [...sg.taps.keys()], conn: [...sg.taps.values()].reduce((a, t) => a + t.nodes.length, 0), sink: !!sg.sink, made: sg.made, lv: Object.assign({}, sg.lv), load: sg.on ? sg.load : null, loadSrc: sg.on ? sg.loadSrc : '', share: sg.on ? Object.assign({}, sg.share) : {}, meter: { node: !!pf.node, rc: !!pf.rc, made: pf.made, gen: pf.gen }, gr: sg.gr, groups: sg.model ? sg.model.G.map(g => g.map(b => b.k)) : [], titles: sg.model ? sg.model.G.map(g => g.map(b => b.t + '|' + b.s)) : [] }),
     all: allStartStop
   };
 })();
@@ -21010,6 +21481,10 @@ const HILFE = [
     p: ['Der „Signalweg“ zeigt als Bild, durch welche Stationen dein Klang gerade läuft: Eingang → Amp (nur wenn an) → Spuren → Hall/Echo-Bus (nur wenn eine Spur Hall oder Echo nutzt) → Drums/Drone (wenn an) → Master/Limiter → Ausgang. An jeder Station steht live der Pegel in %.', '100 % = Vollaussteuerung (0 dBFS). Grün ist gut, gelb ab 70 % = laut, rot = an der Grenze. Beim Limiter steht zusätzlich „GR“: so viele dB regelt er gerade herunter.'],
     s: ['Oben im Looper neben „Amp“ auf „Signalweg“ tippen.', 'Spielen oder Spuren starten – die Balken bewegen sich. Eine Station mit „–“ bekommt gerade kein Signal (z. B. Eingang geschlossen, Spur gestoppt).', 'Ist etwas zu leise, folge den Stationen von links nach rechts (oder oben nach unten) und schau, wo der Pegel verschwindet.', '„Fertig“ schließt die Ansicht.'],
     tip: ['Gemessen wird nur, solange die Ansicht offen ist – geschlossen kostet sie keine Rechenzeit.', 'Steht beim Limiter oft mehr als 3 dB „GR“, die Spuren etwas leiser stellen – das klingt offener.', 'Im Hochformat läuft der Weg von oben nach unten, im Querformat von links nach rechts.'] },
+  { id: 'leistung', t: 'Leistung: wie stark ist das iPad ausgelastet?', k: 'leistung auslastung rechenlast cpu audio last prozent knacken aussetzer stottern drums drone sparsam anteil station signalweg geschätzt gemessen',
+    p: ['Oben im „Signalweg“ zeigt „Leistung“, wie stark die Audio-Berechnung gerade ausgelastet ist. Grün ist gut, gelb ab 70 %, rot ab 90 % – dann drohen Knackser.', 'Oben rechts in jeder Station steht ihr Anteil daran. Die Anteile sind geschätzt (aus gemessenen Grundkosten je Baustein), die Gesamtzahl misst das Gerät – auf dem iPad als Schätzung („geschätzt“).', 'Seit v119 sind Drums und Drone viel sparsamer: Die Drums mischen alle Schläge in einem Baustein, ihr Raumhall ist vorberechnet; die Drone rechnet sich nach dem Start im Hintergrund als Schleife vor und spielt danach fast ohne Rechenlast.'],
+    s: ['Oben im Looper auf „Signalweg“ tippen.', 'Oben auf den Balken „Leistung“ schauen.', 'Ist er gelb oder rot: an den Stationen nachsehen, wer den größten Anteil hat – z. B. Hall/Echo-Bus oder Amp – und das Teil ausschalten, das du gerade nicht brauchst.', '„Fertig“ schließt die Ansicht – dann wird nichts mehr gemessen.'],
+    tip: ['Nach dem Einschalten läuft die Drone ein paar Sekunden live (volle Last), dann blendet sie auf die Schleife um.', 'Änderst du Tonart, Modus oder Tempo, spielt die Drone kurz wieder live und rechnet die Schleife neu.'] },
   { id: 'szenen', t: 'Szenen: Strophe, Refrain, Bridge', k: 'szenen szene song-modus songmodus strophe refrain bridge teil wechsel umschalten spuren ebenen lautstärke arrangement live',
     p: ['Eine Szene merkt sich, welche Spuren und Ebenen hörbar sind und wie laut die Spuren sind. So baust du aus deinen Loops einen ganzen Song: z. B. Strophe nur Spur 1, Refrain alle Spuren, Bridge ohne Ebene 2. Bis zu 8 Szenen.'],
     s: ['Den Zustand für den ersten Teil herstellen (Spuren mit ■ stoppen oder starten, Ebenen stumm schalten, Lautstärken einstellen), dann unter den Spuren bei „Szenen“ auf „+ Szene“ tippen.', 'Für jeden weiteren Teil genauso. Gedrückt halten auf eine Szene = umbenennen (z. B. „Refrain“).', 'Antippen einer Szene: Mit „Wechsel am Loop-Anfang“ blinkt sie und schaltet genau am nächsten Loop-Anfang um. Ohne Haken schaltet sie sofort.', '„Szene merken“ überschreibt die aktive Szene mit dem jetzigen Zustand, „Szene löschen“ entfernt sie.', 'Beim Speichern einer Idee werden die Szenen mitgesichert und beim Laden wieder angezeigt.'],
