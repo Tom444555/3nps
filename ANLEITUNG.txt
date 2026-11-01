@@ -1173,3 +1173,25 @@ Gut zu wissen
    - Alle Quellen und Lizenzen: Datei inst/LIZENZ.txt. Es gibt (noch) keinen MIDI-Import, deshalb keine Zuordnung zu
      GM-Programmnummern; der MIDI-Export schreibt unverändert Notenspuren.
 
+
+107. Gesang trennen und Karaoke (v124)
+   - Looper: Hat eine Spur Inhalt (geladene Datei, Lied, Loop), steht im Spurkopf neben „Im Studio ↗“ der Knopf
+     „Gesang trennen“. Beim ersten Mal fragt die App, ob sie einmalig etwa 79 MB laden darf (zwei Modelle,
+     „Spleeter“ von Deezer, freie MIT-Lizenz). Danach liegen sie im Offline-Speicher der App und es geht ohne Internet.
+   - Während des Rechnens zeigt ein Fenster den Fortschritt; „Abbrechen“ hört sofort auf, an der Spur ändert sich dann nichts.
+     Gerechnet wird im Hintergrund (der Looper läuft weiter), etwa 10–20 Sekunden je Minute Lied (iPad: geschätzt).
+   - Ergebnis: Die Spur spielt jetzt die Begleitung ohne Gesang – der Knopf heißt dann „Karaoke ✓“. Antippen schaltet
+     zurück aufs Original („Karaoke“) und wieder hin, ohne dass die Wiedergabe stoppt. Der Gesang allein liegt auf der
+     nächsten freien Spur (angehalten, mit Fußtaster oder ▶ starten). Beide Teile werden außerdem als Ideen
+     „Name · Gesang“ und „Name · Begleitung“ gespeichert (auch fürs Studio und zum Teilen).
+   - Gesang + Begleitung ergeben zusammen genau das Original. Höhen über 11 kHz (Becken, Zischlaute) bleiben in der Begleitung.
+   - Ist die ganze Datei geladen, bekommt der Gesangstext-Editor die Gesangsspur automatisch (wie früher die Spur aus Moises):
+     Stimmkurve, Einrasten und „Zeiten erkennen“ hören dann nur noch den Gesang. Im Editor gibt es dafür auch den Knopf
+     „Gesang herauslösen (in der App)“ neben „Gesangsspur dazuladen (z. B. aus Moises)“.
+   - Mitsingen: Knopf „🎤 Karaoke“ über dem Text – trennt beim ersten Mal den Gesang des laufenden Liedes und spielt dann die
+     Begleitung; der Text läuft wie gewohnt mit. Daneben steht „Original: A3“ – der Ton, den der Originalgesang gerade singt.
+   - Studio: Audio-Region antippen → „Gesang trennen“: zwei neue Spuren „… · Gesang“ und „… · Begleitung“ unter der Spur,
+     die Original-Region wird stumm geschaltet. ↶ nimmt alles zurück.
+   - Grenzen: Die Trennung ist gut, aber nicht perfekt (Hall des Gesangs bleibt teils in der Begleitung, laute Gitarren-Soli
+     können im Gesang landen). Sehr lange Lieder brauchen viel Speicher; bei Problemen erst kürzere Ausschnitte trennen.
+     Der Karaoke-Zustand wird nicht gespeichert – nach dem Neuladen ist die Spur so, wie sie zuletzt gesichert wurde.
