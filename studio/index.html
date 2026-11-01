@@ -39,6 +39,9 @@ main{flex:1;min-height:0;position:relative}
 .th .n{flex:1;min-width:0}.th .n b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.th .n small{color:var(--mut);font-size:11px}
 .th .ms{display:flex;gap:3px}.th .ms button{appearance:none;width:24px;height:24px;border-radius:6px;background:var(--surf2);border:1px solid var(--line);font:700 10px system-ui;color:var(--mut);padding:0}
 .th .ms button.on.m{background:#6a6a72;color:#fff}.th .ms button.on.s{background:var(--y);color:#111;border-color:var(--y)}.th .ms button.on.r{background:var(--r);color:#fff;border-color:var(--r)}
+.th .ms button.tk{width:auto;padding:0 5px;color:var(--tc)}.th .ms button.tk.on{border-color:var(--tc)}.th.tko{align-items:flex-start}.th.tko .c{margin:0 0 8px;height:30px;align-self:auto}
+.strip select.out{width:100%;font-size:11px;padding:3px 4px}.strip.grp{border-color:#6a5a32;background:#1f1d19}.strip .gin{font-size:10px;color:var(--mut)}
+.tmrow{display:flex;gap:8px;align-items:center;margin:4px 0;flex-wrap:wrap}.tmrow input{width:76px}.takel .item{gap:8px}.takel .item.a{border-color:var(--acc)}
 .lanes{position:relative;overflow:hidden;touch-action:none}.lanes canvas{position:absolute;inset:0;width:100%;height:100%}
 .dock{flex:none;min-height:132px;max-height:42vh;overflow-y:auto;border-top:1px solid var(--line);display:grid;grid-template-columns:1.2fr 1fr 1.2fr;gap:8px;padding:8px 10px;background:#18181c}
 .box{background:var(--surf);border:1px solid var(--soft);border-radius:10px;padding:8px 10px;min-width:0}
@@ -181,6 +184,8 @@ main{flex:1;min-height:0;position:relative}
       <button class="btn" id="tRep">Wiederholen ×4</button>
       <button class="btn" id="tDel">Löschen</button>
       <button class="btn" id="tMk">+ Marker</button>
+      <button class="btn" id="tTempo" title="Tempo- und Taktartwechsel (Tempospur)">♩ Tempo/Takt</button>
+      <button class="btn" id="tTakes" title="Aufnahme im Cycle: jeder Durchgang wird ein Take">Takes</button>
       <button class="btn" id="tUndo">↶</button><button class="btn" id="tRedo">↷</button>
     </div>
     <div class="arr"><div class="heads" id="heads"><div class="heads-in" id="headsIn"></div></div><div class="lanes" id="lanes"><canvas id="cv"></canvas></div></div>
@@ -1662,7 +1667,7 @@ const SDB = (() => {
   // Speicher aufräumen: Audio, das kein Projekt mehr benutzt
   async function gc() {
     const ps = await all('projects'), used = new Set();
-    ps.forEach(p => (p.regions || []).forEach(r => r.audio && used.add(r.audio)));
+    ps.forEach(p => (p.regions || []).forEach(r => { if (r.audio) used.add(r.audio); (r.takes || []).forEach(t => t.audio && used.add(t.audio)); }));   // v121: Takes zählen mit
     const as = await tx('audio', 'readonly', st => st.getAllKeys());
     for (const id of as || []) if (!used.has(id)) await delAudio(id);
   }
@@ -1680,16 +1685,20 @@ const WORKLET_SRC = `
 class StudioEng extends AudioWorkletProcessor {
   constructor(o) { super(); this.n = o.processorOptions.n; this.ch = []; for (let i = 0; i < this.n; i++) this.ch.push(new Map());
     this.play = false; this.pos = 0; this.at = 0; this.cyc = null; this.tick = 0; this.pk = new Float32Array(this.n);
+    const ini = o.processorOptions.init; if (ini) { (ini.chunks || []).forEach(d => { const m = this.ch[d.tr]; if (m) m.set(d.k, d); }); if (ini.play) { this.play = true; this.pos = ini.play.pos; this.at = ini.play.at; } }
     this.port.onmessage = e => { const d = e.data;
       if (d.t === 'chunk') { const m = this.ch[d.tr]; if (m) m.set(d.k, d); }
       else if (d.t === 'drop') d.keys.forEach(k => { const [tr] = k.split(':'); const m = this.ch[+tr]; if (m) m.delete(k); });
       else if (d.t === 'clear') this.ch.forEach(m => m.clear());
-      else if (d.t === 'play') { this.play = true; this.pos = d.pos; this.at = d.at; }
+      else if (d.t === 'play') { this.play = true; this.pos = d.pos; this.at = d.at; this.fresh = true; }
       else if (d.t === 'stop') this.play = false;
       else if (d.t === 'seek') this.pos = d.pos;
-      else if (d.t === 'cycle') this.cyc = d.on ? [d.a, d.b] : null; }; }
+      else if (d.t === 'cycle') this.cyc = d.on ? [d.a, d.b] : null;
+      else if (d.t === 'ping') this.port.postMessage({ t: 'pong' }); }; }
   process(ins, outs) {
     const N = 128; if (!this.play || currentFrame + N <= this.at) { if (++this.tick % 8 === 0) this.port.postMessage({ t: 'pos', pos: this.pos, play: false, pk: Array.from(this.pk.fill(0)) }); return true; }
+    // v121: Start-Nachricht kam zu spät (Offline-Export, Ruckler) → Position nachziehen, damit alles im Zeitplan bleibt
+    if (this.fresh) { this.fresh = false; if (currentFrame > this.at) { let q = this.pos + currentFrame - this.at; if (this.cyc && this.pos < this.cyc[1] && q >= this.cyc[1]) q = this.cyc[0] + (q - this.cyc[0]) % (this.cyc[1] - this.cyc[0]); this.pos = q; this.at = currentFrame; } }
     let i0 = Math.max(0, this.at - currentFrame), p = this.pos;
     // Abschnitte innerhalb des Blocks (Cycle-Sprung)
     const segs = []; let i = i0;
@@ -1708,7 +1717,32 @@ class StudioEng extends AudioWorkletProcessor {
     return true;
   }
 }
-registerProcessor('studio-eng', StudioEng);`;
+registerProcessor('studio-eng', StudioEng);
+// v121: Kompressor mit Sidechain (Eingang 0 = Signal, Eingang 1 = Steuersignal). Nur bei gewähltem Sidechain im Graph.
+class StudioSC extends AudioWorkletProcessor {
+  static get parameterDescriptors() { return [{ name: 'th', defaultValue: -18, automationRate: 'k-rate' }, { name: 'ratio', defaultValue: 3, automationRate: 'k-rate' }, { name: 'att', defaultValue: 10, automationRate: 'k-rate' }, { name: 'rel', defaultValue: 120, automationRate: 'k-rate' }, { name: 'knee', defaultValue: 6, automationRate: 'k-rate' }]; }
+  constructor() { super(); this.env = 0; this.gr = 0; this.red = 0; this.n = 0; this.end = false; this.port.onmessage = () => { this.end = true; };
+    this.D = Math.round(0.006 * sampleRate); this.bl = new Float32Array(this.D + 1); this.br = new Float32Array(this.D + 1); this.w = 0; }   // 6 ms Vorlauf wie der eingebaute Kompressor (gleiche Laufzeit)
+  process(ins, outs, p) {
+    if (this.end) return false; const x = ins[0], k = ins[1], o = outs[0]; if (!o || !o[0]) return true; const N = o[0].length;
+    const th = p.th[0], ra = Math.max(1, p.ratio[0]), kn = Math.max(0, p.knee[0]), aA = Math.exp(-1 / (Math.max(0.1, p.att[0]) * 0.001 * sampleRate)), aR = Math.exp(-1 / (Math.max(1, p.rel[0]) * 0.001 * sampleRate)), dR = Math.exp(-1 / (0.005 * sampleRate));
+    const kL = k && k[0], kR = k && (k[1] || k[0]), xL = x && x[0], xR = x && (x[1] || x[0]), oL = o[0], oR = o[1] || o[0];
+    let env = this.env, gr = this.gr, mx = 0;
+    for (let i = 0; i < N; i++) {
+      const a = kL ? Math.max(kL[i] < 0 ? -kL[i] : kL[i], kR[i] < 0 ? -kR[i] : kR[i]) : 0;
+      env = a > env ? a : env * dR;
+      const lv = env > 1e-6 ? 20 * Math.log10(env) : -120, ov = lv - th;
+      let want = 0; if (ov > kn / 2) want = ov * (1 - 1 / ra); else if (kn > 0 && ov > -kn / 2) want = (1 - 1 / ra) * (ov + kn / 2) * (ov + kn / 2) / (2 * kn);
+      gr = want > gr ? want + (gr - want) * aA : want + (gr - want) * aR;
+      const g = gr > 0.001 ? Math.pow(10, -gr / 20) : 1; if (gr > mx) mx = gr;
+      const L = this.D + 1, rd = (this.w + 1) % L; this.bl[this.w] = xL ? xL[i] : 0; this.br[this.w] = xR ? xR[i] : 0; oL[i] = this.bl[rd] * g; if (oR !== oL) oR[i] = this.br[rd] * g; this.w = rd;
+    }
+    this.env = env; this.gr = gr; this.red = Math.max(mx, this.red * 0.9);
+    if (++this.n % 16 === 0) this.port.postMessage(this.red);
+    return true;
+  }
+}
+registerProcessor('studio-sc', StudioSC);`;
 
 const Engine = (() => {
   const B = 32768, MAXT = 24;
@@ -1728,7 +1762,7 @@ const Engine = (() => {
     ac(); if (ctx.state !== 'running') { try { await ctx.resume(); } catch (e) {} }
     if (!node) {
       wUrl = wUrl || URL.createObjectURL(new Blob([WORKLET_SRC], { type: 'application/javascript' }));
-      await ctx.audioWorklet.addModule(wUrl);
+      await ctx.audioWorklet.addModule(wUrl); SC_OK.add(ctx);
       node = new AudioWorkletNode(ctx, 'studio-eng', { numberOfInputs: 0, numberOfOutputs: MAXT, outputChannelCount: new Array(MAXT).fill(2), processorOptions: { n: MAXT } });
       node.port.onmessage = e => { const d = e.data; if (d.t === 'pos') { st.wpos = d.pos; if (d.cf) st.wcf = d.cf; st.lastMsg = ctx.currentTime; d.pk.forEach((v, i) => { st.pk[i] = Math.max(st.pk[i] * 0.85, v); }); } };
       if (P) build();
@@ -1742,8 +1776,19 @@ const Engine = (() => {
     for (let ch = 0; ch < 2; ch++) { const d = b.getChannelData(ch); let lp = 0, s = 1234567 + ch * 999; for (let i = 0; i < n; i++) { s = (s * 16807) % 2147483647; const w = s / 1073741823.5 - 1; const t = i / sr; lp += (w - lp) * (0.9 - 0.6 * t / sec); d[i] = lp * Math.pow(1 - i / n, 2.2) * (t < 0.01 ? t / 0.01 : 1) * 0.5; } }
     return b;
   }
+  // Kanalzug (Spur oder Gruppenbus): Sättigung → EQ7 → Kompressor (oder Sidechain-Kompressor) → Aufholen → Pan → Fader → Mute
+  function strip(c, t) {
+    const cp = (t.fx || {}).comp || {}, sc = !!(cp.on && cp.sc) && SC_OK.has(c);
+    const inN = c.createGain(), sat = c.createWaveShaper(), eq = EQ7.chain(c), comp = sc ? new AudioWorkletNode(c, 'studio-sc', { numberOfInputs: 2, numberOfOutputs: 1, outputChannelCount: [2], channelCount: 2, channelCountMode: 'explicit' }) : c.createDynamicsCompressor(),
+      mk = c.createGain(), pan = c.createStereoPanner(), vol = c.createGain(), mute = c.createGain(), sR = c.createGain(), sD = c.createGain(), an = c.createAnalyser();
+    an.fftSize = 512; sat.oversample = '2x';
+    inN.connect(sat); sat.connect(eq.input); eq.output.connect(comp); comp.connect(mk); mk.connect(pan); pan.connect(vol); vol.connect(mute); mute.connect(an);
+    if (sc) { comp.sc = true; comp.port.onmessage = e => { comp.red = e.data; }; }
+    return { id: t.id, inN, sat, eq, comp, mk, pan, vol, mute, sR, sD, an };
+  }
+  const SC_OK = new WeakSet();     // Kontexte, in denen 'studio-sc' geladen ist
   function makeGraph(c, proj, src) {
-    const g = { tr: [], c };
+    const g = { tr: [], grp: [], c };
     const m = proj.master || {};
     const mIn = c.createGain(), mEq = EQ7.chain(c), glue = c.createDynamicsCompressor(), lim = c.createDynamicsCompressor(), mVol = c.createGain(), meter = c.createAnalyser();
     meter.fftSize = 1024; mIn.connect(mEq.input); mEq.output.connect(glue); glue.connect(lim); lim.connect(mVol); mVol.connect(c.destination); mVol.connect(meter);
@@ -1753,31 +1798,48 @@ const Engine = (() => {
     const dly = c.createDelay(4), dfb = c.createGain(), dlp = c.createBiquadFilter(), dG = c.createGain(); dlp.type = 'lowpass'; dlp.frequency.value = 4200;
     dly.connect(dlp); dlp.connect(dfb); dfb.connect(dly); dlp.connect(dG); dG.connect(mIn);
     g.bus = { rev, revG, dly, dfb, dG };
+    const sends = n => { n.mute.connect(n.sR); n.sR.connect(rev); n.mute.connect(n.sD); n.sD.connect(dly); };
+    // v121: Gruppenbusse – nur gebaut, wenn mindestens eine Spur hineinführt (sonst keine Rechenlast)
+    const used = new Set(proj.tracks.map(t => t.out).filter(o => o && o !== 'master'));
+    (proj.groups || []).forEach(b => { if (!used.has(b.id)) { g.grp.push(null); return; } const n = strip(c, b); n.mute.connect(mIn); sends(n); g.grp.push(n); });
+    const gi = id => (proj.groups || []).findIndex(b => b.id === id);
     proj.tracks.forEach((t, i) => {
-      const inN = c.createGain(), sat = c.createWaveShaper(), eq = EQ7.chain(c), comp = c.createDynamicsCompressor(), mk = c.createGain(), pan = c.createStereoPanner(), vol = c.createGain(), mute = c.createGain(), sR = c.createGain(), sD = c.createGain(), an = c.createAnalyser();
-      an.fftSize = 512; sat.oversample = '2x';
-      inN.connect(sat); sat.connect(eq.input); eq.output.connect(comp); comp.connect(mk); mk.connect(pan); pan.connect(vol); vol.connect(mute); mute.connect(mIn); mute.connect(an);
-      mute.connect(sR); sR.connect(rev); mute.connect(sD); sD.connect(dly);
-      if (src && i < MAXT) src.connect(inN, i, 0);
-      g.tr.push({ id: t.id, inN, sat, eq, comp, mk, pan, vol, mute, sR, sD, an });
+      const n = strip(c, t), j = t.out && t.out !== 'master' ? gi(t.out) : -1;
+      n.mute.connect(j >= 0 && g.grp[j] ? g.grp[j].inN : mIn); sends(n);
+      if (src && i < MAXT) src.connect(n.inN, i, 0);
+      g.tr.push(n);
+    });
+    // v121: Sidechain – Steuersignal nach dem Fader der Quelle (vor Mute: stumm geschaltete Quelle duckt weiter)
+    const all = g.tr.concat(g.grp.filter(Boolean)), byId = new Map(all.map(n => [n.id, n]));
+    [...proj.tracks, ...(proj.groups || [])].forEach(t => {
+      const n = byId.get(t.id), cp = (t.fx || {}).comp || {}; if (!n || !n.comp.sc) return;
+      const q = byId.get(cp.sc); if (!q || q === n || (t.out && t.out === cp.sc)) return;   // keine Rückkopplung über den eigenen Bus
+      q.vol.connect(n.comp, 0, 1);
     });
     applyAll(g, proj);
     return g;
   }
   const db2g = d => Math.pow(10, d / 20);
-  function applyTrack(g, proj, i, smooth) {
-    const t = proj.tracks[i], n = g.tr[i]; if (!t || !n) return; const now = g.c.currentTime, P2 = (p, v) => smooth ? p.setTargetAtTime(v, now, 0.02) : p.setValueAtTime(v, now);
+  function soloState(proj) {
+    const gs = proj.groups || [], any = proj.tracks.some(x => x.solo) || gs.some(x => x.solo);
+    return { any, tr: t => !t.mute && (!any || t.solo || gs.some(b => b.id === t.out && b.solo)), grp: b => !b.mute && (!any || b.solo || proj.tracks.some(t => t.out === b.id && t.solo)) };
+  }
+  function applyChan(g, n, t, on, smooth, autoOk) {
+    if (!t || !n) return; const now = g.c.currentTime, P2 = (p, v) => smooth ? p.setTargetAtTime(v, now, 0.02) : p.setValueAtTime(v, now);
     const fx = t.fx || {}, cp = fx.comp || {}, sa = fx.sat || {};
     n.sat.curve = sa.on ? satCurve((sa.drive || 30) / 100) : null;
     n.eq.set(t.eq || EQ7.flat(), smooth);
-    const on = !!cp.on; n.comp.threshold.value = on ? (cp.th != null ? cp.th : -18) : 0; n.comp.ratio.value = on ? (cp.ratio || 3) : 1; n.comp.knee.value = on ? 6 : 0;
-    n.comp.attack.value = (cp.att || 10) / 1000; n.comp.release.value = (cp.rel || 120) / 1000;
-    P2(n.mk.gain, on ? db2g(cp.mk || 0) : 1);
-    if (!(t.auto && t.auto.pan && t.auto.pan.length && st.playing)) P2(n.pan.pan, (t.pan || 0) / 100);
-    if (!(t.auto && t.auto.vol && t.auto.vol.length && st.playing)) P2(n.vol.gain, db2g(t.vol != null ? t.vol : 0));
-    const anySolo = proj.tracks.some(x => x.solo); P2(n.mute.gain, t.mute || (anySolo && !t.solo) ? 0 : 1);
+    const cOn = !!cp.on;
+    if (n.comp.sc) { const q = n.comp.parameters; q.get('th').value = cp.th != null ? cp.th : -18; q.get('ratio').value = cp.ratio || 3; q.get('att').value = cp.att || 10; q.get('rel').value = cp.rel || 120; q.get('knee').value = 6; }
+    else { n.comp.threshold.value = cOn ? (cp.th != null ? cp.th : -18) : 0; n.comp.ratio.value = cOn ? (cp.ratio || 3) : 1; n.comp.knee.value = cOn ? 6 : 0; n.comp.attack.value = (cp.att || 10) / 1000; n.comp.release.value = (cp.rel || 120) / 1000; }
+    P2(n.mk.gain, cOn ? db2g(cp.mk || 0) : 1);
+    if (!(autoOk && t.auto && t.auto.pan && t.auto.pan.length && st.playing)) P2(n.pan.pan, (t.pan || 0) / 100);
+    if (!(autoOk && t.auto && t.auto.vol && t.auto.vol.length && st.playing)) P2(n.vol.gain, db2g(t.vol != null ? t.vol : 0));
+    P2(n.mute.gain, on ? 1 : 0);
     P2(n.sR.gain, (fx.rev || 0) / 100); P2(n.sD.gain, (fx.dly || 0) / 100);
   }
+  function applyTrack(g, proj, i, smooth) { const S = soloState(proj), t = proj.tracks[i]; if (!t) return; applyChan(g, g.tr[i], t, S.tr(t), smooth, true); applyGroups(g, proj, smooth, S); }
+  function applyGroups(g, proj, smooth, S) { S = S || soloState(proj); (proj.groups || []).forEach((b, j) => { if (g.grp[j]) applyChan(g, g.grp[j], b, S.grp(b), smooth, false); }); }
   function applyMaster(g, proj) {
     const m = proj.master || {}, M = g.master; M.mEq.set(m.eq || EQ7.flat());
     const gl = m.glue !== false; M.glue.threshold.value = gl ? -14 : 0; M.glue.ratio.value = gl ? 2 : 1; M.glue.attack.value = 0.02; M.glue.release.value = 0.2; M.glue.knee.value = 6;
@@ -1785,10 +1847,10 @@ const Engine = (() => {
     M.mVol.gain.value = db2g(m.vol || 0);
     const b = proj.bus || {}; g.bus.revG.gain.value = 1; g.bus.dly.delayTime.value = Math.min(3.9, 60 / proj.bpm * (b.dlyBeats || 0.75)); g.bus.dfb.gain.value = (b.dlyFb != null ? b.dlyFb : 35) / 100; g.bus.dG.gain.value = 0.8;
   }
-  function applyAll(g, proj) { proj.tracks.forEach((t, i) => applyTrack(g, proj, i)); applyMaster(g, proj); }
+  function applyAll(g, proj) { const S = soloState(proj); proj.tracks.forEach((t, i) => applyChan(g, g.tr[i], t, S.tr(t), false, true)); applyGroups(g, proj, false, S); applyMaster(g, proj); }
   function build() {
     if (!ctx || !node || !P) return;
-    if (G) { try { G.tr.forEach(n => { n.inN.disconnect(); n.mute.disconnect(); }); G.master.mVol.disconnect(); G.master.mIn.disconnect(); } catch (e) {} try { node.disconnect(); } catch (e) {} }
+    if (G) { try { G.tr.concat(G.grp.filter(Boolean)).forEach(n => { n.inN.disconnect(); n.mute.disconnect(); if (n.comp.sc) { n.eq.output.disconnect(); n.comp.disconnect(); n.comp.port.postMessage('end'); } }); G.master.mVol.disconnect(); G.master.mIn.disconnect(); } catch (e) {} try { node.disconnect(); } catch (e) {} }
     G = makeGraph(ctx, P, node);
     if (window.Inst) Inst.attach(G);
   }
@@ -1799,9 +1861,10 @@ const Engine = (() => {
     for (const r of proj.regions) {
       if (r.track !== t.id || r.kind !== 'audio' || r.muted) continue;
       const s = Math.max(a, r.start), e = Math.min(b, regEnd(r)); if (e <= s) continue;
-      const d = await SDB.read(r.audio, r.offset + (s - r.start), e - s);
       if (!L) { L = new Float32Array(B); R = new Float32Array(B); }
       const g = db2g(r.gain || 0), fi = r.fi || 0, fo = r.fo || 0;
+      if (r.takes && r.takes.length) { await takeData(proj, r, s, e, a, L, R, g, fi, fo); continue; }
+      const d = await SDB.read(r.audio, r.offset + (s - r.start), e - s);
       for (let f = s; f < e; f++) {
         let w = g; const p = f - r.start;
         if (fi && p < fi) w *= Math.sin(Math.PI / 2 * p / fi);
@@ -1810,6 +1873,34 @@ const Engine = (() => {
       }
     }
     return L ? { l: L, r: R } : null;
+  }
+  // v121: Take-Ordner – Comp-Abschnitte {a, b, k} in Take-Zeit (= Regionsposition + offset), an Schnitten ~10 ms Überblendung (cos²)
+  function compSegs(r) {
+    const T = r.tlen || r.len + (r.offset || 0), ids = new Set(r.takes.map(x => x.id));
+    let c = (r.comp || []).filter(x => ids.has(x.k) && x.b > x.a).map(x => ({ a: Math.max(0, Math.round(x.a)), b: Math.min(T, Math.round(x.b)), k: x.k })).filter(x => x.b > x.a).sort((x, y) => x.a - y.a);
+    if (!r.comp) c = [{ a: 0, b: T, k: r.takes[r.takes.length - 1].id }];
+    const out = []; c.forEach(x => { const l = out[out.length - 1]; if (l && l.k === x.k && x.a <= l.b + 1) l.b = Math.max(l.b, x.b); else out.push(Object.assign({}, x)); });
+    return out;
+  }
+  async function takeData(proj, r, s, e, a, L, R, g, fi, fo) {
+    const sr = proj.sr || ctx.sampleRate, XF = 2 * Math.round(sr * 0.005), off = r.offset || 0, T = r.tlen || r.len + off, segs = compSegs(r);
+    const ta = s - r.start + off, tb = e - r.start + off;          // Take-Zeit dieses Blockabschnitts
+    for (let i = 0; i < segs.length; i++) {
+      const sg = segs[i], tk = r.takes.find(x => x.id === sg.k); if (!tk) continue;
+      const pv = segs[i - 1], nx = segs[i + 1];
+      const hi = sg.a <= 0 ? 0 : Math.floor(Math.min(XF / 2, (sg.b - sg.a) / 2, pv && pv.b >= sg.a - 1 ? (pv.b - pv.a) / 2 : XF / 2));
+      const ho = sg.b >= T ? 0 : Math.floor(Math.min(XF / 2, (sg.b - sg.a) / 2, nx && nx.a <= sg.b + 1 ? (nx.b - nx.a) / 2 : XF / 2));
+      const x0 = Math.round(Math.max(ta, sg.a - hi)), x1 = Math.round(Math.min(tb, sg.b + ho)); if (x1 <= x0) continue;
+      const d = await SDB.read(tk.audio, (tk.offset || 0) + x0, x1 - x0), tg = g * db2g(tk.gain || 0);
+      for (let t = x0; t < x1; t++) {
+        let w = tg; const p = t - off;
+        if (hi && t < sg.a + hi) { const c = Math.cos(Math.PI / 2 * (sg.a + hi - t) / (2 * hi)); w *= c * c; }
+        if (ho && t > sg.b - ho) { const c = Math.cos(Math.PI / 2 * (t - (sg.b - ho)) / (2 * ho)); w *= c * c; }
+        if (fi && p < fi) w *= Math.sin(Math.PI / 2 * p / fi);
+        if (fo && p > r.len - fo) w *= Math.sin(Math.PI / 2 * Math.max(0, r.len - p) / fo);
+        const j = t - x0, o = r.start + p - a; L[o] += d.l[j] * w; R[o] += d.r[j] * w;
+      }
+    }
   }
   function wanted(pos, ahead) {
     const sr = ctx.sampleRate, out = new Set(), cyc = P.cycle && P.cycle.on && P.cycle.b > P.cycle.a ? P.cycle : null;
@@ -1890,10 +1981,11 @@ const Engine = (() => {
   const tbuf = new Float32Array(512);
   function level(i) { if (!G || !G.tr[i]) return 0; G.tr[i].an.getFloatTimeDomainData(tbuf); let m = 0; for (let k = 0; k < 512; k += 2) { const v = Math.abs(tbuf[k]); if (v > m) m = v; } return m; }
   const mbuf = new Float32Array(1024);
+  function groupLevel(j) { const n = G && G.grp[j]; if (!n) return 0; n.an.getFloatTimeDomainData(tbuf); let m = 0; for (let k = 0; k < 512; k += 2) { const v = Math.abs(tbuf[k]); if (v > m) m = v; } return m; }
   function masterLevel() { if (!G) return 0; G.master.meter.getFloatTimeDomainData(mbuf); let m = 0; for (let k = 0; k < 1024; k += 2) { const v = Math.abs(mbuf[k]); if (v > m) m = v; } return m; }
   return {
-    ac, ensure, play, stop, seek, curPos, setProject, dirty, setCycle, level, masterLevel, makeGraph, applyTrack: (i, s) => G && applyTrack(G, P, i, s), applyMaster: () => G && applyMaster(G, P),
-    blockData, B, MAXT, WORKLET_SRC, get graph() { return G; }, get playing() { return st.playing; }, get project() { return P; }, on: (ev, f) => listeners[ev].push(f), sr: () => ac().sampleRate, st
+    ac, ensure, play, stop, seek, curPos, setProject, dirty, setCycle, level, groupLevel, masterLevel, makeGraph, applyTrack: (i, s) => G && applyTrack(G, P, i, s), applyMaster: () => G && applyMaster(G, P),
+    applyAll: () => G && applyAll(G, P), compSegs, SC_OK, blockData, B, MAXT, WORKLET_SRC, get graph() { return G; }, get playing() { return st.playing; }, get project() { return P; }, on: (ev, f) => listeners[ev].push(f), sr: () => ac().sampleRate, st
   };
 })();
 
@@ -1901,7 +1993,43 @@ const Engine = (() => {
 <script>
 // ---------- Studio: Projekt (Daten, Rückgängig, Sichern) ----------
 // Projekt = kleine JSON-Struktur; Audio liegt getrennt (SDB). Zeiten in Bildern (Frames) bei der Projekt-Abtastrate,
-// MIDI-Noten in Schlägen relativ zum Regionsanfang. Konstantes Tempo je Projekt.
+// MIDI-Noten in Schlägen relativ zum Regionsanfang. v121: Tempokarte (TMap) – Grundtempo P.bpm/P.sig + Wechsel P.tempo
+// = [{bar, bpm?, sig?}] an Taktgrenzen (sprunghaft); ohne P.tempo = konstantes Tempo wie bisher.
+const TMap = (() => {
+  const cache = new WeakMap();
+  function key(P) { let k = P.sr + '|' + P.bpm + '|' + P.sig; const t = P.tempo; if (t && t.length) for (const m of t) k += '|' + m.bar + ':' + (m.bpm || '') + ':' + (m.sig || ''); return k; }
+  function segs(P) {
+    const k = key(P), c = cache.get(P); if (c && c.k === k) return c.s;
+    const sr = P.sr || 48000, sp = b => sr * 60 / b, out = [{ bar: 0, beat: 0, f: 0, bpm: P.bpm || 100, sig: P.sig || 4 }]; out[0].spb = sp(out[0].bpm);
+    const ch = (P.tempo || []).filter(m => m && m.bar > 0).map(m => ({ bar: Math.round(m.bar), bpm: +m.bpm || 0, sig: Math.round(+m.sig || 0) })).sort((a, b) => a.bar - b.bar);
+    for (const m of ch) {
+      let s = out[out.length - 1];
+      if (m.bar > s.bar) { const n = m.bar - s.bar; s = { bar: m.bar, beat: s.beat + n * s.sig, f: s.f + n * s.sig * s.spb, bpm: s.bpm, sig: s.sig }; out.push(s); }
+      if (m.bpm >= 20) s.bpm = m.bpm; if (m.sig >= 1) s.sig = m.sig; s.spb = sp(s.bpm);
+    }
+    cache.set(P, { k, s: out }); return out;
+  }
+  const byF = (S, f) => { let i = S.length - 1; while (i > 0 && S[i].f > f + 1e-6) i--; return S[i]; };
+  const byB = (S, b) => { let i = S.length - 1; while (i > 0 && S[i].beat > b + 1e-9) i--; return S[i]; };
+  const byBar = (S, b) => { let i = S.length - 1; while (i > 0 && S[i].bar > b + 1e-9) i--; return S[i]; };
+  const f2beat = (P, f) => { const s = byF(segs(P), f); return s.beat + (f - s.f) / s.spb; };
+  const beat2f = (P, b) => { const s = byB(segs(P), b); return s.f + (b - s.beat) * s.spb; };
+  const f2bar = (P, f) => { const s = byF(segs(P), f); return s.bar + (f - s.f) / (s.spb * s.sig); };
+  const bar2f = (P, b) => { const s = byBar(segs(P), b); return s.f + (b - s.bar) * s.sig * s.spb; };
+  const at = (P, f) => byF(segs(P), f);
+  // Takt/Schlag/16tel an einer Stelle (0-basiert)
+  function pos(P, f) { const s = byF(segs(P), f), bt = (f - s.f) / s.spb, bi = Math.floor(bt / s.sig + 1e-9), r = bt - bi * s.sig, b = Math.floor(r + 1e-9); return { bar: s.bar + bi, beat: b, sub: Math.max(0, Math.floor((r - b) * 4 + 1e-6)), sig: s.sig, bpm: s.bpm }; }
+  // jeder Schlag in [a, b): fn(Bild, Takt-Eins?, Schlagnummer)
+  function beats(P, a, b, fn) { const S = segs(P); for (let k = Math.ceil(f2beat(P, a) - 1e-6), g = 0; g < 100000; k++, g++) { const f = beat2f(P, k); if (f >= b) break; if (f < a) continue; const s = byB(S, k); fn(f, ((k - s.beat) % s.sig + s.sig) % s.sig === 0, k); } }
+  // Taktgrenze an/vor/nach f
+  const barFloor = (P, f) => bar2f(P, Math.floor(f2bar(P, f) + 1e-6));
+  const barCeil = (P, f) => bar2f(P, Math.ceil(f2bar(P, f) - 1e-6));
+  // Taktart des Schlags k (für Taktstriche)
+  function isBarBeat(P, k) { const s = byB(segs(P), k), m = ((k - s.beat) % s.sig + s.sig) % s.sig; return m < 1e-6 || s.sig - m < 1e-6; }
+  const changes = P => segs(P).slice(1);
+  return { segs, f2beat, beat2f, f2bar, bar2f, at, pos, beats, barFloor, barCeil, isBarBeat, changes };
+})();
+window.TMap = TMap;
 const Proj = (() => {
   const COLORS = ['#e4f2ff', '#2de2ff', '#ffd27a', '#86a8ff', '#f2c230', '#c26bff', '#8ad94e', '#ff8a3d', '#ff6fa8', '#3ddbb0', '#b8c4d6', '#ffb36b'];
   let P = null, undo = [], redo = [], saveT = null;
@@ -1919,10 +2047,30 @@ const Proj = (() => {
     if (kind === 'drum') { t.kit = 'rock'; }
     return t;
   }
-  const spb = () => P.sr * 60 / P.bpm;            // Bilder pro Schlag
-  const bar = () => spb() * P.sig;
-  const f2bar = f => f / bar();
-  const snap = (f, g) => { const u = g === 'bar' ? bar() : g === 'beat' ? spb() : g === '16' ? spb() / 4 : 0; return u ? Math.round(f / u) * u : Math.round(f); };
+  const spb = f => TMap.at(P, f || 0).spb;            // Bilder pro Schlag (an der Stelle f, sonst Grundtempo)
+  const bar = f => { const s = TMap.at(P, f || 0); return s.spb * s.sig; };
+  const f2bar = f => TMap.f2bar(P, f), bar2f = b => Math.round(TMap.bar2f(P, b)), f2beat = f => TMap.f2beat(P, f), beat2f = b => Math.round(TMap.beat2f(P, b));
+  const snap = (f, g) => g === 'bar' ? Math.round(TMap.bar2f(P, Math.round(TMap.f2bar(P, f)))) : g === 'beat' ? Math.round(TMap.beat2f(P, Math.round(TMap.f2beat(P, f)))) : g === '16' ? Math.round(TMap.beat2f(P, Math.round(TMap.f2beat(P, f) * 4) / 4)) : Math.round(f);
+  // Länge in Bildern, die eine Noten-/Drummer-Region ab start braucht, um gleich viele Schläge zu behalten
+  const keepBeats = (r, start) => r.kind === 'audio' ? r.len : Math.max(1, Math.round(TMap.beat2f(P, TMap.f2beat(P, start) + TMap.f2beat(P, r.start + r.len) - TMap.f2beat(P, r.start))) - start);
+  // Tempokarte ändern: Noten/Drummer, Marker und Cycle bleiben am Takt, Audio bleibt in Sekunden (opts.audio: Audio-Anfänge wandern mit, Automation auch)
+  function retempo(fn, opts) {
+    change('tempo', p => {
+      const old = { sr: p.sr, bpm: p.bpm, sig: p.sig, tempo: JSON.parse(JSON.stringify(p.tempo || [])) }; fn(p);
+      if (p.tempo) { p.tempo = p.tempo.filter(m => m.bar > 0 && (m.bpm || m.sig)).sort((a, b) => a.bar - b.bar); if (!p.tempo.length) delete p.tempo; }
+      const mv = f => Math.round(TMap.beat2f(p, TMap.f2beat(old, f))), au = opts && opts.audio;
+      p.regions.forEach(r => { if (r.kind === 'audio') { if (au) r.start = Math.max(0, mv(r.start)); return; } const e = mv(r.start + r.len); r.start = Math.max(0, mv(r.start)); r.len = Math.max(1, e - r.start); });
+      (p.markers || []).forEach(m => { m.f = mv(m.f); }); if (p.cycle) { p.cycle.a = Math.max(0, mv(p.cycle.a)); p.cycle.b = Math.max(0, mv(p.cycle.b)); }
+      if (au) p.tracks.forEach(t => ['vol', 'pan'].forEach(a => ((t.auto || {})[a] || []).forEach(q => { q.f = Math.max(0, mv(q.f)); })));
+    });
+    Engine.dirty(true);
+  }
+  // ---- v121: Gruppenbusse ----
+  const GMAX = 4;
+  function group(k) { return { id: 'g' + k, name: 'Bus ' + k, color: COLORS[(k + 5) % COLORS.length], vol: 0, pan: 0, mute: false, solo: false, eq: EQ7.flat(), fx: { comp: { on: false, th: -18, ratio: 3, att: 10, rel: 120, mk: 0 }, sat: { on: false, drive: 30 }, rev: 0, dly: 0 } }; }
+  const chan = id => P && (P.tracks.find(t => t.id === id) || (P.groups || []).find(g => g.id === id));
+  function ensureGroup(p, id) { p.groups = p.groups || []; let g = p.groups.find(x => x.id === id); if (!g) { g = group(+id.slice(1)); p.groups.push(g); p.groups.sort((a, b) => a.id.localeCompare(b.id)); } return g; }
+  function editChan(id, fn, opts) { if (P.tracks.some(t => t.id === id)) return editTrack(id, fn, opts); change('mix', p => { const g = (p.groups || []).find(x => x.id === id); if (g) fn(g); }, opts); Engine.applyAll(); }
   function emit(what) { listeners.forEach(fn => { try { fn(what); } catch (e) { console.error(e); } }); }
   function snapshot() { return JSON.stringify(P); }
   function change(what, fn, opts) {
@@ -1952,20 +2100,21 @@ const Proj = (() => {
       const x = p.regions.find(q => q.id === id), cut = at - x.start;
       r2 = JSON.parse(JSON.stringify(x)); r2.id = nid('r'); r2.start = at; r2.len = x.len - cut; r2.fi = 0;
       if (x.kind === 'audio') r2.offset = x.offset + cut;
-      if (x.notes) { const cb = cut / spb(); r2.notes = x.notes.filter(n => n.t >= cb).map(n => Object.assign({}, n, { t: n.t - cb })); x.notes = x.notes.filter(n => n.t < cb).map(n => Object.assign({}, n, { d: Math.min(n.d, cb - n.t) })); }
-      if (x.kind === 'drum') r2.barOff = (x.barOff || 0) + cut / bar();
+      if (x.notes) { const cb = TMap.f2beat(p, at) - TMap.f2beat(p, x.start); r2.notes = x.notes.filter(n => n.t >= cb).map(n => Object.assign({}, n, { t: n.t - cb })); x.notes = x.notes.filter(n => n.t < cb).map(n => Object.assign({}, n, { d: Math.min(n.d, cb - n.t) })); }
+      if (x.kind === 'drum') r2.barOff = (x.barOff || 0) + Math.round(TMap.f2bar(p, at) - TMap.f2bar(p, x.start));
+      if (x.takes) r2.takes = JSON.parse(JSON.stringify(x.takes));
       x.len = cut; x.fo = 0; p.regions.push(r2);
     });
     Engine.dirty(); return r2;
   }
-  function duplicate(id) { const r = reg(id); if (!r) return null; const c = JSON.parse(JSON.stringify(r)); c.id = nid('r'); c.start = r.start + r.len; return addRegion(c); }
-  function repeat(id, n) { const r = reg(id); if (!r) return; change('regions', p => { for (let i = 1; i <= n; i++) { const c = JSON.parse(JSON.stringify(r)); c.id = nid('r'); c.start = r.start + r.len * i; p.regions.push(c); } }); Engine.dirty(); }
+  function duplicate(id) { const r = reg(id); if (!r) return null; const c = JSON.parse(JSON.stringify(r)); c.id = nid('r'); c.start = r.start + r.len; c.len = keepBeats(r, c.start); return addRegion(c); }
+  function repeat(id, n) { const r = reg(id); if (!r) return; change('regions', p => { let s = r.start + r.len; for (let i = 1; i <= n; i++) { const c = JSON.parse(JSON.stringify(r)); c.id = nid('r'); c.start = s; c.len = keepBeats(r, s); s += c.len; p.regions.push(c); } }); Engine.dirty(); }
   function delRegion(id) { change('regions', p => { p.regions = p.regions.filter(r => r.id !== id); }); Engine.dirty(); }
   function editRegion(id, fn, opts) { change('regions', p => { const r = p.regions.find(q => q.id === id); if (r) fn(r); }, opts); Engine.dirty(); }
   function editTrack(id, fn, opts) { const i = tIndex(id); change('mix', p => { fn(p.tracks[i]); }, opts); Engine.applyTrack(i, true); }
   function projEnd() { let e = 0; P.regions.forEach(r => { e = Math.max(e, r.start + r.len); }); return e; }
   return {
-    get P() { return P; }, COLORS, nid, blank, track, spb, bar, f2bar, snap, change, undo: undoStep, redo: redoStep, canUndo: () => undo.length > 0, canRedo: () => redo.length > 0,
+    get P() { return P; }, COLORS, nid, blank, track, spb, bar, f2bar, bar2f, f2beat, beat2f, snap, keepBeats, retempo, group, chan, ensureGroup, editChan, GMAX, change, undo: undoStep, redo: redoStep, canUndo: () => undo.length > 0, canRedo: () => redo.length > 0,
     save, load, set, newProject, list, remove, addTrack, delTrack, addRegion, split, duplicate, repeat, delRegion, editRegion, editTrack, reg, tIndex, projEnd,
     on: fn => listeners.push(fn), emit
   };
@@ -2010,8 +2159,8 @@ const Sched = (() => {
     o.connect(g); g.connect(clickOut); o.start(t); o.stop(t + 0.06);
   }
   function clickProd(a, b, ta, ac) {
-    if (!click && !(window.Rec && Rec.active())) return; const spb = Proj.spb(), sig = Proj.P.sig;
-    for (let k = Math.ceil(a / spb - 1e-6); k * spb < b; k++) blip(ac, ta + (k * spb - a) / sr(), k % sig === 0);
+    if (!click && !(window.Rec && Rec.active())) return;
+    TMap.beats(Proj.P, a, b, (f, one) => blip(ac, ta + (f - a) / sr(), one));   // v121: folgt der Tempokarte
   }
   prods.push(clickProd);
   // ---- Automation (Lautstärke in dB, Panorama −100…100) ----
@@ -2082,7 +2231,7 @@ const Imp = (() => {
     say = say || (() => {});
     let p = Proj.P; const sr = Engine.sr();
     if (opts.mode === 'new' || !p) { p = await Proj.newProject(it.name); Proj.change('tempo', q => { q.bpm = Math.round((it.bpm || 100) * 100) / 100; q.key = (it.root || 'C') + ' ' + shortMode(it.mode); }); }
-    const at = Math.round(((opts.bar || 1) - 1) * Proj.bar()), reps = Math.max(1, opts.reps || 1);
+    const at = Proj.bar2f((opts.bar || 1) - 1), reps = Math.max(1, opts.reps || 1);
     const ratio = (it.bpm && opts.fit !== false) ? Proj.P.bpm / it.bpm : 1;
     const tracks = []; let maxLen = 0;
     if (it.session) {
@@ -2120,7 +2269,7 @@ const Imp = (() => {
     let x = { l: buf.getChannelData(0), r: buf.numberOfChannels > 1 ? buf.getChannelData(1) : buf.getChannelData(0) };
     if (buf.sampleRate !== sr) x = await resample({ l: x.l.slice(), r: x.r.slice() }, buf.sampleRate, sr);
     const m = await SDB.putAudio(it.name, sr, x.l, x.r !== x.l ? x.r : null);
-    const at = Math.round(((opts.bar || 1) - 1) * Proj.bar());
+    const at = Proj.bar2f((opts.bar || 1) - 1);
     Proj.change('regions', q => { const t = Proj.track('audio', it.name); q.tracks.push(t); q.regions.push({ id: Proj.nid('r'), track: t.id, kind: 'audio', audio: m.id, start: at, offset: 0, len: m.frames, gain: 0, fi: 0, fo: 0, name: it.name }); if (it.tok && it.tok.length) q.lyrics = (it.tok || []).map(w => w.w).join(' '); });
     Engine.dirty(true); say('„' + it.name + '“ übernommen.');
   }
@@ -2131,7 +2280,7 @@ const Imp = (() => {
     const v = s.versions[s.cur != null ? s.cur : s.versions.length - 1]; say = say || (() => {});
     if (opts.mode === 'new' || !Proj.P) { await Proj.newProject(s.name); }
     Proj.change('tempo', q => { q.bpm = v.bpm; q.key = LiedCore.keyLabel(v.key); });
-    const sr = Engine.sr(), at = Math.round(((opts.bar || 1) - 1) * Proj.bar()), spb = Proj.spb();
+    const sr = Engine.sr(), at = Proj.bar2f((opts.bar || 1) - 1), ab = Proj.f2beat(at);
     say('Rechne die Aufnahmen des Songs …');
     const a = await LiedExport.render(v, rid => SDB.looperGet('meta', 'lied-audio:' + rid), sr);
     let m = null; if (a) m = await SDB.putAudio(s.name + ' · Aufnahmen', sr, a.L, a.R);
@@ -2140,8 +2289,8 @@ const Imp = (() => {
     Proj.change('regions', q => {
       if (m) { const t = Proj.track('audio', 'Aufnahmen (Songwriting)'); q.tracks.push(t); q.regions.push({ id: Proj.nid('r'), track: t.id, kind: 'audio', audio: m.id, start: at, offset: 0, len: m.frames, gain: 0, fi: 0, fo: 0, name: s.name }); }
       let last = null; q.markers = (opts.mode === 'new' ? [] : q.markers || []);
-      tl.entries.forEach(e => { if (last && last.label === e.label) return; q.markers.push({ f: at + Math.round(e.start * spb), name: e.label, color: COL[e.p.type] || '#8ad94e' }); last = e; });
-      q.chords = tl.chords.map(c => ({ b: (at / spb) + c.start, beats: c.beats, name: LiedCore.cname ? LiedCore.cname(c.r, c.t) : ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'][c.r] + c.t, r: c.r, t: c.t }));
+      tl.entries.forEach(e => { if (last && last.label === e.label) return; q.markers.push({ f: Proj.beat2f(ab + e.start), name: e.label, color: COL[e.p.type] || '#8ad94e' }); last = e; });
+      q.chords = tl.chords.map(c => ({ b: ab + c.start, beats: c.beats, name: LiedCore.cname ? LiedCore.cname(c.r, c.t) : ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'][c.r] + c.t, r: c.r, t: c.t }));
       q.lyrics = LiedExport.lyricsText(s, v);
     });
     Engine.dirty(true); say('Song „' + s.name + '“ übernommen: ' + (m ? 'Aufnahmen, ' : '') + tl.entries.length + ' Teile als Marker, ' + tl.chords.length + ' Akkorde.');
@@ -2169,7 +2318,7 @@ class StudioRec extends AudioWorkletProcessor {
   }
 }
 registerProcessor('studio-rec', StudioRec);`;
-  let stream = null, srcN = null, node = null, mon = null, w = null, on = false, pos0 = 0, trackId = null, lvl = 0, pend = Promise.resolve(), cycWas = null, endWait = null;
+  let cyc = null, stream = null, srcN = null, node = null, mon = null, w = null, on = false, pos0 = 0, trackId = null, lvl = 0, pend = Promise.resolve(), cycWas = null, endWait = null;
   const pref = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } };
   const setPref = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
   function latMs() {
@@ -2212,29 +2361,33 @@ registerProcessor('studio-rec', StudioRec);`;
     if (on) return; const P = Proj.P;
     const ac = await openMic(); const t = target(); trackId = t.id;
     if (Engine.playing) Engine.stop();
-    const sr = ac.sampleRate, bar = Proj.bar(), countIn = Sched.countIn;
+    const sr = ac.sampleRate, countIn = Sched.countIn;
     pos0 = Math.round(Engine.curPos());
-    // Cycle während der Aufnahme aus (lineare Aufnahme), danach wieder an
-    cycWas = P.cycle.on; if (P.cycle.on) { P.cycle.on = false; Engine.setCycle(); }
+    // v121: Takes – im Cycle läuft die Aufnahme über alle Durchgänge weiter (Start am Cycle-Anfang); sonst Cycle aus (lineare Aufnahme)
+    cyc = P.cycle.on && P.cycle.b > P.cycle.a && takesOn() ? { a: P.cycle.a, b: P.cycle.b } : null;
+    cycWas = P.cycle.on; if (cyc) pos0 = cyc.a; else if (P.cycle.on) { P.cycle.on = false; Engine.setCycle(); }
+    const bar = Math.max(1, pos0 - Proj.bar2f(Proj.f2bar(pos0) - 1));   // Länge des Takts vor dem Start (Vorzähler)
     w = SDB.writer(t.name + ' · ' + new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }), sr, stereo());
     const pre = countIn ? bar : 0;
     await Engine.seek(Math.max(0, pos0 - pre));
     const pr = countIn && pos0 - pre < 0 ? pre - pos0 : 0;    // Vorzähler vor Takt 1: Klick ohne Transport
     on = true; monitor(pref('3nps-studio-mon', '0') === '1');
-    if (pr) { const t0 = ac.currentTime + 0.1, spb = Proj.spb() / sr; for (let k = 0; k * spb < pr / sr - 1e-6; k++) Sched.blip(ac, t0 + k * spb, k % P.sig === 0); await new Promise(r => setTimeout(r, (pr / sr) * 1000 + 100 - 40)); }
+    if (pr) { const t0 = ac.currentTime + 0.1, sg = TMap.at(P, 0), spb = sg.spb / sr; for (let k = 0; k * spb < pr / sr - 1e-6; k++) Sched.blip(ac, t0 + k * spb, k % sg.sig === 0); await new Promise(r => setTimeout(r, (pr / sr) * 1000 + 100 - 40)); }
     await Engine.play();
     // Transport-Start = Engine.st.t0; Aufnahmebeginn = Zeitpunkt, an dem die Position pos0 erreicht wird
     const startT = Engine.st.t0 + (pos0 - Engine.st.pos0) / sr;
     node.port.postMessage({ t: 'start', from: Math.round(startT * sr), stereo: stereo() });
-    UI.say('● Aufnahme auf „' + t.name + '“ … (Stopp mit ▶/■ oder ●)'); UI.sync();
+    UI.say('● Aufnahme auf „' + t.name + '“ …' + (cyc ? ' Takes: jeder Cycle-Durchgang wird ein Take.' : '') + ' (Stopp mit ▶/■ oder ●)'); UI.sync();
   }
   async function stop() {
     if (!on) return; on = false;
     const end = Engine.curPos(); Engine.stop(); monitor(false);
     await new Promise(r => { endWait = r; node.port.postMessage({ t: 'stop' }); setTimeout(r, 600); });
     await pend; const m = await w.done(); w = null;
-    const P = Proj.P; if (cycWas) { P.cycle.on = true; Engine.setCycle(); }
-    const lat = Math.round(latMs() / 1000 * m.sr), len = Math.min(m.frames - lat, end - pos0);
+    const P = Proj.P; if (cycWas && !cyc) { P.cycle.on = true; Engine.setCycle(); }
+    const lat = Math.round(latMs() / 1000 * m.sr);
+    if (cyc && m.frames - lat >= cyc.b - cyc.a) return takesDone(m, lat);
+    const len = Math.min(m.frames - lat, cyc ? m.frames - lat : end - pos0);
     if (len < m.sr * 0.25) { UI.say('Aufnahme zu kurz – verworfen.'); SDB.delAudio(m.id); UI.sync(); return; }
     const a = pos0, b = pos0 + len;
     Proj.change('regions', p => {
@@ -2251,9 +2404,39 @@ registerProcessor('studio-rec', StudioRec);`;
     });
     Engine.dirty(); Engine.seek(a); UI.say('Aufnahme gespeichert: ' + (Math.round(len / m.sr * 10) / 10).toString().replace('.', ',') + ' s (Latenz-Ausgleich ' + Math.round(latMs()) + ' ms).'); UI.sync(); Arr.kick();
   }
+  // v121: Takes aus einer Cycle-Aufnahme – Durchgang k = Bilder [lat + k·L, lat + (k+1)·L) derselben Datei
+  function takesDone(m, lat) {
+    const a = cyc.a, b = cyc.b, L = b - a, tot = m.frames - lat, full = Math.floor(tot / L), rest = tot - full * L;
+    const n = full + (rest >= Math.max(m.sr, L * 0.25) ? 1 : 0);
+    let nr = 0;
+    Proj.change('regions', p => {
+      const t = p.tracks[Proj.tIndex(trackId)];
+      // gleicher Bereich schon da (Take-Ordner oder Region genau im Cycle) → weitere Takes in denselben Ordner
+      let f = p.regions.find(r => r.track === trackId && r.kind === 'audio' && r.start === a && r.len === L && !(r.offset && r.takes));
+      const keep = [];
+      p.regions.forEach(r => {
+        if (r === f || r.track !== trackId || r.start >= b || r.start + r.len <= a) { keep.push(r); return; }
+        if (r.start < a) { const x = JSON.parse(JSON.stringify(r)); x.len = a - r.start; x.fo = Math.min(x.fo || 0, x.len / 2); keep.push(x); }
+        if (r.start + r.len > b) { const x = JSON.parse(JSON.stringify(r)); x.id = Proj.nid('r'); const cut = b - r.start; x.start = b; x.len = r.len - cut; x.fi = 0; if (x.kind === 'audio') x.offset = (r.offset || 0) + cut; keep.push(x); }
+      });
+      if (f && !f.takes) { f.takes = [{ id: Proj.nid('k'), name: 'Take 1', audio: f.audio, offset: f.offset || 0 }]; f.offset = 0; f.tlen = L; f.comp = null; f.fi = 64; f.fo = 256; }
+      if (!f) { f = { id: Proj.nid('r'), track: trackId, kind: 'audio', audio: m.id, start: a, offset: 0, len: L, tlen: L, gain: 0, fi: 64, fo: 256, name: t ? t.name : 'Aufnahme', takes: [] }; keep.push(f); }
+      const n0 = f.takes.length;
+      for (let k = 0; k < n; k++) f.takes.push({ id: Proj.nid('k'), name: 'Take ' + (n0 + k + 1), audio: m.id, offset: lat + k * L, len: k < full ? L : rest, pass: k + 1 });
+      // Comp: zuletzt vollständig aufgenommener Take (wie in Logic)
+      const lastFull = f.takes[n0 + Math.max(0, full - 1)];
+      f.comp = [{ a: 0, b: L, k: lastFull.id }]; f.audio = lastFull.audio; f.name = (t ? t.name : 'Aufnahme') + ' · ' + f.takes.length + ' Takes';
+      p.regions = keep; nr = f.takes.length;
+      if (t) t.takesOpen = true;
+    });
+    Engine.dirty(); Engine.seek(a); Arr.heads();
+    UI.say('Aufnahme gespeichert: ' + n + ' Take' + (n === 1 ? '' : 's') + ' (insgesamt ' + nr + '). Unter der Spur antippen/wischen, welcher Take wo klingt.'); UI.sync(); Arr.kick();
+  }
+  const takesOn = () => pref('3nps-studio-takes', '1') === '1';
+  function setTakes(v) { setPref('3nps-studio-takes', v ? '1' : '0'); }
   // Einstellungen (aus dem Spur-Dock)
   function settings() {
-    UI.dialog('<h2>Aufnahme</h2><div class="fxp"><div class="card"><b>Eingang</b><label><span>Stereo aufnehmen (sonst Mono)</span><input type="checkbox" id="rSt"' + (stereo() ? ' checked' : '') + '></label><label><span>Mithören über das Studio (nur mit Kopfhörer)</span><input type="checkbox" id="rMon"' + (pref('3nps-studio-mon', '0') === '1' ? ' checked' : '') + '></label><label><span>1 Takt Vorzähler</span><input type="checkbox" id="rCi"' + (Sched.countIn ? ' checked' : '') + '></label>' +
+    UI.dialog('<h2>Aufnahme</h2><div class="fxp"><div class="card"><b>Eingang</b><label><span>Stereo aufnehmen (sonst Mono)</span><input type="checkbox" id="rSt"' + (stereo() ? ' checked' : '') + '></label><label><span>Mithören über das Studio (nur mit Kopfhörer)</span><input type="checkbox" id="rMon"' + (pref('3nps-studio-mon', '0') === '1' ? ' checked' : '') + '></label><label><span>1 Takt Vorzähler</span><input type="checkbox" id="rCi"' + (Sched.countIn ? ' checked' : '') + '></label><label><span>Takes im Cycle (jeder Durchgang ein Take, statt ersetzen)</span><input type="checkbox" id="rTk"' + (takesOn() ? ' checked' : '') + '></label>' +
       '<label><span>Pegel</span><canvas id="rLv" style="width:120px;height:10px;background:#0c0c0e;border-radius:3px"></canvas></label></div>' +
       '<div class="card"><b>Latenz-Ausgleich</b><label><span>Verschiebung</span><b id="rLo">' + Math.round(latMs()) + ' ms</b></label><input type="range" id="rLat" min="0" max="300" step="1" value="' + Math.round(latMs()) + '"><p class="note">Übernommen aus dem Looper („Latenz“), wenn dort eingemessen. Klingt die Aufnahme zu spät, Wert erhöhen.</p><button class="btn" id="rLr">Wie im Looper</button></div></div>' +
       '<p class="note">Aufnehmen: Spur mit „R“ scharf schalten (oder Spur wählen), Abspielposition setzen, ● tippen. Bereits Aufgenommenes in dem Bereich wird ersetzt – ↶ holt es zurück.</p><div class="btns"><button class="btn p" data-close>Fertig</button></div>');
@@ -2261,12 +2444,13 @@ registerProcessor('studio-rec', StudioRec);`;
     $('rSt').onchange = e => setPref('3nps-studio-recst', e.target.checked ? '1' : '0');
     $('rMon').onchange = e => { setPref('3nps-studio-mon', e.target.checked ? '1' : '0'); if (on) monitor(e.target.checked); };
     $('rCi').onchange = e => { Sched.countIn = e.target.checked; };
+    $('rTk').onchange = e => { setTakes(e.target.checked); UI.sync(); };
     $('rLat').oninput = e => { setPref('3nps-studio-lat', e.target.value); $('rLo').textContent = e.target.value + ' ms'; };
     $('rLr').onclick = () => { try { localStorage.removeItem('3nps-studio-lat'); } catch (e) {} $('rLat').value = Math.round(latMs()); $('rLo').textContent = Math.round(latMs()) + ' ms'; };
     openMic().catch(e => UI.say(e.message));
     const cv = $('rLv'); (function draw() { if (!cv.isConnected) return; const g = cv.getContext('2d'), wd = cv.width = cv.clientWidth, h = cv.height = cv.clientHeight; g.fillStyle = lvl > 0.9 ? '#ff5d5d' : '#3ad07a'; g.fillRect(0, 0, wd * Math.min(1, Math.sqrt(lvl)), h); requestAnimationFrame(draw); })();
   }
-  return { start, stop, settings, active: () => on, startPos: () => pos0, track: () => trackId, latMs, get level() { return lvl; } };
+  return { start, stop, settings, takesOn, setTakes, active: () => on, startPos: () => pos0, track: () => trackId, latMs, get level() { return lvl; } };
 })();
 window.Rec = Rec;
 
@@ -2349,11 +2533,11 @@ const Inst = (() => {
   // ---- Zeitplan: Noten der Regionen im Abschnitt [a, b) ----
   let live = [];
   function notesIn(P, a, b, fn) {
-    const spb = P.sr * 60 / P.bpm;
     P.regions.forEach(r => {
       if (r.kind !== 'midi' || r.muted || !r.notes || r.start >= b || r.start + r.len <= a) return;
       const ti = P.tracks.findIndex(t => t.id === r.track); if (ti < 0) return;
-      r.notes.forEach(n => { const f = r.start + n.t * spb; if (f < a || f >= b || f >= r.start + r.len) return; const d = Math.min(n.d * spb, r.start + r.len - f); fn(ti, P.tracks[ti], f, n, d); });
+      const rb = TMap.f2beat(P, r.start);      // v121: Noten in Schlägen → Bilder über die Tempokarte
+      r.notes.forEach(n => { const f = TMap.beat2f(P, rb + n.t); if (f < a || f >= b || f >= r.start + r.len) return; const d = Math.min(TMap.beat2f(P, rb + n.t + n.d) - f, r.start + r.len - f); fn(ti, P.tracks[ti], f, n, d); });
     });
   }
   let fresh = true;
@@ -2374,9 +2558,9 @@ const Inst = (() => {
   }
   // ---- MIDI-Export: Noten- und Drum-Spuren ----
   function midiTracks(P, a, PPQ) {
-    const spb = P.sr * 60 / P.bpm, tk = f => Math.round((f - a) / spb * PPQ), out = []; let ch = 0;
+    const a0 = TMap.f2beat(P, a), tk = f => Math.round((TMap.f2beat(P, f) - a0) * PPQ), out = []; let ch = 0;
     P.tracks.forEach((t, i) => {
-      if (t.kind === 'midi') { const notes = []; P.regions.filter(r => r.track === t.id && r.kind === 'midi' && !r.muted && r.notes).forEach(r => r.notes.forEach(n => { const f = r.start + n.t * spb; if (f < a || f >= r.start + r.len) return; notes.push({ t: tk(f), m: n.m, v: n.v || 96, d: Math.round(Math.min(n.d * spb, r.start + r.len - f) / spb * PPQ) }); })); if (notes.length) { out.push({ name: t.name, ch, notes }); ch = Math.min(15, ch + 1 === 9 ? 10 : ch + 1); } }
+      if (t.kind === 'midi') { const notes = []; P.regions.filter(r => r.track === t.id && r.kind === 'midi' && !r.muted && r.notes).forEach(r => { const rb = TMap.f2beat(P, r.start), re = TMap.f2beat(P, r.start + r.len); r.notes.forEach(n => { const f = TMap.beat2f(P, rb + n.t); if (f < a || f >= r.start + r.len) return; notes.push({ t: tk(f), m: n.m, v: n.v || 96, d: Math.round(Math.min(n.d, re - rb - n.t) * PPQ) }); }); }); if (notes.length) { out.push({ name: t.name, ch, notes }); ch = Math.min(15, ch + 1 === 9 ? 10 : ch + 1); } }
       if (t.kind === 'drum' && window.Drum) { const notes = Drum.midiNotes(P, t, a, PPQ); if (notes.length) out.push({ name: t.name, ch: 9, notes }); }
     });
     return out;
@@ -2391,7 +2575,7 @@ const Inst = (() => {
       Proj.editTrack(id, x => { x.inst = k; if (/^Instrument/.test(x.name) || LIST.some(l => l.name === x.name)) x.name = BY[k].name.replace(/ \((echt|FM|Synth)\)/, ''); }); load(k); UI.close(); Arr.heads(); UI.inspect();
     };
   }
-  function addDefault(trackId) { const r = { id: Proj.nid('r'), track: trackId, kind: 'midi', start: Proj.snap(Engine.curPos(), 'bar'), len: Math.round(Proj.bar() * 4), notes: [], name: 'Noten' }; Proj.addRegion(r); Arr.V.sel = r.id; load('epiano'); }
+  function addDefault(trackId) { const r = { id: Proj.nid('r'), track: trackId, kind: 'midi', start: Proj.snap(Engine.curPos(), 'bar'), len: 0, notes: [], name: 'Noten' }; r.len = Proj.bar2f(Proj.f2bar(r.start) + 4) - r.start; Proj.addRegion(r); Arr.V.sel = r.id; load('epiano'); }
   return { LIST, label, load, ready, voice, attach, offline, preview, midiTracks, choose, addDefault, notesIn };
 })();
 window.Inst = Inst;
@@ -2494,16 +2678,17 @@ const Drum = (() => {
   }
   // ---- Zeitplan ----
   function hitsIn(P, a, b, fn) {
-    const spb = P.sr * 60 / P.bpm, bar = spb * P.sig, s16 = spb / 4;
     P.regions.forEach(r => {
       if (r.kind !== 'drum' || r.muted || r.start >= b || r.start + r.len <= a) return; const ti = P.tracks.findIndex(t => t.id === r.track); if (ti < 0) return;
-      const d = r.drum || {}, sw = (d.swing != null ? d.swing : (ST[d.style] || {}).swing || 0) / 100, hu = (d.human != null ? d.human : 35) / 100, nBars = Math.max(1, Math.round(r.len / bar));
-      const b0 = Math.max(0, Math.floor((a - r.start) / bar)), b1 = Math.min(nBars - 1, Math.floor((Math.min(b, r.start + r.len) - r.start - 1) / bar));
+      // v121: Takte der Region über die Tempokarte (Tempo und Taktart je Takt)
+      const rb = TMap.f2bar(P, r.start), nBars = Math.max(1, Math.round(TMap.f2bar(P, r.start + r.len) - rb));
+      const d = r.drum || {}, sw = (d.swing != null ? d.swing : (ST[d.style] || {}).swing || 0) / 100, hu = (d.human != null ? d.human : 35) / 100;
+      const b0 = Math.max(0, Math.floor(TMap.f2bar(P, Math.max(a, r.start)) - rb + 1e-6)), b1 = Math.min(nBars - 1, Math.floor(TMap.f2bar(P, Math.min(b, r.start + r.len) - 1) - rb + 1e-6));
       for (let bi = b0; bi <= b1; bi++) {
-        const R = rnd(bi * 31 + 7), vol = (d.vol != null ? d.vol : 85) / 100;
-        barHits(d, bi + Math.round(r.barOff || 0), nBars + Math.round(r.barOff || 0), P.sig).forEach(h => {
+        const R = rnd(bi * 31 + 7), vol = (d.vol != null ? d.vol : 85) / 100, bs = TMap.bar2f(P, rb + bi), sg = TMap.at(P, bs + 1), s16 = sg.spb / 4;
+        barHits(d, bi + Math.round(r.barOff || 0), nBars + Math.round(r.barOff || 0), sg.sig).forEach(h => {
           const odd = Math.floor(h.s) % 2 === 1 && h.s % 1 === 0;
-          let f = r.start + bi * bar + h.s * s16 + (odd ? sw * s16 * 0.66 : 0) + (R() - 0.5) * hu * 0.012 * P.sr;
+          let f = bs + h.s * s16 + (odd ? sw * s16 * 0.66 : 0) + (R() - 0.5) * hu * 0.012 * P.sr;
           if (f < a || f >= b || f >= r.start + r.len || f < r.start) return;
           fn(ti, P.tracks[ti], f, h.id, h.v * vol * (1 - hu * 0.15 + R() * hu * 0.3));
         });
@@ -2515,7 +2700,7 @@ const Drum = (() => {
   prod.stop = () => { const now = Engine.ac().currentTime; live.forEach(s => { try { s.stop(now + 0.02); } catch (e) {} }); live = []; };
   Sched.add(prod);
   function offline(oc, G, P, a, e) { hitsIn(P, a, e, (ti, t, f, id, v) => { if (G.tr[ti]) hit(oc, G.tr[ti].inN, t.kit || 'rock', id, (f - a) / oc.sampleRate, v); }); }
-  function midiNotes(P, t, a, PPQ) { const spb = P.sr * 60 / P.bpm, out = []; const Q = { regions: P.regions.filter(r => r.track === t.id), sr: P.sr, bpm: P.bpm, sig: P.sig, tracks: [t] }; hitsIn(Q, a, Infinity, (ti, tt, f, id, v) => out.push({ t: Math.round((f - a) / spb * PPQ), m: GM[id] || 38, v: Math.max(1, Math.min(127, Math.round(v * 127))), d: Math.round(PPQ / 8) })); return out; }
+  function midiNotes(P, t, a, PPQ) { const out = [], a0 = TMap.f2beat(P, a); const Q = { regions: P.regions.filter(r => r.track === t.id), sr: P.sr, bpm: P.bpm, sig: P.sig, tempo: P.tempo, tracks: [t] }; hitsIn(Q, a, Infinity, (ti, tt, f, id, v) => out.push({ t: Math.round((TMap.f2beat(P, f) - a0) * PPQ), m: GM[id] || 38, v: Math.max(1, Math.min(127, Math.round(v * 127))), d: Math.round(PPQ / 8) })); return out; }
   // ---- Übernahme aus dem Looper (Muster 1:1) ----
   function fromLooper(q, ds, at, len) {
     if (!ds || !ds.steps) return; let kit = 'rock'; try { kit = localStorage.getItem('3nps-drumkit') || 'rock'; } catch (e) {} if (!KITS[kit]) kit = 'synth';
@@ -2524,7 +2709,7 @@ const Drum = (() => {
       drum: { mode: 'steps', steps: JSON.parse(JSON.stringify(ds.steps)), res: ds.res, swing: ds.swing || 0, human: ds.human != null ? ds.human : 35, vol: ds.vol != null ? Math.min(100, ds.vol + 15) : 85 } });
     load(kit);
   }
-  function addDefault(trackId) { const r = { id: Proj.nid('r'), track: trackId, kind: 'drum', start: Proj.snap(Engine.curPos(), 'bar'), len: Math.round(Proj.bar() * 8), name: 'Rock', drum: { mode: 'gen', style: 'rock', energy: 60, cplx: 40, fill: 1, human: 35, vol: 85 } }; Proj.addRegion(r); Arr.V.sel = r.id; load('rock'); }
+  function addDefault(trackId) { const r = { id: Proj.nid('r'), track: trackId, kind: 'drum', start: Proj.snap(Engine.curPos(), 'bar'), len: 0, name: 'Rock', drum: { mode: 'gen', style: 'rock', energy: 60, cplx: 40, fill: 1, human: 35, vol: 85 } }; r.len = Proj.bar2f(Proj.f2bar(r.start) + 8) - r.start; Proj.addRegion(r); Arr.V.sel = r.id; load('rock'); }
   function choose(id) {
     const t = Proj.P.tracks[Proj.tIndex(id)];
     UI.dialog('<h2>Schlagzeug-Kit · ' + t.name.replace(/</g, '&lt;') + '</h2><div class="plist">' + Object.entries(KITS).map(([k, n]) => '<div class="item' + (k === (t.kit || 'rock') ? ' a' : '') + '" data-k="' + k + '"><div class="ic">🥁</div><div style="flex:1"><b>' + n + '</b><small>' + (k === 'synth' ? 'sofort da' : 'dieselben Aufnahmen wie im Looper (drums/LIZENZ.txt)') + '</small></div><button class="btn" data-p="' + k + '">▶</button></div>').join('') + '</div><p class="note">Stil, Lautstärke, Komplexität und Fills stellst du je Region ein: Region doppelt antippen (oder „Bearbeiten“).</p><div class="btns"><button class="btn p" data-close>Fertig</button></div>');
@@ -2569,22 +2754,32 @@ const Arr = (() => {
   const kick = () => { need = true; };
   function meta(id) { if (!metas.has(id)) { metas.set(id, null); SDB.meta(id).then(m => { metas.set(id, m); kick(); }); } return metas.get(id); }
   const fx = f => (f - V.x0) / V.fpp, xf = x => V.x0 + x * V.fpp;
-  const tY = i => RH + i * V.th - V.y0;
+  // v121: Spurhöhe = Spur + aufgeklappte Take-Zeilen (Take-Ordner)
+  const TKH = 30;
+  const nTakes = t => { let n = 0; if (t.takesOpen) P().regions.forEach(r => { if (r.track === t.id && r.takes && r.takes.length > n) n = r.takes.length; }); return n; };
+  const hasTakes = t => P().regions.some(r => r.track === t.id && r.takes && r.takes.length);
+  const rowH = t => V.th + nTakes(t) * TKH;
+  // Spur-Lage einmal je Bild/Eingabe berechnen (LY = null macht sie ungültig)
+  let LY = null;
+  const lay = () => { if (LY) return LY; const ts = P().tracks, ys = [], hs = []; let y = 0; ts.forEach(t => { const h = rowH(t); ys.push(y); hs.push(h); y += h; }); return (LY = { ys, hs, tot: y }); };
+  const tY = i => { const L = lay(); return RH - V.y0 + (i < L.ys.length ? L.ys[i] : L.tot); };
+  const trackAt = y => { const L = lay(), yy = y - RH + V.y0; for (let k = 0; k < L.ys.length; k++) if (yy < L.ys[k] + L.hs[k]) return { ti: k, dy: yy - L.ys[k] }; return { ti: -1, dy: 0 }; };
   // ---------- Kopfzeilen der Spuren ----------
   const KIND = { audio: 'Audio', midi: 'Noten', drum: 'Drummer' };
   function heads() {
-    const p = P(); if (!p) { headsIn.innerHTML = ''; return; }
+    LY = null; const p = P(); if (!p) { headsIn.innerHTML = ''; return; }
     let h = '<div class="ruler-pad">' + p.tracks.length + ' Spuren</div>';
     p.tracks.forEach(t => {
-      h += '<div class="th' + (V.selTrack === t.id ? ' sel' : '') + '" data-t="' + t.id + '" style="height:' + V.th + 'px"><div class="c" style="background:' + t.color + '"></div><div class="n"><b>' + esc(t.name) + '</b><small>' + KIND[t.kind] + (t.kind === 'midi' && t.inst && window.Inst ? ' · ' + esc(Inst.label(t.inst)) : '') + (t.kind === 'drum' ? ' · ' + esc(t.kit || '') : '') + '</small></div>' +
-        '<div class="ms"><button class="m' + (t.mute ? ' on' : '') + '" data-a="mute" aria-label="Stumm">M</button><button class="s' + (t.solo ? ' on' : '') + '" data-a="solo" aria-label="Solo">S</button>' + (t.kind === 'audio' ? '<button class="r' + (t.arm ? ' on' : '') + '" data-a="arm" aria-label="Aufnahme scharf">R</button>' : '') + '</div></div>';
+      const ht = hasTakes(t), nk = ht ? Math.max(...p.regions.filter(r => r.track === t.id && r.takes).map(r => r.takes.length)) : 0;
+      h += '<div class="th' + (V.selTrack === t.id ? ' sel' : '') + (rowH(t) > V.th ? ' tko' : '') + '" data-t="' + t.id + '" style="height:' + rowH(t) + 'px' + (rowH(t) > V.th ? ';padding-top:' + Math.max(4, Math.round(V.th / 2 - 15)) + 'px' : '') + '"><div class="c" style="background:' + t.color + '"></div><div class="n"><b>' + esc(t.name) + '</b><small>' + KIND[t.kind] + (t.kind === 'midi' && t.inst && window.Inst ? ' · ' + esc(Inst.label(t.inst)) : '') + (t.kind === 'drum' ? ' · ' + esc(t.kit || '') : '') + (t.out && t.out !== 'master' ? ' · → ' + esc(((p.groups || []).find(g => g.id === t.out) || {}).name || t.out) : '') + '</small></div>' +
+        '<div class="ms"><button class="m' + (t.mute ? ' on' : '') + '" data-a="mute" aria-label="Stumm">M</button><button class="s' + (t.solo ? ' on' : '') + '" data-a="solo" aria-label="Solo">S</button>' + (t.kind === 'audio' ? '<button class="r' + (t.arm ? ' on' : '') + '" data-a="arm" aria-label="Aufnahme scharf">R</button>' : '') + (ht ? '<button class="tk' + (t.takesOpen ? ' on' : '') + '" data-a="takesOpen" aria-label="Takes auf-/zuklappen" title="Take-Ordner">' + (t.takesOpen ? '▾' : '▸') + nk + '</button>' : '') + '</div></div>';
     });
     headsIn.innerHTML = h; headsIn.style.transform = 'translateY(' + (-V.y0) + 'px)';
   }
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   headsIn.addEventListener('click', e => {
     const th = e.target.closest('.th'); if (!th) return; const id = th.dataset.t, b = e.target.closest('button');
-    if (b) { const a = b.dataset.a; Proj.editTrack(id, t => { t[a] = !t[a]; if (a === 'arm' && t.arm) Proj.P.tracks.forEach(o => { if (o !== t) o.arm = false; }); }, { noUndo: true }); Proj.P.tracks.forEach((_, i) => Engine.applyTrack(i, true)); heads(); return; }
+    if (b) { const a = b.dataset.a; Proj.editTrack(id, t => { t[a] = !t[a]; if (a === 'arm' && t.arm) Proj.P.tracks.forEach(o => { if (o !== t) o.arm = false; }); }, { noUndo: true }); Proj.P.tracks.forEach((_, i) => Engine.applyTrack(i, true)); heads(); kick(); return; }
     selectTrack(id);
   });
   headsIn.addEventListener('dblclick', e => { const th = e.target.closest('.th'); if (th) UI.renameTrack(th.dataset.t); });
@@ -2594,17 +2789,17 @@ const Arr = (() => {
     const p = P(), dpr = window.devicePixelRatio || 1, w = lanes.clientWidth, h = lanes.clientHeight;
     if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
     const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, w, h);
-    c.fillStyle = '#141416'; c.fillRect(0, 0, w, h); if (!p) return;
-    const bar = Proj.bar(), beat = Proj.spb(), pxBar = bar / V.fpp;
+    c.fillStyle = '#141416'; c.fillRect(0, 0, w, h); if (!p) return; LY = null;
+    const pxBar = Proj.bar(xf(w / 2)) / V.fpp;
     const every = pxBar < 14 ? 8 : pxBar < 28 ? 4 : pxBar < 60 ? 2 : 1;
-    // Spurhintergründe
-    p.tracks.forEach((t, i) => { const y = tY(i); if (y > h || y + V.th < RH) return; c.fillStyle = V.selTrack === t.id ? '#1d1d23' : (i % 2 ? '#17171a' : '#151518'); c.fillRect(0, y, w, V.th); c.fillStyle = '#26262c'; c.fillRect(0, y + V.th - 1, w, 1); });
-    // Raster
-    const b0 = Math.floor(xf(0) / bar), b1 = Math.ceil(xf(w) / bar);
+    // Spurhintergründe (+ Take-Zeilen)
+    p.tracks.forEach((t, i) => { const y = tY(i), rh = rowH(t); if (y > h || y + rh < RH) return; c.fillStyle = V.selTrack === t.id ? '#1d1d23' : (i % 2 ? '#17171a' : '#151518'); c.fillRect(0, y, w, rh); if (rh > V.th) { c.fillStyle = '#111114'; c.fillRect(0, y + V.th, w, rh - V.th); } c.fillStyle = '#26262c'; c.fillRect(0, y + rh - 1, w, 1); });
+    // Raster (v121: über die Tempokarte – Takte können verschieden lang sein)
+    const b0 = Math.floor(Proj.f2bar(xf(0))), b1 = Math.ceil(Proj.f2bar(xf(w)));
     for (let b = Math.max(0, b0); b <= b1; b++) {
-      const x = Math.round(fx(b * bar)) + 0.5;
+      const fb = TMap.bar2f(p, b), x = Math.round(fx(fb)) + 0.5;
       if (b % every === 0) { c.fillStyle = '#2a2a31'; c.fillRect(x, RH, 1, h); }
-      if (pxBar > 90) for (let k = 1; k < p.sig; k++) { const xb = Math.round(fx(b * bar + k * beat)) + 0.5; c.fillStyle = '#1f1f24'; c.fillRect(xb, RH, 1, h); }
+      if (pxBar > 90) { const sg = TMap.at(p, fb + 1); for (let k = 1; k < sg.sig; k++) { const xb = Math.round(fx(fb + k * sg.spb)) + 0.5; c.fillStyle = '#1f1f24'; c.fillRect(xb, RH, 1, h); } }
     }
     // Cycle
     const cy = p.cycle; if (cy && cy.b > cy.a) { const a = fx(cy.a), e = fx(cy.b); c.fillStyle = cy.on ? 'rgba(242,194,48,.10)' : 'rgba(255,255,255,.04)'; c.fillRect(a, RH, e - a, h); }
@@ -2617,7 +2812,8 @@ const Arr = (() => {
       c.fillStyle = t.color; roundRect(c, x0, y, Math.max(2, x1 - x0), hh, 5); c.fill();
       c.save(); c.beginPath(); c.rect(Math.max(0, x0), y, Math.min(w, x1) - Math.max(0, x0), hh); c.clip();
       c.fillStyle = 'rgba(0,0,0,.72)'; c.font = '600 10px system-ui'; c.fillText(r.name || '', x0 + 6, y + 11);
-      if (r.kind === 'audio') drawWave(c, r, x0, x1, y + 14, hh - 16, w);
+      if (r.kind === 'audio' && r.takes && r.takes.length) drawComp(c, r, x0, x1, y + 14, hh - 16, w);
+      else if (r.kind === 'audio') drawWave(c, r, x0, x1, y + 14, hh - 16, w);
       else if (r.kind === 'midi') drawNotes(c, r, x0, y + 14, hh - 16);
       else if (r.kind === 'drum') drawDrum(c, r, x0, x1, y + 14, hh - 16);
       // Blenden
@@ -2627,17 +2823,24 @@ const Arr = (() => {
       if (sel) { c.lineWidth = 2; c.strokeStyle = '#fff'; roundRect(c, x0 + 1, y + 1, Math.max(2, x1 - x0) - 2, hh - 2, 5); c.stroke();
         c.fillStyle = '#fff'; [[x0 + 7, y + 7], [x1 - 7, y + 7]].forEach(([a, b]) => { c.beginPath(); c.arc(a, b, 4, 0, 7); c.fill(); }); }
     });
+    // v121: Take-Zeilen aufgeklappter Ordner
+    p.tracks.forEach((t, ti) => { if (!t.takesOpen) return; const y0 = tY(ti) + V.th; if (y0 > h || y0 + nTakes(t) * TKH < RH) return; p.regions.forEach(r => { if (r.track === t.id && r.takes && r.takes.length) drawTakes(c, t, r, y0, w); }); });
     // Automation (ausgewählte Spur)
     if (V.auto && V.selTrack) { const ti = Proj.tIndex(V.selTrack); if (ti >= 0) drawAuto(c, p.tracks[ti], ti, w); }
     // Lineal
     c.fillStyle = '#18181c'; c.fillRect(0, 0, w, RH); c.fillStyle = '#34343b'; c.fillRect(0, RH - 1, w, 1);
     c.font = '11px ui-monospace,Menlo,monospace'; c.fillStyle = '#8f909a';
-    for (let b = Math.max(0, b0); b <= b1; b++) if (b % every === 0) c.fillText(String(b + 1), fx(b * bar) + 3, 13);
+    for (let b = Math.max(0, b0); b <= b1; b++) if (b % every === 0) c.fillText(String(b + 1), fx(TMap.bar2f(p, b)) + 3, 13);
+    // v121: Tempo- und Taktartwechsel im Lineal
+    const sgs = TMap.segs(p); c.font = '600 10px system-ui';
+    sgs.forEach((sg, k) => { if (!k) return; const x = fx(sg.f), pv = sgs[k - 1]; if (x < -60 || x > w) return; const lb = (pv.bpm !== sg.bpm ? '♩' + (Math.round(sg.bpm * 10) / 10).toString().replace('.', ',') : '') + (pv.sig !== sg.sig ? (pv.bpm !== sg.bpm ? ' ' : '') + sg.sig + '/4' : ''); if (!lb) return; const tw = c.measureText(lb).width + 8; c.fillStyle = '#ff8a3d'; c.fillRect(Math.round(x), 0, 2, RH); roundRect(c, x + 2, 2, tw, 13, 3); c.fill(); c.fillStyle = '#111'; c.fillText(lb, x + 6, 12); c.font = '600 10px system-ui'; });
+    c.font = '11px ui-monospace,Menlo,monospace';
     if (cy && cy.b > cy.a) { const a = fx(cy.a), e = fx(cy.b); c.fillStyle = cy.on ? 'rgba(242,194,48,.85)' : 'rgba(242,194,48,.3)'; c.fillRect(a, 20, e - a, 12); }
     (p.markers || []).forEach(m => { const x = fx(m.f); if (x < -100 || x > w) return; c.font = '600 10px system-ui'; const tw = c.measureText(m.name).width + 10; c.fillStyle = m.color || '#8ad94e'; roundRect(c, x, 18, tw, 14, 3); c.fill(); c.fillStyle = '#111'; c.fillText(m.name, x + 5, 29); });
     // Abspielposition
     const px = fx(Engine.curPos()); if (px >= 0 && px <= w) { c.fillStyle = '#fff'; c.fillRect(Math.round(px), 0, 2, h); }
     if (window.Rec && Rec.active()) { const a = fx(Rec.startPos()), e = px; c.fillStyle = 'rgba(255,93,93,.35)'; const ti = Proj.tIndex(Rec.track()); if (ti >= 0) c.fillRect(a, tY(ti) + 5, Math.max(0, e - a), V.th - 10); }
+    if (drag && drag.kind === 'comp' && drag.moved) { const ti = Proj.tIndex(drag.r.track), a = fx(Math.min(drag.f0, drag.f1)), e = fx(Math.max(drag.f0, drag.f1)); c.fillStyle = 'rgba(255,255,255,.25)'; c.fillRect(a, tY(ti) + V.th + drag.k * TKH, e - a, TKH); }
   }
   function roundRect(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
   // Wellenform (v109): je Bildschirm-Pixel (Retina) gezeichnet; beim Hineinzoomen aus den echten Abtastwerten statt aus der Übersicht
@@ -2670,15 +2873,49 @@ const Arr = (() => {
   }
   function drawNotes(c, r, x0, y, h) {
     const ns = r.notes || []; if (!ns.length) return; let lo = 127, hi = 0; ns.forEach(n => { lo = Math.min(lo, n.m); hi = Math.max(hi, n.m); });
-    const span = Math.max(12, hi - lo + 1), spb = Proj.spb(); c.fillStyle = 'rgba(0,0,0,.6)';
-    ns.forEach(n => { const x = fx(r.start + n.t * spb), xe = fx(r.start + (n.t + n.d) * spb), yy = y + h - ((n.m - lo + 0.5) / span) * h; c.fillRect(x, yy - 1.5, Math.max(2, xe - x - 1), 3); });
+    const span = Math.max(12, hi - lo + 1), rb = Proj.f2beat(r.start), p = P(); c.fillStyle = 'rgba(0,0,0,.6)';
+    ns.forEach(n => { const x = fx(TMap.beat2f(p, rb + n.t)), xe = fx(TMap.beat2f(p, rb + n.t + n.d)), yy = y + h - ((n.m - lo + 0.5) / span) * h; c.fillRect(x, yy - 1.5, Math.max(2, xe - x - 1), 3); });
   }
   function drawDrum(c, r, x0, x1, y, h) {
-    const spb = Proj.spb(), bar = Proj.bar(), s16 = spb / 4; c.fillStyle = 'rgba(0,0,0,.6)';
+    const p = P(), spb = Proj.spb(r.start), s16 = spb / 4; c.fillStyle = 'rgba(0,0,0,.6)';
     if (!window.Drum || s16 / V.fpp < 1.2) { for (let f = 0, k = 0; f < r.len; f += spb / 2, k++) { const x = fx(r.start + f); if (x < -4 || x > x1) continue; c.fillRect(x, k % 4 === 0 ? y + h * 0.75 : k % 4 === 2 ? y + h * 0.4 : y + h * 0.1, 2, 2); } return; }
-    const n = Math.max(1, Math.round(r.len / bar)), row = id => id === 'kick' ? 0.78 : /snare|rim|clap/.test(id) ? 0.48 : /^tom/.test(id) ? 0.62 : 0.15;
-    for (let bi = 0; bi < n; bi++) { const xb = fx(r.start + bi * bar); if (xb > x1 || fx(r.start + (bi + 1) * bar) < 0) continue;
-      Drum.barHits(r.drum || {}, bi + Math.round(r.barOff || 0), n + Math.round(r.barOff || 0), Proj.P.sig).forEach(q => { const x = fx(r.start + bi * bar + q.s * s16); if (x > x1) return; const sz = 1.5 + q.v * 2.5; c.fillRect(x, y + h * row(q.id) - sz / 2, sz, sz); }); }
+    const rb = TMap.f2bar(p, r.start), n = Math.max(1, Math.round(TMap.f2bar(p, r.start + r.len) - rb)), row = id => id === 'kick' ? 0.78 : /snare|rim|clap/.test(id) ? 0.48 : /^tom/.test(id) ? 0.62 : 0.15;
+    for (let bi = 0; bi < n; bi++) { const fb = TMap.bar2f(p, rb + bi), xb = fx(fb); if (xb > x1 || fx(TMap.bar2f(p, rb + bi + 1)) < 0) continue; const sg = TMap.at(p, fb + 1), q16 = sg.spb / 4;
+      Drum.barHits(r.drum || {}, bi + Math.round(r.barOff || 0), n + Math.round(r.barOff || 0), sg.sig).forEach(q => { const x = fx(fb + q.s * q16); if (x > x1) return; const sz = 1.5 + q.v * 2.5; c.fillRect(x, y + h * row(q.id) - sz / 2, sz, sz); }); }
+  }
+  // v121: Take-Ordner – Wellenform je Comp-Abschnitt aus dem jeweiligen Take
+  const takeSub = (r, tk, ta, tb) => ({ audio: tk.audio, offset: (tk.offset || 0) + ta, start: r.start + ta - (r.offset || 0), len: tb - ta, gain: (r.gain || 0) + (tk.gain || 0) });
+  function drawComp(c, r, x0, x1, y, h, w) {
+    const off = r.offset || 0;
+    Engine.compSegs(r).forEach(sg => { const tk = r.takes.find(x => x.id === sg.k); if (!tk) return; const ta = Math.max(sg.a, off), tb = Math.min(sg.b, off + r.len); if (tb <= ta) return; const q = takeSub(r, tk, ta, tb); drawWave(c, q, fx(q.start), fx(q.start + q.len), y, h, w); c.fillStyle = 'rgba(0,0,0,.35)'; c.fillRect(fx(q.start), y + h - 1, 1, 1 - h); });
+    c.fillStyle = 'rgba(0,0,0,.72)'; c.font = '600 9px system-ui'; c.fillText(r.takes.length + ' Takes', Math.max(x0, 0) + 6, y + h - 2);
+  }
+  function drawTakes(c, t, r, y0, w) {
+    const off = r.offset || 0, segs = Engine.compSegs(r), x0 = fx(r.start), x1 = fx(r.start + r.len);
+    r.takes.forEach((tk, k) => {
+      const y = y0 + k * TKH + 2, hh = TKH - 4; if (x1 < 0 || x0 > w) return;
+      c.globalAlpha = 0.28; c.fillStyle = t.color; roundRect(c, x0, y, Math.max(2, x1 - x0), hh, 4); c.fill(); c.globalAlpha = 1;
+      segs.forEach(sg => { if (sg.k !== tk.id) return; const a = fx(r.start + Math.max(sg.a, off) - off), e = fx(r.start + Math.min(sg.b, off + r.len) - off); if (e > a) { c.fillStyle = t.color; c.fillRect(a, y, e - a, hh); } });
+      c.save(); c.beginPath(); c.rect(Math.max(0, x0), y, Math.min(w, x1) - Math.max(0, x0), hh); c.clip();
+      const q = takeSub(r, tk, off, off + r.len); drawWave(c, q, x0, x1, y + 2, hh - 4, w);
+      c.fillStyle = 'rgba(0,0,0,.8)'; c.font = '600 10px system-ui'; c.fillText(tk.name, Math.max(0, x0) + 6, y + 11); c.restore();
+    });
+  }
+  // Comp ändern: Take k klingt im Bereich [fa, fb) (Bilder der Zeitleiste); Takt-/Schlag-Raster wie „Einrasten“
+  function compSet(r, k, fa, fb) {
+    const tk = r.takes[k]; if (!tk) return; const off = r.offset || 0, T = r.tlen || r.len + off;
+    let a = Math.round(Math.max(0, Math.min(T, fa - r.start + off))), b = Math.round(Math.max(0, Math.min(T, fb - r.start + off))); if (b - a < 32) return;
+    Proj.editRegion(r.id, q => {
+      const segs = Engine.compSegs(q), out = [];
+      segs.forEach(s => { if (s.b <= a || s.a >= b) out.push(s); else { if (s.a < a) out.push({ a: s.a, b: a, k: s.k }); if (s.b > b) out.push({ a: b, b: s.b, k: s.k }); } });
+      out.push({ a, b, k: tk.id }); out.sort((x, y) => x.a - y.a); q.comp = out; q.comp = Engine.compSegs(q);
+      const main = q.comp.reduce((m, s) => s.b - s.a > m.l ? { l: s.b - s.a, k: s.k } : m, { l: 0 }); const mt = q.takes.find(x => x.id === main.k); if (mt) q.audio = mt.audio;
+    });
+    UI.inspect(); kick();
+  }
+  function compTap(r, k, f) {
+    const off = r.offset || 0, t = f - r.start + off, sg = Engine.compSegs(r).find(s => t >= s.a && t < s.b);
+    if (sg) compSet(r, k, r.start + sg.a - off, r.start + sg.b - off); else compSet(r, k, r.start, r.start + r.len);
   }
   function drawAuto(c, t, ti, w) {
     const k = V.autoP, [lo, hi] = AR[k], pts = (t.auto && t.auto[k]) || [], y = tY(ti), hh = V.th, vy = v => y + 4 + (1 - (v - lo) / (hi - lo)) * (hh - 8), cur = t[k] || 0;
@@ -2692,10 +2929,14 @@ const Arr = (() => {
   // ---------- Bedienung ----------
   const ptrs = new Map(); let drag = null, lastTap = { t: 0, id: null };
   function hit(x, y) {
-    const p = P(); if (!p) return null;
+    LY = null; const p = P(); if (!p) return null;
     if (y < RH) return { zone: y < 18 ? 'ruler' : 'cycle' };
-    const ti = Math.floor((y - RH + V.y0) / V.th), t = p.tracks[ti]; if (!t) return { zone: 'empty' };
+    const ta = trackAt(y), ti = ta.ti, t = p.tracks[ti]; if (!t) return { zone: 'empty' };
     const f = xf(x);
+    if (ta.dy >= V.th) {   // v121: Take-Zeile
+      const k = Math.floor((ta.dy - V.th) / TKH), r = p.regions.find(q => q.track === t.id && q.takes && q.takes[k] && f >= q.start && f <= q.start + q.len);
+      return r ? { zone: 'take', r, t, ti, k, f } : { zone: 'lane', t, ti, f };
+    }
     if (V.auto && t.id === V.selTrack) return { zone: 'auto', t, ti, f };
     for (let i = p.regions.length - 1; i >= 0; i--) {
       const r = p.regions[i]; if (r.track !== t.id || f < r.start || f > r.start + r.len) continue;
@@ -2717,8 +2958,9 @@ const Arr = (() => {
     if (h.zone === 'ruler') { drag = { kind: 'scrub', x }; Engine.seek(Math.max(0, Proj.snap(xf(x), 'beat'))); kick(); return; }
     if (h.zone === 'cycle') { const f = Proj.snap(xf(x), 'bar'), c = Proj.P.cycle; if (dbl || (c.b > c.a && f >= c.a && f <= c.b && !drag)) { drag = { kind: 'cyctap', x, f }; return; } drag = { kind: 'cycle', a: f, x }; return; }
     if (h.zone === 'auto') { autoDown(h, x, y, dbl); return; }
+    if (h.zone === 'take') { V.sel = h.r.id; if (V.selTrack !== h.t.id) { V.selTrack = h.t.id; heads(); } UI.inspect(); drag = { kind: 'comp', r: h.r, k: h.k, f0: h.f, f1: h.f, x, moved: false }; kick(); return; }
     if (V.loopSel && h.zone !== 'ruler' && h.zone !== 'cycle') {   // v109: Takte wählen und loopen – über die Spuren ziehen
-      const bar = Proj.bar(), f = Math.max(0, Math.floor(xf(x) / bar) * bar); Proj.P.cycle = { on: true, a: f, b: f + bar }; Engine.setCycle(); UI.sync(); drag = { kind: 'loopsel', a: f }; kick(); return;
+      const p = Proj.P, f = Math.max(0, Math.round(TMap.barFloor(p, xf(x)))); p.cycle = { on: true, a: f, b: Math.round(TMap.bar2f(p, Math.round(TMap.f2bar(p, f)) + 1)) }; Engine.setCycle(); UI.sync(); drag = { kind: 'loopsel', a: f }; kick(); return;
     }
     if (h.zone === 'region') {
       V.sel = h.r.id; if (V.selTrack !== h.t.id) { V.selTrack = h.t.id; heads(); }
@@ -2734,7 +2976,8 @@ const Arr = (() => {
     if (!ptrs.has(e.pointerId)) return; const rc = lanes.getBoundingClientRect(), x = e.clientX - rc.left, y = e.clientY - rc.top; ptrs.set(e.pointerId, { x, y });
     if (!drag) return;
     if (drag.kind === 'pinch' && ptrs.size === 2) { const [a, b] = [...ptrs.values()], d = Math.abs(a.x - b.x) || 1; V.fpp = clampF(drag.fpp0 * drag.d0 / d); V.x0 = Math.max(0, drag.fc - drag.cx * V.fpp); kick(); return; }
-    if (drag.kind === 'loopsel') { const bar = Proj.bar(), f = Math.max(0, xf(x)), a = drag.a, b = f >= a ? Math.max(a + bar, Math.ceil(f / bar) * bar) : Math.floor(f / bar) * bar; Proj.P.cycle = { on: true, a: Math.min(a, b), b: Math.max(a + bar, b > a ? b : a + bar) }; Engine.setCycle(); UI.sync(); kick(); return; }
+    if (drag.kind === 'loopsel') { const p = Proj.P, f = Math.max(0, xf(x)), a = drag.a, a1 = Math.round(TMap.bar2f(p, Math.round(TMap.f2bar(p, a)) + 1)), b = f >= a ? Math.max(a1, Math.round(TMap.barCeil(p, f))) : Math.round(TMap.barFloor(p, f)); p.cycle = { on: true, a: Math.min(a, b), b: b > a ? b : a1 }; Engine.setCycle(); UI.sync(); kick(); return; }
+    if (drag.kind === 'comp') { if (Math.abs(x - drag.x) > 6) drag.moved = true; const g = UI.snapMode(); drag.f1 = g === 'off' ? xf(x) : Proj.snap(xf(x), g); if (drag.moved && drag.f0s == null) drag.f0s = g === 'off' ? drag.f0 : Proj.snap(drag.f0, g); kick(); return; }
     if (drag.kind === 'pan') { V.x0 = Math.max(0, drag.x0 - (x - drag.x) * V.fpp); V.y0 = Math.max(0, Math.min(maxY(), drag.y0 - (y - drag.y))); headsIn.style.transform = 'translateY(' + (-V.y0) + 'px)'; kick(); return; }
     if (drag.kind === 'scrub') { Engine.seek(Math.max(0, Proj.snap(xf(x), 'beat'))); kick(); return; }
     if (drag.kind === 'cycle' || drag.kind === 'cyctap') { if (Math.abs(x - drag.x) < 6) return; const a = drag.kind === 'cycle' ? drag.a : Proj.snap(xf(drag.x), 'bar'), b = Proj.snap(xf(x), 'bar'); Proj.P.cycle = { on: true, a: Math.min(a, b), b: Math.max(a, b) }; drag.kind = 'cycle'; drag.a = a; Engine.setCycle(); UI.sync(); kick(); return; }
@@ -2744,7 +2987,8 @@ const Arr = (() => {
   const up = e => {
     ptrs.delete(e.pointerId);
     if (drag && drag.kind === 'cyctap') { const c = Proj.P.cycle; c.on = !c.on; Engine.setCycle(); UI.sync(); Proj.save(); kick(); }
-    if (drag && (drag.kind === 'cycle' || drag.kind === 'loopsel')) { Proj.save(); if (drag.kind === 'loopsel') { const c = Proj.P.cycle, bar = Proj.bar(); UI.say('Loop: Takt ' + (Math.round(c.a / bar) + 1) + '–' + Math.round(c.b / bar) + ' (' + Math.round((c.b - c.a) / bar) + ' Takte). ▶ spielt ihn in Schleife.'); } }
+    if (drag && (drag.kind === 'cycle' || drag.kind === 'loopsel')) { Proj.save(); if (drag.kind === 'loopsel') { const c = Proj.P.cycle, ba = Math.round(Proj.f2bar(c.a)), bb = Math.round(Proj.f2bar(c.b)); UI.say('Loop: Takt ' + (ba + 1) + '–' + bb + ' (' + (bb - ba) + ' Takte). ▶ spielt ihn in Schleife.'); } }
+    if (drag && drag.kind === 'comp') { const d = drag, r = Proj.reg(d.r.id); drag = null; if (r) { if (d.moved) compSet(r, d.k, Math.min(d.f0s != null ? d.f0s : d.f0, d.f1), Math.max(d.f0s != null ? d.f0s : d.f0, d.f1)); else compTap(r, d.k, d.f0); UI.say('Comp: „' + r.takes[d.k].name + '“ ' + (d.moved ? 'im gewischten Bereich' : 'in diesem Abschnitt') + '.'); } }
     if (drag && drag.kind === 'reg' && drag.moved) { const r = Proj.reg(drag.id), fin = JSON.parse(JSON.stringify(r)); Object.assign(r, drag.orig); Proj.editRegion(drag.id, q => Object.assign(q, fin)); }
     if (drag && drag.kind === 'auto' && drag.moved) { Proj.save(); }
     if (!ptrs.size) drag = null; kick();
@@ -2752,20 +2996,20 @@ const Arr = (() => {
   lanes.addEventListener('pointerup', up); lanes.addEventListener('pointercancel', up);
   lanes.addEventListener('wheel', e => { e.preventDefault(); if (e.ctrlKey) { const rc = lanes.getBoundingClientRect(), fc = xf(e.clientX - rc.left); V.fpp = clampF(V.fpp * Math.exp(e.deltaY / 200)); V.x0 = Math.max(0, fc - (e.clientX - rc.left) * V.fpp); } else { V.x0 = Math.max(0, V.x0 + (e.deltaX || (e.shiftKey ? e.deltaY : 0)) * V.fpp); V.y0 = Math.max(0, Math.min(maxY(), V.y0 + (e.shiftKey ? 0 : e.deltaY))); headsIn.style.transform = 'translateY(' + (-V.y0) + 'px)'; } kick(); }, { passive: false });
   const clampF = f => Math.max(0.25, Math.min(40000, f));   // bis 4 Pixel je Abtastwert hineinzoomen
-  const maxY = () => Math.max(0, RH + (P() ? P().tracks.length : 0) * V.th - lanes.clientHeight + 40);
+  const maxY = () => Math.max(0, RH + (P() ? lay().tot : 0) - lanes.clientHeight + 40);
   function regMove(d, x, y) {
     const r = Proj.reg(d.id); if (!r) return; const df = (x - d.x) * V.fpp, o = d.orig, g = UI.snapMode(), sn = f => g === 'off' ? Math.round(f) : Proj.snap(f, g);
     if (Math.abs(x - d.x) + Math.abs(y - d.y) > 4) d.moved = true; if (!d.moved) return;
     if (d.part === 'body') {
-      r.start = Math.max(0, sn(o.start + df));
-      const ti = Math.max(0, Math.min(P().tracks.length - 1, Math.floor((y - RH + V.y0) / V.th))), t = P().tracks[ti];
+      r.start = Math.max(0, sn(o.start + df)); r.len = Proj.keepBeats(o, r.start);   // v121: Noten/Drummer behalten ihre Schläge über Tempowechsel
+      const ta = trackAt(y), ti = Math.max(0, Math.min(P().tracks.length - 1, ta.ti < 0 ? P().tracks.length - 1 : ta.ti)), t = P().tracks[ti];
       if (t && t.kind === (o.kind === 'audio' ? 'audio' : o.kind === 'drum' ? 'drum' : 'midi')) r.track = t.id;
     } else if (d.part === 'l') {
       let ns = sn(o.start + df); ns = Math.max(o.kind === 'audio' ? o.start - o.offset : 0, Math.min(o.start + o.len - 256, ns));
       const dd = ns - o.start; r.start = ns; r.len = o.len - dd; if (o.kind === 'audio') r.offset = o.offset + dd;
-      if (o.notes) { const db = dd / Proj.spb(); r.notes = o.notes.map(n => Object.assign({}, n, { t: n.t - db })).filter(n => n.t + n.d > 0); }
+      if (o.notes) { const db = Proj.f2beat(ns) - Proj.f2beat(o.start); r.notes = o.notes.map(n => Object.assign({}, n, { t: n.t - db })).filter(n => n.t + n.d > 0); }
     } else if (d.part === 'r') {
-      let ne = sn(o.start + o.len + df); const mx = o.kind === 'audio' && metas.get(o.audio) ? o.start + (metas.get(o.audio).frames - o.offset) : Infinity;
+      let ne = sn(o.start + o.len + df); const mx = o.takes ? o.start + (o.tlen || o.len) - (o.offset || 0) : o.kind === 'audio' && metas.get(o.audio) ? o.start + (metas.get(o.audio).frames - o.offset) : Infinity;
       ne = Math.max(o.start + 256, Math.min(mx, ne)); r.len = ne - o.start;
     } else if (d.part === 'fi') r.fi = Math.max(0, Math.min(r.len / 2, (o.fi || 0) + df));
     else if (d.part === 'fo') r.fo = Math.max(0, Math.min(r.len / 2, (o.fo || 0) - df));
@@ -2784,7 +3028,7 @@ const Arr = (() => {
   // ---------- Werkzeuge ----------
   function zoom(k) { const w = lanes.clientWidth, fc = xf(w / 2); V.fpp = clampF(V.fpp * k); V.x0 = Math.max(0, fc - w / 2 * V.fpp); kick(); }
   let fitLater = false;
-  function zoomAll() { if (lanes.clientWidth < 60) { fitLater = true; return; } fitLater = false; const e = Math.max(Proj.projEnd(), Proj.bar() * 8); V.fpp = clampF(e / (lanes.clientWidth - 30)); V.x0 = 0; kick(); }
+  function zoomAll() { if (lanes.clientWidth < 60) { fitLater = true; return; } fitLater = false; const e = Math.max(Proj.projEnd(), Proj.bar2f(8)); V.fpp = clampF(e / (lanes.clientWidth - 30)); V.x0 = 0; kick(); }
   function follow() { if (!Engine.playing) return; const x = fx(Engine.curPos()), w = lanes.clientWidth; if (x > w * 0.85 || x < 0) { V.x0 = Math.max(0, Engine.curPos() - w * 0.15 * V.fpp); } }
   function loop() { if (fitLater && lanes.clientWidth >= 60) zoomAll(); follow(); if (need || Engine.playing || (window.Rec && Rec.active())) { need = false; draw(); } requestAnimationFrame(loop); }
   requestAnimationFrame(loop);
@@ -2804,7 +3048,7 @@ const Roll = (() => {
   try { S.grid = +localStorage.getItem('3nps-studio-rgrid') || 0.25; } catch (e) {}
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const reg = () => S.rid && Proj.reg(S.rid);
-  const beats = r => r.len / Proj.spb();
+  const beats = r => Proj.f2beat(r.start + r.len) - Proj.f2beat(r.start);   // v121: Schläge über die Tempokarte
   const bx = b => KW + (b - S.x0) * S.ppb, xb = x => (x - KW) / S.ppb + S.x0;
   const my = m => (127 - m) * NH - S.y0, ym = y => 127 - Math.floor((y + S.y0) / NH);
   const nm = m => NAMES[m % 12] + (Math.floor(m / 12) - 1);
@@ -2863,16 +3107,17 @@ const Roll = (() => {
     const m0 = Math.max(0, ym(h)), m1 = Math.min(127, ym(0));
     for (let m = m0; m <= m1; m++) { const y = my(m); c.fillStyle = BLACK.includes(m % 12) ? '#18181c' : '#1c1c21'; c.fillRect(KW, y, w - KW, NH); if (m % 12 === 0) { c.fillStyle = '#2c2c34'; c.fillRect(KW, y + NH - 1, w - KW, 1); } }
     // Raster
-    for (let b = Math.floor(S.x0 / S.grid) * S.grid; bx(b) < w; b += S.grid) { const x = Math.round(bx(b)) + 0.5; if (x < KW) continue; const isBar = Math.abs(b / P.sig - Math.round(b / P.sig)) < 1e-6, isBeat = Math.abs(b - Math.round(b)) < 1e-6; c.fillStyle = isBar ? '#3a3a44' : isBeat ? '#2a2a31' : '#1f1f25'; c.fillRect(x, 0, 1, h); }
+    const rb0 = Proj.f2beat(r.start);
+    for (let b = Math.floor(S.x0 / S.grid) * S.grid; bx(b) < w; b += S.grid) { const x = Math.round(bx(b)) + 0.5; if (x < KW) continue; const isBeat0 = Math.abs(b - Math.round(b)) < 1e-6, isBar = isBeat0 && Math.abs(rb0 - Math.round(rb0)) < 1e-6 && TMap.isBarBeat(P, Math.round(rb0 + b)), isBeat = Math.abs(b - Math.round(b)) < 1e-6; c.fillStyle = isBar ? '#3a3a44' : isBeat ? '#2a2a31' : '#1f1f25'; c.fillRect(x, 0, 1, h); }
     c.fillStyle = 'rgba(0,0,0,.35)'; c.fillRect(bx(nb), 0, w, h);   // hinter dem Regionsende
     // Akkorde des Projekts als Band
-    (P.chords || []).forEach(ch => { const rb = r.start / Proj.spb(), a = bx(ch.b - rb), e = bx(ch.b - rb + ch.beats); if (e < KW || a > w) return; c.fillStyle = 'rgba(138,217,78,.12)'; c.fillRect(Math.max(KW, a), 0, e - a - 1, 14); c.fillStyle = '#8ad94e'; c.font = '600 10px system-ui'; c.fillText(ch.name, Math.max(KW, a) + 3, 11); });
+    (P.chords || []).forEach(ch => { const rb = rb0, a = bx(ch.b - rb), e = bx(ch.b - rb + ch.beats); if (e < KW || a > w) return; c.fillStyle = 'rgba(138,217,78,.12)'; c.fillRect(Math.max(KW, a), 0, e - a - 1, 14); c.fillStyle = '#8ad94e'; c.font = '600 10px system-ui'; c.fillText(ch.name, Math.max(KW, a) + 3, 11); });
     // Noten
     (r.notes || []).forEach(n => { const x = bx(n.t), xe = bx(n.t + n.d), y = my(n.m); if (xe < KW || x > w || y + NH < 0 || y > h) return; const sel = S.sel.has(n);
       c.globalAlpha = 0.45 + 0.55 * (n.v || 96) / 127; c.fillStyle = sel ? '#fff' : t.color; c.fillRect(Math.max(KW, x) + 0.5, y + 1, Math.max(3, xe - Math.max(KW, x) - 1), NH - 2); c.globalAlpha = 1;
       if (xe - x > 26 && NH >= 12) { c.fillStyle = 'rgba(0,0,0,.7)'; c.font = '9px system-ui'; c.fillText(nm(n.m), Math.max(KW, x) + 3, y + NH - 4); } });
     // Abspielposition / Cursor
-    const pb = (Engine.curPos() - r.start) / Proj.spb(); if (pb >= 0 && pb <= nb) { c.fillStyle = '#fff'; c.fillRect(bx(pb), 0, 2, h); }
+    const pb = Proj.f2beat(Engine.curPos()) - rb0; if (pb >= 0 && pb <= nb) { c.fillStyle = '#fff'; c.fillRect(bx(pb), 0, 2, h); }
     if (S.step) { c.fillStyle = '#ffb36b'; c.fillRect(bx(S.cur), 0, 2, h); }
     // Tastatur
     for (let m = m0; m <= m1; m++) { const y = my(m), bl = BLACK.includes(m % 12); c.fillStyle = bl ? '#26262c' : '#d8d8de'; c.fillRect(0, y, KW, NH - 1); if (m % 12 === 0) { c.fillStyle = '#555'; c.font = '9px system-ui'; c.fillText(nm(m), 4, y + NH - 3); } }
@@ -2927,7 +3172,7 @@ const Roll = (() => {
     const P = Proj.P, fromSong = !!(P.chords && P.chords.length);
     let saved = ''; try { saved = localStorage.getItem('3nps-studio-prog') || ''; } catch (e) {}
     dock.innerHTML = '<b style="font-size:12px;color:var(--mut)">AKKORDE →</b><input type="text" id="cProg" style="flex:1;min-width:220px" placeholder="z. B. Am F C G (je 1 Takt; „C:2“ = 2 Takte)" value="' + esc(fromSong ? progFromProject() : saved) + '">' +
-      '<label class="row">ab Takt <input type="number" id="cBar" min="1" value="' + (fromSong ? Math.round(P.chords[0].b / P.sig) + 1 : Math.max(1, Math.round(Engine.curPos() / Proj.bar()) + 1)) + '" style="width:60px"></label>' +
+      '<label class="row">ab Takt <input type="number" id="cBar" min="1" value="' + (fromSong ? Math.round(Proj.f2bar(Proj.beat2f(P.chords[0].b))) + 1 : Math.max(1, Math.round(Proj.f2bar(Engine.curPos())) + 1)) + '" style="width:60px"></label>' +
       '<label class="row">Bass <select id="cBass"><option value="whole">Grundton lang</option><option value="eighth">Achtel</option><option value="rq" selected>Grundton–Quinte</option><option value="walk">Laufend</option></select></label>' +
       '<button class="btn" id="cMkB">Bass erzeugen</button><button class="btn" id="cMkP">Flächen erzeugen</button><button class="btn" id="cMkA">Arpeggio erzeugen</button>' + (fromSong ? '<span class="note">Akkorde aus dem Song übernommen.</span>' : '');
     $('cMkB').onclick = () => gen('bass'); $('cMkP').onclick = () => gen('pad'); $('cMkA').onclick = () => gen('arp');
@@ -2952,8 +3197,8 @@ const Roll = (() => {
       else { const base = 60 + ch.r - (ch.r > 5 ? 12 : 0), tones = ch.iv.concat([12]); for (let k = 0; k < L * 2; k++) notes.push({ t: b + k / 2, d: 0.48, m: base + tones[[0, 1, 2, 3, 2, 1][k % 6] % tones.length], v: k % 2 ? 76 : 92 }); }
       b += L;
     });
-    const at = Math.round((Math.max(1, +$('cBar').value || 1) - 1) * Proj.bar()), name = kind === 'bass' ? 'Bass' : kind === 'pad' ? 'Flächen' : 'Arpeggio';
-    let tid; Proj.change('tracks', p => { const t = Proj.track('midi', name + ' (aus Akkorden)'); t.inst = kind === 'bass' ? 'kbass' : kind === 'pad' ? 'strings' : 'harp'; if (kind === 'pad') t.vol = -6; tid = t.id; p.tracks.push(t); p.regions.push({ id: Proj.nid('r'), track: t.id, kind: 'midi', start: at, len: Math.round(b * Proj.spb()), notes, name: txt.slice(0, 40) }); });
+    const at = Proj.bar2f(Math.max(1, +$('cBar').value || 1) - 1), name = kind === 'bass' ? 'Bass' : kind === 'pad' ? 'Flächen' : 'Arpeggio';
+    let tid; Proj.change('tracks', p => { const t = Proj.track('midi', name + ' (aus Akkorden)'); t.inst = kind === 'bass' ? 'kbass' : kind === 'pad' ? 'strings' : 'harp'; if (kind === 'pad') t.vol = -6; tid = t.id; p.tracks.push(t); p.regions.push({ id: Proj.nid('r'), track: t.id, kind: 'midi', start: at, len: Proj.beat2f(Proj.f2beat(at) + b) - at, notes, name: txt.slice(0, 40) }); });
     Engine.dirty(true); Inst.load(kind === 'bass' ? 'kbass' : kind === 'pad' ? 'strings' : 'harp'); Arr.V.selTrack = tid; Arr.V.sel = Proj.P.regions[Proj.P.regions.length - 1].id; Arr.heads(); open();
     UI.say(name + ' erzeugt: ' + notes.length + ' Noten über ' + Math.round(b / sig) + ' Takte (Instrument änderbar).');
   }
@@ -2971,7 +3216,7 @@ const Mix = (() => {
   const $ = id => document.getElementById(id), host = $('mix');
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const FR = (() => { const a = new Float32Array(60); for (let i = 0; i < 60; i++) a[i] = 20 * Math.pow(1000, i / 59); return a; })();
-  let raf = 0, pk = [], mpk = 0;
+  let raf = 0, pk = [], mpk = 0, gpk = [];
   function eqMini(cv, vals) {
     const dpr = devicePixelRatio || 1, w = cv.clientWidth || 100, h = cv.clientHeight || 40; cv.width = w * dpr; cv.height = h * dpr;
     const g = cv.getContext('2d'); g.scale(dpr, dpr); g.clearRect(0, 0, w, h);
@@ -2982,15 +3227,26 @@ const Mix = (() => {
   }
   const dbTxt = v => (v > 0 ? '+' : '') + (Math.round(v * 10) / 10).toString().replace('.', ',') + ' dB';
   const fx2 = t => { const f = t.fx || {}; return [['comp', 'Kompressor', f.comp && f.comp.on], ['sat', 'Sättigung', f.sat && f.sat.on], ['rev', 'Hall ' + (f.rev || 0) + ' %', (f.rev || 0) > 0], ['dly', 'Delay ' + (f.dly || 0) + ' %', (f.dly || 0) > 0]]; };
+  // v121: Ausgang je Spur (Master oder Bus 1…4)
+  const outSel = (P, t) => '<select class="out" data-a="out" aria-label="Ausgang ' + esc(t.name) + '"><option value="master">→ Master</option>' + [1, 2, 3, 4].map(k => { const g = (P.groups || []).find(x => x.id === 'g' + k); return '<option value="g' + k + '"' + (t.out === 'g' + k ? ' selected' : '') + '>→ ' + esc(g ? g.name : 'Bus ' + k + ' (neu)') + '</option>'; }).join('') + '</select>';
+  const chan = id => Proj.chan(id);
   function render() {
     const P = Proj.P; if (!P) { host.innerHTML = ''; return; }
     let h = '';
     P.tracks.forEach((t, i) => {
-      h += '<div class="strip' + (Arr.V.selTrack === t.id ? ' sel' : '') + '" data-t="' + t.id + '"><div class="nm" title="' + esc(t.name) + '"><i style="background:' + t.color + '"></i>' + esc(t.name) + '</div>' +
+      h += '<div class="strip' + (Arr.V.selTrack === t.id ? ' sel' : '') + '" data-t="' + t.id + '"><div class="nm" title="' + esc(t.name) + '"><i style="background:' + t.color + '"></i>' + esc(t.name) + '</div>' + outSel(P, t) +
         '<canvas class="eqm" data-a="eq" title="EQ"></canvas>' + fx2(t).map(([k, n, on]) => '<div class="slot' + (on ? ' on' : '') + '" data-a="fx" data-k="' + k + '">' + n + '</div>').join('') +
         '<input type="range" class="pan" min="-100" max="100" step="1" value="' + (t.pan || 0) + '" data-a="pan" aria-label="Panorama ' + esc(t.name) + '"><div class="db" data-v="pan">' + panTxt(t.pan) + '</div>' +
         '<div class="fz"><input type="range" min="-60" max="6" step="0.5" value="' + (t.vol || 0) + '" data-a="vol" aria-label="Lautstärke ' + esc(t.name) + '"><canvas data-m="' + i + '"></canvas></div>' +
         '<div class="db" data-v="vol">' + dbTxt(t.vol || 0) + '</div><div class="msb"><button class="m' + (t.mute ? ' on' : '') + '" data-a="mute">M</button><button class="s' + (t.solo ? ' on' : '') + '" data-a="solo">S</button></div></div>';
+    });
+    (P.groups || []).forEach((g, j) => {
+      const ins = P.tracks.filter(t => t.out === g.id);
+      h += '<div class="strip grp" data-t="' + g.id + '"><div class="nm" title="' + esc(g.name) + '"><i style="background:' + g.color + '"></i>' + esc(g.name) + '</div><div class="gin">' + (ins.length ? ins.length + ' Spur' + (ins.length === 1 ? '' : 'en') : '<button class="btn" data-a="gdel" style="padding:3px 8px">entfernen</button>') + '</div>' +
+        '<canvas class="eqm" data-a="eq" title="EQ"></canvas>' + fx2(g).map(([k, n, on]) => '<div class="slot' + (on ? ' on' : '') + '" data-a="fx" data-k="' + k + '">' + n + '</div>').join('') +
+        '<input type="range" class="pan" min="-100" max="100" step="1" value="' + (g.pan || 0) + '" data-a="pan" aria-label="Panorama ' + esc(g.name) + '"><div class="db" data-v="pan">' + panTxt(g.pan) + '</div>' +
+        '<div class="fz"><input type="range" min="-60" max="6" step="0.5" value="' + (g.vol || 0) + '" data-a="vol" aria-label="Lautstärke ' + esc(g.name) + '"><canvas data-m="G' + j + '"></canvas></div>' +
+        '<div class="db" data-v="vol">' + dbTxt(g.vol || 0) + '</div><div class="msb"><button class="m' + (g.mute ? ' on' : '') + '" data-a="mute">M</button><button class="s' + (g.solo ? ' on' : '') + '" data-a="solo">S</button></div></div>';
     });
     const m = P.master;
     h += '<div class="strip master" data-t="master"><div class="nm">Master</div><canvas class="eqm" data-a="eq"></canvas>' +
@@ -2999,24 +3255,34 @@ const Mix = (() => {
       '<div class="fz"><input type="range" min="-30" max="6" step="0.5" value="' + (m.vol || 0) + '" data-a="vol" aria-label="Master-Lautstärke"><canvas data-m="M"></canvas></div><div class="db" data-v="vol">' + dbTxt(m.vol || 0) + '</div></div>';
     if (!P.tracks.length) h = '<p class="empty">Noch keine Spuren. Hole etwas „Aus dem Looper“ oder tippe im Arrangement auf „+ Spur“.</p>' + h;
     host.innerHTML = h;
-    host.querySelectorAll('canvas.eqm').forEach(cv => { const id = cv.closest('.strip').dataset.t; eqMini(cv, id === 'master' ? P.master.eq : P.tracks[Proj.tIndex(id)].eq); });
+    host.querySelectorAll('canvas.eqm').forEach(cv => { const id = cv.closest('.strip').dataset.t; eqMini(cv, id === 'master' ? P.master.eq : chan(id).eq); });
     pk = P.tracks.map(() => 0); loop();
   }
   const panTxt = p => !p ? 'Mitte' : (p < 0 ? 'L ' : 'R ') + Math.abs(p);
   host.addEventListener('input', e => {
     const el = e.target, s = el.closest('.strip'); if (!s) return; const id = s.dataset.t, a = el.dataset.a, v = +el.value;
     if (id === 'master') { Proj.P.master.vol = v; Engine.applyMaster(); s.querySelector('[data-v=vol]').textContent = dbTxt(v); Proj.change('mix', () => {}, { noUndo: true }); return; }
-    const t = Proj.P.tracks[Proj.tIndex(id)]; if (!t) return;
+    const t = chan(id); if (!t || (a !== 'vol' && a !== 'pan')) return;
     if (a === 'vol') { t.vol = v; s.querySelector('[data-v=vol]').textContent = dbTxt(v); }
     if (a === 'pan') { t.pan = v; s.querySelector('[data-v=pan]').textContent = panTxt(v); }
-    Engine.applyTrack(Proj.tIndex(id), true);
+    if (Proj.tIndex(id) >= 0) Engine.applyTrack(Proj.tIndex(id), true); else Engine.applyAll();
   });
   // Ende einer Fader-Bewegung = ein Rückgängig-Schritt
-  host.addEventListener('change', e => { if (e.target.dataset.a === 'vol' || e.target.dataset.a === 'pan') Proj.change('mix', () => {}, {}); });
+  host.addEventListener('change', e => {
+    if (e.target.dataset.a === 'vol' || e.target.dataset.a === 'pan') Proj.change('mix', () => {}, {});
+    if (e.target.dataset.a === 'out') { const id = e.target.closest('.strip').dataset.t, v = e.target.value; setOut(id, v); }
+  });
+  function setOut(id, v) {
+    const t = Proj.P.tracks[Proj.tIndex(id)]; if (!t) return;
+    Proj.change('mix', p => { const x = p.tracks[Proj.tIndex(id)]; if (v === 'master') delete x.out; else { Proj.ensureGroup(p, v); x.out = v; if (x.fx.comp.sc === v) x.fx.comp.sc = ''; } });
+    Engine.dirty(true); render(); Arr.heads(); UI.say(v === 'master' ? '„' + t.name + '“ geht direkt auf den Master.' : '„' + t.name + '“ geht jetzt über „' + Proj.chan(v).name + '“ (eigener Streifen rechts).');
+  }
   host.addEventListener('dblclick', e => { const el = e.target; if (el.type !== 'range') return; el.value = 0; el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); });
   host.addEventListener('click', e => {
     const s = e.target.closest('.strip'); if (!s) return; const id = s.dataset.t, el = e.target.closest('[data-a]'), a = el && el.dataset.a;
-    if (id !== 'master' && !a) { Arr.selectTrack(id); render(); return; }
+    if (id !== 'master' && !a) { if (Proj.tIndex(id) >= 0) { Arr.selectTrack(id); render(); } return; }
+    if (a === 'out') return;
+    if (a === 'gdel') { Proj.change('mix', p => { p.groups = (p.groups || []).filter(g => g.id !== id); p.tracks.forEach(t => { if (t.fx.comp.sc === id) t.fx.comp.sc = ''; }); }); Engine.dirty(true); render(); return; }
     if (!a) return;
     if (id === 'master') {
       if (a === 'eq') return eqDlg('master');
@@ -3026,35 +3292,38 @@ const Mix = (() => {
     }
     if (a === 'eq') return eqDlg(id);
     if (a === 'fx') return fxDlg(id, el.dataset.k);
-    if (a === 'mute' || a === 'solo') { Proj.editTrack(id, t => { t[a] = !t[a]; }, { noUndo: true }); Proj.P.tracks.forEach((_, i) => Engine.applyTrack(i, true)); render(); Arr.heads(); }
+    if (a === 'mute' || a === 'solo') { Proj.editChan(id, t => { t[a] = !t[a]; }, { noUndo: true }); Proj.P.tracks.forEach((_, i) => Engine.applyTrack(i, true)); render(); Arr.heads(); }
   });
   // ---- EQ-Fenster (gleicher EQ wie im Looper) ----
   function eqDlg(id) {
-    const P = Proj.P, master = id === 'master', t = master ? null : P.tracks[Proj.tIndex(id)];
+    const P = Proj.P, master = id === 'master', t = master ? null : chan(id), isT = !master && Proj.tIndex(id) >= 0, gj = (P.groups || []).findIndex(g => g.id === id);
     UI.dialog('<h2>EQ · ' + esc(master ? 'Master' : t.name) + '</h2><div id="eqHost"></div><div class="btns"><button class="btn p" data-close>Fertig</button></div>');
     const before = JSON.stringify(master ? P.master.eq : t.eq);
     EQ7.widget(document.getElementById('eqHost'), { vals: master ? P.master.eq : t.eq, presets: !master && t.kind === 'drum' ? EQ7.PRESETS_DRUMS : EQ7.PRESETS_TRACK,
-      analyser: () => { const G = Engine.graph; if (!G) return null; const n = master ? G.master.mEq : G.tr[Proj.tIndex(id)] && G.tr[Proj.tIndex(id)].eq; return n && n.analyser ? n.analyser() : null; },
-      onChange: v => { if (master) { P.master.eq = v; Engine.applyMaster(); } else { t.eq = v; Engine.applyTrack(Proj.tIndex(id), true); } } });
-    UI.onClose(() => { const now = JSON.stringify(master ? P.master.eq : t.eq); if (now !== before) { const v = JSON.parse(now); if (master) P.master.eq = JSON.parse(before); else t.eq = JSON.parse(before); Proj.change('mix', p => { if (master) p.master.eq = v; else p.tracks[Proj.tIndex(id)].eq = v; }); } render(); });
+      analyser: () => { const G = Engine.graph; if (!G) return null; const n = master ? G.master.mEq : isT ? G.tr[Proj.tIndex(id)] && G.tr[Proj.tIndex(id)].eq : G.grp[gj] && G.grp[gj].eq; return n && n.analyser ? n.analyser() : null; },
+      onChange: v => { if (master) { P.master.eq = v; Engine.applyMaster(); } else { t.eq = v; if (isT) Engine.applyTrack(Proj.tIndex(id), true); else Engine.applyAll(); } } });
+    UI.onClose(() => { const now = JSON.stringify(master ? P.master.eq : t.eq); if (now !== before) { const v = JSON.parse(now); if (master) P.master.eq = JSON.parse(before); else t.eq = JSON.parse(before); Proj.change('mix', p => { if (master) p.master.eq = v; else (p.tracks.find(x => x.id === id) || p.groups.find(x => x.id === id)).eq = v; }); } render(); });
   }
   // ---- Effekte je Spur ----
   function fxDlg(id) {
-    const i = Proj.tIndex(id), t = Proj.P.tracks[i], f = t.fx, before = JSON.stringify(f);
+    const i = Proj.tIndex(id), t = chan(id), f = t.fx, before = JSON.stringify(f), P = Proj.P, apply = () => { if (i >= 0) Engine.applyTrack(i, true); else Engine.applyAll(); };
+    // v121: Sidechain-Quellen – andere Spuren und Busse (nicht der eigene Ausgangsbus)
+    const scOpts = '<option value="">aus (eigenes Signal)</option>' + P.tracks.filter(x => x.id !== id).map(x => '<option value="' + x.id + '"' + (f.comp.sc === x.id ? ' selected' : '') + '>Spur: ' + esc(x.name) + '</option>').join('') + (P.groups || []).filter(g => g.id !== id && g.id !== t.out).map(g => '<option value="' + g.id + '"' + (f.comp.sc === g.id ? ' selected' : '') + '>' + esc(g.name) + '</option>').join('');
     const sl = (k, n, min, max, step, v, u) => '<label>' + n + ' <b data-o="' + k + '">' + v + (u || '') + '</b></label><input type="range" data-k="' + k + '" min="' + min + '" max="' + max + '" step="' + step + '" value="' + v + '" data-u="' + (u || '') + '">';
     UI.dialog('<h2>Effekte · ' + esc(t.name) + '</h2><div class="fxp">' +
-      '<div class="card"><label style="color:var(--ink)"><b>Kompressor</b><input type="checkbox" data-k="comp.on"' + (f.comp.on ? ' checked' : '') + '></label>' + sl('comp.th', 'Schwelle', -50, 0, 1, f.comp.th, ' dB') + sl('comp.ratio', 'Verhältnis', 1, 20, 0.5, f.comp.ratio, ':1') + sl('comp.att', 'Ansprechzeit', 1, 100, 1, f.comp.att, ' ms') + sl('comp.rel', 'Abklingzeit', 20, 800, 10, f.comp.rel, ' ms') + sl('comp.mk', 'Aufholen', 0, 18, 0.5, f.comp.mk, ' dB') + '</div>' +
+      '<div class="card"><label style="color:var(--ink)"><b>Kompressor</b><input type="checkbox" data-k="comp.on"' + (f.comp.on ? ' checked' : '') + '></label>' + sl('comp.th', 'Schwelle', -50, 0, 1, f.comp.th, ' dB') + sl('comp.ratio', 'Verhältnis', 1, 20, 0.5, f.comp.ratio, ':1') + sl('comp.att', 'Ansprechzeit', 1, 100, 1, f.comp.att, ' ms') + sl('comp.rel', 'Abklingzeit', 20, 800, 10, f.comp.rel, ' ms') + sl('comp.mk', 'Aufholen', 0, 18, 0.5, f.comp.mk, ' dB') + '<label>Sidechain (steuert die Absenkung)</label><select id="fxSc" aria-label="Sidechain-Quelle">' + scOpts + '</select><p class="note">z. B. Bass duckt bei der Kick: beim Bass Kompressor an, Sidechain = Drum-Spur.</p></div>' +
       '<div class="card"><label style="color:var(--ink)"><b>Sättigung (Röhre/Band)</b><input type="checkbox" data-k="sat.on"' + (f.sat.on ? ' checked' : '') + '></label>' + sl('sat.drive', 'Stärke', 0, 100, 1, f.sat.drive, ' %') + '</div>' +
       '<div class="card"><b>Sends</b>' + sl('rev', 'Hall', 0, 100, 1, f.rev || 0, ' %') + sl('dly', 'Delay', 0, 100, 1, f.dly || 0, ' %') + '<p class="note">Hall und Delay sind gemeinsame Busse – einstellen beim Master („Hall · Delay“).</p></div>' +
       '</div><div class="btns"><button class="btn" data-pre="vocal">Vorlage Gesang</button><button class="btn" data-pre="git">Vorlage Gitarre</button><button class="btn" data-pre="bass">Vorlage Bass</button><button class="btn" data-pre="drums">Vorlage Drums</button><button class="btn" data-pre="off">Alles aus</button><span style="flex:1"></span><button class="btn p" data-close>Fertig</button></div>');
     const dlg = $('dlg');
     const setK = (k, v) => { const [a, b] = k.split('.'); if (b) f[a][b] = v; else f[a] = v; };
     const show = () => dlg.querySelectorAll('[data-k]').forEach(el => { const [a, b] = el.dataset.k.split('.'), v = b ? f[a][b] : f[a]; if (el.type === 'checkbox') el.checked = !!v; else { el.value = v; const o = dlg.querySelector('[data-o="' + el.dataset.k + '"]'); if (o) o.textContent = v + el.dataset.u; } });
-    dlg.addEventListener('input', e => { const el = e.target, k = el.dataset.k; if (!k) return; setK(k, el.type === 'checkbox' ? el.checked : +el.value); if (/^comp\.(?!on)/.test(k)) f.comp.on = true; if (/^sat\.drive/.test(k)) f.sat.on = true; show(); Engine.applyTrack(i, true); });
+    dlg.addEventListener('input', e => { const el = e.target, k = el.dataset.k; if (!k) return; const scWas = !!(f.comp.on && f.comp.sc); setK(k, el.type === 'checkbox' ? el.checked : +el.value); if (/^comp\.(?!on)/.test(k)) f.comp.on = true; if (/^sat\.drive/.test(k)) f.sat.on = true; show(); if (scWas !== !!(f.comp.on && f.comp.sc)) Engine.dirty(true); else apply(); });
+    $('fxSc').onchange = e => { f.comp.sc = e.target.value; if (f.comp.sc) f.comp.on = true; show(); Engine.dirty(true); };
     const PRE = { vocal: { comp: { on: true, th: -20, ratio: 3, att: 8, rel: 140, mk: 4 }, sat: { on: true, drive: 15 }, rev: 22, dly: 10 }, git: { comp: { on: true, th: -16, ratio: 2.5, att: 15, rel: 160, mk: 2 }, sat: { on: true, drive: 25 }, rev: 15, dly: 0 },
       bass: { comp: { on: true, th: -22, ratio: 4, att: 20, rel: 200, mk: 5 }, sat: { on: true, drive: 30 }, rev: 0, dly: 0 }, drums: { comp: { on: true, th: -14, ratio: 3, att: 25, rel: 100, mk: 3 }, sat: { on: true, drive: 20 }, rev: 10, dly: 0 }, off: { comp: { on: false, th: -18, ratio: 3, att: 10, rel: 120, mk: 0 }, sat: { on: false, drive: 30 }, rev: 0, dly: 0 } };
-    dlg.addEventListener('click', e => { const b = e.target.closest('[data-pre]'); if (!b) return; const p = JSON.parse(JSON.stringify(PRE[b.dataset.pre])); Object.assign(f, p); show(); Engine.applyTrack(i, true); });
-    UI.onClose(() => { const now = JSON.stringify(f); if (now !== before) { const v = JSON.parse(now); t.fx = JSON.parse(before); Proj.change('mix', p => { p.tracks[i].fx = v; }); Engine.applyTrack(i, true); } render(); });
+    dlg.addEventListener('click', e => { const b = e.target.closest('[data-pre]'); if (!b) return; const p = JSON.parse(JSON.stringify(PRE[b.dataset.pre])); p.comp.sc = f.comp.sc || ''; Object.assign(f, p); show(); Engine.dirty(true); });
+    UI.onClose(() => { const now = JSON.stringify(f); if (now !== before) { const v = JSON.parse(now); t.fx = JSON.parse(before); Proj.change('mix', p => { (p.tracks.find(x => x.id === id) || p.groups.find(x => x.id === id)).fx = v; }); Engine.dirty(true); } render(); });
   }
   function busDlg() {
     const b = Proj.P.bus, before = JSON.stringify(b);
@@ -3077,10 +3346,10 @@ const Mix = (() => {
   }
   function loop() {
     cancelAnimationFrame(raf); if (document.getElementById('v-mix').hidden) return;
-    host.querySelectorAll('canvas[data-m]').forEach(cv => { const k = cv.dataset.m; if (k === 'M') { mpk = Math.max(mpk * 0.88, Engine.masterLevel()); bar(cv, mpk); } else { const i = +k; pk[i] = Math.max((pk[i] || 0) * 0.88, Engine.level(i)); bar(cv, pk[i]); } });
+    host.querySelectorAll('canvas[data-m]').forEach(cv => { const k = cv.dataset.m; if (k[0] === 'G') { const j = +k.slice(1); gpk[j] = Math.max((gpk[j] || 0) * 0.88, Engine.groupLevel(j)); bar(cv, gpk[j]); } else if (k === 'M') { mpk = Math.max(mpk * 0.88, Engine.masterLevel()); bar(cv, mpk); } else { const i = +k; pk[i] = Math.max((pk[i] || 0) * 0.88, Engine.level(i)); bar(cv, pk[i]); } });
     raf = requestAnimationFrame(loop);
   }
-  return { render, eqDlg, fxDlg, eqMini };
+  return { render, eqDlg, fxDlg, eqMini, setOut };
 })();
 
 </script>
@@ -3113,7 +3382,7 @@ const Brw = (() => {
   $('bList').addEventListener('click', e => { const it = e.target.closest('.item'); if (!it) return; const x = list.find(q => q.id === it.dataset.id); if (x) select(x); });
   async function select(x) {
     stopPrev(); cur = x; render();
-    const P = Proj.P, hasP = P && (P.tracks.length || P.regions.length), nextBar = P ? Math.max(1, Math.ceil(Proj.projEnd() / Proj.bar()) + 1) : 1;
+    const P = Proj.P, hasP = P && (P.tracks.length || P.regions.length), nextBar = P ? Math.max(1, Math.ceil(Proj.f2bar(Proj.projEnd()) - 1e-6) + 1) : 1;
     const fit = x.bpm && P && hasP && Math.abs(P.bpm - x.bpm) > 0.05;
     $('bPrev').innerHTML = '<div class="card"><h2>' + esc(x.name) + '</h2><div class="meta">' + [NAME[x.cat], x.bpm ? Math.round(x.bpm * 100) / 100 + ' BPM' : '', x.key && x.key.trim() ? esc(x.key) : '', x.secs ? mmss(x.secs) : '', x.drums ? 'mit Drums' : '', date(x.ts)].filter(Boolean).join(' · ') + '</div>' +
       '<div id="bTr"><p class="note">Lade Vorschau …</p></div>' +
@@ -3190,24 +3459,25 @@ const Exp = (() => {
     if (window.Inst) await Inst.ready(proj);
     const oc = new OfflineAudioContext(2, n, sr);
     const url = URL.createObjectURL(new Blob([Engine.WORKLET_SRC], { type: 'application/javascript' }));
-    await oc.audioWorklet.addModule(url);
-    const node = new AudioWorkletNode(oc, 'studio-eng', { numberOfInputs: 0, numberOfOutputs: Engine.MAXT, outputChannelCount: new Array(Engine.MAXT).fill(2), processorOptions: { n: Engine.MAXT } });
-    const G = Engine.makeGraph(oc, proj, node);
-    if (window.Inst) Inst.offline(oc, G, proj, a, e);
-    if (window.Sched) Sched.offlineAuto(oc, G, proj, a);
-    const sent = new Set();
+    await oc.audioWorklet.addModule(url); Engine.SC_OK.add(oc);
+    // v121: die ersten Blöcke und der Start gehen beim Erzeugen mit (processorOptions) – Nachrichten kämen offline erst nach den ersten Blöcken an
+    const sent = new Set(), pre = []; let node = null;
+    const post = (m, tr) => { if (node) node.port.postMessage(m, tr); else if (m.t === 'chunk') pre.push(m); };
     async function feedTo(pos) {
       for (let ti = 0; ti < Math.min(Engine.MAXT, proj.tracks.length); ti++) {
         if (proj.tracks[ti].kind !== 'audio') continue;
         for (let k = Math.floor(Math.max(0, pos - B) / B); k * B < Math.min(e, pos + 3 * B); k++) {
           const key = ti + ':' + k; if (sent.has(key)) continue; sent.add(key);
-          const d = await Engine.blockData(proj, ti, k); if (d) node.port.postMessage({ t: 'chunk', tr: ti, k: key, at: k * B, len: B, l: d.l, r: d.r }, [d.l.buffer, d.r.buffer]);
+          const d = await Engine.blockData(proj, ti, k); if (d) post({ t: 'chunk', tr: ti, k: key, at: k * B, len: B, l: d.l, r: d.r }, [d.l.buffer, d.r.buffer]);
         }
       }
-      const drop = []; for (const key of sent) { const k = +key.split(':')[1]; if ((k + 1) * B < pos - B) { drop.push(key); } } if (drop.length) node.port.postMessage({ t: 'drop', keys: drop });
+      const drop = []; for (const key of sent) { const k = +key.split(':')[1]; if ((k + 1) * B < pos - B) { drop.push(key); } } if (drop.length) post({ t: 'drop', keys: drop });
     }
     await feedTo(a);
-    node.port.postMessage({ t: 'play', pos: a, at: 0 });
+    node = new AudioWorkletNode(oc, 'studio-eng', { numberOfInputs: 0, numberOfOutputs: Engine.MAXT, outputChannelCount: new Array(Engine.MAXT).fill(2), processorOptions: { n: Engine.MAXT, init: { chunks: pre, play: { pos: a, at: 0 } } } });
+    const G = Engine.makeGraph(oc, proj, node);
+    if (window.Inst) Inst.offline(oc, G, proj, a, e);
+    if (window.Sched) Sched.offlineAuto(oc, G, proj, a);
     const step = B / sr;
     for (let t = step; t < n / sr; t += step) oc.suspend(t).then(async () => { await feedTo(a + Math.round(t * sr)); if (prog) prog(t / (n / sr)); oc.resume(); });
     const buf = await oc.startRendering(); URL.revokeObjectURL(url);
@@ -3239,12 +3509,16 @@ const Exp = (() => {
   }
   // MIDI Format 1: Tempo/Taktart/Marker + je Noten-/Drum-Spur
   function midi(P, a) {
-    const PPQ = 480, spb = Proj.spb(), enc = new TextEncoder();
+    const PPQ = 480, enc = new TextEncoder(), a0 = TMap.f2beat(P, a);
     const vlq = n => { const b = [n & 127]; while ((n >>= 7)) b.unshift((n & 127) | 128); return b; };
     const trk = evs => { evs.sort((x, y) => x[0] - y[0] || x[2] - y[2]); let t = 0; const out = []; evs.forEach(([tt, bytes]) => { out.push(...vlq(Math.max(0, tt - t)), ...bytes); t = tt; }); out.push(0, 0xFF, 0x2F, 0); return [0x4D, 0x54, 0x72, 0x6B, out.length >>> 24 & 255, out.length >>> 16 & 255, out.length >>> 8 & 255, out.length & 255, ...out]; };
     const txt = (type, s) => { const b = enc.encode(s); return [0xFF, type, ...vlq(b.length), ...b]; };
-    const tk = f => Math.round((f - a) / spb * PPQ);
-    const us = Math.round(60000000 / P.bpm), meta = [[0, [0xFF, 0x51, 3, us >> 16 & 255, us >> 8 & 255, us & 255], 0], [0, [0xFF, 0x58, 4, P.sig, 2, 24, 8], 0], [0, txt(3, P.name), 0]];
+    const tk = f => Math.round((TMap.f2beat(P, f) - a0) * PPQ);
+    // v121: Tempo- und Taktart-Meta je Abschnitt der Tempokarte (der Abschnitt bei a steht auf 0)
+    const meta = [[0, txt(3, P.name), 0]], s0 = TMap.at(P, a);
+    TMap.segs(P).forEach(sg => { if (sg !== s0 && sg.f <= a) return; const t = sg === s0 ? 0 : Math.round((sg.beat - a0) * PPQ), us = Math.round(60000000 / sg.bpm), prev = TMap.segs(P)[TMap.segs(P).indexOf(sg) - 1];
+      if (sg === s0 || !prev || prev.bpm !== sg.bpm) meta.push([t, [0xFF, 0x51, 3, us >> 16 & 255, us >> 8 & 255, us & 255], 0]);
+      if (sg === s0 || !prev || prev.sig !== sg.sig) meta.push([t, [0xFF, 0x58, 4, sg.sig, 2, 24, 8], 0]); });
     (P.markers || []).forEach(m => { if (m.f >= a) meta.push([tk(m.f), txt(6, m.name), 1]); });
     const tracks = [trk(meta)];
     if (window.Inst) Inst.midiTracks(P, a, PPQ).forEach(t => { const evs = [[0, txt(3, t.name), 0]]; t.notes.forEach(n => { evs.push([n.t, [0x90 | t.ch, n.m, n.v], 2], [n.t + Math.max(1, n.d), [0x80 | t.ch, n.m, 0], 1]); }); tracks.push(trk(evs)); });
@@ -3280,7 +3554,7 @@ const Exp = (() => {
       if (kind === 'logic') {
         say('Mix …'); const x = await render(range, pr); files.unshift({ name: base + '/00 Mix – ' + tag + '.wav', data: wav24(x.l, x.r, sr) });
         files.push({ name: base + '/Tempo, Marker, Noten – ' + tag + '.mid', data: midi(P, range.a) });
-        const lies = [P.name, 'Tempo ' + tag + ' · ' + P.sig + '/4 · Tonart ' + P.key, '', 'So geht es in Logic Pro:', '1. Neues leeres Projekt.', '2. Zuerst die MIDI-Datei auf Takt 1 ziehen und „Tempo übernehmen“ bestätigen (oder Tempo von Hand: ' + tag + ').',
+        const lies = [P.name, 'Tempo ' + tag + ' · ' + P.sig + '/4 · Tonart ' + P.key + (P.tempo && P.tempo.length ? ' · mit Tempo-/Taktwechseln (stehen in der MIDI-Datei)' : ''), '', 'So geht es in Logic Pro:', '1. Neues leeres Projekt.', '2. Zuerst die MIDI-Datei auf Takt 1 ziehen und „Tempo übernehmen“ bestätigen (oder Tempo von Hand: ' + tag + ').',
           '3. Alle WAV-Dateien zusammen markieren und auf Takt 1 ziehen – jede liegt dann auf einer eigenen Spur, alle beginnen auf Takt 1.', '   Falls Logic nach Smart Tempo fragt: Projekttempo beibehalten.', '4. „00 Mix“ ist alles zusammen – nur zum Vergleichen (sonst doppelt laut).', '', 'Erstellt mit Loopsmiths Studio.'].join('\n');
         files.push({ name: base + '/LIES MICH.txt', data: new TextEncoder().encode(lies) });
       }
@@ -3298,7 +3572,7 @@ const Exp = (() => {
     const x = await render(Object.assign({}, range, { tail: 0 }), null), L = x.l.length;
     const enc24 = a => { const u = new Uint8Array(a.length * 3); for (let i = 0, o = 0; i < a.length; i++, o += 3) { let v = a[i]; v = v > 1 ? 1 : v < -1 ? -1 : v; const s = Math.round(v * 8388607); u[o] = s & 255; u[o + 1] = (s >> 8) & 255; u[o + 2] = (s >> 16) & 255; } return u; };
     const now = new Date(), [root, ...mode] = (P.key || 'C Dur').split(' ');
-    const name = P.name + ' · Takt ' + (Math.round(range.a / Proj.bar()) + 1) + '–' + Math.round(range.b / Proj.bar());
+    const name = P.name + ' · Takt ' + (Math.round(Proj.f2bar(range.a)) + 1) + '–' + Math.round(Proj.f2bar(range.b));
     await SDB.looperPut('ideas', { id: 'st' + Date.now().toString(36), v: 2, name, ts: now.getTime(), dateStr: now.toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' }),
       root: root || 'C', mode: /Moll/.test(mode.join(' ')) ? 'Äolisch (Moll)' : 'Ionisch (Dur)', bpm: P.bpm, secs: L / x.sr, cat: 'team',
       session: { sr: x.sr, baseL: L, stereo: true, tracks: [{ L, enc: 'i24', dl: enc24(x.l), dr: enc24(x.r), vol: 90, eq: [0, 0, 0, 0, 0, 0, 0] }] }, drumState: null, droneState: null });
@@ -3308,8 +3582,8 @@ const Exp = (() => {
   // v107: Zurück in den Looper – Projekt (oder Cycle) als bis zu 3 Spuren in dieselbe Idee schreiben, dann den Looper öffnen
   async function backToLooper(say) {
     const P = Proj.P, id = P.fromIdea; if (!id) throw new Error('Dieses Projekt kommt nicht aus dem Looper.');
-    const bar = Proj.bar(), cyc = P.cycle.on && P.cycle.b > P.cycle.a;
-    const a = cyc ? P.cycle.a : 0, b = cyc ? P.cycle.b : Math.max(bar, Math.ceil((Proj.projEnd() - 64) / bar) * bar);
+    const cyc = P.cycle.on && P.cycle.b > P.cycle.a;
+    const a = cyc ? P.cycle.a : 0, b = cyc ? P.cycle.b : Math.max(Proj.bar2f(1), Math.round(TMap.barCeil(P, Proj.projEnd() - 64))), bars = Math.round(Proj.f2bar(b) - Proj.f2bar(a));
     const used = P.tracks.filter(t => !t.mute && P.regions.some(r => r.track === t.id && !r.muted && r.start < b && r.start + r.len > a));
     if (!used.length) { const muted = P.tracks.filter(t => t.mute && P.regions.some(r => r.track === t.id)).length; const e = new Error(muted ? 'Alle Spuren sind stumm geschaltet (M). Tippe bei den Spuren auf „M“, damit es aus ist, dann nochmal „↩ Looper“.' : 'Im Bereich ist nichts zu hören.'); e.muted = muted; throw e; }
     const groups = used.length <= 3 ? used.map(t => [t]) : [[used[0]], [used[1]], used.slice(2)];
@@ -3328,8 +3602,8 @@ const Exp = (() => {
     if (root && /Moll|Dur/.test(md.join(' '))) { idea.root = root; idea.mode = /Moll/.test(md.join(' ')) ? 'Äolisch (Moll)' : 'Ionisch (Dur)'; }
     await SDB.looperPut('ideas', idea);
     Proj.change('meta', p => { p.importTs = idea.ts; }, { noUndo: true }); await Proj.save();
-    say('In den Looper geschrieben (' + groups.length + ' Spur' + (groups.length === 1 ? '' : 'en') + ', ' + Math.round((b - a) / bar) + ' Takte). Öffne den Looper …');
-    window.__backDone = { n: groups.length, bars: Math.round((b - a) / bar), id };
+    say('In den Looper geschrieben (' + groups.length + ' Spur' + (groups.length === 1 ? '' : 'en') + ', ' + bars + ' Takte). Öffne den Looper …');
+    window.__backDone = { n: groups.length, bars, id };
     return idea;
   }
   return { render, run, wav24, zip, midi, toLooper, master, backToLooper };
@@ -3364,34 +3638,63 @@ const UI = (() => {
   }
   $('views').addEventListener('click', e => { const b = e.target.closest('button'); if (b) show(b.dataset.v); });
   // ---- Transport ----
-  const fmtPos = f => { const P = Proj.P; if (!P) return '1.1.1'; const spb = Proj.spb(), beats = f / spb, bar = Math.floor(beats / P.sig), bt = Math.floor(beats - bar * P.sig), s16 = Math.floor((beats - Math.floor(beats)) * 4); return (bar + 1) + '.' + (bt + 1) + '.' + (s16 + 1); };
+  const fmtPos = f => { const P = Proj.P; if (!P) return '1.1.1'; const q = TMap.pos(P, f); return (q.bar + 1) + '.' + (q.beat + 1) + '.' + (q.sub + 1); };
   async function togglePlay() { if (window.Master && Master.playing && Master.playing()) Master.stopPlay(); if (window.Rec && Rec.active()) { await Rec.stop(); sync(); return; } if (Engine.playing) Engine.stop(); else { Brw.stopPrev(); await Engine.play(); } sync(); }
   $('bPlay').onclick = togglePlay;
   $('bHome').onclick = () => { Engine.seek(Engine.playing && Engine.curPos() > Proj.bar() / 2 ? 0 : 0); Arr.V.x0 = 0; Arr.kick(); sync(); };
-  $('bCyc').onclick = () => { const P = Proj.P; if (!P) return; const c = P.cycle; if (!(c.b > c.a)) { const s = Arr.V.sel && Proj.reg(Arr.V.sel); if (s) { c.a = Proj.snap(s.start, 'bar'); c.b = Math.max(c.a + Proj.bar(), Proj.snap(s.start + s.len, 'bar')); } else { c.a = 0; c.b = Proj.bar() * 4; } c.on = true; } else c.on = !c.on; Engine.setCycle(); Proj.save(); sync(); Arr.kick(); };
+  $('bCyc').onclick = () => { const P = Proj.P; if (!P) return; const c = P.cycle; if (!(c.b > c.a)) { const s = Arr.V.sel && Proj.reg(Arr.V.sel); if (s) { c.a = Proj.snap(s.start, 'bar'); c.b = Math.max(Proj.bar2f(Math.round(Proj.f2bar(c.a)) + 1), Proj.snap(s.start + s.len, 'bar')); } else { c.a = 0; c.b = Proj.bar2f(4); } c.on = true; } else c.on = !c.on; Engine.setCycle(); Proj.save(); sync(); Arr.kick(); };
   $('bClick').onclick = () => { Sched.click = !Sched.click; sync(); };
   $('bRec').onclick = async () => { if (!window.Rec) { say('Aufnahme ist noch nicht eingebaut.'); return; } try { if (Rec.active()) await Rec.stop(); else await Rec.start(); } catch (e) { say('Aufnahme: ' + e.message); } sync(); };
-  $('lBpm').addEventListener('change', e => { const v = Math.max(40, Math.min(240, +e.target.value || 100)); setTempo(v); });
+  $('lBpm').addEventListener('change', e => { const v = Math.max(40, Math.min(240, +e.target.value || 100)), P = Proj.P, sg = P && TMap.at(P, Engine.curPos());
+    // v121: steht die Abspielposition hinter einem Tempowechsel, ändert das Feld diesen Wechsel
+    if (sg && sg.bar > 0) { const m = (P.tempo || []).filter(x => x.bar <= sg.bar && x.bpm).sort((a, b) => b.bar - a.bar)[0]; if (m) { Proj.retempo(p => { p.tempo.find(x => x.bar === m.bar && x.bpm).bpm = Math.round(v * 100) / 100; }); sync(); Arr.kick(); return; } }
+    setTempo(v); });
   async function setTempo(v) {
     const P = Proj.P; if (!P || Math.abs(v - P.bpm) < 0.001) { sync(); return; }
-    const k = P.bpm / v, audio = P.regions.filter(r => r.kind === 'audio').length;
-    // Zeiten in Bildern bleiben am Takt: alles strecken, Audio-Inhalt ändert sich nicht (dafür „Audio ans Tempo anpassen“)
-    Proj.change('tempo', q => { q.bpm = Math.round(v * 100) / 100; q.regions.forEach(r => { r.start = Math.round(r.start * k); if (r.kind !== 'audio') r.len = Math.round(r.len * k); }); q.markers.forEach(m => { m.f = Math.round(m.f * k); }); q.cycle.a = Math.round(q.cycle.a * k); q.cycle.b = Math.round(q.cycle.b * k); q.tracks.forEach(t => { ['vol', 'pan'].forEach(a => (t.auto[a] || []).forEach(p => { p.f = Math.round(p.f * k); })); }); });
-    Engine.dirty(true); sync(); Arr.kick();
+    const audio = P.regions.filter(r => r.kind === 'audio').length;
+    // Grundtempo: alles bleibt am Takt (auch Audio-Anfänge und Automation), Audio-Inhalt ändert sich nicht (dafür „Audio ans Tempo anpassen“)
+    Proj.retempo(q => { q.bpm = Math.round(v * 100) / 100; }, { audio: true });
+    sync(); Arr.kick();
     if (audio) say('Tempo ' + v + ' BPM. Audio-Regionen bleiben in ihrem Tempo – zum Angleichen: Region wählen → „ans Tempo anpassen“.');
   }
+  // ---- v121: Tempospur – Tempo- und Taktartwechsel an Taktgrenzen (sprunghaft) ----
+  function tempoDlg() {
+    const P = Proj.P; if (!P) return; const work = JSON.parse(JSON.stringify(P.tempo || [])), base = { bpm: P.bpm, sig: P.sig };
+    const row = (m, i) => '<div class="tmrow" data-i="' + i + '"><span style="width:62px">ab Takt</span><input type="number" min="2" step="1" data-k="bar" value="' + (m.bar + 1) + '"><span>Tempo</span><input type="number" min="20" max="300" step="0.1" data-k="bpm" placeholder="gleich" value="' + (m.bpm || '') + '"><span>Taktart</span><select data-k="sig"><option value="">gleich</option>' + [2, 3, 4, 5, 6, 7, 9, 12].map(v => '<option value="' + v + '"' + (m.sig === v ? ' selected' : '') + '>' + v + '/4</option>').join('') + '</select><button class="btn danger" data-del="' + i + '">×</button></div>';
+    const paint = () => { $('tmList').innerHTML = work.length ? work.map(row).join('') : '<p class="note">Noch keine Wechsel – das ganze Projekt läuft im Grundtempo.</p>'; };
+    dialog('<h2>Tempo und Taktart</h2><div class="card"><div class="tmrow"><b style="width:62px">Takt 1</b><span>Tempo</span><input type="number" id="tmB" min="40" max="240" step="0.1" value="' + base.bpm + '"><span>Taktart</span><select id="tmS">' + [2, 3, 4, 5, 6, 7, 9, 12].map(v => '<option value="' + v + '"' + (base.sig === v ? ' selected' : '') + '>' + v + '/4</option>').join('') + '</select></div><b>Wechsel</b><div id="tmList"></div>' +
+      '<div class="btns"><button class="btn" id="tmAdd">+ Wechsel an der Abspielposition</button></div><p class="note">Wechsel liegen immer auf einem Taktanfang und gelten sprunghaft. Raster, Taktzahlen, Metronom, Vorzähler, Drummer, Noten, Cycle und MIDI-Export folgen; Audio-Regionen bleiben in Sekunden, wo sie sind.</p></div>' +
+      '<div class="btns"><button class="btn" data-close>Abbrechen</button><button class="btn p" id="tmOk">Übernehmen</button></div>');
+    paint();
+    const dl = $('dlg');
+    dl.addEventListener('input', e => { const r = e.target.closest('.tmrow[data-i]'); if (!r) return; const m = work[+r.dataset.i], k = e.target.dataset.k, v = e.target.value; if (k === 'bar') m.bar = Math.max(1, Math.round(+v || 2) - 1); else if (k === 'bpm') { if (+v >= 20) m.bpm = +v; else delete m.bpm; } else if (k === 'sig') { if (+v) m.sig = +v; else delete m.sig; } });
+    dl.addEventListener('change', e => { if (e.target.dataset.k === 'sig') dl.dispatchEvent(new Event('input')); });
+    dl.addEventListener('click', e => { const d = e.target.closest('[data-del]'); if (d) { work.splice(+d.dataset.del, 1); paint(); } });
+    $('tmAdd').onclick = () => { const b = Math.max(1, Math.round(Proj.f2bar(Engine.curPos()))), sg = TMap.at(P, Proj.bar2f(b)); if (!work.some(m => m.bar === b)) work.push({ bar: b, bpm: Math.round(sg.bpm) }); work.sort((x, y) => x.bar - y.bar); paint(); };
+    $('tmOk').onclick = () => { const nb = Math.max(40, Math.min(240, +$('tmB').value || base.bpm)), ns = +$('tmS').value || base.sig; close(); setTempoMap(nb, ns, work); };
+  }
+  function setTempoMap(bpm, sig, changes) {
+    const P = Proj.P, ch = (changes || []).filter(m => m.bar >= 1 && (m.bpm || m.sig)).map(m => { const o = { bar: Math.round(m.bar) }; if (m.bpm) o.bpm = Math.round(m.bpm * 100) / 100; if (m.sig) o.sig = Math.round(m.sig); return o; });
+    if (Math.abs(bpm - P.bpm) > 0.001) setTempo(bpm);
+    Proj.retempo(p => { p.sig = sig; p.tempo = ch; }); sync(); Arr.kick();
+    say(ch.length ? 'Tempokarte: ' + ch.map(m => 'Takt ' + (m.bar + 1) + (m.bpm ? ' ♩' + m.bpm : '') + (m.sig ? ' ' + m.sig + '/4' : '')).join(' · ') : 'Konstantes Tempo ' + Proj.P.bpm + ' BPM, ' + sig + '/4.');
+  }
+  $('tTempo').onclick = tempoDlg; $('lSig').onclick = tempoDlg; $('lSig').style.cursor = 'pointer';
+  $('tTakes').onclick = () => { if (!window.Rec) return; Rec.setTakes(!Rec.takesOn()); sync(); say(Rec.takesOn() ? 'Takes an: Aufnahme im Cycle legt je Durchgang einen Take an (unter der Spur aufklappen und comppen).' : 'Takes aus: Aufnahme ersetzt (Cycle wird beim Aufnehmen ausgeschaltet).'); };
   // ---- Anzeige ----
   function sync() {
     const P = Proj.P;
     $('bPlay').classList.toggle('on', Engine.playing); $('bPlay').textContent = Engine.playing ? '■' : '▶';
     $('bRec').classList.toggle('on', !!(window.Rec && Rec.active()));
     $('bCyc').classList.toggle('on', !!(P && P.cycle.on && P.cycle.b > P.cycle.a)); $('bClick').classList.toggle('on', Sched.click);
-    if (P) { if (document.activeElement !== $('lBpm')) $('lBpm').value = Math.round(P.bpm * 100) / 100; $('lSig').textContent = P.sig + '/4'; $('lKey').textContent = P.key || '–'; }
+    if (P) { const sg = TMap.at(P, Engine.curPos()); if (document.activeElement !== $('lBpm')) $('lBpm').value = Math.round(sg.bpm * 100) / 100; $('lSig').textContent = sg.sig + '/4' + (P.tempo && P.tempo.length ? ' ⁺' : ''); $('lKey').textContent = P.key || '–'; }
+    if (window.Rec) $('tTakes').classList.toggle('on', Rec.takesOn());
     $('tUndo').disabled = !Proj.canUndo(); $('tRedo').disabled = !Proj.canRedo();
     $('lPos').textContent = fmtPos(Engine.curPos()); $('bBack').title = P && P.fromIdea ? 'In die Idee zurückschreiben und im Looper weitermachen' : 'Zurück zum Looper';
     document.title = (P ? P.name + ' · ' : '') + 'Loopsmiths Studio';
   }
-  Engine.on('tick', () => { $('lPos').textContent = fmtPos(Engine.curPos()); });
+  let lastSg = null;
+  Engine.on('tick', () => { $('lPos').textContent = fmtPos(Engine.curPos()); const P = Proj.P, sg = P && TMap.at(P, Engine.curPos()); if (sg !== lastSg) { lastSg = sg; sync(); } });
   (function lcd() { if (Engine.playing) $('lPos').textContent = fmtPos(Engine.curPos()); requestAnimationFrame(lcd); })();
   // Last (Hauptthread) und Speicher
   let busy = 0, lastF = performance.now();
@@ -3429,11 +3732,12 @@ const UI = (() => {
     }
     const r = P && Arr.V.sel && Proj.reg(Arr.V.sel);
     if (!r) { $('dRegH').textContent = 'Region'; $('dRegC').innerHTML = ''; $('dRegN').textContent = 'Region antippen zum Auswählen · ziehen = verschieben · Ränder ziehen = kürzen · obere Ecken = Blende.'; return; }
-    const bars = r.len / Proj.bar();
+    const bars = Proj.f2bar(r.start + r.len) - Proj.f2bar(r.start), tk = r.takes && r.takes.length;
     $('dRegH').textContent = 'Region · ' + (r.name || '') + ' · ' + (Math.round(bars * 100) / 100).toString().replace('.', ',') + ' Takte';
     $('dRegC').innerHTML = '<button class="btn" data-r="g-">Leiser</button><button class="btn" data-r="g+">Lauter</button><button class="btn' + (r.muted ? ' on' : '') + '" data-r="mute">' + (r.muted ? 'Stumm ✓' : 'Stumm') + '</button><button class="btn" data-r="ren">Name</button>' +
-      (r.kind === 'audio' ? '<button class="btn" data-r="fit">ans Tempo anpassen</button><button class="btn" data-r="norm">Normalisieren</button>' : '') + (r.kind !== 'audio' ? '<button class="btn" data-r="edit">Bearbeiten</button>' : '') + '<button class="btn" data-r="cyc">Als Cycle</button>';
-    $('dRegN').textContent = 'Pegel ' + (r.gain > 0 ? '+' : '') + (r.gain || 0) + ' dB' + (r.fi ? ' · Einblende' : '') + (r.fo ? ' · Ausblende' : '') + ' · Start Takt ' + (Math.round((r.start / Proj.bar() + 1) * 100) / 100).toString().replace('.', ',');
+      (tk ? '<button class="btn p" data-r="takes">Takes (' + r.takes.length + ') …</button><button class="btn' + ((P.tracks[Proj.tIndex(r.track)] || {}).takesOpen ? ' on' : '') + '" data-r="topen">Take-Zeilen</button>' : '') +
+      (r.kind === 'audio' && !tk ? '<button class="btn" data-r="fit">ans Tempo anpassen</button><button class="btn" data-r="norm">Normalisieren</button>' : '') + (r.kind !== 'audio' ? '<button class="btn" data-r="edit">Bearbeiten</button>' : '') + '<button class="btn" data-r="cyc">Als Cycle</button>';
+    $('dRegN').textContent = 'Pegel ' + (r.gain > 0 ? '+' : '') + (r.gain || 0) + ' dB' + (r.fi ? ' · Einblende' : '') + (r.fo ? ' · Ausblende' : '') + ' · Start Takt ' + (Math.round((Proj.f2bar(r.start) + 1) * 100) / 100).toString().replace('.', ',') + (tk ? ' · Comp: ' + Engine.compSegs(r).map(sg => (r.takes.find(x => x.id === sg.k) || {}).name).join(' → ') + ' · unter der Spur antippen/wischen' : '');
   }
   $('dTrackC').addEventListener('click', async e => {
     const b = e.target.closest('button'); if (!b) return; const id = Arr.V.selTrack, P = Proj.P, i = Proj.tIndex(id); if (i < 0) return; const t = P.tracks[i], a = b.dataset.t;
@@ -3458,11 +3762,13 @@ const UI = (() => {
     else if (a === 'edit') show('roll');
     else if (a === 'norm') { say('Messe …'); const d = await SDB.read(r.audio, r.offset, r.len); let m = 0; for (let k = 0; k < d.l.length; k++) { const x = Math.max(Math.abs(d.l[k]), Math.abs(d.r[k])); if (x > m) m = x; } if (m > 0) { const g = Math.round(20 * Math.log10(0.89 / m) * 10) / 10; Proj.editRegion(r.id, q => { q.gain = g; }); say('Normalisiert: ' + (g > 0 ? '+' : '') + g + ' dB (Spitze −1 dB).'); } }
     else if (a === 'fit') await fitRegion(r);
+    else if (a === 'takes') takeDlg(r.id);
+    else if (a === 'topen') { Proj.editTrack(r.track, t => { t.takesOpen = !t.takesOpen; }, { noUndo: true }); Arr.heads(); }
     inspect(); Arr.kick();
   });
   // Audio-Region auf ganze Takte im Projekttempo bringen (Signalsmith im Hintergrund)
   async function fitRegion(r) {
-    const bar = Proj.bar(), bars = r.len / bar, nb = Math.max(1, Math.round(bars * 4) / 4); let target = Math.round(nb * bar);
+    const bar = Proj.bar(r.start), bars = r.len / bar, nb = Math.max(1, Math.round(bars * 4) / 4); let target = Math.round(nb * bar);
     const n = await ask('Wie viele Takte soll die Region im Projekttempo lang sein? (jetzt ' + (Math.round(bars * 100) / 100).toString().replace('.', ',') + ')', String(nb).replace('.', ','));
     if (!n) return; const want = +n.replace(',', '.'); if (!(want > 0)) return; target = Math.round(want * bar);
     if (Math.abs(target - r.len) < 32) { say('Passt schon.'); return; }
@@ -3472,6 +3778,23 @@ const UI = (() => {
     const m = await SDB.putAudio((r.name || 'Audio') + ' (angepasst)', Engine.sr(), y.l, y.r !== y.l ? y.r : null);
     Proj.editRegion(r.id, q => { q.audio = m.id; q.offset = 0; q.len = m.frames; q.fi = Math.min(q.fi || 0, m.frames / 2); q.fo = Math.min(q.fo || 0, m.frames / 2); });
     say('Angepasst auf ' + want + ' Takte.');
+  }
+  // ---- v121: Take-Liste (Umbenennen, Löschen, ganz nehmen, zu Region machen) ----
+  function takeDlg(rid) {
+    const r = Proj.reg(rid); if (!r || !r.takes) return; const segs = Engine.compSegs(r);
+    const used = k => segs.some(sg => sg.k === k);
+    dialog('<h2>Takes · ' + esc(r.name || '') + '</h2><div class="plist takel">' + r.takes.map((tk, i) => '<div class="item' + (used(tk.id) ? ' a' : '') + '" data-k="' + tk.id + '"><div style="flex:1"><b>' + esc(tk.name) + '</b><small>' + (used(tk.id) ? 'im Comp hörbar' : 'stumm') + (tk.pass ? ' · Durchgang ' + tk.pass : '') + (tk.len && tk.len < (r.tlen || r.len) ? ' · unvollständig' : '') + '</small></div>' +
+      '<button class="btn" data-ta="all">Ganz nehmen</button><button class="btn" data-ta="ren">Umbenennen</button><button class="btn" data-ta="reg">Zu Region machen</button><button class="btn danger" data-ta="del">Löschen</button></div>').join('') + '</div>' +
+      '<p class="note">Comping: unter der Spur in einer Take-Zeile über einen Bereich wischen = dieser Take klingt dort; antippen = Take für diesen Abschnitt. An den Schnitten wird kurz (10 ms) übergeblendet. „Zu Region machen“ löst den Ordner auf und behält nur diesen Take.</p><div class="btns"><button class="btn p" data-close>Fertig</button></div>');
+    $('dlg').onclick = async e => {
+      const b = e.target.closest('[data-ta]'); if (!b) return; const k = b.closest('.item').dataset.k, q = Proj.reg(rid); if (!q) return close(); const tk = q.takes.find(x => x.id === k); if (!tk) return;
+      const a = b.dataset.ta;
+      if (a === 'all') { Proj.editRegion(rid, x => { x.comp = [{ a: 0, b: x.tlen || x.len + (x.offset || 0), k }]; x.audio = tk.audio; }); }
+      else if (a === 'ren') { const n = await ask('Name des Takes', tk.name); if (n) Proj.editRegion(rid, x => { x.takes.find(y => y.id === k).name = n; }); }
+      else if (a === 'del') { if (q.takes.length === 1) { say('Der letzte Take bleibt – „Zu Region machen“ oder Region löschen.'); return; } Proj.editRegion(rid, x => { x.takes = x.takes.filter(y => y.id !== k); const rest = x.takes[x.takes.length - 1]; x.comp = Engine.compSegs(Object.assign({}, x, { comp: (x.comp || []).map(sg => sg.k === k ? Object.assign({}, sg, { k: rest.id }) : sg) })); x.audio = rest.audio; x.name = x.name.replace(/\d+ Takes$/, x.takes.length + ' Takes'); }); }
+      else if (a === 'reg') { Proj.editRegion(rid, x => { const off = x.offset || 0; x.audio = tk.audio; x.offset = (tk.offset || 0) + off; x.gain = (x.gain || 0) + (tk.gain || 0); x.name = (x.name || '').replace(/ · \d+ Takes$/, '') + ' · ' + tk.name; delete x.takes; delete x.comp; delete x.tlen; }); close(); inspect(); Arr.heads(); say('„' + tk.name + '“ ist jetzt eine normale Region (↶ holt den Take-Ordner zurück).'); return; }
+      Engine.dirty(); Arr.heads(); inspect(); takeDlg(rid);
+    };
   }
   async function renameTrack(id) { const t = Proj.P.tracks[Proj.tIndex(id)]; if (!t) return; const n = await ask('Name der Spur', t.name); if (n) Proj.editTrack(id, x => { x.name = n; }); Arr.heads(); inspect(); }
   // ---- Werkzeugleiste ----
@@ -3493,7 +3816,7 @@ const UI = (() => {
   $('tDup').onclick = () => { const r = Arr.V.sel && Proj.reg(Arr.V.sel); if (!r) return say('Erst eine Region antippen.'); const c = Proj.duplicate(r.id); Arr.V.sel = c.id; inspect(); };
   $('tRep').onclick = () => { const r = Arr.V.sel && Proj.reg(Arr.V.sel); if (!r) return say('Erst eine Region antippen.'); Proj.repeat(r.id, 4); say('4× wiederholt.'); };
   $('tDel').onclick = () => { const r = Arr.V.sel && Proj.reg(Arr.V.sel); if (!r) return say('Erst eine Region antippen.'); Proj.delRegion(r.id); Arr.V.sel = null; inspect(); };
-  $('tMk').onclick = async () => { const P = Proj.P, f = Proj.snap(Engine.curPos(), 'bar'), n = await ask('Name des Markers (Takt ' + (Math.round(f / Proj.bar()) + 1) + ')', ['Intro', 'Strophe', 'Refrain', 'Bridge', 'Solo', 'Outro'][Math.min(5, P.markers.length)]); if (!n) return; Proj.change('markers', p => { p.markers = p.markers.filter(m => Math.abs(m.f - f) > 10); p.markers.push({ f, name: n, color: '#8ad94e' }); p.markers.sort((a, b) => a.f - b.f); }); };
+  $('tMk').onclick = async () => { const P = Proj.P, f = Proj.snap(Engine.curPos(), 'bar'), n = await ask('Name des Markers (Takt ' + (Math.round(Proj.f2bar(f)) + 1) + ')', ['Intro', 'Strophe', 'Refrain', 'Bridge', 'Solo', 'Outro'][Math.min(5, P.markers.length)]); if (!n) return; Proj.change('markers', p => { p.markers = p.markers.filter(m => Math.abs(m.f - f) > 10); p.markers.push({ f, name: n, color: '#8ad94e' }); p.markers.sort((a, b) => a.f - b.f); }); };
   $('tUndo').onclick = () => { if (Proj.undo()) { Engine.dirty(true); say('Rückgängig.'); } sync(); };
   $('tRedo').onclick = () => { if (Proj.redo()) { Engine.dirty(true); say('Wiederholt.'); } sync(); };
   // ---- Projekt-Menü ----
@@ -3525,7 +3848,7 @@ const UI = (() => {
       const b = e.target.closest('button'); if (!b) return;
       if (b.dataset.a === 'ren') { const n = await ask('Name des Projekts', P.name); if (n) Proj.change('name', p => { p.name = n; }); sync(); return; }
       if (b.dataset.a === 'new') { const n = await ask('Name des neuen Projekts', 'Neues Projekt'); if (!n) return; if (Engine.playing) Engine.stop(); await Proj.newProject(n); Arr.V.sel = Arr.V.selTrack = null; Arr.zoomAll(); inspect(); sync(); show('brw'); return; }
-      if (b.dataset.a === 'sig') { const n = await ask('Schläge pro Takt (z. B. 4, 3 oder 6)', String(P.sig)); const v = Math.round(+n); if (v >= 2 && v <= 12) { Proj.change('tempo', p => { p.sig = v; }); sync(); Arr.kick(); } return; }
+      if (b.dataset.a === 'sig') { close(); tempoDlg(); return; }
       if (b.dataset.a === 'key') { const n = await ask('Tonart (z. B. „A Moll“ oder „G Dur“)', P.key); if (n) { Proj.change('tempo', p => { p.key = n; }); sync(); } return; }
       if (b.dataset.o) { close(); if (Engine.playing) Engine.stop(); await Proj.load(b.dataset.o); Arr.V.sel = Arr.V.selTrack = null; Arr.zoomAll(); inspect(); sync(); say('Geöffnet: ' + Proj.P.name); return; }
       if (b.dataset.d) { const p = ps.find(x => x.id === b.dataset.d); if (!(await confirm2('Projekt „' + p.name + '“ endgültig löschen?'))) return projMenu(); const cur = p.id === P.id; await Proj.remove(p.id); if (cur) { const rest = await Proj.list(); if (rest.length) await Proj.load(rest[0].id); else await Proj.newProject('Neues Projekt'); Arr.zoomAll(); inspect(); sync(); } return projMenu(); }
@@ -3573,7 +3896,7 @@ const UI = (() => {
     say(idea ? 'Aus dem Looper: wähle, ob es ins offene Projekt oder in ein neues kommt.' : 'Projekt „' + Proj.P.name + '“ geöffnet.');
     if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
   }
-  return { show, sync, inspect, renameTrack, snapMode, say, dialog, close, onClose: f => closeFn.push(f), ask, confirm: confirm2, start, setTempo, get view() { return view; } };
+  return { show, sync, inspect, renameTrack, snapMode, say, dialog, close, onClose: f => closeFn.push(f), ask, confirm: confirm2, start, setTempo, setTempoMap, tempoDlg, takeDlg, get view() { return view; } };
 })();
 UI.start();
 
@@ -3592,7 +3915,7 @@ window.MasterSource = async v => {
   const bar = document.getElementById('msBar'), pr = document.getElementById('msProg'); pr.hidden = false;
   const x = await Exp.render(Object.assign(cyc ? { a: P.cycle.a, b: P.cycle.b, tail: 0 } : { a: 0, b: Proj.projEnd() }, { noMaster: true }), f => { bar.style.width = Math.round(f * 100) + '%'; });
   pr.hidden = true;
-  return { name: P.name + (cyc ? ' (Takt ' + (Math.round(P.cycle.a / Proj.bar()) + 1) + '–' + Math.round(P.cycle.b / Proj.bar()) + ')' : ''), chs: [x.l, x.r], sr: x.sr };
+  return { name: P.name + (cyc ? ' (Takt ' + (Math.round(Proj.f2bar(P.cycle.a)) + 1) + '–' + Math.round(Proj.f2bar(P.cycle.b)) + ')' : ''), chs: [x.l, x.r], sr: x.sr };
 };
 
 </script>
