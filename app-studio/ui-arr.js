@@ -2,7 +2,8 @@
 const Arr = (() => {
   const $ = id => document.getElementById(id);
   const cv = $('cv'), lanes = $('lanes'), headsIn = $('headsIn');
-  const RH = 34;
+  let RH = 34; const CLH = 20;   // v122: Lineal + (falls an) Akkordspur
+  const upRH = () => { const p = Proj.P; RH = 34 + (p && p.chordLane ? CLH : 0); };
   const V = { x0: 0, fpp: 400, y0: 0, th: (() => { try { return Math.max(44, Math.min(260, +localStorage.getItem('3nps-studio-th') || 64)); } catch (e) { return 64; } })(), loopSel: false, sel: null, selTrack: null, auto: false, autoP: 'vol' };
   const AR = { vol: [-48, 6, 0.5], pan: [-100, 100, 1] };   // Bereich und Raster je Automationsart
   const metas = new Map();
@@ -24,8 +25,8 @@ const Arr = (() => {
   // ---------- Kopfzeilen der Spuren ----------
   const KIND = { audio: 'Audio', midi: 'Noten', drum: 'Drummer' };
   function heads() {
-    LY = null; const p = P(); if (!p) { headsIn.innerHTML = ''; return; }
-    let h = '<div class="ruler-pad">' + p.tracks.length + ' Spuren</div>';
+    LY = null; upRH(); const p = P(); if (!p) { headsIn.innerHTML = ''; return; }
+    let h = '<div class="ruler-pad" style="height:' + RH + 'px">' + p.tracks.length + ' Spuren' + (p.chordLane ? '<span style="flex:1"></span><button class="btn" data-a="chords" style="padding:1px 6px;font-size:10px" title="Akkordspur">Akkorde</button>' : '') + '</div>';
     p.tracks.forEach(t => {
       const ht = hasTakes(t), nk = ht ? Math.max(...p.regions.filter(r => r.track === t.id && r.takes).map(r => r.takes.length)) : 0;
       h += '<div class="th' + (V.selTrack === t.id ? ' sel' : '') + (rowH(t) > V.th ? ' tko' : '') + '" data-t="' + t.id + '" style="height:' + rowH(t) + 'px' + (rowH(t) > V.th ? ';padding-top:' + Math.max(4, Math.round(V.th / 2 - 15)) + 'px' : '') + '"><div class="c" style="background:' + t.color + '"></div><div class="n"><b>' + esc(t.name) + '</b><small>' + KIND[t.kind] + (t.kind === 'midi' && t.inst && window.Inst ? ' · ' + esc(Inst.label(t.inst)) : '') + (t.kind === 'drum' ? ' · ' + esc(t.kit || '') : '') + (t.out && t.out !== 'master' ? ' · → ' + esc(((p.groups || []).find(g => g.id === t.out) || {}).name || t.out) : '') + '</small></div>' +
@@ -35,6 +36,7 @@ const Arr = (() => {
   }
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   headsIn.addEventListener('click', e => {
+    if (e.target.closest('[data-a="chords"]')) { Ana.chordDlg(); return; }
     const th = e.target.closest('.th'); if (!th) return; const id = th.dataset.t, b = e.target.closest('button');
     if (b) { const a = b.dataset.a; Proj.editTrack(id, t => { t[a] = !t[a]; if (a === 'arm' && t.arm) Proj.P.tracks.forEach(o => { if (o !== t) o.arm = false; }); }, { noUndo: true }); Proj.P.tracks.forEach((_, i) => Engine.applyTrack(i, true)); heads(); kick(); return; }
     selectTrack(id);
@@ -46,7 +48,7 @@ const Arr = (() => {
     const p = P(), dpr = window.devicePixelRatio || 1, w = lanes.clientWidth, h = lanes.clientHeight;
     if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
     const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, w, h);
-    c.fillStyle = '#141416'; c.fillRect(0, 0, w, h); if (!p) return; LY = null;
+    c.fillStyle = '#141416'; c.fillRect(0, 0, w, h); if (!p) return; LY = null; upRH();
     const pxBar = Proj.bar(xf(w / 2)) / V.fpp;
     const every = pxBar < 14 ? 8 : pxBar < 28 ? 4 : pxBar < 60 ? 2 : 1;
     // Spurhintergründe (+ Take-Zeilen)
@@ -94,6 +96,12 @@ const Arr = (() => {
     c.font = '11px ui-monospace,Menlo,monospace';
     if (cy && cy.b > cy.a) { const a = fx(cy.a), e = fx(cy.b); c.fillStyle = cy.on ? 'rgba(242,194,48,.85)' : 'rgba(242,194,48,.3)'; c.fillRect(a, 20, e - a, 12); }
     (p.markers || []).forEach(m => { const x = fx(m.f); if (x < -100 || x > w) return; c.font = '600 10px system-ui'; const tw = c.measureText(m.name).width + 10; c.fillStyle = m.color || '#8ad94e'; roundRect(c, x, 18, tw, 14, 3); c.fill(); c.fillStyle = '#111'; c.fillText(m.name, x + 5, 29); });
+    // v122: Akkordspur unter dem Lineal (antippen = ändern/eintragen)
+    if (p.chordLane) {
+      c.fillStyle = '#121216'; c.fillRect(0, 34, w, CLH - 1); c.font = '600 11px system-ui';
+      (p.chords || []).forEach(ch => { const a = fx(TMap.beat2f(p, ch.b)), e = fx(TMap.beat2f(p, ch.b + ch.beats)); if (e < 0 || a > w) return; c.fillStyle = 'rgba(138,217,78,.22)'; roundRect(c, a + 1, 36, Math.max(3, e - a - 2), CLH - 5, 3); c.fill(); c.fillStyle = '#b6ef8a'; if (e - a > 14) c.fillText(ch.name, a + 5, 34 + CLH - 6); });
+      if (!(p.chords || []).length) { c.fillStyle = '#5c5f6a'; c.fillText('Akkordspur – antippen zum Eintragen (oder Region → „Akkorde erkennen“)', 8, 34 + CLH - 6); }
+    }
     // Abspielposition
     const px = fx(Engine.curPos()); if (px >= 0 && px <= w) { c.fillStyle = '#fff'; c.fillRect(Math.round(px), 0, 2, h); }
     if (window.Rec && Rec.active()) { const a = fx(Rec.startPos()), e = px; c.fillStyle = 'rgba(255,93,93,.35)'; const ti = Proj.tIndex(Rec.track()); if (ti >= 0) c.fillRect(a, tY(ti) + 5, Math.max(0, e - a), V.th - 10); }
@@ -186,8 +194,8 @@ const Arr = (() => {
   // ---------- Bedienung ----------
   const ptrs = new Map(); let drag = null, lastTap = { t: 0, id: null };
   function hit(x, y) {
-    LY = null; const p = P(); if (!p) return null;
-    if (y < RH) return { zone: y < 18 ? 'ruler' : 'cycle' };
+    LY = null; upRH(); const p = P(); if (!p) return null;
+    if (y < RH) return { zone: y < 18 ? 'ruler' : y < 34 ? 'cycle' : 'chord', f: xf(x) };
     const ta = trackAt(y), ti = ta.ti, t = p.tracks[ti]; if (!t) return { zone: 'empty' };
     const f = xf(x);
     if (ta.dy >= V.th) {   // v121: Take-Zeile
@@ -214,6 +222,7 @@ const Arr = (() => {
     const now = performance.now(), dbl = now - lastTap.t < 330 && lastTap.id === (h.r ? h.r.id : h.zone); lastTap = { t: now, id: h.r ? h.r.id : h.zone };
     if (h.zone === 'ruler') { drag = { kind: 'scrub', x }; Engine.seek(Math.max(0, Proj.snap(xf(x), 'beat'))); kick(); return; }
     if (h.zone === 'cycle') { const f = Proj.snap(xf(x), 'bar'), c = Proj.P.cycle; if (dbl || (c.b > c.a && f >= c.a && f <= c.b && !drag)) { drag = { kind: 'cyctap', x, f }; return; } drag = { kind: 'cycle', a: f, x }; return; }
+    if (h.zone === 'chord') { drag = null; Ana.editAt(h.f); return; }
     if (h.zone === 'auto') { autoDown(h, x, y, dbl); return; }
     if (h.zone === 'take') { V.sel = h.r.id; if (V.selTrack !== h.t.id) { V.selTrack = h.t.id; heads(); } UI.inspect(); drag = { kind: 'comp', r: h.r, k: h.k, f0: h.f, f1: h.f, x, moved: false }; kick(); return; }
     if (V.loopSel && h.zone !== 'ruler' && h.zone !== 'cycle') {   // v109: Takte wählen und loopen – über die Spuren ziehen

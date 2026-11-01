@@ -27,7 +27,7 @@ const Exp = (() => {
     }
     await feedTo(a);
     node = new AudioWorkletNode(oc, 'studio-eng', { numberOfInputs: 0, numberOfOutputs: Engine.MAXT, outputChannelCount: new Array(Engine.MAXT).fill(2), processorOptions: { n: Engine.MAXT, init: { chunks: pre, play: { pos: a, at: 0 } } } });
-    const G = Engine.makeGraph(oc, proj, node);
+    const G = Engine.makeGraph(oc, proj, node, { play: { pos: a, at: 0 }, offline: true });   // v122: Insert-Worklets starten mit derselben Zeitleiste
     if (window.Inst) Inst.offline(oc, G, proj, a, e);
     if (window.Sched) Sched.offlineAuto(oc, G, proj, a);
     const step = B / sr;
@@ -158,5 +158,5 @@ const Exp = (() => {
     window.__backDone = { n: groups.length, bars, id };
     return idea;
   }
-  return { render, run, wav24, zip, midi, toLooper, master, backToLooper };
+  return { render, run, wav24, zip, midi, toLooper, master, backToLooper, share, safe };
 })();

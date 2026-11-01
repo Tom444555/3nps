@@ -1549,6 +1549,56 @@ if (typeof module !== 'undefined') module.exports = LiedExport;
 
 </script>
 <script>
+// v122: aus app/looper.js (v117) übernommen – Gate, Drive 4x, Klang, Box, Pegel
+const AmpDSP = (() => {
+  const amp = { curves: {} };
+  const AMP_TYPES = { clean: { k: 1.4, asym: 0, g0: 0.8, g1: 4, hp: 60, comp: 0.9 }, crunch: { k: 3, asym: 0.18, g0: 2, g1: 30, hp: 90, comp: 0.55 }, lead: { k: 6, asym: 0.08, g0: 8, g1: 140, hp: 150, comp: 0.4 } };
+  const AMP_PRESETS = {
+    clean: { type: 'clean', gate: -80, drive: 3, bass: 5, mid: 5, treble: 6, level: 0 },
+    blues: { type: 'crunch', gate: -65, drive: 4, bass: 5, mid: 6.5, treble: 5, level: 0 },
+    rock: { type: 'crunch', gate: -58, drive: 7.5, bass: 6, mid: 5.5, treble: 6, level: -2 },
+    lead: { type: 'lead', gate: -52, drive: 6, bass: 5, mid: 7, treble: 5.5, level: -3 },
+    metal: { type: 'lead', gate: -45, drive: 9, bass: 7, mid: 3, treble: 7, level: -4 }
+  };
+  function ampCurve(type) {
+    if (amp.curves[type]) return amp.curves[type];
+    const p = AMP_TYPES[type], n = 4096, c = new Float32Array(n), k = p.k, a = p.asym, t0 = Math.tanh(k * a);
+    let mx = 0;
+    for (let i = 0; i < n; i++) { const x = i / (n - 1) * 2 - 1; c[i] = Math.tanh(k * (x + a)) - t0; mx = Math.max(mx, Math.abs(c[i])); }
+    for (let i = 0; i < n; i++) c[i] /= mx;
+    return (amp.curves[type] = c);
+  }
+  const knobDb = v => (v - 5) * 2.4;                                   // 0…10 → −12…+12 dB
+  function ampParams(s) {
+    const p = AMP_TYPES[s.type] || AMP_TYPES.crunch;
+    return { p, drive: p.g0 * Math.pow(p.g1 / p.g0, Math.max(0, Math.min(10, s.drive)) / 10), bass: knobDb(s.bass), mid: knobDb(s.mid), treble: knobDb(s.treble), out: p.comp * Math.pow(10, s.level / 20), gate: s.gate <= -79.5 ? -100 : s.gate };
+  }
+  // Kette in einem beliebigen Kontext bauen (live und OfflineAudioContext für Tests/Messung)
+  function ampChain(ctx, s, withGate) {
+    const q = ampParams(s), mk = (type, f, Q, g) => { const b = ctx.createBiquadFilter(); b.type = type; b.frequency.value = f; if (Q != null) b.Q.value = Q; if (g != null) b.gain.value = g; return b; };
+    const n = {};
+    n.in = ctx.createGain(); n.in.channelCount = 1; n.in.channelCountMode = 'explicit'; n.in.channelInterpretation = 'speakers';
+    n.gate = withGate ? (() => { try { return new AudioWorkletNode(ctx, 'ampgate', { numberOfInputs: 1, numberOfOutputs: 1, channelCount: 1, channelCountMode: 'explicit', outputChannelCount: [1], parameterData: { thr: q.gate } }); } catch (e) { return null; } })() : null;
+    n.pre = mk('highpass', q.p.hp, 0.7);
+    n.drive = ctx.createGain(); n.drive.gain.value = q.drive;
+    n.shp = ctx.createWaveShaper(); n.shp.curve = ampCurve(s.type); n.shp.oversample = '4x';
+    n.comp = ctx.createGain(); n.comp.gain.value = 1;
+    n.bass = mk('lowshelf', 120, null, q.bass); n.mid = mk('peaking', 700, 0.8, q.mid); n.tre = mk('highshelf', 3000, null, q.treble);
+    n.cabHp = mk('highpass', 80, 0.7); n.cabRes = mk('peaking', 2000, 1.2, 3.5); n.cabLp = mk('lowpass', 5000, 0.8); n.cabLp2 = mk('lowpass', 6500, 0.5);
+    n.out = ctx.createGain(); n.out.gain.value = q.out;
+    const chain = [n.in, n.gate, n.pre, n.drive, n.shp, n.comp, n.bass, n.mid, n.tre, n.cabHp, n.cabRes, n.cabLp, n.cabLp2, n.out].filter(Boolean);
+    for (let i = 0; i + 1 < chain.length; i++) chain[i].connect(chain[i + 1]);
+    n.list = chain;
+    return n;
+  }
+  return { AMP_TYPES, AMP_PRESETS, ampCurve, ampParams, ampChain, GATE: "\nclass Gate extends AudioWorkletProcessor{static get parameterDescriptors(){return[{name:'thr',defaultValue:-100,minValue:-100,maxValue:0,automationRate:'k-rate'}];}\n          constructor(){super();this.e=0;this.g=1;this.h=0;this.o=true;}\n          process(inp,out,p){const i=inp[0]&&inp[0][0],o=out[0][0];if(!i){o.fill(0);return true;}const thr=p.thr[0];\n          if(thr<=-99){o.set(i);this.g=1;this.o=true;return true;}\n          const on=Math.pow(10,thr/20),off=on*0.5,er=Math.exp(-1/(sampleRate*0.02)),ka=1-Math.exp(-1/(sampleRate*0.001)),kr=1-Math.exp(-1/(sampleRate*0.06)),hold=Math.round(sampleRate*0.05);\n          let e=this.e,g=this.g,h=this.h,op=this.o;\n          for(let n=0;n<i.length;n++){const a=i[n]<0?-i[n]:i[n];e=a>e?a:e*er;if(e>on){op=true;h=hold;}else if(e<off){if(h>0)h--;else op=false;}\n          const tg=op?1:0;g+=(tg-g)*(tg>g?ka:kr);o[n]=i[n]*g;}\n          this.e=e;this.g=g;this.h=h;this.o=op;return true;}}\n          registerProcessor('ampgate',Gate);\n" };
+})();
+window.AmpDSP = AmpDSP;
+</script>
+<script>
+window.__SRC = {"pitch": "// ---- Tonhöhe erkennen (YIN), für „Mithören“ im Solo Finder ----\n// Eingabe: Zeitsignal (Float32Array) und Abtastrate. Rechnet auf halber Rate (schnell genug für das iPad),\n// Bereich ca. 70–1400 Hz (tiefes E bis hoch über Bund 20). Ergebnis: { f, midi, cents, conf, rms } oder null.\nconst Pitch = (() => {\n  let work = null, dbuf = null;\n  function detect(x, sr, opts) {\n    opts = opts || {};\n    const half = sr > 30000, s2 = half ? sr / 2 : sr, n0 = half ? x.length >> 1 : x.length;\n    if (!work || work.length !== n0) { work = new Float32Array(n0); }\n    let mean = 0;\n    if (half) for (let i = 0; i < n0; i++) { work[i] = (x[2 * i] + x[2 * i + 1]) * 0.5; mean += work[i]; }\n    else for (let i = 0; i < n0; i++) { work[i] = x[i]; mean += work[i]; }\n    mean /= n0;\n    let e = 0; for (let i = 0; i < n0; i++) { work[i] -= mean; e += work[i] * work[i]; }\n    const rms = Math.sqrt(e / n0);\n    if (rms < (opts.gate || 0.008)) return null;\n    const minLag = Math.max(2, Math.floor(s2 / (opts.fmax || 1400))), maxLag = Math.min(Math.floor(n0 / 2), Math.ceil(s2 / (opts.fmin || 70)));\n    const W = n0 - maxLag;\n    if (!dbuf || dbuf.length < maxLag + 2) dbuf = new Float32Array(maxLag + 2);\n    // Differenzfunktion und kumulativ normierte Differenz (YIN)\n    dbuf[0] = 1; let run = 0;\n    for (let tau = 1; tau <= maxLag; tau++) {\n      let s = 0;\n      for (let j = 0; j < W; j++) { const d = work[j] - work[j + tau]; s += d * d; }\n      run += s; dbuf[tau] = run > 0 ? s * tau / run : 1;\n    }\n    const thr = opts.thr || 0.15;\n    let tau = -1;\n    for (let t = minLag; t < maxLag; t++) {\n      if (dbuf[t] < thr) { while (t + 1 < maxLag && dbuf[t + 1] < dbuf[t]) t++; tau = t; break; }\n    }\n    if (tau < 0) {                                   // kein klares Minimum unter der Schwelle: bestes nehmen, wenn ordentlich\n      let b = minLag; for (let t = minLag; t < maxLag; t++) if (dbuf[t] < dbuf[b]) b = t;\n      if (dbuf[b] > 0.3) return null; tau = b;\n    }\n    // parabolische Verfeinerung\n    let tt = tau;\n    if (tau > 1 && tau < maxLag) { const a = dbuf[tau - 1], b = dbuf[tau], c = dbuf[tau + 1], den = a + c - 2 * b; if (Math.abs(den) > 1e-12) tt = tau + 0.5 * (a - c) / den; }\n    const f = s2 / tt, m = 69 + 12 * Math.log2(f / (opts.a4 || 440)), midi = Math.round(m);\n    return { f, midi, cents: Math.round((m - midi) * 100), conf: 1 - dbuf[tau], rms };\n  }\n  return { detect };\n})();\nif (typeof window !== 'undefined') window.Pitch = Pitch;\nif (typeof module !== 'undefined') module.exports = Pitch;\n", "fft": "function fft(signal) {\n  const n = signal.length;\n  const re = Float64Array.from(signal);\n  const im = new Float64Array(n);\n  for (let i = 1, j = 0; i < n; i++) {\n    let bit = n >> 1;\n    for (; j & bit; bit >>= 1) j ^= bit;\n    j ^= bit;\n    if (i < j) {\n      const tr = re[i]; re[i] = re[j]; re[j] = tr;\n      const ti = im[i]; im[i] = im[j]; im[j] = ti;\n    }\n  }\n  for (let len = 2; len <= n; len <<= 1) {\n    const ang = -2 * Math.PI / len;\n    const wr = Math.cos(ang), wi = Math.sin(ang);\n    for (let i = 0; i < n; i += len) {\n      let curWr = 1, curWi = 0;\n      const half = len / 2;\n      for (let k = 0; k < half; k++) {\n        const ur = re[i + k], ui = im[i + k];\n        const vr = re[i + k + half] * curWr - im[i + k + half] * curWi;\n        const vi = re[i + k + half] * curWi + im[i + k + half] * curWr;\n        re[i + k] = ur + vr; im[i + k] = ui + vi;\n        re[i + k + half] = ur - vr; im[i + k + half] = ui - vi;\n        const nwr = curWr * wr - curWi * wi;\n        const nwi = curWr * wi + curWi * wr;\n        curWr = nwr; curWi = nwi;\n      }\n    }\n  }\n  return { re, im };\n}\n", "chords": "// Akkorderkennung für Loops und Songs (läuft im Analyse-Worker).\n// Ablauf: Spektrum (4096er-FFT) → harmonischer Anteil (Medianfilter trennt Schlagzeug ab) → Stimmung schätzen\n// (Gitarre/Aufnahme leicht verstimmt) → Chroma (Mitten) und Bass-Chroma je Schlag → Vergleich mit Akkordvorlagen\n// inkl. Obertönen → Glättung über die Schläge (Viterbi): Wechsel bevorzugt auf Takt- und Halbtaktgrenzen.\n// x: Mono ~11–12 kHz, beats: Schlagzeiten (s) im Loop, opts.loop: Signal ist eine Schleife (Ende → Anfang).\nconst CHORD_TYPES = [\n  ['', [0, 4, 7], 0], ['m', [0, 3, 7], 0], ['7', [0, 4, 7, 10], 0.025], ['maj7', [0, 4, 7, 11], 0.03], ['m7', [0, 3, 7, 10], 0.025],\n  ['sus4', [0, 5, 7], 0.035], ['sus2', [0, 2, 7], 0.035], ['dim', [0, 3, 6], 0.045], ['5', [0, 7], 0.01],\n  ['6', [0, 4, 7, 9], 0.02], ['m6', [0, 3, 7, 9], 0.04]\n];\nfunction chordAnalyse(x, sr, beats, opts) {\n  opts = opts || {};\n  const n = x.length, loop = opts.loop !== false, nb = beats.length;\n  if (n < sr * 0.5 || nb < 1) return null;\n  const M = 4096, H = n / sr > 90 ? 2048 : n / sr > 40 ? 1024 : 512;\n  const win = new Float64Array(M); for (let i = 0; i < M; i++) win[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / M);\n  const bz = sr / M, kLo = Math.ceil(38 / bz), kHi = Math.min(M / 2 - 2, Math.floor((opts.midHi || 2100) / bz)), K = kHi - kLo + 1;\n  // Rahmen: Mitte bei c = f·H; Schleife → am Ende vom Anfang weiterlesen\n  const nF = Math.max(1, Math.ceil(n / H));\n  const S = new Float32Array(nF * K), fr = new Float64Array(M);\n  const at = j => loop ? x[((j % n) + n) % n] : (j >= 0 && j < n ? x[j] : 0);\n  for (let f = 0; f < nF; f++) {\n    const st = f * H - M / 2;\n    for (let i = 0; i < M; i++) fr[i] = at(st + i) * win[i];\n    const { re, im } = fft(fr);\n    for (let k = 0; k < K; k++) { const b = k + kLo; S[f * K + k] = Math.log(1 + (opts.comp || 1) * Math.sqrt(re[b] * re[b] + im[b] * im[b])); }\n  }\n  // Harmonisch/perkussiv trennen: Median über die Zeit (Töne halten) gegen Median über die Frequenz (Schläge sind breit)\n  // schneller Median kleiner Fenster (Einfügesortierung in einem festen Puffer)\n  const scr = new Float32Array(32);\n  const medOf = (cnt) => { for (let i = 1; i < cnt; i++) { const v = scr[i]; let j = i - 1; while (j >= 0 && scr[j] > v) { scr[j + 1] = scr[j]; j--; } scr[j + 1] = v; } return scr[cnt >> 1]; };\n  const Hm = new Float32Array(nF * K), tw = Math.min(nF, 9), fw = 13, th = tw >> 1, fh = fw >> 1;\n  for (let f = 0; f < nF; f++) {\n    const rows = []; for (let d = -th; d <= th; d++) rows.push((loop ? ((f + d) % nF + nF) % nF : Math.max(0, Math.min(nF - 1, f + d))) * K);\n    const base = f * K;\n    for (let k = 0; k < K; k++) {\n      for (let d = 0; d < rows.length; d++) scr[d] = S[rows[d] + k];\n      const h = medOf(rows.length);\n      let c = 0; for (let d = -fh; d <= fh; d++) { const kk = k + d < 0 ? 0 : k + d >= K ? K - 1 : k + d; scr[c++] = S[base + kk]; }\n      const pp = medOf(c), m = h * h / (h * h + pp * pp + 1e-9);\n      Hm[base + k] = S[base + k] * m;\n    }\n  }\n  // Stimmung: Lage der Spektralspitzen relativ zum 440-Hz-Raster (Kreis-Mittel der Cent-Abweichung)\n  let cx = 0, cy = 0;\n  for (let f = 0; f < nF; f++) for (let k = 1; k < K - 1; k++) {\n    const v = Hm[f * K + k]; if (v <= Hm[f * K + k - 1] || v <= Hm[f * K + k + 1]) continue;\n    const a = Hm[f * K + k - 1], c = Hm[f * K + k + 1], d = 0.5 * (a - c) / (a - 2 * v + c || 1e-9);\n    const freq = (k + kLo + d) * bz; if (freq < 100) continue;\n    const m = 69 + 12 * Math.log2(freq / 440), ph = 2 * Math.PI * (m - Math.round(m));\n    cx += v * Math.cos(ph); cy += v * Math.sin(ph);\n  }\n  const tune = Math.atan2(cy, cx) / (2 * Math.PI);          // in Halbtönen (−0,5 … +0,5)\n  // Bin → Tonklasse mit Gewicht (nur nahe der Halbtonmitte), getrennt Bass (bis 220 Hz) und Mitten (110–2100 Hz)\n  const pcB = new Int8Array(K), wB = new Float32Array(K), isBass = new Uint8Array(K), isMid = new Uint8Array(K);\n  for (let k = 0; k < K; k++) {\n    const f = (k + kLo) * bz, m = 69 + 12 * Math.log2(f / 440) - tune, r = Math.round(m), dev = Math.abs(m - r);\n    pcB[k] = ((r % 12) + 12) % 12; wB[k] = Math.max(0, 1 - dev / 0.45) ** 2;\n    isBass[k] = f < (opts.bassHi || 150) ? 1 : 0; isMid[k] = f >= (opts.midLo || 110) ? 1 : 0;\n  }\n  // Chroma je Rahmen\n  const chM = new Float32Array(nF * 12), chB = new Float32Array(nF * 12), en = new Float32Array(nF);\n  for (let f = 0; f < nF; f++) {\n    for (let k = 0; k < K; k++) {\n      const v = Hm[f * K + k] * wB[k]; if (!v) continue;\n      if (isMid[k]) chM[f * 12 + pcB[k]] += v;\n      if (isBass[k]) chB[f * 12 + pcB[k]] += v;\n      en[f] += S[f * K + k];\n    }\n  }\n  const enMed = (() => { const a = Array.from(en).sort((p, q) => p - q); return a[a.length >> 1] || 1e-9; })();\n  // Je Schlag mitteln (Rahmenmitte im Schlag); Schläge aus einem kurzen Loop wiederholen sich – sie bleiben getrennt\n  const Ls = n / sr, seg = beats.map((b, i) => [b, i + 1 < nb ? beats[i + 1] : (loop ? beats[0] + Ls : Ls)]);\n  const beatCh = seg.map(([a, e]) => {\n    const vm = new Float32Array(12), vb = new Float32Array(12); let c = 0, ee = 0;\n    const f0 = Math.ceil(a * sr / H), f1 = Math.max(f0 + 1, Math.ceil(e * sr / H));\n    for (let ff = f0; ff < f1; ff++) { const f = ((ff % nF) + nF) % nF; for (let p = 0; p < 12; p++) { vm[p] += chM[f * 12 + p]; vb[p] += chB[f * 12 + p]; } ee += en[f]; c++; }\n    return { m: vm, b: vb, e: ee / Math.max(1, c) };\n  });\n  // Vorlagen mit Obertönen (Oktave, Quinte, Terz der Obertonreihe)\n  const HARM = opts.harm || [[0, 1], [0, 0.55], [7, 0.4], [0, 0.3], [4, 0.2], [7, 0.15]];\n  const temps = [];\n  const TYPES = opts.extraTypes ? CHORD_TYPES.concat(opts.extraTypes) : CHORD_TYPES;\n  for (let r = 0; r < 12; r++) for (const [suf, iv, pen] of TYPES) {\n    const t = new Float32Array(12);\n    iv.forEach((q, j) => HARM.forEach(([h, a]) => { t[(r + q + h) % 12] += a * (j === 0 ? 1.1 : (q === 10 || q === 11) ? 0.85 : 1); }));\n    let s = 0; for (let p = 0; p < 12; p++) s += t[p] * t[p]; s = Math.sqrt(s); for (let p = 0; p < 12; p++) t[p] /= s;\n    temps.push({ r, suf, iv, pen, t });\n  }\n  const NS = temps.length + 1;                                   // letzter Zustand: kein Akkord (Stille/Geräusch)\n  const norm = v => { let s = 0; for (let p = 0; p < 12; p++) s += v[p] * v[p]; s = Math.sqrt(s) || 1; return Array.from(v, q => q / s); };\n  // Pearson: Mittelwert abziehen – volle Vorlagen (Septakkorde) passen sonst zu jedem verschmierten Chroma\n  const PEAR = opts.pearson !== false;\n  const center = v => { const m = v.reduce((a, b) => a + b, 0) / 12; const c = v.map(q => q - m); let s = 0; c.forEach(q => { s += q * q; }); s = Math.sqrt(s) || 1; return c.map(q => q / s); };\n  if (PEAR) temps.forEach(T => { T.tc = center(Array.from(T.t)); });\n  const emis = beatCh.map(bc => {\n    const out = new Float32Array(NS), m = PEAR ? center(Array.from(bc.m)) : norm(bc.m), b = norm(bc.b);\n    const quiet = bc.e < enMed * 0.25;\n    for (let s = 0; s < temps.length; s++) {\n      const T = temps[s], tt = PEAR ? T.tc : T.t; let d = 0; for (let p = 0; p < 12; p++) d += m[p] * tt[p];\n      // Bass auf dem Grundton stützt den Akkord, Bass auf einem fremden Ton schwächt ihn leicht\n      let bs = b[T.r]; let inC = 0; T.iv.forEach(q => { inC = Math.max(inC, b[(T.r + q) % 12]); });\n      out[s] = d - T.pen * (opts.penK || 3) + (opts.bassK != null ? opts.bassK : 0.12) * bs + 0.04 * inC - (quiet ? 0.3 : 0);\n    }\n    out[NS - 1] = quiet ? 0.75 : 0.35;\n    return out;\n  });\n  if (opts.debug) opts.debugTop = emis.map((e, i) => Array.from(e).map((v, q) => [v, q]).sort((a, b) => b[0] - a[0]).slice(0, 4).map(([v, q]) => (q === NS - 1 ? 'N' : ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'][temps[q].r] + temps[q].suf) + ':' + v.toFixed(3)).join(' ') + ' | m ' + Array.from(beatCh[i].m, v => v.toFixed(0)).join(',') + ' | b ' + Array.from(beatCh[i].b, v => v.toFixed(0)).join(','));\n  // Viterbi über die Schläge: Wechsel kosten etwas, auf der Eins am wenigsten\n  const beatsPerBar = opts.beatsPerBar || 4, down0 = opts.downIndex || 0;\n  const cost = i => { const k = ((i - down0) % beatsPerBar + beatsPerBar) % beatsPerBar; return k === 0 ? 0.05 : k === beatsPerBar / 2 ? 0.1 : 0.16; };\n  let score = Float32Array.from(emis[0]); const back = [];\n  for (let i = 1; i < nb; i++) {\n    let bi = 0; for (let s = 1; s < NS; s++) if (score[s] > score[bi]) bi = s;\n    const c = cost(i), nx = new Float32Array(NS), bk = new Int16Array(NS);\n    for (let s = 0; s < NS; s++) { const stay = score[s], sw = score[bi] - c; if (stay >= sw) { nx[s] = stay + emis[i][s]; bk[s] = s; } else { nx[s] = sw + emis[i][s]; bk[s] = bi; } }\n    score = nx; back.push(bk);\n  }\n  let s = 0; for (let q = 1; q < NS; q++) if (score[q] > score[s]) s = q;\n  const path = new Array(nb); path[nb - 1] = s;\n  for (let i = nb - 1; i > 0; i--) { s = back[i - 1][s]; path[i - 1] = s; }\n  const NOTE = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];\n  const lab = q => q === NS - 1 ? null : temps[q];\n  const perBeat = path.map(q => { const T = lab(q); return T ? { name: NOTE[T.r] + T.suf, root: T.r, type: T.suf } : null; });\n  // Abschnitte zusammenfassen\n  const segs = [];\n  perBeat.forEach((c, i) => {\n    const nm = c ? c.name : '–';\n    if (segs.length && segs[segs.length - 1].name === nm) { segs[segs.length - 1].end = seg[i][1]; segs[segs.length - 1].beats++; }\n    else segs.push({ name: nm, root: c ? c.root : -1, type: c ? c.type : null, start: seg[i][0], end: seg[i][1], beat: i, beats: 1 });\n  });\n  // Schleife: gleicher Akkord am Ende und Anfang gehört zusammen (nur für die Anzeige getrennt lassen)\n  return { segments: segs, perBeat: perBeat.map(c => c ? c.name : '–'), tuneCents: Math.round(tune * 100) };\n}\n"};
+</script>
+<script>
 // ---------- Studio: Speicher ----------
 // Eigene Datenbank „3nps-studio“ (Projekte, Audio-Kopf, Audio-Blöcke). Audio liegt als 16-Bit-Blöcke auf dem Gerät,
 // nicht im Arbeitsspeicher; gelesen wird nur, was gerade gebraucht wird (kleiner Zwischenspeicher).
@@ -1663,16 +1713,33 @@ const SDB = (() => {
     }
     return { l: L, r: R || L };
   }
+  // v122: Rohdaten (16 Bit) blockweise schreiben – für den Projekt-Import (bitgenau, ohne Umweg über Float)
+  function rawWriter(name, sr, stereo) {
+    const id = newId(); let frames = 0, n = 0, pending = Promise.resolve(); const peaks = [], PK = 128; let pmin = 0, pmax = 0, pc = 0;
+    return {
+      id,
+      push(l, r) {   // l, r: Int16Array, genau CH Bilder (nur der letzte Block darf kürzer sein)
+        for (let i = 0; i < l.length; i++) { const a = l[i] / 32767, b = r ? r[i] / 32767 : a; if (a > pmax) pmax = a; if (a < pmin) pmin = a; if (b > pmax) pmax = b; if (b < pmin) pmin = b; if (++pc === PK) { peaks.push(Math.round(pmin * 127), Math.round(pmax * 127)); pmin = pmax = 0; pc = 0; } }
+        const k = n++; frames += l.length; pending = pending.then(() => put('chunks', { k: id + ':' + String(k).padStart(6, '0'), l, r: stereo ? r : null }));
+        return pending;
+      },
+      async done() {
+        if (pc) peaks.push(Math.round(pmin * 127), Math.round(pmax * 127)); await pending;
+        const meta = { id, name, sr, ch: stereo ? 2 : 1, frames, chunks: n, peaks: Int8Array.from(peaks), pk: PK, ts: Date.now() };
+        await put('audio', meta); metaCache.set(id, meta); return meta;
+      }
+    };
+  }
   async function delAudio(id) { metaCache.delete(id); await del('audio', id); await delRange('chunks', id + ':', id + ':~'); }
   // Speicher aufräumen: Audio, das kein Projekt mehr benutzt
   async function gc() {
     const ps = await all('projects'), used = new Set();
-    ps.forEach(p => (p.regions || []).forEach(r => { if (r.audio) used.add(r.audio); (r.takes || []).forEach(t => t.audio && used.add(t.audio)); }));   // v121: Takes zählen mit
+    ps.forEach(p => (p.regions || []).forEach(r => { if (r.audio) used.add(r.audio); (r.takes || []).forEach(t => t.audio && used.add(t.audio)); if (r.qz && r.qz.audio) used.add(r.qz.audio); if (r.pc && r.pc.audio) used.add(r.pc.audio); }));   // v121: Takes zählen mit · v122: Original vor dem Quantisieren, Tonhöhenkorrektur
     const as = await tx('audio', 'readonly', st => st.getAllKeys());
     for (const id of as || []) if (!used.has(id)) await delAudio(id);
   }
   async function usage() { try { const e = await navigator.storage.estimate(); return e.usage || 0; } catch (e) { return null; } }
-  return { open, get, put, del, all, putAudio, writer, meta, read, delAudio, gc, usage, looperList, looperGet, looperPut, CH, newId };
+  return { open, get, put, del, all, putAudio, writer, rawWriter, rawChunk: chunk, meta, read, delAudio, gc, usage, looperList, looperGet, looperPut, CH, newId };
 })();
 
 </script>
@@ -1746,6 +1813,8 @@ registerProcessor('studio-sc', StudioSC);`;
 
 const Engine = (() => {
   const B = 32768, MAXT = 24;
+  // v122: Worklet-Modul = Engine + Sidechain + Amp-Gate (aus dem Looper) + Insert-Effekte (Chorus, Tremolo)
+  const wsrc = () => WORKLET_SRC + (window.AmpDSP ? AmpDSP.GATE : '') + (window.Ins ? Ins.WSRC : '');
   let ctx = null, node = null, P = null, G = null, wUrl = null;
   const st = { playing: false, pos: 0, pos0: 0, t0: 0, pk: new Float32Array(MAXT), lastMsg: 0 };
   const sent = new Map();           // 'tr:k' → Version
@@ -1761,7 +1830,7 @@ const Engine = (() => {
   async function ensure() {
     ac(); if (ctx.state !== 'running') { try { await ctx.resume(); } catch (e) {} }
     if (!node) {
-      wUrl = wUrl || URL.createObjectURL(new Blob([WORKLET_SRC], { type: 'application/javascript' }));
+      wUrl = wUrl || URL.createObjectURL(new Blob([wsrc()], { type: 'application/javascript' }));
       await ctx.audioWorklet.addModule(wUrl); SC_OK.add(ctx);
       node = new AudioWorkletNode(ctx, 'studio-eng', { numberOfInputs: 0, numberOfOutputs: MAXT, outputChannelCount: new Array(MAXT).fill(2), processorOptions: { n: MAXT } });
       node.port.onmessage = e => { const d = e.data; if (d.t === 'pos') { st.wpos = d.pos; if (d.cf) st.wcf = d.cf; st.lastMsg = ctx.currentTime; d.pk.forEach((v, i) => { st.pk[i] = Math.max(st.pk[i] * 0.85, v); }); } };
@@ -1777,18 +1846,21 @@ const Engine = (() => {
     return b;
   }
   // Kanalzug (Spur oder Gruppenbus): Sättigung → EQ7 → Kompressor (oder Sidechain-Kompressor) → Aufholen → Pan → Fader → Mute
-  function strip(c, t) {
+  function strip(c, t, opts) {
     const cp = (t.fx || {}).comp || {}, sc = !!(cp.on && cp.sc) && SC_OK.has(c);
     const inN = c.createGain(), sat = c.createWaveShaper(), eq = EQ7.chain(c), comp = sc ? new AudioWorkletNode(c, 'studio-sc', { numberOfInputs: 2, numberOfOutputs: 1, outputChannelCount: [2], channelCount: 2, channelCountMode: 'explicit' }) : c.createDynamicsCompressor(),
       mk = c.createGain(), pan = c.createStereoPanner(), vol = c.createGain(), mute = c.createGain(), sR = c.createGain(), sD = c.createGain(), an = c.createAnalyser();
     an.fftSize = 512; sat.oversample = '2x';
-    inN.connect(sat); sat.connect(eq.input); eq.output.connect(comp); comp.connect(mk); mk.connect(pan); pan.connect(vol); vol.connect(mute); mute.connect(an);
+    // v122: Insert-Effekte (Amp, Chorus, Tremolo) nur im Graph, wenn eingeschaltet – sonst exakt der bisherige Weg
+    const ins = window.Ins && Ins.any(t) ? Ins.build(c, t, opts || {}, SC_OK.has(c)) : null;
+    if (ins) { inN.connect(ins.input); ins.output.connect(sat); } else inN.connect(sat);
+    sat.connect(eq.input); eq.output.connect(comp); comp.connect(mk); mk.connect(pan); pan.connect(vol); vol.connect(mute); mute.connect(an);
     if (sc) { comp.sc = true; comp.port.onmessage = e => { comp.red = e.data; }; }
-    return { id: t.id, inN, sat, eq, comp, mk, pan, vol, mute, sR, sD, an };
+    return { id: t.id, inN, sat, eq, comp, mk, pan, vol, mute, sR, sD, an, ins };
   }
   const SC_OK = new WeakSet();     // Kontexte, in denen 'studio-sc' geladen ist
-  function makeGraph(c, proj, src) {
-    const g = { tr: [], grp: [], c };
+  function makeGraph(c, proj, src, opts) {
+    const g = { tr: [], grp: [], c }; opts = Object.assign({ proj }, opts || {});
     const m = proj.master || {};
     const mIn = c.createGain(), mEq = EQ7.chain(c), glue = c.createDynamicsCompressor(), lim = c.createDynamicsCompressor(), mVol = c.createGain(), meter = c.createAnalyser();
     meter.fftSize = 1024; mIn.connect(mEq.input); mEq.output.connect(glue); glue.connect(lim); lim.connect(mVol); mVol.connect(c.destination); mVol.connect(meter);
@@ -1801,10 +1873,10 @@ const Engine = (() => {
     const sends = n => { n.mute.connect(n.sR); n.sR.connect(rev); n.mute.connect(n.sD); n.sD.connect(dly); };
     // v121: Gruppenbusse – nur gebaut, wenn mindestens eine Spur hineinführt (sonst keine Rechenlast)
     const used = new Set(proj.tracks.map(t => t.out).filter(o => o && o !== 'master'));
-    (proj.groups || []).forEach(b => { if (!used.has(b.id)) { g.grp.push(null); return; } const n = strip(c, b); n.mute.connect(mIn); sends(n); g.grp.push(n); });
+    (proj.groups || []).forEach(b => { if (!used.has(b.id)) { g.grp.push(null); return; } const n = strip(c, b, opts); n.mute.connect(mIn); sends(n); g.grp.push(n); });
     const gi = id => (proj.groups || []).findIndex(b => b.id === id);
     proj.tracks.forEach((t, i) => {
-      const n = strip(c, t), j = t.out && t.out !== 'master' ? gi(t.out) : -1;
+      const n = strip(c, t, opts), j = t.out && t.out !== 'master' ? gi(t.out) : -1;
       n.mute.connect(j >= 0 && g.grp[j] ? g.grp[j].inN : mIn); sends(n);
       if (src && i < MAXT) src.connect(n.inN, i, 0);
       g.tr.push(n);
@@ -1816,6 +1888,7 @@ const Engine = (() => {
       const q = byId.get(cp.sc); if (!q || q === n || (t.out && t.out === cp.sc)) return;   // keine Rückkopplung über den eigenen Bus
       q.vol.connect(n.comp, 0, 1);
     });
+    g.fxn = g.tr.concat(g.grp.filter(Boolean)).reduce((a, n) => n.ins ? a.concat(n.ins.wk) : a, []);   // Worklets mit Zeitleiste (Chorus/Tremolo)
     applyAll(g, proj);
     return g;
   }
@@ -1837,6 +1910,7 @@ const Engine = (() => {
     if (!(autoOk && t.auto && t.auto.vol && t.auto.vol.length && st.playing)) P2(n.vol.gain, db2g(t.vol != null ? t.vol : 0));
     P2(n.mute.gain, on ? 1 : 0);
     P2(n.sR.gain, (fx.rev || 0) / 100); P2(n.sD.gain, (fx.dly || 0) / 100);
+    if (n.ins) Ins.apply(n.ins, t, g.c, smooth);
   }
   function applyTrack(g, proj, i, smooth) { const S = soloState(proj), t = proj.tracks[i]; if (!t) return; applyChan(g, g.tr[i], t, S.tr(t), smooth, true); applyGroups(g, proj, smooth, S); }
   function applyGroups(g, proj, smooth, S) { S = S || soloState(proj); (proj.groups || []).forEach((b, j) => { if (g.grp[j]) applyChan(g, g.grp[j], b, S.grp(b), smooth, false); }); }
@@ -1850,21 +1924,24 @@ const Engine = (() => {
   function applyAll(g, proj) { const S = soloState(proj); proj.tracks.forEach((t, i) => applyChan(g, g.tr[i], t, S.tr(t), false, true)); applyGroups(g, proj, false, S); applyMaster(g, proj); }
   function build() {
     if (!ctx || !node || !P) return;
-    if (G) { try { G.tr.concat(G.grp.filter(Boolean)).forEach(n => { n.inN.disconnect(); n.mute.disconnect(); if (n.comp.sc) { n.eq.output.disconnect(); n.comp.disconnect(); n.comp.port.postMessage('end'); } }); G.master.mVol.disconnect(); G.master.mIn.disconnect(); } catch (e) {} try { node.disconnect(); } catch (e) {} }
-    G = makeGraph(ctx, P, node);
+    if (G) { try { G.tr.concat(G.grp.filter(Boolean)).forEach(n => { n.inN.disconnect(); n.mute.disconnect(); if (n.comp.sc) { n.eq.output.disconnect(); n.comp.disconnect(); n.comp.port.postMessage('end'); } if (n.ins) Ins.tear(n.ins); }); G.master.mVol.disconnect(); G.master.mIn.disconnect(); } catch (e) {} try { node.disconnect(); } catch (e) {} }
+    G = makeGraph(ctx, P, node, st.playing ? { play: { pos: curPos(), at: Math.round(ctx.currentTime * ctx.sampleRate) }, cyc: cycMsg() } : { cyc: cycMsg() });
     if (window.Inst) Inst.attach(G);
   }
   // ---------- Feeder ----------
   const regEnd = r => r.start + r.len;
   async function blockData(proj, ti, k) {
-    const t = proj.tracks[ti], a = k * B, b = a + B; let L = null, R = null;
+    const t = proj.tracks[ti], a = k * B, b = a + B, pcOn = !!(t.fx && t.fx.pc && t.fx.pc.on); let L = null, R = null;
     for (const r of proj.regions) {
       if (r.track !== t.id || r.kind !== 'audio' || r.muted) continue;
       const s = Math.max(a, r.start), e = Math.min(b, regEnd(r)); if (e <= s) continue;
       if (!L) { L = new Float32Array(B); R = new Float32Array(B); }
       const g = db2g(r.gain || 0), fi = r.fi || 0, fo = r.fo || 0;
       if (r.takes && r.takes.length) { await takeData(proj, r, s, e, a, L, R, g, fi, fo); continue; }
-      const d = await SDB.read(r.audio, r.offset + (s - r.start), e - s);
+      let aid = r.audio, ao = r.offset + (s - r.start);
+      // v122: Tonhöhenkorrektur an → vorberechnete Fassung (nur wenn sie zu dieser Quelle und diesem Ausschnitt passt)
+      if (pcOn && r.pc && r.pc.src === r.audio && ao >= r.pc.o0 && ao + (e - s) <= r.pc.o0 + r.pc.n) { aid = r.pc.audio; ao -= r.pc.o0; }
+      const d = await SDB.read(aid, ao, e - s);
       for (let f = s; f < e; f++) {
         let w = g; const p = f - r.start;
         if (fi && p < fi) w *= Math.sin(Math.PI / 2 * p / fi);
@@ -1962,11 +2039,12 @@ const Engine = (() => {
     const at = ctx.currentTime + 0.12; st.t0 = at; st.pos0 = st.pos; st.playing = true;
     node.port.postMessage({ t: 'cycle', on: !!(P.cycle && P.cycle.on && P.cycle.b > P.cycle.a), a: P.cycle ? P.cycle.a : 0, b: P.cycle ? P.cycle.b : 0 });
     node.port.postMessage({ t: 'play', pos: st.pos, at: Math.round(at * ctx.sampleRate) });
+    fxPost(cycMsg()); fxPost({ t: 'play', pos: st.pos, at: Math.round(at * ctx.sampleRate) });
     if (window.Sched) Sched.start(st.pos, at);
     clearInterval(timer); timer = setInterval(() => { feed(); listeners.tick.forEach(f => f()); }, 90);
   }
   function stop() {
-    if (!st.playing) return; st.pos = curPos(); st.playing = false; node && node.port.postMessage({ t: 'stop' });
+    if (!st.playing) return; st.pos = curPos(); st.playing = false; node && node.port.postMessage({ t: 'stop' }); fxPost({ t: 'stop' });
     if (window.Sched) Sched.stop(); clearInterval(timer); timer = null; listeners.tick.forEach(f => f());
     if (G) applyAll(G, P);
   }
@@ -1975,7 +2053,9 @@ const Engine = (() => {
     st.pos = Math.max(0, Math.round(pos)); if (node) node.port.postMessage({ t: 'seek', pos: st.pos });
     if (was) await play(); else { feed(); listeners.tick.forEach(f => f()); }
   }
-  function setCycle() { if (node && P) node.port.postMessage({ t: 'cycle', on: !!(P.cycle && P.cycle.on && P.cycle.b > P.cycle.a), a: P.cycle ? P.cycle.a : 0, b: P.cycle ? P.cycle.b : 0 }); if (st.playing && window.Sched) Sched.resync(); feed(); }
+  const cycMsg = () => ({ t: 'cycle', on: !!(P && P.cycle && P.cycle.on && P.cycle.b > P.cycle.a), a: P && P.cycle ? P.cycle.a : 0, b: P && P.cycle ? P.cycle.b : 0 });
+  const fxPost = m => { if (G && G.fxn) G.fxn.forEach(w => { try { w.port.postMessage(m); } catch (e) {} }); };
+  function setCycle() { if (node && P) { node.port.postMessage({ t: 'cycle', on: !!(P.cycle && P.cycle.on && P.cycle.b > P.cycle.a), a: P.cycle ? P.cycle.a : 0, b: P.cycle ? P.cycle.b : 0 }); fxPost(cycMsg()); } if (st.playing && window.Sched) Sched.resync(); feed(); }
   function setProject(p) { stop(); P = p; st.pos = 0; sent.clear(); ver++; if (node) { node.port.postMessage({ t: 'clear' }); build(); } }
   // Pegel: Spur (Analyser, nach Fader) – Spitze 0…1
   const tbuf = new Float32Array(512);
@@ -1985,7 +2065,7 @@ const Engine = (() => {
   function masterLevel() { if (!G) return 0; G.master.meter.getFloatTimeDomainData(mbuf); let m = 0; for (let k = 0; k < 1024; k += 2) { const v = Math.abs(mbuf[k]); if (v > m) m = v; } return m; }
   return {
     ac, ensure, play, stop, seek, curPos, setProject, dirty, setCycle, level, groupLevel, masterLevel, makeGraph, applyTrack: (i, s) => G && applyTrack(G, P, i, s), applyMaster: () => G && applyMaster(G, P),
-    applyAll: () => G && applyAll(G, P), compSegs, SC_OK, blockData, B, MAXT, WORKLET_SRC, get graph() { return G; }, get playing() { return st.playing; }, get project() { return P; }, on: (ev, f) => listeners[ev].push(f), sr: () => ac().sampleRate, st
+    applyAll: () => G && applyAll(G, P), compSegs, SC_OK, blockData, B, MAXT, get WORKLET_SRC() { return wsrc(); }, get graph() { return G; }, get playing() { return st.playing; }, get project() { return P; }, on: (ev, f) => listeners[ev].push(f), sr: () => ac().sampleRate, st
   };
 })();
 
@@ -2745,7 +2825,8 @@ window.Drum = Drum;
 const Arr = (() => {
   const $ = id => document.getElementById(id);
   const cv = $('cv'), lanes = $('lanes'), headsIn = $('headsIn');
-  const RH = 34;
+  let RH = 34; const CLH = 20;   // v122: Lineal + (falls an) Akkordspur
+  const upRH = () => { const p = Proj.P; RH = 34 + (p && p.chordLane ? CLH : 0); };
   const V = { x0: 0, fpp: 400, y0: 0, th: (() => { try { return Math.max(44, Math.min(260, +localStorage.getItem('3nps-studio-th') || 64)); } catch (e) { return 64; } })(), loopSel: false, sel: null, selTrack: null, auto: false, autoP: 'vol' };
   const AR = { vol: [-48, 6, 0.5], pan: [-100, 100, 1] };   // Bereich und Raster je Automationsart
   const metas = new Map();
@@ -2767,8 +2848,8 @@ const Arr = (() => {
   // ---------- Kopfzeilen der Spuren ----------
   const KIND = { audio: 'Audio', midi: 'Noten', drum: 'Drummer' };
   function heads() {
-    LY = null; const p = P(); if (!p) { headsIn.innerHTML = ''; return; }
-    let h = '<div class="ruler-pad">' + p.tracks.length + ' Spuren</div>';
+    LY = null; upRH(); const p = P(); if (!p) { headsIn.innerHTML = ''; return; }
+    let h = '<div class="ruler-pad" style="height:' + RH + 'px">' + p.tracks.length + ' Spuren' + (p.chordLane ? '<span style="flex:1"></span><button class="btn" data-a="chords" style="padding:1px 6px;font-size:10px" title="Akkordspur">Akkorde</button>' : '') + '</div>';
     p.tracks.forEach(t => {
       const ht = hasTakes(t), nk = ht ? Math.max(...p.regions.filter(r => r.track === t.id && r.takes).map(r => r.takes.length)) : 0;
       h += '<div class="th' + (V.selTrack === t.id ? ' sel' : '') + (rowH(t) > V.th ? ' tko' : '') + '" data-t="' + t.id + '" style="height:' + rowH(t) + 'px' + (rowH(t) > V.th ? ';padding-top:' + Math.max(4, Math.round(V.th / 2 - 15)) + 'px' : '') + '"><div class="c" style="background:' + t.color + '"></div><div class="n"><b>' + esc(t.name) + '</b><small>' + KIND[t.kind] + (t.kind === 'midi' && t.inst && window.Inst ? ' · ' + esc(Inst.label(t.inst)) : '') + (t.kind === 'drum' ? ' · ' + esc(t.kit || '') : '') + (t.out && t.out !== 'master' ? ' · → ' + esc(((p.groups || []).find(g => g.id === t.out) || {}).name || t.out) : '') + '</small></div>' +
@@ -2778,6 +2859,7 @@ const Arr = (() => {
   }
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   headsIn.addEventListener('click', e => {
+    if (e.target.closest('[data-a="chords"]')) { Ana.chordDlg(); return; }
     const th = e.target.closest('.th'); if (!th) return; const id = th.dataset.t, b = e.target.closest('button');
     if (b) { const a = b.dataset.a; Proj.editTrack(id, t => { t[a] = !t[a]; if (a === 'arm' && t.arm) Proj.P.tracks.forEach(o => { if (o !== t) o.arm = false; }); }, { noUndo: true }); Proj.P.tracks.forEach((_, i) => Engine.applyTrack(i, true)); heads(); kick(); return; }
     selectTrack(id);
@@ -2789,7 +2871,7 @@ const Arr = (() => {
     const p = P(), dpr = window.devicePixelRatio || 1, w = lanes.clientWidth, h = lanes.clientHeight;
     if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
     const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, w, h);
-    c.fillStyle = '#141416'; c.fillRect(0, 0, w, h); if (!p) return; LY = null;
+    c.fillStyle = '#141416'; c.fillRect(0, 0, w, h); if (!p) return; LY = null; upRH();
     const pxBar = Proj.bar(xf(w / 2)) / V.fpp;
     const every = pxBar < 14 ? 8 : pxBar < 28 ? 4 : pxBar < 60 ? 2 : 1;
     // Spurhintergründe (+ Take-Zeilen)
@@ -2837,6 +2919,12 @@ const Arr = (() => {
     c.font = '11px ui-monospace,Menlo,monospace';
     if (cy && cy.b > cy.a) { const a = fx(cy.a), e = fx(cy.b); c.fillStyle = cy.on ? 'rgba(242,194,48,.85)' : 'rgba(242,194,48,.3)'; c.fillRect(a, 20, e - a, 12); }
     (p.markers || []).forEach(m => { const x = fx(m.f); if (x < -100 || x > w) return; c.font = '600 10px system-ui'; const tw = c.measureText(m.name).width + 10; c.fillStyle = m.color || '#8ad94e'; roundRect(c, x, 18, tw, 14, 3); c.fill(); c.fillStyle = '#111'; c.fillText(m.name, x + 5, 29); });
+    // v122: Akkordspur unter dem Lineal (antippen = ändern/eintragen)
+    if (p.chordLane) {
+      c.fillStyle = '#121216'; c.fillRect(0, 34, w, CLH - 1); c.font = '600 11px system-ui';
+      (p.chords || []).forEach(ch => { const a = fx(TMap.beat2f(p, ch.b)), e = fx(TMap.beat2f(p, ch.b + ch.beats)); if (e < 0 || a > w) return; c.fillStyle = 'rgba(138,217,78,.22)'; roundRect(c, a + 1, 36, Math.max(3, e - a - 2), CLH - 5, 3); c.fill(); c.fillStyle = '#b6ef8a'; if (e - a > 14) c.fillText(ch.name, a + 5, 34 + CLH - 6); });
+      if (!(p.chords || []).length) { c.fillStyle = '#5c5f6a'; c.fillText('Akkordspur – antippen zum Eintragen (oder Region → „Akkorde erkennen“)', 8, 34 + CLH - 6); }
+    }
     // Abspielposition
     const px = fx(Engine.curPos()); if (px >= 0 && px <= w) { c.fillStyle = '#fff'; c.fillRect(Math.round(px), 0, 2, h); }
     if (window.Rec && Rec.active()) { const a = fx(Rec.startPos()), e = px; c.fillStyle = 'rgba(255,93,93,.35)'; const ti = Proj.tIndex(Rec.track()); if (ti >= 0) c.fillRect(a, tY(ti) + 5, Math.max(0, e - a), V.th - 10); }
@@ -2929,8 +3017,8 @@ const Arr = (() => {
   // ---------- Bedienung ----------
   const ptrs = new Map(); let drag = null, lastTap = { t: 0, id: null };
   function hit(x, y) {
-    LY = null; const p = P(); if (!p) return null;
-    if (y < RH) return { zone: y < 18 ? 'ruler' : 'cycle' };
+    LY = null; upRH(); const p = P(); if (!p) return null;
+    if (y < RH) return { zone: y < 18 ? 'ruler' : y < 34 ? 'cycle' : 'chord', f: xf(x) };
     const ta = trackAt(y), ti = ta.ti, t = p.tracks[ti]; if (!t) return { zone: 'empty' };
     const f = xf(x);
     if (ta.dy >= V.th) {   // v121: Take-Zeile
@@ -2957,6 +3045,7 @@ const Arr = (() => {
     const now = performance.now(), dbl = now - lastTap.t < 330 && lastTap.id === (h.r ? h.r.id : h.zone); lastTap = { t: now, id: h.r ? h.r.id : h.zone };
     if (h.zone === 'ruler') { drag = { kind: 'scrub', x }; Engine.seek(Math.max(0, Proj.snap(xf(x), 'beat'))); kick(); return; }
     if (h.zone === 'cycle') { const f = Proj.snap(xf(x), 'bar'), c = Proj.P.cycle; if (dbl || (c.b > c.a && f >= c.a && f <= c.b && !drag)) { drag = { kind: 'cyctap', x, f }; return; } drag = { kind: 'cycle', a: f, x }; return; }
+    if (h.zone === 'chord') { drag = null; Ana.editAt(h.f); return; }
     if (h.zone === 'auto') { autoDown(h, x, y, dbl); return; }
     if (h.zone === 'take') { V.sel = h.r.id; if (V.selTrack !== h.t.id) { V.selTrack = h.t.id; heads(); } UI.inspect(); drag = { kind: 'comp', r: h.r, k: h.k, f0: h.f, f1: h.f, x, moved: false }; kick(); return; }
     if (V.loopSel && h.zone !== 'ruler' && h.zone !== 'cycle') {   // v109: Takte wählen und loopen – über die Spuren ziehen
@@ -3165,7 +3254,7 @@ const Roll = (() => {
   box.addEventListener('pointerup', up); box.addEventListener('pointercancel', up);
   box.addEventListener('wheel', e => { e.preventDefault(); if (e.ctrlKey) { S.ppb = Math.max(12, Math.min(400, S.ppb * Math.exp(-e.deltaY / 200))); } else { S.x0 = Math.max(0, S.x0 + (e.deltaX || (e.shiftKey ? e.deltaY : 0)) / S.ppb); if (!e.shiftKey) S.y0 = Math.max(0, Math.min(128 * NH - box.clientHeight, S.y0 + e.deltaY)); } kick(); }, { passive: false });
   // ---------- Akkorde → Bass / Flächen / Arpeggio ----------
-  const QUAL = [[/^(maj7|M7|Δ)/, [0, 4, 7, 11]], [/^(m7|min7|-7)/, [0, 3, 7, 10]], [/^(m7b5|ø)/, [0, 3, 6, 10]], [/^dim/, [0, 3, 6]], [/^aug|^\+/, [0, 4, 8]], [/^sus2/, [0, 2, 7]], [/^sus4?/, [0, 5, 7]], [/^7/, [0, 4, 7, 10]], [/^(m|min|-)/, [0, 3, 7]], [/^/, [0, 4, 7]]];
+  const QUAL = [[/^(maj7|M7|Δ)/, [0, 4, 7, 11]], [/^(m7|min7|-7)/, [0, 3, 7, 10]], [/^(m7b5|ø)/, [0, 3, 6, 10]], [/^dim/, [0, 3, 6]], [/^aug|^\+/, [0, 4, 8]], [/^sus2/, [0, 2, 7]], [/^sus4?/, [0, 5, 7]], [/^7/, [0, 4, 7, 10]], [/^5/, [0, 7]], [/^(m|min|-)/, [0, 3, 7]], [/^/, [0, 4, 7]]];
   function parseChord(s) { const m = String(s).trim().match(/^([A-Ha-h])(#|b|♯|♭)?(.*)$/); if (!m) return null; let r = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11, H: 11 }[m[1].toUpperCase()]; if (m[2] === '#' || m[2] === '♯') r++; if (m[2] === 'b' || m[2] === '♭') r--; r = (r + 12) % 12; const q = QUAL.find(([re]) => re.test(m[3]))[1]; return { r, iv: q, name: s.trim() }; }
   function progFromProject() { const P = Proj.P; if (!P.chords || !P.chords.length) return ''; let out = [], bar = P.sig; P.chords.forEach(c => { out.push(c.name + (Math.abs(c.beats - bar) > 0.01 ? ':' + (c.beats / bar).toString().replace('.', ',') : '')); }); return out.join(' '); }
   function chordDock() {
@@ -3184,10 +3273,17 @@ const Roll = (() => {
     txt.split(/[\s|,]+/).filter(Boolean).forEach(tok => { const [c, l] = tok.split(':'); const ch = parseChord(c); if (!ch) { bad.push(c); return; } seq.push({ ch, bars: l ? +l.replace(',', '.') || 1 : 1 }); });
     if (bad.length) return UI.say('Nicht erkannt: ' + bad.join(', '));
     if (P.tracks.length >= Engine.MAXT) return UI.say('Höchstens ' + Engine.MAXT + ' Spuren.');
-    const sig = P.sig, notes = []; let b = 0;
+    const sig = P.sig; let b = 0;
     const style = $('cBass').value;
-    seq.forEach(({ ch, bars }, i) => {
-      const L = bars * sig, root = 36 + ch.r - (ch.r > 7 ? 12 : 0), next = seq[(i + 1) % seq.length].ch;
+    const items = seq.map(({ ch, bars }) => { const it = { ch, b, L: bars * sig }; b += it.L; return it; });
+    const notes = notesFor(items, kind, style, sig);
+    finish(kind, notes, Proj.bar2f(Math.max(1, +$('cBar').value || 1) - 1), b, txt.slice(0, 40), sig);
+  }
+  // v122: Noten aus einer Akkordfolge [{ch, b (Schlag ab Anfang), L (Schläge)}]
+  function notesFor(items, kind, style, sig) {
+    const notes = [];
+    items.forEach(({ ch, b, L }, i) => {
+      const root = 36 + ch.r - (ch.r > 7 ? 12 : 0), next = items[(i + 1) % items.length].ch;
       if (kind === 'bass') {
         if (style === 'whole') notes.push({ t: b, d: L - 0.05, m: root, v: 100 });
         else if (style === 'eighth') for (let k = 0; k < L * 2; k++) notes.push({ t: b + k / 2, d: 0.45, m: root, v: k % 2 ? 82 : 100 });
@@ -3195,17 +3291,28 @@ const Roll = (() => {
         else { const tgt = 36 + next.r - (next.r > 7 ? 12 : 0); for (let k = 0; k < L; k++) { const last = k === L - 1, m = k === 0 ? root : last ? tgt + (tgt > root ? -1 : 1) : root + [0, ch.iv[1], 7, ch.iv[1]][k % 4]; notes.push({ t: b + k, d: 0.9, m, v: k ? 88 : 104 }); } }
       } else if (kind === 'pad') { const base = 60 + ch.r - (ch.r > 5 ? 12 : 0); ch.iv.forEach(iv => notes.push({ t: b, d: L - 0.05, m: base + iv, v: 80 })); notes.push({ t: b, d: L - 0.05, m: base - 12, v: 70 }); }
       else { const base = 60 + ch.r - (ch.r > 5 ? 12 : 0), tones = ch.iv.concat([12]); for (let k = 0; k < L * 2; k++) notes.push({ t: b + k / 2, d: 0.48, m: base + tones[[0, 1, 2, 3, 2, 1][k % 6] % tones.length], v: k % 2 ? 76 : 92 }); }
-      b += L;
     });
-    const at = Proj.bar2f(Math.max(1, +$('cBar').value || 1) - 1), name = kind === 'bass' ? 'Bass' : kind === 'pad' ? 'Flächen' : 'Arpeggio';
-    let tid; Proj.change('tracks', p => { const t = Proj.track('midi', name + ' (aus Akkorden)'); t.inst = kind === 'bass' ? 'kbass' : kind === 'pad' ? 'strings' : 'harp'; if (kind === 'pad') t.vol = -6; tid = t.id; p.tracks.push(t); p.regions.push({ id: Proj.nid('r'), track: t.id, kind: 'midi', start: at, len: Proj.beat2f(Proj.f2beat(at) + b) - at, notes, name: txt.slice(0, 40) }); });
+    return notes;
+  }
+  // v122: Begleitung direkt aus der Akkordspur (Lage und Länge je Akkord, Lücken bleiben frei)
+  function genChords(kind, style) {
+    const P = Proj.P, cs = (P.chords || []).map(c => ({ c, ch: parseChord(c.name) })).filter(x => x.ch && x.c.beats > 0).sort((u, v) => u.c.b - v.c.b);
+    if (!cs.length) return UI.say('Die Akkordspur ist leer – erst „Akkorde erkennen“ oder Akkorde eintragen.');
+    if (P.tracks.length >= Engine.MAXT) return UI.say('Höchstens ' + Engine.MAXT + ' Spuren.');
+    const b0 = cs[0].c.b, items = cs.map(x => ({ ch: x.ch, b: x.c.b - b0, L: x.c.beats })), end = items[items.length - 1].b + items[items.length - 1].L, sig = TMap.at(P, TMap.beat2f(P, b0) + 1).sig;
+    finish(kind, notesFor(items, kind, style || 'rq', sig), Proj.beat2f(b0), end, 'Akkordspur', sig);
+    return Proj.P.regions[Proj.P.regions.length - 1];
+  }
+  function finish(kind, notes, at, b, label, sig) {
+    const name = kind === 'bass' ? 'Bass' : kind === 'pad' ? 'Flächen' : 'Arpeggio';
+    let tid; Proj.change('tracks', p => { const t = Proj.track('midi', name + ' (aus Akkorden)'); t.inst = kind === 'bass' ? 'kbass' : kind === 'pad' ? 'strings' : 'harp'; if (kind === 'pad') t.vol = -6; tid = t.id; p.tracks.push(t); p.regions.push({ id: Proj.nid('r'), track: t.id, kind: 'midi', start: at, len: Proj.beat2f(Proj.f2beat(at) + b) - at, notes, name: label }); });
     Engine.dirty(true); Inst.load(kind === 'bass' ? 'kbass' : kind === 'pad' ? 'strings' : 'harp'); Arr.V.selTrack = tid; Arr.V.sel = Proj.P.regions[Proj.P.regions.length - 1].id; Arr.heads(); open();
     UI.say(name + ' erzeugt: ' + notes.length + ' Noten über ' + Math.round(b / sig) + ' Takte (Instrument änderbar).');
   }
   (function loop() { if (!$('v-roll').hidden && (need || Engine.playing)) { need = false; draw(); } requestAnimationFrame(loop); })();
   window.addEventListener('resize', kick);
   Proj.on(w => { if (!$('v-roll').hidden && w !== 'mix') { if (S.rid && !Proj.reg(S.rid)) open(); kick(); } });
-  return { open, kick, parseChord, S, gen };
+  return { open, kick, parseChord, S, gen, genChords, notesFor };
 })();
 window.Roll = Roll;
 
@@ -3226,7 +3333,8 @@ const Mix = (() => {
     for (let i = 0; i < FR.length; i++) { const x = i / (FR.length - 1) * w, y = h / 2 - Math.max(-18, Math.min(18, r[i])) / 18 * (h / 2 - 3); i ? g.lineTo(x, y) : g.moveTo(x, y); } g.stroke();
   }
   const dbTxt = v => (v > 0 ? '+' : '') + (Math.round(v * 10) / 10).toString().replace('.', ',') + ' dB';
-  const fx2 = t => { const f = t.fx || {}; return [['comp', 'Kompressor', f.comp && f.comp.on], ['sat', 'Sättigung', f.sat && f.sat.on], ['rev', 'Hall ' + (f.rev || 0) + ' %', (f.rev || 0) > 0], ['dly', 'Delay ' + (f.dly || 0) + ' %', (f.dly || 0) > 0]]; };
+  const fx2 = t => { const f = t.fx || {}, ins = [['amp', 'Amp'], ['cho', 'Chorus'], ['trem', 'Tremolo'], ['pc', 'Tonhöhe']].filter(([k]) => f[k] && f[k].on).map(([k, n]) => [k, n, true]);   // v122: eingeschaltete Inserts als eigene Felder
+    return ins.concat([['comp', 'Kompressor', f.comp && f.comp.on], ['sat', 'Sättigung', f.sat && f.sat.on], ['rev', 'Hall ' + (f.rev || 0) + ' %', (f.rev || 0) > 0], ['dly', 'Delay ' + (f.dly || 0) + ' %', (f.dly || 0) > 0]]); };
   // v121: Ausgang je Spur (Master oder Bus 1…4)
   const outSel = (P, t) => '<select class="out" data-a="out" aria-label="Ausgang ' + esc(t.name) + '"><option value="master">→ Master</option>' + [1, 2, 3, 4].map(k => { const g = (P.groups || []).find(x => x.id === 'g' + k); return '<option value="g' + k + '"' + (t.out === 'g' + k ? ' selected' : '') + '>→ ' + esc(g ? g.name : 'Bus ' + k + ' (neu)') + '</option>'; }).join('') + '</select>';
   const chan = id => Proj.chan(id);
@@ -3306,7 +3414,9 @@ const Mix = (() => {
   }
   // ---- Effekte je Spur ----
   function fxDlg(id) {
-    const i = Proj.tIndex(id), t = chan(id), f = t.fx, before = JSON.stringify(f), P = Proj.P, apply = () => { if (i >= 0) Engine.applyTrack(i, true); else Engine.applyAll(); };
+    const i = Proj.tIndex(id), t = chan(id), f = t.fx, before = JSON.stringify(f), P = Proj.P, isAud = i >= 0 && t.kind === 'audio';
+    if (window.Ins) { const hadPc = !!f.pc; Ins.ensure(f); if (!hadPc) { const k = Ins.keyFromProject(); if (k) Object.assign(f.pc, k); } }   // v122: Inserts (fehlende Felder nur im Fenster, beim Schließen wieder weg)
+    const apply = () => { if (i >= 0) Engine.applyTrack(i, true); else Engine.applyAll(); };
     // v121: Sidechain-Quellen – andere Spuren und Busse (nicht der eigene Ausgangsbus)
     const scOpts = '<option value="">aus (eigenes Signal)</option>' + P.tracks.filter(x => x.id !== id).map(x => '<option value="' + x.id + '"' + (f.comp.sc === x.id ? ' selected' : '') + '>Spur: ' + esc(x.name) + '</option>').join('') + (P.groups || []).filter(g => g.id !== id && g.id !== t.out).map(g => '<option value="' + g.id + '"' + (f.comp.sc === g.id ? ' selected' : '') + '>' + esc(g.name) + '</option>').join('');
     const sl = (k, n, min, max, step, v, u) => '<label>' + n + ' <b data-o="' + k + '">' + v + (u || '') + '</b></label><input type="range" data-k="' + k + '" min="' + min + '" max="' + max + '" step="' + step + '" value="' + v + '" data-u="' + (u || '') + '">';
@@ -3314,7 +3424,7 @@ const Mix = (() => {
       '<div class="card"><label style="color:var(--ink)"><b>Kompressor</b><input type="checkbox" data-k="comp.on"' + (f.comp.on ? ' checked' : '') + '></label>' + sl('comp.th', 'Schwelle', -50, 0, 1, f.comp.th, ' dB') + sl('comp.ratio', 'Verhältnis', 1, 20, 0.5, f.comp.ratio, ':1') + sl('comp.att', 'Ansprechzeit', 1, 100, 1, f.comp.att, ' ms') + sl('comp.rel', 'Abklingzeit', 20, 800, 10, f.comp.rel, ' ms') + sl('comp.mk', 'Aufholen', 0, 18, 0.5, f.comp.mk, ' dB') + '<label>Sidechain (steuert die Absenkung)</label><select id="fxSc" aria-label="Sidechain-Quelle">' + scOpts + '</select><p class="note">z. B. Bass duckt bei der Kick: beim Bass Kompressor an, Sidechain = Drum-Spur.</p></div>' +
       '<div class="card"><label style="color:var(--ink)"><b>Sättigung (Röhre/Band)</b><input type="checkbox" data-k="sat.on"' + (f.sat.on ? ' checked' : '') + '></label>' + sl('sat.drive', 'Stärke', 0, 100, 1, f.sat.drive, ' %') + '</div>' +
       '<div class="card"><b>Sends</b>' + sl('rev', 'Hall', 0, 100, 1, f.rev || 0, ' %') + sl('dly', 'Delay', 0, 100, 1, f.dly || 0, ' %') + '<p class="note">Hall und Delay sind gemeinsame Busse – einstellen beim Master („Hall · Delay“).</p></div>' +
-      '</div><div class="btns"><button class="btn" data-pre="vocal">Vorlage Gesang</button><button class="btn" data-pre="git">Vorlage Gitarre</button><button class="btn" data-pre="bass">Vorlage Bass</button><button class="btn" data-pre="drums">Vorlage Drums</button><button class="btn" data-pre="off">Alles aus</button><span style="flex:1"></span><button class="btn p" data-close>Fertig</button></div>');
+      (window.Ins ? Ins.cards(t, isAud) : '') + '</div><div class="btns"><button class="btn" data-pre="vocal">Vorlage Gesang</button><button class="btn" data-pre="git">Vorlage Gitarre</button><button class="btn" data-pre="bass">Vorlage Bass</button><button class="btn" data-pre="drums">Vorlage Drums</button><button class="btn" data-pre="off">Alles aus</button><span style="flex:1"></span><button class="btn p" data-close>Fertig</button></div>');
     const dlg = $('dlg');
     const setK = (k, v) => { const [a, b] = k.split('.'); if (b) f[a][b] = v; else f[a] = v; };
     const show = () => dlg.querySelectorAll('[data-k]').forEach(el => { const [a, b] = el.dataset.k.split('.'), v = b ? f[a][b] : f[a]; if (el.type === 'checkbox') el.checked = !!v; else { el.value = v; const o = dlg.querySelector('[data-o="' + el.dataset.k + '"]'); if (o) o.textContent = v + el.dataset.u; } });
@@ -3323,6 +3433,7 @@ const Mix = (() => {
     const PRE = { vocal: { comp: { on: true, th: -20, ratio: 3, att: 8, rel: 140, mk: 4 }, sat: { on: true, drive: 15 }, rev: 22, dly: 10 }, git: { comp: { on: true, th: -16, ratio: 2.5, att: 15, rel: 160, mk: 2 }, sat: { on: true, drive: 25 }, rev: 15, dly: 0 },
       bass: { comp: { on: true, th: -22, ratio: 4, att: 20, rel: 200, mk: 5 }, sat: { on: true, drive: 30 }, rev: 0, dly: 0 }, drums: { comp: { on: true, th: -14, ratio: 3, att: 25, rel: 100, mk: 3 }, sat: { on: true, drive: 20 }, rev: 10, dly: 0 }, off: { comp: { on: false, th: -18, ratio: 3, att: 10, rel: 120, mk: 0 }, sat: { on: false, drive: 30 }, rev: 0, dly: 0 } };
     dlg.addEventListener('click', e => { const b = e.target.closest('[data-pre]'); if (!b) return; const p = JSON.parse(JSON.stringify(PRE[b.dataset.pre])); p.comp.sc = f.comp.sc || ''; Object.assign(f, p); show(); Engine.dirty(true); });
+    if (window.Ins) Ins.bind(dlg, t, id, isAud);
     UI.onClose(() => { const now = JSON.stringify(f); if (now !== before) { const v = JSON.parse(now); t.fx = JSON.parse(before); Proj.change('mix', p => { (p.tracks.find(x => x.id === id) || p.groups.find(x => x.id === id)).fx = v; }); Engine.dirty(true); } render(); });
   }
   function busDlg() {
@@ -3475,7 +3586,7 @@ const Exp = (() => {
     }
     await feedTo(a);
     node = new AudioWorkletNode(oc, 'studio-eng', { numberOfInputs: 0, numberOfOutputs: Engine.MAXT, outputChannelCount: new Array(Engine.MAXT).fill(2), processorOptions: { n: Engine.MAXT, init: { chunks: pre, play: { pos: a, at: 0 } } } });
-    const G = Engine.makeGraph(oc, proj, node);
+    const G = Engine.makeGraph(oc, proj, node, { play: { pos: a, at: 0 }, offline: true });   // v122: Insert-Worklets starten mit derselben Zeitleiste
     if (window.Inst) Inst.offline(oc, G, proj, a, e);
     if (window.Sched) Sched.offlineAuto(oc, G, proj, a);
     const step = B / sr;
@@ -3606,8 +3717,520 @@ const Exp = (() => {
     window.__backDone = { n: groups.length, bars, id };
     return idea;
   }
-  return { render, run, wav24, zip, midi, toLooper, master, backToLooper };
+  return { render, run, wav24, zip, midi, toLooper, master, backToLooper, share, safe };
 })();
+
+</script>
+<script>
+// ---------- Studio v122: Insert-Effekte je Spur/Bus (Amp, Chorus, Tremolo) und Tonhöhenkorrektur ----------
+// Inserts liegen zwischen Spureingang und Sättigung. Sie kommen nur in den Graph, wenn sie eingeschaltet sind –
+// ausgeschaltet ist der Signalweg exakt der bisherige. Chorus und Tremolo sind Worklets mit derselben Zeitleiste
+// wie die Engine (LFO-Phase hängt an der Projektposition) → Abspielen und Offline-Export klingen gleich.
+// Die Tonhöhenkorrektur wird vorberechnet („Anwenden“: YIN-Erkennung wie app/pitch.js, Verschiebung mit
+// Signalsmith Stretch); an = die Engine liest die korrigierte Fassung, aus = das Original.
+const Ins = (() => {
+  const DEF = {
+    amp: Object.assign({ on: false }, AmpDSP.AMP_PRESETS.blues),
+    cho: { on: false, rate: 0.8, depth: 50, mix: 50 },
+    trem: { on: false, rate: 5, depth: 60, sync: false, div: 0.5 },
+    pc: { on: false, key: 0, scale: 'dur', str: 100, spd: 20 }
+  };
+  const KEYS = ['amp', 'cho', 'trem', 'pc'];
+  const WSRC = `
+class StudioFxT extends AudioWorkletProcessor {
+  constructor(o) { super(); const q = o.processorOptions || {}; this.play = false; this.p = 0; this.at = 0; this.cyc = q.cyc && q.cyc.on && q.cyc.b > q.cyc.a ? [q.cyc.a, q.cyc.b] : null; this.end = false; this.segs = q.segs || null; this.si = 0; this.tp = null;
+    if (q.play) { this.play = true; this.p = q.play.pos; this.at = q.play.at; this.fresh = true; }
+    this.port.onmessage = e => { const d = e.data; if (d.t === 'play') { this.play = true; this.p = d.pos; this.at = d.at; this.fresh = true; } else if (d.t === 'stop') this.play = false; else if (d.t === 'cycle') this.cyc = d.on && d.b > d.a ? [d.a, d.b] : null; else if (d.t === 'end') this.end = true; }; }
+  // Projektposition je Abtastwert (wie studio-eng: Start bei at, Cycle-Sprung)
+  pos(N) {
+    if (!this.tp || this.tp.length !== N) this.tp = new Float64Array(N);
+    const tp = this.tp, c = this.cyc;
+    if (this.play && this.fresh) { this.fresh = false; if (currentFrame > this.at) { let q = this.p + currentFrame - this.at; if (c && this.p < c[1] && q >= c[1]) q = c[0] + (q - c[0]) % (c[1] - c[0]); this.p = q; this.at = currentFrame; } }
+    for (let i = 0; i < N; i++) { if (this.play && currentFrame + i >= this.at) { tp[i] = this.p; const q = this.p + 1; this.p = c && this.p < c[1] && q >= c[1] ? c[0] : q; } else tp[i] = this.p; }
+    return tp;
+  }
+  beat(f) { const S = this.segs; if (!S || !S.length) return 0; let i = this.si; if (i >= S.length) i = S.length - 1; while (i + 1 < S.length && S[i + 1].f <= f) i++; while (i > 0 && S[i].f > f) i--; this.si = i; const s = S[i]; return s.beat + (f - s.f) / s.spb; }
+}
+class StudioCho extends StudioFxT {
+  static get parameterDescriptors() { return [{ name: 'rate', defaultValue: 0.8, automationRate: 'k-rate' }, { name: 'depth', defaultValue: 50, automationRate: 'k-rate' }, { name: 'mix', defaultValue: 50, automationRate: 'k-rate' }]; }
+  constructor(o) { super(o); this.L = 4096; this.bl = new Float32Array(this.L); this.br = new Float32Array(this.L); this.w = 0; }
+  process(ins, outs, p) {
+    if (this.end) return false; const o = outs[0]; if (!o || !o[0]) return true; const N = o[0].length, tp = this.pos(N);
+    const x = ins[0], xl = x && x[0], xr = x && (x[1] || x[0]), oL = o[0], oR = o[1] || o[0], M = this.L - 1, sr = sampleRate;
+    const base = 0.014 * sr, amt = Math.max(0, Math.min(1, p.depth[0] / 100)) * 0.0045 * sr, m = Math.max(0, Math.min(1, p.mix[0] / 100)), w2 = 2 * Math.PI * Math.max(0, p.rate[0]) / sr;
+    const bl = this.bl, br = this.br;
+    for (let i = 0; i < N; i++) {
+      const a = xl ? xl[i] : 0, b = xr ? xr[i] : 0, w = this.w; bl[w] = a; br[w] = b;
+      const ph = w2 * tp[i], dL = base + amt * Math.sin(ph), dR = base + amt * Math.cos(ph);
+      const rl = w - dL, il = Math.floor(rl), fl = rl - il, l0 = bl[il & M], l1 = bl[(il + 1) & M];
+      const rr = w - dR, ir = Math.floor(rr), fr = rr - ir, r0 = br[ir & M], r1 = br[(ir + 1) & M];
+      oL[i] = a * (1 - m) + (l0 + (l1 - l0) * fl) * m; if (oR !== oL) oR[i] = b * (1 - m) + (r0 + (r1 - r0) * fr) * m;
+      this.w = (w + 1) & M;
+    }
+    return true;
+  }
+}
+registerProcessor('studio-cho', StudioCho);
+class StudioTrem extends StudioFxT {
+  static get parameterDescriptors() { return [{ name: 'rate', defaultValue: 5, automationRate: 'k-rate' }, { name: 'depth', defaultValue: 60, automationRate: 'k-rate' }, { name: 'sync', defaultValue: 0, automationRate: 'k-rate' }, { name: 'div', defaultValue: 0.5, automationRate: 'k-rate' }]; }
+  process(ins, outs, p) {
+    if (this.end) return false; const o = outs[0]; if (!o || !o[0]) return true; const N = o[0].length, tp = this.pos(N);
+    const x = ins[0], xl = x && x[0], xr = x && (x[1] || x[0]), oL = o[0], oR = o[1] || o[0], sr = sampleRate;
+    const d = Math.max(0, Math.min(1, p.depth[0] / 100)), sync = p.sync[0] > 0.5 && this.segs, dv = Math.max(1 / 16, p.div[0]), rt = Math.max(0, p.rate[0]), TAU = 2 * Math.PI;
+    for (let i = 0; i < N; i++) {
+      const ph = sync ? this.beat(tp[i]) / dv : rt * tp[i] / sr, g = 1 - d * (0.5 - 0.5 * Math.cos(TAU * ph));
+      oL[i] = (xl ? xl[i] : 0) * g; if (oR !== oL) oR[i] = (xr ? xr[i] : 0) * g;
+    }
+    return true;
+  }
+}
+registerProcessor('studio-trem', StudioTrem);
+`;
+  const any = t => { const f = (t && t.fx) || {}; return !!((f.amp && f.amp.on) || (f.cho && f.cho.on) || (f.trem && f.trem.on)); };
+  const ampSet = a => { const s = Object.assign({}, DEF.amp, a || {}); if (!AmpDSP.AMP_TYPES[s.type]) s.type = 'crunch'; return s; };
+  const segsOf = P => TMap.segs(P).map(s => ({ f: s.f, beat: s.beat, spb: s.spb }));
+  // Kette bauen: Eingang → [Amp] → [Chorus] → [Tremolo] → Ausgang (wkOk: Worklet-Modul in diesem Kontext geladen)
+  function build(c, t, opts, wkOk) {
+    const f = t.fx || {}, n = { amp: null, cho: null, trem: null, wk: [], all: [] };
+    n.input = c.createGain(); let last = n.input; n.all.push(n.input);
+    if (f.amp && f.amp.on) { const a = AmpDSP.ampChain(c, ampSet(f.amp), wkOk); a.type = ampSet(f.amp).type; last.connect(a.in); last = a.out; n.amp = a; n.all.push(...a.list); }
+    const wopt = extra => ({ numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [2], channelCount: 2, channelCountMode: 'explicit', processorOptions: Object.assign({ play: opts.play || null, cyc: opts.cyc || null }, extra || {}) });
+    if (wkOk && f.cho && f.cho.on) { const w = new AudioWorkletNode(c, 'studio-cho', wopt()); last.connect(w); last = w; n.cho = w; n.wk.push(w); n.all.push(w); }
+    if (wkOk && f.trem && f.trem.on) { const w = new AudioWorkletNode(c, 'studio-trem', wopt({ segs: opts.proj ? segsOf(opts.proj) : null })); last.connect(w); last = w; n.trem = w; n.wk.push(w); n.all.push(w); }
+    n.output = last;
+    return n;
+  }
+  function apply(n, t, c, smooth) {
+    const f = t.fx || {}, now = c.currentTime, P2 = (prm, v) => smooth ? prm.setTargetAtTime(v, now, 0.015) : prm.setValueAtTime(v, now);
+    if (n.amp && f.amp) {   // wie ampApply im Looper
+      const s = ampSet(f.amp), q = AmpDSP.ampParams(s), a = n.amp;
+      if (a.type !== s.type) { a.shp.curve = AmpDSP.ampCurve(s.type); a.type = s.type; }
+      P2(a.pre.frequency, q.p.hp); P2(a.drive.gain, q.drive); P2(a.bass.gain, q.bass); P2(a.mid.gain, q.mid); P2(a.tre.gain, q.treble); P2(a.out.gain, q.out);
+      if (a.gate) { const g = a.gate.parameters.get('thr'); if (g) g.setValueAtTime(q.gate, now); }
+    }
+    const set = (w, k, v) => { const pr = w.parameters.get(k); if (pr) pr.setValueAtTime(v, now); };
+    if (n.cho && f.cho) { set(n.cho, 'rate', +f.cho.rate || 0); set(n.cho, 'depth', +f.cho.depth || 0); set(n.cho, 'mix', +f.cho.mix || 0); }
+    if (n.trem && f.trem) { set(n.trem, 'rate', +f.trem.rate || 0); set(n.trem, 'depth', +f.trem.depth || 0); set(n.trem, 'sync', f.trem.sync ? 1 : 0); set(n.trem, 'div', +f.trem.div || 0.5); }
+  }
+  function tear(n) { n.all.forEach(x => { try { x.disconnect(); } catch (e) {} }); n.wk.forEach(w => { try { w.port.postMessage({ t: 'end' }); } catch (e) {} }); }
+
+  // ---------- Tonhöhenkorrektur (vorberechnet) ----------
+  const NOTE = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'H'];
+  const SCALES = [['dur', 'Dur'], ['moll', 'Moll'], ['penta', 'Dur-Pentatonik'], ['pentam', 'Moll-Pentatonik'], ['chrom', 'Chromatisch (alle Halbtöne)']];
+  const pcSig = pc => JSON.stringify([pc.key, pc.scale, pc.str, pc.spd]);
+  const keyFromProject = () => { const m = String((Proj.P && Proj.P.key) || '').match(/^([A-H])([#♯b♭]?)\s*(.*)$/i); if (!m) return null; let r = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 10, H: 11 }[m[1].toUpperCase()]; if (m[2] === '#' || m[2] === '♯') r++; if (m[2] === 'b' || m[2] === '♭') r--; return { key: (r + 12) % 12, scale: /moll/i.test(m[3]) ? 'moll' : 'dur' }; };
+  let sw = null, sid = 0; const swWait = {};
+  function shift(l, r, tr, tb, sr) {   // Signalsmith mit Transpositionskurve (gleiche Länge)
+    return new Promise((res, rej) => {
+      if (!sw) { sw = new Worker('../stretch/worker.js'); sw.onmessage = e => { const p = swWait[e.data.id]; if (p) { delete swWait[e.data.id]; p(e.data); } }; }
+      const id = ++sid, L = l.slice(), R = r && r !== l ? r.slice() : null;
+      swWait[id] = d => d.err ? rej(new Error(d.err)) : res({ l: d.l, r: d.r || d.l });
+      sw.postMessage({ id, l: L, r: R, n: L.length, sr, tr, tb }, R ? [L.buffer, R.buffer] : [L.buffer]);
+    });
+  }
+  const pcRegions = tid => Proj.P.regions.filter(r => r.track === tid && r.kind === 'audio' && !(r.takes && r.takes.length));
+  const pcFresh = (r, pc) => !!(r.pc && r.pc.src === r.audio && r.pc.o0 <= r.offset && r.pc.o0 + r.pc.n >= r.offset + r.len && r.pc.sig === pcSig(pc));
+  async function pcApply(tid, say) {
+    const P = Proj.P, t = P.tracks[Proj.tIndex(tid)]; if (!t) return 0; const pc = Object.assign({}, DEF.pc, t.fx.pc || {}), sr = P.sr, rs = pcRegions(tid).filter(r => !pcFresh(r, pc));
+    const out = [];
+    for (let i = 0; i < rs.length; i++) {
+      const r = rs[i]; say && say('Tonhöhenkorrektur: Region ' + (i + 1) + '/' + rs.length + ' – erkenne Töne …');
+      const d = await SDB.read(r.audio, r.offset, r.len), mono = new Float32Array(r.len); for (let k = 0; k < r.len; k++) mono[k] = (d.l[k] + d.r[k]) * 0.5;
+      const HOP = 512, tr = await Ana.run('pc', { x: mono, sr, o: { key: pc.key, scale: pc.scale, str: pc.str, spd: pc.spd, hop: HOP } }, [mono.buffer]);
+      say && say('Tonhöhenkorrektur: Region ' + (i + 1) + '/' + rs.length + ' – verschiebe …');
+      const y = await shift(d.l, d.r, tr.tr, HOP, sr);
+      const m = await SDB.putAudio((r.name || 'Audio') + ' (Tonhöhe)', sr, y.l, y.r !== y.l ? y.r : null);
+      out.push({ id: r.id, pc: { audio: m.id, src: r.audio, o0: r.offset, n: r.len, sig: pcSig(pc), moved: tr.moved } });
+    }
+    if (out.length) { Proj.change('regions', p => out.forEach(o => { const q = p.regions.find(x => x.id === o.id); if (q) q.pc = o.pc; })); Engine.dirty(); }
+    return out.length;
+  }
+  function pcState(tid, pc) { const rs = pcRegions(tid); const ok = rs.filter(r => pcFresh(r, pc)).length; return { n: rs.length, ok }; }
+
+  // ---------- Bedienung im Effekte-Fenster ----------
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  function ensure(f) { KEYS.forEach(k => { f[k] = Object.assign(JSON.parse(JSON.stringify(DEF[k])), f[k] || {}); }); }
+  function prune(f) { KEYS.forEach(k => { const x = f[k]; if (!x || x.on) return; if (k === 'pc' ? x.str === DEF.pc.str && x.spd === DEF.pc.spd : JSON.stringify(Object.assign({}, DEF[k], x)) === JSON.stringify(DEF[k])) delete f[k]; }); }
+  const sl = (k, n, min, max, step, v, u) => '<label>' + n + ' <b data-io="' + k + '">' + v + (u || '') + '</b></label><input type="range" data-ik="' + k + '" min="' + min + '" max="' + max + '" step="' + step + '" value="' + v + '" data-u="' + (u || '') + '">';
+  const on = (k, n, v) => '<label style="color:var(--ink)"><b>' + n + '</b><input type="checkbox" data-ik="' + k + '.on"' + (v ? ' checked' : '') + '></label>';
+  function cards(t, isAudioTrack) {
+    const f = t.fx, a = f.amp, c = f.cho, tr = f.trem, pc = f.pc;
+    let h = '<div class="card ins-amp">' + on('amp', 'Amp (wie im Looper)', a.on) + '<label>Vorlage <select data-ik="amp.preset"><option value="">–</option>' + Object.keys(AmpDSP.AMP_PRESETS).map(k => '<option value="' + k + '">' + k[0].toUpperCase() + k.slice(1) + '</option>').join('') + '</select></label>' +
+      '<label>Typ <select data-ik="amp.type">' + Object.keys(AmpDSP.AMP_TYPES).map(k => '<option value="' + k + '"' + (a.type === k ? ' selected' : '') + '>' + ({ clean: 'Clean', crunch: 'Crunch', lead: 'Lead' }[k] || k) + '</option>').join('') + '</select></label>' +
+      sl('amp.gate', 'Gate', -80, -20, 1, a.gate, ' dB') + sl('amp.drive', 'Drive', 0, 10, 0.1, a.drive) + sl('amp.bass', 'Bass', 0, 10, 0.1, a.bass) + sl('amp.mid', 'Mitte', 0, 10, 0.1, a.mid) + sl('amp.treble', 'Höhen', 0, 10, 0.1, a.treble) + sl('amp.level', 'Pegel', -18, 6, 0.5, a.level, ' dB') + '</div>' +
+      '<div class="card ins-cho">' + on('cho', 'Chorus', c.on) + sl('cho.rate', 'Rate', 0.05, 5, 0.05, c.rate, ' Hz') + sl('cho.depth', 'Tiefe', 0, 100, 1, c.depth, ' %') + sl('cho.mix', 'Mix', 0, 100, 1, c.mix, ' %') + '</div>' +
+      '<div class="card ins-trem">' + on('trem', 'Tremolo', tr.on) + sl('trem.rate', 'Rate', 0.5, 16, 0.1, tr.rate, ' Hz') + sl('trem.depth', 'Tiefe', 0, 100, 1, tr.depth, ' %') +
+      '<label>Im Takt <input type="checkbox" data-ik="trem.sync"' + (tr.sync ? ' checked' : '') + '></label><label>Notenwert <select data-ik="trem.div">' + [[2, '1/2'], [1, '1/4'], [0.5, '1/8'], [1 / 3, '1/8 T'], [0.25, '1/16']].map(([v, n]) => '<option value="' + v + '"' + (Math.abs(v - tr.div) < 1e-6 ? ' selected' : '') + '>' + n + '</option>').join('') + '</select></label><p class="note">„Im Takt“ folgt der Tempokarte (auch Tempowechsel).</p></div>';
+    if (isAudioTrack) h += '<div class="card ins-pc">' + on('pc', 'Tonhöhenkorrektur', pc.on) + '<label>Tonart <select data-ik="pc.key">' + NOTE.map((n, i) => '<option value="' + i + '"' + (pc.key === i ? ' selected' : '') + '>' + n + '</option>').join('') + '</select></label>' +
+      '<label>Skala <select data-ik="pc.scale">' + SCALES.map(([k, n]) => '<option value="' + k + '"' + (pc.scale === k ? ' selected' : '') + '>' + n + '</option>').join('') + '</select></label>' +
+      sl('pc.str', 'Stärke', 0, 100, 1, pc.str, ' %') + sl('pc.spd', 'Geschwindigkeit', 0, 200, 1, pc.spd, ' ms') + '<div class="btns" style="margin-top:6px"><button class="btn p" data-ia="pcapply">Anwenden</button></div><p class="note" data-io="pcst"></p></div>';
+    return h;
+  }
+  // Fenster verdrahten: f = t.fx (lebendes Objekt), Änderungen sofort hörbar; Ein/Aus baut den Graph neu
+  function bind(dlg, t, id, isTrack) {
+    const f = t.fx, i = Proj.tIndex(id), apply = () => { if (i >= 0) Engine.applyTrack(i, true); else Engine.applyAll(); };
+    const pcSt = () => { const el = dlg.querySelector('[data-io="pcst"]'); if (!el || !isTrack) return; const s = pcState(id, f.pc); el.textContent = !s.n ? 'Keine Audio-Region auf dieser Spur.' : s.ok === s.n ? s.n + ' Region' + (s.n === 1 ? '' : 'en') + ' korrigiert' + (f.pc.on ? ' – zu hören.' : ' (aus: Original zu hören).') : (s.n - s.ok) + ' von ' + s.n + ' Regionen noch nicht korrigiert – „Anwenden“ tippen (passiert sonst beim Schließen).'; };
+    const show = () => dlg.querySelectorAll('[data-ik]').forEach(el => { const [a, b] = el.dataset.ik.split('.'); if (b === 'preset') return; const v = f[a][b]; if (el.type === 'checkbox') el.checked = !!v; else { el.value = v; const o = dlg.querySelector('[data-io="' + el.dataset.ik + '"]'); if (o) o.textContent = v + (el.dataset.u || ''); } });
+    dlg.addEventListener('input', e => {
+      const el = e.target, k = el.dataset.ik; if (!k) return; const [a, b] = k.split('.');
+      if (b === 'preset') { const p = AmpDSP.AMP_PRESETS[el.value]; if (p) Object.assign(f.amp, p); f.amp.on = true; el.value = ''; show(); Engine.dirty(true); return; }
+      const wasOn = !!f[a].on;
+      let v = el.type === 'checkbox' ? el.checked : el.tagName === 'SELECT' && (b === 'type' || b === 'scale') ? el.value : +el.value;
+      f[a][b] = v; if (b !== 'on' && a !== 'pc') f[a].on = true;
+      show(); pcSt();
+      if (a === 'pc') { if (b === 'on') Engine.dirty(); return; }
+      if (wasOn !== !!f[a].on) Engine.dirty(true); else apply();
+    });
+    dlg.addEventListener('click', async e => {
+      const b = e.target.closest('[data-ia="pcapply"]'); if (b) { b.disabled = true; try { const n = await pcApply(id, UI.say); if (!f.pc.on) { f.pc.on = true; show(); } Engine.dirty(); UI.say(n ? 'Tonhöhenkorrektur angewendet (' + n + ' Region' + (n === 1 ? '' : 'en') + ').' : 'Schon aktuell.'); } catch (err) { console.error(err); UI.say('Tonhöhenkorrektur: ' + err.message); } b.disabled = false; pcSt(); return; }
+      if (e.target.closest('[data-pre="off"]')) { KEYS.forEach(k => { if (f[k]) f[k].on = false; }); show(); }
+    });
+    pcSt();
+    UI.onClose(() => {
+      if (isTrack && f.pc && f.pc.on && pcState(id, f.pc).ok < pcState(id, f.pc).n) pcApply(id, UI.say).then(n => { if (n) UI.say('Tonhöhenkorrektur angewendet (' + n + ' Region' + (n === 1 ? '' : 'en') + ').'); }).catch(err => UI.say('Tonhöhenkorrektur: ' + err.message));
+      prune(f);
+    });
+  }
+  return { DEF, WSRC, any, build, apply, tear, cards, bind, ensure, prune, pcApply, pcState, pcSig, keyFromProject, shift, SCALES };
+})();
+window.Ins = Ins;
+
+</script>
+<script>
+// ---------- Studio v122: Analyse im Hintergrund (Onsets, Tonhöhenkurve, Akkorde), Audio-Quantisieren, Akkordspur ----------
+// Rechenteile laufen in einem Worker (Quelltext: unten stehende Funktionen + YIN aus app/pitch.js + FFT/Akkorderkennung
+// des Loopers aus app/chords.js). Ergebnisse verändern das Projekt nur über Proj.change (rückgängig machbar).
+
+// Onsets: Spektralfluss (log. Betrag, 1024er-FFT, Sprung ~5 ms) mit gleitender Schwelle, dann abtastgenau an der Hüllkurve
+function anaOnsets(x, sr, o) {
+  o = o || {}; const n = x.length, M = sr > 60000 ? 2048 : 1024, H = M / 4, nF = Math.floor(n / H) + 1;
+  const win = new Float64Array(M); for (let i = 0; i < M; i++) win[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / M);
+  const K = M / 2, prev = new Float64Array(K), flux = new Float32Array(nF), fr = new Float64Array(M);
+  for (let f = 0; f < nF; f++) {
+    const st = f * H - M / 2; for (let i = 0; i < M; i++) { const j = st + i; fr[i] = j >= 0 && j < n ? x[j] * win[i] : 0; }
+    const { re, im } = fft(fr); let s = 0;
+    for (let k = 1; k < K; k++) { const v = Math.log(1 + 20 * Math.sqrt(re[k] * re[k] + im[k] * im[k]) / M * 2); const d = v - prev[k]; if (d > 0) s += d; prev[k] = v; }
+    flux[f] = s;
+  }
+  let mx = 0, mean = 0; for (let f = 0; f < nF; f++) { mx = Math.max(mx, flux[f]); mean += flux[f]; } mean /= Math.max(1, nF);
+  const W = 10, gap = Math.max(2, Math.round((o.gap || 0.06) * sr / H)), tmp = [], peaks = [];
+  for (let f = 1; f < nF - 1; f++) {
+    tmp.length = 0; for (let d = -W; d <= W; d++) { const q = f + d; if (q >= 0 && q < nF) tmp.push(flux[q]); } tmp.sort((a, b) => a - b);
+    const thr = tmp[tmp.length >> 1] + (o.delta || 0.35) * mean + 0.04 * mx;
+    if (flux[f] > thr && flux[f] >= flux[f - 1] && flux[f] > flux[f + 1]) { if (peaks.length && f - peaks[peaks.length - 1] < gap) { if (flux[f] > flux[peaks[peaks.length - 1]]) peaks[peaks.length - 1] = f; } else peaks.push(f); }
+  }
+  // Feinlage: Hüllkurve (Spitze je 16 Bilder) um den Rahmen; Anfang = wo sie zuletzt unter 15 % über dem Grund lag
+  const B = 16, out = [];
+  peaks.forEach(f => {
+    const c = f * H, a = Math.max(0, c - M), e = Math.min(n, c + M / 2), nb = Math.ceil((e - a) / B); if (nb < 2) return;
+    const env = new Float32Array(nb); for (let b = 0; b < nb; b++) { let m = 0; for (let i = a + b * B, z = Math.min(e, i + B); i < z; i++) { const v = x[i] < 0 ? -x[i] : x[i]; if (v > m) m = v; } env[b] = m; }
+    let pk = 0; for (let b = 1; b < nb; b++) if (env[b] > env[pk]) pk = b;
+    let lo = env[pk]; for (let b = 0; b <= pk; b++) lo = Math.min(lo, env[b]);
+    const th = lo + 0.15 * (env[pk] - lo); let j = pk; while (j > 0 && env[j - 1] > th) j--;
+    const at = a + j * B; if (!out.length || at - out[out.length - 1] > (o.gap || 0.06) * sr * 0.5) out.push(at);
+  });
+  return out;
+}
+// Tonhöhenkurve → Transpositionsfaktoren je hop Bilder (Ziel = nächster Ton der Skala, Stärke, Glättung = Geschwindigkeit)
+function anaPc(x, sr, o) {
+  const hop = o.hop || 512, W = sr > 60000 ? 4096 : 2048, n = x.length, nB = Math.ceil(n / hop), buf = new Float32Array(W);
+  const SC = { dur: [0, 2, 4, 5, 7, 9, 11], moll: [0, 2, 3, 5, 7, 8, 10], penta: [0, 2, 4, 7, 9], pentam: [0, 3, 5, 7, 10], chrom: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] };
+  const ok = new Array(12).fill(false); (SC[o.scale] || SC.dur).forEach(iv => { ok[(iv + (o.key || 0)) % 12] = true; });
+  const mids = new Float32Array(nB).fill(NaN);
+  for (let b = 0; b < nB; b++) {
+    const c = b * hop + (hop >> 1), s = c - W / 2; for (let i = 0; i < W; i++) { const j = s + i; buf[i] = j >= 0 && j < n ? x[j] : 0; }
+    const r = Pitch.detect(buf, sr, { gate: o.gate || 0.01, fmin: 70, fmax: 1400 }); if (r && r.conf > 0.55) mids[b] = 69 + 12 * Math.log2(r.f / 440);
+  }
+  // Ausreißer (Oktavfehler) glätten: Median über 5 stimmhafte Rahmen
+  const med = new Float32Array(nB).fill(NaN);
+  for (let b = 0; b < nB; b++) { if (isNaN(mids[b])) continue; const w = []; for (let d = -2; d <= 2; d++) { const v = mids[b + d]; if (b + d >= 0 && b + d < nB && !isNaN(v)) w.push(v); } w.sort((p, q) => p - q); med[b] = w[w.length >> 1]; }
+  const str = Math.max(0, Math.min(1, (o.str != null ? o.str : 100) / 100)), tau = Math.max(0, (o.spd || 0) / 1000), a = tau > 0 ? Math.exp(-(hop / sr) / tau) : 0;
+  const tr = new Float32Array(nB); let cur = 0, hold = 0, last = 0, moved = 0, voiced = 0;
+  for (let b = 0; b < nB; b++) {
+    let want = 0; const m = med[b];
+    if (!isNaN(m)) { let best = null; for (let d = 0; d <= 6 && best == null; d++) for (const q of [Math.round(m) - d, Math.round(m) + d]) if (ok[((q % 12) + 12) % 12] && (best == null || Math.abs(q - m) < Math.abs(best - m))) best = q; want = (best - m) * str; last = want; hold = 4; voiced++; if (Math.abs(best - m) > 0.15) moved++; }
+    else if (hold > 0) { hold--; want = last; }
+    cur = a * cur + (1 - a) * want; tr[b] = Math.pow(2, cur / 12);
+  }
+  return { tr, voiced, moved };
+}
+// Akkorde: auf ~11 kHz herunter (Tiefpass + Ausdünnen), dann die Akkorderkennung des Loopers je Schlag
+function anaChords(x, sr, beats, o) {
+  const q = Math.max(1, Math.round(sr / 11025)), T = 31, h = new Float32Array(T), fc = 0.45 / q; let hs = 0;
+  for (let i = 0; i < T; i++) { const k = i - (T - 1) / 2, w = 0.54 - 0.46 * Math.cos(2 * Math.PI * i / (T - 1)); h[i] = (k === 0 ? 2 * fc : Math.sin(2 * Math.PI * fc * k) / (Math.PI * k)) * w; hs += h[i]; }
+  const m = Math.floor(x.length / q), y = new Float32Array(m);
+  for (let j = 0; j < m; j++) { const c = j * q; let s = 0; for (let i = 0; i < T; i++) { const p = c + i - (T - 1) / 2; if (p >= 0 && p < x.length) s += x[p] * h[i]; } y[j] = s / hs; }
+  return chordAnalyse(y, sr / q, beats, Object.assign({ loop: false }, o || {}));
+}
+
+const Ana = (() => {
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  let wk = null, wid = 0; const wait = {};
+  function worker() {
+    if (wk) return wk; const S = window.__SRC || {};
+    const src = [S.pitch, S.fft, S.chords, anaOnsets.toString(), anaPc.toString(), anaChords.toString(),
+      'onmessage=e=>{const d=e.data;try{let r;if(d.op==="onsets")r=anaOnsets(d.x,d.sr,d.o);else if(d.op==="pc"){r=anaPc(d.x,d.sr,d.o);postMessage({id:d.id,r},[r.tr.buffer]);return;}else if(d.op==="chords")r=anaChords(d.x,d.sr,d.beats,d.o);postMessage({id:d.id,r});}catch(err){postMessage({id:d.id,err:String(err&&err.stack||err)})}}'].join('\n');
+    wk = new Worker(URL.createObjectURL(new Blob([src], { type: 'application/javascript' })));
+    wk.onmessage = e => { const p = wait[e.data.id]; if (p) { delete wait[e.data.id]; p(e.data); } };
+    return wk;
+  }
+  function run(op, data, transfer) { return new Promise((res, rej) => { const id = ++wid; wait[id] = d => d.err ? rej(new Error(d.err)) : res(d.r); worker().postMessage(Object.assign({ id, op }, data), transfer || []); }); }
+  const mono = d => { const n = d.l.length, m = new Float32Array(n); for (let i = 0; i < n; i++) m[i] = (d.l[i] + d.r[i]) * 0.5; return m; };
+  // ---------- Onsets einer Region (Bilder der Zeitleiste) ----------
+  async function onsets(rid) { const r = Proj.reg(rid); if (!r || r.kind !== 'audio') return []; const d = await SDB.read(r.audio, r.offset, r.len), x = mono(d); const os = await run('onsets', { x, sr: Proj.P.sr }, [x.buffer]); return os.map(o => r.start + o); }
+  const GRIDS = [[1, '1/4'], [0.5, '1/8'], [0.25, '1/16']];
+  // ---------- Audio quantisieren ----------
+  // Quelle ist immer das Original (r.qz) → mehrfach mit anderer Stärke möglich; Ergebnis = neues Audio, Original bleibt in der DB
+  async function quantize(rid, o, say) {
+    const P = Proj.P, r = Proj.reg(rid); if (!r || r.kind !== 'audio' || (r.takes && r.takes.length)) throw new Error('Nur für normale Audio-Regionen (keine Take-Ordner).');
+    const sr = P.sr, src = r.qz ? { audio: r.qz.audio, offset: r.qz.offset + r.offset } : { audio: r.audio, offset: r.offset }, len = r.len;
+    const g = +o.grid || 0.5, st = Math.max(0, Math.min(100, o.str != null ? +o.str : 100)) / 100, mode = o.mode === 'stretch' ? 'stretch' : 'slice', XF = Math.round(sr * 0.005);
+    say && say('Quantisieren: suche Anschläge …');
+    const d = await SDB.read(src.audio, src.offset, len), x = mono(d), os = await run('onsets', { x, sr }, [x.buffer]);
+    // Anker: Quelle s → Ziel t (relativ zum Regionsanfang); Anfang und Ende bleiben, Reihenfolge bleibt
+    const A = [{ s: 0, t: 0 }], minD = Math.round(sr * 0.02); let moved = 0;
+    for (const on of os) {
+      if (on < minD || on > len - minD) continue; const F = r.start + on, tb = Math.round(TMap.f2beat(P, F) / g) * g, T = TMap.beat2f(P, tb), tt = Math.round(on + st * (T - F)), l = A[A.length - 1];
+      if (on - l.s < minD || tt - l.t < minD || tt > len - minD) continue;
+      A.push({ s: on, t: tt }); if (Math.abs(tt - on) > 1) moved++;
+    }
+    A.push({ s: len, t: len });
+    const L = new Float32Array(len), R = d.r !== d.l ? new Float32Array(len) : null;
+    say && say('Quantisieren: ' + (A.length - 2) + ' Anschläge, ' + moved + ' verschoben …');
+    const sin2 = v => { const s = Math.sin(Math.PI / 2 * v); return s * s; };
+    for (let i = 0; i + 1 < A.length; i++) {
+      const s0 = A[i].s, t0 = A[i].t, s1 = A[i + 1].s, t1 = A[i + 1].t, last = i + 2 === A.length;
+      if (mode === 'slice') {
+        // Scheibe i: ab t0 die Quelle ab s0; endet, wo die Quelle den nächsten Anschlag erreicht oder der nächste beginnt (Überblendung 5 ms)
+        const e = Math.min(t1, t0 + (s1 - s0)), u0 = i > 0 ? t0 - XF : t0;
+        for (let u = Math.max(0, u0); u < e; u++) {
+          let w = 1; if (i > 0 && u < t0) w = sin2((u - u0) / XF);
+          if (!(last && e === len) && u >= e - XF) w *= 1 - sin2((u - (e - XF)) / XF);
+          const j = s0 + (u - t0); if (j < 0 || j >= len) continue;
+          L[u] += d.l[j] * w; if (R) R[u] += d.r[j] * w;
+        }
+      } else {
+        // Zeitdehnung zwischen den Anschlägen (Signalsmith), Übergänge mit 5 ms Überblendung
+        const ext = last ? 0 : Math.min(XF, len - s1), want = t1 - t0 + ext, seg = { l: d.l.slice(s0, s1 + ext), r: d.r.slice(s0, s1 + ext) };
+        let y = seg; if (Math.abs((s1 - s0) / (t1 - t0) - 1) > 0.002) { const z = await Imp.stretch(seg, want, sr); if (z) y = z; }
+        const n = Math.min(want, y.l.length);
+        for (let k = 0; k < n; k++) { const u = t0 + k; if (u >= len) break; let w = 1; if (i > 0 && k < XF) w = sin2(k / XF); if (ext && k >= n - ext) w *= 1 - sin2((k - (n - ext)) / ext); L[u] += y.l[k] * w; if (R) R[u] += y.r[k] * w; }
+      }
+    }
+    const m = await SDB.putAudio((r.name || 'Audio') + ' (quantisiert)', sr, L, R);
+    Proj.editRegion(rid, q => { q.qz = { audio: src.audio, offset: src.offset, grid: g, str: Math.round(st * 100), mode, n: A.length - 2, moved }; q.audio = m.id; q.offset = 0; delete q.pc; });
+    return { onsets: A.length - 2, moved };
+  }
+  function restore(rid) { const r = Proj.reg(rid); if (!r || !r.qz) return false; Proj.editRegion(rid, q => { q.audio = q.qz.audio; q.offset = q.qz.offset + q.offset; delete q.qz; delete q.pc; }); return true; }
+  function quantDlg(rid) {
+    const r = Proj.reg(rid); if (!r) return; const q = r.qz || {};
+    let g0 = 0.5; try { g0 = +localStorage.getItem('3nps-studio-qgrid') || 0.5; } catch (e) {}
+    UI.dialog('<h2>Audio quantisieren · ' + esc(r.name || '') + '</h2><div class="card"><label class="row">Raster <select id="qGrid">' + GRIDS.map(([v, n]) => '<option value="' + v + '"' + (Math.abs(v - (q.grid || g0)) < 1e-6 ? ' selected' : '') + '>' + n + '</option>').join('') + '</select></label>' +
+      '<label class="row">Stärke <input type="range" id="qStr" min="0" max="100" step="5" value="' + (q.str != null ? q.str : 100) + '" style="width:160px"><b id="qStrO">' + (q.str != null ? q.str : 100) + ' %</b></label>' +
+      '<label class="row">Verfahren <select id="qMode"><option value="slice"' + (q.mode !== 'stretch' ? ' selected' : '') + '>Schneiden + Verschieben (Überblendung)</option><option value="stretch"' + (q.mode === 'stretch' ? ' selected' : '') + '>Zeitdehnung zwischen den Anschlägen</option></select></label>' +
+      '<p class="note">Erkennt die Anschläge (Spektralfluss) und zieht sie auf das Raster der Tempokarte. Das Original bleibt gespeichert – „Original wiederherstellen“ oder ↶ holt es zurück.' + (r.qz ? ' Zuletzt: ' + r.qz.n + ' Anschläge, ' + r.qz.moved + ' verschoben.' : '') + '</p></div>' +
+      '<div class="btns">' + (r.qz ? '<button class="btn" id="qOrig">Original wiederherstellen</button>' : '') + '<span style="flex:1"></span><button class="btn" data-close>Abbrechen</button><button class="btn p" id="qGo">Quantisieren</button></div>');
+    $('qStr').oninput = e => { $('qStrO').textContent = e.target.value + ' %'; };
+    if ($('qOrig')) $('qOrig').onclick = () => { UI.close(); restore(rid); UI.inspect(); Arr.kick(); UI.say('Original wiederhergestellt.'); };
+    $('qGo').onclick = async () => {
+      const o = { grid: +$('qGrid').value, str: +$('qStr').value, mode: $('qMode').value }; try { localStorage.setItem('3nps-studio-qgrid', o.grid); } catch (e) {} UI.close();
+      try { const res = await quantize(rid, o, UI.say); UI.inspect(); Arr.kick(); UI.say('Quantisiert: ' + res.onsets + ' Anschläge erkannt, ' + res.moved + ' ans Raster gezogen (↶ = rückgängig).'); } catch (e) { console.error(e); UI.say('Quantisieren: ' + e.message); }
+    };
+  }
+  // ---------- Akkorde erkennen → Akkordspur (P.chords = [{b, beats, name, r, t}], b in Schlägen ab Projektanfang) ----------
+  const NOTE = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+  const nameOf = (r, t) => window.LiedCore && LiedCore.cname ? LiedCore.cname({ r, t }) : NOTE[r] + t;
+  function rt(name) { const c = Roll.parseChord(name); if (!c) return null; const m = String(name).trim().match(/^([A-Ha-h])(#|b|♯|♭)?(.*)$/); let t = (m[3] || '').trim(); if (t === '°') t = 'dim'; return { r: c.r, t }; }
+  async function detect(what, rid, say) {
+    const P = Proj.P, sr = P.sr; let a, b, x;
+    if (what === 'region') {
+      const r = Proj.reg(rid); if (!r || r.kind !== 'audio') throw new Error('Erst eine Audio-Region antippen.'); a = r.start; b = r.start + r.len;
+      if (r.takes && r.takes.length) { say && say('Akkorde: rechne die Spur …'); const y = await Exp.render({ a, b, tail: 0, only: r.track, noMaster: true }); x = mono(y); }
+      else x = mono(await SDB.read(r.audio, r.offset, r.len));
+    } else {
+      const cyc = P.cycle && P.cycle.on && P.cycle.b > P.cycle.a; a = cyc ? P.cycle.a : 0; b = cyc ? P.cycle.b : Proj.projEnd(); if (!(b > a)) throw new Error('Das Projekt ist leer.');
+      say && say('Akkorde: rechne den Mix …'); const y = await Exp.render({ a, b, tail: 0, noMaster: true }, f => say && say('Akkorde: rechne den Mix … ' + Math.round(f * 100) + ' %')); x = mono(y);
+    }
+    const beats = [], ks = [], bar = []; TMap.beats(P, a, b, (f, isBar, k) => { beats.push((f - a) / sr); ks.push(k); bar.push(isBar); });
+    if (beats.length < 2) throw new Error('Zu kurz – mindestens zwei Schläge.');
+    say && say('Akkorde: Chroma-Analyse über ' + beats.length + ' Schläge …');
+    const sg = TMap.at(P, a), res = await run('chords', { x, sr, beats, o: { beatsPerBar: sg.sig, downIndex: Math.max(0, bar.indexOf(true)) } }, [x.buffer]);
+    if (!res) throw new Error('Keine Akkorde erkannt.');
+    // je halben Takt (bei ungerader Taktart je Takt) die häufigste Erkennung, gleiche Nachbarn zusammenfassen
+    const slots = []; let cur = null;
+    ks.forEach((k, i) => { const s = TMap.at(P, TMap.beat2f(P, k) + 1), inBar = ((k - s.beat) % s.sig + s.sig) % s.sig, half = s.sig % 2 === 0 && s.sig >= 4 ? s.sig / 2 : s.sig;
+      if (!cur || inBar % half === 0) { cur = { b: k, beats: 0, votes: {} }; slots.push(cur); } cur.beats++; const nm = res.perBeat[i] || '–'; cur.votes[nm] = (cur.votes[nm] || 0) + 1; });
+    const out = [];
+    slots.forEach(s => { let best = '–', bv = -1; Object.keys(s.votes).forEach(nm => { if (s.votes[nm] > bv) { bv = s.votes[nm]; best = nm; } }); if (best === '–') return;
+      const m = best.match(/^([A-G]#?)(.*)$/), r = NOTE.indexOf(m[1]), t = m[2], l = out[out.length - 1];
+      if (l && l.r === r && l.t === t && Math.abs(l.b + l.beats - s.b) < 1e-6) l.beats += s.beats; else out.push({ b: s.b, beats: s.beats, r, t, name: nameOf(r, t) }); });
+    const b0 = TMap.f2beat(P, a) - 1e-6, b1 = TMap.f2beat(P, b) + 1e-6;
+    Proj.change('chords', p => { p.chords = (p.chords || []).filter(c => c.b + c.beats <= b0 || c.b >= b1).concat(out).sort((u, v) => u.b - v.b); p.chordLane = true; });
+    Arr.heads(); Arr.kick(); window.__lastChords = out.map(c => c.name);
+    return out;
+  }
+  // Akkordspur bearbeiten (Antippen im Arrangement)
+  async function editAt(f) {
+    const P = Proj.P, bt = TMap.f2beat(P, f), cs = P.chords || [], i = cs.findIndex(c => bt >= c.b && bt < c.b + c.beats);
+    if (i >= 0) {
+      const c = cs[i], n = await UI.ask('Akkord (leer = löschen), z. B. Am, F, G7, Csus4, E5', c.name); if (n == null) return;
+      if (!n.trim() || n.trim() === '-') { Proj.change('chords', p => { p.chords.splice(i, 1); }); UI.say('Akkord gelöscht.'); }
+      else { const q = rt(n); if (!q) return UI.say('Nicht erkannt: ' + n); Proj.change('chords', p => { Object.assign(p.chords[i], q, { name: n.trim() }); }); }
+    } else {
+      // neuer Akkord ab dem halben Takt, bis zum nächsten Akkord (höchstens ein Takt)
+      const s = TMap.at(P, f), b0 = TMap.f2beat(P, TMap.barFloor(P, f)), half = s.sig % 2 === 0 && s.sig >= 4 ? s.sig / 2 : s.sig, st = b0 + Math.floor((bt - b0) / half) * half;
+      const nx = cs.filter(c => c.b > st).sort((u, v) => u.b - v.b)[0], len = Math.max(1, Math.min(s.sig, nx ? nx.b - st : s.sig));
+      const n = await UI.ask('Neuer Akkord ab Takt ' + (TMap.pos(P, TMap.beat2f(P, st)).bar + 1), ''); if (!n) return; const q = rt(n); if (!q) return UI.say('Nicht erkannt: ' + n);
+      Proj.change('chords', p => { p.chords = (p.chords || []).concat([Object.assign({ b: st, beats: len, name: n.trim() }, q)]).sort((u, v) => u.b - v.b); p.chordLane = true; });
+    }
+    Arr.kick();
+  }
+  function chordDlg() {
+    const P = Proj.P, n = (P.chords || []).length;
+    UI.dialog('<h2>Akkordspur</h2><div class="card"><p>' + (n ? n + ' Akkorde: ' + esc(P.chords.slice(0, 16).map(c => c.name).join(' · ')) + (n > 16 ? ' …' : '') : 'Noch leer.') + '</p>' +
+      '<div class="btns"><button class="btn" data-c="mix">Akkorde aus dem Mix erkennen</button><button class="btn" data-c="lane">' + (P.chordLane ? 'Akkordspur ausblenden' : 'Akkordspur zeigen') + '</button>' + (n ? '<button class="btn danger" data-c="clr">Akkordspur leeren</button>' : '') + '</div>' +
+      '<p class="note">Erkennen: Chroma-Analyse je Schlag (Tempokarte), Vergleich mit Dur/Moll/7/sus/5 und Glättung; Ergebnis je halben Takt. In der Spur antippen = Akkord ändern oder neu eintragen. Im Cycle wird nur der Cycle-Bereich erkannt.</p></div>' +
+      '<div class="card"><b>Begleitung aus Akkordspur erzeugen</b><label class="row">Bass <select id="caBass"><option value="whole">Grundton lang</option><option value="eighth">Achtel</option><option value="rq" selected>Grundton–Quinte</option><option value="walk">Laufend</option></select></label>' +
+      '<div class="btns"><button class="btn" data-g="bass">Bass erzeugen</button><button class="btn" data-g="pad">Flächen erzeugen</button><button class="btn" data-g="arp">Arpeggio erzeugen</button></div></div>' +
+      '<div class="btns"><button class="btn p" data-close>Fertig</button></div>');
+    $('dlg').onclick = async e => {
+      const b = e.target.closest('button'); if (!b) return;
+      if (b.dataset.c === 'mix') { UI.close(); try { const out = await detect('mix', null, UI.say); UI.say(out.length ? 'Akkordspur: ' + out.length + ' Akkorde erkannt (antippen zum Ändern).' : 'Keine Akkorde erkannt.'); } catch (err) { console.error(err); UI.say('Akkorde: ' + err.message); } return; }
+      if (b.dataset.c === 'lane') { Proj.change('chords', p => { p.chordLane = !p.chordLane; }); Arr.heads(); Arr.kick(); UI.close(); return; }
+      if (b.dataset.c === 'clr') { Proj.change('chords', p => { p.chords = []; }); Arr.kick(); UI.close(); return; }
+      if (b.dataset.g) { const st = $('caBass').value; UI.close(); Roll.genChords(b.dataset.g, st); }
+    };
+  }
+  return { run, onsets, quantize, restore, quantDlg, detect, editAt, chordDlg, rt };
+})();
+window.Ana = Ana;
+
+</script>
+<script>
+// ---------- Studio v122: Projekt als Datei teilen / importieren (.loopsmiths = ZIP) ----------
+// Inhalt: loopsmiths.json (Format, Version, Audio-Liste, Instrument-/Kit-Verweise), project.json, audio/<id>.wav (16 Bit,
+// genau die gespeicherten Blöcke → bitgenau). Geschrieben und gelesen Block für Block (65536 Bilder), mit Fortschritt.
+// ZIP ohne Kompression (Audio lässt sich kaum packen), Daten-CRC je Datei wird beim Lesen geprüft.
+const Pkg = (() => {
+  const FORMAT = 'loopsmiths-project', VER = 1;
+  const enc = new TextEncoder();
+  const CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+  const crcUp = (c, d) => { for (let i = 0; i < d.length; i++) c = CRC[(c ^ d[i]) & 255] ^ (c >>> 8); return c; };
+  // Audio, auf das ein Projekt verweist (Regionen, Takes, Original vor dem Quantisieren, Tonhöhenkorrektur)
+  function audioIds(P) { const s = new Set(); (P.regions || []).forEach(r => { if (r.audio) s.add(r.audio); (r.takes || []).forEach(t => t.audio && s.add(t.audio)); if (r.qz && r.qz.audio) s.add(r.qz.audio); if (r.pc && r.pc.audio) s.add(r.pc.audio); }); return [...s]; }
+  function wavHead(sr, ch, frames) {
+    const n = frames * ch * 2, v = new DataView(new ArrayBuffer(44)), w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+    w(0, 'RIFF'); v.setUint32(4, 36 + n, true); w(8, 'WAVE'); w(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, ch, true);
+    v.setUint32(24, sr, true); v.setUint32(28, sr * ch * 2, true); v.setUint16(32, ch * 2, true); v.setUint16(34, 16, true); w(36, 'data'); v.setUint32(40, n, true);
+    return new Uint8Array(v.buffer);
+  }
+  // ---------- Schreiben ----------
+  async function build(P, prog) {
+    const ids = audioIds(P), metas = [];
+    for (const id of ids) { const m = await SDB.meta(id); if (m) metas.push(m); }
+    const total = metas.reduce((s, m) => s + m.frames, 0) || 1; let done = 0;
+    const files = [];   // {name, blob, crc, size}
+    const addSmall = (name, u8) => files.push({ name, blob: new Blob([u8]), crc: (crcUp(0xFFFFFFFF, u8) ^ 0xFFFFFFFF) >>> 0, size: u8.length });
+    const inst = [...new Set(P.tracks.filter(t => t.kind === 'midi' && t.inst).map(t => t.inst))], kits = [...new Set(P.tracks.filter(t => t.kind === 'drum').map(t => t.kit || 'rock'))];
+    const man = { format: FORMAT, v: VER, app: (document.querySelector('meta[name=version]') || {}).content || 'v122', created: new Date().toISOString(), name: P.name, sr: P.sr,
+      audio: metas.map(m => ({ id: m.id, name: m.name, file: 'audio/' + m.id + '.wav', sr: m.sr, ch: m.ch, frames: m.frames })), inst, kits };
+    addSmall('loopsmiths.json', enc.encode(JSON.stringify(man, null, 1)));
+    addSmall('project.json', enc.encode(JSON.stringify(P)));
+    for (const m of metas) {
+      const head = wavHead(m.sr, m.ch, m.frames), parts = [head]; let c = crcUp(0xFFFFFFFF, head), size = head.length;
+      for (let k = 0; k < m.chunks; k++) {
+        const ck = await SDB.rawChunk(m.id, k), n = ck ? ck.l.length : Math.min(SDB.CH, m.frames - k * SDB.CH), u = new Uint8Array(n * m.ch * 2), dv = new DataView(u.buffer);
+        if (ck) for (let i = 0, o = 0; i < n; i++) { dv.setInt16(o, ck.l[i], true); o += 2; if (m.ch > 1) { dv.setInt16(o, ck.r ? ck.r[i] : ck.l[i], true); o += 2; } }
+        c = crcUp(c, u); size += u.length; parts.push(u); done += n; if (prog) prog(done / total);
+        if (k % 8 === 7) await new Promise(r => setTimeout(r, 0));   // Bildschirm bleibt bedienbar
+      }
+      files.push({ name: 'audio/' + m.id + '.wav', blob: new Blob(parts), crc: (c ^ 0xFFFFFFFF) >>> 0, size });
+    }
+    // ZIP (gespeichert, ohne Kompression)
+    const out = [], cen = []; let off = 0;
+    files.forEach(f => {
+      const nm = enc.encode(f.name), h = new DataView(new ArrayBuffer(30));
+      h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true); h.setUint16(6, 0x0800, true); h.setUint32(14, f.crc, true); h.setUint32(18, f.size, true); h.setUint32(22, f.size, true); h.setUint16(26, nm.length, true);
+      out.push(new Uint8Array(h.buffer), nm, f.blob);
+      const z = new DataView(new ArrayBuffer(46)); z.setUint32(0, 0x02014b50, true); z.setUint16(4, 20, true); z.setUint16(6, 20, true); z.setUint16(8, 0x0800, true); z.setUint32(16, f.crc, true); z.setUint32(20, f.size, true); z.setUint32(24, f.size, true); z.setUint16(28, nm.length, true); z.setUint32(42, off, true);
+      cen.push(new Uint8Array(z.buffer), nm); off += 30 + nm.length + f.size;
+    });
+    if (off > 0xFFFFFFF0) throw new Error('Projekt zu groß für eine Datei (über 4 GB).');
+    const cs = cen.reduce((s, x) => s + x.length, 0), e = new DataView(new ArrayBuffer(22));
+    e.setUint32(0, 0x06054b50, true); e.setUint16(8, files.length, true); e.setUint16(10, files.length, true); e.setUint32(12, cs, true); e.setUint32(16, off, true);
+    return new Blob([...out, ...cen, new Uint8Array(e.buffer)], { type: 'application/zip' });
+  }
+  async function share(say) {
+    const P = Proj.P; await Proj.save();
+    const blob = await build(P, f => say('Packe das Projekt … ' + Math.round(f * 100) + ' %'));
+    window.__lastPkg = { size: blob.size, name: Exp.safe(P.name) + '.loopsmiths' };
+    const file = new File([blob], Exp.safe(P.name) + '.loopsmiths', { type: 'application/zip' });
+    return Exp.share(file, say);
+  }
+  // ---------- Lesen ----------
+  const rd = async (blob, a, n) => new Uint8Array(await blob.slice(a, a + n).arrayBuffer());
+  async function dir(blob) {
+    const tail = Math.min(blob.size, 65557), t = await rd(blob, blob.size - tail, tail), v = new DataView(t.buffer); let e = -1;
+    for (let i = t.length - 22; i >= 0; i--) if (v.getUint32(i, true) === 0x06054b50) { e = i; break; }
+    if (e < 0) throw new Error('Keine Loopsmiths-Projektdatei (ZIP-Verzeichnis fehlt).');
+    const n = v.getUint16(e + 10, true), cs = v.getUint32(e + 12, true), co = v.getUint32(e + 16, true), c = await rd(blob, co, cs), cv = new DataView(c.buffer), dec = new TextDecoder(), out = {};
+    for (let p = 0, k = 0; k < n; k++) {
+      if (cv.getUint32(p, true) !== 0x02014b50) throw new Error('ZIP-Verzeichnis beschädigt.');
+      const meth = cv.getUint16(p + 10, true), crc = cv.getUint32(p + 16, true), size = cv.getUint32(p + 24, true), nl = cv.getUint16(p + 28, true), xl = cv.getUint16(p + 30, true), cl = cv.getUint16(p + 32, true), lo = cv.getUint32(p + 42, true);
+      const name = dec.decode(c.subarray(p + 46, p + 46 + nl)); out[name] = { meth, crc, size, lo }; p += 46 + nl + xl + cl;
+    }
+    for (const k in out) { const f = out[k], h = await rd(blob, f.lo, 30), hv = new DataView(h.buffer); f.data = f.lo + 30 + hv.getUint16(26, true) + hv.getUint16(28, true); }
+    return out;
+  }
+  async function text(blob, f) { if (!f) return null; if (f.meth !== 0) throw new Error('Gepackte Einträge werden nicht unterstützt.'); return new TextDecoder().decode(await rd(blob, f.data, f.size)); }
+  async function readWav(blob, f, a, prog) {   // → neues Audio (16 Bit direkt in die DB), CRC geprüft
+    if (!f || f.meth !== 0) throw new Error('Audio fehlt in der Datei: ' + a.file);
+    const h = await rd(blob, f.data, Math.min(f.size, 4096)), v = new DataView(h.buffer); let p = 12, ch = a.ch, sr = a.sr, d0 = -1, dn = 0, bits = 16, crc = crcUp(0xFFFFFFFF, h.subarray(0, 0));
+    while (p + 8 <= h.length) { const id = String.fromCharCode(h[p], h[p + 1], h[p + 2], h[p + 3]), sz = v.getUint32(p + 4, true); if (id === 'fmt ') { ch = v.getUint16(p + 10, true); sr = v.getUint32(p + 12, true); bits = v.getUint16(p + 22, true); } if (id === 'data') { d0 = p + 8; dn = sz; break; } p += 8 + sz + (sz & 1); }
+    if (d0 < 0 || bits !== 16) throw new Error('Audio-Format nicht lesbar: ' + a.file);
+    crc = crcUp(crc, h.subarray(0, d0));
+    const frames = Math.floor(dn / (2 * ch)), w = SDB.rawWriter(a.name || 'Audio', sr, ch > 1), CH = SDB.CH;
+    for (let k = 0; k * CH < frames; k++) {
+      const n = Math.min(CH, frames - k * CH), u = await rd(blob, f.data + d0 + k * CH * ch * 2, n * ch * 2), dv = new DataView(u.buffer), l = new Int16Array(n), r = ch > 1 ? new Int16Array(n) : null;
+      crc = crcUp(crc, u);
+      for (let i = 0, o = 0; i < n; i++) { l[i] = dv.getInt16(o, true); o += 2; if (r) { r[i] = dv.getInt16(o, true); o += 2; } }
+      await w.push(l, r); if (prog) prog(n);
+    }
+    const tail = f.size - d0 - frames * ch * 2; if (tail > 0) crc = crcUp(crc, await rd(blob, f.data + d0 + frames * ch * 2, tail));
+    if (((crc ^ 0xFFFFFFFF) >>> 0) !== f.crc) throw new Error('Prüfsumme stimmt nicht (Datei beschädigt): ' + a.file);
+    return w.done();
+  }
+  // Importieren: neues Projekt mit neuen IDs (Projekt, Spuren, Regionen, Audio); Verweise werden umgeschrieben
+  async function load(blob, say) {
+    const D = await dir(blob), man = JSON.parse((await text(blob, D['loopsmiths.json'])) || 'null');
+    if (!man || man.format !== FORMAT) throw new Error('Keine Loopsmiths-Projektdatei.');
+    if (!(man.v <= VER)) throw new Error('Die Datei kommt aus einer neueren Studio-Version (Format ' + man.v + '). Bitte erst das Studio aktualisieren (App zweimal öffnen).');
+    const P = JSON.parse(await text(blob, D['project.json'])); if (!P || !Array.isArray(P.tracks) || !Array.isArray(P.regions)) throw new Error('project.json fehlt oder ist beschädigt.');
+    if (P.v > 1) throw new Error('Projektformat ' + P.v + ' ist neuer als dieses Studio.');
+    const total = (man.audio || []).reduce((s, a) => s + a.frames, 0) || 1; let done = 0; const amap = {};
+    for (const a of man.audio || []) { const m = await readWav(blob, D[a.file], a, n => { done += n; say && say('Importiere Audio … ' + Math.round(done / total * 100) + ' %'); }); amap[a.id] = m.id; }
+    const tmap = {}; P.tracks.forEach(t => { tmap[t.id] = Proj.nid('t'); });
+    const A = id => id && (amap[id] || id);
+    P.tracks.forEach(t => { t.id = tmap[t.id]; const cp = t.fx && t.fx.comp; if (cp && cp.sc && tmap[cp.sc]) cp.sc = tmap[cp.sc]; });
+    (P.groups || []).forEach(g => { const cp = g.fx && g.fx.comp; if (cp && cp.sc && tmap[cp.sc]) cp.sc = tmap[cp.sc]; });
+    P.regions.forEach(r => { r.id = Proj.nid('r'); r.track = tmap[r.track] || r.track; if (r.audio) r.audio = A(r.audio); (r.takes || []).forEach(t => { t.audio = A(t.audio); }); if (r.qz) r.qz.audio = A(r.qz.audio); if (r.pc) { r.pc.audio = A(r.pc.audio); r.pc.src = A(r.pc.src); } });
+    const missing = (man.inst || []).filter(i => window.Inst && Inst.LIST && !Inst.LIST.some(x => x.id === i));   // unbekannte Instrumente klingen ersatzweise als E-Piano
+    P.id = Proj.nid('p'); P.ts = Date.now(); delete P.fromIdea; delete P.importTs;
+    const names = new Set((await Proj.list()).map(p => p.name)); if (names.has(P.name)) P.name = P.name + ' (importiert)';
+    await SDB.put('projects', P);
+    if (Engine.playing) Engine.stop(); await Proj.load(P.id);
+    window.__lastImport = { id: P.id, audio: Object.keys(amap).length, missing };
+    return P;
+  }
+  function pick(say) {
+    const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.loopsmiths,.zip,application/zip'; inp.style.display = 'none'; document.body.appendChild(inp);
+    inp.onchange = async () => { const f = inp.files && inp.files[0]; inp.remove(); if (!f) return; try { say('Lese „' + f.name + '“ …'); const P = await load(f, say); Arr.V.sel = Arr.V.selTrack = null; Arr.heads(); Arr.zoomAll(); UI.inspect(); UI.sync(); say('Importiert: „' + P.name + '“ (' + P.tracks.length + ' Spuren, ' + P.regions.length + ' Regionen).'); } catch (e) { console.error(e); say('Import: ' + e.message); } };
+    inp.click();
+  }
+  return { build, share, load, pick, dir, audioIds, FORMAT, VER };
+})();
+window.Pkg = Pkg;
 
 </script>
 <script>
@@ -3736,7 +4359,7 @@ const UI = (() => {
     $('dRegH').textContent = 'Region · ' + (r.name || '') + ' · ' + (Math.round(bars * 100) / 100).toString().replace('.', ',') + ' Takte';
     $('dRegC').innerHTML = '<button class="btn" data-r="g-">Leiser</button><button class="btn" data-r="g+">Lauter</button><button class="btn' + (r.muted ? ' on' : '') + '" data-r="mute">' + (r.muted ? 'Stumm ✓' : 'Stumm') + '</button><button class="btn" data-r="ren">Name</button>' +
       (tk ? '<button class="btn p" data-r="takes">Takes (' + r.takes.length + ') …</button><button class="btn' + ((P.tracks[Proj.tIndex(r.track)] || {}).takesOpen ? ' on' : '') + '" data-r="topen">Take-Zeilen</button>' : '') +
-      (r.kind === 'audio' && !tk ? '<button class="btn" data-r="fit">ans Tempo anpassen</button><button class="btn" data-r="norm">Normalisieren</button>' : '') + (r.kind !== 'audio' ? '<button class="btn" data-r="edit">Bearbeiten</button>' : '') + '<button class="btn" data-r="cyc">Als Cycle</button>';
+      (r.kind === 'audio' && !tk ? '<button class="btn" data-r="fit">ans Tempo anpassen</button><button class="btn" data-r="norm">Normalisieren</button>' + (window.Ana ? '<button class="btn' + (r.qz ? ' on' : '') + '" data-r="qz">Quantisieren …</button>' : '') : '') + (r.kind === 'audio' && window.Ana ? '<button class="btn" data-r="chd">Akkorde erkennen</button>' : '') + (r.kind !== 'audio' ? '<button class="btn" data-r="edit">Bearbeiten</button>' : '') + '<button class="btn" data-r="cyc">Als Cycle</button>';
     $('dRegN').textContent = 'Pegel ' + (r.gain > 0 ? '+' : '') + (r.gain || 0) + ' dB' + (r.fi ? ' · Einblende' : '') + (r.fo ? ' · Ausblende' : '') + ' · Start Takt ' + (Math.round((Proj.f2bar(r.start) + 1) * 100) / 100).toString().replace('.', ',') + (tk ? ' · Comp: ' + Engine.compSegs(r).map(sg => (r.takes.find(x => x.id === sg.k) || {}).name).join(' → ') + ' · unter der Spur antippen/wischen' : '');
   }
   $('dTrackC').addEventListener('click', async e => {
@@ -3763,6 +4386,8 @@ const UI = (() => {
     else if (a === 'norm') { say('Messe …'); const d = await SDB.read(r.audio, r.offset, r.len); let m = 0; for (let k = 0; k < d.l.length; k++) { const x = Math.max(Math.abs(d.l[k]), Math.abs(d.r[k])); if (x > m) m = x; } if (m > 0) { const g = Math.round(20 * Math.log10(0.89 / m) * 10) / 10; Proj.editRegion(r.id, q => { q.gain = g; }); say('Normalisiert: ' + (g > 0 ? '+' : '') + g + ' dB (Spitze −1 dB).'); } }
     else if (a === 'fit') await fitRegion(r);
     else if (a === 'takes') takeDlg(r.id);
+    else if (a === 'qz') Ana.quantDlg(r.id);
+    else if (a === 'chd') { try { const out = await Ana.detect('region', r.id, say); say(out.length ? 'Akkordspur: ' + out.map(c => c.name).slice(0, 12).join(' · ') + (out.length > 12 ? ' …' : '') + ' (antippen zum Ändern; „Akkorde“ links = Begleitung erzeugen).' : 'Keine Akkorde erkannt.'); } catch (err) { console.error(err); say('Akkorde: ' + err.message); } }
     else if (a === 'topen') { Proj.editTrack(r.track, t => { t.takesOpen = !t.takesOpen; }, { noUndo: true }); Arr.heads(); }
     inspect(); Arr.kick();
   });
@@ -3839,6 +4464,7 @@ const UI = (() => {
       '<div class="btns"><button class="btn" data-a="ren">Umbenennen</button><button class="btn" data-a="sig">Taktart</button><button class="btn" data-a="key">Tonart</button><button class="btn p" data-a="new">Neues Projekt</button></div></div>' +
       '<div class="card"><b>Exportieren</b><div class="btns"><button class="btn" data-x="mix">Mix (WAV)</button><button class="btn" data-x="mixm">Mix gemastert</button><button class="btn" data-x="stems">Alle Spuren einzeln (ZIP)</button><button class="btn" data-x="logic">Für Logic Pro (ZIP)</button>' + (window.Inst ? '<button class="btn" data-x="midi">MIDI</button>' : '') + '<button class="btn" data-x="looper">In den Looper</button></div>' +
       '<label class="row" style="margin-top:8px">Mastering-Ziel <select id="xTgt"><option value="stream">Streaming −14 LUFS</option><option value="apple">Apple Music −16 LUFS</option><option value="deezer">Deezer −15 LUFS</option><option value="loud">Laut −9 LUFS</option></select></label>' + '<label class="row" style="margin-top:8px"><input type="checkbox" id="xCyc"' + (P.cycle.on && P.cycle.b > P.cycle.a ? ' checked' : '') + '> nur den Cycle-Bereich</label><p class="note">„In den Looper“ legt den Cycle-Bereich (oder die gewählte Region) als neue Idee in die Ablage „Zusammenarbeit“.</p></div></div>' +
+      (window.Pkg ? '<div class="card"><b>Teilen und Akkorde</b><div class="btns"><button class="btn p" data-a="share">Projekt als Datei teilen</button><button class="btn" data-a="imp">Projekt importieren …</button>' + (window.Ana ? '<button class="btn" data-a="chords">Akkordspur …</button>' : '') + '</div><p class="note">Eine Datei (.loopsmiths) mit allen Spuren, Mischpult und Audio – zum Weitergeben an ein anderes Gerät/Studio. Importieren legt ein neues Projekt an.</p></div>' : '') +
       '<h2 style="font-size:15px">Alle Projekte</h2><div class="plist">' + ps.map(p => '<div class="item' + (p.id === P.id ? ' a' : '') + '" data-p="' + p.id + '"><div><b>' + esc(p.name) + '</b><small>' + p.n + ' Spuren · ' + Math.round(p.bpm) + ' BPM · ' + new Date(p.ts).toLocaleString('de-DE', { dateStyle: 'short', timeStyle: 'short' }) + '</small></div><div class="row">' + (p.id === P.id ? '<span class="note">offen</span>' : '<button class="btn" data-o="' + p.id + '">Öffnen</button>') + '<button class="btn danger" data-d="' + p.id + '">Löschen</button></div></div>').join('') + '</div>' +
       '<p class="note">Studio-Speicher auf diesem Gerät: ' + Math.round(usage / 1048576) + ' MB. Audio, das in keinem Projekt mehr vorkommt, wird beim Löschen eines Projekts freigegeben.</p>' +
       '<div class="btns"><a class="btn" href="../" style="text-decoration:none">← Zurück zum Looper</a><span style="flex:1"></span><button class="btn p" data-close>Schließen</button></div>');
@@ -3849,6 +4475,9 @@ const UI = (() => {
       if (b.dataset.a === 'ren') { const n = await ask('Name des Projekts', P.name); if (n) Proj.change('name', p => { p.name = n; }); sync(); return; }
       if (b.dataset.a === 'new') { const n = await ask('Name des neuen Projekts', 'Neues Projekt'); if (!n) return; if (Engine.playing) Engine.stop(); await Proj.newProject(n); Arr.V.sel = Arr.V.selTrack = null; Arr.zoomAll(); inspect(); sync(); show('brw'); return; }
       if (b.dataset.a === 'sig') { close(); tempoDlg(); return; }
+      if (b.dataset.a === 'share') { close(); if (Engine.playing) Engine.stop(); try { await Pkg.share(say); } catch (err) { console.error(err); say('Teilen: ' + err.message); } return; }
+      if (b.dataset.a === 'imp') { close(); Pkg.pick(say); return; }
+      if (b.dataset.a === 'chords') { close(); Ana.chordDlg(); return; }
       if (b.dataset.a === 'key') { const n = await ask('Tonart (z. B. „A Moll“ oder „G Dur“)', P.key); if (n) { Proj.change('tempo', p => { p.key = n; }); sync(); } return; }
       if (b.dataset.o) { close(); if (Engine.playing) Engine.stop(); await Proj.load(b.dataset.o); Arr.V.sel = Arr.V.selTrack = null; Arr.zoomAll(); inspect(); sync(); say('Geöffnet: ' + Proj.P.name); return; }
       if (b.dataset.d) { const p = ps.find(x => x.id === b.dataset.d); if (!(await confirm2('Projekt „' + p.name + '“ endgültig löschen?'))) return projMenu(); const cur = p.id === P.id; await Proj.remove(p.id); if (cur) { const rest = await Proj.list(); if (rest.length) await Proj.load(rest[0].id); else await Proj.newProject('Neues Projekt'); Arr.zoomAll(); inspect(); sync(); } return projMenu(); }

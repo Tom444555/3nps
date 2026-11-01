@@ -3982,7 +3982,7 @@ window.__EN_PAT.push(
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v121</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v122</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -22005,6 +22005,20 @@ const HILFE = [
     p: ['Mehrere Spuren lassen sich auf einen Bus legen (z. B. alle Gitarren oder alle Gesänge) und dort gemeinsam regeln: Fader, Mute/Solo, EQ, Kompressor, Hall/Delay – wie eine Spur.'],
     s: ['Im „Mischpult“ unter dem Spurnamen „→ Master“ auf „→ Bus 1“ (bis Bus 4) stellen. Rechts erscheint der Streifen „Bus 1“.', 'Bus-Fader, M/S, EQ und Effekte wirken auf alle Spuren darin. Ein leerer Bus lässt sich mit „entfernen“ löschen.', 'Sidechain: bei der Spur (oder dem Bus), die leiser werden soll, „Kompressor“ antippen → „Sidechain“ = z. B. die Drum-Spur. Schwelle tiefer = stärkeres Ducking.'],
     tip: ['Busse und Sidechain rechnen nur, wenn sie benutzt werden.', 'Die Steuer-Spur muss nicht hörbar sein: auch stumm geschaltet (M) steuert sie weiter.', 'Export und Mastering klingen genauso wie beim Abspielen.'] },
+  { id: 'studio-insert', t: 'Spur-Effekte: Amp, Chorus, Tremolo, Tonhöhenkorrektur', k: 'amp verstärker verzerrung drive gate chorus schwebung tremolo pulsieren tonhöhenkorrektur autotune tonhöhe korrigieren schief skala insert effekt',
+    p: ['Jede Spur (und jeder Bus) kann Insert-Effekte bekommen. Sie rechnen nur, wenn ihr Haken an ist – aus ist der Klang genau wie vorher.'],
+    s: ['Spur antippen → „Effekte“ (oder im „Mischpult“ ein Effektfeld antippen).', '„Amp (wie im Looper)“: Vorlage wählen (Clean, Blues, Rock, Lead, Metal), dann Gate, Drive, Bass, Mitte, Höhen, Pegel.', '„Chorus“: Rate, Tiefe, Mix. „Tremolo“: Rate und Tiefe, oder „Im Takt“ mit Notenwert (1/4, 1/8 …) – folgt dem Projekttempo.', '„Tonhöhenkorrektur“ (Audio-Spuren): Tonart und Skala, „Stärke“ und „Geschwindigkeit“ einstellen, „Anwenden“ tippen. Haken aus = Original.'],
+    tip: ['Tonhöhenkorrektur: Geschwindigkeit 0 ms = harter Effekt, 20–60 ms = natürlich.', 'Abspielen und Export klingen gleich.'] },
+  { id: 'studio-quant', t: 'Audio quantisieren (Anschläge aufs Raster)', k: 'quantisieren audio timing raster anschlag onset genauer tight schneiden zeitdehnung 1/8 1/16 stärke wiederherstellen',
+    p: ['Holprige Aufnahmen (Gitarre, Percussion) lassen sich aufs Raster ziehen. Das Studio erkennt die Anschläge selbst.'],
+    s: ['Audio-Region antippen → „Quantisieren …“.', '„Raster“ (1/4, 1/8, 1/16) und „Stärke“ wählen (100 % = genau aufs Raster, 50 % = halber Weg).', 'Verfahren: „Schneiden + Verschieben“ (kurze Überblendung, Klang unverändert) oder „Zeitdehnung zwischen den Anschlägen“ (keine Lücken).', '„Quantisieren“ tippen.'],
+    tip: ['Das Original bleibt gespeichert: ↶ oder nochmal „Quantisieren …“ → „Original wiederherstellen“.', 'Erneutes Quantisieren geht immer vom Original aus.'] },
+  { id: 'studio-teilen', t: 'Projekt als Datei teilen und importieren', k: 'teilen weitergeben datei loopsmiths importieren anderes gerät freund schicken airdrop sicherung projekt öffnen',
+    s: ['„Projekt ▾“ → „Projekt als Datei teilen“: eine Datei „Name.loopsmiths“ mit allen Spuren, Mischpult und Audio (Teilen-Menü, z. B. AirDrop oder Dateien; sonst Download).', 'Auf dem anderen Gerät: Studio öffnen → „Projekt ▾“ → „Projekt importieren …“ → Datei wählen.', 'Das Projekt kommt als neues Projekt dazu (das alte bleibt).'],
+    tip: ['Instrumente und Drum-Kits werden nicht mitgepackt – sie sind in jedem Studio schon dabei.', 'Eine Datei aus einer neueren Studio-Version meldet sich – dann erst das Studio aktualisieren.'] },
+  { id: 'studio-akkorde', t: 'Akkorde aus einem Song erkennen (Akkordspur)', k: 'akkorde erkennen akkordspur harmonie song heraushören chroma begleitung bass flächen arpeggio aus akkorden',
+    s: ['Audio-Region antippen → „Akkorde erkennen“ (für den ganzen Mix: „Projekt ▾“ → „Akkordspur …“ → „Akkorde aus dem Mix erkennen“).', 'Unter dem Lineal erscheint die Akkordspur (je Takt oder halben Takt). Antippen = Akkord ändern, leer lassen = löschen, freie Stelle = neuer Akkord.', '„Akkorde“ links über den Spuren → „Begleitung aus Akkordspur erzeugen“: „Bass erzeugen“, „Flächen erzeugen“ oder „Arpeggio erzeugen“.'],
+    tip: ['Erkannt werden Dur, Moll, 7, maj7, m7, sus2/sus4, 5 (Powerchord) und mehr – im Takt der Tempokarte.', 'Ist ein Cycle an, wird nur der Cycle-Bereich erkannt.'] },
   { id: 'studio-export', t: 'Export aus dem Studio', k: 'export mix wav spuren stems logic midi zip in den looper',
     s: ['„Projekt ▾“ → Exportieren: „Mix (WAV)“, „Mix gemastert“, „Alle Spuren einzeln (ZIP)“, „Für Logic Pro (ZIP)“, „MIDI“.', '„nur den Cycle-Bereich“ für einen Ausschnitt.', '„In den Looper“ legt den Bereich als neue Idee unter „Zusammenarbeit“ ab.'] },
  ]},

@@ -112,14 +112,31 @@ const SDB = (() => {
     }
     return { l: L, r: R || L };
   }
+  // v122: Rohdaten (16 Bit) blockweise schreiben – für den Projekt-Import (bitgenau, ohne Umweg über Float)
+  function rawWriter(name, sr, stereo) {
+    const id = newId(); let frames = 0, n = 0, pending = Promise.resolve(); const peaks = [], PK = 128; let pmin = 0, pmax = 0, pc = 0;
+    return {
+      id,
+      push(l, r) {   // l, r: Int16Array, genau CH Bilder (nur der letzte Block darf kürzer sein)
+        for (let i = 0; i < l.length; i++) { const a = l[i] / 32767, b = r ? r[i] / 32767 : a; if (a > pmax) pmax = a; if (a < pmin) pmin = a; if (b > pmax) pmax = b; if (b < pmin) pmin = b; if (++pc === PK) { peaks.push(Math.round(pmin * 127), Math.round(pmax * 127)); pmin = pmax = 0; pc = 0; } }
+        const k = n++; frames += l.length; pending = pending.then(() => put('chunks', { k: id + ':' + String(k).padStart(6, '0'), l, r: stereo ? r : null }));
+        return pending;
+      },
+      async done() {
+        if (pc) peaks.push(Math.round(pmin * 127), Math.round(pmax * 127)); await pending;
+        const meta = { id, name, sr, ch: stereo ? 2 : 1, frames, chunks: n, peaks: Int8Array.from(peaks), pk: PK, ts: Date.now() };
+        await put('audio', meta); metaCache.set(id, meta); return meta;
+      }
+    };
+  }
   async function delAudio(id) { metaCache.delete(id); await del('audio', id); await delRange('chunks', id + ':', id + ':~'); }
   // Speicher aufräumen: Audio, das kein Projekt mehr benutzt
   async function gc() {
     const ps = await all('projects'), used = new Set();
-    ps.forEach(p => (p.regions || []).forEach(r => { if (r.audio) used.add(r.audio); (r.takes || []).forEach(t => t.audio && used.add(t.audio)); }));   // v121: Takes zählen mit
+    ps.forEach(p => (p.regions || []).forEach(r => { if (r.audio) used.add(r.audio); (r.takes || []).forEach(t => t.audio && used.add(t.audio)); if (r.qz && r.qz.audio) used.add(r.qz.audio); if (r.pc && r.pc.audio) used.add(r.pc.audio); }));   // v121: Takes zählen mit · v122: Original vor dem Quantisieren, Tonhöhenkorrektur
     const as = await tx('audio', 'readonly', st => st.getAllKeys());
     for (const id of as || []) if (!used.has(id)) await delAudio(id);
   }
   async function usage() { try { const e = await navigator.storage.estimate(); return e.usage || 0; } catch (e) { return null; } }
-  return { open, get, put, del, all, putAudio, writer, meta, read, delAudio, gc, usage, looperList, looperGet, looperPut, CH, newId };
+  return { open, get, put, del, all, putAudio, writer, rawWriter, rawChunk: chunk, meta, read, delAudio, gc, usage, looperList, looperGet, looperPut, CH, newId };
 })();

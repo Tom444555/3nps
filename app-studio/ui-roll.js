@@ -123,7 +123,7 @@ const Roll = (() => {
   box.addEventListener('pointerup', up); box.addEventListener('pointercancel', up);
   box.addEventListener('wheel', e => { e.preventDefault(); if (e.ctrlKey) { S.ppb = Math.max(12, Math.min(400, S.ppb * Math.exp(-e.deltaY / 200))); } else { S.x0 = Math.max(0, S.x0 + (e.deltaX || (e.shiftKey ? e.deltaY : 0)) / S.ppb); if (!e.shiftKey) S.y0 = Math.max(0, Math.min(128 * NH - box.clientHeight, S.y0 + e.deltaY)); } kick(); }, { passive: false });
   // ---------- Akkorde → Bass / Flächen / Arpeggio ----------
-  const QUAL = [[/^(maj7|M7|Δ)/, [0, 4, 7, 11]], [/^(m7|min7|-7)/, [0, 3, 7, 10]], [/^(m7b5|ø)/, [0, 3, 6, 10]], [/^dim/, [0, 3, 6]], [/^aug|^\+/, [0, 4, 8]], [/^sus2/, [0, 2, 7]], [/^sus4?/, [0, 5, 7]], [/^7/, [0, 4, 7, 10]], [/^(m|min|-)/, [0, 3, 7]], [/^/, [0, 4, 7]]];
+  const QUAL = [[/^(maj7|M7|Δ)/, [0, 4, 7, 11]], [/^(m7|min7|-7)/, [0, 3, 7, 10]], [/^(m7b5|ø)/, [0, 3, 6, 10]], [/^dim/, [0, 3, 6]], [/^aug|^\+/, [0, 4, 8]], [/^sus2/, [0, 2, 7]], [/^sus4?/, [0, 5, 7]], [/^7/, [0, 4, 7, 10]], [/^5/, [0, 7]], [/^(m|min|-)/, [0, 3, 7]], [/^/, [0, 4, 7]]];
   function parseChord(s) { const m = String(s).trim().match(/^([A-Ha-h])(#|b|♯|♭)?(.*)$/); if (!m) return null; let r = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11, H: 11 }[m[1].toUpperCase()]; if (m[2] === '#' || m[2] === '♯') r++; if (m[2] === 'b' || m[2] === '♭') r--; r = (r + 12) % 12; const q = QUAL.find(([re]) => re.test(m[3]))[1]; return { r, iv: q, name: s.trim() }; }
   function progFromProject() { const P = Proj.P; if (!P.chords || !P.chords.length) return ''; let out = [], bar = P.sig; P.chords.forEach(c => { out.push(c.name + (Math.abs(c.beats - bar) > 0.01 ? ':' + (c.beats / bar).toString().replace('.', ',') : '')); }); return out.join(' '); }
   function chordDock() {
@@ -142,10 +142,17 @@ const Roll = (() => {
     txt.split(/[\s|,]+/).filter(Boolean).forEach(tok => { const [c, l] = tok.split(':'); const ch = parseChord(c); if (!ch) { bad.push(c); return; } seq.push({ ch, bars: l ? +l.replace(',', '.') || 1 : 1 }); });
     if (bad.length) return UI.say('Nicht erkannt: ' + bad.join(', '));
     if (P.tracks.length >= Engine.MAXT) return UI.say('Höchstens ' + Engine.MAXT + ' Spuren.');
-    const sig = P.sig, notes = []; let b = 0;
+    const sig = P.sig; let b = 0;
     const style = $('cBass').value;
-    seq.forEach(({ ch, bars }, i) => {
-      const L = bars * sig, root = 36 + ch.r - (ch.r > 7 ? 12 : 0), next = seq[(i + 1) % seq.length].ch;
+    const items = seq.map(({ ch, bars }) => { const it = { ch, b, L: bars * sig }; b += it.L; return it; });
+    const notes = notesFor(items, kind, style, sig);
+    finish(kind, notes, Proj.bar2f(Math.max(1, +$('cBar').value || 1) - 1), b, txt.slice(0, 40), sig);
+  }
+  // v122: Noten aus einer Akkordfolge [{ch, b (Schlag ab Anfang), L (Schläge)}]
+  function notesFor(items, kind, style, sig) {
+    const notes = [];
+    items.forEach(({ ch, b, L }, i) => {
+      const root = 36 + ch.r - (ch.r > 7 ? 12 : 0), next = items[(i + 1) % items.length].ch;
       if (kind === 'bass') {
         if (style === 'whole') notes.push({ t: b, d: L - 0.05, m: root, v: 100 });
         else if (style === 'eighth') for (let k = 0; k < L * 2; k++) notes.push({ t: b + k / 2, d: 0.45, m: root, v: k % 2 ? 82 : 100 });
@@ -153,16 +160,27 @@ const Roll = (() => {
         else { const tgt = 36 + next.r - (next.r > 7 ? 12 : 0); for (let k = 0; k < L; k++) { const last = k === L - 1, m = k === 0 ? root : last ? tgt + (tgt > root ? -1 : 1) : root + [0, ch.iv[1], 7, ch.iv[1]][k % 4]; notes.push({ t: b + k, d: 0.9, m, v: k ? 88 : 104 }); } }
       } else if (kind === 'pad') { const base = 60 + ch.r - (ch.r > 5 ? 12 : 0); ch.iv.forEach(iv => notes.push({ t: b, d: L - 0.05, m: base + iv, v: 80 })); notes.push({ t: b, d: L - 0.05, m: base - 12, v: 70 }); }
       else { const base = 60 + ch.r - (ch.r > 5 ? 12 : 0), tones = ch.iv.concat([12]); for (let k = 0; k < L * 2; k++) notes.push({ t: b + k / 2, d: 0.48, m: base + tones[[0, 1, 2, 3, 2, 1][k % 6] % tones.length], v: k % 2 ? 76 : 92 }); }
-      b += L;
     });
-    const at = Proj.bar2f(Math.max(1, +$('cBar').value || 1) - 1), name = kind === 'bass' ? 'Bass' : kind === 'pad' ? 'Flächen' : 'Arpeggio';
-    let tid; Proj.change('tracks', p => { const t = Proj.track('midi', name + ' (aus Akkorden)'); t.inst = kind === 'bass' ? 'kbass' : kind === 'pad' ? 'strings' : 'harp'; if (kind === 'pad') t.vol = -6; tid = t.id; p.tracks.push(t); p.regions.push({ id: Proj.nid('r'), track: t.id, kind: 'midi', start: at, len: Proj.beat2f(Proj.f2beat(at) + b) - at, notes, name: txt.slice(0, 40) }); });
+    return notes;
+  }
+  // v122: Begleitung direkt aus der Akkordspur (Lage und Länge je Akkord, Lücken bleiben frei)
+  function genChords(kind, style) {
+    const P = Proj.P, cs = (P.chords || []).map(c => ({ c, ch: parseChord(c.name) })).filter(x => x.ch && x.c.beats > 0).sort((u, v) => u.c.b - v.c.b);
+    if (!cs.length) return UI.say('Die Akkordspur ist leer – erst „Akkorde erkennen“ oder Akkorde eintragen.');
+    if (P.tracks.length >= Engine.MAXT) return UI.say('Höchstens ' + Engine.MAXT + ' Spuren.');
+    const b0 = cs[0].c.b, items = cs.map(x => ({ ch: x.ch, b: x.c.b - b0, L: x.c.beats })), end = items[items.length - 1].b + items[items.length - 1].L, sig = TMap.at(P, TMap.beat2f(P, b0) + 1).sig;
+    finish(kind, notesFor(items, kind, style || 'rq', sig), Proj.beat2f(b0), end, 'Akkordspur', sig);
+    return Proj.P.regions[Proj.P.regions.length - 1];
+  }
+  function finish(kind, notes, at, b, label, sig) {
+    const name = kind === 'bass' ? 'Bass' : kind === 'pad' ? 'Flächen' : 'Arpeggio';
+    let tid; Proj.change('tracks', p => { const t = Proj.track('midi', name + ' (aus Akkorden)'); t.inst = kind === 'bass' ? 'kbass' : kind === 'pad' ? 'strings' : 'harp'; if (kind === 'pad') t.vol = -6; tid = t.id; p.tracks.push(t); p.regions.push({ id: Proj.nid('r'), track: t.id, kind: 'midi', start: at, len: Proj.beat2f(Proj.f2beat(at) + b) - at, notes, name: label }); });
     Engine.dirty(true); Inst.load(kind === 'bass' ? 'kbass' : kind === 'pad' ? 'strings' : 'harp'); Arr.V.selTrack = tid; Arr.V.sel = Proj.P.regions[Proj.P.regions.length - 1].id; Arr.heads(); open();
     UI.say(name + ' erzeugt: ' + notes.length + ' Noten über ' + Math.round(b / sig) + ' Takte (Instrument änderbar).');
   }
   (function loop() { if (!$('v-roll').hidden && (need || Engine.playing)) { need = false; draw(); } requestAnimationFrame(loop); })();
   window.addEventListener('resize', kick);
   Proj.on(w => { if (!$('v-roll').hidden && w !== 'mix') { if (S.rid && !Proj.reg(S.rid)) open(); kick(); } });
-  return { open, kick, parseChord, S, gen };
+  return { open, kick, parseChord, S, gen, genChords, notesFor };
 })();
 window.Roll = Roll;

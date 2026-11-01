@@ -67,6 +67,8 @@ registerProcessor('studio-sc', StudioSC);`;
 
 const Engine = (() => {
   const B = 32768, MAXT = 24;
+  // v122: Worklet-Modul = Engine + Sidechain + Amp-Gate (aus dem Looper) + Insert-Effekte (Chorus, Tremolo)
+  const wsrc = () => WORKLET_SRC + (window.AmpDSP ? AmpDSP.GATE : '') + (window.Ins ? Ins.WSRC : '');
   let ctx = null, node = null, P = null, G = null, wUrl = null;
   const st = { playing: false, pos: 0, pos0: 0, t0: 0, pk: new Float32Array(MAXT), lastMsg: 0 };
   const sent = new Map();           // 'tr:k' → Version
@@ -82,7 +84,7 @@ const Engine = (() => {
   async function ensure() {
     ac(); if (ctx.state !== 'running') { try { await ctx.resume(); } catch (e) {} }
     if (!node) {
-      wUrl = wUrl || URL.createObjectURL(new Blob([WORKLET_SRC], { type: 'application/javascript' }));
+      wUrl = wUrl || URL.createObjectURL(new Blob([wsrc()], { type: 'application/javascript' }));
       await ctx.audioWorklet.addModule(wUrl); SC_OK.add(ctx);
       node = new AudioWorkletNode(ctx, 'studio-eng', { numberOfInputs: 0, numberOfOutputs: MAXT, outputChannelCount: new Array(MAXT).fill(2), processorOptions: { n: MAXT } });
       node.port.onmessage = e => { const d = e.data; if (d.t === 'pos') { st.wpos = d.pos; if (d.cf) st.wcf = d.cf; st.lastMsg = ctx.currentTime; d.pk.forEach((v, i) => { st.pk[i] = Math.max(st.pk[i] * 0.85, v); }); } };
@@ -98,18 +100,21 @@ const Engine = (() => {
     return b;
   }
   // Kanalzug (Spur oder Gruppenbus): Sättigung → EQ7 → Kompressor (oder Sidechain-Kompressor) → Aufholen → Pan → Fader → Mute
-  function strip(c, t) {
+  function strip(c, t, opts) {
     const cp = (t.fx || {}).comp || {}, sc = !!(cp.on && cp.sc) && SC_OK.has(c);
     const inN = c.createGain(), sat = c.createWaveShaper(), eq = EQ7.chain(c), comp = sc ? new AudioWorkletNode(c, 'studio-sc', { numberOfInputs: 2, numberOfOutputs: 1, outputChannelCount: [2], channelCount: 2, channelCountMode: 'explicit' }) : c.createDynamicsCompressor(),
       mk = c.createGain(), pan = c.createStereoPanner(), vol = c.createGain(), mute = c.createGain(), sR = c.createGain(), sD = c.createGain(), an = c.createAnalyser();
     an.fftSize = 512; sat.oversample = '2x';
-    inN.connect(sat); sat.connect(eq.input); eq.output.connect(comp); comp.connect(mk); mk.connect(pan); pan.connect(vol); vol.connect(mute); mute.connect(an);
+    // v122: Insert-Effekte (Amp, Chorus, Tremolo) nur im Graph, wenn eingeschaltet – sonst exakt der bisherige Weg
+    const ins = window.Ins && Ins.any(t) ? Ins.build(c, t, opts || {}, SC_OK.has(c)) : null;
+    if (ins) { inN.connect(ins.input); ins.output.connect(sat); } else inN.connect(sat);
+    sat.connect(eq.input); eq.output.connect(comp); comp.connect(mk); mk.connect(pan); pan.connect(vol); vol.connect(mute); mute.connect(an);
     if (sc) { comp.sc = true; comp.port.onmessage = e => { comp.red = e.data; }; }
-    return { id: t.id, inN, sat, eq, comp, mk, pan, vol, mute, sR, sD, an };
+    return { id: t.id, inN, sat, eq, comp, mk, pan, vol, mute, sR, sD, an, ins };
   }
   const SC_OK = new WeakSet();     // Kontexte, in denen 'studio-sc' geladen ist
-  function makeGraph(c, proj, src) {
-    const g = { tr: [], grp: [], c };
+  function makeGraph(c, proj, src, opts) {
+    const g = { tr: [], grp: [], c }; opts = Object.assign({ proj }, opts || {});
     const m = proj.master || {};
     const mIn = c.createGain(), mEq = EQ7.chain(c), glue = c.createDynamicsCompressor(), lim = c.createDynamicsCompressor(), mVol = c.createGain(), meter = c.createAnalyser();
     meter.fftSize = 1024; mIn.connect(mEq.input); mEq.output.connect(glue); glue.connect(lim); lim.connect(mVol); mVol.connect(c.destination); mVol.connect(meter);
@@ -122,10 +127,10 @@ const Engine = (() => {
     const sends = n => { n.mute.connect(n.sR); n.sR.connect(rev); n.mute.connect(n.sD); n.sD.connect(dly); };
     // v121: Gruppenbusse – nur gebaut, wenn mindestens eine Spur hineinführt (sonst keine Rechenlast)
     const used = new Set(proj.tracks.map(t => t.out).filter(o => o && o !== 'master'));
-    (proj.groups || []).forEach(b => { if (!used.has(b.id)) { g.grp.push(null); return; } const n = strip(c, b); n.mute.connect(mIn); sends(n); g.grp.push(n); });
+    (proj.groups || []).forEach(b => { if (!used.has(b.id)) { g.grp.push(null); return; } const n = strip(c, b, opts); n.mute.connect(mIn); sends(n); g.grp.push(n); });
     const gi = id => (proj.groups || []).findIndex(b => b.id === id);
     proj.tracks.forEach((t, i) => {
-      const n = strip(c, t), j = t.out && t.out !== 'master' ? gi(t.out) : -1;
+      const n = strip(c, t, opts), j = t.out && t.out !== 'master' ? gi(t.out) : -1;
       n.mute.connect(j >= 0 && g.grp[j] ? g.grp[j].inN : mIn); sends(n);
       if (src && i < MAXT) src.connect(n.inN, i, 0);
       g.tr.push(n);
@@ -137,6 +142,7 @@ const Engine = (() => {
       const q = byId.get(cp.sc); if (!q || q === n || (t.out && t.out === cp.sc)) return;   // keine Rückkopplung über den eigenen Bus
       q.vol.connect(n.comp, 0, 1);
     });
+    g.fxn = g.tr.concat(g.grp.filter(Boolean)).reduce((a, n) => n.ins ? a.concat(n.ins.wk) : a, []);   // Worklets mit Zeitleiste (Chorus/Tremolo)
     applyAll(g, proj);
     return g;
   }
@@ -158,6 +164,7 @@ const Engine = (() => {
     if (!(autoOk && t.auto && t.auto.vol && t.auto.vol.length && st.playing)) P2(n.vol.gain, db2g(t.vol != null ? t.vol : 0));
     P2(n.mute.gain, on ? 1 : 0);
     P2(n.sR.gain, (fx.rev || 0) / 100); P2(n.sD.gain, (fx.dly || 0) / 100);
+    if (n.ins) Ins.apply(n.ins, t, g.c, smooth);
   }
   function applyTrack(g, proj, i, smooth) { const S = soloState(proj), t = proj.tracks[i]; if (!t) return; applyChan(g, g.tr[i], t, S.tr(t), smooth, true); applyGroups(g, proj, smooth, S); }
   function applyGroups(g, proj, smooth, S) { S = S || soloState(proj); (proj.groups || []).forEach((b, j) => { if (g.grp[j]) applyChan(g, g.grp[j], b, S.grp(b), smooth, false); }); }
@@ -171,21 +178,24 @@ const Engine = (() => {
   function applyAll(g, proj) { const S = soloState(proj); proj.tracks.forEach((t, i) => applyChan(g, g.tr[i], t, S.tr(t), false, true)); applyGroups(g, proj, false, S); applyMaster(g, proj); }
   function build() {
     if (!ctx || !node || !P) return;
-    if (G) { try { G.tr.concat(G.grp.filter(Boolean)).forEach(n => { n.inN.disconnect(); n.mute.disconnect(); if (n.comp.sc) { n.eq.output.disconnect(); n.comp.disconnect(); n.comp.port.postMessage('end'); } }); G.master.mVol.disconnect(); G.master.mIn.disconnect(); } catch (e) {} try { node.disconnect(); } catch (e) {} }
-    G = makeGraph(ctx, P, node);
+    if (G) { try { G.tr.concat(G.grp.filter(Boolean)).forEach(n => { n.inN.disconnect(); n.mute.disconnect(); if (n.comp.sc) { n.eq.output.disconnect(); n.comp.disconnect(); n.comp.port.postMessage('end'); } if (n.ins) Ins.tear(n.ins); }); G.master.mVol.disconnect(); G.master.mIn.disconnect(); } catch (e) {} try { node.disconnect(); } catch (e) {} }
+    G = makeGraph(ctx, P, node, st.playing ? { play: { pos: curPos(), at: Math.round(ctx.currentTime * ctx.sampleRate) }, cyc: cycMsg() } : { cyc: cycMsg() });
     if (window.Inst) Inst.attach(G);
   }
   // ---------- Feeder ----------
   const regEnd = r => r.start + r.len;
   async function blockData(proj, ti, k) {
-    const t = proj.tracks[ti], a = k * B, b = a + B; let L = null, R = null;
+    const t = proj.tracks[ti], a = k * B, b = a + B, pcOn = !!(t.fx && t.fx.pc && t.fx.pc.on); let L = null, R = null;
     for (const r of proj.regions) {
       if (r.track !== t.id || r.kind !== 'audio' || r.muted) continue;
       const s = Math.max(a, r.start), e = Math.min(b, regEnd(r)); if (e <= s) continue;
       if (!L) { L = new Float32Array(B); R = new Float32Array(B); }
       const g = db2g(r.gain || 0), fi = r.fi || 0, fo = r.fo || 0;
       if (r.takes && r.takes.length) { await takeData(proj, r, s, e, a, L, R, g, fi, fo); continue; }
-      const d = await SDB.read(r.audio, r.offset + (s - r.start), e - s);
+      let aid = r.audio, ao = r.offset + (s - r.start);
+      // v122: Tonhöhenkorrektur an → vorberechnete Fassung (nur wenn sie zu dieser Quelle und diesem Ausschnitt passt)
+      if (pcOn && r.pc && r.pc.src === r.audio && ao >= r.pc.o0 && ao + (e - s) <= r.pc.o0 + r.pc.n) { aid = r.pc.audio; ao -= r.pc.o0; }
+      const d = await SDB.read(aid, ao, e - s);
       for (let f = s; f < e; f++) {
         let w = g; const p = f - r.start;
         if (fi && p < fi) w *= Math.sin(Math.PI / 2 * p / fi);
@@ -283,11 +293,12 @@ const Engine = (() => {
     const at = ctx.currentTime + 0.12; st.t0 = at; st.pos0 = st.pos; st.playing = true;
     node.port.postMessage({ t: 'cycle', on: !!(P.cycle && P.cycle.on && P.cycle.b > P.cycle.a), a: P.cycle ? P.cycle.a : 0, b: P.cycle ? P.cycle.b : 0 });
     node.port.postMessage({ t: 'play', pos: st.pos, at: Math.round(at * ctx.sampleRate) });
+    fxPost(cycMsg()); fxPost({ t: 'play', pos: st.pos, at: Math.round(at * ctx.sampleRate) });
     if (window.Sched) Sched.start(st.pos, at);
     clearInterval(timer); timer = setInterval(() => { feed(); listeners.tick.forEach(f => f()); }, 90);
   }
   function stop() {
-    if (!st.playing) return; st.pos = curPos(); st.playing = false; node && node.port.postMessage({ t: 'stop' });
+    if (!st.playing) return; st.pos = curPos(); st.playing = false; node && node.port.postMessage({ t: 'stop' }); fxPost({ t: 'stop' });
     if (window.Sched) Sched.stop(); clearInterval(timer); timer = null; listeners.tick.forEach(f => f());
     if (G) applyAll(G, P);
   }
@@ -296,7 +307,9 @@ const Engine = (() => {
     st.pos = Math.max(0, Math.round(pos)); if (node) node.port.postMessage({ t: 'seek', pos: st.pos });
     if (was) await play(); else { feed(); listeners.tick.forEach(f => f()); }
   }
-  function setCycle() { if (node && P) node.port.postMessage({ t: 'cycle', on: !!(P.cycle && P.cycle.on && P.cycle.b > P.cycle.a), a: P.cycle ? P.cycle.a : 0, b: P.cycle ? P.cycle.b : 0 }); if (st.playing && window.Sched) Sched.resync(); feed(); }
+  const cycMsg = () => ({ t: 'cycle', on: !!(P && P.cycle && P.cycle.on && P.cycle.b > P.cycle.a), a: P && P.cycle ? P.cycle.a : 0, b: P && P.cycle ? P.cycle.b : 0 });
+  const fxPost = m => { if (G && G.fxn) G.fxn.forEach(w => { try { w.port.postMessage(m); } catch (e) {} }); };
+  function setCycle() { if (node && P) { node.port.postMessage({ t: 'cycle', on: !!(P.cycle && P.cycle.on && P.cycle.b > P.cycle.a), a: P.cycle ? P.cycle.a : 0, b: P.cycle ? P.cycle.b : 0 }); fxPost(cycMsg()); } if (st.playing && window.Sched) Sched.resync(); feed(); }
   function setProject(p) { stop(); P = p; st.pos = 0; sent.clear(); ver++; if (node) { node.port.postMessage({ t: 'clear' }); build(); } }
   // Pegel: Spur (Analyser, nach Fader) – Spitze 0…1
   const tbuf = new Float32Array(512);
@@ -306,6 +319,6 @@ const Engine = (() => {
   function masterLevel() { if (!G) return 0; G.master.meter.getFloatTimeDomainData(mbuf); let m = 0; for (let k = 0; k < 1024; k += 2) { const v = Math.abs(mbuf[k]); if (v > m) m = v; } return m; }
   return {
     ac, ensure, play, stop, seek, curPos, setProject, dirty, setCycle, level, groupLevel, masterLevel, makeGraph, applyTrack: (i, s) => G && applyTrack(G, P, i, s), applyMaster: () => G && applyMaster(G, P),
-    applyAll: () => G && applyAll(G, P), compSegs, SC_OK, blockData, B, MAXT, WORKLET_SRC, get graph() { return G; }, get playing() { return st.playing; }, get project() { return P; }, on: (ev, f) => listeners[ev].push(f), sr: () => ac().sampleRate, st
+    applyAll: () => G && applyAll(G, P), compSegs, SC_OK, blockData, B, MAXT, get WORKLET_SRC() { return wsrc(); }, get graph() { return G; }, get playing() { return st.playing; }, get project() { return P; }, on: (ev, f) => listeners[ev].push(f), sr: () => ac().sampleRate, st
   };
 })();

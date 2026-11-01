@@ -13,7 +13,8 @@ const Mix = (() => {
     for (let i = 0; i < FR.length; i++) { const x = i / (FR.length - 1) * w, y = h / 2 - Math.max(-18, Math.min(18, r[i])) / 18 * (h / 2 - 3); i ? g.lineTo(x, y) : g.moveTo(x, y); } g.stroke();
   }
   const dbTxt = v => (v > 0 ? '+' : '') + (Math.round(v * 10) / 10).toString().replace('.', ',') + ' dB';
-  const fx2 = t => { const f = t.fx || {}; return [['comp', 'Kompressor', f.comp && f.comp.on], ['sat', 'Sättigung', f.sat && f.sat.on], ['rev', 'Hall ' + (f.rev || 0) + ' %', (f.rev || 0) > 0], ['dly', 'Delay ' + (f.dly || 0) + ' %', (f.dly || 0) > 0]]; };
+  const fx2 = t => { const f = t.fx || {}, ins = [['amp', 'Amp'], ['cho', 'Chorus'], ['trem', 'Tremolo'], ['pc', 'Tonhöhe']].filter(([k]) => f[k] && f[k].on).map(([k, n]) => [k, n, true]);   // v122: eingeschaltete Inserts als eigene Felder
+    return ins.concat([['comp', 'Kompressor', f.comp && f.comp.on], ['sat', 'Sättigung', f.sat && f.sat.on], ['rev', 'Hall ' + (f.rev || 0) + ' %', (f.rev || 0) > 0], ['dly', 'Delay ' + (f.dly || 0) + ' %', (f.dly || 0) > 0]]); };
   // v121: Ausgang je Spur (Master oder Bus 1…4)
   const outSel = (P, t) => '<select class="out" data-a="out" aria-label="Ausgang ' + esc(t.name) + '"><option value="master">→ Master</option>' + [1, 2, 3, 4].map(k => { const g = (P.groups || []).find(x => x.id === 'g' + k); return '<option value="g' + k + '"' + (t.out === 'g' + k ? ' selected' : '') + '>→ ' + esc(g ? g.name : 'Bus ' + k + ' (neu)') + '</option>'; }).join('') + '</select>';
   const chan = id => Proj.chan(id);
@@ -93,7 +94,9 @@ const Mix = (() => {
   }
   // ---- Effekte je Spur ----
   function fxDlg(id) {
-    const i = Proj.tIndex(id), t = chan(id), f = t.fx, before = JSON.stringify(f), P = Proj.P, apply = () => { if (i >= 0) Engine.applyTrack(i, true); else Engine.applyAll(); };
+    const i = Proj.tIndex(id), t = chan(id), f = t.fx, before = JSON.stringify(f), P = Proj.P, isAud = i >= 0 && t.kind === 'audio';
+    if (window.Ins) { const hadPc = !!f.pc; Ins.ensure(f); if (!hadPc) { const k = Ins.keyFromProject(); if (k) Object.assign(f.pc, k); } }   // v122: Inserts (fehlende Felder nur im Fenster, beim Schließen wieder weg)
+    const apply = () => { if (i >= 0) Engine.applyTrack(i, true); else Engine.applyAll(); };
     // v121: Sidechain-Quellen – andere Spuren und Busse (nicht der eigene Ausgangsbus)
     const scOpts = '<option value="">aus (eigenes Signal)</option>' + P.tracks.filter(x => x.id !== id).map(x => '<option value="' + x.id + '"' + (f.comp.sc === x.id ? ' selected' : '') + '>Spur: ' + esc(x.name) + '</option>').join('') + (P.groups || []).filter(g => g.id !== id && g.id !== t.out).map(g => '<option value="' + g.id + '"' + (f.comp.sc === g.id ? ' selected' : '') + '>' + esc(g.name) + '</option>').join('');
     const sl = (k, n, min, max, step, v, u) => '<label>' + n + ' <b data-o="' + k + '">' + v + (u || '') + '</b></label><input type="range" data-k="' + k + '" min="' + min + '" max="' + max + '" step="' + step + '" value="' + v + '" data-u="' + (u || '') + '">';
@@ -101,7 +104,7 @@ const Mix = (() => {
       '<div class="card"><label style="color:var(--ink)"><b>Kompressor</b><input type="checkbox" data-k="comp.on"' + (f.comp.on ? ' checked' : '') + '></label>' + sl('comp.th', 'Schwelle', -50, 0, 1, f.comp.th, ' dB') + sl('comp.ratio', 'Verhältnis', 1, 20, 0.5, f.comp.ratio, ':1') + sl('comp.att', 'Ansprechzeit', 1, 100, 1, f.comp.att, ' ms') + sl('comp.rel', 'Abklingzeit', 20, 800, 10, f.comp.rel, ' ms') + sl('comp.mk', 'Aufholen', 0, 18, 0.5, f.comp.mk, ' dB') + '<label>Sidechain (steuert die Absenkung)</label><select id="fxSc" aria-label="Sidechain-Quelle">' + scOpts + '</select><p class="note">z. B. Bass duckt bei der Kick: beim Bass Kompressor an, Sidechain = Drum-Spur.</p></div>' +
       '<div class="card"><label style="color:var(--ink)"><b>Sättigung (Röhre/Band)</b><input type="checkbox" data-k="sat.on"' + (f.sat.on ? ' checked' : '') + '></label>' + sl('sat.drive', 'Stärke', 0, 100, 1, f.sat.drive, ' %') + '</div>' +
       '<div class="card"><b>Sends</b>' + sl('rev', 'Hall', 0, 100, 1, f.rev || 0, ' %') + sl('dly', 'Delay', 0, 100, 1, f.dly || 0, ' %') + '<p class="note">Hall und Delay sind gemeinsame Busse – einstellen beim Master („Hall · Delay“).</p></div>' +
-      '</div><div class="btns"><button class="btn" data-pre="vocal">Vorlage Gesang</button><button class="btn" data-pre="git">Vorlage Gitarre</button><button class="btn" data-pre="bass">Vorlage Bass</button><button class="btn" data-pre="drums">Vorlage Drums</button><button class="btn" data-pre="off">Alles aus</button><span style="flex:1"></span><button class="btn p" data-close>Fertig</button></div>');
+      (window.Ins ? Ins.cards(t, isAud) : '') + '</div><div class="btns"><button class="btn" data-pre="vocal">Vorlage Gesang</button><button class="btn" data-pre="git">Vorlage Gitarre</button><button class="btn" data-pre="bass">Vorlage Bass</button><button class="btn" data-pre="drums">Vorlage Drums</button><button class="btn" data-pre="off">Alles aus</button><span style="flex:1"></span><button class="btn p" data-close>Fertig</button></div>');
     const dlg = $('dlg');
     const setK = (k, v) => { const [a, b] = k.split('.'); if (b) f[a][b] = v; else f[a] = v; };
     const show = () => dlg.querySelectorAll('[data-k]').forEach(el => { const [a, b] = el.dataset.k.split('.'), v = b ? f[a][b] : f[a]; if (el.type === 'checkbox') el.checked = !!v; else { el.value = v; const o = dlg.querySelector('[data-o="' + el.dataset.k + '"]'); if (o) o.textContent = v + el.dataset.u; } });
@@ -110,6 +113,7 @@ const Mix = (() => {
     const PRE = { vocal: { comp: { on: true, th: -20, ratio: 3, att: 8, rel: 140, mk: 4 }, sat: { on: true, drive: 15 }, rev: 22, dly: 10 }, git: { comp: { on: true, th: -16, ratio: 2.5, att: 15, rel: 160, mk: 2 }, sat: { on: true, drive: 25 }, rev: 15, dly: 0 },
       bass: { comp: { on: true, th: -22, ratio: 4, att: 20, rel: 200, mk: 5 }, sat: { on: true, drive: 30 }, rev: 0, dly: 0 }, drums: { comp: { on: true, th: -14, ratio: 3, att: 25, rel: 100, mk: 3 }, sat: { on: true, drive: 20 }, rev: 10, dly: 0 }, off: { comp: { on: false, th: -18, ratio: 3, att: 10, rel: 120, mk: 0 }, sat: { on: false, drive: 30 }, rev: 0, dly: 0 } };
     dlg.addEventListener('click', e => { const b = e.target.closest('[data-pre]'); if (!b) return; const p = JSON.parse(JSON.stringify(PRE[b.dataset.pre])); p.comp.sc = f.comp.sc || ''; Object.assign(f, p); show(); Engine.dirty(true); });
+    if (window.Ins) Ins.bind(dlg, t, id, isAud);
     UI.onClose(() => { const now = JSON.stringify(f); if (now !== before) { const v = JSON.parse(now); t.fx = JSON.parse(before); Proj.change('mix', p => { (p.tracks.find(x => x.id === id) || p.groups.find(x => x.id === id)).fx = v; }); Engine.dirty(true); } render(); });
   }
   function busDlg() {
