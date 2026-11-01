@@ -1585,6 +1585,11 @@ html.sig-open .control-bar { visibility: hidden; }   /* Kopfleiste liegt sonst �
   .sb-row { padding: 4px 0 8px; }
   /* v95: Pausen ohne Balken – nur die Sekunden bis zum Einsatz */
   .sb-gap .sb-gaptrack, .sb-gap.on .sb-gaptrack, .sb-gapbar { display: none !important; }
+  /* v124: Karaoke – Knopf, Tonhöhe des Originalgesangs (feste Breite, nichts springt) */
+  .sb-kara { min-height: 40px; }
+  .sb-kara #sbKara.active { border-color: var(--accent); color: var(--accent); }
+  .sb-pitch { display: inline-block; min-width: 9.5em; font: 700 1.05rem var(--f-mono); color: var(--accent); white-space: nowrap; }
+  .sb-pitch:empty { min-width: 0; }
 /* v97 Mastering */
 #panel-master .ms-fields { display: flex; flex-wrap: wrap; gap: 10px 14px; margin: 10px 0; }
 #panel-master .ms-fields .field { min-width: 0; }
@@ -3867,7 +3872,49 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
   'Zum Looper': 'To the looper',
   'Fortschritt aller Übungen zurücksetzen?': 'Reset the progress of all exercises?',
   'Im Looper sind schon Aufnahmen. Durch den Übe-Loop ersetzen?': 'The looper already has recordings. Replace them with the practice loop?',
-  'Powerchords: ': 'Power chords: '
+  'Powerchords: ': 'Power chords: ',
+  // v124: Gesang trennen, Karaoke
+  "Gesang trennen": "Separate vocals",
+  "Karaoke ✓": "Karaoke mode ✓",
+  "Karaoke": "Karaoke mode",
+  "Gesang trennen ging nicht: ": "Separating vocals failed: ",
+  "Spielt die Begleitung ohne Gesang – antippen für das Original": "Plays the backing without vocals – tap for the original",
+  "Antippen: Begleitung ohne Gesang spielen": "Tap: play the backing without vocals",
+  "Gesang und Begleitung trennen (lädt beim ersten Mal einmalig ca. 79 MB)": "Separate vocals and backing (downloads about 79 MB once, the first time)",
+  "Karaoke – Begleitung ohne Gesang.": "Karaoke – backing without vocals.",
+  "Original mit Gesang.": "Original with vocals.",
+  "trenne Gesang und Begleitung …": "separating vocals and backing …",
+  "Gesang trennen abgebrochen.": "Vocal separation cancelled.",
+  "Die Spur hat sich inzwischen geändert – bitte noch einmal trennen.": "The track has changed in the meantime – please separate again.",
+  "Gesang (in der App getrennt)": "Vocals (separated in the app)",
+  "Gesang getrennt in ": "Vocals separated in ",
+  "„Karaoke“ spielt jetzt die Begleitung": "“Karaoke” now plays the backing",
+  "der Gesang liegt auf Spur ": "the vocals are on track ",
+  "beide als Ideen gespeichert": "both saved as ideas",
+  "Es wird schon getrennt …": "Already separating …",
+  "Es wird schon getrennt.": "Already separating.",
+  "Gesang trennen lädt beim ersten Mal einmalig etwa ": "Separating vocals downloads about ",
+  " MB (zwei Modelle). Danach geht es auch ohne Internet. Jetzt laden?": " MB once (two models). After that it also works offline. Download now?",
+  "Bereite vor …": "Preparing …",
+  "Rechne auf 44,1 kHz um …": "Converting to 44.1 kHz …",
+  "Der Hintergrund-Rechner ist abgestürzt (zu wenig Speicher?).": "The background worker crashed (not enough memory?).",
+  "Lade Modell ": "Loading model ",
+  "„Gesang“": "“vocals”",
+  "„Begleitung“": "“backing”",
+  "Suche den Gesang …": "Finding the vocals …",
+  "Suche die Begleitung …": "Finding the backing …",
+  "Setze die Spuren zusammen …": "Putting the tracks together …",
+  "Fertig.": "Done.",
+  "Gesang herauslösen (in der App)": "Extract vocals (in the app)",
+  "Gesangsspur in der App herausgelöst – sie wird jetzt für Stimmkurve, Einrasten und Erkennung benutzt.": "Vocal track extracted in the app – it is now used for the voice curve, snapping and recognition.",
+  "Spielt die Begleitung ohne Originalgesang (trennt beim ersten Mal den Gesang in der App).": "Plays the backing without the original vocals (separates the vocals in the app the first time).",
+  "Erst ein Lied in den Looper laden (oder abspielen).": "Load (or play) a song in the looper first.",
+  "Trenne den Gesang …": "Separating the vocals …",
+  "Karaoke an – die Begleitung läuft ohne Gesang. Unter dem Text steht, welchen Ton das Original gerade singt.": "Karaoke on – the backing plays without vocals. Next to the button you see which note the original is singing.",
+  "🎤 Karaoke ✓": "🎤 Karaoke mode ✓",
+  "🎤 Karaoke": "🎤 Karaoke mode",
+  "Original: ": "Original: ",
+  "Original: –": "Original: –"
 });
 window.__EN_PAT.push(
   [/^Schritt (\d+) von (\d+)$/, 'Step $1 of $2'],
@@ -3982,7 +4029,7 @@ window.__EN_PAT.push(
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v123</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v124</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -5319,6 +5366,7 @@ E|--0--|   E|--x--|   E|--x--|</pre>
         <div class="sb-scroll" id="sbScroll"><div class="sb-list" id="sbList"></div></div>
         <p class="sb-next" id="sbNext" hidden></p>
       </div>
+      <div class="sb-tools sb-kara"><button class="toggle-btn" id="sbKara" aria-pressed="false">🎤 Karaoke</button><span class="sb-pitch" id="sbPitch" translate="no" aria-live="off"></span><span class="caption" id="sbKaraInfo">Spielt die Begleitung ohne Originalgesang (trennt beim ersten Mal den Gesang in der App).</span></div>
       <p class="sb-empty caption" id="sbEmpty">Spiel einen Song aus dem Songwriting oder einen Loop aus einer geladenen Datei ab, dessen Gesangstext ein Timing hat (Improvisation → „🎤 Gesangstext“).</p>
     </div>
     <div class="card">
@@ -11357,6 +11405,94 @@ const Looper = (() => {
     b.addEventListener('click', () => document.dispatchEvent(new CustomEvent('looper-studio', { detail: t.i })));
   });
   setInterval(() => tracks.forEach(t => { if (!t.L) t.srcName = ''; const v = t.srcName || ''; if (t.srcEl && t.srcEl.textContent !== v) { t.srcEl.textContent = v; t.srcEl.title = v ? T('Geladen aus der Idee ') + '„' + t.srcName + '“' : ''; } }), 700);
+  // ---- v124: „Gesang trennen“ je Spur (Spleeter im Worker, erst bei Bedarf geladen) und „Karaoke“ (Begleitung statt Original) ----
+  tracks.forEach(t => {
+    const sb = $('studiob' + t.i); if (!sb) return;
+    const b = document.createElement('button'); b.className = 'eq-btn sep-btn'; b.id = 'sepb' + t.i; b.hidden = true; b.textContent = T('Gesang trennen');
+    sb.insertAdjacentElement('afterend', b); t.sepB = b;
+    b.addEventListener('click', () => { if (karaValid(t)) karaoke(t, !t.kara.on); else sepTrack(t).catch(err => setStatus(T('Gesang trennen ging nicht: ') + (err && err.message || err))); });
+  });
+  function karaValid(t) {
+    const k = t.kara; if (!k) return false;
+    if (t.L !== k.L || !t.layers.length || (t.layers[0] !== k.acc && t.layers[0] !== k.orig)) { t.kara = null; return false; }
+    return true;
+  }
+  function paintSep(t) {
+    const b = t.sepB; if (!b) return;
+    const hide = !t.L || !!(rec && rec.t === t); if (b.hidden !== hide) b.hidden = hide;
+    const k = karaValid(t), on = k && t.kara.on, txt = k ? (on ? T('Karaoke ✓') : T('Karaoke')) : T('Gesang trennen');
+    if (b.textContent !== txt) b.textContent = txt;
+    b.classList.toggle('active', !!on); b.setAttribute('aria-pressed', String(!!on));
+    const tt = k ? (on ? T('Spielt die Begleitung ohne Gesang – antippen für das Original') : T('Antippen: Begleitung ohne Gesang spielen')) : T('Gesang und Begleitung trennen (lädt beim ersten Mal einmalig ca. 79 MB)');
+    if (b.title !== tt) b.title = tt;
+  }
+  setInterval(() => tracks.forEach(paintSep), 700);
+  // Karaoke an/aus: erste Ebene der Spur durch die Begleitung ersetzen (Überdubs bleiben), läuft ohne Unterbrechung weiter
+  function karaoke(t, on) {
+    if (!karaValid(t)) return false;
+    const k = t.kara; on = !!on; if (k.on === on && t.layers[0] === (on ? k.acc : k.orig)) { paintSep(t); return true; }
+    const off0 = !!t.layers[0].off; t.layers[0] = on ? k.acc : k.orig; t.layers[0].off = off0; k.on = on; rebuildMix(t);
+    if (t.src) startTrack(t);
+    paintSep(t); update();
+    setStatus(T('Spur ') + (t.i + 1) + ': ' + (on ? T('Karaoke – Begleitung ohne Gesang.') : T('Original mit Gesang.')));
+    document.dispatchEvent(new CustomEvent('karaoke', { detail: { track: t.i, on } }));
+    return true;
+  }
+  // Spur-Ausschnitt wie placeExcerpt (Takt-Anfang start, Länge Ldet, die letzten „pre“ Bilder kommen von vor dem Anfang)
+  function segVal(a, start, Ldet, pre, i) {
+    if (i >= Ldet) return 0;
+    if (i < Ldet - pre) { const p = start + i; return p >= 0 && p < a.length ? a[p] : 0; }
+    return a[start - pre + i - (Ldet - pre)];
+  }
+  function excerptOf(t) {   // passt die erste Ebene unverändert zur Originaldatei? → { start, Ldet, pre }
+    const o = t.orig, ly = t.layers[0]; if (!o || !o.data || t.origPos == null || !ly) return null;
+    const a = o.data.l || o.data, start = t.origPos, pre = Math.max(0, Math.min(start, Math.round(sr * 0.01))), L = ly.length;
+    for (const Ldet of [L, L - 1, L + 1, L - 2, L + 2]) {
+      if (Ldet <= pre) continue; let ok = true;
+      for (let k = 0; k < 600 && ok; k++) { const i = k < 500 ? Math.floor(k * (L - 1) / 499) : L - 1 - (k - 500); if (i < 0 || i >= L) continue; if (Math.abs(ly.l[i] - segVal(a, start, Ldet, pre, i)) > 1e-6) ok = false; }
+      if (ok) return { start, Ldet, pre };
+    }
+    return null;
+  }
+  const buildSeg = (x, ex, L) => { const f = a => { const g = new Float32Array(L); for (let i = 0; i < L; i++) g[i] = segVal(a, ex.start, ex.Ldet, ex.pre, i); return g; }; const l = f(x.l); return SP(l, x.r && x.r !== x.l ? f(x.r) : null); };
+  async function sepTrack(t, opts) {
+    opts = opts || {};
+    if (typeof t === 'number') t = tracks[t];
+    if (!t || !t.L || !t.layers.length || !window.Sep) return null;
+    if (Sep.busy()) { setStatus(T('Es wird schon getrennt …')); return null; }
+    if (rec && rec.t === t) return null;
+    const ly0 = t.layers[0], L0 = t.L, ex = excerptOf(t);
+    // Quelle: die ganze Datei, wenn die Spur sie unverändert abspielt (dann bekommt auch der Gesangstext-Editor die Gesangsspur), sonst die Spur selbst
+    const src = ex ? t.orig.data : ly0, name = String((ex && t.orig.name) || t.srcName || (T('Spur ') + (t.i + 1))).replace(/\.[a-z0-9]{2,4}$/i, '');
+    setStatus(T('Spur ') + (t.i + 1) + ': ' + T('trenne Gesang und Begleitung …'));
+    const res = await Sep.run({ l: src.l || src, r: src.r || null }, sr, { title: T('Gesang trennen') + ' – ' + name });
+    if (!res) { setStatus(T('Gesang trennen abgebrochen.')); return null; }
+    if (t.layers[0] !== ly0 || t.L !== L0) { setStatus(T('Die Spur hat sich inzwischen geändert – bitte noch einmal trennen.')); return null; }
+    const mono = !(src.r && src.r !== src.l);
+    const mk = x => mono ? { l: x.l, r: x.l } : x;
+    const acc = ex ? buildSeg(mk(res.acc), ex, L0) : SP(res.acc.l, mono ? null : res.acc.r);
+    t.kara = { orig: ly0, acc, L: L0, on: false, name };
+    karaoke(t, true);
+    // Gesang auf eine freie Spur (angehalten – mit dem Fußtaster oder ▶ starten)
+    let free = null;
+    if (opts.vocTrack !== false) {
+      free = tracks.find(o => o !== t && !o.L && !(rec && rec.t === o));
+      if (free) { const voc = ex ? buildSeg(mk(res.voc), ex, L0) : SP(res.voc.l, mono ? null : res.voc.r); stopSrc(free); free.layers = [voc]; free.L = L0; free.hist = []; rebuildMix(free); free.state = 'stopped'; free.srcName = name + ' · ' + T('Gesang'); }
+    }
+    // Beide Ergebnisse als Ideen ablegen (für Studio, Teilen, späteres Laden)
+    let saved = 0;
+    try {
+      const now = new Date(), base = { v: 2, ts: now.getTime(), dateStr: now.toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' }), root: rootSel.value, mode: modeSel.value, bpm: parseFloat($('bpm').value), secs: res.voc.l.length / sr, cat: 'idee' };
+      for (const [k, x] of [['voc', res.voc], ['acc', res.acc]]) { await AppDB.put('ideas', Object.assign({ id: newId(), name: name + ' · ' + (k === 'voc' ? T('Gesang') : T('Begleitung')), wav: Sep.wav(mk(x), sr), sep: k }, base)); saved++; }
+      document.dispatchEvent(new CustomEvent('ideas-refresh'));
+    } catch (e) {}
+    // Gesangstext-Editor/Mitsingen: Gesangsspur dieser Datei (statt Moises)
+    let vox = false;
+    if (ex && window.Sing && Sing.setVoxTrack) { try { vox = await Sing.setVoxTrack(t.i, Sep.wav({ l: res.voc.r && res.voc.r !== res.voc.l ? Float32Array.from(res.voc.l, (v, i) => (v + res.voc.r[i]) * 0.5) : res.voc.l }, sr), name + ' · ' + T('Gesang (in der App getrennt)')); } catch (e) {} }
+    setStatus(T('Spur ') + (t.i + 1) + ': ' + T('Gesang getrennt in ') + Math.round(res.ms / 100) / 10 + ' s. ' + T('„Karaoke“ spielt jetzt die Begleitung') + (free ? ', ' + T('der Gesang liegt auf Spur ') + (free.i + 1) : '') + (saved ? '; ' + T('beide als Ideen gespeichert') : '') + '.');
+    update();
+    return { track: t.i, vocTrack: free ? free.i : null, saved, vox, ms: res.ms, workerMs: res.workerMs, whole: !!ex };
+  }
   // Export: Hall/Echo wie gehört dazurechnen – kreisförmig (der Ausklang am Loop-Ende läuft am Anfang weiter, nahtlos)
   async function fxRender(x, fx, srate) {
     if (!fx || (!fx.rev && !fx.dly)) return x;
@@ -14824,7 +14960,7 @@ return true;}}registerProcessor('loadmeter',LoadMeter);`;
     _micKill: () => { if (stream) stream.getTracks().forEach(tr => tr.stop()); },
     _micDrop: () => { if (stream) stream.getAudioTracks()[0].dispatchEvent(new Event('ended')); },
     themeChanged: () => readNeon(), _zip: files => makeZip(files),
-    _mem: () => memState(), setLive: v => setLive(v), edPedal: id => edPedal(id), _edClip: () => edClip, _edMove: (on) => setMove(on), _edClick: () => ({ on: edClick, next: clkNext }), _grid: sub => ed.t ? gridPoints(sub) : [], _firstTone: i => firstTone(tracks[i]), _anchor: () => anchor, _setTrackRaw: (i, l) => { const t = tracks[i]; t.L = l.length; t.layers = [SP(l)]; rebuildMix(t); t.state = 'stopped'; update(); return true; }, _edSel: (a, b) => { if (ed.t) { ed.s = a; ed.e = b; edInfo(); } }, _trim: () => ed.t && trimTo(ed.s, ed.e, 'zugeschnitten'), _mixOf: i => tracks[i].mix, _ed: () => ed.t ? { s: ed.s, e: ed.e, h: ed.h, L: ed.t.L, zoom: ed.zoom, full: edEl.classList.contains('ed-full'), loop: !!ed.loop, onsets: trackOnsets(ed.t).length } : null, _onsets: i => tracks[i] && tracks[i].L ? trackOnsets(tracks[i]) : [],
+    _mem: () => memState(), setLive: v => setLive(v), edPedal: id => edPedal(id), _edClip: () => edClip, _edMove: (on) => setMove(on), _edClick: () => ({ on: edClick, next: clkNext }), _grid: sub => ed.t ? gridPoints(sub) : [], _firstTone: i => firstTone(tracks[i]), _anchor: () => anchor, sepTrack: (i, o) => sepTrack(i, o), karaoke: (i, on) => karaoke(tracks[i], on), kara: i => { const t = tracks[i]; return t && karaValid(t) ? { on: t.kara.on, name: t.kara.name } : null; }, _mixOfL: i => tracks[i] && tracks[i].mix ? tracks[i].mix : null, _setTrackRaw: (i, l) => { const t = tracks[i]; t.L = l.length; t.layers = [SP(l)]; rebuildMix(t); t.state = 'stopped'; update(); return true; }, _edSel: (a, b) => { if (ed.t) { ed.s = a; ed.e = b; edInfo(); } }, _trim: () => ed.t && trimTo(ed.s, ed.e, 'zugeschnitten'), _mixOf: i => tracks[i].mix, _ed: () => ed.t ? { s: ed.s, e: ed.e, h: ed.h, L: ed.t.L, zoom: ed.zoom, full: edEl.classList.contains('ed-full'), loop: !!ed.loop, onsets: trackOnsets(ed.t).length } : null, _onsets: i => tracks[i] && tracks[i].L ? trackOnsets(tracks[i]) : [],
     perf: () => { let inLat = null, inSr = null; try { const st = stream && stream.getAudioTracks()[0].getSettings(); if (st) { inLat = typeof st.latency === 'number' ? st.latency : null; inSr = st.sampleRate || null; } } catch (e) {}
       const m = memState(); const r = { mic: micReady, sr, inLat, inSr, inChans, comp: parseInt(latEl.value || '0'), curMB: m.curMB, histMB: m.histMB, histMax: HIST_MB, gaps: perfIn.gaps, lagMs: perfIn.lagMs, lagMax: perfIn.lagMax, micErr: lastMicError };
       perfIn.lagMax = 0; return r; }, autosaveNow: () => doAutosave(), autosaveOn: v => { autoReady = v !== false; },
@@ -15360,6 +15496,7 @@ const Pedal = (() => {
     }
   }
 
+  document.addEventListener('ideas-refresh', () => render());   // v124: von außen gespeicherte Ideen (Gesang trennen)
   render();
   Looper.update();
 })();
@@ -16005,6 +16142,117 @@ const AppCfg = (() => {
   setTimeout(render, 300);
   window.Lieder = { save, load, render, textOf, pick };
 })();
+
+// ---- v124: Gesang trennen (Spleeter 2-Stems im Worker asr/sep-worker.js) – gemeinsam für Looper und Studio ----
+// Nichts wird geladen, bevor jemand „Gesang trennen“ antippt: kein Worker, keine Laufzeit, kein Modell.
+// Ablauf: Rückfrage beim ersten Mal (Download ~79 MB, danach im Speicher „asr-1“ wie die Whisper-Modelle) → auf 44,1 kHz →
+// Worker (Gesangsmodell, dann Begleitungsmodell, Maske, ISTFT) → Gesang zurück auf die Abtastrate → Begleitung = Original − Gesang.
+// Fortschritt in einem eigenen Fenster mit „Abbrechen“ (beendet den Worker sofort, Speicher wird frei).
+const Sep = (() => {
+  const T0 = s => (typeof T === 'function' ? T(s) : s);
+  const SIZE_MB = 79, KEY = '3nps-sep-have', SR = 44100;
+  const base = () => (/\/studio\//.test(location.pathname) ? '../' : '') + 'asr/';
+  let job = null;
+  const ls = (k, v) => { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } };
+  async function have() {
+    if (ls(KEY) === '1') return true;
+    try { if (!window.caches) return false; const c = await caches.open('asr-1'), u = new URL(base() + 'models/spleeter/onnx/', location.href).href; return !!((await c.match(u + 'vocals.onnx')) && (await c.match(u + 'accompaniment.onnx'))); } catch (e) { return false; }
+  }
+  async function resample(x, from, to) {
+    if (from === to) return { l: x.l.slice(), r: x.r && x.r !== x.l ? x.r.slice() : null };
+    const OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext, st = x.r && x.r !== x.l;
+    const n = Math.max(1, Math.round(x.l.length * to / from)), oc = new OAC(st ? 2 : 1, n, to), b = oc.createBuffer(st ? 2 : 1, x.l.length, from);
+    b.copyToChannel(x.l, 0); if (st) b.copyToChannel(x.r, 1);
+    const s = oc.createBufferSource(); s.buffer = b; s.connect(oc.destination); s.start(0);
+    const o = await oc.startRendering(); return { l: o.getChannelData(0).slice(), r: st ? o.getChannelData(1).slice() : null };
+  }
+  // ---- Fortschrittsfenster ----
+  function ui(title) {
+    let d = document.getElementById('sepDlg');
+    if (!d) {
+      d = document.createElement('div'); d.id = 'sepDlg'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-modal', 'true');
+      d.style.cssText = 'position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);padding:16px';
+      d.innerHTML = '<div style="width:min(440px,100%);background:var(--surf,#1d1f24);color:var(--ink,#eee);border:1px solid var(--line,#444);border-radius:12px;padding:16px 18px;box-shadow:0 10px 40px rgba(0,0,0,.5)">'
+        + '<b id="sepTitle" style="display:block;font-size:16px;margin-bottom:6px"></b><p id="sepTxt" style="margin:0 0 10px;font-size:13px;opacity:.85;min-height:2.6em"></p>'
+        + '<div style="height:10px;border-radius:5px;background:rgba(127,127,127,.25);overflow:hidden"><div id="sepBar" style="height:100%;width:0;background:var(--acc,#e8b04a);transition:width .25s"></div></div>'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px"><span id="sepPct" style="font-variant-numeric:tabular-nums;font-size:13px">0 %</span><button class="toggle-btn btn" id="sepStop" type="button">' + T0('Abbrechen') + '</button></div></div>';
+      document.body.appendChild(d);
+    }
+    d.hidden = false; d.style.display = 'flex';
+    document.getElementById('sepTitle').textContent = title || T0('Gesang trennen');
+    const set = (p, txt) => { if (p != null) { const v = Math.max(0, Math.min(1, p)); document.getElementById('sepBar').style.width = (v * 100).toFixed(1) + '%'; document.getElementById('sepPct').textContent = Math.floor(v * 100) + ' %'; } if (txt != null) document.getElementById('sepTxt').textContent = txt; };
+    set(0, T0('Bereite vor …'));
+    return { set, close: () => { d.hidden = true; d.style.display = 'none'; }, stop: document.getElementById('sepStop') };
+  }
+  // ---- Trennen: x = { l, r } (r darf fehlen/gleich l sein) bei Abtastrate sr → { voc: {l, r}, acc: {l, r}, ms } oder null (abgebrochen/abgelehnt)
+  async function run(x, sr, opts) {
+    opts = opts || {};
+    if (job) throw new Error(T0('Es wird schon getrennt.'));
+    const secs = x.l.length / sr;
+    if (!(await have()) && !opts.noAsk) {
+      if (!confirm(T0('Gesang trennen lädt beim ersten Mal einmalig etwa ') + SIZE_MB + T0(' MB (zwei Modelle). Danach geht es auch ohne Internet. Jetzt laden?'))) return null;
+    }
+    const u = ui(opts.title), t0 = performance.now();
+    let cancelled = false, w = null;
+    job = { cancel: () => { cancelled = true; try { w && w.terminate(); } catch (e) {} } };
+    u.stop.onclick = () => job && job.cancel();
+    try {
+      u.set(0.01, T0('Rechne auf 44,1 kHz um …'));
+      const x44 = await resample(x, sr, SR);
+      if (cancelled) return null;
+      const res = await new Promise((resolve, reject) => {
+        w = new Worker(base() + 'sep-worker.js', { type: 'module' });
+        job.reject = reject;
+        const prevCancel = job.cancel; job.cancel = () => { prevCancel(); reject(new Error('abgebrochen')); };
+        w.onerror = e => reject(new Error(e.message || T0('Der Hintergrund-Rechner ist abgestürzt (zu wenig Speicher?).')));
+        w.onmessage = e => {
+          const m = e.data;
+          if (m.type === 'progress') {
+            const txt = m.phase === 'load' ? T0('Lade Modell ') + (m.which === 'vocals' ? T0('„Gesang“') : T0('„Begleitung“')) + ' …'
+              : m.phase === 'run' ? (m.which === 'vocals' ? T0('Suche den Gesang …') : T0('Suche die Begleitung …'))
+              : T0('Setze die Spuren zusammen …');
+            u.set(m.p, txt);
+          } else if (m.type === 'status' && m.phase === 'load') u.set(null, T0('Lade Modell ') + (m.which === 'vocals' ? T0('„Gesang“') : T0('„Begleitung“')) + ' …');
+          else if (m.type === 'done') resolve(m);
+          else if (m.type === 'error') reject(new Error(m.msg));
+        };
+        let gpu = false; try { gpu = ls('3nps-sep-gpu') === '1' && !!navigator.gpu; } catch (e) {}
+        w.postMessage({ type: 'run', l: x44.l, r: x44.r, gpu }, x44.r ? [x44.l.buffer, x44.r.buffer] : [x44.l.buffer]);
+      });
+      try { w.terminate(); } catch (e) {} w = null;
+      ls(KEY, '1');
+      if (cancelled) return null;
+      u.set(0.97, T0('Setze die Spuren zusammen …'));
+      // Gesang zurück auf die Abtastrate des Liedes; Begleitung = Original − Gesang (zusammen wieder genau das Original)
+      const v = await resample({ l: res.l, r: res.r }, SR, sr), n = x.l.length;
+      const xr = x.r && x.r !== x.l ? x.r : null;
+      const vl = new Float32Array(n), al = new Float32Array(n); vl.set(v.l.subarray(0, Math.min(n, v.l.length)));
+      for (let i = 0; i < n; i++) al[i] = x.l[i] - vl[i];
+      let vr = vl, ar = al;
+      if (xr) { vr = new Float32Array(n); const s = v.r || v.l; vr.set(s.subarray(0, Math.min(n, s.length))); ar = new Float32Array(n); for (let i = 0; i < n; i++) ar[i] = xr[i] - vr[i]; }
+      u.set(1, T0('Fertig.'));
+      return { voc: { l: vl, r: vr }, acc: { l: al, r: ar }, ms: Math.round(performance.now() - t0), workerMs: res.ms };
+    } catch (err) {
+      if (cancelled || /abgebrochen/.test(String(err && err.message))) return null;
+      throw err;
+    } finally {
+      try { w && w.terminate(); } catch (e) {}
+      job = null; setTimeout(() => u.close(), 250);
+    }
+  }
+  // WAV (16 Bit, Mono oder Stereo) – für Ideen und die Gesangsspur im Editor
+  function wav(x, sr) {
+    const st = x.r && x.r !== x.l, ch = st ? 2 : 1, n = x.l.length, buf = new ArrayBuffer(44 + n * ch * 2), dv = new DataView(buf);
+    const wr = (o, s) => { for (let i = 0; i < s.length; i++) dv.setUint8(o + i, s.charCodeAt(i)); };
+    wr(0, 'RIFF'); dv.setUint32(4, 36 + n * ch * 2, true); wr(8, 'WAVE'); wr(12, 'fmt '); dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, ch, true);
+    dv.setUint32(24, sr, true); dv.setUint32(28, sr * ch * 2, true); dv.setUint16(32, ch * 2, true); dv.setUint16(34, 16, true); wr(36, 'data'); dv.setUint32(40, n * ch * 2, true);
+    const pcm = new Int16Array(buf, 44), q = v => { v = v > 1 ? 1 : v < -1 ? -1 : v; return Math.round(v * 32767); };
+    if (st) for (let i = 0, o = 0; i < n; i++, o += 2) { pcm[o] = q(x.l[i]); pcm[o + 1] = q(x.r[i]); } else for (let i = 0; i < n; i++) pcm[i] = q(x.l[i]);
+    return new Blob([buf], { type: 'audio/wav' });
+  }
+  return { run, have, wav, busy: () => !!job, cancel: () => job && job.cancel(), SIZE_MB };
+})();
+window.Sep = Sep;
 
 </script>
 <script>
@@ -18495,7 +18743,7 @@ const Sing = (() => {
     if (src.kind === 'file') h += '<div class="sg-vox"><b>⇄ ' + T('Austausch') + '</b><button class="toggle-btn" id="sgLrcOut">' + T('LRC exportieren') + '</button><button class="toggle-btn" id="sgLrcIn">' + T('LRC laden') + '</button><button class="toggle-btn" id="sgLead">' + T('Leadsheet (PDF)') + '</button><input type="file" id="sgLrcFile" accept=".lrc,.txt,text/plain" hidden></div>';
     if (src.kind === 'file') { const v = vox[src.id];
       h += '<div class="sg-vox" id="sgVoxBox"><b>🎙 ' + T('Gesangsspur') + '</b> ' + (v ? '<span class="caption" translate="no">' + esc(v.name) + '</span><span class="caption"> · ' + T('wird für Stimmkurve, Einrasten und Erkennung benutzt') + (Math.abs(v.off) > v.sr * 0.002 ? ' · ' + T('Versatz ') + Math.round(v.off / v.sr * 1000) + ' ms' : '') + '</span><button class="toggle-btn" id="sgVoxDel">' + T('entfernen') + '</button>'
-        : '<button class="toggle-btn" id="sgVoxAdd">' + T('Gesangsspur dazuladen (z. B. aus Moises)') + '</button><span class="caption">' + T('Nur der Gesang, gleiche Länge wie das Lied – dann stören Gitarre und Schlagzeug nicht bei Stimmkurve und Erkennung.') + '</span>') + '<input type="file" id="sgVoxFile" accept="audio/*" hidden></div>'; }
+        : (window.Sep ? '<button class="toggle-btn" id="sgVoxSep">' + T('Gesang herauslösen (in der App)') + '</button>' : '') + '<button class="toggle-btn" id="sgVoxAdd">' + T('Gesangsspur dazuladen (z. B. aus Moises)') + '</button><span class="caption">' + T('Nur der Gesang, gleiche Länge wie das Lied – dann stören Gitarre und Schlagzeug nicht bei Stimmkurve und Erkennung.') + '</span>') + '<input type="file" id="sgVoxFile" accept="audio/*" hidden></div>'; }
     if (src.kind === 'file') h += '<details class="sg-paste"' + (src.tok.length ? '' : ' open') + '><summary>Text einfügen / ersetzen</summary><textarea id="sgText" rows="5" placeholder="Liedtext hier einfügen – eine Zeile pro gesungener Zeile">' + esc(lines(src.tok).map(l => l.map(t => t.w).join(' ')).join('\n')) + '</textarea><button class="toggle-btn" id="sgTake">Übernehmen</button></details>';
     if (src.tok.length) {
       h += '<div class="sg-tools"><button class="toggle-btn sg-tapbtn' + (ui.tapping ? ' active' : '') + '" id="sgTapMode">' + (ui.tapping ? '■ Einklopfen beenden' : '● Einklopfen') + '</button>'
@@ -18558,6 +18806,7 @@ const Sing = (() => {
       if (b.id === 'sgAuto') { recognize(src); return; }
       if (b.id === 'sgAutoKeep') { recognize(src, true); return; }
       if (b.id === 'sgVoxAdd') { $('sgVoxFile').click(); return; }
+      if (b.id === 'sgVoxSep') { if (typeof Looper !== 'undefined' && Looper.sepTrack) Looper.sepTrack(src.track).then(r => { if (r && r.vox) status(T('Gesangsspur in der App herausgelöst – sie wird jetzt für Stimmkurve, Einrasten und Erkennung benutzt.')); }).catch(() => {}); return; }
       if (b.id === 'sgLrcOut') { lrcExport(src); return; }
       if ((b.id === 'sgFill' || b.id === 'sgFill2') && src.kind === 'file' && !tok.some(t => t.b != null)) { if (confirm(T('Noch kein Wort hat eine Zeit. Die App hört dafür den Gesang heraus und legt deinen Text darauf (dauert ein paar Minuten, beim ersten Mal wird das Erkennungsmodell geladen). Starten?'))) recognize(src, true); return; }
       if (b.id === 'sgFill' || b.id === 'sgFill2') { if (src.kind === 'file' && !envOf(src)) { status(T('Stimme wird ausgewertet …')); try { await voiceEnv(src); } catch (x) {} } const n = fillMissing(src); if (!n) { status(T('Keine Stimm-Einsätze gefunden – bitte „🤖 Text automatisch erkennen“ oder die ersten Wörter einklopfen, dann „Takte ergänzen“.')); return; } changed(); persist(src); status(n + T(' Wörter haben jetzt einen Takt (zwischen ihren Nachbarn, an die Stimme gelegt) – anhören und ggf. ziehen; ↶ nimmt es zurück.')); return; }
@@ -18733,7 +18982,21 @@ const Sing = (() => {
   // Übersetzung je Zeile (v63)
   function setTr(src, arr) { const rec = src.kind === 'lied' ? db.l[src.id] : db.f[src.id]; if (!rec) return false; rec.tr = arr; changed(); return true; }
   function getTr(src) { const rec = src && (src.kind === 'lied' ? db.l[src.id] : db.f[src.id]); return rec && rec.tr || []; }
-  return { medIoi, recognize: () => recognize(curSrc), rec: () => Object.assign({}, rec), wordsToTok, tick, tap, tokenize, merge, f2b, b2f, endOf, lines, setTr, getTr, ver: () => ver, focus: k => focus(k), unfocus, prec: () => { const E = envOf(curSrc); return { env: E ? { n: E.e.length, on: E.on.slice(), onB: E.onB.slice() } : null, loop: !!loopP, rate: loopP ? loopP.rate : null, word: !!wordP, tap: tapS ? { n: tapS.n, of: tapS.idx.length } : null, mag: ui.mag, sel: ui.sel }; }, voiceEnv: () => voiceEnv(curSrc), placeB: r => placeB(r, curSrc), undo: () => undoRedo(-1), redo: () => undoRedo(1), vox: () => { const v = curSrc && vox[curSrc.id]; return v ? { name: v.name, off: v.off, sr: v.sr, n: v.l.length } : null; }, lrcText: () => curSrc ? lrcText(curSrc) : '', lrcImport: t => curSrc && lrcImport(curSrc, t), leadsheet: () => curSrc ? leadsheetOf(curSrc) : null, parts: () => curSrc ? partsOf(curSrc) : [], addPart: n => addPart(n), partLoop: i => startPartLoop(i), trainerState: () => trainer ? Object.assign({}, trainer) : null, loopRate: () => loopP ? loopP.rate : null, pedal: id => pedal(id), regridFrom: b => curSrc && regridFrom(curSrc, b), outOfOrder: () => curSrc ? outOfOrder(curSrc.tok) : [], fillMissing: () => curSrc ? fillMissing(curSrc, true) : 0, splitLong: () => curSrc ? splitLong(curSrc) : 0, fixOrder: () => curSrc && fixOrder(curSrc), loopNow: () => loopP ? loopP.nowB() : (wordP ? wordP.nowB() : null), onTempo: () => onTempo(), addClicks, recheck: () => recheck(), toggleLock: () => toggleLock(), insertAfter: () => insertAfter(), spread, playFrom, source: ci => source(ci), data: () => db, _reload: () => { db = load(); changed(); }, ui: () => ui };
+  // v124: Gesangsspur aus „Gesang trennen“ (in der App) für die Datei auf Spur i übernehmen; Tonhöhe des Originalgesangs an der Stelle (Karaoke)
+  async function setVoxTrack(i, blob, name) {
+    const s = source({ track: i }); if (!s || s.kind !== 'file') return false;
+    voxTried[s.id] = true; await setVox(s, blob, name, true); return true;
+  }
+  const NN = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'H'];
+  function voxPitch(src) {
+    if (!src || src.kind !== 'file' || src.nowB == null || !src.beats || typeof Pitch === 'undefined') return null;
+    const v = vox[src.id]; if (!v) return null;
+    const f = b2f(src.nowB, src.beats); if (f == null) return null;
+    const n = 2048, a = Math.floor(f * v.sr / (src.sr || v.sr) + v.off) - n / 2; if (a < 0 || a + n > v.l.length) return null;
+    const r = Pitch.detect(v.l.subarray(a, a + n), v.sr, { gate: 0.01, fmin: 75, fmax: 1100 }); if (!r || r.conf < 0.75) return null;
+    return { f: r.f, midi: r.midi, cents: r.cents, name: NN[((r.midi % 12) + 12) % 12] + (Math.floor(r.midi / 12) - 1) };
+  }
+  return { setVoxTrack, voxPitch, hasVox: src => !!(src && vox[src.id]), medIoi, recognize: () => recognize(curSrc), rec: () => Object.assign({}, rec), wordsToTok, tick, tap, tokenize, merge, f2b, b2f, endOf, lines, setTr, getTr, ver: () => ver, focus: k => focus(k), unfocus, prec: () => { const E = envOf(curSrc); return { env: E ? { n: E.e.length, on: E.on.slice(), onB: E.onB.slice() } : null, loop: !!loopP, rate: loopP ? loopP.rate : null, word: !!wordP, tap: tapS ? { n: tapS.n, of: tapS.idx.length } : null, mag: ui.mag, sel: ui.sel }; }, voiceEnv: () => voiceEnv(curSrc), placeB: r => placeB(r, curSrc), undo: () => undoRedo(-1), redo: () => undoRedo(1), vox: () => { const v = curSrc && vox[curSrc.id]; return v ? { name: v.name, off: v.off, sr: v.sr, n: v.l.length } : null; }, lrcText: () => curSrc ? lrcText(curSrc) : '', lrcImport: t => curSrc && lrcImport(curSrc, t), leadsheet: () => curSrc ? leadsheetOf(curSrc) : null, parts: () => curSrc ? partsOf(curSrc) : [], addPart: n => addPart(n), partLoop: i => startPartLoop(i), trainerState: () => trainer ? Object.assign({}, trainer) : null, loopRate: () => loopP ? loopP.rate : null, pedal: id => pedal(id), regridFrom: b => curSrc && regridFrom(curSrc, b), outOfOrder: () => curSrc ? outOfOrder(curSrc.tok) : [], fillMissing: () => curSrc ? fillMissing(curSrc, true) : 0, splitLong: () => curSrc ? splitLong(curSrc) : 0, fixOrder: () => curSrc && fixOrder(curSrc), loopNow: () => loopP ? loopP.nowB() : (wordP ? wordP.nowB() : null), onTempo: () => onTempo(), addClicks, recheck: () => recheck(), toggleLock: () => toggleLock(), insertAfter: () => insertAfter(), spread, playFrom, source: ci => source(ci), data: () => db, _reload: () => { db = load(); changed(); }, ui: () => ui };
 })();
 window.Sing = Sing;
 
@@ -18804,6 +19067,7 @@ const Singen = (() => {
   // ---- Anzeige (jedes Bild, solange der Reiter offen ist) ----
   function frame() {
     raf = requestAnimationFrame(frame);
+    paintKara();
     const src = getSrc(), has = timed(src);
     if ($('sbEmpty').hidden !== !!has) { $('sbEmpty').hidden = !!has; $('sbStage').hidden = !has; }
     if (!has) {
@@ -18993,6 +19257,24 @@ const Singen = (() => {
       + (Math.abs(avg) <= 40 ? '' : avg < 0 ? T(' (eher zu früh)') : T(' (eher zu spät)'));
   }
 
+  // ---- v124: Karaoke-Anzeige (gedrosselt, nur bei offenem Reiter) ----
+  let karaAt = 0, karaSig = '';
+  function karaTrack() {
+    const src = getSrc0(); if (src && src.kind === 'file' && src.track >= 0) return src.track;
+    const ci = window.SoloInfo ? SoloInfo() : null; if (ci && ci.track >= 0) return ci.track;
+    if (typeof Looper !== 'undefined' && Looper.srcNames) { const n = Looper.srcNames(); for (let i = 0; i < n.length; i++) if (n[i] != null) return i; }
+    return -1;
+  }
+  function paintKara(force) {
+    const now = performance.now(); if (!force && now - karaAt < 120) return; karaAt = now;
+    if (typeof Looper === 'undefined' || !Looper.kara) return;
+    const tr = karaTrack(), k = tr >= 0 ? Looper.kara(tr) : null, on = !!(k && k.on), b = $('sbKara');
+    const sig = tr + '|' + !!k + '|' + on; if (sig !== karaSig) { karaSig = sig; b.classList.toggle('active', on); b.setAttribute('aria-pressed', String(on)); b.textContent = on ? T('🎤 Karaoke ✓') : T('🎤 Karaoke'); }
+    let pt = '';
+    if (on) { const src = getSrc(); const p = src && window.Sing && Sing.voxPitch ? Sing.voxPitch(src) : null; pt = p ? T('Original: ') + p.name : (src && Sing.hasVox && Sing.hasVox(src) ? T('Original: –') : ''); }
+    if ($('sbPitch').textContent !== pt) $('sbPitch').textContent = pt;
+  }
+
   // ---- Übersetzung ----
   function trLines(src) { const n = Math.max(0, ...src.tok.map(t => t.l)) + 1, tr = Sing.getTr(src); return Array.from({ length: n }, (_, i) => tr[i] || ''); }
 
@@ -19026,6 +19308,16 @@ const Singen = (() => {
     $('sbList').addEventListener('click', e => { const r = e.target.closest('.sb-row'); if (!r) return; const src = getSrc(); if (!src) return; const cur = player ? player.line : focus(src).line; step(+r.dataset.l - cur); });
     $('sbPrev').addEventListener('click', () => step(-1)); $('sbNextL').addEventListener('click', () => step(1));
     $('sbMic').addEventListener('click', () => { if (mic) stopMic(); else startMic(); });
+    // v124: Karaoke – Begleitung ohne Originalgesang (Gesang trennen in der App, beim ersten Mal)
+    $('sbKara').addEventListener('click', async () => {
+      if (typeof Looper === 'undefined' || !Looper.sepTrack) return;
+      const tr = karaTrack(); if (tr < 0) { $('sbKaraInfo').textContent = T('Erst ein Lied in den Looper laden (oder abspielen).'); return; }
+      if (Looper.kara(tr)) { Looper.karaoke(tr, !Looper.kara(tr).on); paintKara(true); return; }
+      $('sbKaraInfo').textContent = T('Trenne den Gesang …');
+      try { const r = await Looper.sepTrack(tr, { vocTrack: false }); $('sbKaraInfo').textContent = r ? T('Karaoke an – die Begleitung läuft ohne Gesang. Unter dem Text steht, welchen Ton das Original gerade singt.') : T('Abgebrochen.'); }
+      catch (e) { $('sbKaraInfo').textContent = T('Gesang trennen ging nicht: ') + (e && e.message || e); }
+      paintKara(true);
+    });
     $('sbTrOn').addEventListener('change', () => { lineSig = ''; listSig = ''; });
     $('panel-singen').querySelector('.sb-tredit').addEventListener('toggle', e => { const src = getSrc0(); if (e.target.open && src) $('sbTrText').value = trLines(src).join('\n'); });
     $('sbTrSave').addEventListener('click', () => {
@@ -21971,7 +22263,16 @@ const HILFE = [
     s: ['Unter „Text“ je Teil schreiben; links Silbenzahl und Reimbuchstabe.', 'Akkorde in den Text: „[Am]Ich fahr durch die [F]Nacht“.', '„Leadsheet (PDF)“ für Ausdruck oder Weitergabe.', 'Mit Claude: Aufgabe wählen → „Song-Code kopieren“ → im Chat einfügen → Antwort kopieren → „Einlesen“ → „Als neue Version übernehmen“.'] },
   { id: 'gesangstext', t: 'Gesangstext mit Timing (Lied)', k: 'gesangstext timing text erkennen whisper wort einklopfen stimme moises lrc lied',
     s: ['Songdatei in eine Spur laden, Reiter „Improvisation“ → „🎤 Gesangstext“.', '„🤖 Text automatisch erkennen“ (oder eigenen Text einfügen und „Nur Zeiten erkennen – mein Text bleibt“).', 'In der Spur unter den Akkorden Wörter ziehen; Wort antippen = ändern. Takt antippen macht ihn breit zum Feinarbeiten.', '„Lieder mit Text“ (Looper unten) speichert Datei und Text zusammen.'],
-    tip: ['Mit der Gesangsspur aus Moises („Gesangsspur dazuladen“) wird alles genauer.'] },
+    tip: ['Mit einer Gesangsspur wird alles genauer: „Gesang herauslösen (in der App)“ oder aus Moises („Gesangsspur dazuladen“).'] },
+  { id: 'gesang-trennen', t: 'Gesang trennen (Gesang und Begleitung)', k: 'gesang trennen stimme vocals begleitung instrumental spleeter moises herauslösen stems spur studio',
+    p: ['Die App trennt ein Lied in <b>Gesang</b> und <b>Begleitung</b> – direkt auf dem Gerät, ohne fremden Dienst (Modell „Spleeter“ von Deezer, freie MIT-Lizenz). Beim ersten Mal lädt sie dafür einmalig etwa 79 MB; danach geht es offline.',
+       'Gerechnet wird im Hintergrund, der Looper läuft weiter. Gesang und Begleitung ergeben zusammen genau wieder das Original.'],
+    s: ['Lied oder Loop in eine Spur laden.', 'Im Spurkopf „Gesang trennen“ tippen und die Rückfrage zum Download (nur beim ersten Mal) bestätigen.', 'Fortschritt abwarten – „Abbrechen“ hört jederzeit auf, ohne etwas zu ändern.', 'Fertig: Die Spur spielt die Begleitung („Karaoke ✓“), der Gesang liegt auf der nächsten freien Spur, beide sind als Ideen „Name · Gesang“ und „Name · Begleitung“ gespeichert.', 'Studio: Audio-Region antippen → „Gesang trennen“ – zwei neue Spuren, die Original-Region wird stumm (↶ nimmt es zurück).'],
+    tip: ['Ist die ganze Datei geladen, nutzt der Gesangstext-Editor den getrennten Gesang automatisch (statt der Spur aus Moises). Im Editor gibt es dafür auch „Gesang herauslösen (in der App)“.', 'Hall vom Gesang bleibt teils in der Begleitung; laute Soli können im Gesang landen. Sehr lange Lieder brauchen viel Speicher.'] },
+  { id: 'karaoke', t: 'Karaoke – Begleitung ohne Originalgesang', k: 'karaoke ohne gesang begleitung mitsingen playback instrumental original tonhöhe ton',
+    p: ['Mit „Karaoke“ singst du selbst zur Begleitung des Liedes – der Originalgesang ist weg, Text und Timing laufen im Reiter „Mitsingen“ wie gewohnt mit.'],
+    s: ['Lied laden und abspielen, Reiter „Mitsingen“.', '„🎤 Karaoke“ tippen – beim ersten Mal wird der Gesang getrennt (siehe „Gesang trennen“).', 'Daneben steht „Original: A3“ – der Ton, den der Originalgesang gerade singt. So triffst du die Melodie.', 'Nochmal tippen (oder im Looper „Karaoke ✓“) = zurück zum Original. Die Wiedergabe läuft dabei weiter.'],
+    tip: ['Mit Kopfhörern singen, wenn du „🎤 Timing prüfen“ nutzt.', 'Der Karaoke-Zustand wird nicht gespeichert; die getrennte Begleitung liegt aber als Idee bereit.'] },
   { id: 'mitsingen', t: 'Mitsingen', k: 'mitsingen karaoke text singen zeile üben timing prüfen übersetzung', img: 'mitsingen',
     s: ['Ein Lied mit Text laufen lassen, Reiter „Mitsingen“.', 'Die aktuelle Zeile ist hell, das gesungene Wort füllt sich; vor Einsätzen zählt die App herunter.', '„↻ Zeile üben“ wiederholt eine Zeile, auch mit 75 % oder 50 %.', '„🎤 Timing prüfen“ zeigt je Wort, ob du zu früh oder zu spät bist (mit Kopfhörern).'] },
  ]},

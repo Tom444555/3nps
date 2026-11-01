@@ -68,7 +68,7 @@ for _f in ['panel-dark.jpg', 'runes.png', 'emblem.png', 'corner-tl.png', 'corner
            'tolex.jpg', 'alu.jpg', 'alu-dark.jpg', 'grille.jpg', 'screw.png', 'jewel.png',
            'bg-ice.jpg', 'panel-ice.jpg', 'icicles.png', 'rivet-ice.png', 'emblem-ice.png']: shutil.copy(A + 'tex/' + _f, A + 'www/' + _f)
 themecss = rd(A + 'theme-metal.css') + rd(A + 'theme-amp.css') + rd(A + 'theme-ice.css') + rd(A + 'theme-clean.css') + rd(A + 'theme-matrix.css') + rd(A + 'theme-dj.css') + rd(A + 'theme-light.css')
-appcfg = rd(A + 'appcfg.js') + '\n' + rd(A + 'perf.js') + '\n' + rd(A + 'lieder.js')
+appcfg = rd(A + 'appcfg.js') + '\n' + rd(A + 'perf.js') + '\n' + rd(A + 'lieder.js') + '\n' + rd(A + 'sep.js')
 def _ff(fam, fn, w='400'):
     b = base64.b64encode(open(A + 'fonts/' + fn, 'rb').read()).decode()
     return "@font-face{font-family:'%s';font-style:normal;font-weight:%s;font-display:swap;src:url(data:font/woff;base64,%s) format('woff')}" % (fam, w, b)
@@ -169,3 +169,4 @@ print('app', len(app), 'preview', len(pv))
 import os, shutil
 os.makedirs(A + 'www/asr', exist_ok=True)
 shutil.copy(A + 'asr-worker.js', A + 'www/asr/worker.js')
+shutil.copy(A + 'sep-worker.js', A + 'www/asr/sep-worker.js')   # v124: Gesang trennen (lädt erst bei Bedarf)

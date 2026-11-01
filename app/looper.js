@@ -519,6 +519,94 @@ const Looper = (() => {
     b.addEventListener('click', () => document.dispatchEvent(new CustomEvent('looper-studio', { detail: t.i })));
   });
   setInterval(() => tracks.forEach(t => { if (!t.L) t.srcName = ''; const v = t.srcName || ''; if (t.srcEl && t.srcEl.textContent !== v) { t.srcEl.textContent = v; t.srcEl.title = v ? T('Geladen aus der Idee ') + '„' + t.srcName + '“' : ''; } }), 700);
+  // ---- v124: „Gesang trennen“ je Spur (Spleeter im Worker, erst bei Bedarf geladen) und „Karaoke“ (Begleitung statt Original) ----
+  tracks.forEach(t => {
+    const sb = $('studiob' + t.i); if (!sb) return;
+    const b = document.createElement('button'); b.className = 'eq-btn sep-btn'; b.id = 'sepb' + t.i; b.hidden = true; b.textContent = T('Gesang trennen');
+    sb.insertAdjacentElement('afterend', b); t.sepB = b;
+    b.addEventListener('click', () => { if (karaValid(t)) karaoke(t, !t.kara.on); else sepTrack(t).catch(err => setStatus(T('Gesang trennen ging nicht: ') + (err && err.message || err))); });
+  });
+  function karaValid(t) {
+    const k = t.kara; if (!k) return false;
+    if (t.L !== k.L || !t.layers.length || (t.layers[0] !== k.acc && t.layers[0] !== k.orig)) { t.kara = null; return false; }
+    return true;
+  }
+  function paintSep(t) {
+    const b = t.sepB; if (!b) return;
+    const hide = !t.L || !!(rec && rec.t === t); if (b.hidden !== hide) b.hidden = hide;
+    const k = karaValid(t), on = k && t.kara.on, txt = k ? (on ? T('Karaoke ✓') : T('Karaoke')) : T('Gesang trennen');
+    if (b.textContent !== txt) b.textContent = txt;
+    b.classList.toggle('active', !!on); b.setAttribute('aria-pressed', String(!!on));
+    const tt = k ? (on ? T('Spielt die Begleitung ohne Gesang – antippen für das Original') : T('Antippen: Begleitung ohne Gesang spielen')) : T('Gesang und Begleitung trennen (lädt beim ersten Mal einmalig ca. 79 MB)');
+    if (b.title !== tt) b.title = tt;
+  }
+  setInterval(() => tracks.forEach(paintSep), 700);
+  // Karaoke an/aus: erste Ebene der Spur durch die Begleitung ersetzen (Überdubs bleiben), läuft ohne Unterbrechung weiter
+  function karaoke(t, on) {
+    if (!karaValid(t)) return false;
+    const k = t.kara; on = !!on; if (k.on === on && t.layers[0] === (on ? k.acc : k.orig)) { paintSep(t); return true; }
+    const off0 = !!t.layers[0].off; t.layers[0] = on ? k.acc : k.orig; t.layers[0].off = off0; k.on = on; rebuildMix(t);
+    if (t.src) startTrack(t);
+    paintSep(t); update();
+    setStatus(T('Spur ') + (t.i + 1) + ': ' + (on ? T('Karaoke – Begleitung ohne Gesang.') : T('Original mit Gesang.')));
+    document.dispatchEvent(new CustomEvent('karaoke', { detail: { track: t.i, on } }));
+    return true;
+  }
+  // Spur-Ausschnitt wie placeExcerpt (Takt-Anfang start, Länge Ldet, die letzten „pre“ Bilder kommen von vor dem Anfang)
+  function segVal(a, start, Ldet, pre, i) {
+    if (i >= Ldet) return 0;
+    if (i < Ldet - pre) { const p = start + i; return p >= 0 && p < a.length ? a[p] : 0; }
+    return a[start - pre + i - (Ldet - pre)];
+  }
+  function excerptOf(t) {   // passt die erste Ebene unverändert zur Originaldatei? → { start, Ldet, pre }
+    const o = t.orig, ly = t.layers[0]; if (!o || !o.data || t.origPos == null || !ly) return null;
+    const a = o.data.l || o.data, start = t.origPos, pre = Math.max(0, Math.min(start, Math.round(sr * 0.01))), L = ly.length;
+    for (const Ldet of [L, L - 1, L + 1, L - 2, L + 2]) {
+      if (Ldet <= pre) continue; let ok = true;
+      for (let k = 0; k < 600 && ok; k++) { const i = k < 500 ? Math.floor(k * (L - 1) / 499) : L - 1 - (k - 500); if (i < 0 || i >= L) continue; if (Math.abs(ly.l[i] - segVal(a, start, Ldet, pre, i)) > 1e-6) ok = false; }
+      if (ok) return { start, Ldet, pre };
+    }
+    return null;
+  }
+  const buildSeg = (x, ex, L) => { const f = a => { const g = new Float32Array(L); for (let i = 0; i < L; i++) g[i] = segVal(a, ex.start, ex.Ldet, ex.pre, i); return g; }; const l = f(x.l); return SP(l, x.r && x.r !== x.l ? f(x.r) : null); };
+  async function sepTrack(t, opts) {
+    opts = opts || {};
+    if (typeof t === 'number') t = tracks[t];
+    if (!t || !t.L || !t.layers.length || !window.Sep) return null;
+    if (Sep.busy()) { setStatus(T('Es wird schon getrennt …')); return null; }
+    if (rec && rec.t === t) return null;
+    const ly0 = t.layers[0], L0 = t.L, ex = excerptOf(t);
+    // Quelle: die ganze Datei, wenn die Spur sie unverändert abspielt (dann bekommt auch der Gesangstext-Editor die Gesangsspur), sonst die Spur selbst
+    const src = ex ? t.orig.data : ly0, name = String((ex && t.orig.name) || t.srcName || (T('Spur ') + (t.i + 1))).replace(/\.[a-z0-9]{2,4}$/i, '');
+    setStatus(T('Spur ') + (t.i + 1) + ': ' + T('trenne Gesang und Begleitung …'));
+    const res = await Sep.run({ l: src.l || src, r: src.r || null }, sr, { title: T('Gesang trennen') + ' – ' + name });
+    if (!res) { setStatus(T('Gesang trennen abgebrochen.')); return null; }
+    if (t.layers[0] !== ly0 || t.L !== L0) { setStatus(T('Die Spur hat sich inzwischen geändert – bitte noch einmal trennen.')); return null; }
+    const mono = !(src.r && src.r !== src.l);
+    const mk = x => mono ? { l: x.l, r: x.l } : x;
+    const acc = ex ? buildSeg(mk(res.acc), ex, L0) : SP(res.acc.l, mono ? null : res.acc.r);
+    t.kara = { orig: ly0, acc, L: L0, on: false, name };
+    karaoke(t, true);
+    // Gesang auf eine freie Spur (angehalten – mit dem Fußtaster oder ▶ starten)
+    let free = null;
+    if (opts.vocTrack !== false) {
+      free = tracks.find(o => o !== t && !o.L && !(rec && rec.t === o));
+      if (free) { const voc = ex ? buildSeg(mk(res.voc), ex, L0) : SP(res.voc.l, mono ? null : res.voc.r); stopSrc(free); free.layers = [voc]; free.L = L0; free.hist = []; rebuildMix(free); free.state = 'stopped'; free.srcName = name + ' · ' + T('Gesang'); }
+    }
+    // Beide Ergebnisse als Ideen ablegen (für Studio, Teilen, späteres Laden)
+    let saved = 0;
+    try {
+      const now = new Date(), base = { v: 2, ts: now.getTime(), dateStr: now.toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' }), root: rootSel.value, mode: modeSel.value, bpm: parseFloat($('bpm').value), secs: res.voc.l.length / sr, cat: 'idee' };
+      for (const [k, x] of [['voc', res.voc], ['acc', res.acc]]) { await AppDB.put('ideas', Object.assign({ id: newId(), name: name + ' · ' + (k === 'voc' ? T('Gesang') : T('Begleitung')), wav: Sep.wav(mk(x), sr), sep: k }, base)); saved++; }
+      document.dispatchEvent(new CustomEvent('ideas-refresh'));
+    } catch (e) {}
+    // Gesangstext-Editor/Mitsingen: Gesangsspur dieser Datei (statt Moises)
+    let vox = false;
+    if (ex && window.Sing && Sing.setVoxTrack) { try { vox = await Sing.setVoxTrack(t.i, Sep.wav({ l: res.voc.r && res.voc.r !== res.voc.l ? Float32Array.from(res.voc.l, (v, i) => (v + res.voc.r[i]) * 0.5) : res.voc.l }, sr), name + ' · ' + T('Gesang (in der App getrennt)')); } catch (e) {} }
+    setStatus(T('Spur ') + (t.i + 1) + ': ' + T('Gesang getrennt in ') + Math.round(res.ms / 100) / 10 + ' s. ' + T('„Karaoke“ spielt jetzt die Begleitung') + (free ? ', ' + T('der Gesang liegt auf Spur ') + (free.i + 1) : '') + (saved ? '; ' + T('beide als Ideen gespeichert') : '') + '.');
+    update();
+    return { track: t.i, vocTrack: free ? free.i : null, saved, vox, ms: res.ms, workerMs: res.workerMs, whole: !!ex };
+  }
   // Export: Hall/Echo wie gehört dazurechnen – kreisförmig (der Ausklang am Loop-Ende läuft am Anfang weiter, nahtlos)
   async function fxRender(x, fx, srate) {
     if (!fx || (!fx.rev && !fx.dly)) return x;
@@ -3986,7 +4074,7 @@ return true;}}registerProcessor('loadmeter',LoadMeter);`;
     _micKill: () => { if (stream) stream.getTracks().forEach(tr => tr.stop()); },
     _micDrop: () => { if (stream) stream.getAudioTracks()[0].dispatchEvent(new Event('ended')); },
     themeChanged: () => readNeon(), _zip: files => makeZip(files),
-    _mem: () => memState(), setLive: v => setLive(v), edPedal: id => edPedal(id), _edClip: () => edClip, _edMove: (on) => setMove(on), _edClick: () => ({ on: edClick, next: clkNext }), _grid: sub => ed.t ? gridPoints(sub) : [], _firstTone: i => firstTone(tracks[i]), _anchor: () => anchor, _setTrackRaw: (i, l) => { const t = tracks[i]; t.L = l.length; t.layers = [SP(l)]; rebuildMix(t); t.state = 'stopped'; update(); return true; }, _edSel: (a, b) => { if (ed.t) { ed.s = a; ed.e = b; edInfo(); } }, _trim: () => ed.t && trimTo(ed.s, ed.e, 'zugeschnitten'), _mixOf: i => tracks[i].mix, _ed: () => ed.t ? { s: ed.s, e: ed.e, h: ed.h, L: ed.t.L, zoom: ed.zoom, full: edEl.classList.contains('ed-full'), loop: !!ed.loop, onsets: trackOnsets(ed.t).length } : null, _onsets: i => tracks[i] && tracks[i].L ? trackOnsets(tracks[i]) : [],
+    _mem: () => memState(), setLive: v => setLive(v), edPedal: id => edPedal(id), _edClip: () => edClip, _edMove: (on) => setMove(on), _edClick: () => ({ on: edClick, next: clkNext }), _grid: sub => ed.t ? gridPoints(sub) : [], _firstTone: i => firstTone(tracks[i]), _anchor: () => anchor, sepTrack: (i, o) => sepTrack(i, o), karaoke: (i, on) => karaoke(tracks[i], on), kara: i => { const t = tracks[i]; return t && karaValid(t) ? { on: t.kara.on, name: t.kara.name } : null; }, _mixOfL: i => tracks[i] && tracks[i].mix ? tracks[i].mix : null, _setTrackRaw: (i, l) => { const t = tracks[i]; t.L = l.length; t.layers = [SP(l)]; rebuildMix(t); t.state = 'stopped'; update(); return true; }, _edSel: (a, b) => { if (ed.t) { ed.s = a; ed.e = b; edInfo(); } }, _trim: () => ed.t && trimTo(ed.s, ed.e, 'zugeschnitten'), _mixOf: i => tracks[i].mix, _ed: () => ed.t ? { s: ed.s, e: ed.e, h: ed.h, L: ed.t.L, zoom: ed.zoom, full: edEl.classList.contains('ed-full'), loop: !!ed.loop, onsets: trackOnsets(ed.t).length } : null, _onsets: i => tracks[i] && tracks[i].L ? trackOnsets(tracks[i]) : [],
     perf: () => { let inLat = null, inSr = null; try { const st = stream && stream.getAudioTracks()[0].getSettings(); if (st) { inLat = typeof st.latency === 'number' ? st.latency : null; inSr = st.sampleRate || null; } } catch (e) {}
       const m = memState(); const r = { mic: micReady, sr, inLat, inSr, inChans, comp: parseInt(latEl.value || '0'), curMB: m.curMB, histMB: m.histMB, histMax: HIST_MB, gaps: perfIn.gaps, lagMs: perfIn.lagMs, lagMax: perfIn.lagMax, micErr: lastMicError };
       perfIn.lagMax = 0; return r; }, autosaveNow: () => doAutosave(), autosaveOn: v => { autoReady = v !== false; },
@@ -4522,6 +4610,7 @@ const Pedal = (() => {
     }
   }
 
+  document.addEventListener('ideas-refresh', () => render());   // v124: von außen gespeicherte Ideen (Gesang trennen)
   render();
   Looper.update();
 })();

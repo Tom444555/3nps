@@ -4,4 +4,7 @@ Texterkennung im Looper (Ordner asr/) – verwendete freie Software und Modelle
   ONNX-Fassung „Xenova/whisper-base“ (8 Bit), Hugging Face.
 - transformers.js 3.8.1 – Hugging Face, Apache-Lizenz 2.0 (lib/LICENSE-transformers.txt).
 - ONNX Runtime Web (in transformers.js enthalten) – Microsoft, MIT-Lizenz (lib/LICENSE-onnxruntime.txt).
+- Spleeter 2-Stems (Gesang trennen, v124) – Deezer, MIT-Lizenz; ONNX-Fassung aus sherpa-onnx (Xiaomi/k2-fsa, Apache-Lizenz 2.0).
+  Dateien models/spleeter/onnx/vocals.onnx und accompaniment.onnx, Herkunft und volle Lizenztexte: models/spleeter/LIZENZ.txt.
+  Rechnet im Worker sep-worker.js mit derselben ONNX-Laufzeit (lib/).
 Alles läuft auf dem Gerät; es werden keine Daten an fremde Server geschickt.

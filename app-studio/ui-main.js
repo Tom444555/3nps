@@ -123,7 +123,7 @@ const UI = (() => {
     $('dRegH').textContent = 'Region · ' + (r.name || '') + ' · ' + (Math.round(bars * 100) / 100).toString().replace('.', ',') + ' Takte';
     $('dRegC').innerHTML = '<button class="btn" data-r="g-">Leiser</button><button class="btn" data-r="g+">Lauter</button><button class="btn' + (r.muted ? ' on' : '') + '" data-r="mute">' + (r.muted ? 'Stumm ✓' : 'Stumm') + '</button><button class="btn" data-r="ren">Name</button>' +
       (tk ? '<button class="btn p" data-r="takes">Takes (' + r.takes.length + ') …</button><button class="btn' + ((P.tracks[Proj.tIndex(r.track)] || {}).takesOpen ? ' on' : '') + '" data-r="topen">Take-Zeilen</button>' : '') +
-      (r.kind === 'audio' && !tk ? '<button class="btn" data-r="fit">ans Tempo anpassen</button><button class="btn" data-r="norm">Normalisieren</button>' + (window.Ana ? '<button class="btn' + (r.qz ? ' on' : '') + '" data-r="qz">Quantisieren …</button>' : '') : '') + (r.kind === 'audio' && window.Ana ? '<button class="btn" data-r="chd">Akkorde erkennen</button>' : '') + (r.kind !== 'audio' ? '<button class="btn" data-r="edit">Bearbeiten</button>' : '') + '<button class="btn" data-r="cyc">Als Cycle</button>';
+      (r.kind === 'audio' && !tk ? '<button class="btn" data-r="fit">ans Tempo anpassen</button><button class="btn" data-r="norm">Normalisieren</button>' + (window.Ana ? '<button class="btn' + (r.qz ? ' on' : '') + '" data-r="qz">Quantisieren …</button>' : '') : '') + (r.kind === 'audio' && window.Ana ? '<button class="btn" data-r="chd">Akkorde erkennen</button>' : '') + (r.kind === 'audio' && !tk && window.Sep ? '<button class="btn" data-r="sep" title="Zwei neue Spuren: Gesang und Begleitung (lädt beim ersten Mal einmalig ca. 79 MB)">Gesang trennen</button>' : '') + (r.kind !== 'audio' ? '<button class="btn" data-r="edit">Bearbeiten</button>' : '') + '<button class="btn" data-r="cyc">Als Cycle</button>';
     $('dRegN').textContent = 'Pegel ' + (r.gain > 0 ? '+' : '') + (r.gain || 0) + ' dB' + (r.fi ? ' · Einblende' : '') + (r.fo ? ' · Ausblende' : '') + ' · Start Takt ' + (Math.round((Proj.f2bar(r.start) + 1) * 100) / 100).toString().replace('.', ',') + (tk ? ' · Comp: ' + Engine.compSegs(r).map(sg => (r.takes.find(x => x.id === sg.k) || {}).name).join(' → ') + ' · unter der Spur antippen/wischen' : '');
   }
   $('dTrackC').addEventListener('click', async e => {
@@ -149,12 +149,38 @@ const UI = (() => {
     else if (a === 'edit') show('roll');
     else if (a === 'norm') { say('Messe …'); const d = await SDB.read(r.audio, r.offset, r.len); let m = 0; for (let k = 0; k < d.l.length; k++) { const x = Math.max(Math.abs(d.l[k]), Math.abs(d.r[k])); if (x > m) m = x; } if (m > 0) { const g = Math.round(20 * Math.log10(0.89 / m) * 10) / 10; Proj.editRegion(r.id, q => { q.gain = g; }); say('Normalisiert: ' + (g > 0 ? '+' : '') + g + ' dB (Spitze −1 dB).'); } }
     else if (a === 'fit') await fitRegion(r);
+    else if (a === 'sep') { try { await sepRegion(r); } catch (err) { console.error(err); say('Gesang trennen: ' + err.message); } }
     else if (a === 'takes') takeDlg(r.id);
     else if (a === 'qz') Ana.quantDlg(r.id);
     else if (a === 'chd') { try { const out = await Ana.detect('region', r.id, say); say(out.length ? 'Akkordspur: ' + out.map(c => c.name).slice(0, 12).join(' · ') + (out.length > 12 ? ' …' : '') + ' (antippen zum Ändern; „Akkorde“ links = Begleitung erzeugen).' : 'Keine Akkorde erkannt.'); } catch (err) { console.error(err); say('Akkorde: ' + err.message); } }
     else if (a === 'topen') { Proj.editTrack(r.track, t => { t.takesOpen = !t.takesOpen; }, { noUndo: true }); Arr.heads(); }
     inspect(); Arr.kick();
   });
+  // v124: Gesang trennen – zwei neue Spuren „Gesang“ und „Begleitung“ unter der Spur der Region, Original-Region stumm (↶ nimmt alles zurück)
+  async function sepRegion(r) {
+    if (!window.Sep) return null; if (Sep.busy()) { say('Es wird schon getrennt …'); return null; }
+    const sr = Engine.sr(); say('Lese die Region …');
+    const d = await SDB.read(r.audio, r.offset, r.len);
+    const res = await Sep.run({ l: d.l, r: d.r }, sr, { title: 'Gesang trennen – ' + (r.name || 'Region') });
+    if (!res) { say('Gesang trennen abgebrochen.'); return null; }
+    const P = Proj.P, i = Proj.tIndex(r.track), src = P.tracks[i] || {}, nm = r.name || src.name || 'Region';
+    const mono = d.r === d.l;
+    say('Speichere die Spuren …');
+    const mv = await SDB.putAudio(nm + ' · Gesang', sr, res.voc.l, mono ? null : res.voc.r), ma = await SDB.putAudio(nm + ' · Begleitung', sr, res.acc.l, mono ? null : res.acc.r);
+    let ids = [];
+    Proj.change('regions', q => {
+      const at = Math.max(0, q.tracks.findIndex(t => t.id === r.track)) + 1;
+      const mk = (m, name) => { const t = Proj.track('audio', name); t.vol = src.vol || 0; t.pan = src.pan || 0; t.sep = r.id; return { t, m }; };
+      const a = mk(mv, nm + ' · Gesang'), b = mk(ma, nm + ' · Begleitung');
+      q.tracks.splice(at, 0, a.t, b.t); ids = [a.t.id, b.t.id];
+      [a, b].forEach(x => q.regions.push({ id: Proj.nid('r'), track: x.t.id, kind: 'audio', audio: x.m.id, start: r.start, offset: 0, len: x.m.frames, gain: r.gain || 0, fi: r.fi || 0, fo: r.fo || 0, name: x.t.name }));
+      const o = q.regions.find(x => x.id === r.id); if (o) o.muted = true;
+    });
+    Engine.dirty(true); Arr.kick && Arr.kick();
+    say('Gesang getrennt (' + Math.round(res.ms / 100) / 10 + ' s): zwei neue Spuren „Gesang“ und „Begleitung“, die Original-Region ist stumm. ↶ nimmt es zurück.');
+    return { tracks: ids, ms: res.ms };
+  }
+  window.__sepRegion = sepRegion;
   // Audio-Region auf ganze Takte im Projekttempo bringen (Signalsmith im Hintergrund)
   async function fitRegion(r) {
     const bar = Proj.bar(r.start), bars = r.len / bar, nb = Math.max(1, Math.round(bars * 4) / 4); let target = Math.round(nb * bar);

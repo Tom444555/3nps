@@ -11,3 +11,4 @@ app/www/asr/worker.js
 test/sing/lied_*.wav
 test/user/
 preview.html
+app/www/asr/sep-worker.js

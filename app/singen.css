@@ -90,3 +90,8 @@
   .sb-row { padding: 4px 0 8px; }
   /* v95: Pausen ohne Balken – nur die Sekunden bis zum Einsatz */
   .sb-gap .sb-gaptrack, .sb-gap.on .sb-gaptrack, .sb-gapbar { display: none !important; }
+  /* v124: Karaoke – Knopf, Tonhöhe des Originalgesangs (feste Breite, nichts springt) */
+  .sb-kara { min-height: 40px; }
+  .sb-kara #sbKara.active { border-color: var(--accent); color: var(--accent); }
+  .sb-pitch { display: inline-block; min-width: 9.5em; font: 700 1.05rem var(--f-mono); color: var(--accent); white-space: nowrap; }
+  .sb-pitch:empty { min-width: 0; }

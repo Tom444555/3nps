@@ -65,6 +65,7 @@ const Singen = (() => {
   // ---- Anzeige (jedes Bild, solange der Reiter offen ist) ----
   function frame() {
     raf = requestAnimationFrame(frame);
+    paintKara();
     const src = getSrc(), has = timed(src);
     if ($('sbEmpty').hidden !== !!has) { $('sbEmpty').hidden = !!has; $('sbStage').hidden = !has; }
     if (!has) {
@@ -254,6 +255,24 @@ const Singen = (() => {
       + (Math.abs(avg) <= 40 ? '' : avg < 0 ? T(' (eher zu früh)') : T(' (eher zu spät)'));
   }
 
+  // ---- v124: Karaoke-Anzeige (gedrosselt, nur bei offenem Reiter) ----
+  let karaAt = 0, karaSig = '';
+  function karaTrack() {
+    const src = getSrc0(); if (src && src.kind === 'file' && src.track >= 0) return src.track;
+    const ci = window.SoloInfo ? SoloInfo() : null; if (ci && ci.track >= 0) return ci.track;
+    if (typeof Looper !== 'undefined' && Looper.srcNames) { const n = Looper.srcNames(); for (let i = 0; i < n.length; i++) if (n[i] != null) return i; }
+    return -1;
+  }
+  function paintKara(force) {
+    const now = performance.now(); if (!force && now - karaAt < 120) return; karaAt = now;
+    if (typeof Looper === 'undefined' || !Looper.kara) return;
+    const tr = karaTrack(), k = tr >= 0 ? Looper.kara(tr) : null, on = !!(k && k.on), b = $('sbKara');
+    const sig = tr + '|' + !!k + '|' + on; if (sig !== karaSig) { karaSig = sig; b.classList.toggle('active', on); b.setAttribute('aria-pressed', String(on)); b.textContent = on ? T('🎤 Karaoke ✓') : T('🎤 Karaoke'); }
+    let pt = '';
+    if (on) { const src = getSrc(); const p = src && window.Sing && Sing.voxPitch ? Sing.voxPitch(src) : null; pt = p ? T('Original: ') + p.name : (src && Sing.hasVox && Sing.hasVox(src) ? T('Original: –') : ''); }
+    if ($('sbPitch').textContent !== pt) $('sbPitch').textContent = pt;
+  }
+
   // ---- Übersetzung ----
   function trLines(src) { const n = Math.max(0, ...src.tok.map(t => t.l)) + 1, tr = Sing.getTr(src); return Array.from({ length: n }, (_, i) => tr[i] || ''); }
 
@@ -287,6 +306,16 @@ const Singen = (() => {
     $('sbList').addEventListener('click', e => { const r = e.target.closest('.sb-row'); if (!r) return; const src = getSrc(); if (!src) return; const cur = player ? player.line : focus(src).line; step(+r.dataset.l - cur); });
     $('sbPrev').addEventListener('click', () => step(-1)); $('sbNextL').addEventListener('click', () => step(1));
     $('sbMic').addEventListener('click', () => { if (mic) stopMic(); else startMic(); });
+    // v124: Karaoke – Begleitung ohne Originalgesang (Gesang trennen in der App, beim ersten Mal)
+    $('sbKara').addEventListener('click', async () => {
+      if (typeof Looper === 'undefined' || !Looper.sepTrack) return;
+      const tr = karaTrack(); if (tr < 0) { $('sbKaraInfo').textContent = T('Erst ein Lied in den Looper laden (oder abspielen).'); return; }
+      if (Looper.kara(tr)) { Looper.karaoke(tr, !Looper.kara(tr).on); paintKara(true); return; }
+      $('sbKaraInfo').textContent = T('Trenne den Gesang …');
+      try { const r = await Looper.sepTrack(tr, { vocTrack: false }); $('sbKaraInfo').textContent = r ? T('Karaoke an – die Begleitung läuft ohne Gesang. Unter dem Text steht, welchen Ton das Original gerade singt.') : T('Abgebrochen.'); }
+      catch (e) { $('sbKaraInfo').textContent = T('Gesang trennen ging nicht: ') + (e && e.message || e); }
+      paintKara(true);
+    });
     $('sbTrOn').addEventListener('change', () => { lineSig = ''; listSig = ''; });
     $('panel-singen').querySelector('.sb-tredit').addEventListener('toggle', e => { const src = getSrc0(); if (e.target.open && src) $('sbTrText').value = trLines(src).join('\n'); });
     $('sbTrSave').addEventListener('click', () => {

@@ -30,7 +30,7 @@ ampdsp = ('// v122: aus app/looper.js (v117) übernommen – Gate, Drive 4x, Kla
 # v122: Quelltexte für Analyse-Worker (Tonhöhe YIN, FFT, Akkorderkennung des Loopers) – nur als Text, laufen im Worker
 spt = rd(os.path.dirname(A.rstrip('/')) + '/script.part'); i = spt.index('function fft(signal) {'); j = spt.index('\n}\n', i) + 3
 srcs = 'window.__SRC = ' + json.dumps({'pitch': rd(A + 'pitch.js'), 'fft': spt[i:j], 'chords': rd(A + 'chords.js')}, ensure_ascii=False).replace('</', '<\\/') + ';'
-parts = ['window.__tr = null;'] + [rd(A + f) for f in ['eq.js', 'master-dsp.js', 'lied-core.js', 'lied-text.js', 'lied-export.js']] + [ampdsp, srcs]
+parts = ['window.__tr = null;'] + [rd(A + f) for f in ['eq.js', 'master-dsp.js', 'lied-core.js', 'lied-text.js', 'lied-export.js', 'sep.js']] + [ampdsp, srcs]
 for f in ['sdb.js', 'engine.js', 'project.js', 'sched.js', 'imp.js', 'rec.js', 'inst.js', 'drum.js', 'ui-arr.js', 'ui-roll.js', 'ui-mix.js', 'ui-brw.js', 'export.js', 'ins.js', 'ana.js', 'pkg.js', 'ui-main.js']:
     if os.path.exists(S + f): parts.append(rd(S + f))
 parts.append(rd(S + 'mst.js'))

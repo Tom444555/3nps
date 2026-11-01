@@ -1,4 +1,4 @@
-# Konzept: Gesang in der App abtrennen (Stand 19.10.2026, App v98) – wartet auf Toms OK
+# Konzept: Gesang in der App abtrennen (Stand 19.10.2026, App v98) – **umgesetzt in v124** (Tom: alle drei Fragen ja)
 
 ## Ziel
 
