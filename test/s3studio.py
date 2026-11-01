@@ -45,7 +45,7 @@ async def main():
         check('Export: Klaviernoten klingen', all(s['rms'] > 0.005 for s in x), [round(s['rms'], 3) for s in x])
         # alle Instrumente laden
         res = await pg.evaluate("(async()=>{const out={}; for(const i of Inst.LIST){ if(!i.s) continue; const l=await Inst.load(i.id); out[i.id]=l?l.notes.length:0 } return out})()")
-        check('alle echten Instrumente laden', all(v > 0 for v in res.values()) and len(res) == 8, res)
+        check('alle echten Instrumente laden', all(v > 0 for v in res.values()) and len(res) == 11, res)
         # ---- Drummer ----
         await pg.evaluate("UI.show('arr')"); await pg.click('#tAdd'); await pg.click('#dlg .item[data-k="drum"]'); await pg.wait_for_timeout(1500)
         d = await pg.evaluate("(()=>{const r=Proj.P.regions.find(r=>r.kind==='drum');return {len:r.len/Proj.bar(), d:r.drum, kit:Proj.P.tracks.find(t=>t.kind==='drum').kit}})()")

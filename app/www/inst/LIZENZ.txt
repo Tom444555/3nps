@@ -1,6 +1,27 @@
-Instrumente im Loopsmiths Studio (Klavier, Streicher, Blechbläser, Flöte, Orgel, Harfe, Marimba, Kontrabass)
+Instrumente im Loopsmiths Studio (Klavier, Streicher, Blechbläser, Flöte, Orgel, Harfe, Marimba, Kontrabass, E-Bass, Akustikgitarre, E-Piano Wurlitzer)
 Aufnahmen aus „VSCO-2 Community Edition“ von Versilian Studios (https://github.com/sgossner/VSCO-2-CE),
 aufgenommen von Sam Gossner und Simon Dalzell (Ivy Audio), Schnitt Elan Hickler/Soundemote.
 Bedingungen der Community Edition: Nutzung für jeden Zweck erlaubt (gemeinfrei, CC0), die Samples selbst nicht verkaufen.
 Für das Studio ausgewählt, gekürzt, mit Schleifen für gehaltene Töne versehen und je Instrument zu einer Datei
 zusammengefasst (test/gen_inst.py). Tonhöhen wurden nachgemessen.
+
+---- v123: E-Bass, Akustikgitarre, E-Piano (Wurlitzer) ----
+
+E-Bass (ebass.flac/.json)
+  Quelle: Karoryfer Samples „Fashion Bass“, https://github.com/sfzinstruments/karoryfer.fashionbass
+  Lizenz: CC0 1.0 (gemeinfrei). Verwendet: je Stützpunkt die Aufnahme *_mf_rr1 (19 Töne).
+
+Akustikgitarre (guitar.flac/.json)
+  Quelle: Discord-SFZ-GM-Bank, Programm 026 „Acoustic Guitar (steel)“ (Martin HD28), aufgenommen/gemappt von Jeff Learman,
+  https://github.com/sfzinstruments/Discord-SFZ-GM-Bank  (Zusammenstellung: Kinwie)
+  Lizenz: CC0 1.0 (gemeinfrei). Verwendet: 15 Töne E2–B5, Ausklang auf höchstens 6 s begrenzt, mit Ausblendung.
+
+E-Piano Wurlitzer EP200 (wurli.flac/.json)
+  Aufnahmen: Greg Sullivan (sullivang.net), „Wurlitzer EP200 Electric Piano“, SFZ-Zuordnung von kinwie,
+  https://github.com/sfzinstruments/GregSullivan.E-Pianos
+  Lizenz: Creative Commons Namensnennung 3.0 (CC BY 3.0), https://creativecommons.org/licenses/by/3.0/
+  NAMENSNENNUNG: Greg Sullivan (sullivang.net), CC BY 3.0
+  Verwendet: Anschlagschichten mp und f (je 12 Töne), Stimmkorrekturen (tune) aus der SFZ-Datei übernommen, auf 4 s gekürzt,
+  Lautheit angeglichen; sonst unverändert.
+
+Alle drei wurden mit test/gen_inst2.py erzeugt (Tonhöhen nachgemessen).
