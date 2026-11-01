@@ -35,8 +35,8 @@ const Sched = (() => {
     o.connect(g); g.connect(clickOut); o.start(t); o.stop(t + 0.06);
   }
   function clickProd(a, b, ta, ac) {
-    if (!click && !(window.Rec && Rec.active())) return; const spb = Proj.spb(), sig = Proj.P.sig;
-    for (let k = Math.ceil(a / spb - 1e-6); k * spb < b; k++) blip(ac, ta + (k * spb - a) / sr(), k % sig === 0);
+    if (!click && !(window.Rec && Rec.active())) return;
+    TMap.beats(Proj.P, a, b, (f, one) => blip(ac, ta + (f - a) / sr(), one));   // v121: folgt der Tempokarte
   }
   prods.push(clickProd);
   // ---- Automation (Lautstärke in dB, Panorama −100…100) ----

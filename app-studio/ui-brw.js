@@ -26,7 +26,7 @@ const Brw = (() => {
   $('bList').addEventListener('click', e => { const it = e.target.closest('.item'); if (!it) return; const x = list.find(q => q.id === it.dataset.id); if (x) select(x); });
   async function select(x) {
     stopPrev(); cur = x; render();
-    const P = Proj.P, hasP = P && (P.tracks.length || P.regions.length), nextBar = P ? Math.max(1, Math.ceil(Proj.projEnd() / Proj.bar()) + 1) : 1;
+    const P = Proj.P, hasP = P && (P.tracks.length || P.regions.length), nextBar = P ? Math.max(1, Math.ceil(Proj.f2bar(Proj.projEnd()) - 1e-6) + 1) : 1;
     const fit = x.bpm && P && hasP && Math.abs(P.bpm - x.bpm) > 0.05;
     $('bPrev').innerHTML = '<div class="card"><h2>' + esc(x.name) + '</h2><div class="meta">' + [NAME[x.cat], x.bpm ? Math.round(x.bpm * 100) / 100 + ' BPM' : '', x.key && x.key.trim() ? esc(x.key) : '', x.secs ? mmss(x.secs) : '', x.drums ? 'mit Drums' : '', date(x.ts)].filter(Boolean).join(' · ') + '</div>' +
       '<div id="bTr"><p class="note">Lade Vorschau …</p></div>' +

@@ -116,7 +116,7 @@ const SDB = (() => {
   // Speicher aufräumen: Audio, das kein Projekt mehr benutzt
   async function gc() {
     const ps = await all('projects'), used = new Set();
-    ps.forEach(p => (p.regions || []).forEach(r => r.audio && used.add(r.audio)));
+    ps.forEach(p => (p.regions || []).forEach(r => { if (r.audio) used.add(r.audio); (r.takes || []).forEach(t => t.audio && used.add(t.audio)); }));   // v121: Takes zählen mit
     const as = await tx('audio', 'readonly', st => st.getAllKeys());
     for (const id of as || []) if (!used.has(id)) await delAudio(id);
   }

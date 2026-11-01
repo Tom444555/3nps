@@ -44,7 +44,7 @@ const Imp = (() => {
     say = say || (() => {});
     let p = Proj.P; const sr = Engine.sr();
     if (opts.mode === 'new' || !p) { p = await Proj.newProject(it.name); Proj.change('tempo', q => { q.bpm = Math.round((it.bpm || 100) * 100) / 100; q.key = (it.root || 'C') + ' ' + shortMode(it.mode); }); }
-    const at = Math.round(((opts.bar || 1) - 1) * Proj.bar()), reps = Math.max(1, opts.reps || 1);
+    const at = Proj.bar2f((opts.bar || 1) - 1), reps = Math.max(1, opts.reps || 1);
     const ratio = (it.bpm && opts.fit !== false) ? Proj.P.bpm / it.bpm : 1;
     const tracks = []; let maxLen = 0;
     if (it.session) {
@@ -82,7 +82,7 @@ const Imp = (() => {
     let x = { l: buf.getChannelData(0), r: buf.numberOfChannels > 1 ? buf.getChannelData(1) : buf.getChannelData(0) };
     if (buf.sampleRate !== sr) x = await resample({ l: x.l.slice(), r: x.r.slice() }, buf.sampleRate, sr);
     const m = await SDB.putAudio(it.name, sr, x.l, x.r !== x.l ? x.r : null);
-    const at = Math.round(((opts.bar || 1) - 1) * Proj.bar());
+    const at = Proj.bar2f((opts.bar || 1) - 1);
     Proj.change('regions', q => { const t = Proj.track('audio', it.name); q.tracks.push(t); q.regions.push({ id: Proj.nid('r'), track: t.id, kind: 'audio', audio: m.id, start: at, offset: 0, len: m.frames, gain: 0, fi: 0, fo: 0, name: it.name }); if (it.tok && it.tok.length) q.lyrics = (it.tok || []).map(w => w.w).join(' '); });
     Engine.dirty(true); say('„' + it.name + '“ übernommen.');
   }
@@ -93,7 +93,7 @@ const Imp = (() => {
     const v = s.versions[s.cur != null ? s.cur : s.versions.length - 1]; say = say || (() => {});
     if (opts.mode === 'new' || !Proj.P) { await Proj.newProject(s.name); }
     Proj.change('tempo', q => { q.bpm = v.bpm; q.key = LiedCore.keyLabel(v.key); });
-    const sr = Engine.sr(), at = Math.round(((opts.bar || 1) - 1) * Proj.bar()), spb = Proj.spb();
+    const sr = Engine.sr(), at = Proj.bar2f((opts.bar || 1) - 1), ab = Proj.f2beat(at);
     say('Rechne die Aufnahmen des Songs …');
     const a = await LiedExport.render(v, rid => SDB.looperGet('meta', 'lied-audio:' + rid), sr);
     let m = null; if (a) m = await SDB.putAudio(s.name + ' · Aufnahmen', sr, a.L, a.R);
@@ -102,8 +102,8 @@ const Imp = (() => {
     Proj.change('regions', q => {
       if (m) { const t = Proj.track('audio', 'Aufnahmen (Songwriting)'); q.tracks.push(t); q.regions.push({ id: Proj.nid('r'), track: t.id, kind: 'audio', audio: m.id, start: at, offset: 0, len: m.frames, gain: 0, fi: 0, fo: 0, name: s.name }); }
       let last = null; q.markers = (opts.mode === 'new' ? [] : q.markers || []);
-      tl.entries.forEach(e => { if (last && last.label === e.label) return; q.markers.push({ f: at + Math.round(e.start * spb), name: e.label, color: COL[e.p.type] || '#8ad94e' }); last = e; });
-      q.chords = tl.chords.map(c => ({ b: (at / spb) + c.start, beats: c.beats, name: LiedCore.cname ? LiedCore.cname(c.r, c.t) : ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'][c.r] + c.t, r: c.r, t: c.t }));
+      tl.entries.forEach(e => { if (last && last.label === e.label) return; q.markers.push({ f: Proj.beat2f(ab + e.start), name: e.label, color: COL[e.p.type] || '#8ad94e' }); last = e; });
+      q.chords = tl.chords.map(c => ({ b: ab + c.start, beats: c.beats, name: LiedCore.cname ? LiedCore.cname(c.r, c.t) : ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'][c.r] + c.t, r: c.r, t: c.t }));
       q.lyrics = LiedExport.lyricsText(s, v);
     });
     Engine.dirty(true); say('Song „' + s.name + '“ übernommen: ' + (m ? 'Aufnahmen, ' : '') + tl.entries.length + ' Teile als Marker, ' + tl.chords.length + ' Akkorde.');

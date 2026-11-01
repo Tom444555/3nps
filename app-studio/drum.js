@@ -94,16 +94,17 @@ const Drum = (() => {
   }
   // ---- Zeitplan ----
   function hitsIn(P, a, b, fn) {
-    const spb = P.sr * 60 / P.bpm, bar = spb * P.sig, s16 = spb / 4;
     P.regions.forEach(r => {
       if (r.kind !== 'drum' || r.muted || r.start >= b || r.start + r.len <= a) return; const ti = P.tracks.findIndex(t => t.id === r.track); if (ti < 0) return;
-      const d = r.drum || {}, sw = (d.swing != null ? d.swing : (ST[d.style] || {}).swing || 0) / 100, hu = (d.human != null ? d.human : 35) / 100, nBars = Math.max(1, Math.round(r.len / bar));
-      const b0 = Math.max(0, Math.floor((a - r.start) / bar)), b1 = Math.min(nBars - 1, Math.floor((Math.min(b, r.start + r.len) - r.start - 1) / bar));
+      // v121: Takte der Region über die Tempokarte (Tempo und Taktart je Takt)
+      const rb = TMap.f2bar(P, r.start), nBars = Math.max(1, Math.round(TMap.f2bar(P, r.start + r.len) - rb));
+      const d = r.drum || {}, sw = (d.swing != null ? d.swing : (ST[d.style] || {}).swing || 0) / 100, hu = (d.human != null ? d.human : 35) / 100;
+      const b0 = Math.max(0, Math.floor(TMap.f2bar(P, Math.max(a, r.start)) - rb + 1e-6)), b1 = Math.min(nBars - 1, Math.floor(TMap.f2bar(P, Math.min(b, r.start + r.len) - 1) - rb + 1e-6));
       for (let bi = b0; bi <= b1; bi++) {
-        const R = rnd(bi * 31 + 7), vol = (d.vol != null ? d.vol : 85) / 100;
-        barHits(d, bi + Math.round(r.barOff || 0), nBars + Math.round(r.barOff || 0), P.sig).forEach(h => {
+        const R = rnd(bi * 31 + 7), vol = (d.vol != null ? d.vol : 85) / 100, bs = TMap.bar2f(P, rb + bi), sg = TMap.at(P, bs + 1), s16 = sg.spb / 4;
+        barHits(d, bi + Math.round(r.barOff || 0), nBars + Math.round(r.barOff || 0), sg.sig).forEach(h => {
           const odd = Math.floor(h.s) % 2 === 1 && h.s % 1 === 0;
-          let f = r.start + bi * bar + h.s * s16 + (odd ? sw * s16 * 0.66 : 0) + (R() - 0.5) * hu * 0.012 * P.sr;
+          let f = bs + h.s * s16 + (odd ? sw * s16 * 0.66 : 0) + (R() - 0.5) * hu * 0.012 * P.sr;
           if (f < a || f >= b || f >= r.start + r.len || f < r.start) return;
           fn(ti, P.tracks[ti], f, h.id, h.v * vol * (1 - hu * 0.15 + R() * hu * 0.3));
         });
@@ -115,7 +116,7 @@ const Drum = (() => {
   prod.stop = () => { const now = Engine.ac().currentTime; live.forEach(s => { try { s.stop(now + 0.02); } catch (e) {} }); live = []; };
   Sched.add(prod);
   function offline(oc, G, P, a, e) { hitsIn(P, a, e, (ti, t, f, id, v) => { if (G.tr[ti]) hit(oc, G.tr[ti].inN, t.kit || 'rock', id, (f - a) / oc.sampleRate, v); }); }
-  function midiNotes(P, t, a, PPQ) { const spb = P.sr * 60 / P.bpm, out = []; const Q = { regions: P.regions.filter(r => r.track === t.id), sr: P.sr, bpm: P.bpm, sig: P.sig, tracks: [t] }; hitsIn(Q, a, Infinity, (ti, tt, f, id, v) => out.push({ t: Math.round((f - a) / spb * PPQ), m: GM[id] || 38, v: Math.max(1, Math.min(127, Math.round(v * 127))), d: Math.round(PPQ / 8) })); return out; }
+  function midiNotes(P, t, a, PPQ) { const out = [], a0 = TMap.f2beat(P, a); const Q = { regions: P.regions.filter(r => r.track === t.id), sr: P.sr, bpm: P.bpm, sig: P.sig, tempo: P.tempo, tracks: [t] }; hitsIn(Q, a, Infinity, (ti, tt, f, id, v) => out.push({ t: Math.round((TMap.f2beat(P, f) - a0) * PPQ), m: GM[id] || 38, v: Math.max(1, Math.min(127, Math.round(v * 127))), d: Math.round(PPQ / 8) })); return out; }
   // ---- Übernahme aus dem Looper (Muster 1:1) ----
   function fromLooper(q, ds, at, len) {
     if (!ds || !ds.steps) return; let kit = 'rock'; try { kit = localStorage.getItem('3nps-drumkit') || 'rock'; } catch (e) {} if (!KITS[kit]) kit = 'synth';
@@ -124,7 +125,7 @@ const Drum = (() => {
       drum: { mode: 'steps', steps: JSON.parse(JSON.stringify(ds.steps)), res: ds.res, swing: ds.swing || 0, human: ds.human != null ? ds.human : 35, vol: ds.vol != null ? Math.min(100, ds.vol + 15) : 85 } });
     load(kit);
   }
-  function addDefault(trackId) { const r = { id: Proj.nid('r'), track: trackId, kind: 'drum', start: Proj.snap(Engine.curPos(), 'bar'), len: Math.round(Proj.bar() * 8), name: 'Rock', drum: { mode: 'gen', style: 'rock', energy: 60, cplx: 40, fill: 1, human: 35, vol: 85 } }; Proj.addRegion(r); Arr.V.sel = r.id; load('rock'); }
+  function addDefault(trackId) { const r = { id: Proj.nid('r'), track: trackId, kind: 'drum', start: Proj.snap(Engine.curPos(), 'bar'), len: 0, name: 'Rock', drum: { mode: 'gen', style: 'rock', energy: 60, cplx: 40, fill: 1, human: 35, vol: 85 } }; r.len = Proj.bar2f(Proj.f2bar(r.start) + 8) - r.start; Proj.addRegion(r); Arr.V.sel = r.id; load('rock'); }
   function choose(id) {
     const t = Proj.P.tracks[Proj.tIndex(id)];
     UI.dialog('<h2>Schlagzeug-Kit · ' + t.name.replace(/</g, '&lt;') + '</h2><div class="plist">' + Object.entries(KITS).map(([k, n]) => '<div class="item' + (k === (t.kit || 'rock') ? ' a' : '') + '" data-k="' + k + '"><div class="ic">🥁</div><div style="flex:1"><b>' + n + '</b><small>' + (k === 'synth' ? 'sofort da' : 'dieselben Aufnahmen wie im Looper (drums/LIZENZ.txt)') + '</small></div><button class="btn" data-p="' + k + '">▶</button></div>').join('') + '</div><p class="note">Stil, Lautstärke, Komplexität und Fills stellst du je Region ein: Region doppelt antippen (oder „Bearbeiten“).</p><div class="btns"><button class="btn p" data-close>Fertig</button></div>');

@@ -11,22 +11,32 @@ const Arr = (() => {
   const kick = () => { need = true; };
   function meta(id) { if (!metas.has(id)) { metas.set(id, null); SDB.meta(id).then(m => { metas.set(id, m); kick(); }); } return metas.get(id); }
   const fx = f => (f - V.x0) / V.fpp, xf = x => V.x0 + x * V.fpp;
-  const tY = i => RH + i * V.th - V.y0;
+  // v121: Spurhöhe = Spur + aufgeklappte Take-Zeilen (Take-Ordner)
+  const TKH = 30;
+  const nTakes = t => { let n = 0; if (t.takesOpen) P().regions.forEach(r => { if (r.track === t.id && r.takes && r.takes.length > n) n = r.takes.length; }); return n; };
+  const hasTakes = t => P().regions.some(r => r.track === t.id && r.takes && r.takes.length);
+  const rowH = t => V.th + nTakes(t) * TKH;
+  // Spur-Lage einmal je Bild/Eingabe berechnen (LY = null macht sie ungültig)
+  let LY = null;
+  const lay = () => { if (LY) return LY; const ts = P().tracks, ys = [], hs = []; let y = 0; ts.forEach(t => { const h = rowH(t); ys.push(y); hs.push(h); y += h; }); return (LY = { ys, hs, tot: y }); };
+  const tY = i => { const L = lay(); return RH - V.y0 + (i < L.ys.length ? L.ys[i] : L.tot); };
+  const trackAt = y => { const L = lay(), yy = y - RH + V.y0; for (let k = 0; k < L.ys.length; k++) if (yy < L.ys[k] + L.hs[k]) return { ti: k, dy: yy - L.ys[k] }; return { ti: -1, dy: 0 }; };
   // ---------- Kopfzeilen der Spuren ----------
   const KIND = { audio: 'Audio', midi: 'Noten', drum: 'Drummer' };
   function heads() {
-    const p = P(); if (!p) { headsIn.innerHTML = ''; return; }
+    LY = null; const p = P(); if (!p) { headsIn.innerHTML = ''; return; }
     let h = '<div class="ruler-pad">' + p.tracks.length + ' Spuren</div>';
     p.tracks.forEach(t => {
-      h += '<div class="th' + (V.selTrack === t.id ? ' sel' : '') + '" data-t="' + t.id + '" style="height:' + V.th + 'px"><div class="c" style="background:' + t.color + '"></div><div class="n"><b>' + esc(t.name) + '</b><small>' + KIND[t.kind] + (t.kind === 'midi' && t.inst && window.Inst ? ' · ' + esc(Inst.label(t.inst)) : '') + (t.kind === 'drum' ? ' · ' + esc(t.kit || '') : '') + '</small></div>' +
-        '<div class="ms"><button class="m' + (t.mute ? ' on' : '') + '" data-a="mute" aria-label="Stumm">M</button><button class="s' + (t.solo ? ' on' : '') + '" data-a="solo" aria-label="Solo">S</button>' + (t.kind === 'audio' ? '<button class="r' + (t.arm ? ' on' : '') + '" data-a="arm" aria-label="Aufnahme scharf">R</button>' : '') + '</div></div>';
+      const ht = hasTakes(t), nk = ht ? Math.max(...p.regions.filter(r => r.track === t.id && r.takes).map(r => r.takes.length)) : 0;
+      h += '<div class="th' + (V.selTrack === t.id ? ' sel' : '') + (rowH(t) > V.th ? ' tko' : '') + '" data-t="' + t.id + '" style="height:' + rowH(t) + 'px' + (rowH(t) > V.th ? ';padding-top:' + Math.max(4, Math.round(V.th / 2 - 15)) + 'px' : '') + '"><div class="c" style="background:' + t.color + '"></div><div class="n"><b>' + esc(t.name) + '</b><small>' + KIND[t.kind] + (t.kind === 'midi' && t.inst && window.Inst ? ' · ' + esc(Inst.label(t.inst)) : '') + (t.kind === 'drum' ? ' · ' + esc(t.kit || '') : '') + (t.out && t.out !== 'master' ? ' · → ' + esc(((p.groups || []).find(g => g.id === t.out) || {}).name || t.out) : '') + '</small></div>' +
+        '<div class="ms"><button class="m' + (t.mute ? ' on' : '') + '" data-a="mute" aria-label="Stumm">M</button><button class="s' + (t.solo ? ' on' : '') + '" data-a="solo" aria-label="Solo">S</button>' + (t.kind === 'audio' ? '<button class="r' + (t.arm ? ' on' : '') + '" data-a="arm" aria-label="Aufnahme scharf">R</button>' : '') + (ht ? '<button class="tk' + (t.takesOpen ? ' on' : '') + '" data-a="takesOpen" aria-label="Takes auf-/zuklappen" title="Take-Ordner">' + (t.takesOpen ? '▾' : '▸') + nk + '</button>' : '') + '</div></div>';
     });
     headsIn.innerHTML = h; headsIn.style.transform = 'translateY(' + (-V.y0) + 'px)';
   }
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   headsIn.addEventListener('click', e => {
     const th = e.target.closest('.th'); if (!th) return; const id = th.dataset.t, b = e.target.closest('button');
-    if (b) { const a = b.dataset.a; Proj.editTrack(id, t => { t[a] = !t[a]; if (a === 'arm' && t.arm) Proj.P.tracks.forEach(o => { if (o !== t) o.arm = false; }); }, { noUndo: true }); Proj.P.tracks.forEach((_, i) => Engine.applyTrack(i, true)); heads(); return; }
+    if (b) { const a = b.dataset.a; Proj.editTrack(id, t => { t[a] = !t[a]; if (a === 'arm' && t.arm) Proj.P.tracks.forEach(o => { if (o !== t) o.arm = false; }); }, { noUndo: true }); Proj.P.tracks.forEach((_, i) => Engine.applyTrack(i, true)); heads(); kick(); return; }
     selectTrack(id);
   });
   headsIn.addEventListener('dblclick', e => { const th = e.target.closest('.th'); if (th) UI.renameTrack(th.dataset.t); });
@@ -36,17 +46,17 @@ const Arr = (() => {
     const p = P(), dpr = window.devicePixelRatio || 1, w = lanes.clientWidth, h = lanes.clientHeight;
     if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
     const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, w, h);
-    c.fillStyle = '#141416'; c.fillRect(0, 0, w, h); if (!p) return;
-    const bar = Proj.bar(), beat = Proj.spb(), pxBar = bar / V.fpp;
+    c.fillStyle = '#141416'; c.fillRect(0, 0, w, h); if (!p) return; LY = null;
+    const pxBar = Proj.bar(xf(w / 2)) / V.fpp;
     const every = pxBar < 14 ? 8 : pxBar < 28 ? 4 : pxBar < 60 ? 2 : 1;
-    // Spurhintergründe
-    p.tracks.forEach((t, i) => { const y = tY(i); if (y > h || y + V.th < RH) return; c.fillStyle = V.selTrack === t.id ? '#1d1d23' : (i % 2 ? '#17171a' : '#151518'); c.fillRect(0, y, w, V.th); c.fillStyle = '#26262c'; c.fillRect(0, y + V.th - 1, w, 1); });
-    // Raster
-    const b0 = Math.floor(xf(0) / bar), b1 = Math.ceil(xf(w) / bar);
+    // Spurhintergründe (+ Take-Zeilen)
+    p.tracks.forEach((t, i) => { const y = tY(i), rh = rowH(t); if (y > h || y + rh < RH) return; c.fillStyle = V.selTrack === t.id ? '#1d1d23' : (i % 2 ? '#17171a' : '#151518'); c.fillRect(0, y, w, rh); if (rh > V.th) { c.fillStyle = '#111114'; c.fillRect(0, y + V.th, w, rh - V.th); } c.fillStyle = '#26262c'; c.fillRect(0, y + rh - 1, w, 1); });
+    // Raster (v121: über die Tempokarte – Takte können verschieden lang sein)
+    const b0 = Math.floor(Proj.f2bar(xf(0))), b1 = Math.ceil(Proj.f2bar(xf(w)));
     for (let b = Math.max(0, b0); b <= b1; b++) {
-      const x = Math.round(fx(b * bar)) + 0.5;
+      const fb = TMap.bar2f(p, b), x = Math.round(fx(fb)) + 0.5;
       if (b % every === 0) { c.fillStyle = '#2a2a31'; c.fillRect(x, RH, 1, h); }
-      if (pxBar > 90) for (let k = 1; k < p.sig; k++) { const xb = Math.round(fx(b * bar + k * beat)) + 0.5; c.fillStyle = '#1f1f24'; c.fillRect(xb, RH, 1, h); }
+      if (pxBar > 90) { const sg = TMap.at(p, fb + 1); for (let k = 1; k < sg.sig; k++) { const xb = Math.round(fx(fb + k * sg.spb)) + 0.5; c.fillStyle = '#1f1f24'; c.fillRect(xb, RH, 1, h); } }
     }
     // Cycle
     const cy = p.cycle; if (cy && cy.b > cy.a) { const a = fx(cy.a), e = fx(cy.b); c.fillStyle = cy.on ? 'rgba(242,194,48,.10)' : 'rgba(255,255,255,.04)'; c.fillRect(a, RH, e - a, h); }
@@ -59,7 +69,8 @@ const Arr = (() => {
       c.fillStyle = t.color; roundRect(c, x0, y, Math.max(2, x1 - x0), hh, 5); c.fill();
       c.save(); c.beginPath(); c.rect(Math.max(0, x0), y, Math.min(w, x1) - Math.max(0, x0), hh); c.clip();
       c.fillStyle = 'rgba(0,0,0,.72)'; c.font = '600 10px system-ui'; c.fillText(r.name || '', x0 + 6, y + 11);
-      if (r.kind === 'audio') drawWave(c, r, x0, x1, y + 14, hh - 16, w);
+      if (r.kind === 'audio' && r.takes && r.takes.length) drawComp(c, r, x0, x1, y + 14, hh - 16, w);
+      else if (r.kind === 'audio') drawWave(c, r, x0, x1, y + 14, hh - 16, w);
       else if (r.kind === 'midi') drawNotes(c, r, x0, y + 14, hh - 16);
       else if (r.kind === 'drum') drawDrum(c, r, x0, x1, y + 14, hh - 16);
       // Blenden
@@ -69,17 +80,24 @@ const Arr = (() => {
       if (sel) { c.lineWidth = 2; c.strokeStyle = '#fff'; roundRect(c, x0 + 1, y + 1, Math.max(2, x1 - x0) - 2, hh - 2, 5); c.stroke();
         c.fillStyle = '#fff'; [[x0 + 7, y + 7], [x1 - 7, y + 7]].forEach(([a, b]) => { c.beginPath(); c.arc(a, b, 4, 0, 7); c.fill(); }); }
     });
+    // v121: Take-Zeilen aufgeklappter Ordner
+    p.tracks.forEach((t, ti) => { if (!t.takesOpen) return; const y0 = tY(ti) + V.th; if (y0 > h || y0 + nTakes(t) * TKH < RH) return; p.regions.forEach(r => { if (r.track === t.id && r.takes && r.takes.length) drawTakes(c, t, r, y0, w); }); });
     // Automation (ausgewählte Spur)
     if (V.auto && V.selTrack) { const ti = Proj.tIndex(V.selTrack); if (ti >= 0) drawAuto(c, p.tracks[ti], ti, w); }
     // Lineal
     c.fillStyle = '#18181c'; c.fillRect(0, 0, w, RH); c.fillStyle = '#34343b'; c.fillRect(0, RH - 1, w, 1);
     c.font = '11px ui-monospace,Menlo,monospace'; c.fillStyle = '#8f909a';
-    for (let b = Math.max(0, b0); b <= b1; b++) if (b % every === 0) c.fillText(String(b + 1), fx(b * bar) + 3, 13);
+    for (let b = Math.max(0, b0); b <= b1; b++) if (b % every === 0) c.fillText(String(b + 1), fx(TMap.bar2f(p, b)) + 3, 13);
+    // v121: Tempo- und Taktartwechsel im Lineal
+    const sgs = TMap.segs(p); c.font = '600 10px system-ui';
+    sgs.forEach((sg, k) => { if (!k) return; const x = fx(sg.f), pv = sgs[k - 1]; if (x < -60 || x > w) return; const lb = (pv.bpm !== sg.bpm ? '♩' + (Math.round(sg.bpm * 10) / 10).toString().replace('.', ',') : '') + (pv.sig !== sg.sig ? (pv.bpm !== sg.bpm ? ' ' : '') + sg.sig + '/4' : ''); if (!lb) return; const tw = c.measureText(lb).width + 8; c.fillStyle = '#ff8a3d'; c.fillRect(Math.round(x), 0, 2, RH); roundRect(c, x + 2, 2, tw, 13, 3); c.fill(); c.fillStyle = '#111'; c.fillText(lb, x + 6, 12); c.font = '600 10px system-ui'; });
+    c.font = '11px ui-monospace,Menlo,monospace';
     if (cy && cy.b > cy.a) { const a = fx(cy.a), e = fx(cy.b); c.fillStyle = cy.on ? 'rgba(242,194,48,.85)' : 'rgba(242,194,48,.3)'; c.fillRect(a, 20, e - a, 12); }
     (p.markers || []).forEach(m => { const x = fx(m.f); if (x < -100 || x > w) return; c.font = '600 10px system-ui'; const tw = c.measureText(m.name).width + 10; c.fillStyle = m.color || '#8ad94e'; roundRect(c, x, 18, tw, 14, 3); c.fill(); c.fillStyle = '#111'; c.fillText(m.name, x + 5, 29); });
     // Abspielposition
     const px = fx(Engine.curPos()); if (px >= 0 && px <= w) { c.fillStyle = '#fff'; c.fillRect(Math.round(px), 0, 2, h); }
     if (window.Rec && Rec.active()) { const a = fx(Rec.startPos()), e = px; c.fillStyle = 'rgba(255,93,93,.35)'; const ti = Proj.tIndex(Rec.track()); if (ti >= 0) c.fillRect(a, tY(ti) + 5, Math.max(0, e - a), V.th - 10); }
+    if (drag && drag.kind === 'comp' && drag.moved) { const ti = Proj.tIndex(drag.r.track), a = fx(Math.min(drag.f0, drag.f1)), e = fx(Math.max(drag.f0, drag.f1)); c.fillStyle = 'rgba(255,255,255,.25)'; c.fillRect(a, tY(ti) + V.th + drag.k * TKH, e - a, TKH); }
   }
   function roundRect(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
   // Wellenform (v109): je Bildschirm-Pixel (Retina) gezeichnet; beim Hineinzoomen aus den echten Abtastwerten statt aus der Übersicht
@@ -112,15 +130,49 @@ const Arr = (() => {
   }
   function drawNotes(c, r, x0, y, h) {
     const ns = r.notes || []; if (!ns.length) return; let lo = 127, hi = 0; ns.forEach(n => { lo = Math.min(lo, n.m); hi = Math.max(hi, n.m); });
-    const span = Math.max(12, hi - lo + 1), spb = Proj.spb(); c.fillStyle = 'rgba(0,0,0,.6)';
-    ns.forEach(n => { const x = fx(r.start + n.t * spb), xe = fx(r.start + (n.t + n.d) * spb), yy = y + h - ((n.m - lo + 0.5) / span) * h; c.fillRect(x, yy - 1.5, Math.max(2, xe - x - 1), 3); });
+    const span = Math.max(12, hi - lo + 1), rb = Proj.f2beat(r.start), p = P(); c.fillStyle = 'rgba(0,0,0,.6)';
+    ns.forEach(n => { const x = fx(TMap.beat2f(p, rb + n.t)), xe = fx(TMap.beat2f(p, rb + n.t + n.d)), yy = y + h - ((n.m - lo + 0.5) / span) * h; c.fillRect(x, yy - 1.5, Math.max(2, xe - x - 1), 3); });
   }
   function drawDrum(c, r, x0, x1, y, h) {
-    const spb = Proj.spb(), bar = Proj.bar(), s16 = spb / 4; c.fillStyle = 'rgba(0,0,0,.6)';
+    const p = P(), spb = Proj.spb(r.start), s16 = spb / 4; c.fillStyle = 'rgba(0,0,0,.6)';
     if (!window.Drum || s16 / V.fpp < 1.2) { for (let f = 0, k = 0; f < r.len; f += spb / 2, k++) { const x = fx(r.start + f); if (x < -4 || x > x1) continue; c.fillRect(x, k % 4 === 0 ? y + h * 0.75 : k % 4 === 2 ? y + h * 0.4 : y + h * 0.1, 2, 2); } return; }
-    const n = Math.max(1, Math.round(r.len / bar)), row = id => id === 'kick' ? 0.78 : /snare|rim|clap/.test(id) ? 0.48 : /^tom/.test(id) ? 0.62 : 0.15;
-    for (let bi = 0; bi < n; bi++) { const xb = fx(r.start + bi * bar); if (xb > x1 || fx(r.start + (bi + 1) * bar) < 0) continue;
-      Drum.barHits(r.drum || {}, bi + Math.round(r.barOff || 0), n + Math.round(r.barOff || 0), Proj.P.sig).forEach(q => { const x = fx(r.start + bi * bar + q.s * s16); if (x > x1) return; const sz = 1.5 + q.v * 2.5; c.fillRect(x, y + h * row(q.id) - sz / 2, sz, sz); }); }
+    const rb = TMap.f2bar(p, r.start), n = Math.max(1, Math.round(TMap.f2bar(p, r.start + r.len) - rb)), row = id => id === 'kick' ? 0.78 : /snare|rim|clap/.test(id) ? 0.48 : /^tom/.test(id) ? 0.62 : 0.15;
+    for (let bi = 0; bi < n; bi++) { const fb = TMap.bar2f(p, rb + bi), xb = fx(fb); if (xb > x1 || fx(TMap.bar2f(p, rb + bi + 1)) < 0) continue; const sg = TMap.at(p, fb + 1), q16 = sg.spb / 4;
+      Drum.barHits(r.drum || {}, bi + Math.round(r.barOff || 0), n + Math.round(r.barOff || 0), sg.sig).forEach(q => { const x = fx(fb + q.s * q16); if (x > x1) return; const sz = 1.5 + q.v * 2.5; c.fillRect(x, y + h * row(q.id) - sz / 2, sz, sz); }); }
+  }
+  // v121: Take-Ordner – Wellenform je Comp-Abschnitt aus dem jeweiligen Take
+  const takeSub = (r, tk, ta, tb) => ({ audio: tk.audio, offset: (tk.offset || 0) + ta, start: r.start + ta - (r.offset || 0), len: tb - ta, gain: (r.gain || 0) + (tk.gain || 0) });
+  function drawComp(c, r, x0, x1, y, h, w) {
+    const off = r.offset || 0;
+    Engine.compSegs(r).forEach(sg => { const tk = r.takes.find(x => x.id === sg.k); if (!tk) return; const ta = Math.max(sg.a, off), tb = Math.min(sg.b, off + r.len); if (tb <= ta) return; const q = takeSub(r, tk, ta, tb); drawWave(c, q, fx(q.start), fx(q.start + q.len), y, h, w); c.fillStyle = 'rgba(0,0,0,.35)'; c.fillRect(fx(q.start), y + h - 1, 1, 1 - h); });
+    c.fillStyle = 'rgba(0,0,0,.72)'; c.font = '600 9px system-ui'; c.fillText(r.takes.length + ' Takes', Math.max(x0, 0) + 6, y + h - 2);
+  }
+  function drawTakes(c, t, r, y0, w) {
+    const off = r.offset || 0, segs = Engine.compSegs(r), x0 = fx(r.start), x1 = fx(r.start + r.len);
+    r.takes.forEach((tk, k) => {
+      const y = y0 + k * TKH + 2, hh = TKH - 4; if (x1 < 0 || x0 > w) return;
+      c.globalAlpha = 0.28; c.fillStyle = t.color; roundRect(c, x0, y, Math.max(2, x1 - x0), hh, 4); c.fill(); c.globalAlpha = 1;
+      segs.forEach(sg => { if (sg.k !== tk.id) return; const a = fx(r.start + Math.max(sg.a, off) - off), e = fx(r.start + Math.min(sg.b, off + r.len) - off); if (e > a) { c.fillStyle = t.color; c.fillRect(a, y, e - a, hh); } });
+      c.save(); c.beginPath(); c.rect(Math.max(0, x0), y, Math.min(w, x1) - Math.max(0, x0), hh); c.clip();
+      const q = takeSub(r, tk, off, off + r.len); drawWave(c, q, x0, x1, y + 2, hh - 4, w);
+      c.fillStyle = 'rgba(0,0,0,.8)'; c.font = '600 10px system-ui'; c.fillText(tk.name, Math.max(0, x0) + 6, y + 11); c.restore();
+    });
+  }
+  // Comp ändern: Take k klingt im Bereich [fa, fb) (Bilder der Zeitleiste); Takt-/Schlag-Raster wie „Einrasten“
+  function compSet(r, k, fa, fb) {
+    const tk = r.takes[k]; if (!tk) return; const off = r.offset || 0, T = r.tlen || r.len + off;
+    let a = Math.round(Math.max(0, Math.min(T, fa - r.start + off))), b = Math.round(Math.max(0, Math.min(T, fb - r.start + off))); if (b - a < 32) return;
+    Proj.editRegion(r.id, q => {
+      const segs = Engine.compSegs(q), out = [];
+      segs.forEach(s => { if (s.b <= a || s.a >= b) out.push(s); else { if (s.a < a) out.push({ a: s.a, b: a, k: s.k }); if (s.b > b) out.push({ a: b, b: s.b, k: s.k }); } });
+      out.push({ a, b, k: tk.id }); out.sort((x, y) => x.a - y.a); q.comp = out; q.comp = Engine.compSegs(q);
+      const main = q.comp.reduce((m, s) => s.b - s.a > m.l ? { l: s.b - s.a, k: s.k } : m, { l: 0 }); const mt = q.takes.find(x => x.id === main.k); if (mt) q.audio = mt.audio;
+    });
+    UI.inspect(); kick();
+  }
+  function compTap(r, k, f) {
+    const off = r.offset || 0, t = f - r.start + off, sg = Engine.compSegs(r).find(s => t >= s.a && t < s.b);
+    if (sg) compSet(r, k, r.start + sg.a - off, r.start + sg.b - off); else compSet(r, k, r.start, r.start + r.len);
   }
   function drawAuto(c, t, ti, w) {
     const k = V.autoP, [lo, hi] = AR[k], pts = (t.auto && t.auto[k]) || [], y = tY(ti), hh = V.th, vy = v => y + 4 + (1 - (v - lo) / (hi - lo)) * (hh - 8), cur = t[k] || 0;
@@ -134,10 +186,14 @@ const Arr = (() => {
   // ---------- Bedienung ----------
   const ptrs = new Map(); let drag = null, lastTap = { t: 0, id: null };
   function hit(x, y) {
-    const p = P(); if (!p) return null;
+    LY = null; const p = P(); if (!p) return null;
     if (y < RH) return { zone: y < 18 ? 'ruler' : 'cycle' };
-    const ti = Math.floor((y - RH + V.y0) / V.th), t = p.tracks[ti]; if (!t) return { zone: 'empty' };
+    const ta = trackAt(y), ti = ta.ti, t = p.tracks[ti]; if (!t) return { zone: 'empty' };
     const f = xf(x);
+    if (ta.dy >= V.th) {   // v121: Take-Zeile
+      const k = Math.floor((ta.dy - V.th) / TKH), r = p.regions.find(q => q.track === t.id && q.takes && q.takes[k] && f >= q.start && f <= q.start + q.len);
+      return r ? { zone: 'take', r, t, ti, k, f } : { zone: 'lane', t, ti, f };
+    }
     if (V.auto && t.id === V.selTrack) return { zone: 'auto', t, ti, f };
     for (let i = p.regions.length - 1; i >= 0; i--) {
       const r = p.regions[i]; if (r.track !== t.id || f < r.start || f > r.start + r.len) continue;
@@ -159,8 +215,9 @@ const Arr = (() => {
     if (h.zone === 'ruler') { drag = { kind: 'scrub', x }; Engine.seek(Math.max(0, Proj.snap(xf(x), 'beat'))); kick(); return; }
     if (h.zone === 'cycle') { const f = Proj.snap(xf(x), 'bar'), c = Proj.P.cycle; if (dbl || (c.b > c.a && f >= c.a && f <= c.b && !drag)) { drag = { kind: 'cyctap', x, f }; return; } drag = { kind: 'cycle', a: f, x }; return; }
     if (h.zone === 'auto') { autoDown(h, x, y, dbl); return; }
+    if (h.zone === 'take') { V.sel = h.r.id; if (V.selTrack !== h.t.id) { V.selTrack = h.t.id; heads(); } UI.inspect(); drag = { kind: 'comp', r: h.r, k: h.k, f0: h.f, f1: h.f, x, moved: false }; kick(); return; }
     if (V.loopSel && h.zone !== 'ruler' && h.zone !== 'cycle') {   // v109: Takte wählen und loopen – über die Spuren ziehen
-      const bar = Proj.bar(), f = Math.max(0, Math.floor(xf(x) / bar) * bar); Proj.P.cycle = { on: true, a: f, b: f + bar }; Engine.setCycle(); UI.sync(); drag = { kind: 'loopsel', a: f }; kick(); return;
+      const p = Proj.P, f = Math.max(0, Math.round(TMap.barFloor(p, xf(x)))); p.cycle = { on: true, a: f, b: Math.round(TMap.bar2f(p, Math.round(TMap.f2bar(p, f)) + 1)) }; Engine.setCycle(); UI.sync(); drag = { kind: 'loopsel', a: f }; kick(); return;
     }
     if (h.zone === 'region') {
       V.sel = h.r.id; if (V.selTrack !== h.t.id) { V.selTrack = h.t.id; heads(); }
@@ -176,7 +233,8 @@ const Arr = (() => {
     if (!ptrs.has(e.pointerId)) return; const rc = lanes.getBoundingClientRect(), x = e.clientX - rc.left, y = e.clientY - rc.top; ptrs.set(e.pointerId, { x, y });
     if (!drag) return;
     if (drag.kind === 'pinch' && ptrs.size === 2) { const [a, b] = [...ptrs.values()], d = Math.abs(a.x - b.x) || 1; V.fpp = clampF(drag.fpp0 * drag.d0 / d); V.x0 = Math.max(0, drag.fc - drag.cx * V.fpp); kick(); return; }
-    if (drag.kind === 'loopsel') { const bar = Proj.bar(), f = Math.max(0, xf(x)), a = drag.a, b = f >= a ? Math.max(a + bar, Math.ceil(f / bar) * bar) : Math.floor(f / bar) * bar; Proj.P.cycle = { on: true, a: Math.min(a, b), b: Math.max(a + bar, b > a ? b : a + bar) }; Engine.setCycle(); UI.sync(); kick(); return; }
+    if (drag.kind === 'loopsel') { const p = Proj.P, f = Math.max(0, xf(x)), a = drag.a, a1 = Math.round(TMap.bar2f(p, Math.round(TMap.f2bar(p, a)) + 1)), b = f >= a ? Math.max(a1, Math.round(TMap.barCeil(p, f))) : Math.round(TMap.barFloor(p, f)); p.cycle = { on: true, a: Math.min(a, b), b: b > a ? b : a1 }; Engine.setCycle(); UI.sync(); kick(); return; }
+    if (drag.kind === 'comp') { if (Math.abs(x - drag.x) > 6) drag.moved = true; const g = UI.snapMode(); drag.f1 = g === 'off' ? xf(x) : Proj.snap(xf(x), g); if (drag.moved && drag.f0s == null) drag.f0s = g === 'off' ? drag.f0 : Proj.snap(drag.f0, g); kick(); return; }
     if (drag.kind === 'pan') { V.x0 = Math.max(0, drag.x0 - (x - drag.x) * V.fpp); V.y0 = Math.max(0, Math.min(maxY(), drag.y0 - (y - drag.y))); headsIn.style.transform = 'translateY(' + (-V.y0) + 'px)'; kick(); return; }
     if (drag.kind === 'scrub') { Engine.seek(Math.max(0, Proj.snap(xf(x), 'beat'))); kick(); return; }
     if (drag.kind === 'cycle' || drag.kind === 'cyctap') { if (Math.abs(x - drag.x) < 6) return; const a = drag.kind === 'cycle' ? drag.a : Proj.snap(xf(drag.x), 'bar'), b = Proj.snap(xf(x), 'bar'); Proj.P.cycle = { on: true, a: Math.min(a, b), b: Math.max(a, b) }; drag.kind = 'cycle'; drag.a = a; Engine.setCycle(); UI.sync(); kick(); return; }
@@ -186,7 +244,8 @@ const Arr = (() => {
   const up = e => {
     ptrs.delete(e.pointerId);
     if (drag && drag.kind === 'cyctap') { const c = Proj.P.cycle; c.on = !c.on; Engine.setCycle(); UI.sync(); Proj.save(); kick(); }
-    if (drag && (drag.kind === 'cycle' || drag.kind === 'loopsel')) { Proj.save(); if (drag.kind === 'loopsel') { const c = Proj.P.cycle, bar = Proj.bar(); UI.say('Loop: Takt ' + (Math.round(c.a / bar) + 1) + '–' + Math.round(c.b / bar) + ' (' + Math.round((c.b - c.a) / bar) + ' Takte). ▶ spielt ihn in Schleife.'); } }
+    if (drag && (drag.kind === 'cycle' || drag.kind === 'loopsel')) { Proj.save(); if (drag.kind === 'loopsel') { const c = Proj.P.cycle, ba = Math.round(Proj.f2bar(c.a)), bb = Math.round(Proj.f2bar(c.b)); UI.say('Loop: Takt ' + (ba + 1) + '–' + bb + ' (' + (bb - ba) + ' Takte). ▶ spielt ihn in Schleife.'); } }
+    if (drag && drag.kind === 'comp') { const d = drag, r = Proj.reg(d.r.id); drag = null; if (r) { if (d.moved) compSet(r, d.k, Math.min(d.f0s != null ? d.f0s : d.f0, d.f1), Math.max(d.f0s != null ? d.f0s : d.f0, d.f1)); else compTap(r, d.k, d.f0); UI.say('Comp: „' + r.takes[d.k].name + '“ ' + (d.moved ? 'im gewischten Bereich' : 'in diesem Abschnitt') + '.'); } }
     if (drag && drag.kind === 'reg' && drag.moved) { const r = Proj.reg(drag.id), fin = JSON.parse(JSON.stringify(r)); Object.assign(r, drag.orig); Proj.editRegion(drag.id, q => Object.assign(q, fin)); }
     if (drag && drag.kind === 'auto' && drag.moved) { Proj.save(); }
     if (!ptrs.size) drag = null; kick();
@@ -194,20 +253,20 @@ const Arr = (() => {
   lanes.addEventListener('pointerup', up); lanes.addEventListener('pointercancel', up);
   lanes.addEventListener('wheel', e => { e.preventDefault(); if (e.ctrlKey) { const rc = lanes.getBoundingClientRect(), fc = xf(e.clientX - rc.left); V.fpp = clampF(V.fpp * Math.exp(e.deltaY / 200)); V.x0 = Math.max(0, fc - (e.clientX - rc.left) * V.fpp); } else { V.x0 = Math.max(0, V.x0 + (e.deltaX || (e.shiftKey ? e.deltaY : 0)) * V.fpp); V.y0 = Math.max(0, Math.min(maxY(), V.y0 + (e.shiftKey ? 0 : e.deltaY))); headsIn.style.transform = 'translateY(' + (-V.y0) + 'px)'; } kick(); }, { passive: false });
   const clampF = f => Math.max(0.25, Math.min(40000, f));   // bis 4 Pixel je Abtastwert hineinzoomen
-  const maxY = () => Math.max(0, RH + (P() ? P().tracks.length : 0) * V.th - lanes.clientHeight + 40);
+  const maxY = () => Math.max(0, RH + (P() ? lay().tot : 0) - lanes.clientHeight + 40);
   function regMove(d, x, y) {
     const r = Proj.reg(d.id); if (!r) return; const df = (x - d.x) * V.fpp, o = d.orig, g = UI.snapMode(), sn = f => g === 'off' ? Math.round(f) : Proj.snap(f, g);
     if (Math.abs(x - d.x) + Math.abs(y - d.y) > 4) d.moved = true; if (!d.moved) return;
     if (d.part === 'body') {
-      r.start = Math.max(0, sn(o.start + df));
-      const ti = Math.max(0, Math.min(P().tracks.length - 1, Math.floor((y - RH + V.y0) / V.th))), t = P().tracks[ti];
+      r.start = Math.max(0, sn(o.start + df)); r.len = Proj.keepBeats(o, r.start);   // v121: Noten/Drummer behalten ihre Schläge über Tempowechsel
+      const ta = trackAt(y), ti = Math.max(0, Math.min(P().tracks.length - 1, ta.ti < 0 ? P().tracks.length - 1 : ta.ti)), t = P().tracks[ti];
       if (t && t.kind === (o.kind === 'audio' ? 'audio' : o.kind === 'drum' ? 'drum' : 'midi')) r.track = t.id;
     } else if (d.part === 'l') {
       let ns = sn(o.start + df); ns = Math.max(o.kind === 'audio' ? o.start - o.offset : 0, Math.min(o.start + o.len - 256, ns));
       const dd = ns - o.start; r.start = ns; r.len = o.len - dd; if (o.kind === 'audio') r.offset = o.offset + dd;
-      if (o.notes) { const db = dd / Proj.spb(); r.notes = o.notes.map(n => Object.assign({}, n, { t: n.t - db })).filter(n => n.t + n.d > 0); }
+      if (o.notes) { const db = Proj.f2beat(ns) - Proj.f2beat(o.start); r.notes = o.notes.map(n => Object.assign({}, n, { t: n.t - db })).filter(n => n.t + n.d > 0); }
     } else if (d.part === 'r') {
-      let ne = sn(o.start + o.len + df); const mx = o.kind === 'audio' && metas.get(o.audio) ? o.start + (metas.get(o.audio).frames - o.offset) : Infinity;
+      let ne = sn(o.start + o.len + df); const mx = o.takes ? o.start + (o.tlen || o.len) - (o.offset || 0) : o.kind === 'audio' && metas.get(o.audio) ? o.start + (metas.get(o.audio).frames - o.offset) : Infinity;
       ne = Math.max(o.start + 256, Math.min(mx, ne)); r.len = ne - o.start;
     } else if (d.part === 'fi') r.fi = Math.max(0, Math.min(r.len / 2, (o.fi || 0) + df));
     else if (d.part === 'fo') r.fo = Math.max(0, Math.min(r.len / 2, (o.fo || 0) - df));
@@ -226,7 +285,7 @@ const Arr = (() => {
   // ---------- Werkzeuge ----------
   function zoom(k) { const w = lanes.clientWidth, fc = xf(w / 2); V.fpp = clampF(V.fpp * k); V.x0 = Math.max(0, fc - w / 2 * V.fpp); kick(); }
   let fitLater = false;
-  function zoomAll() { if (lanes.clientWidth < 60) { fitLater = true; return; } fitLater = false; const e = Math.max(Proj.projEnd(), Proj.bar() * 8); V.fpp = clampF(e / (lanes.clientWidth - 30)); V.x0 = 0; kick(); }
+  function zoomAll() { if (lanes.clientWidth < 60) { fitLater = true; return; } fitLater = false; const e = Math.max(Proj.projEnd(), Proj.bar2f(8)); V.fpp = clampF(e / (lanes.clientWidth - 30)); V.x0 = 0; kick(); }
   function follow() { if (!Engine.playing) return; const x = fx(Engine.curPos()), w = lanes.clientWidth; if (x > w * 0.85 || x < 0) { V.x0 = Math.max(0, Engine.curPos() - w * 0.15 * V.fpp); } }
   function loop() { if (fitLater && lanes.clientWidth >= 60) zoomAll(); follow(); if (need || Engine.playing || (window.Rec && Rec.active())) { need = false; draw(); } requestAnimationFrame(loop); }
   requestAnimationFrame(loop);

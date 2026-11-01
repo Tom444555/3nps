@@ -16,7 +16,7 @@ class StudioRec extends AudioWorkletProcessor {
   }
 }
 registerProcessor('studio-rec', StudioRec);`;
-  let stream = null, srcN = null, node = null, mon = null, w = null, on = false, pos0 = 0, trackId = null, lvl = 0, pend = Promise.resolve(), cycWas = null, endWait = null;
+  let cyc = null, stream = null, srcN = null, node = null, mon = null, w = null, on = false, pos0 = 0, trackId = null, lvl = 0, pend = Promise.resolve(), cycWas = null, endWait = null;
   const pref = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } };
   const setPref = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
   function latMs() {
@@ -59,29 +59,33 @@ registerProcessor('studio-rec', StudioRec);`;
     if (on) return; const P = Proj.P;
     const ac = await openMic(); const t = target(); trackId = t.id;
     if (Engine.playing) Engine.stop();
-    const sr = ac.sampleRate, bar = Proj.bar(), countIn = Sched.countIn;
+    const sr = ac.sampleRate, countIn = Sched.countIn;
     pos0 = Math.round(Engine.curPos());
-    // Cycle während der Aufnahme aus (lineare Aufnahme), danach wieder an
-    cycWas = P.cycle.on; if (P.cycle.on) { P.cycle.on = false; Engine.setCycle(); }
+    // v121: Takes – im Cycle läuft die Aufnahme über alle Durchgänge weiter (Start am Cycle-Anfang); sonst Cycle aus (lineare Aufnahme)
+    cyc = P.cycle.on && P.cycle.b > P.cycle.a && takesOn() ? { a: P.cycle.a, b: P.cycle.b } : null;
+    cycWas = P.cycle.on; if (cyc) pos0 = cyc.a; else if (P.cycle.on) { P.cycle.on = false; Engine.setCycle(); }
+    const bar = Math.max(1, pos0 - Proj.bar2f(Proj.f2bar(pos0) - 1));   // Länge des Takts vor dem Start (Vorzähler)
     w = SDB.writer(t.name + ' · ' + new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }), sr, stereo());
     const pre = countIn ? bar : 0;
     await Engine.seek(Math.max(0, pos0 - pre));
     const pr = countIn && pos0 - pre < 0 ? pre - pos0 : 0;    // Vorzähler vor Takt 1: Klick ohne Transport
     on = true; monitor(pref('3nps-studio-mon', '0') === '1');
-    if (pr) { const t0 = ac.currentTime + 0.1, spb = Proj.spb() / sr; for (let k = 0; k * spb < pr / sr - 1e-6; k++) Sched.blip(ac, t0 + k * spb, k % P.sig === 0); await new Promise(r => setTimeout(r, (pr / sr) * 1000 + 100 - 40)); }
+    if (pr) { const t0 = ac.currentTime + 0.1, sg = TMap.at(P, 0), spb = sg.spb / sr; for (let k = 0; k * spb < pr / sr - 1e-6; k++) Sched.blip(ac, t0 + k * spb, k % sg.sig === 0); await new Promise(r => setTimeout(r, (pr / sr) * 1000 + 100 - 40)); }
     await Engine.play();
     // Transport-Start = Engine.st.t0; Aufnahmebeginn = Zeitpunkt, an dem die Position pos0 erreicht wird
     const startT = Engine.st.t0 + (pos0 - Engine.st.pos0) / sr;
     node.port.postMessage({ t: 'start', from: Math.round(startT * sr), stereo: stereo() });
-    UI.say('● Aufnahme auf „' + t.name + '“ … (Stopp mit ▶/■ oder ●)'); UI.sync();
+    UI.say('● Aufnahme auf „' + t.name + '“ …' + (cyc ? ' Takes: jeder Cycle-Durchgang wird ein Take.' : '') + ' (Stopp mit ▶/■ oder ●)'); UI.sync();
   }
   async function stop() {
     if (!on) return; on = false;
     const end = Engine.curPos(); Engine.stop(); monitor(false);
     await new Promise(r => { endWait = r; node.port.postMessage({ t: 'stop' }); setTimeout(r, 600); });
     await pend; const m = await w.done(); w = null;
-    const P = Proj.P; if (cycWas) { P.cycle.on = true; Engine.setCycle(); }
-    const lat = Math.round(latMs() / 1000 * m.sr), len = Math.min(m.frames - lat, end - pos0);
+    const P = Proj.P; if (cycWas && !cyc) { P.cycle.on = true; Engine.setCycle(); }
+    const lat = Math.round(latMs() / 1000 * m.sr);
+    if (cyc && m.frames - lat >= cyc.b - cyc.a) return takesDone(m, lat);
+    const len = Math.min(m.frames - lat, cyc ? m.frames - lat : end - pos0);
     if (len < m.sr * 0.25) { UI.say('Aufnahme zu kurz – verworfen.'); SDB.delAudio(m.id); UI.sync(); return; }
     const a = pos0, b = pos0 + len;
     Proj.change('regions', p => {
@@ -98,9 +102,39 @@ registerProcessor('studio-rec', StudioRec);`;
     });
     Engine.dirty(); Engine.seek(a); UI.say('Aufnahme gespeichert: ' + (Math.round(len / m.sr * 10) / 10).toString().replace('.', ',') + ' s (Latenz-Ausgleich ' + Math.round(latMs()) + ' ms).'); UI.sync(); Arr.kick();
   }
+  // v121: Takes aus einer Cycle-Aufnahme – Durchgang k = Bilder [lat + k·L, lat + (k+1)·L) derselben Datei
+  function takesDone(m, lat) {
+    const a = cyc.a, b = cyc.b, L = b - a, tot = m.frames - lat, full = Math.floor(tot / L), rest = tot - full * L;
+    const n = full + (rest >= Math.max(m.sr, L * 0.25) ? 1 : 0);
+    let nr = 0;
+    Proj.change('regions', p => {
+      const t = p.tracks[Proj.tIndex(trackId)];
+      // gleicher Bereich schon da (Take-Ordner oder Region genau im Cycle) → weitere Takes in denselben Ordner
+      let f = p.regions.find(r => r.track === trackId && r.kind === 'audio' && r.start === a && r.len === L && !(r.offset && r.takes));
+      const keep = [];
+      p.regions.forEach(r => {
+        if (r === f || r.track !== trackId || r.start >= b || r.start + r.len <= a) { keep.push(r); return; }
+        if (r.start < a) { const x = JSON.parse(JSON.stringify(r)); x.len = a - r.start; x.fo = Math.min(x.fo || 0, x.len / 2); keep.push(x); }
+        if (r.start + r.len > b) { const x = JSON.parse(JSON.stringify(r)); x.id = Proj.nid('r'); const cut = b - r.start; x.start = b; x.len = r.len - cut; x.fi = 0; if (x.kind === 'audio') x.offset = (r.offset || 0) + cut; keep.push(x); }
+      });
+      if (f && !f.takes) { f.takes = [{ id: Proj.nid('k'), name: 'Take 1', audio: f.audio, offset: f.offset || 0 }]; f.offset = 0; f.tlen = L; f.comp = null; f.fi = 64; f.fo = 256; }
+      if (!f) { f = { id: Proj.nid('r'), track: trackId, kind: 'audio', audio: m.id, start: a, offset: 0, len: L, tlen: L, gain: 0, fi: 64, fo: 256, name: t ? t.name : 'Aufnahme', takes: [] }; keep.push(f); }
+      const n0 = f.takes.length;
+      for (let k = 0; k < n; k++) f.takes.push({ id: Proj.nid('k'), name: 'Take ' + (n0 + k + 1), audio: m.id, offset: lat + k * L, len: k < full ? L : rest, pass: k + 1 });
+      // Comp: zuletzt vollständig aufgenommener Take (wie in Logic)
+      const lastFull = f.takes[n0 + Math.max(0, full - 1)];
+      f.comp = [{ a: 0, b: L, k: lastFull.id }]; f.audio = lastFull.audio; f.name = (t ? t.name : 'Aufnahme') + ' · ' + f.takes.length + ' Takes';
+      p.regions = keep; nr = f.takes.length;
+      if (t) t.takesOpen = true;
+    });
+    Engine.dirty(); Engine.seek(a); Arr.heads();
+    UI.say('Aufnahme gespeichert: ' + n + ' Take' + (n === 1 ? '' : 's') + ' (insgesamt ' + nr + '). Unter der Spur antippen/wischen, welcher Take wo klingt.'); UI.sync(); Arr.kick();
+  }
+  const takesOn = () => pref('3nps-studio-takes', '1') === '1';
+  function setTakes(v) { setPref('3nps-studio-takes', v ? '1' : '0'); }
   // Einstellungen (aus dem Spur-Dock)
   function settings() {
-    UI.dialog('<h2>Aufnahme</h2><div class="fxp"><div class="card"><b>Eingang</b><label><span>Stereo aufnehmen (sonst Mono)</span><input type="checkbox" id="rSt"' + (stereo() ? ' checked' : '') + '></label><label><span>Mithören über das Studio (nur mit Kopfhörer)</span><input type="checkbox" id="rMon"' + (pref('3nps-studio-mon', '0') === '1' ? ' checked' : '') + '></label><label><span>1 Takt Vorzähler</span><input type="checkbox" id="rCi"' + (Sched.countIn ? ' checked' : '') + '></label>' +
+    UI.dialog('<h2>Aufnahme</h2><div class="fxp"><div class="card"><b>Eingang</b><label><span>Stereo aufnehmen (sonst Mono)</span><input type="checkbox" id="rSt"' + (stereo() ? ' checked' : '') + '></label><label><span>Mithören über das Studio (nur mit Kopfhörer)</span><input type="checkbox" id="rMon"' + (pref('3nps-studio-mon', '0') === '1' ? ' checked' : '') + '></label><label><span>1 Takt Vorzähler</span><input type="checkbox" id="rCi"' + (Sched.countIn ? ' checked' : '') + '></label><label><span>Takes im Cycle (jeder Durchgang ein Take, statt ersetzen)</span><input type="checkbox" id="rTk"' + (takesOn() ? ' checked' : '') + '></label>' +
       '<label><span>Pegel</span><canvas id="rLv" style="width:120px;height:10px;background:#0c0c0e;border-radius:3px"></canvas></label></div>' +
       '<div class="card"><b>Latenz-Ausgleich</b><label><span>Verschiebung</span><b id="rLo">' + Math.round(latMs()) + ' ms</b></label><input type="range" id="rLat" min="0" max="300" step="1" value="' + Math.round(latMs()) + '"><p class="note">Übernommen aus dem Looper („Latenz“), wenn dort eingemessen. Klingt die Aufnahme zu spät, Wert erhöhen.</p><button class="btn" id="rLr">Wie im Looper</button></div></div>' +
       '<p class="note">Aufnehmen: Spur mit „R“ scharf schalten (oder Spur wählen), Abspielposition setzen, ● tippen. Bereits Aufgenommenes in dem Bereich wird ersetzt – ↶ holt es zurück.</p><div class="btns"><button class="btn p" data-close>Fertig</button></div>');
@@ -108,11 +142,12 @@ registerProcessor('studio-rec', StudioRec);`;
     $('rSt').onchange = e => setPref('3nps-studio-recst', e.target.checked ? '1' : '0');
     $('rMon').onchange = e => { setPref('3nps-studio-mon', e.target.checked ? '1' : '0'); if (on) monitor(e.target.checked); };
     $('rCi').onchange = e => { Sched.countIn = e.target.checked; };
+    $('rTk').onchange = e => { setTakes(e.target.checked); UI.sync(); };
     $('rLat').oninput = e => { setPref('3nps-studio-lat', e.target.value); $('rLo').textContent = e.target.value + ' ms'; };
     $('rLr').onclick = () => { try { localStorage.removeItem('3nps-studio-lat'); } catch (e) {} $('rLat').value = Math.round(latMs()); $('rLo').textContent = Math.round(latMs()) + ' ms'; };
     openMic().catch(e => UI.say(e.message));
     const cv = $('rLv'); (function draw() { if (!cv.isConnected) return; const g = cv.getContext('2d'), wd = cv.width = cv.clientWidth, h = cv.height = cv.clientHeight; g.fillStyle = lvl > 0.9 ? '#ff5d5d' : '#3ad07a'; g.fillRect(0, 0, wd * Math.min(1, Math.sqrt(lvl)), h); requestAnimationFrame(draw); })();
   }
-  return { start, stop, settings, active: () => on, startPos: () => pos0, track: () => trackId, latMs, get level() { return lvl; } };
+  return { start, stop, settings, takesOn, setTakes, active: () => on, startPos: () => pos0, track: () => trackId, latMs, get level() { return lvl; } };
 })();
 window.Rec = Rec;

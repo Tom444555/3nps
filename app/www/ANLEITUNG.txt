@@ -1119,3 +1119,20 @@ Gut zu wissen
    - „Übungen“: sechs Übungen mit Start-/Zieltempo, „▶ Mit Looper starten“, „Tempo +5“ (5er-Schritte, gemerkt),
      „Tempo geschafft“ (bestes Tempo), Häkchen „geschafft“, Gesamtfortschritt und „Zurücksetzen“. Alles bleibt
      auf dem Gerät gespeichert.
+
+104. Studio: Takes, Tempo-/Taktwechsel, Bus-Gruppen und Sidechain (v121)
+   - Takes/Comping: Knopf „Takes“ (Werkzeugleiste, auch unter Spur → „Aufnahme …“) an, Cycle setzen, ● – jeder
+     Cycle-Durchgang wird ein Take in einem Take-Ordner. Im Spurkopf „▾3“ klappt die Take-Zeilen auf/zu.
+     In einer Take-Zeile wischen = dieser Take klingt im gewischten Bereich, antippen = für den ganzen Abschnitt.
+     An den Schnitten wird 10 ms übergeblendet. Region → „Takes (n) …“: „Umbenennen“, „Ganz nehmen“, „Löschen“,
+     „Zu Region machen“. Nochmals im selben Cycle aufnehmen hängt weitere Takes an. „Takes“ aus = ersetzen wie bisher.
+   - Tempospur: „♩ Tempo/Takt“ (oder auf die Taktart oben tippen): Grundtempo ab Takt 1 und Wechsel „ab Takt“ mit
+     neuem Tempo und/oder neuer Taktart (z. B. 4/4 → 3/4), sprunghaft am Taktanfang. Lineal zeigt sie orange.
+     Raster, Taktzahlen, Metronom, Vorzähler, Drummer, Noten, Cycle, Einrasten und MIDI-Export (Tempo-Meta) folgen;
+     Audio-Regionen bleiben in Sekunden fest. Das Tempo-Feld oben ändert den Wechsel an der Abspielposition.
+   - Bus-Gruppen: im Mischpult je Spur „→ Master“ / „→ Bus 1…4“. Jeder Bus hat einen eigenen Streifen mit EQ,
+     Kompressor, Sättigung, Hall/Delay, Panorama, Fader, M/S; leere Busse „entfernen“.
+   - Sidechain: Kompressor einer Spur oder eines Busses → „Sidechain“ = andere Spur/Bus (z. B. Bass duckt bei der
+     Kick). Die Quelle wird nach ihrem Fader abgegriffen (auch stumm steuert sie). Export klingt identisch.
+   - Ohne Takes, Tempowechsel, Busse oder Sidechain rechnet das Studio genau so wenig wie vorher; alte Projekte
+     laden unverändert (konstantes Tempo).

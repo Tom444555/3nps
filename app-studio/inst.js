@@ -75,11 +75,11 @@ const Inst = (() => {
   // ---- Zeitplan: Noten der Regionen im Abschnitt [a, b) ----
   let live = [];
   function notesIn(P, a, b, fn) {
-    const spb = P.sr * 60 / P.bpm;
     P.regions.forEach(r => {
       if (r.kind !== 'midi' || r.muted || !r.notes || r.start >= b || r.start + r.len <= a) return;
       const ti = P.tracks.findIndex(t => t.id === r.track); if (ti < 0) return;
-      r.notes.forEach(n => { const f = r.start + n.t * spb; if (f < a || f >= b || f >= r.start + r.len) return; const d = Math.min(n.d * spb, r.start + r.len - f); fn(ti, P.tracks[ti], f, n, d); });
+      const rb = TMap.f2beat(P, r.start);      // v121: Noten in Schlägen → Bilder über die Tempokarte
+      r.notes.forEach(n => { const f = TMap.beat2f(P, rb + n.t); if (f < a || f >= b || f >= r.start + r.len) return; const d = Math.min(TMap.beat2f(P, rb + n.t + n.d) - f, r.start + r.len - f); fn(ti, P.tracks[ti], f, n, d); });
     });
   }
   let fresh = true;
@@ -100,9 +100,9 @@ const Inst = (() => {
   }
   // ---- MIDI-Export: Noten- und Drum-Spuren ----
   function midiTracks(P, a, PPQ) {
-    const spb = P.sr * 60 / P.bpm, tk = f => Math.round((f - a) / spb * PPQ), out = []; let ch = 0;
+    const a0 = TMap.f2beat(P, a), tk = f => Math.round((TMap.f2beat(P, f) - a0) * PPQ), out = []; let ch = 0;
     P.tracks.forEach((t, i) => {
-      if (t.kind === 'midi') { const notes = []; P.regions.filter(r => r.track === t.id && r.kind === 'midi' && !r.muted && r.notes).forEach(r => r.notes.forEach(n => { const f = r.start + n.t * spb; if (f < a || f >= r.start + r.len) return; notes.push({ t: tk(f), m: n.m, v: n.v || 96, d: Math.round(Math.min(n.d * spb, r.start + r.len - f) / spb * PPQ) }); })); if (notes.length) { out.push({ name: t.name, ch, notes }); ch = Math.min(15, ch + 1 === 9 ? 10 : ch + 1); } }
+      if (t.kind === 'midi') { const notes = []; P.regions.filter(r => r.track === t.id && r.kind === 'midi' && !r.muted && r.notes).forEach(r => { const rb = TMap.f2beat(P, r.start), re = TMap.f2beat(P, r.start + r.len); r.notes.forEach(n => { const f = TMap.beat2f(P, rb + n.t); if (f < a || f >= r.start + r.len) return; notes.push({ t: tk(f), m: n.m, v: n.v || 96, d: Math.round(Math.min(n.d, re - rb - n.t) * PPQ) }); }); }); if (notes.length) { out.push({ name: t.name, ch, notes }); ch = Math.min(15, ch + 1 === 9 ? 10 : ch + 1); } }
       if (t.kind === 'drum' && window.Drum) { const notes = Drum.midiNotes(P, t, a, PPQ); if (notes.length) out.push({ name: t.name, ch: 9, notes }); }
     });
     return out;
@@ -117,7 +117,7 @@ const Inst = (() => {
       Proj.editTrack(id, x => { x.inst = k; if (/^Instrument/.test(x.name) || LIST.some(l => l.name === x.name)) x.name = BY[k].name.replace(/ \((echt|FM|Synth)\)/, ''); }); load(k); UI.close(); Arr.heads(); UI.inspect();
     };
   }
-  function addDefault(trackId) { const r = { id: Proj.nid('r'), track: trackId, kind: 'midi', start: Proj.snap(Engine.curPos(), 'bar'), len: Math.round(Proj.bar() * 4), notes: [], name: 'Noten' }; Proj.addRegion(r); Arr.V.sel = r.id; load('epiano'); }
+  function addDefault(trackId) { const r = { id: Proj.nid('r'), track: trackId, kind: 'midi', start: Proj.snap(Engine.curPos(), 'bar'), len: 0, notes: [], name: 'Noten' }; r.len = Proj.bar2f(Proj.f2bar(r.start) + 4) - r.start; Proj.addRegion(r); Arr.V.sel = r.id; load('epiano'); }
   return { LIST, label, load, ready, voice, attach, offline, preview, midiTracks, choose, addDefault, notesIn };
 })();
 window.Inst = Inst;

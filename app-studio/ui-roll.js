@@ -6,7 +6,7 @@ const Roll = (() => {
   try { S.grid = +localStorage.getItem('3nps-studio-rgrid') || 0.25; } catch (e) {}
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const reg = () => S.rid && Proj.reg(S.rid);
-  const beats = r => r.len / Proj.spb();
+  const beats = r => Proj.f2beat(r.start + r.len) - Proj.f2beat(r.start);   // v121: Schläge über die Tempokarte
   const bx = b => KW + (b - S.x0) * S.ppb, xb = x => (x - KW) / S.ppb + S.x0;
   const my = m => (127 - m) * NH - S.y0, ym = y => 127 - Math.floor((y + S.y0) / NH);
   const nm = m => NAMES[m % 12] + (Math.floor(m / 12) - 1);
@@ -65,16 +65,17 @@ const Roll = (() => {
     const m0 = Math.max(0, ym(h)), m1 = Math.min(127, ym(0));
     for (let m = m0; m <= m1; m++) { const y = my(m); c.fillStyle = BLACK.includes(m % 12) ? '#18181c' : '#1c1c21'; c.fillRect(KW, y, w - KW, NH); if (m % 12 === 0) { c.fillStyle = '#2c2c34'; c.fillRect(KW, y + NH - 1, w - KW, 1); } }
     // Raster
-    for (let b = Math.floor(S.x0 / S.grid) * S.grid; bx(b) < w; b += S.grid) { const x = Math.round(bx(b)) + 0.5; if (x < KW) continue; const isBar = Math.abs(b / P.sig - Math.round(b / P.sig)) < 1e-6, isBeat = Math.abs(b - Math.round(b)) < 1e-6; c.fillStyle = isBar ? '#3a3a44' : isBeat ? '#2a2a31' : '#1f1f25'; c.fillRect(x, 0, 1, h); }
+    const rb0 = Proj.f2beat(r.start);
+    for (let b = Math.floor(S.x0 / S.grid) * S.grid; bx(b) < w; b += S.grid) { const x = Math.round(bx(b)) + 0.5; if (x < KW) continue; const isBeat0 = Math.abs(b - Math.round(b)) < 1e-6, isBar = isBeat0 && Math.abs(rb0 - Math.round(rb0)) < 1e-6 && TMap.isBarBeat(P, Math.round(rb0 + b)), isBeat = Math.abs(b - Math.round(b)) < 1e-6; c.fillStyle = isBar ? '#3a3a44' : isBeat ? '#2a2a31' : '#1f1f25'; c.fillRect(x, 0, 1, h); }
     c.fillStyle = 'rgba(0,0,0,.35)'; c.fillRect(bx(nb), 0, w, h);   // hinter dem Regionsende
     // Akkorde des Projekts als Band
-    (P.chords || []).forEach(ch => { const rb = r.start / Proj.spb(), a = bx(ch.b - rb), e = bx(ch.b - rb + ch.beats); if (e < KW || a > w) return; c.fillStyle = 'rgba(138,217,78,.12)'; c.fillRect(Math.max(KW, a), 0, e - a - 1, 14); c.fillStyle = '#8ad94e'; c.font = '600 10px system-ui'; c.fillText(ch.name, Math.max(KW, a) + 3, 11); });
+    (P.chords || []).forEach(ch => { const rb = rb0, a = bx(ch.b - rb), e = bx(ch.b - rb + ch.beats); if (e < KW || a > w) return; c.fillStyle = 'rgba(138,217,78,.12)'; c.fillRect(Math.max(KW, a), 0, e - a - 1, 14); c.fillStyle = '#8ad94e'; c.font = '600 10px system-ui'; c.fillText(ch.name, Math.max(KW, a) + 3, 11); });
     // Noten
     (r.notes || []).forEach(n => { const x = bx(n.t), xe = bx(n.t + n.d), y = my(n.m); if (xe < KW || x > w || y + NH < 0 || y > h) return; const sel = S.sel.has(n);
       c.globalAlpha = 0.45 + 0.55 * (n.v || 96) / 127; c.fillStyle = sel ? '#fff' : t.color; c.fillRect(Math.max(KW, x) + 0.5, y + 1, Math.max(3, xe - Math.max(KW, x) - 1), NH - 2); c.globalAlpha = 1;
       if (xe - x > 26 && NH >= 12) { c.fillStyle = 'rgba(0,0,0,.7)'; c.font = '9px system-ui'; c.fillText(nm(n.m), Math.max(KW, x) + 3, y + NH - 4); } });
     // Abspielposition / Cursor
-    const pb = (Engine.curPos() - r.start) / Proj.spb(); if (pb >= 0 && pb <= nb) { c.fillStyle = '#fff'; c.fillRect(bx(pb), 0, 2, h); }
+    const pb = Proj.f2beat(Engine.curPos()) - rb0; if (pb >= 0 && pb <= nb) { c.fillStyle = '#fff'; c.fillRect(bx(pb), 0, 2, h); }
     if (S.step) { c.fillStyle = '#ffb36b'; c.fillRect(bx(S.cur), 0, 2, h); }
     // Tastatur
     for (let m = m0; m <= m1; m++) { const y = my(m), bl = BLACK.includes(m % 12); c.fillStyle = bl ? '#26262c' : '#d8d8de'; c.fillRect(0, y, KW, NH - 1); if (m % 12 === 0) { c.fillStyle = '#555'; c.font = '9px system-ui'; c.fillText(nm(m), 4, y + NH - 3); } }
@@ -129,7 +130,7 @@ const Roll = (() => {
     const P = Proj.P, fromSong = !!(P.chords && P.chords.length);
     let saved = ''; try { saved = localStorage.getItem('3nps-studio-prog') || ''; } catch (e) {}
     dock.innerHTML = '<b style="font-size:12px;color:var(--mut)">AKKORDE →</b><input type="text" id="cProg" style="flex:1;min-width:220px" placeholder="z. B. Am F C G (je 1 Takt; „C:2“ = 2 Takte)" value="' + esc(fromSong ? progFromProject() : saved) + '">' +
-      '<label class="row">ab Takt <input type="number" id="cBar" min="1" value="' + (fromSong ? Math.round(P.chords[0].b / P.sig) + 1 : Math.max(1, Math.round(Engine.curPos() / Proj.bar()) + 1)) + '" style="width:60px"></label>' +
+      '<label class="row">ab Takt <input type="number" id="cBar" min="1" value="' + (fromSong ? Math.round(Proj.f2bar(Proj.beat2f(P.chords[0].b))) + 1 : Math.max(1, Math.round(Proj.f2bar(Engine.curPos())) + 1)) + '" style="width:60px"></label>' +
       '<label class="row">Bass <select id="cBass"><option value="whole">Grundton lang</option><option value="eighth">Achtel</option><option value="rq" selected>Grundton–Quinte</option><option value="walk">Laufend</option></select></label>' +
       '<button class="btn" id="cMkB">Bass erzeugen</button><button class="btn" id="cMkP">Flächen erzeugen</button><button class="btn" id="cMkA">Arpeggio erzeugen</button>' + (fromSong ? '<span class="note">Akkorde aus dem Song übernommen.</span>' : '');
     $('cMkB').onclick = () => gen('bass'); $('cMkP').onclick = () => gen('pad'); $('cMkA').onclick = () => gen('arp');
@@ -154,8 +155,8 @@ const Roll = (() => {
       else { const base = 60 + ch.r - (ch.r > 5 ? 12 : 0), tones = ch.iv.concat([12]); for (let k = 0; k < L * 2; k++) notes.push({ t: b + k / 2, d: 0.48, m: base + tones[[0, 1, 2, 3, 2, 1][k % 6] % tones.length], v: k % 2 ? 76 : 92 }); }
       b += L;
     });
-    const at = Math.round((Math.max(1, +$('cBar').value || 1) - 1) * Proj.bar()), name = kind === 'bass' ? 'Bass' : kind === 'pad' ? 'Flächen' : 'Arpeggio';
-    let tid; Proj.change('tracks', p => { const t = Proj.track('midi', name + ' (aus Akkorden)'); t.inst = kind === 'bass' ? 'kbass' : kind === 'pad' ? 'strings' : 'harp'; if (kind === 'pad') t.vol = -6; tid = t.id; p.tracks.push(t); p.regions.push({ id: Proj.nid('r'), track: t.id, kind: 'midi', start: at, len: Math.round(b * Proj.spb()), notes, name: txt.slice(0, 40) }); });
+    const at = Proj.bar2f(Math.max(1, +$('cBar').value || 1) - 1), name = kind === 'bass' ? 'Bass' : kind === 'pad' ? 'Flächen' : 'Arpeggio';
+    let tid; Proj.change('tracks', p => { const t = Proj.track('midi', name + ' (aus Akkorden)'); t.inst = kind === 'bass' ? 'kbass' : kind === 'pad' ? 'strings' : 'harp'; if (kind === 'pad') t.vol = -6; tid = t.id; p.tracks.push(t); p.regions.push({ id: Proj.nid('r'), track: t.id, kind: 'midi', start: at, len: Proj.beat2f(Proj.f2beat(at) + b) - at, notes, name: txt.slice(0, 40) }); });
     Engine.dirty(true); Inst.load(kind === 'bass' ? 'kbass' : kind === 'pad' ? 'strings' : 'harp'); Arr.V.selTrack = tid; Arr.V.sel = Proj.P.regions[Proj.P.regions.length - 1].id; Arr.heads(); open();
     UI.say(name + ' erzeugt: ' + notes.length + ' Noten über ' + Math.round(b / sig) + ' Takte (Instrument änderbar).');
   }

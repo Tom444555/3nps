@@ -11,24 +11,25 @@ const Exp = (() => {
     if (window.Inst) await Inst.ready(proj);
     const oc = new OfflineAudioContext(2, n, sr);
     const url = URL.createObjectURL(new Blob([Engine.WORKLET_SRC], { type: 'application/javascript' }));
-    await oc.audioWorklet.addModule(url);
-    const node = new AudioWorkletNode(oc, 'studio-eng', { numberOfInputs: 0, numberOfOutputs: Engine.MAXT, outputChannelCount: new Array(Engine.MAXT).fill(2), processorOptions: { n: Engine.MAXT } });
-    const G = Engine.makeGraph(oc, proj, node);
-    if (window.Inst) Inst.offline(oc, G, proj, a, e);
-    if (window.Sched) Sched.offlineAuto(oc, G, proj, a);
-    const sent = new Set();
+    await oc.audioWorklet.addModule(url); Engine.SC_OK.add(oc);
+    // v121: die ersten Blöcke und der Start gehen beim Erzeugen mit (processorOptions) – Nachrichten kämen offline erst nach den ersten Blöcken an
+    const sent = new Set(), pre = []; let node = null;
+    const post = (m, tr) => { if (node) node.port.postMessage(m, tr); else if (m.t === 'chunk') pre.push(m); };
     async function feedTo(pos) {
       for (let ti = 0; ti < Math.min(Engine.MAXT, proj.tracks.length); ti++) {
         if (proj.tracks[ti].kind !== 'audio') continue;
         for (let k = Math.floor(Math.max(0, pos - B) / B); k * B < Math.min(e, pos + 3 * B); k++) {
           const key = ti + ':' + k; if (sent.has(key)) continue; sent.add(key);
-          const d = await Engine.blockData(proj, ti, k); if (d) node.port.postMessage({ t: 'chunk', tr: ti, k: key, at: k * B, len: B, l: d.l, r: d.r }, [d.l.buffer, d.r.buffer]);
+          const d = await Engine.blockData(proj, ti, k); if (d) post({ t: 'chunk', tr: ti, k: key, at: k * B, len: B, l: d.l, r: d.r }, [d.l.buffer, d.r.buffer]);
         }
       }
-      const drop = []; for (const key of sent) { const k = +key.split(':')[1]; if ((k + 1) * B < pos - B) { drop.push(key); } } if (drop.length) node.port.postMessage({ t: 'drop', keys: drop });
+      const drop = []; for (const key of sent) { const k = +key.split(':')[1]; if ((k + 1) * B < pos - B) { drop.push(key); } } if (drop.length) post({ t: 'drop', keys: drop });
     }
     await feedTo(a);
-    node.port.postMessage({ t: 'play', pos: a, at: 0 });
+    node = new AudioWorkletNode(oc, 'studio-eng', { numberOfInputs: 0, numberOfOutputs: Engine.MAXT, outputChannelCount: new Array(Engine.MAXT).fill(2), processorOptions: { n: Engine.MAXT, init: { chunks: pre, play: { pos: a, at: 0 } } } });
+    const G = Engine.makeGraph(oc, proj, node);
+    if (window.Inst) Inst.offline(oc, G, proj, a, e);
+    if (window.Sched) Sched.offlineAuto(oc, G, proj, a);
     const step = B / sr;
     for (let t = step; t < n / sr; t += step) oc.suspend(t).then(async () => { await feedTo(a + Math.round(t * sr)); if (prog) prog(t / (n / sr)); oc.resume(); });
     const buf = await oc.startRendering(); URL.revokeObjectURL(url);
@@ -60,12 +61,16 @@ const Exp = (() => {
   }
   // MIDI Format 1: Tempo/Taktart/Marker + je Noten-/Drum-Spur
   function midi(P, a) {
-    const PPQ = 480, spb = Proj.spb(), enc = new TextEncoder();
+    const PPQ = 480, enc = new TextEncoder(), a0 = TMap.f2beat(P, a);
     const vlq = n => { const b = [n & 127]; while ((n >>= 7)) b.unshift((n & 127) | 128); return b; };
     const trk = evs => { evs.sort((x, y) => x[0] - y[0] || x[2] - y[2]); let t = 0; const out = []; evs.forEach(([tt, bytes]) => { out.push(...vlq(Math.max(0, tt - t)), ...bytes); t = tt; }); out.push(0, 0xFF, 0x2F, 0); return [0x4D, 0x54, 0x72, 0x6B, out.length >>> 24 & 255, out.length >>> 16 & 255, out.length >>> 8 & 255, out.length & 255, ...out]; };
     const txt = (type, s) => { const b = enc.encode(s); return [0xFF, type, ...vlq(b.length), ...b]; };
-    const tk = f => Math.round((f - a) / spb * PPQ);
-    const us = Math.round(60000000 / P.bpm), meta = [[0, [0xFF, 0x51, 3, us >> 16 & 255, us >> 8 & 255, us & 255], 0], [0, [0xFF, 0x58, 4, P.sig, 2, 24, 8], 0], [0, txt(3, P.name), 0]];
+    const tk = f => Math.round((TMap.f2beat(P, f) - a0) * PPQ);
+    // v121: Tempo- und Taktart-Meta je Abschnitt der Tempokarte (der Abschnitt bei a steht auf 0)
+    const meta = [[0, txt(3, P.name), 0]], s0 = TMap.at(P, a);
+    TMap.segs(P).forEach(sg => { if (sg !== s0 && sg.f <= a) return; const t = sg === s0 ? 0 : Math.round((sg.beat - a0) * PPQ), us = Math.round(60000000 / sg.bpm), prev = TMap.segs(P)[TMap.segs(P).indexOf(sg) - 1];
+      if (sg === s0 || !prev || prev.bpm !== sg.bpm) meta.push([t, [0xFF, 0x51, 3, us >> 16 & 255, us >> 8 & 255, us & 255], 0]);
+      if (sg === s0 || !prev || prev.sig !== sg.sig) meta.push([t, [0xFF, 0x58, 4, sg.sig, 2, 24, 8], 0]); });
     (P.markers || []).forEach(m => { if (m.f >= a) meta.push([tk(m.f), txt(6, m.name), 1]); });
     const tracks = [trk(meta)];
     if (window.Inst) Inst.midiTracks(P, a, PPQ).forEach(t => { const evs = [[0, txt(3, t.name), 0]]; t.notes.forEach(n => { evs.push([n.t, [0x90 | t.ch, n.m, n.v], 2], [n.t + Math.max(1, n.d), [0x80 | t.ch, n.m, 0], 1]); }); tracks.push(trk(evs)); });
@@ -101,7 +106,7 @@ const Exp = (() => {
       if (kind === 'logic') {
         say('Mix …'); const x = await render(range, pr); files.unshift({ name: base + '/00 Mix – ' + tag + '.wav', data: wav24(x.l, x.r, sr) });
         files.push({ name: base + '/Tempo, Marker, Noten – ' + tag + '.mid', data: midi(P, range.a) });
-        const lies = [P.name, 'Tempo ' + tag + ' · ' + P.sig + '/4 · Tonart ' + P.key, '', 'So geht es in Logic Pro:', '1. Neues leeres Projekt.', '2. Zuerst die MIDI-Datei auf Takt 1 ziehen und „Tempo übernehmen“ bestätigen (oder Tempo von Hand: ' + tag + ').',
+        const lies = [P.name, 'Tempo ' + tag + ' · ' + P.sig + '/4 · Tonart ' + P.key + (P.tempo && P.tempo.length ? ' · mit Tempo-/Taktwechseln (stehen in der MIDI-Datei)' : ''), '', 'So geht es in Logic Pro:', '1. Neues leeres Projekt.', '2. Zuerst die MIDI-Datei auf Takt 1 ziehen und „Tempo übernehmen“ bestätigen (oder Tempo von Hand: ' + tag + ').',
           '3. Alle WAV-Dateien zusammen markieren und auf Takt 1 ziehen – jede liegt dann auf einer eigenen Spur, alle beginnen auf Takt 1.', '   Falls Logic nach Smart Tempo fragt: Projekttempo beibehalten.', '4. „00 Mix“ ist alles zusammen – nur zum Vergleichen (sonst doppelt laut).', '', 'Erstellt mit Loopsmiths Studio.'].join('\n');
         files.push({ name: base + '/LIES MICH.txt', data: new TextEncoder().encode(lies) });
       }
@@ -119,7 +124,7 @@ const Exp = (() => {
     const x = await render(Object.assign({}, range, { tail: 0 }), null), L = x.l.length;
     const enc24 = a => { const u = new Uint8Array(a.length * 3); for (let i = 0, o = 0; i < a.length; i++, o += 3) { let v = a[i]; v = v > 1 ? 1 : v < -1 ? -1 : v; const s = Math.round(v * 8388607); u[o] = s & 255; u[o + 1] = (s >> 8) & 255; u[o + 2] = (s >> 16) & 255; } return u; };
     const now = new Date(), [root, ...mode] = (P.key || 'C Dur').split(' ');
-    const name = P.name + ' · Takt ' + (Math.round(range.a / Proj.bar()) + 1) + '–' + Math.round(range.b / Proj.bar());
+    const name = P.name + ' · Takt ' + (Math.round(Proj.f2bar(range.a)) + 1) + '–' + Math.round(Proj.f2bar(range.b));
     await SDB.looperPut('ideas', { id: 'st' + Date.now().toString(36), v: 2, name, ts: now.getTime(), dateStr: now.toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' }),
       root: root || 'C', mode: /Moll/.test(mode.join(' ')) ? 'Äolisch (Moll)' : 'Ionisch (Dur)', bpm: P.bpm, secs: L / x.sr, cat: 'team',
       session: { sr: x.sr, baseL: L, stereo: true, tracks: [{ L, enc: 'i24', dl: enc24(x.l), dr: enc24(x.r), vol: 90, eq: [0, 0, 0, 0, 0, 0, 0] }] }, drumState: null, droneState: null });
@@ -129,8 +134,8 @@ const Exp = (() => {
   // v107: Zurück in den Looper – Projekt (oder Cycle) als bis zu 3 Spuren in dieselbe Idee schreiben, dann den Looper öffnen
   async function backToLooper(say) {
     const P = Proj.P, id = P.fromIdea; if (!id) throw new Error('Dieses Projekt kommt nicht aus dem Looper.');
-    const bar = Proj.bar(), cyc = P.cycle.on && P.cycle.b > P.cycle.a;
-    const a = cyc ? P.cycle.a : 0, b = cyc ? P.cycle.b : Math.max(bar, Math.ceil((Proj.projEnd() - 64) / bar) * bar);
+    const cyc = P.cycle.on && P.cycle.b > P.cycle.a;
+    const a = cyc ? P.cycle.a : 0, b = cyc ? P.cycle.b : Math.max(Proj.bar2f(1), Math.round(TMap.barCeil(P, Proj.projEnd() - 64))), bars = Math.round(Proj.f2bar(b) - Proj.f2bar(a));
     const used = P.tracks.filter(t => !t.mute && P.regions.some(r => r.track === t.id && !r.muted && r.start < b && r.start + r.len > a));
     if (!used.length) { const muted = P.tracks.filter(t => t.mute && P.regions.some(r => r.track === t.id)).length; const e = new Error(muted ? 'Alle Spuren sind stumm geschaltet (M). Tippe bei den Spuren auf „M“, damit es aus ist, dann nochmal „↩ Looper“.' : 'Im Bereich ist nichts zu hören.'); e.muted = muted; throw e; }
     const groups = used.length <= 3 ? used.map(t => [t]) : [[used[0]], [used[1]], used.slice(2)];
@@ -149,8 +154,8 @@ const Exp = (() => {
     if (root && /Moll|Dur/.test(md.join(' '))) { idea.root = root; idea.mode = /Moll/.test(md.join(' ')) ? 'Äolisch (Moll)' : 'Ionisch (Dur)'; }
     await SDB.looperPut('ideas', idea);
     Proj.change('meta', p => { p.importTs = idea.ts; }, { noUndo: true }); await Proj.save();
-    say('In den Looper geschrieben (' + groups.length + ' Spur' + (groups.length === 1 ? '' : 'en') + ', ' + Math.round((b - a) / bar) + ' Takte). Öffne den Looper …');
-    window.__backDone = { n: groups.length, bars: Math.round((b - a) / bar), id };
+    say('In den Looper geschrieben (' + groups.length + ' Spur' + (groups.length === 1 ? '' : 'en') + ', ' + bars + ' Takte). Öffne den Looper …');
+    window.__backDone = { n: groups.length, bars, id };
     return idea;
   }
   return { render, run, wav24, zip, midi, toLooper, master, backToLooper };

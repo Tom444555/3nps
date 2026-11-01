@@ -11,5 +11,5 @@ window.MasterSource = async v => {
   const bar = document.getElementById('msBar'), pr = document.getElementById('msProg'); pr.hidden = false;
   const x = await Exp.render(Object.assign(cyc ? { a: P.cycle.a, b: P.cycle.b, tail: 0 } : { a: 0, b: Proj.projEnd() }, { noMaster: true }), f => { bar.style.width = Math.round(f * 100) + '%'; });
   pr.hidden = true;
-  return { name: P.name + (cyc ? ' (Takt ' + (Math.round(P.cycle.a / Proj.bar()) + 1) + '–' + Math.round(P.cycle.b / Proj.bar()) + ')' : ''), chs: [x.l, x.r], sr: x.sr };
+  return { name: P.name + (cyc ? ' (Takt ' + (Math.round(Proj.f2bar(P.cycle.a)) + 1) + '–' + Math.round(Proj.f2bar(P.cycle.b)) + ')' : ''), chs: [x.l, x.r], sr: x.sr };
 };

@@ -25,34 +25,63 @@ const UI = (() => {
   }
   $('views').addEventListener('click', e => { const b = e.target.closest('button'); if (b) show(b.dataset.v); });
   // ---- Transport ----
-  const fmtPos = f => { const P = Proj.P; if (!P) return '1.1.1'; const spb = Proj.spb(), beats = f / spb, bar = Math.floor(beats / P.sig), bt = Math.floor(beats - bar * P.sig), s16 = Math.floor((beats - Math.floor(beats)) * 4); return (bar + 1) + '.' + (bt + 1) + '.' + (s16 + 1); };
+  const fmtPos = f => { const P = Proj.P; if (!P) return '1.1.1'; const q = TMap.pos(P, f); return (q.bar + 1) + '.' + (q.beat + 1) + '.' + (q.sub + 1); };
   async function togglePlay() { if (window.Master && Master.playing && Master.playing()) Master.stopPlay(); if (window.Rec && Rec.active()) { await Rec.stop(); sync(); return; } if (Engine.playing) Engine.stop(); else { Brw.stopPrev(); await Engine.play(); } sync(); }
   $('bPlay').onclick = togglePlay;
   $('bHome').onclick = () => { Engine.seek(Engine.playing && Engine.curPos() > Proj.bar() / 2 ? 0 : 0); Arr.V.x0 = 0; Arr.kick(); sync(); };
-  $('bCyc').onclick = () => { const P = Proj.P; if (!P) return; const c = P.cycle; if (!(c.b > c.a)) { const s = Arr.V.sel && Proj.reg(Arr.V.sel); if (s) { c.a = Proj.snap(s.start, 'bar'); c.b = Math.max(c.a + Proj.bar(), Proj.snap(s.start + s.len, 'bar')); } else { c.a = 0; c.b = Proj.bar() * 4; } c.on = true; } else c.on = !c.on; Engine.setCycle(); Proj.save(); sync(); Arr.kick(); };
+  $('bCyc').onclick = () => { const P = Proj.P; if (!P) return; const c = P.cycle; if (!(c.b > c.a)) { const s = Arr.V.sel && Proj.reg(Arr.V.sel); if (s) { c.a = Proj.snap(s.start, 'bar'); c.b = Math.max(Proj.bar2f(Math.round(Proj.f2bar(c.a)) + 1), Proj.snap(s.start + s.len, 'bar')); } else { c.a = 0; c.b = Proj.bar2f(4); } c.on = true; } else c.on = !c.on; Engine.setCycle(); Proj.save(); sync(); Arr.kick(); };
   $('bClick').onclick = () => { Sched.click = !Sched.click; sync(); };
   $('bRec').onclick = async () => { if (!window.Rec) { say('Aufnahme ist noch nicht eingebaut.'); return; } try { if (Rec.active()) await Rec.stop(); else await Rec.start(); } catch (e) { say('Aufnahme: ' + e.message); } sync(); };
-  $('lBpm').addEventListener('change', e => { const v = Math.max(40, Math.min(240, +e.target.value || 100)); setTempo(v); });
+  $('lBpm').addEventListener('change', e => { const v = Math.max(40, Math.min(240, +e.target.value || 100)), P = Proj.P, sg = P && TMap.at(P, Engine.curPos());
+    // v121: steht die Abspielposition hinter einem Tempowechsel, ändert das Feld diesen Wechsel
+    if (sg && sg.bar > 0) { const m = (P.tempo || []).filter(x => x.bar <= sg.bar && x.bpm).sort((a, b) => b.bar - a.bar)[0]; if (m) { Proj.retempo(p => { p.tempo.find(x => x.bar === m.bar && x.bpm).bpm = Math.round(v * 100) / 100; }); sync(); Arr.kick(); return; } }
+    setTempo(v); });
   async function setTempo(v) {
     const P = Proj.P; if (!P || Math.abs(v - P.bpm) < 0.001) { sync(); return; }
-    const k = P.bpm / v, audio = P.regions.filter(r => r.kind === 'audio').length;
-    // Zeiten in Bildern bleiben am Takt: alles strecken, Audio-Inhalt ändert sich nicht (dafür „Audio ans Tempo anpassen“)
-    Proj.change('tempo', q => { q.bpm = Math.round(v * 100) / 100; q.regions.forEach(r => { r.start = Math.round(r.start * k); if (r.kind !== 'audio') r.len = Math.round(r.len * k); }); q.markers.forEach(m => { m.f = Math.round(m.f * k); }); q.cycle.a = Math.round(q.cycle.a * k); q.cycle.b = Math.round(q.cycle.b * k); q.tracks.forEach(t => { ['vol', 'pan'].forEach(a => (t.auto[a] || []).forEach(p => { p.f = Math.round(p.f * k); })); }); });
-    Engine.dirty(true); sync(); Arr.kick();
+    const audio = P.regions.filter(r => r.kind === 'audio').length;
+    // Grundtempo: alles bleibt am Takt (auch Audio-Anfänge und Automation), Audio-Inhalt ändert sich nicht (dafür „Audio ans Tempo anpassen“)
+    Proj.retempo(q => { q.bpm = Math.round(v * 100) / 100; }, { audio: true });
+    sync(); Arr.kick();
     if (audio) say('Tempo ' + v + ' BPM. Audio-Regionen bleiben in ihrem Tempo – zum Angleichen: Region wählen → „ans Tempo anpassen“.');
   }
+  // ---- v121: Tempospur – Tempo- und Taktartwechsel an Taktgrenzen (sprunghaft) ----
+  function tempoDlg() {
+    const P = Proj.P; if (!P) return; const work = JSON.parse(JSON.stringify(P.tempo || [])), base = { bpm: P.bpm, sig: P.sig };
+    const row = (m, i) => '<div class="tmrow" data-i="' + i + '"><span style="width:62px">ab Takt</span><input type="number" min="2" step="1" data-k="bar" value="' + (m.bar + 1) + '"><span>Tempo</span><input type="number" min="20" max="300" step="0.1" data-k="bpm" placeholder="gleich" value="' + (m.bpm || '') + '"><span>Taktart</span><select data-k="sig"><option value="">gleich</option>' + [2, 3, 4, 5, 6, 7, 9, 12].map(v => '<option value="' + v + '"' + (m.sig === v ? ' selected' : '') + '>' + v + '/4</option>').join('') + '</select><button class="btn danger" data-del="' + i + '">×</button></div>';
+    const paint = () => { $('tmList').innerHTML = work.length ? work.map(row).join('') : '<p class="note">Noch keine Wechsel – das ganze Projekt läuft im Grundtempo.</p>'; };
+    dialog('<h2>Tempo und Taktart</h2><div class="card"><div class="tmrow"><b style="width:62px">Takt 1</b><span>Tempo</span><input type="number" id="tmB" min="40" max="240" step="0.1" value="' + base.bpm + '"><span>Taktart</span><select id="tmS">' + [2, 3, 4, 5, 6, 7, 9, 12].map(v => '<option value="' + v + '"' + (base.sig === v ? ' selected' : '') + '>' + v + '/4</option>').join('') + '</select></div><b>Wechsel</b><div id="tmList"></div>' +
+      '<div class="btns"><button class="btn" id="tmAdd">+ Wechsel an der Abspielposition</button></div><p class="note">Wechsel liegen immer auf einem Taktanfang und gelten sprunghaft. Raster, Taktzahlen, Metronom, Vorzähler, Drummer, Noten, Cycle und MIDI-Export folgen; Audio-Regionen bleiben in Sekunden, wo sie sind.</p></div>' +
+      '<div class="btns"><button class="btn" data-close>Abbrechen</button><button class="btn p" id="tmOk">Übernehmen</button></div>');
+    paint();
+    const dl = $('dlg');
+    dl.addEventListener('input', e => { const r = e.target.closest('.tmrow[data-i]'); if (!r) return; const m = work[+r.dataset.i], k = e.target.dataset.k, v = e.target.value; if (k === 'bar') m.bar = Math.max(1, Math.round(+v || 2) - 1); else if (k === 'bpm') { if (+v >= 20) m.bpm = +v; else delete m.bpm; } else if (k === 'sig') { if (+v) m.sig = +v; else delete m.sig; } });
+    dl.addEventListener('change', e => { if (e.target.dataset.k === 'sig') dl.dispatchEvent(new Event('input')); });
+    dl.addEventListener('click', e => { const d = e.target.closest('[data-del]'); if (d) { work.splice(+d.dataset.del, 1); paint(); } });
+    $('tmAdd').onclick = () => { const b = Math.max(1, Math.round(Proj.f2bar(Engine.curPos()))), sg = TMap.at(P, Proj.bar2f(b)); if (!work.some(m => m.bar === b)) work.push({ bar: b, bpm: Math.round(sg.bpm) }); work.sort((x, y) => x.bar - y.bar); paint(); };
+    $('tmOk').onclick = () => { const nb = Math.max(40, Math.min(240, +$('tmB').value || base.bpm)), ns = +$('tmS').value || base.sig; close(); setTempoMap(nb, ns, work); };
+  }
+  function setTempoMap(bpm, sig, changes) {
+    const P = Proj.P, ch = (changes || []).filter(m => m.bar >= 1 && (m.bpm || m.sig)).map(m => { const o = { bar: Math.round(m.bar) }; if (m.bpm) o.bpm = Math.round(m.bpm * 100) / 100; if (m.sig) o.sig = Math.round(m.sig); return o; });
+    if (Math.abs(bpm - P.bpm) > 0.001) setTempo(bpm);
+    Proj.retempo(p => { p.sig = sig; p.tempo = ch; }); sync(); Arr.kick();
+    say(ch.length ? 'Tempokarte: ' + ch.map(m => 'Takt ' + (m.bar + 1) + (m.bpm ? ' ♩' + m.bpm : '') + (m.sig ? ' ' + m.sig + '/4' : '')).join(' · ') : 'Konstantes Tempo ' + Proj.P.bpm + ' BPM, ' + sig + '/4.');
+  }
+  $('tTempo').onclick = tempoDlg; $('lSig').onclick = tempoDlg; $('lSig').style.cursor = 'pointer';
+  $('tTakes').onclick = () => { if (!window.Rec) return; Rec.setTakes(!Rec.takesOn()); sync(); say(Rec.takesOn() ? 'Takes an: Aufnahme im Cycle legt je Durchgang einen Take an (unter der Spur aufklappen und comppen).' : 'Takes aus: Aufnahme ersetzt (Cycle wird beim Aufnehmen ausgeschaltet).'); };
   // ---- Anzeige ----
   function sync() {
     const P = Proj.P;
     $('bPlay').classList.toggle('on', Engine.playing); $('bPlay').textContent = Engine.playing ? '■' : '▶';
     $('bRec').classList.toggle('on', !!(window.Rec && Rec.active()));
     $('bCyc').classList.toggle('on', !!(P && P.cycle.on && P.cycle.b > P.cycle.a)); $('bClick').classList.toggle('on', Sched.click);
-    if (P) { if (document.activeElement !== $('lBpm')) $('lBpm').value = Math.round(P.bpm * 100) / 100; $('lSig').textContent = P.sig + '/4'; $('lKey').textContent = P.key || '–'; }
+    if (P) { const sg = TMap.at(P, Engine.curPos()); if (document.activeElement !== $('lBpm')) $('lBpm').value = Math.round(sg.bpm * 100) / 100; $('lSig').textContent = sg.sig + '/4' + (P.tempo && P.tempo.length ? ' ⁺' : ''); $('lKey').textContent = P.key || '–'; }
+    if (window.Rec) $('tTakes').classList.toggle('on', Rec.takesOn());
     $('tUndo').disabled = !Proj.canUndo(); $('tRedo').disabled = !Proj.canRedo();
     $('lPos').textContent = fmtPos(Engine.curPos()); $('bBack').title = P && P.fromIdea ? 'In die Idee zurückschreiben und im Looper weitermachen' : 'Zurück zum Looper';
     document.title = (P ? P.name + ' · ' : '') + 'Loopsmiths Studio';
   }
-  Engine.on('tick', () => { $('lPos').textContent = fmtPos(Engine.curPos()); });
+  let lastSg = null;
+  Engine.on('tick', () => { $('lPos').textContent = fmtPos(Engine.curPos()); const P = Proj.P, sg = P && TMap.at(P, Engine.curPos()); if (sg !== lastSg) { lastSg = sg; sync(); } });
   (function lcd() { if (Engine.playing) $('lPos').textContent = fmtPos(Engine.curPos()); requestAnimationFrame(lcd); })();
   // Last (Hauptthread) und Speicher
   let busy = 0, lastF = performance.now();
@@ -90,11 +119,12 @@ const UI = (() => {
     }
     const r = P && Arr.V.sel && Proj.reg(Arr.V.sel);
     if (!r) { $('dRegH').textContent = 'Region'; $('dRegC').innerHTML = ''; $('dRegN').textContent = 'Region antippen zum Auswählen · ziehen = verschieben · Ränder ziehen = kürzen · obere Ecken = Blende.'; return; }
-    const bars = r.len / Proj.bar();
+    const bars = Proj.f2bar(r.start + r.len) - Proj.f2bar(r.start), tk = r.takes && r.takes.length;
     $('dRegH').textContent = 'Region · ' + (r.name || '') + ' · ' + (Math.round(bars * 100) / 100).toString().replace('.', ',') + ' Takte';
     $('dRegC').innerHTML = '<button class="btn" data-r="g-">Leiser</button><button class="btn" data-r="g+">Lauter</button><button class="btn' + (r.muted ? ' on' : '') + '" data-r="mute">' + (r.muted ? 'Stumm ✓' : 'Stumm') + '</button><button class="btn" data-r="ren">Name</button>' +
-      (r.kind === 'audio' ? '<button class="btn" data-r="fit">ans Tempo anpassen</button><button class="btn" data-r="norm">Normalisieren</button>' : '') + (r.kind !== 'audio' ? '<button class="btn" data-r="edit">Bearbeiten</button>' : '') + '<button class="btn" data-r="cyc">Als Cycle</button>';
-    $('dRegN').textContent = 'Pegel ' + (r.gain > 0 ? '+' : '') + (r.gain || 0) + ' dB' + (r.fi ? ' · Einblende' : '') + (r.fo ? ' · Ausblende' : '') + ' · Start Takt ' + (Math.round((r.start / Proj.bar() + 1) * 100) / 100).toString().replace('.', ',');
+      (tk ? '<button class="btn p" data-r="takes">Takes (' + r.takes.length + ') …</button><button class="btn' + ((P.tracks[Proj.tIndex(r.track)] || {}).takesOpen ? ' on' : '') + '" data-r="topen">Take-Zeilen</button>' : '') +
+      (r.kind === 'audio' && !tk ? '<button class="btn" data-r="fit">ans Tempo anpassen</button><button class="btn" data-r="norm">Normalisieren</button>' : '') + (r.kind !== 'audio' ? '<button class="btn" data-r="edit">Bearbeiten</button>' : '') + '<button class="btn" data-r="cyc">Als Cycle</button>';
+    $('dRegN').textContent = 'Pegel ' + (r.gain > 0 ? '+' : '') + (r.gain || 0) + ' dB' + (r.fi ? ' · Einblende' : '') + (r.fo ? ' · Ausblende' : '') + ' · Start Takt ' + (Math.round((Proj.f2bar(r.start) + 1) * 100) / 100).toString().replace('.', ',') + (tk ? ' · Comp: ' + Engine.compSegs(r).map(sg => (r.takes.find(x => x.id === sg.k) || {}).name).join(' → ') + ' · unter der Spur antippen/wischen' : '');
   }
   $('dTrackC').addEventListener('click', async e => {
     const b = e.target.closest('button'); if (!b) return; const id = Arr.V.selTrack, P = Proj.P, i = Proj.tIndex(id); if (i < 0) return; const t = P.tracks[i], a = b.dataset.t;
@@ -119,11 +149,13 @@ const UI = (() => {
     else if (a === 'edit') show('roll');
     else if (a === 'norm') { say('Messe …'); const d = await SDB.read(r.audio, r.offset, r.len); let m = 0; for (let k = 0; k < d.l.length; k++) { const x = Math.max(Math.abs(d.l[k]), Math.abs(d.r[k])); if (x > m) m = x; } if (m > 0) { const g = Math.round(20 * Math.log10(0.89 / m) * 10) / 10; Proj.editRegion(r.id, q => { q.gain = g; }); say('Normalisiert: ' + (g > 0 ? '+' : '') + g + ' dB (Spitze −1 dB).'); } }
     else if (a === 'fit') await fitRegion(r);
+    else if (a === 'takes') takeDlg(r.id);
+    else if (a === 'topen') { Proj.editTrack(r.track, t => { t.takesOpen = !t.takesOpen; }, { noUndo: true }); Arr.heads(); }
     inspect(); Arr.kick();
   });
   // Audio-Region auf ganze Takte im Projekttempo bringen (Signalsmith im Hintergrund)
   async function fitRegion(r) {
-    const bar = Proj.bar(), bars = r.len / bar, nb = Math.max(1, Math.round(bars * 4) / 4); let target = Math.round(nb * bar);
+    const bar = Proj.bar(r.start), bars = r.len / bar, nb = Math.max(1, Math.round(bars * 4) / 4); let target = Math.round(nb * bar);
     const n = await ask('Wie viele Takte soll die Region im Projekttempo lang sein? (jetzt ' + (Math.round(bars * 100) / 100).toString().replace('.', ',') + ')', String(nb).replace('.', ','));
     if (!n) return; const want = +n.replace(',', '.'); if (!(want > 0)) return; target = Math.round(want * bar);
     if (Math.abs(target - r.len) < 32) { say('Passt schon.'); return; }
@@ -133,6 +165,23 @@ const UI = (() => {
     const m = await SDB.putAudio((r.name || 'Audio') + ' (angepasst)', Engine.sr(), y.l, y.r !== y.l ? y.r : null);
     Proj.editRegion(r.id, q => { q.audio = m.id; q.offset = 0; q.len = m.frames; q.fi = Math.min(q.fi || 0, m.frames / 2); q.fo = Math.min(q.fo || 0, m.frames / 2); });
     say('Angepasst auf ' + want + ' Takte.');
+  }
+  // ---- v121: Take-Liste (Umbenennen, Löschen, ganz nehmen, zu Region machen) ----
+  function takeDlg(rid) {
+    const r = Proj.reg(rid); if (!r || !r.takes) return; const segs = Engine.compSegs(r);
+    const used = k => segs.some(sg => sg.k === k);
+    dialog('<h2>Takes · ' + esc(r.name || '') + '</h2><div class="plist takel">' + r.takes.map((tk, i) => '<div class="item' + (used(tk.id) ? ' a' : '') + '" data-k="' + tk.id + '"><div style="flex:1"><b>' + esc(tk.name) + '</b><small>' + (used(tk.id) ? 'im Comp hörbar' : 'stumm') + (tk.pass ? ' · Durchgang ' + tk.pass : '') + (tk.len && tk.len < (r.tlen || r.len) ? ' · unvollständig' : '') + '</small></div>' +
+      '<button class="btn" data-ta="all">Ganz nehmen</button><button class="btn" data-ta="ren">Umbenennen</button><button class="btn" data-ta="reg">Zu Region machen</button><button class="btn danger" data-ta="del">Löschen</button></div>').join('') + '</div>' +
+      '<p class="note">Comping: unter der Spur in einer Take-Zeile über einen Bereich wischen = dieser Take klingt dort; antippen = Take für diesen Abschnitt. An den Schnitten wird kurz (10 ms) übergeblendet. „Zu Region machen“ löst den Ordner auf und behält nur diesen Take.</p><div class="btns"><button class="btn p" data-close>Fertig</button></div>');
+    $('dlg').onclick = async e => {
+      const b = e.target.closest('[data-ta]'); if (!b) return; const k = b.closest('.item').dataset.k, q = Proj.reg(rid); if (!q) return close(); const tk = q.takes.find(x => x.id === k); if (!tk) return;
+      const a = b.dataset.ta;
+      if (a === 'all') { Proj.editRegion(rid, x => { x.comp = [{ a: 0, b: x.tlen || x.len + (x.offset || 0), k }]; x.audio = tk.audio; }); }
+      else if (a === 'ren') { const n = await ask('Name des Takes', tk.name); if (n) Proj.editRegion(rid, x => { x.takes.find(y => y.id === k).name = n; }); }
+      else if (a === 'del') { if (q.takes.length === 1) { say('Der letzte Take bleibt – „Zu Region machen“ oder Region löschen.'); return; } Proj.editRegion(rid, x => { x.takes = x.takes.filter(y => y.id !== k); const rest = x.takes[x.takes.length - 1]; x.comp = Engine.compSegs(Object.assign({}, x, { comp: (x.comp || []).map(sg => sg.k === k ? Object.assign({}, sg, { k: rest.id }) : sg) })); x.audio = rest.audio; x.name = x.name.replace(/\d+ Takes$/, x.takes.length + ' Takes'); }); }
+      else if (a === 'reg') { Proj.editRegion(rid, x => { const off = x.offset || 0; x.audio = tk.audio; x.offset = (tk.offset || 0) + off; x.gain = (x.gain || 0) + (tk.gain || 0); x.name = (x.name || '').replace(/ · \d+ Takes$/, '') + ' · ' + tk.name; delete x.takes; delete x.comp; delete x.tlen; }); close(); inspect(); Arr.heads(); say('„' + tk.name + '“ ist jetzt eine normale Region (↶ holt den Take-Ordner zurück).'); return; }
+      Engine.dirty(); Arr.heads(); inspect(); takeDlg(rid);
+    };
   }
   async function renameTrack(id) { const t = Proj.P.tracks[Proj.tIndex(id)]; if (!t) return; const n = await ask('Name der Spur', t.name); if (n) Proj.editTrack(id, x => { x.name = n; }); Arr.heads(); inspect(); }
   // ---- Werkzeugleiste ----
@@ -154,7 +203,7 @@ const UI = (() => {
   $('tDup').onclick = () => { const r = Arr.V.sel && Proj.reg(Arr.V.sel); if (!r) return say('Erst eine Region antippen.'); const c = Proj.duplicate(r.id); Arr.V.sel = c.id; inspect(); };
   $('tRep').onclick = () => { const r = Arr.V.sel && Proj.reg(Arr.V.sel); if (!r) return say('Erst eine Region antippen.'); Proj.repeat(r.id, 4); say('4× wiederholt.'); };
   $('tDel').onclick = () => { const r = Arr.V.sel && Proj.reg(Arr.V.sel); if (!r) return say('Erst eine Region antippen.'); Proj.delRegion(r.id); Arr.V.sel = null; inspect(); };
-  $('tMk').onclick = async () => { const P = Proj.P, f = Proj.snap(Engine.curPos(), 'bar'), n = await ask('Name des Markers (Takt ' + (Math.round(f / Proj.bar()) + 1) + ')', ['Intro', 'Strophe', 'Refrain', 'Bridge', 'Solo', 'Outro'][Math.min(5, P.markers.length)]); if (!n) return; Proj.change('markers', p => { p.markers = p.markers.filter(m => Math.abs(m.f - f) > 10); p.markers.push({ f, name: n, color: '#8ad94e' }); p.markers.sort((a, b) => a.f - b.f); }); };
+  $('tMk').onclick = async () => { const P = Proj.P, f = Proj.snap(Engine.curPos(), 'bar'), n = await ask('Name des Markers (Takt ' + (Math.round(Proj.f2bar(f)) + 1) + ')', ['Intro', 'Strophe', 'Refrain', 'Bridge', 'Solo', 'Outro'][Math.min(5, P.markers.length)]); if (!n) return; Proj.change('markers', p => { p.markers = p.markers.filter(m => Math.abs(m.f - f) > 10); p.markers.push({ f, name: n, color: '#8ad94e' }); p.markers.sort((a, b) => a.f - b.f); }); };
   $('tUndo').onclick = () => { if (Proj.undo()) { Engine.dirty(true); say('Rückgängig.'); } sync(); };
   $('tRedo').onclick = () => { if (Proj.redo()) { Engine.dirty(true); say('Wiederholt.'); } sync(); };
   // ---- Projekt-Menü ----
@@ -186,7 +235,7 @@ const UI = (() => {
       const b = e.target.closest('button'); if (!b) return;
       if (b.dataset.a === 'ren') { const n = await ask('Name des Projekts', P.name); if (n) Proj.change('name', p => { p.name = n; }); sync(); return; }
       if (b.dataset.a === 'new') { const n = await ask('Name des neuen Projekts', 'Neues Projekt'); if (!n) return; if (Engine.playing) Engine.stop(); await Proj.newProject(n); Arr.V.sel = Arr.V.selTrack = null; Arr.zoomAll(); inspect(); sync(); show('brw'); return; }
-      if (b.dataset.a === 'sig') { const n = await ask('Schläge pro Takt (z. B. 4, 3 oder 6)', String(P.sig)); const v = Math.round(+n); if (v >= 2 && v <= 12) { Proj.change('tempo', p => { p.sig = v; }); sync(); Arr.kick(); } return; }
+      if (b.dataset.a === 'sig') { close(); tempoDlg(); return; }
       if (b.dataset.a === 'key') { const n = await ask('Tonart (z. B. „A Moll“ oder „G Dur“)', P.key); if (n) { Proj.change('tempo', p => { p.key = n; }); sync(); } return; }
       if (b.dataset.o) { close(); if (Engine.playing) Engine.stop(); await Proj.load(b.dataset.o); Arr.V.sel = Arr.V.selTrack = null; Arr.zoomAll(); inspect(); sync(); say('Geöffnet: ' + Proj.P.name); return; }
       if (b.dataset.d) { const p = ps.find(x => x.id === b.dataset.d); if (!(await confirm2('Projekt „' + p.name + '“ endgültig löschen?'))) return projMenu(); const cur = p.id === P.id; await Proj.remove(p.id); if (cur) { const rest = await Proj.list(); if (rest.length) await Proj.load(rest[0].id); else await Proj.newProject('Neues Projekt'); Arr.zoomAll(); inspect(); sync(); } return projMenu(); }
@@ -234,6 +283,6 @@ const UI = (() => {
     say(idea ? 'Aus dem Looper: wähle, ob es ins offene Projekt oder in ein neues kommt.' : 'Projekt „' + Proj.P.name + '“ geöffnet.');
     if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
   }
-  return { show, sync, inspect, renameTrack, snapMode, say, dialog, close, onClose: f => closeFn.push(f), ask, confirm: confirm2, start, setTempo, get view() { return view; } };
+  return { show, sync, inspect, renameTrack, snapMode, say, dialog, close, onClose: f => closeFn.push(f), ask, confirm: confirm2, start, setTempo, setTempoMap, tempoDlg, takeDlg, get view() { return view; } };
 })();
 UI.start();

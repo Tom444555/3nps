@@ -39,6 +39,9 @@ main{flex:1;min-height:0;position:relative}
 .th .n{flex:1;min-width:0}.th .n b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.th .n small{color:var(--mut);font-size:11px}
 .th .ms{display:flex;gap:3px}.th .ms button{appearance:none;width:24px;height:24px;border-radius:6px;background:var(--surf2);border:1px solid var(--line);font:700 10px system-ui;color:var(--mut);padding:0}
 .th .ms button.on.m{background:#6a6a72;color:#fff}.th .ms button.on.s{background:var(--y);color:#111;border-color:var(--y)}.th .ms button.on.r{background:var(--r);color:#fff;border-color:var(--r)}
+.th .ms button.tk{width:auto;padding:0 5px;color:var(--tc)}.th .ms button.tk.on{border-color:var(--tc)}.th.tko{align-items:flex-start}.th.tko .c{margin:0 0 8px;height:30px;align-self:auto}
+.strip select.out{width:100%;font-size:11px;padding:3px 4px}.strip.grp{border-color:#6a5a32;background:#1f1d19}.strip .gin{font-size:10px;color:var(--mut)}
+.tmrow{display:flex;gap:8px;align-items:center;margin:4px 0;flex-wrap:wrap}.tmrow input{width:76px}.takel .item{gap:8px}.takel .item.a{border-color:var(--acc)}
 .lanes{position:relative;overflow:hidden;touch-action:none}.lanes canvas{position:absolute;inset:0;width:100%;height:100%}
 .dock{flex:none;min-height:132px;max-height:42vh;overflow-y:auto;border-top:1px solid var(--line);display:grid;grid-template-columns:1.2fr 1fr 1.2fr;gap:8px;padding:8px 10px;background:#18181c}
 .box{background:var(--surf);border:1px solid var(--soft);border-radius:10px;padding:8px 10px;min-width:0}
@@ -121,6 +124,8 @@ MASTERCSS
       <button class="btn" id="tRep">Wiederholen ×4</button>
       <button class="btn" id="tDel">Löschen</button>
       <button class="btn" id="tMk">+ Marker</button>
+      <button class="btn" id="tTempo" title="Tempo- und Taktartwechsel (Tempospur)">♩ Tempo/Takt</button>
+      <button class="btn" id="tTakes" title="Aufnahme im Cycle: jeder Durchgang wird ein Take">Takes</button>
       <button class="btn" id="tUndo">↶</button><button class="btn" id="tRedo">↷</button>
     </div>
     <div class="arr"><div class="heads" id="heads"><div class="heads-in" id="headsIn"></div></div><div class="lanes" id="lanes"><canvas id="cv"></canvas></div></div>

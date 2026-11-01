@@ -3982,7 +3982,7 @@ window.__EN_PAT.push(
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v120</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v121</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -21993,6 +21993,18 @@ const HILFE = [
   { id: 'mastering', t: 'Mastering (Lautheit für Spotify & Co.)', k: 'mastering master lufs lautheit spotify apple music true peak limiter laut', img: 'st-mastering',
     p: ['Bringt einen fertigen Mix genau auf die Lautheit der Streaming-Dienste, ohne Übersteuern. Gemessen nach EBU R128.'],
     s: ['Im Studio oben „Mastering“.', 'Quelle: „Projekt-Mix“, „nur Cycle-Bereich“ oder „Datei laden …“; Ziel z. B. „Spotify … (−14 LUFS)“.', '„Laden & messen“, dann „Mastern“.', '„Original“ / „Master“ mit „gleich laut vergleichen“ anhören, dann „WAV speichern“.'] },
+  { id: 'studio-takes', t: 'Takes und Comping (beste Stellen zusammensetzen)', k: 'takes comping comp take ordner cycle durchgang mehrere versuche beste stelle wischen zusammensetzen überblendung zu region machen',
+    p: ['Im Cycle aufnehmen und einfach weiterspielen: jeder Durchgang wird ein eigener Take. Danach setzt du aus allen Takes die beste Version zusammen – wie in Logic.'],
+    s: ['Oben „Takes“ einschalten (leuchtet; auch unter Spur → „Aufnahme …“).', 'Cycle setzen (⟲ oder „⟲ Takte loopen“), Spur mit „R“ scharf schalten, ● tippen und mehrmals durchspielen. Stopp mit ■ oder ●.', 'Unter der Spur klappen die Take-Zeilen auf („▾3“ im Spurkopf auf-/zuklappen). Hell = hörbar.', 'In einer Take-Zeile über einen Bereich wischen: dort klingt dieser Take. Antippen: der Take übernimmt den ganzen Abschnitt.', 'Region antippen → „Takes (n) …“: „Umbenennen“, „Ganz nehmen“, „Löschen“, „Zu Region machen“ (nur dieser Take bleibt, der Ordner wird aufgelöst).'],
+    tip: ['An den Schnittstellen wird automatisch kurz (10 ms) übergeblendet – kein Knacken.', 'Nochmal im selben Cycle aufnehmen legt weitere Takes in denselben Ordner.', '„Takes“ aus: Aufnahme ersetzt wie bisher.'] },
+  { id: 'studio-tempo', t: 'Tempo- und Taktwechsel (Tempospur)', k: 'tempo taktart taktwechsel tempowechsel tempospur 3/4 6/4 bpm ritardando sprung lineal metronom midi',
+    p: ['Ein Song kann das Tempo oder die Taktart wechseln, z. B. Refrain schneller oder eine Bridge im 3/4-Takt. Wechsel liegen immer auf einem Taktanfang.'],
+    s: ['Werkzeugleiste „♩ Tempo/Takt“ (oder oben auf die Taktart tippen).', 'Oben steht das Grundtempo ab Takt 1. „+ Wechsel an der Abspielposition“ legt einen Wechsel an; „ab Takt“, „Tempo“ und „Taktart“ eintragen („gleich“ = bleibt).', '„Übernehmen“. Im Lineal stehen die Wechsel orange (z. B. „♩90“, „3/4“).'],
+    tip: ['Raster, Taktzahlen, Metronom, Vorzähler, Drummer, Noten, Cycle, Einrasten und der MIDI-Export folgen den Wechseln.', 'Audio-Regionen bleiben in Sekunden, wo sie sind (wie in jeder DAW).', 'Das Tempo-Feld oben ändert den Wechsel, in dem die Abspielposition gerade steht.'] },
+  { id: 'studio-bus', t: 'Bus-Gruppen und Sidechain (Bass duckt bei der Kick)', k: 'bus gruppe gruppenbus summe routing ausgang sidechain ducking pumpen kompressor kick bass steuern',
+    p: ['Mehrere Spuren lassen sich auf einen Bus legen (z. B. alle Gitarren oder alle Gesänge) und dort gemeinsam regeln: Fader, Mute/Solo, EQ, Kompressor, Hall/Delay – wie eine Spur.'],
+    s: ['Im „Mischpult“ unter dem Spurnamen „→ Master“ auf „→ Bus 1“ (bis Bus 4) stellen. Rechts erscheint der Streifen „Bus 1“.', 'Bus-Fader, M/S, EQ und Effekte wirken auf alle Spuren darin. Ein leerer Bus lässt sich mit „entfernen“ löschen.', 'Sidechain: bei der Spur (oder dem Bus), die leiser werden soll, „Kompressor“ antippen → „Sidechain“ = z. B. die Drum-Spur. Schwelle tiefer = stärkeres Ducking.'],
+    tip: ['Busse und Sidechain rechnen nur, wenn sie benutzt werden.', 'Die Steuer-Spur muss nicht hörbar sein: auch stumm geschaltet (M) steuert sie weiter.', 'Export und Mastering klingen genauso wie beim Abspielen.'] },
   { id: 'studio-export', t: 'Export aus dem Studio', k: 'export mix wav spuren stems logic midi zip in den looper',
     s: ['„Projekt ▾“ → Exportieren: „Mix (WAV)“, „Mix gemastert“, „Alle Spuren einzeln (ZIP)“, „Für Logic Pro (ZIP)“, „MIDI“.', '„nur den Cycle-Bereich“ für einen Ausschnitt.', '„In den Looper“ legt den Bereich als neue Idee unter „Zusammenarbeit“ ab.'] },
  ]},
