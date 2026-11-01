@@ -1627,6 +1627,133 @@ html.sig-open .control-bar { visibility: hidden; }   /* Kopfleiste liegt sonst �
 #panel-hilfe .hl-img { display: block; width: 100%; max-width: 900px; border-radius: 8px; border: 1px solid var(--line); margin: 6px 0 8px; background: #111; cursor: zoom-in; }
 #panel-hilfe .hl-img.big { max-width: none; cursor: zoom-out; }
 @media (max-width: 820px) { #panel-hilfe .hl-body { grid-template-columns: 1fr; } #panel-hilfe .hl-toc { position: static; max-height: none; } }
+  /* ===== v120: Powerchords ===== */
+  #panel-power { min-width: 0; }
+  #panel-power .toggle-btn, #panel-power select { min-height: 44px; min-width: 44px; }
+  #panel-power .check { min-height: 44px; padding: 0 4px; }
+  #panel-power .check.off { opacity: .45; }
+  #panel-power .seg { display: flex; flex-wrap: wrap; gap: 2px; background: var(--surface-2, rgba(0,0,0,.18)); border-radius: 9px; padding: 2px; }
+  #panel-power .seg .toggle-btn.active { background: var(--accent); color: var(--accent-ink); }
+  .pc-head { padding-block: 8px; }
+  .pc-subs { width: 100%; }
+  .pc-subs .toggle-btn { flex: 1 1 auto; font-size: .86rem; font-weight: 700; }
+  .pc-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+  .pc-sec-wrap { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+  .pc-sec-wrap[hidden], #panel-power [hidden] { display: none !important; }
+  /* Theorie */
+  .pc-theory { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .pc-sec summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; list-style: none; }
+  .pc-sec summary::-webkit-details-marker { display: none; }
+  .pc-sec summary h3 { margin: 0; font-size: 1.05rem; }
+  .pc-sec summary::before { content: '▸'; margin-right: 10px; color: var(--accent); transition: transform .15s; }
+  .pc-sec[open] summary::before { transform: rotate(90deg); }
+  .pc-sec-b { line-height: 1.5; font-size: .93rem; min-width: 0; }
+  .pc-sec-b h4 { margin: 16px 0 6px; color: var(--accent); font-size: .95rem; }
+  .pc-sec-b p, .pc-sec-b li { -webkit-user-select: text; user-select: text; }
+  .pc-sec-b code { font-family: var(--f-mono); }
+  .pc-tab { font: 600 .9rem/1.35 var(--f-mono); background: var(--lcd-bg); color: var(--lcd-ink); border-radius: 8px; padding: 10px 12px; margin: 8px 0; overflow-x: auto; max-width: 100%; white-space: pre; }
+  .pc-tbl { overflow-x: auto; max-width: 100%; margin: 8px 0; }
+  .pc-tbl table { border-collapse: collapse; font-size: .88rem; min-width: 100%; }
+  .pc-tbl th, .pc-tbl td { border: 1px solid var(--line); padding: 5px 9px; text-align: left; white-space: nowrap; }
+  .pc-tbl th { color: var(--muted); font-weight: 700; }
+  /* Griffbrett */
+  .pc-bwrap { width: 100%; min-width: 0; }
+  .pc-board { display: block; width: 100%; height: auto; user-select: none; -webkit-user-select: none; }
+  .pc-board.mini { pointer-events: none; }
+  .pc-wood { fill: var(--board); }
+  .pc-fret { stroke: var(--fretwire); stroke-width: 2; }
+  .pc-nut { stroke: var(--fretwire); stroke-width: 6; }
+  .pc-str { stroke: var(--string); }
+  .pc-inlay { fill: rgba(255,255,255,.18); }
+  .pc-sn, .pc-x, .pc-fn { fill: var(--muted); font: 700 15px var(--f-mono); text-anchor: middle; dominant-baseline: middle; }
+  .pc-x { fill: var(--root-color); font-size: 17px; }
+  .pc-board.mini .pc-sn, .pc-board.mini .pc-x, .pc-board.mini .pc-fn { font-size: 11px; }
+  .pc-cell { fill: transparent; cursor: pointer; }
+  .pc-m { pointer-events: none; }
+  .pc-m circle { fill: var(--scale-color); stroke: var(--dot-ink); stroke-width: 1.5; }
+  .pc-m text { fill: var(--dot-ink); font: 800 15px var(--f-mono); text-anchor: middle; dominant-baseline: central; }
+  .pc-board.mini .pc-m text { font-size: 11px; }
+  .pc-m.r1 circle { fill: var(--root-color); stroke: #fff; stroke-width: 2.5; }
+  .pc-m.r1 text { fill: #fff; }
+  .pc-m.r5 circle { fill: var(--finger-color); }
+  .pc-m.r8 circle { fill: var(--scale-color); stroke: var(--root-color); stroke-width: 3; }
+  .pc-m.a1 circle { fill: color-mix(in srgb, var(--root-color) 55%, transparent); stroke: var(--root-color); }
+  .pc-m.a5 circle { fill: color-mix(in srgb, var(--finger-color) 55%, transparent); stroke: var(--finger-color); }
+  .pc-m.a1 text, .pc-m.a5 text { fill: #fff; }
+  .pc-m.dx circle { fill: rgba(255,255,255,.12); stroke: rgba(255,255,255,.25); }
+  .pc-m.dx text { fill: rgba(255,255,255,.62); font-size: 12px; }
+  .pc-m.dx2 circle { fill: rgba(255,255,255,.5); }
+  .pc-m.dx3 circle { fill: var(--dub); }
+  .pc-m.p1 circle { fill: color-mix(in srgb, var(--root-color) 40%, transparent); stroke: var(--root-color); }
+  .pc-m.p5 circle, .pc-m.p8 circle { fill: rgba(255,255,255,.22); stroke: var(--finger-color); }
+  .pc-m.p1 text, .pc-m.p5 text, .pc-m.p8 text { fill: #fff; font-size: 12px; }
+  .pc-m.ghost circle { fill: none; stroke: var(--finger-color); stroke-dasharray: 4 3; stroke-width: 2; }
+  .pc-m.ghost text { fill: var(--finger-color); }
+  .pc-m.bad circle { fill: none; stroke: var(--root-color); stroke-dasharray: 3 3; }
+  .pc-m.bad text { fill: var(--root-color); }
+  .pc-pos { fill: none; stroke: rgba(255,255,255,.28); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+  .pc-pos.on { stroke: var(--accent); stroke-width: 7; opacity: .75; }
+  .pc-top { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: flex-start; }
+  .pc-chordbox { display: flex; flex-direction: column; min-width: 130px; }
+  .pc-chordbox b { font: 800 2.6rem var(--f-mono); color: var(--accent); line-height: 1.05; }
+  .pc-tones { font: 700 .95rem var(--f-mono); color: var(--ink); }
+  #panel-power .lbl { font: 600 .62rem var(--f-body); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .pc-ctl { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; flex: 1 1 300px; }
+  .pc-hint { font: 600 .78rem var(--f-body); color: var(--muted); }
+  .pc-notes { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 5px; margin: 12px 0; }
+  .pc-notes .toggle-btn { font-family: var(--f-mono); padding-inline: 4px; }
+  .pc-opts { margin-bottom: 8px; }
+  .pc-warn { color: var(--root-color); font-weight: 700; margin: 6px 0 0; }
+  .pc-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: .8rem; color: var(--muted); margin: 6px 0; }
+  .pc-lg::before { content: ''; display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; background: rgba(255,255,255,.2); }
+  .pc-lg.r1::before { background: var(--root-color); } .pc-lg.r5::before { background: var(--finger-color); } .pc-lg.r8::before { background: var(--scale-color); box-shadow: 0 0 0 2px var(--root-color) inset; }
+  .pc-lg:not(.r1):not(.r5):not(.r8):not(.dx)::before { display: none; }
+  /* Schritte */
+  .pc-stephead { justify-content: space-between; }
+  .pc-stepnum { font: 700 .85rem var(--f-mono); color: var(--muted); }
+  .pc-steps h3 { margin: 10px 0 4px; }
+  .pc-steps p { line-height: 1.5; }
+  .pc-cap { font: 800 1.4rem var(--f-mono); color: var(--accent); margin-left: 6px; }
+  /* Akkordfolgen */
+  .pc-fsel { align-items: flex-end; margin-bottom: 10px; }
+  .pc-fsel .field { flex: 1 1 180px; }
+  .pc-bpm { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .pc-bpm b { font: 800 1.3rem var(--f-mono); min-width: 2.6em; text-align: center; }
+  .pc-bpm input[type=range] { flex: 1 1 140px; min-width: 120px; min-height: 44px; }
+  .pc-fnames { font: 800 1.8rem var(--f-mono); color: var(--accent); margin: 6px 0 2px; overflow-wrap: anywhere; }
+  .pc-path { font-size: .85rem; color: var(--muted); margin-bottom: 10px; }
+  .pc-acts { margin: 6px 0; }
+  .pc-chords { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; margin-top: 10px; }
+  .pc-chord { appearance: none; text-align: left; border: 1px solid var(--line); background: var(--surface-2, rgba(0,0,0,.15)); color: var(--ink); border-radius: 10px; padding: 8px 10px; cursor: pointer; display: flex; flex-direction: column; gap: 2px; min-height: 44px; min-width: 0; font: inherit; }
+  .pc-chord b { font: 800 1.5rem var(--f-mono); }
+  .pc-chord.now { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent), 0 0 14px color-mix(in srgb, var(--accent) 45%, transparent); }
+  .pc-deg { font: 700 .75rem var(--f-mono); color: var(--muted); }
+  .pc-where { font-size: .78rem; color: var(--muted); }
+  .pc-mini { display: block; margin-top: 4px; }
+  /* Üben */
+  .pc-play { border: 1px solid var(--accent); }
+  .pc-playhead { justify-content: space-between; }
+  .pc-nowrow { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 26px; margin: 6px 0 10px; }
+  .pc-now b { display: block; font: 900 3.4rem/1 var(--f-mono); color: var(--accent); }
+  .pc-next b { display: block; font: 800 2rem/1 var(--f-mono); color: var(--muted); }
+  .pc-beats { display: flex; gap: 8px; margin-left: auto; }
+  .pc-beats i { width: 18px; height: 18px; border-radius: 50%; background: var(--line); }
+  .pc-beats i.on { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+  .pc-beats i:first-child.on { background: var(--root-color); box-shadow: 0 0 10px var(--root-color); }
+  .pc-pbpm { font: 800 1.1rem var(--f-mono); }
+  /* Übungen */
+  .pc-exhead .pc-row { justify-content: space-between; }
+  .pc-bar { height: 10px; border-radius: 5px; background: var(--line); overflow: hidden; margin: 8px 0; }
+  .pc-bar i { display: block; height: 100%; background: var(--accent); transition: width .3s; }
+  #pcExList { display: flex; flex-direction: column; gap: 10px; }
+  .pc-ex h3 { margin: 0; flex: 1 1 200px; font-size: 1rem; }
+  .pc-ex p { line-height: 1.45; margin: 6px 0; }
+  .pc-ex.done { border-color: var(--accent); }
+  .pc-ex.now { box-shadow: 0 0 0 2px var(--accent); }
+  .pc-exn { font: 800 1.1rem var(--f-mono); color: var(--accent); min-width: 1.4em; }
+  .pc-best { flex: 1 1 100%; }
+  :root:is([data-theme="light"], [data-theme="precise"]) .pc-m.dx circle { fill: rgba(255,255,255,.16); }
+  @media (max-width: 600px) { .pc-now b { font-size: 2.6rem; } .pc-fnames { font-size: 1.4rem; } .pc-chordbox b { font-size: 2rem; } }
   /* ===== Rost & Stahl: Hintergrund aus gerostetem Blech, darauf verschraubte Stahlplatten ===== */
   :root {
     --plate-hi: #3a3a40;
@@ -3676,7 +3803,80 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
   "gemessen": "measured",
   "geschätzt": "estimated",
   "geschätzt (Modell)": "estimated (model)",
-  "Leistung = Auslastung der Audio-Berechnung (gelb ab 70 %, rot ab 90 %). Die Prozentzahl oben rechts in jeder Station ist ihr Anteil daran – Anteile geschätzt aus gemessenen Grundkosten je Baustein.": "Load = how busy the audio processing is (yellow from 70 %, red from 90 %). The percentage at the top right of each station is its share of it – shares estimated from measured base costs per building block." });
+  "Leistung = Auslastung der Audio-Berechnung (gelb ab 70 %, rot ab 90 %). Die Prozentzahl oben rechts in jeder Station ist ihr Anteil daran – Anteile geschätzt aus gemessenen Grundkosten je Baustein.": "Load = how busy the audio processing is (yellow from 70 %, red from 90 %). The percentage at the top right of each station is its share of it – shares estimated from measured base costs per building block.",
+  // v120 Powerchords
+  'Powerchords': 'Power chords',
+  'Theorie': 'Theory',
+  'Schritt für Schritt': 'Step by step',
+  'Akkordfolgen': 'Progressions',
+  'Übungen': 'Exercises',
+  '◀ Zurück': '◀ Back',
+  'Weiter ▶': 'Next ▶',
+  'Dur (1-3-5)': 'Major (1-3-5)',
+  'Moll (1-b3-5)': 'Minor (1-b3-5)',
+  'Powerchord (1-5-8)': 'Power chord (1-5-8)',
+  'Tippe auf einen Punkt, um den Ton zu hören.': 'Tap a dot to hear the note.',
+  'Powerchord': 'Power chord',
+  'E-Saite': 'E string',
+  'A-Saite': 'A string',
+  'D-Saite': 'D string',
+  '2-Ton': '2-note',
+  '3-Ton': '3-note',
+  'Umkehrung (Quinte unten)': 'Inversion (fifth below)',
+  'Auf der E-Saite nicht möglich': 'Not possible on the E string',
+  'Ziffern': 'Numbers',
+  'Notennamen': 'Note names',
+  'Alle Stufen zeigen': 'Show all degrees',
+  'Alle Lagen': 'All positions',
+  'Andere Lage': 'Other position',
+  'Bund 0 ↔ 12': 'Fret 0 ↔ 12',
+  'Tippe auf die Grundton-Saite, um den Grundton zu wählen. Jeder andere Punkt spielt seinen Ton.': 'Tap the root string to pick the root. Any other dot plays its note.',
+  '1 Grundton': '1 root',
+  '5 Quinte': '5 fifth',
+  '8 Oktave': '8 octave',
+  'andere Stufen (Dur-Zählweise)': 'other degrees (counted in major)',
+  'x = Saite abdämpfen': 'x = mute the string',
+  'Ein Ton liegt über Bund 12 – auf einer anderen Saite liegt der Griff bequemer.': 'A note lies above fret 12 – the shape is easier on another string.',
+  'Saite für den Grundton': 'String for the root',
+  'Grundton wählen': 'Pick the root',
+  'Folge': 'Progression',
+  'Tonart (Grundton)': 'Key (root)',
+  'Griff-Saite': 'Shape string',
+  'nur Akkorde': 'chords only',
+  'I – bVII – IV · Rock-Klassiker': 'I – bVII – IV · Rock classic',
+  'I – bIII – IV · Hard-Rock': 'I – bIII – IV · Hard rock',
+  'I – bVI – bVII · Episch / Dunkel': 'I – bVI – bVII · Epic / dark',
+  'I – IV – V · Grundlagen': 'I – IV – V · Basics',
+  '▶ Loop starten': '▶ Start loop',
+  'An Looper senden': 'Send to looper',
+  'Als Backing abspielen': 'Play as backing',
+  '„Loop starten“ legt die Folge mit Powerchord-Klang und Drums auf Spur 1 des Loopers – Spur 2 und 3 bleiben frei zum Aufnehmen. Tippe einen Akkord an, um ihn im Griffbrett zu sehen.': '“Start loop” puts the progression with power chord sound and drums on track 1 of the looper – tracks 2 and 3 stay free for recording. Tap a chord to see it on the fretboard.',
+  'Tempo −5': 'BPM −5',
+  'Tempo +5': 'BPM +5',
+  'geschafft': 'done',
+  'Ein Häkchen setzt du, wenn du die Übung beim Zieltempo drei Mal fehlerfrei und sauber gespielt hast. Erhöhe in 5er-Schritten.': 'Tick an exercise once you have played it cleanly three times in a row at the target tempo. Raise the tempo in steps of 5.',
+  '▶ Mit Looper starten': '▶ Start with looper',
+  'Tempo geschafft': 'Tempo reached',
+  'Noch kein Tempo gemerkt': 'No tempo saved yet',
+  'Loop im Looper (Spur 1)': 'Loop in the looper (track 1)',
+  'jetzt': 'now',
+  'als Nächstes': 'next',
+  'Einzählen …': 'Count-in …',
+  '■ Stopp': '■ Stop',
+  '● Spur 2 aufnehmen': '● Record track 2',
+  'Zum Looper': 'To the looper',
+  'Fortschritt aller Übungen zurücksetzen?': 'Reset the progress of all exercises?',
+  'Im Looper sind schon Aufnahmen. Durch den Übe-Loop ersetzen?': 'The looper already has recordings. Replace them with the practice loop?',
+  'Powerchords: ': 'Power chords: '
+});
+window.__EN_PAT.push(
+  [/^Schritt (\d+) von (\d+)$/, 'Step $1 of $2'],
+  [/^(\d+) von (\d+) geschafft$/, '$1 of $2 done'],
+  [/^Start (\d+) → Ziel (\d+) BPM$/, 'Start $1 → target $2 BPM'],
+  [/^Bestes Tempo: (\d+) BPM$/, 'Best tempo: $1 BPM'],
+  [/^([A-He])-Saite · Bund (\d+)( ⚠)?$/, '$1 string · fret $2$3'],
+  [/^(Auto: .* · )?Weg: (\d+) (Bund|Bünde)$/, (m, a, n) => (a ? a.replace(/ auf ([A-He])-Saite/g, ' on $1 string') : '') + 'Path: ' + n + (n === '1' ? ' fret' : ' frets')]
+);
 
 // Sprache (v59): Deutsch ist der Quelltext. Nur im EN-Modus läuft hier etwas:
 // Ein Beobachter übersetzt neue/geänderte Texte im DOM (Text, title, placeholder, aria-label)
@@ -3782,7 +3982,7 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v119</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v120</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -3857,6 +4057,7 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
     <button class="tab" role="tab" id="tab-looper" data-tab="looper" aria-selected="true">Looper</button>
     <button class="tab" role="tab" id="tab-solo" data-tab="solo" aria-selected="false">Impro<wbr>visation</button>
     <button class="tab" role="tab" id="tab-caged" data-tab="caged" aria-selected="false">CAGED</button>
+    <button class="tab" role="tab" id="tab-power" data-tab="power" aria-selected="false">Powerchords</button>
     <button class="tab" role="tab" id="tab-quinten" data-tab="quinten" aria-selected="false">Quinten<wbr>zirkel</button>
     <button class="tab" role="tab" id="tab-jam" data-tab="jam" aria-selected="false">Backing<wbr> Track</button>
     <button class="tab" role="tab" id="tab-lied" data-tab="lied" aria-selected="false">Song<wbr>writing</button>
@@ -4717,6 +4918,229 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
       <p class="pattern-desc">Für jeden Akkord des Loops: welche Form in deiner Lage liegt und welcher Dreiklang je Saitengruppe – so spielst du die ganze Folge an einer Stelle, ohne zu springen. Zahlen = Bünde von tief nach hoch.</p>
       <div class="cg-tablewrap"><table class="cg-table" id="cgTable"></table></div>
     </div>
+  </section>
+
+  <!-- v120: Reiter Powerchords – Hülle; Inhalt baut powerchords.js erst beim ersten Öffnen (Theorie liegt träge im template) -->
+  <section class="panel" id="panel-power" role="tabpanel" aria-labelledby="tab-power" hidden>
+    <div class="card pc-head">
+      <div class="seg pc-subs" id="pcSubs" role="tablist" aria-label="Bereiche">
+        <button class="toggle-btn" data-sec="theorie" role="tab">Theorie</button><button class="toggle-btn" data-sec="schritte" role="tab">Schritt für Schritt</button><button class="toggle-btn" data-sec="brett" role="tab">Griffbrett</button><button class="toggle-btn" data-sec="folgen" role="tab">Akkordfolgen</button><button class="toggle-btn" data-sec="uebungen" role="tab">Übungen</button>
+      </div>
+    </div>
+    <div class="pc-play card" id="pcPlay" hidden></div>
+    <div class="pc-sec-wrap" id="pcSecTheorie" data-sec="theorie" hidden></div>
+    <div class="pc-sec-wrap" id="pcSecSchritte" data-sec="schritte" hidden></div>
+    <div class="pc-sec-wrap" id="pcSecBrett" data-sec="brett" hidden></div>
+    <div class="pc-sec-wrap" id="pcSecFolgen" data-sec="folgen" hidden></div>
+    <div class="pc-sec-wrap" id="pcSecUebungen" data-sec="uebungen" hidden></div>
+    <template id="pcTheoryTpl"><div class="pc-theory" translate="no">
+<p class="caption pc-en" hidden>This section is written in German.</p>
+<details class="card pc-sec" id="pcT1" open><summary><h3>1. Die 1-5-8-Theorie (zentraler Abschnitt)</h3></summary><div class="pc-sec-b">
+<p>Alles Weitere in diesem Reiter baut auf drei Ziffern auf: <b>1, 5, 8</b>. Wenn du sie verstehst, kannst du jeden Powerchord auf dem ganzen Griffbrett finden, ohne Griffe auswendig zu lernen.</p>
+<h4>1.1 Was ist ein Powerchord?</h4>
+<p>Ein Powerchord besteht aus nur zwei bis drei Tönen:</p>
+<ul>
+<li><b>Grundton</b> (1)</li>
+<li><b>reine Quinte</b> (5), sieben Halbtöne über dem Grundton</li>
+<li>optional die <b>Oktave</b> des Grundtons (8)</li>
+</ul>
+<p>Es fehlt die <b>Terz</b>. Sie entscheidet normalerweise, ob ein Akkord nach Dur oder Moll klingt. Ohne Terz ist ein Powerchord <b>weder Dur noch Moll</b>, er ist neutral und passt deshalb zu beiden.</p>
+<p><b>Schreibweise:</b> <code>E5</code>, <code>A5</code>, <code>D5</code> (gesprochen „E fünf“). Die 5 steht für die Quinte, nicht für fünf Töne.</p>
+<p><b>Warum klingt er mit Verzerrung gut?</b> Verzerrung erzeugt Obertöne und Differenztöne. Bei einem vollen Dur- oder Moll-Akkord mit Terz überlagern sich diese zu einem matschigen, rauen Gemisch. Die reine Quinte (Frequenzverhältnis 3:2) bleibt dagegen sauber und klar. Das Ergebnis: dicker, definierter Klang, auch bei viel Gain.</p>
+<h4>1.2 Die drei Ziffern</h4>
+<div class="pc-tbl"><table><thead><tr><th>Ziffer</th><th>Name</th><th>Abstand zum Grundton</th></tr></thead><tbody><tr><td><b>1</b></td><td>Grundton</td><td>0 Halbtöne (der Ton, nach dem der Akkord heißt)</td></tr><tr><td><b>5</b></td><td>reine Quinte</td><td>7 Halbtöne</td></tr><tr><td><b>8</b></td><td>Oktave</td><td>12 Halbtöne (derselbe Ton, eine Etage höher)</td></tr></tbody></table></div>
+<h4>1.3 Woher kommen die Ziffern?</h4>
+<p>Die Zahlen zählen die Töne der <b>Dur-Tonleiter</b>, der bekannten Do-Re-Mi-Leiter. Der Grundton ist der erste Ton (1), danach wird Stufe für Stufe weitergezählt, bis nach sieben Schritten wieder der Anfangston erscheint, jetzt eine Oktave höher: das ist die 8 („Okta“ = acht).</p>
+<p>Herleitung in C-Dur:</p>
+<div class="pc-tbl"><table><thead><tr><th>Stufe</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th></tr></thead><tbody><tr><td>Ton</td><td>C</td><td>D</td><td>E</td><td>F</td><td>G</td><td>A</td><td>H</td><td>C</td></tr></tbody></table></div>
+<p>Für einen Powerchord auf C nimmst du also <b>C (1), G (5), C (8)</b>. Die Töne dazwischen (2, 3, 4, 6, 7) bleiben weg.</p>
+<p>Dasselbe in E-Dur (E F# G# A H C# D# E):</p>
+<div class="pc-tbl"><table><thead><tr><th>Stufe</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th></tr></thead><tbody><tr><td>Ton</td><td>E</td><td>F#</td><td>G#</td><td>A</td><td>H</td><td>C#</td><td>D#</td><td>E</td></tr></tbody></table></div>
+<p>Powerchord <b>E5 = E (1), H (5), E (8)</b>.</p>
+<p>Die Quinte liegt immer <b>sieben Halbtöne</b> über dem Grundton. Das gilt für jeden Grundton, deshalb funktioniert die Griffform überall gleich.</p>
+<h4>1.4 Wo liegen 1, 5, 8 auf dem Griffbrett?</h4>
+<p>Die Saiten sind (bis auf G–H) in Quarten gestimmt. Dadurch ergibt sich ein festes Muster:</p>
+<p><b>Grundton auf der E-Saite</b></p>
+<ul>
+<li><b>1</b> = Grundton auf der E-Saite</li>
+<li><b>5</b> = <b>zwei Bünde höher</b> auf der <b>A-Saite</b></li>
+<li><b>8</b> = <b>zwei Bünde höher</b> auf der <b>D-Saite</b> (auf dem Bund der Quinte)</li>
+</ul>
+<p>Beispiel E5 (offen): E-Saite leer = E (1), A-Saite Bund 2 = H (5), D-Saite Bund 2 = E (8).</p>
+<p><b>Grundton auf der A-Saite (analog, eine Saite höher)</b></p>
+<ul>
+<li><b>1</b> = Grundton auf der A-Saite</li>
+<li><b>5</b> = zwei Bünde höher auf der <b>D-Saite</b></li>
+<li><b>8</b> = zwei Bünde höher auf der <b>G-Saite</b></li>
+</ul>
+<p>Beispiel A5 (offen): A leer = A (1), D-Saite Bund 2 = E (5), G-Saite Bund 2 = A (8).</p>
+<p><b>Sonderfall H-Saite (Stimmungsbruch G–H):</b> Zwischen der G- und der H-Saite liegt eine große Terz (vier Halbtöne) statt einer Quarte (fünf Halbtöne). Deshalb rutscht ein Ton, sobald die H-Saite beteiligt ist, einen Bund nach oben:</p>
+<ul>
+<li><b>Grundton auf der D-Saite:</b> 5 = zwei Bünde höher auf der G-Saite, <b>8 = drei Bünde höher</b> (nicht zwei) auf der H-Saite. Beispiel D5 (offen): D leer (1), G-Saite Bund 2 = A (5), H-Saite Bund 3 = D (8).</li>
+<li><b>Grundton auf der G-Saite:</b> 5 und 8 liegen jeweils <b>drei Bünde höher</b>, auf der H-Saite (5) und der hohen e-Saite (8).</li>
+</ul>
+<p>Merksatz: <b>„Zwei Bünde höher, eine Saite höher“ gilt, bis die H-Saite im Spiel ist. Dort ein Bund mehr.</b></p>
+<h4>1.5 Warum die 3 fehlt</h4>
+<p>Die <b>3</b> ist die Terz (hier in Dur-Tonleiter-Zählweise der dritte Ton). Sie macht den Akkord erst zu Dur (große Terz, 4 Halbtöne) oder Moll (kleine Terz, 3 Halbtöne). Weil bei 1-5-8 die 3 ausgelassen ist, entscheidet nichts über Dur oder Moll. Der Powerchord ist neutral und passt deshalb zu beiden. Was dein Ohr als „Dur“ oder „Moll“ hört, bestimmen dann die Melodie oder die Tonleiter, die du darüber spielst (z. B. Moll-Pentatonik).</p>
+<h4>1.6 Mini-Übung: 1-5-8 hören</h4>
+<ol>
+<li>Greife E5 (3-Ton, offen: E-Saite leer, A-Saite Bund 2, D-Saite Bund 2).</li>
+<li>Schlage die <b>1</b> einzeln an (E-Saite) und singe oder summe den Ton mit.</li>
+<li>Schlage die <b>5</b> einzeln an (A-Saite Bund 2). Achte auf den offenen, „leeren“ Klang gegenüber der 1.</li>
+<li>Schlage die <b>8</b> einzeln an (D-Saite Bund 2). Es ist derselbe Ton wie die 1, nur höher.</li>
+<li>Schlage jetzt alle drei Saiten <b>zusammen</b> an, mit einem langsamen Abschlag.</li>
+<li>Wiederhole die Schritte 1 bis 5 mit der gleichen Form im 3. Bund (G5) und im 5. Bund (A5). Sage dabei laut „eins – fünf – acht“ und den Notennamen.</li>
+</ol>
+<p>Tempo: ohne Metronom, je Ton ruhig ausklingen lassen.</p>
+</div></details>
+<details class="card pc-sec" id="pcT2"><summary><h3>2. Griffe als ASCII-Tabs</h3></summary><div class="pc-sec-b">
+<p>Die Griffform bleibt immer gleich. Die Zahl ist der Bund, <code>n</code> steht für den Bund des Grundtons. Nur die mit Zahl markierten Saiten werden gespielt, alle anderen dämpfst du ab (siehe Abschnitt 5).</p>
+<p>Beispiele unten: Grundton im 3. Bund (E-Saite: G5, A-Saite: C5, D-Saite: F5).</p>
+<h4>2.1 Grundton auf der E-Saite</h4>
+<p>2-Ton (Grundton + Quinte), Beispiel G5:</p>
+<pre class="pc-tab">e|-----|
+H|-----|
+G|-----|
+D|-----|
+A|--5--|   Quinte  (n+2)
+E|--3--|   Grundton (n)</pre>
+<p>3-Ton (zusätzlich Oktave), Beispiel G5:</p>
+<pre class="pc-tab">e|-----|
+H|-----|
+G|-----|
+D|--5--|   Oktave  (n+2)
+A|--5--|   Quinte  (n+2)
+E|--3--|   Grundton (n)</pre>
+<h4>2.2 Grundton auf der A-Saite</h4>
+<p>2-Ton, Beispiel C5:</p>
+<pre class="pc-tab">e|-----|
+H|-----|
+G|-----|
+D|--5--|   Quinte  (n+2)
+A|--3--|   Grundton (n)
+E|--x--|   gedämpft</pre>
+<p>3-Ton, Beispiel C5:</p>
+<pre class="pc-tab">e|-----|
+H|-----|
+G|--5--|   Oktave  (n+2)
+D|--5--|   Quinte  (n+2)
+A|--3--|   Grundton (n)
+E|--x--|   gedämpft</pre>
+<h4>2.3 Grundton auf der D-Saite</h4>
+<p>2-Ton, Beispiel F5:</p>
+<pre class="pc-tab">e|-----|
+H|-----|
+G|--5--|   Quinte  (n+2)
+D|--3--|   Grundton (n)
+A|--x--|
+E|--x--|</pre>
+<p>3-Ton, Beispiel F5. Achtung: Die Oktave liegt hier auf der H-Saite, <b>einen Bund weiter</b> als sonst (n+3 statt n+2):</p>
+<pre class="pc-tab">e|-----|
+H|--6--|   Oktave  (n+3)
+G|--5--|   Quinte  (n+2)
+D|--3--|   Grundton (n)
+A|--x--|
+E|--x--|</pre>
+<h4>2.4 Grundton auf der G-Saite (nur kurz)</h4>
+<p>Die Stimmung zwischen G- und H-Saite ist eine große Terz statt einer Quarte. Deshalb verschiebt sich die Form: Quinte auf der H-Saite und Oktave auf der e-Saite liegen jeweils <b>drei Bünde</b> über dem Grundton (n+3).</p>
+<p>Beispiel C5 (Grundton Bund 5):</p>
+<pre class="pc-tab">e|--8--|   Oktave  (n+3)
+H|--8--|   Quinte  (n+3)
+G|--5--|   Grundton (n)
+D|--x--|
+A|--x--|
+E|--x--|</pre>
+<p>Für die App: G-Saite nur als Hinweis im Theorieteil, nicht im interaktiven Griffbrett (dort E/A/D).</p>
+<h4>2.5 Variante mit Quinte unten (Umkehrung)</h4>
+<p>Hier liegt die <b>Quinte unter dem Grundton</b>. Die Form ist leicht zu greifen, weil die Töne auf zwei benachbarten Saiten im <b>gleichen Bund</b> liegen (die Saiten sind in Quarten gestimmt). Der Akkordname wird als Slash-Akkord geschrieben, z. B. <code>D5/A</code> (Grundton D, tiefster Ton A).</p>
+<p>Grundton auf der A-Saite im 5. Bund (D5/A), 2-Ton:</p>
+<pre class="pc-tab">e|-----|
+H|-----|
+G|-----|
+D|-----|
+A|--5--|   Grundton (n)
+E|--5--|   Quinte darunter (n, gleicher Bund)</pre>
+<p>3-Ton (zusätzlich die Quinte darüber, also Quinte–Grundton–Quinte), D5/A:</p>
+<pre class="pc-tab">e|-----|
+H|-----|
+G|-----|
+D|--7--|   Quinte darüber (n+2)
+A|--5--|   Grundton (n)
+E|--5--|   Quinte darunter (n)</pre>
+<p>Grundton auf der D-Saite im 5. Bund (G5/D), 3-Ton:</p>
+<pre class="pc-tab">e|-----|
+H|-----|
+G|--7--|   Quinte darüber (n+2)
+D|--5--|   Grundton (n)
+A|--5--|   Quinte darunter (n)
+E|--x--|</pre>
+<p>Hinweis: Auf der E-Saite gibt es keine Umkehrung dieser Art, denn darunter liegt keine Saite mehr.</p>
+<h4>2.6 Offene Powerchords</h4>
+<pre class="pc-tab"> E5          A5          D5
+e|-----|   e|-----|   e|-----|
+H|-----|   H|-----|   H|--3--|
+G|-----|   G|--2--|   G|--2--|
+D|--2--|   D|--2--|   D|--0--|
+A|--2--|   A|--0--|   A|--x--|
+E|--0--|   E|--x--|   E|--x--|</pre>
+<p>Eselsbrücke: Bei E5 und A5 greifen zwei Finger nebeneinander im 2. Bund. Bei D5 bilden die Töne D, A, D (offene D-Saite, Quinte im 2. Bund auf G, Oktave im 3. Bund auf H).</p>
+</div></details>
+<details class="card pc-sec" id="pcT3"><summary><h3>3. Grundtöne auf E- und A-Saite (Bund 0–12)</h3></summary><div class="pc-sec-b">
+<div class="pc-tbl"><table><thead><tr><th>Bund</th><th>E-Saite</th><th>A-Saite</th></tr></thead><tbody><tr><td>0</td><td>E</td><td>A</td></tr><tr><td>1</td><td>F</td><td>A#/Bb</td></tr><tr><td>2</td><td>F#/Gb</td><td>H</td></tr><tr><td>3</td><td>G</td><td>C</td></tr><tr><td>4</td><td>G#/Ab</td><td>C#/Db</td></tr><tr><td>5</td><td>A</td><td>D</td></tr><tr><td>6</td><td>A#/Bb</td><td>D#/Eb</td></tr><tr><td>7</td><td>H</td><td>E</td></tr><tr><td>8</td><td>C</td><td>F</td></tr><tr><td>9</td><td>C#/Db</td><td>F#/Gb</td></tr><tr><td>10</td><td>D</td><td>G</td></tr><tr><td>11</td><td>D#/Eb</td><td>G#/Ab</td></tr><tr><td>12</td><td>E</td><td>A</td></tr></tbody></table></div>
+<p>Merkhilfe: Die Töne ohne Vorzeichen liegen nach dem Muster Ganzton – Halbton – Ganzton – Ganzton – Halbton… auseinander. Zwischen E–F und H–C gibt es nur einen Halbton (nur einen Bund Abstand).</p>
+<p>Die D-Saite für das interaktive Griffbrett (Bund 0–12): D, D#/Eb, E, F, F#/Gb, G, G#/Ab, A, A#/Bb, H, C, C#/Db, D.</p>
+</div></details>
+<details class="card pc-sec" id="pcT4"><summary><h3>4. Verschieben: gleiche Form, anderer Akkord</h3></summary><div class="pc-sec-b">
+<p>Eine Griffform wird einfach am Hals entlang verschoben. Der Grundton (tiefster Finger) bestimmt den Namen:</p>
+<ul>
+<li>Form auf der E-Saite im 3. Bund: <b>G5</b>, im 5. Bund: <b>A5</b>, im 7. Bund: <b>H5</b>, im 8. Bund: <b>C5</b></li>
+<li>Die gleiche Form eine Saite höher (A-Saite) im 3. Bund: <b>C5</b>, im 5. Bund: <b>D5</b>, im 7. Bund: <b>E5</b></li>
+</ul>
+<p><b>Tipp für kurze Wege:</b> Derselbe Akkord liegt oft auf zwei Saiten. Wähle die Saite, bei der die nächsten Akkorde näher beieinander liegen.</p>
+<p>Beispiel A5 → D5 → E5:</p>
+<ul>
+<li>Auf der E-Saite: A5 (5. Bund), D5 (10. Bund), E5 (12. Bund) – weite Sprünge.</li>
+<li>Auf der A-Saite: A5 (0. Bund), D5 (5. Bund), E5 (7. Bund) – deutlich enger.</li>
+</ul>
+<p>Faustregel: Akkorde mit Grundton <b>E bis G</b> auf der <b>E-Saite</b>, Akkorde mit Grundton <b>A bis D</b> auf der <b>A-Saite</b> greifen (so bleibst du in den unteren Bünden). Wenn die Folge höher geht, nimm für D, E, F, G die <b>D-Saite</b>.</p>
+</div></details>
+<details class="card pc-sec" id="pcT5"><summary><h3>5. Spieltechnik</h3></summary><div class="pc-sec-b">
+<p><b>Abdämpfen nicht gespielter Saiten</b></p>
+<ul>
+<li>Tiefere, nicht gespielte Saite: mit dem Fingerspitzenbereich des Greiffingers leicht berühren (Saite nicht herunterdrücken).</li>
+<li>Höhere, nicht gespielte Saiten: mit der Unterseite des Greiffingers (flach angelegt) abdämpfen.</li>
+<li>Anschlag nur auf die Zielsaiten ausrichten. Treffer auf Dämpfsaiten dürfen nicht klingen.</li>
+</ul>
+<p><b>Palm Mute</b></p>
+<ul>
+<li>Den Ballen der Anschlagshand locker auf die Saiten direkt am Steg legen.</li>
+<li>Dämpfung stufenweise: leicht aufgelegt = weich, fester = kurz und trocken.</li>
+<li>Gut für Achtelpuls: tiefe Töne gedämpft, Akzente offen.</li>
+</ul>
+<p><b>Abschläge</b></p>
+<ul>
+<li>Bei Powerchords vor allem <b>Abschläge</b> (Downstrokes) spielen: druckvoll, gleichmäßig.</li>
+<li>Für Tempo ab ca. 140 BPM später Wechselschlag, wobei Auf-Schläge leiser bleiben.</li>
+<li>Plektrum flach zur Saite, aus dem Handgelenk schlagen, nicht aus dem Ellbogen.</li>
+</ul>
+<p><b>Lockerheit</b></p>
+<ul>
+<li>Greifdruck so gering wie möglich, gerade so, dass der Ton sauber klingt.</li>
+<li>Daumen hinter dem Hals, Schultern und Handgelenk entspannt.</li>
+<li>Beim Wechsel Finger kaum vom Griffbrett abheben (Wechsel in einer Bewegung, keine „Sprünge“).</li>
+<li>Bei Verspannung: Tempo senken, Pause machen.</li>
+</ul>
+</div></details>
+</div></template>
+    <template id="pcProgTpl"><div class="pc-theory" translate="no">
+<details class="card pc-sec" id="pcT6"><summary><h3>6. Typische Akkordfolgen</h3></summary><div class="pc-sec-b">
+<p>Die Akkorde werden als <b>Stufen</b> (Römische Zahlen) angegeben. Sie beziehen sich auf den Grundton der Tonart (I). Ein kleines „b“ davor bedeutet: einen Halbton tiefer als die Dur-Stufe.</p>
+<div class="pc-tbl"><table><thead><tr><th>Stufe</th><th>Halbtöne über I</th></tr></thead><tbody><tr><td>I</td><td>0</td></tr><tr><td>bIII</td><td>3</td></tr><tr><td>IV</td><td>5</td></tr><tr><td>V</td><td>7</td></tr><tr><td>bVI</td><td>8</td></tr><tr><td>bVII</td><td>10</td></tr></tbody></table></div>
+<div class="pc-tbl"><table><thead><tr><th>Folge</th><th>Stufen</th><th>Beispiel in E</th><th>Beispiel in A</th></tr></thead><tbody><tr><td>Rock-Klassiker</td><td>I – bVII – IV</td><td>E5 – D5 – A5</td><td>A5 – G5 – D5</td></tr><tr><td>Hard-Rock</td><td>I – bIII – IV</td><td>E5 – G5 – A5</td><td>A5 – C5 – D5</td></tr><tr><td>Episch / Dunkel</td><td>I – bVI – bVII</td><td>E5 – C5 – D5</td><td>A5 – F5 – G5</td></tr><tr><td>Grundlagen</td><td>I – IV – V</td><td>E5 – A5 – H5</td><td>A5 – D5 – E5</td></tr></tbody></table></div>
+<p>Auf der Zählzeit: Pro Akkord ein Takt (4/4), anschließend wiederholen (Looper).</p>
+<p><b>Tonleiter dazu:</b> Über die ersten drei Folgen (mit bIII, bVI, bVII) passt die <b>Moll-Pentatonik</b> des Grundtons (E-Moll-Pentatonik zu E-Folgen, A-Moll-Pentatonik zu A-Folgen). Bei I–IV–V klingt die Moll-Pentatonik bluesig (Töne gegen die Dur-Akkorde), die Dur-Pentatonik klingt „heller“. Probier beides aus.</p>
+</div></details>
+</div></template>
   </section>
 
 
@@ -21436,7 +21860,7 @@ const HILFE = [
  { g: 'Grundlagen', items: [
   { id: 'ueberblick', t: 'Was kann die App?', k: 'überblick übersicht start anfang einstieg reiter app was ist bedienung', img: 'looper',
     p: ['Die App ist dein Übungs- und Ideen-Werkzeug für die Gitarre – auf iPad, iPhone, Mac, Windows-PC und Android, im Browser oder als App vom Home-Bildschirm. Im Mittelpunkt steht der <b>Looper</b> mit drei Stereo-Spuren: aufnehmen, Dateien laden, schneiden, mit Drums, Drone, EQ und Hall begleiten und als Idee speichern.',
-       'Oben wählst du die Reiter: <b>Looper</b> · <b>Improvisation</b> (was passt über den Akkord) · <b>CAGED</b> · <b>Quintenzirkel</b> · <b>Backing Track</b> · <b>Songwriting</b> · <b>Mitsingen</b> · <b>Anleitung</b> (diese Seite) · <b>Training</b> · <b>Technik</b>.',
+       'Oben wählst du die Reiter: <b>Looper</b> · <b>Improvisation</b> (was passt über den Akkord) · <b>CAGED</b> · <b>Powerchords</b> · <b>Quintenzirkel</b> · <b>Backing Track</b> · <b>Songwriting</b> · <b>Mitsingen</b> · <b>Anleitung</b> (diese Seite) · <b>Training</b> · <b>Technik</b>.',
        'Für größere Arbeiten gibt es das <b>Loopsmiths Studio</b> – ein Tonstudio mit beliebig vielen Takten, Mischpult, Instrumenten, Drummer, Mastering und Export. Du erreichst es über „Im Studio ↗“ unter jeder Spur.',
        'Alles bleibt auf deinem Gerät. Es gibt kein Konto und keinen Server. Jedes Gerät speichert für sich – Ideen mitnehmen siehe „Speicher, Sichern“.'] },
   { id: 'installieren', t: 'Installieren und aktualisieren', k: 'installieren home-bildschirm mac windows pc android iphone chrome edge safari browser icon update aktualisieren version zweimal offline neu',
@@ -21521,6 +21945,16 @@ const HILFE = [
     s: ['Einen Loop oder Backing Track laufen lassen.', 'Reiter „Improvisation“: oben die Akkordleiste, der klingende Akkord leuchtet.', 'Eine Karte (z. B. Pentatonik) antippen – das Griffbild zeigt die Töne. Grundton rot, Akkordtöne blau, Charakterton gelb.', '„🎤 Mithören“ zeigt, welchen Ton du gerade spielst und ob er passt.'] },
   { id: 'caged', t: 'CAGED', k: 'caged formen griffe dreiklänge arpeggio lage umkehrung', img: 'caged',
     s: ['Akkord wählen (oder „folgt dem Loop“).', 'Form C · A · G · E · D oder „Alle“.', 'Ansicht: Griff, Arpeggio, Dreiklänge oder Tonleiter.', '„Lage“ wählen, um einen ganzen Loop an einer Stelle des Halses zu spielen.'] },
+  { id: 'powerchords', t: 'Powerchords (1-5-8)', k: 'powerchords powerchord 1-5-8 quinte oktave grundton e5 a5 d5 griffbrett stufen akkordfolge rock palm mute übungen umkehrung slash',
+    p: ['Der Reiter „Powerchords“ erklärt die 1-5-8-Theorie und lässt dich gleich dazu üben. Ein Powerchord hat nur Grundton (1), Quinte (5) und Oktave (8) – ohne Terz, darum passt er zu Dur und Moll.',
+       'Oben wählst du den Bereich: „Theorie“ (zum Nachlesen, 1-5-8 steht oben), „Schritt für Schritt“ (wie das System funktioniert, mit Bild und Ton), „Griffbrett“, „Akkordfolgen“ und „Übungen“.'],
+    s: ['„Griffbrett“: Grundton über die Notenknöpfe oder durch Tippen auf die Grundton-Saite wählen, Saite „E-Saite“ / „A-Saite“ / „D-Saite“, „2-Ton“ oder „3-Ton“, bei A und D auch „Umkehrung (Quinte unten)“. „Ziffern“ / „Notennamen“ schaltet die Beschriftung um, „▶ Anhören“ spielt den Griff, jeder Punkt klingt beim Antippen.',
+        '„Alle Stufen zeigen“ beschriftet jeden Ton auf dem Hals mit seiner Stufe zum Grundton (1, 2, b3, 3 …), 1 und 5 farbig. „Alle Lagen“ zeigt jede Position desselben Powerchords.',
+        '„Schritt für Schritt“: mit „Weiter ▶“ von der Dur-Tonleiter (1…8) über die Quinte (7 Halbtöne) und die Regel „zwei Bünde höher, eine Saite höher“ bis zum Sonderfall H-Saite und der fehlenden Terz („Dur“, „Moll“, „Powerchord“ zum Vergleich).',
+        '„Akkordfolgen“: Folge, Tonart, „Griff-Saite“ (Auto = kürzeste Wege), Töne und Tempo wählen. „▶ Loop starten“ legt die Folge mit Powerchord-Klang und Drums (oder „Klick“) als Loop auf Spur 1 des Loopers und zeigt groß „jetzt“ / „als Nächstes“ samt Griff. Mit „● Spur 2 aufnehmen“ spielst du gleich dazu ein.',
+        '„An Looper senden“ macht dasselbe und wechselt in den Looper; „Als Backing abspielen“ nutzt stattdessen den Backing Track (Drums, Bass, Synth).',
+        '„Übungen“: sechs Übungen mit Start- und Zieltempo. „▶ Mit Looper starten“ spielt die passende Folge, „Tempo +5“ erhöht in 5er-Schritten (wird gemerkt), „Tempo geschafft“ merkt dein bestes Tempo, das Häkchen „geschafft“ setzt du nach drei sauberen Durchgängen im Zieltempo. „Zurücksetzen“ löscht den Fortschritt (mit Rückfrage).'],
+    tip: ['Der Übe-Loop ersetzt, was im Looper liegt – sind dort schon Aufnahmen, fragt die App vorher.', '„Tempo +5“ während des Übens rechnet den Loop im neuen Tempo neu.', 'Der Fortschritt bleibt auf dem Gerät gespeichert (auch nach Neustart).'] },
   { id: 'quinten', t: 'Quintenzirkel', k: 'quintenzirkel tonart vorzeichen stufen dur moll', img: 'quintenzirkel',
     s: ['Tonart antippen – sie klingt an, die sieben Akkorde der Tonart sind markiert.', '„Ins Griffbrett übernehmen“ stellt Grundton und Modus ein.', 'Läuft der Looper, leuchtet der klingende Akkord mit.'] },
   { id: 'backing', t: 'Backing Track', k: 'backing track begleitung akkordfolge eintippen jam band bass fläche tempo-trainer', img: 'backing',
@@ -21623,6 +22057,592 @@ const HILFE = [
   document.addEventListener('tabchange', e => { if (e.detail === 'hilfe') build(); });
   if (!panel.hidden) build();
   window.Hilfe = { go, search, build, count: () => all.length };
+})();
+
+</script>
+<script>
+// v120: Reiter „Powerchords“ (1-5-8-Theorie). Alles wird erst beim ersten Öffnen gebaut (keine Last für den Looper).
+// Bereiche: Theorie · Schritt für Schritt · Griffbrett · Akkordfolgen · Übungen. Üben: Backing (Powerchord-Klang + Drums/Klick)
+// wird als Loop gerendert und auf Spur 1 des Loopers gelegt – läuft also im Looper-Takt, Spur 2/3 bleiben zum Aufnehmen.
+// „Als Backing abspielen“ nutzt den Backing Track (Jam). Fortschritt: localStorage „powerchords.progress.v1“.
+(function () {
+  const $ = id => document.getElementById(id), panel = $('panel-power'); if (!panel) return;
+  const TT = x => (typeof T === 'function' ? T(x) : x);
+  const md = x => ((x % 12) + 12) % 12;
+  const en = () => window.__lang === 'en';
+  // ---------- Daten (Vorgabe 2.5) ----------
+  const OPEN = [4, 9, 2, 7, 11, 4], MIDI0 = [40, 45, 50, 55, 59, 64], SNAME = ['E', 'A', 'D', 'G', 'H', 'e'];
+  const SHARP = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'], FLAT = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
+  const FLATKEY = [1, 3, 5, 8, 10];          // Db, Eb, F, Ab, Bb mit b; sonst Kreuze (F#/Gb → F#)
+  const tn = (so, f, r) => ({ so, f, r });
+  const SHAPES = {
+    'e-2': [tn(0, 0, '1'), tn(1, 2, '5')], 'e-3': [tn(0, 0, '1'), tn(1, 2, '5'), tn(2, 2, '8')],
+    'a-2': [tn(0, 0, '1'), tn(1, 2, '5')], 'a-3': [tn(0, 0, '1'), tn(1, 2, '5'), tn(2, 2, '8')],
+    'd-2': [tn(0, 0, '1'), tn(1, 2, '5')], 'd-3': [tn(0, 0, '1'), tn(1, 2, '5'), tn(2, 3, '8')],        // Oktave auf H: n+3
+    'a-2-inv': [tn(-1, 0, '5'), tn(0, 0, '1')], 'a-3-inv': [tn(-1, 0, '5'), tn(0, 0, '1'), tn(1, 2, '5')],
+    'd-2-inv': [tn(-1, 0, '5'), tn(0, 0, '1')], 'd-3-inv': [tn(-1, 0, '5'), tn(0, 0, '1'), tn(1, 2, '5')]
+  };
+  const DEG = { I: 0, bIII: 3, IV: 5, V: 7, bVI: 8, bVII: 10 }, DSTEP = { I: 0, bIII: 2, IV: 3, V: 4, bVI: 5, bVII: 6 };
+  const PROGS = [
+    { id: 'i-bvii-iv', name: 'I – bVII – IV', label: 'Rock-Klassiker', degrees: ['I', 'bVII', 'IV'], scaleHint: 'Moll-Pentatonik' },
+    { id: 'i-biii-iv', name: 'I – bIII – IV', label: 'Hard-Rock', degrees: ['I', 'bIII', 'IV'], scaleHint: 'Moll-Pentatonik' },
+    { id: 'i-bvi-bvii', name: 'I – bVI – bVII', label: 'Episch / Dunkel', degrees: ['I', 'bVI', 'bVII'], scaleHint: 'Moll-Pentatonik' },
+    { id: 'i-iv-v', name: 'I – IV – V', label: 'Grundlagen', degrees: ['I', 'IV', 'V'], scaleHint: 'Moll- oder Dur-Pentatonik (bluesig bzw. hell)' }
+  ];
+  const EXS = [
+    { id: 'ex1', title: 'E-Saite, 2-Ton verschieben', bpmStart: 60, bpmTarget: 100, d: '<b>E-Saite, 2-Ton:</b> Form bewegen E5 – G5 – A5 – D5 (Bund 0, 3, 5, 10). Pro Akkord vier Viertel, sauber abdämpfen.', seq: [[4, 0], [7, 0], [9, 0], [2, 0]], n: 2 },
+    { id: 'ex2', title: 'A-Saite, 3-Ton verschieben', bpmStart: 60, bpmTarget: 100, d: '<b>A-Saite, 3-Ton:</b> Form bewegen A5 – C5 – D5 – E5 (Bund 0, 3, 5, 7). Pro Akkord vier Viertel, Dämpfsaiten sind still.', seq: [[9, 1], [0, 1], [2, 1], [4, 1]], n: 3 },
+    { id: 'ex3', title: 'Grundtöne benennen', bpmStart: 40, bpmTarget: 70, d: '<b>Grundtöne benennen:</b> Zufälligen Bund wählen, Akkordnamen laut sagen, dann greifen (E- und A-Saite, siehe Tabelle).', rnd: true, n: 2, drums: 'click' },
+    { id: 'ex4', title: 'Palm Mute-Achtel', bpmStart: 70, bpmTarget: 120, progression: 'i-bvii-iv', key: 'E', d: '<b>Palm Mute-Achtel:</b> Auf E5 acht Achtel pro Takt, dann I – bVII – IV in E mit Palm Mute.', n: 2, pm: true, pre: [4] },
+    { id: 'ex5', title: 'Gleiche Folge, kurze Wege', bpmStart: 70, bpmTarget: 110, progression: 'i-bvii-iv', key: 'A', d: '<b>Gleiche Folge, kurze Wege:</b> I – bVII – IV in A, einmal mit Grundton auf der E-Saite, einmal auf der A-Saite. Wegvergleich beachten.', n: 3, twice: [0, 1] },
+    { id: 'ex6', title: 'Abwechslung & Dynamik', bpmStart: 80, bpmTarget: 130, progression: 'i-biii-iv', key: 'E', d: '<b>Abwechslung &amp; Dynamik:</b> I – bIII – IV in E mit Abschlägen, mit Pausen und lautem/leisem Wechsel (Akzent auf Zählzeit 1). Anschließend Moll-Pentatonik-Lick dazu.', n: 2, dyn: true }
+  ];
+  const KEYPC = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, H: 11, B: 11 };
+  // ---------- Schreibweise ----------
+  const LET = 'CDEFGAB', LPC = [0, 2, 4, 5, 7, 9, 11];
+  const keyName = pc => (FLATKEY.includes(md(pc)) ? FLAT : SHARP)[md(pc)];
+  function spellAt(pc, li) {
+    li = ((li % 7) + 7) % 7; const d = md(pc - LPC[li]), acc = d === 0 ? '' : d === 1 ? '#' : d === 11 ? 'b' : null;
+    if (acc == null) return null; const n = LET[li] + acc; return /^(Cb|Fb|E#|B#)$/.test(n) ? null : n;
+  }
+  // Ton über einen Stufen-Buchstabenabstand vom Bezugston schreiben (bIII von G = Bb, nicht A#); sonst Kreuz/b nach Tonart
+  const spellRel = (pc, ref, steps, flat) => spellAt(pc, LET.indexOf(ref[0]) + steps) || (flat ? FLAT : SHARP)[md(pc)];
+  const disp = n => n === 'B' ? (en() ? 'B' : 'H') : n;             // intern englische Buchstaben, Anzeige deutsch: H
+  const sname = s => s === 4 && en() ? 'B' : SNAME[s];
+  const pcLabel = pc => { const a = disp(SHARP[pc]), b = disp(FLAT[pc]); return a === b ? a : a + '/' + b; };
+  const shapeId = (s, n, inv) => 'ead'[s] + '-' + n + (inv ? '-inv' : '');
+  const maxOff = (s, n, inv) => Math.max(...SHAPES[shapeId(s, n, inv)].map(t => t.f));
+
+  // ---------- Berechnung (Vorgabe 2.6) ----------
+  function calc(o) {
+    const s = Math.max(0, Math.min(2, o.s | 0)), n = o.n === 3 ? 3 : 2, inv = !!o.inv && s > 0, id = shapeId(s, n, inv), sh = SHAPES[id], pc = md(o.pc);
+    let f = md(pc - OPEN[s]), warn = '';
+    if (f === 0 && o.hi) f = 12;
+    const mx = Math.max(...sh.map(t => t.f));
+    if (f + mx > 12 && !(o.hi && f === 12)) { if (f - 12 >= 0) f -= 12; else warn = 'Ein Ton liegt über Bund 12 – auf einer anderen Saite liegt der Griff bequemer.'; }
+    const flat = FLATKEY.includes(pc), rn = keyName(pc), fifth = spellRel(pc + 7, rn, 4, flat);
+    const tones = sh.map(t => ({ s: s + t.so, f: f + t.f, role: t.r, name: t.r === '5' ? fifth : rn, midi: MIDI0[s + t.so] + f + t.f }));
+    const used = new Set(tones.map(t => t.s)), muted = [0, 1, 2, 3, 4, 5].filter(i => !used.has(i));
+    return { id, s, f, n, inv, pc, rn, fifth, name: disp(rn) + '5' + (inv ? '/' + disp(fifth) : ''), tones, muted, warn, maxF: Math.max(12, ...tones.map(t => t.f)) };
+  }
+  function tabText(c) {
+    const by = {}; c.tones.forEach(t => { by[t.s] = t; }); const lo = Math.min(...c.tones.map(t => t.s));
+    const ROLE = { '1': 'Grundton', '5': 'Quinte', '8': 'Oktave' };
+    return [5, 4, 3, 2, 1, 0].map(s => {
+      const t = by[s]; let cell = '-----', note = '';
+      if (t) { const v = String(t.f); cell = v.length > 1 ? '-' + v + '--' : '--' + v + '--'; const off = t.f - c.f;
+        note = '   ' + (c.inv && t.role === '5' ? (t.s < c.s ? 'Quinte darunter' : 'Quinte darüber') : ROLE[t.role]) + ' (' + (off ? 'n+' + off : 'n') + ')'; }
+      else if (s < lo) { cell = '--x--'; note = '   gedämpft'; }
+      return sname(s) + '|' + cell + '|' + note;
+    }).join('\n');
+  }
+  const toneLine = c => c.tones.slice().sort((a, b) => a.midi - b.midi).map(t => disp(t.name) + ' (' + t.role + ')').join(' – ');
+  // Optionen eines Akkords auf den erlaubten Saiten (alle Töne in Bund 0–12)
+  function options(pc, n, strings) {
+    const out = [];
+    strings.forEach(s => { const f0 = md(pc - OPEN[s]); (f0 === 0 ? [0, 12] : [f0]).forEach(f => { if (f + maxOff(s, n, false) <= 12) out.push({ s, f }); }); });
+    return out;
+  }
+  // Saite „Auto“: kürzester Gesamtweg (Summe der Bundwechsel), bei Gleichstand tiefere Lage
+  function place(list, mode, n) {
+    const all = mode === 'auto' || mode == null ? [0, 1, 2] : [mode | 0];
+    const opts = list.map(c => { const st = c.s != null ? [c.s] : all; let o = options(c.pc, n, st); if (!o.length) { const s = st[0]; o = [{ s, f: md(c.pc - OPEN[s]), warn: true }]; } return o; });
+    const cost = [], back = [];
+    opts.forEach((os, i) => {
+      cost[i] = []; back[i] = [];
+      os.forEach((o, j) => {
+        if (!i) { cost[i][j] = o.f * 0.01; back[i][j] = -1; return; }
+        let best = Infinity, bk = 0; opts[i - 1].forEach((p, k) => { const v = cost[i - 1][k] + Math.abs(o.f - p.f) + o.f * 0.01; if (v < best - 1e-9) { best = v; bk = k; } });
+        cost[i][j] = best; back[i][j] = bk;
+      });
+    });
+    let j = 0, L = opts.length - 1; if (L < 0) return { chords: [], path: 0 };
+    cost[L].forEach((v, k) => { if (v < cost[L][j]) j = k; });
+    const pick = []; for (let i = L; i >= 0; i--) { pick[i] = opts[i][j]; j = back[i][j]; }
+    let path = 0;
+    const chords = list.map((c, i) => {
+      const p = pick[i]; if (i) path += Math.abs(p.f - pick[i - 1].f);
+      const cc = calc({ pc: c.pc, s: p.s, n, hi: p.f === 12 });
+      return Object.assign({}, c, { name: disp(c.rn || cc.rn) + '5', rootPc: md(c.pc), shapeId: cc.id, rootString: p.s, rootFret: cc.f, tones: cc.tones, warn: !!p.warn || !!cc.warn });
+    });
+    return { chords, path };
+  }
+  function prog(pid, keyPc, mode, n) {
+    const P = PROGS.find(p => p.id === pid) || PROGS[0], kn = keyName(keyPc), kf = FLATKEY.includes(md(keyPc));
+    const list = P.degrees.map(d => { const pc = md(keyPc + DEG[d]); return { degree: d, pc, rn: spellRel(pc, kn, DSTEP[d], kf) }; });
+    return Object.assign(place(list, mode, n), { prog: P, keyPc: md(keyPc), keyName: disp(kn) });
+  }
+  function handoff(r, bpm, n) {
+    return { type: 'powerchord-progression', progressionId: r.prog ? r.prog.id : null, keyPc: r.keyPc, keyName: r.keyName, bpm, timeSignature: '4/4', barsPerChord: 1, loop: true, toneCount: n,
+      chords: r.chords.map(c => ({ degree: c.degree || null, name: c.name, rootPc: c.rootPc, shapeId: c.shapeId, rootString: c.rootString, rootFret: c.rootFret })) };
+  }
+
+  // ---------- Klang ----------
+  function out() { ensureAudio(); return (typeof ensureMasterBus === 'function' ? ensureMasterBus() : null) || audioCtx.destination; }
+  function playMidi(m, dt) {
+    try {
+      const o0 = out(), ac = audioCtx, t = ac.currentTime + 0.01 + (dt || 0), f = 440 * Math.pow(2, (m - 69) / 12);
+      const g = ac.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.22, t + 0.005); g.gain.exponentialRampToValueAtTime(0.001, t + 1.4);
+      const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 2400; g.connect(lp); lp.connect(o0);
+      ['triangle', 'sawtooth'].forEach((type, j) => { const o = ac.createOscillator(); o.type = type; o.frequency.value = f; const og = ac.createGain(); og.gain.value = j ? 0.2 : 0.8; o.connect(og); og.connect(g); o.start(t); o.stop(t + 1.5); });
+      setTimeout(() => { try { lp.disconnect(); } catch (e) {} }, 1800 + (dt || 0) * 1000);
+    } catch (e) {}
+  }
+  const strumNow = ms => ms.slice().sort((a, b) => a - b).forEach((m, k) => playMidi(m, k * 0.028));
+  const seqNow = ms => ms.forEach((m, k) => playMidi(m, k * 0.38));
+
+  // Backing rendern: Powerchord (2 leicht verstimmte Sägezähne je Ton, Verzerrung, Tiefpass), Achtel-Abschläge, Drums oder Klick
+  function renderBacking(chords, bpm, o) {
+    o = o || {}; const sr = typeof audioCtx !== 'undefined' && audioCtx ? audioCtx.sampleRate : 48000, bf = Math.round(4 * 60 / bpm * sr), beat = bf / 4;
+    const bars = chords.reduce((a, c) => a + (c.bars || 1), 0), N = bars * bf, buf = new Float32Array(N);
+    let seed = 12345; const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x3fffffff - 1; };
+    function strum(s0, dur, ms, amp, pm) {
+      s0 = Math.round(s0); const n = Math.min(N - s0, Math.round(dur * sr)); if (n <= 0) return;
+      const fr = []; ms.forEach(m => { const f = 440 * Math.pow(2, (m - 69) / 12); fr.push(f, f * 1.0045); });
+      const ph = fr.map(() => Math.random()), tau = (pm ? 0.075 : 0.5) * sr, cut = pm ? 0.09 : 0.25, rel = Math.round(0.012 * sr), lag = Math.round(0.007 * sr);
+      let y1 = 0, y2 = 0;
+      for (let i = 0; i < n; i++) {
+        let x = 0;
+        for (let k = 0; k < fr.length; k++) { if (i < (k >> 1) * lag) continue; ph[k] += fr[k] / sr; if (ph[k] >= 1) ph[k] -= 1; x += 2 * ph[k] - 1; }
+        x = Math.tanh(x * 0.9) * 0.8;
+        y1 += cut * (x - y1); y2 += cut * (y1 - y2);
+        const env = Math.min(1, i / (0.003 * sr)) * Math.exp(-i / tau) * (i > n - rel ? (n - i) / rel : 1);
+        buf[s0 + i] += y2 * env * amp;
+      }
+    }
+    function drum(s0, kind, acc) {
+      s0 = Math.round(s0); const len = Math.round((kind === 'k' ? 0.28 : kind === 's' ? 0.18 : kind === 'h' ? 0.05 : 0.03) * sr), n = Math.min(N - s0, len); let ph = 0, hp = 0, last = 0;
+      for (let i = 0; i < n; i++) {
+        const t = i / sr; let v = 0;
+        if (kind === 'k') { ph += (48 + 95 * Math.exp(-t * 28)) / sr; v = Math.sin(2 * Math.PI * ph) * Math.exp(-t * 11) * 0.9; }
+        else if (kind === 's') { ph += 185 / sr; const nz = rnd(); v = (Math.sin(2 * Math.PI * ph) * 0.35 * Math.exp(-t * 30) + nz * 0.5 * Math.exp(-t * 18)) * 0.7; }
+        else if (kind === 'h') { const nz = rnd(); hp = nz - last; last = nz; v = hp * 0.18 * Math.exp(-t * 70); }
+        else { ph += (acc ? 1600 : 1100) / sr; v = Math.sin(2 * Math.PI * ph) * Math.exp(-t * 90) * 0.55; }
+        buf[s0 + i] += v * (acc ? 1 : 0.8);
+      }
+    }
+    let b0 = 0;
+    chords.forEach(c => {
+      const ms = c.tones.map(t => t.midi);
+      for (let b = 0; b < (c.bars || 1); b++) {
+        const bs = (b0 + b) * bf;
+        for (let e = 0; e < 8; e++) {
+          if (o.dyn && (e === 6 || e === 7)) continue;                         // Pause am Taktende (Dynamik-Übung)
+          const open = !o.pm && e === 0, amp = o.dyn ? (e === 0 ? 1 : 0.42) : (e % 2 ? 0.55 : e === 0 ? 0.95 : 0.75);
+          strum(bs + e * beat / 2, open ? beat * 0.98 : beat * 0.47, ms, amp * 0.3, !open);
+        }
+        if (o.drums === 'click') for (let q = 0; q < 4; q++) drum(bs + q * beat, 'c', q === 0);
+        else if (o.drums !== 'none') { for (let q = 0; q < 4; q++) drum(bs + q * beat, q % 2 ? 's' : 'k', q === 0); for (let e = 0; e < 8; e++) drum(bs + e * beat / 2, 'h', e % 2 === 0); }
+      }
+      b0 += c.bars || 1;
+    });
+    let pk = 0; for (let i = 0; i < N; i++) { const a = Math.abs(buf[i]); if (a > pk) pk = a; }
+    if (pk > 0) { const g = 0.6 / pk; for (let i = 0; i < N; i++) buf[i] *= g; }
+    return buf;
+  }
+
+  // ---------- Speicher ----------
+  const PKEY = 'powerchords.progress.v1', UKEY = 'powerchords.ui.v1';
+  function loadProg() {
+    let d = null; try { d = JSON.parse(localStorage.getItem(PKEY) || 'null'); } catch (e) {}
+    if (!d || typeof d !== 'object') d = {}; d.version = 1; d.exercises = d.exercises || {};
+    EXS.forEach(x => { const e = d.exercises[x.id] = Object.assign({ done: false, bestBpm: null }, d.exercises[x.id] || {}); if (!(e.bpm >= 40)) e.bpm = x.bpmStart; });
+    return d;
+  }
+  let PR = loadProg();
+  function saveProg() { PR.updated = new Date().toISOString(); try { localStorage.setItem(PKEY, JSON.stringify(PR)); } catch (e) {} }
+  let U = (function () { let d = null; try { d = JSON.parse(localStorage.getItem(UKEY) || 'null'); } catch (e) {} d = d || {};
+    return { sec: d.sec || 'theorie', b: Object.assign({ pc: 7, s: 0, n: 2, inv: false, hi: false, lab: 'num', all: false, pos: false }, d.b || {}),
+      f: Object.assign({ prog: 'i-bvii-iv', key: 4, mode: 'auto', n: 2, bpm: 90, drums: 'drums' }, d.f || {}), step: d.step | 0 }; })();
+  function saveUi() { try { localStorage.setItem(UKEY, JSON.stringify(U)); } catch (e) {} }
+
+  // ---------- Griffbrett (SVG) ----------
+  const DEGL = ['1', 'b2', '2', 'b3', '3', '4', 'b5', '5', 'b6', '6', 'b7', '7'];
+  function board(el, c) {
+    const a = c.from || 0, b = c.to != null ? c.to : 12, cols = b - a + 1, mini = !!c.mini;
+    const CW = mini ? 40 : 58, RH = mini ? 26 : 56, LM = mini ? 20 : 40, TM = 6, BM = mini ? 18 : 24, W = LM + cols * CW + 4, H = TM + 6 * RH + BM;
+    const X = f => LM + (f - a) * CW + CW / 2, Y = s => TM + (5 - s) * RH + RH / 2, R = mini ? 10 : 18;
+    const muted = new Set(c.muted || []);
+    let h = '<svg class="pc-board' + (mini ? ' mini' : '') + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Griffbrett">';
+    h += '<rect class="pc-wood" x="' + LM + '" y="' + TM + '" width="' + cols * CW + '" height="' + 6 * RH + '" rx="4"/>';
+    for (let f = Math.max(1, a); f <= b; f++) {
+      if ([3, 5, 7, 9, 15].includes(f)) h += '<circle class="pc-inlay" cx="' + X(f) + '" cy="' + (TM + 3 * RH) + '" r="' + (mini ? 3 : 5) + '"/>';
+      if (f === 12) h += '<circle class="pc-inlay" cx="' + X(f) + '" cy="' + (TM + 2 * RH) + '" r="' + (mini ? 3 : 5) + '"/><circle class="pc-inlay" cx="' + X(f) + '" cy="' + (TM + 4 * RH) + '" r="' + (mini ? 3 : 5) + '"/>';
+    }
+    for (let f = a; f <= b; f++) { const x = LM + (f - a + 1) * CW; h += '<line class="' + (f === 0 ? 'pc-nut' : 'pc-fret') + '" x1="' + x + '" y1="' + TM + '" x2="' + x + '" y2="' + (TM + 6 * RH) + '"/>'; }
+    for (let s = 0; s < 6; s++) {
+      h += '<line class="pc-str" style="stroke-width:' + (mini ? 1 + (5 - s) * 0.25 : 1.2 + (5 - s) * 0.45) + 'px" x1="' + LM + '" y1="' + Y(s) + '" x2="' + (LM + cols * CW) + '" y2="' + Y(s) + '"/>';
+      h += '<text class="pc-sn" x="' + (mini ? 7 : 11) + '" y="' + Y(s) + '">' + sname(s) + '</text>';
+      if (muted.has(s)) h += '<text class="pc-x" x="' + (mini ? 16 : 30) + '" y="' + Y(s) + '">x</text>';
+    }
+    for (let f = a; f <= b; f++) h += '<text class="pc-fn" x="' + X(f) + '" y="' + (H - (mini ? 5 : 7)) + '">' + f + '</text>';
+    (c.lines || []).forEach(L => { h += '<polyline class="pc-pos' + (L.on ? ' on' : '') + '" points="' + L.pts.map(p => X(p.f) + ',' + Y(p.s)).join(' ') + '"/>'; });
+    if (c.tap) for (let s = 0; s < 6; s++) for (let f = a; f <= b; f++) h += '<rect class="pc-cell" data-s="' + s + '" data-f="' + f + '" x="' + (LM + (f - a) * CW) + '" y="' + (TM + (5 - s) * RH) + '" width="' + CW + '" height="' + RH + '"/>';
+    (c.marks || []).forEach(m => {
+      if (m.f < a || m.f > b) return;
+      h += '<g class="pc-m ' + (m.cls || '') + '"><circle cx="' + X(m.f) + '" cy="' + Y(m.s) + '" r="' + (m.small ? R * 0.72 : R) + '"/>' + (m.lab != null ? '<text x="' + X(m.f) + '" y="' + Y(m.s) + '">' + m.lab + '</text>' : '') + '</g>';
+    });
+    el.innerHTML = h + '</svg>';
+    el._tapFn = c.tap || null;
+    if (c.tap && !el._pcTap) { el._pcTap = true; el.addEventListener('click', e => { const r = e.target.closest && e.target.closest('[data-f]'); if (r && el._tapFn) el._tapFn(+r.dataset.s, +r.dataset.f); }); }
+  }
+  const tapPlay = (s, f) => playMidi(MIDI0[s] + f);
+  // alle Lagen von 1-5(-8) für einen Grundton (aus den Tonhöhen gerechnet, gilt auch über G–H)
+  function positions(pc, n) {
+    const out = [];
+    for (let rs = 0; rs < 5; rs++) {
+      const f0 = md(pc - OPEN[rs]);
+      [f0, f0 + 12].forEach(rf => {
+        if (rf > 12) return;
+        const pts = [{ s: rs, f: rf, role: '1' }], f5 = rf + 7 - (MIDI0[rs + 1] - MIDI0[rs]);
+        pts.push({ s: rs + 1, f: f5, role: '5' });
+        if (n === 3 && rs + 2 <= 5) pts.push({ s: rs + 2, f: rf + 12 - (MIDI0[rs + 2] - MIDI0[rs]), role: '8' });
+        if (pts.every(p => p.f >= 0 && p.f <= 12)) out.push(pts);
+      });
+    }
+    return out;
+  }
+  function chordMarks(c, lab) {
+    return c.tones.map(t => ({ s: t.s, f: t.f, lab: lab === 'name' ? disp(t.name) : t.role, cls: t.role === '1' ? 'r1' : t.role === '8' ? 'r8' : 'r5' }));
+  }
+
+  // ---------- Aufbau (erst beim ersten Öffnen) ----------
+  let built = false;
+  const segHtml = (id, items, cur, aria) => '<div class="seg pc-seg" id="' + id + '" role="group" aria-label="' + aria + '">' + items.map(([v, l]) => '<button class="toggle-btn' + (String(v) === String(cur) ? ' active' : '') + '" data-v="' + v + '">' + l + '</button>').join('') + '</div>';
+  function setSeg(id, v) { const g = $(id); if (g) g.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.v === String(v))); }
+  function onSeg(id, fn) { $(id).addEventListener('click', e => { const b = e.target.closest('button'); if (b && !b.disabled) fn(b.dataset.v); }); }
+  function build() {
+    if (built) return; built = true;
+    $('pcSecTheorie').appendChild($('pcTheoryTpl').content.cloneNode(true));
+    const pe = panel.querySelector('.pc-en'); if (pe) pe.hidden = !en();
+    buildSteps(); buildBoard(); buildProg(); buildEx();
+    onSeg('pcSubs', v => showSec(v));
+    showSec(U.sec);
+  }
+  function showSec(v) {
+    if (!['theorie', 'schritte', 'brett', 'folgen', 'uebungen'].includes(v)) v = 'theorie';
+    U.sec = v; saveUi(); setSeg('pcSubs', v); panel.querySelectorAll('#pcSubs button').forEach(b => b.setAttribute('aria-selected', b.dataset.v === v ? 'true' : 'false'));
+    panel.querySelectorAll('.pc-sec-wrap').forEach(w => { w.hidden = w.dataset.sec !== v; });
+    if (v === 'schritte') stepShow(); else stepStop();
+    if (v === 'brett') renderBoard();
+  }
+  // Unter-Reiter-Knöpfe tragen data-sec, onSeg liest data-v → beides setzen
+  panel.querySelectorAll('#pcSubs button').forEach(b => { b.dataset.v = b.dataset.sec; });
+
+  // ===== Schritt für Schritt =====
+  const STEPS = [
+    { t: '1 · Dur-Tonleiter abzählen', p: 'Spiel auf der tiefen E-Saite die Dur-Tonleiter ab E: Bund 0, 2, 4, 5, 7, 9, 11, 12. Jeder Ton bekommt seine Nummer 1 bis 8. Die 8 ist wieder E, eine Oktave höher. Für den Powerchord brauchst du nur <b>1, 5 und 8</b>.',
+      frames: () => { const F = [0, 2, 4, 5, 7, 9, 11, 12], fr = []; for (let k = 1; k <= 8; k++) fr.push(F.slice(0, k).map((f, i) => ({ s: 0, f, lab: String(i + 1), cls: i === 0 ? 'r1' : i === 4 ? 'r5' : i === 7 ? 'r8' : 'dx2' }))); return fr; }, play: () => seqNow([40, 42, 44, 45, 47, 49, 51, 52]) },
+    { t: '2 · Quinte = 7 Halbtöne', p: 'Von der 1 aus zählst du <b>7 Bünde</b> (= 7 Halbtöne) weiter: dort liegt die Quinte (5). Auf der E-Saite: E (Bund 0) → H (Bund 7). Das gilt für jeden Grundton.',
+      frames: () => { const fr = []; for (let k = 0; k <= 7; k++) { const m = [{ s: 0, f: 0, lab: '1', cls: 'r1' }]; for (let j = 1; j <= k; j++) m.push(j === 7 ? { s: 0, f: 7, lab: '5', cls: 'r5' } : { s: 0, f: j, lab: String(j), cls: 'dx', small: true }); fr.push(m); } return fr; }, play: () => { seqNow([40, 47]); setTimeout(() => strumNow([40, 47]), 900); } },
+    { t: '3 · Zwei Bünde höher, eine Saite höher', p: 'Die Quinte von G (E-Saite Bund 3) läge auf derselben Saite in Bund 10 – weit weg. Derselbe Ton liegt eine Saite höher: <b>A-Saite Bund 5</b>, also zwei Bünde über dem Grundton. Die Oktave (8) liegt noch eine Saite höher im gleichen Bund: D-Saite Bund 5. Das ist G5.',
+      frames: () => { const g = { s: 0, f: 10, lab: '5', cls: 'ghost' }, a = [{ s: 0, f: 3, lab: '1', cls: 'r1' }, g]; return [a, a.concat({ s: 1, f: 5, lab: '5', cls: 'r5' }), a.concat({ s: 1, f: 5, lab: '5', cls: 'r5' }, { s: 2, f: 5, lab: '8', cls: 'r8' })]; },
+      lines: [{ pts: [{ s: 0, f: 10 }, { s: 1, f: 5 }] }], play: () => { seqNow([43, 50, 50, 55]); setTimeout(() => strumNow([43, 50, 55]), 1700); } },
+    { t: '4 · Sonderfall H-Saite: ein Bund mehr', p: 'Zwischen G- und H-Saite liegt nur eine große Terz (4 Halbtöne) statt einer Quarte (5). Liegt der Grundton auf der D-Saite (hier F, Bund 3), rutscht die Oktave auf der H-Saite <b>einen Bund weiter: n+3</b> (Bund 6), nicht n+2.',
+      frames: () => { const a = [{ s: 2, f: 3, lab: '1', cls: 'r1' }, { s: 3, f: 5, lab: '5', cls: 'r5' }]; return [a, a.concat({ s: 4, f: 5, lab: '×', cls: 'bad' }), a.concat({ s: 4, f: 5, lab: '×', cls: 'bad' }, { s: 4, f: 6, lab: '8', cls: 'r8' })]; }, play: () => strumNow([53, 60, 65]) },
+    { t: '5 · Form verschieben', p: 'Die Griffform bleibt gleich, du schiebst sie nur am Hals entlang. Der Grundton (1) bestimmt den Namen.', loop: true,
+      frames: () => [[0, 3], [0, 5], [0, 7], [0, 8], [1, 3], [1, 5], [1, 7]].map(([s, f]) => { const c = calc({ pc: md(OPEN[s] + f), s, n: 3, hi: f === 12 }); const m = chordMarks(c, 'num'); m.cap = c.name; m.c = c; return m; }),
+      play: fr => fr && fr.c && strumNow(fr.c.tones.map(t => t.midi)) },
+    { t: '6 · Die 3 weglassen: neutral', p: 'Die Terz macht einen Akkord zu Dur (3, große Terz) oder Moll (b3, kleine Terz). Der Powerchord lässt sie weg – darum passt er zu beiden. Hör dir den Unterschied an: G-Dur, G-Moll und G5.',
+      frames: () => [[{ s: 0, f: 3, lab: '1', cls: 'r1' }, { s: 1, f: 5, lab: '5', cls: 'r5' }, { s: 2, f: 5, lab: '8', cls: 'r8' }, { s: 3, f: 4, lab: '3', cls: 'dx3' }, { s: 3, f: 3, lab: 'b3', cls: 'dx3 b3' }]], third: true, play: () => strumNow([43, 50, 55]) }
+  ];
+  let stepT = null, stepFr = null;
+  function buildSteps() {
+    $('pcSecSchritte').innerHTML = '<div class="card pc-steps"><div class="pc-row pc-stephead"><button class="toggle-btn" id="pcStPrev">◀ Zurück</button><span class="pc-stepnum" id="pcStNum"></span><button class="toggle-btn" id="pcStNext">Weiter ▶</button></div>' +
+      '<h3 id="pcStT" translate="no"></h3><p id="pcStP" translate="no"></p><div class="pc-row" id="pcStBtns"><button class="toggle-btn active" id="pcStPlay">▶ Anhören</button><button class="toggle-btn" id="pcStMaj" hidden>Dur (1-3-5)</button><button class="toggle-btn" id="pcStMin" hidden>Moll (1-b3-5)</button><button class="toggle-btn" id="pcStPow" hidden>Powerchord (1-5-8)</button><span class="pc-cap" id="pcStCap"></span></div>' +
+      '<div class="pc-bwrap" id="pcStBoard"></div><p class="caption">Tippe auf einen Punkt, um den Ton zu hören.</p></div>';
+    $('pcStPrev').addEventListener('click', () => { U.step = Math.max(0, U.step - 1); saveUi(); stepShow(); });
+    $('pcStNext').addEventListener('click', () => { U.step = Math.min(STEPS.length - 1, U.step + 1); saveUi(); stepShow(); });
+    $('pcStPlay').addEventListener('click', () => STEPS[U.step].play(stepFr));
+    const third = (ms, on) => { strumNow(ms); stepDraw(STEPS[U.step].frames()[0].filter(m => on.includes(m.lab))); };
+    $('pcStMaj').addEventListener('click', () => third([43, 50, 55, 59], ['1', '5', '8', '3']));
+    $('pcStMin').addEventListener('click', () => third([43, 50, 55, 58], ['1', '5', '8', 'b3']));
+    $('pcStPow').addEventListener('click', () => third([43, 50, 55], ['1', '5', '8']));
+  }
+  function stepDraw(m) { stepFr = m; const S = STEPS[U.step]; board($('pcStBoard'), { marks: m, lines: S.lines, tap: tapPlay }); $('pcStCap').textContent = m.cap || ''; }
+  function stepStop() { clearInterval(stepT); stepT = null; }
+  function stepShow() {
+    if (!$('pcStBoard')) return; stepStop();
+    U.step = Math.max(0, Math.min(STEPS.length - 1, U.step | 0));
+    const S = STEPS[U.step], fr = S.frames();
+    $('pcStNum').textContent = 'Schritt ' + (U.step + 1) + ' von ' + STEPS.length;
+    $('pcStT').textContent = S.t; $('pcStP').innerHTML = S.p;
+    $('pcStPrev').disabled = U.step === 0; $('pcStNext').disabled = U.step === STEPS.length - 1;
+    ['pcStMaj', 'pcStMin', 'pcStPow'].forEach(id => { $(id).hidden = !S.third; });
+    let k = 0; stepDraw(fr[0]);
+    if (fr.length > 1) stepT = setInterval(() => {                       // Animation: Töne erscheinen nacheinander (Schritt 5: Form wandert)
+      if (panel.hidden || $('pcSecSchritte').hidden) { stepStop(); return; }
+      k++; if (k >= fr.length) { if (!S.loop) { stepStop(); return; } k = 0; }
+      stepDraw(fr[k]);
+    }, S.loop ? 1400 : 420);
+  }
+
+  // ===== Griffbrett =====
+  function buildBoard() {
+    const notes = []; for (let pc = 0; pc < 12; pc++) notes.push([pc, pcLabel(pc)]);
+    $('pcSecBrett').innerHTML = '<div class="card pc-brett"><div class="pc-top"><div class="pc-chordbox"><span class="lbl">Powerchord</span><b id="pcName" translate="no"></b><span class="pc-tones" id="pcTones" translate="no"></span></div>' +
+      '<div class="pc-ctl">' + segHtml('pcStr', [[0, 'E-Saite'], [1, 'A-Saite'], [2, 'D-Saite']], U.b.s, 'Saite für den Grundton') + segHtml('pcN', [[2, '2-Ton'], [3, '3-Ton']], U.b.n, 'Töne') +
+      '<label class="check pc-inv"><input type="checkbox" id="pcInv"> Umkehrung (Quinte unten)</label><span class="pc-hint" id="pcInvHint"></span></div></div>' +
+      '<div class="pc-notes" id="pcNotes" role="group" aria-label="Grundton wählen">' + notes.map(([v, l]) => '<button class="toggle-btn" data-v="' + v + '" translate="no">' + l + '</button>').join('') + '</div>' +
+      '<div class="pc-row pc-opts">' + segHtml('pcLab', [['num', 'Ziffern'], ['name', 'Notennamen']], U.b.lab, 'Beschriftung') +
+      '<label class="check"><input type="checkbox" id="pcAll"> Alle Stufen zeigen</label><label class="check"><input type="checkbox" id="pcPos"> Alle Lagen</label>' +
+      '<button class="toggle-btn" id="pcAlt">Andere Lage</button><button class="toggle-btn" id="pcHi" hidden>Bund 0 ↔ 12</button><button class="toggle-btn active" id="pcListen">▶ Anhören</button></div>' +
+      '<div class="pc-bwrap" id="pcBoard"></div><p class="pc-warn" id="pcWarn" hidden></p>' +
+      '<p class="caption">Tippe auf die Grundton-Saite, um den Grundton zu wählen. Jeder andere Punkt spielt seinen Ton.</p>' +
+      '<div class="pc-legend" id="pcLegend"></div><pre class="pc-tab" id="pcTab" translate="no"></pre></div>';
+    onSeg('pcStr', v => { U.b.s = +v; U.b.hi = false; renderBoard(); });
+    onSeg('pcN', v => { U.b.n = +v; renderBoard(); });
+    onSeg('pcLab', v => { U.b.lab = v; renderBoard(); });
+    onSeg('pcNotes', v => { U.b.pc = +v; U.b.hi = false; renderBoard(); });
+    $('pcInv').addEventListener('change', e => { U.b.inv = e.target.checked; renderBoard(); });
+    $('pcAll').addEventListener('change', e => { U.b.all = e.target.checked; renderBoard(); });
+    $('pcPos').addEventListener('change', e => { U.b.pos = e.target.checked; renderBoard(); });
+    $('pcHi').addEventListener('click', () => { U.b.hi = !U.b.hi; renderBoard(); });
+    // Alternative Lage: derselbe Akkord auf der nächsten Saite (E → A → D → E)
+    $('pcAlt').addEventListener('click', () => { U.b.s = (U.b.s + 1) % 3; U.b.hi = false; renderBoard(); });
+    $('pcListen').addEventListener('click', () => strumNow(calc(U.b).tones.map(t => t.midi)));
+  }
+  function renderBoard() {
+    if (!$('pcBoard')) return; saveUi();
+    const b = U.b, c = calc(b);
+    setSeg('pcStr', b.s); setSeg('pcN', b.n); setSeg('pcLab', b.lab); setSeg('pcNotes', b.pc);
+    const inv = $('pcInv'); inv.disabled = b.s === 0; inv.checked = b.inv && b.s > 0; inv.closest('label').classList.toggle('off', b.s === 0);
+    $('pcInvHint').textContent = b.s === 0 ? 'Auf der E-Saite nicht möglich' : '';
+    $('pcAll').checked = b.all; $('pcPos').checked = b.pos;
+    $('pcHi').hidden = !(c.f === 0 || c.f === 12);
+    $('pcName').textContent = c.name; $('pcTones').textContent = toneLine(c); $('pcTab').textContent = tabText(c);
+    $('pcWarn').hidden = !c.warn; $('pcWarn').textContent = c.warn;
+    let marks = [], lines = [];
+    if (b.all) {                                                     // jeder Ton als Stufe zum Grundton (Dur-Zählweise), 1-5-8 farbig
+      for (let s = 0; s < 6; s++) for (let f = 0; f <= 12; f++) {
+        const iv = md(OPEN[s] + f - c.pc), name = disp(spellRel(OPEN[s] + f, c.rn, [0, 1, 1, 2, 2, 3, 4, 4, 5, 5, 6, 6][iv], FLATKEY.includes(c.pc)));
+        marks.push({ s, f, lab: b.lab === 'name' ? name : DEGL[iv], cls: iv === 0 ? 'a1' : iv === 7 ? 'a5' : 'dx', small: iv !== 0 && iv !== 7 });
+      }
+    }
+    if (b.pos) positions(c.pc, c.n).forEach(P => {
+      lines.push({ pts: P });
+      if (!b.all) P.forEach(p => marks.push({ s: p.s, f: p.f, lab: b.lab === 'name' ? disp(p.role === '5' ? c.fifth : c.rn) : p.role, cls: 'p' + p.role, small: true }));
+    });
+    lines.push({ pts: c.tones.slice().sort((x, y) => x.s - y.s), on: true });
+    marks = marks.filter(m => !c.tones.some(t => t.s === m.s && t.f === m.f)).concat(chordMarks(c, b.lab));
+    board($('pcBoard'), { marks, lines, muted: c.muted, to: c.maxF, tap: (s, f) => {
+      if (s === b.s) { U.b.pc = md(OPEN[s] + f); U.b.hi = f === 12; renderBoard(); }
+      tapPlay(s, f);
+    } });
+    $('pcLegend').innerHTML = '<span class="pc-lg r1">1 Grundton</span><span class="pc-lg r5">5 Quinte</span>' + (c.n === 3 ? '<span class="pc-lg r8">8 Oktave</span>' : '') + (b.all ? '<span class="pc-lg dx">andere Stufen (Dur-Zählweise)</span>' : '') + (c.muted.length ? '<span class="pc-lg">x = Saite abdämpfen</span>' : '');
+  }
+  function goBoard(ch, n) { U.b.pc = ch.rootPc; U.b.s = ch.rootString; U.b.n = n; U.b.inv = false; U.b.hi = ch.rootFret === 12; showSec('brett'); window.scrollTo({ top: panel.getBoundingClientRect().top + window.scrollY - 80, behavior: 'smooth' }); }
+
+  // ===== Akkordfolgen =====
+  let cur = null;   // letzte Berechnung der Folge
+  function buildProg() {
+    const keys = []; for (let pc = 0; pc < 12; pc++) keys.push('<option value="' + pc + '">' + pcLabel(pc) + '</option>');
+    $('pcSecFolgen').innerHTML = '<div class="card pc-folgen"><div class="pc-row pc-fsel">' +
+      '<label class="field"><span>Folge</span><select id="pcProg" aria-label="Folge">' + PROGS.map(p => '<option value="' + p.id + '">' + p.name + ' · ' + p.label + '</option>').join('') + '</select></label>' +
+      '<label class="field"><span>Tonart (Grundton)</span><select id="pcKey" aria-label="Tonart">' + keys.join('') + '</select></label>' +
+      '<div class="field"><span>Griff-Saite</span>' + segHtml('pcMode', [['auto', 'Auto'], [0, 'E'], [1, 'A'], [2, 'D']], U.f.mode, 'Griff-Saite') + '</div>' +
+      '<div class="field"><span>Töne</span>' + segHtml('pcFN', [[2, '2-Ton'], [3, '3-Ton']], U.f.n, 'Töne') + '</div></div>' +
+      '<div class="pc-row pc-fsel"><div class="field"><span>Tempo</span><div class="pc-bpm"><button class="toggle-btn" id="pcBpmD" aria-label="Tempo −5">−5</button><b id="pcBpmV"></b><span class="caption">BPM</span><button class="toggle-btn" id="pcBpmU" aria-label="Tempo +5">+5</button><input type="range" id="pcBpm" min="40" max="200" step="1" aria-label="Tempo"></div></div>' +
+      '<label class="field"><span>Begleitung</span><select id="pcDrums" aria-label="Begleitung"><option value="drums">Drums</option><option value="click">Klick</option><option value="none">nur Akkorde</option></select></label></div>' +
+      '<div class="pc-fnames" id="pcFNames" translate="no"></div><div class="pc-path" id="pcPath"></div>' +
+      '<div class="pc-row pc-acts"><button class="toggle-btn active" id="pcGo">▶ Loop starten</button><button class="toggle-btn" id="pcSend">An Looper senden</button><button class="toggle-btn" id="pcJam">Als Backing abspielen</button></div>' +
+      '<p class="caption">„Loop starten“ legt die Folge mit Powerchord-Klang und Drums auf Spur 1 des Loopers – Spur 2 und 3 bleiben frei zum Aufnehmen. Tippe einen Akkord an, um ihn im Griffbrett zu sehen.</p>' +
+      '<div class="pc-chords" id="pcChords"></div></div>';
+    $('pcSecFolgen').appendChild($('pcProgTpl').content.cloneNode(true));
+    $('pcProg').value = U.f.prog; $('pcKey').value = U.f.key; $('pcDrums').value = U.f.drums;
+    $('pcProg').addEventListener('change', e => { U.f.prog = e.target.value; renderProg(); });
+    $('pcKey').addEventListener('change', e => { U.f.key = +e.target.value; renderProg(); });
+    $('pcDrums').addEventListener('change', e => { U.f.drums = e.target.value; saveUi(); });
+    onSeg('pcMode', v => { U.f.mode = v === 'auto' ? 'auto' : +v; renderProg(); });
+    onSeg('pcFN', v => { U.f.n = +v; renderProg(); });
+    const setB = v => { U.f.bpm = Math.max(40, Math.min(200, Math.round(v))); paintBpm(); saveUi(); };
+    $('pcBpm').addEventListener('input', e => setB(+e.target.value));
+    $('pcBpmD').addEventListener('click', () => setB(U.f.bpm - 5)); $('pcBpmU').addEventListener('click', () => setB(U.f.bpm + 5));
+    $('pcChords').addEventListener('click', e => { const el = e.target.closest('[data-i]'); if (el && cur) goBoard(cur.chords[+el.dataset.i], U.f.n); });
+    $('pcGo').addEventListener('click', () => startProg('loop'));
+    $('pcSend').addEventListener('click', () => startProg('send'));
+    $('pcJam').addEventListener('click', () => startProg('jam'));
+    paintBpm(); renderProg();
+  }
+  function paintBpm() { if (!$('pcBpmV')) return; $('pcBpmV').textContent = U.f.bpm; $('pcBpm').value = U.f.bpm; }
+  function renderProg() {
+    if (!$('pcChords')) return; saveUi();
+    setSeg('pcMode', U.f.mode); setSeg('pcFN', U.f.n);
+    cur = prog(U.f.prog, U.f.key, U.f.mode, U.f.n);
+    $('pcFNames').textContent = cur.chords.map(c => c.name).join(' – ');
+    $('pcPath').textContent = (U.f.mode === 'auto' ? 'Auto: ' + cur.chords.map(c => c.name + ' auf ' + sname(c.rootString) + '-Saite').join(', ') + ' · ' : '') + 'Weg: ' + cur.path + (cur.path === 1 ? ' Bund' : ' Bünde');
+    $('pcChords').innerHTML = cur.chords.map((c, i) => '<button class="pc-chord" data-i="' + i + '"><span class="pc-deg" translate="no">' + c.degree + '</span><b translate="no">' + c.name + '</b><span class="pc-where">' + sname(c.rootString) + '-Saite · Bund ' + c.rootFret + (c.warn ? ' ⚠' : '') + '</span><span class="pc-mini"></span></button>').join('');
+    cur.chords.forEach((c, i) => { const el = $('pcChords').querySelectorAll('.pc-mini')[i], fs = c.tones.map(t => t.f), a = Math.max(0, Math.min(...fs) - 1); board(el, { mini: true, from: a, to: Math.max(a + 4, Math.max(...fs)), marks: chordMarks(c, 'num'), muted: [0, 1, 2, 3, 4, 5].filter(s => !c.tones.some(t => t.s === s)) }); });
+    paintNow(true);
+  }
+
+  // ===== Übungen =====
+  function exSeq(x) {
+    if (x.rnd) {                                                     // Übung 3: vier zufällige Grundtöne auf E- und A-Saite
+      const out = []; for (let i = 0; i < 4; i++) { const s = Math.random() < 0.5 ? 0 : 1, f = Math.floor(Math.random() * 12); out.push({ pc: md(OPEN[s] + f), s, rn: keyName(md(OPEN[s] + f)) }); }
+      return place(out, 'auto', x.n);
+    }
+    if (x.seq) return place(x.seq.map(([pc, s]) => ({ pc, s, rn: keyName(pc) })), 'auto', x.n);
+    const p = prog(x.progression, KEYPC[x.key], 'auto', x.n);
+    if (x.pre) { const pre = place(x.pre.map(pc => ({ pc, rn: keyName(pc), degree: 'I' })), 'auto', x.n); p.chords = pre.chords.concat(p.chords); }
+    if (x.twice) { const a = [], P = PROGS.find(q => q.id === x.progression), kp = KEYPC[x.key], kn = keyName(kp);
+      x.twice.forEach(s => P.degrees.forEach(d => { const pc = md(kp + DEG[d]); a.push({ degree: d, pc, s, rn: spellRel(pc, kn, DSTEP[d], false) }); }));
+      const r = place(a, 'auto', x.n); p.chords = r.chords; p.path = r.path; }
+    return p;
+  }
+  function buildEx() {
+    $('pcSecUebungen').innerHTML = '<div class="card pc-exhead"><div class="pc-row"><b id="pcExSum"></b><button class="toggle-btn" id="pcExReset">Zurücksetzen</button></div><div class="pc-bar"><i id="pcExBar"></i></div>' +
+      '<p class="caption">Ein Häkchen setzt du, wenn du die Übung beim Zieltempo drei Mal fehlerfrei und sauber gespielt hast. Erhöhe in 5er-Schritten.</p></div><div id="pcExList"></div>';
+    $('pcExReset').addEventListener('click', () => { if (!confirm(TT('Fortschritt aller Übungen zurücksetzen?'))) return; try { localStorage.removeItem(PKEY); } catch (e) {} PR = loadProg(); saveProg(); renderEx(); });
+    $('pcExList').addEventListener('click', e => {
+      const b = e.target.closest('button[data-a]'); if (!b) return; const x = EXS.find(q => q.id === b.dataset.x), st = PR.exercises[x.id];
+      if (b.dataset.a === 'go') { startEx(x); return; }
+      if (b.dataset.a === 'd') st.bpm = Math.max(40, st.bpm - 5);
+      if (b.dataset.a === 'u') st.bpm = Math.min(200, st.bpm + 5);
+      if (b.dataset.a === 'best') st.bestBpm = Math.max(st.bestBpm || 0, st.bpm);
+      saveProg(); renderEx();
+      if ((b.dataset.a === 'd' || b.dataset.a === 'u') && play && play.ex === x.id) retempo(st.bpm);
+    });
+    $('pcExList').addEventListener('change', e => { const c = e.target.closest('input[data-x]'); if (!c) return; PR.exercises[c.dataset.x].done = c.checked; saveProg(); renderEx(); });
+    renderEx();
+  }
+  function renderEx() {
+    if (!$('pcExList')) return;
+    const done = EXS.filter(x => PR.exercises[x.id].done).length;
+    $('pcExSum').textContent = done + ' von ' + EXS.length + ' geschafft'; $('pcExBar').style.width = (100 * done / EXS.length) + '%';
+    $('pcExList').innerHTML = EXS.map((x, i) => { const st = PR.exercises[x.id];
+      return '<div class="card pc-ex' + (st.done ? ' done' : '') + (play && play.ex === x.id ? ' now' : '') + '" id="pcEx_' + x.id + '"><div class="pc-row"><span class="pc-exn">' + (i + 1) + '</span><h3 translate="no">' + x.title + '</h3>' +
+        '<label class="check pc-done"><input type="checkbox" data-x="' + x.id + '"' + (st.done ? ' checked' : '') + '> geschafft</label></div>' +
+        '<p translate="no">' + x.d + '</p><div class="pc-row pc-exctl"><span class="caption">Start ' + x.bpmStart + ' → Ziel ' + x.bpmTarget + ' BPM</span>' +
+        '<span class="pc-bpm"><button class="toggle-btn" data-a="d" data-x="' + x.id + '" aria-label="Tempo −5">−5</button><b>' + st.bpm + '</b><span class="caption">BPM</span><button class="toggle-btn" data-a="u" data-x="' + x.id + '" aria-label="Tempo +5">Tempo +5</button></span>' +
+        '<button class="toggle-btn active" data-a="go" data-x="' + x.id + '">▶ Mit Looper starten</button><button class="toggle-btn" data-a="best" data-x="' + x.id + '">Tempo geschafft</button>' +
+        '<span class="caption pc-best">' + (st.bestBpm ? 'Bestes Tempo: ' + st.bestBpm + ' BPM' : 'Noch kein Tempo gemerkt') + '</span></div></div>'; }).join('');
+  }
+
+  // ===== Üben: Loop im Looper oder Backing Track, Anzeige „jetzt / als Nächstes“ =====
+  let play = null, ownL = 0, poll = null;
+  function setBpm(v) { const el = $('bpm'); if (!el) return; el.value = v; el.dispatchEvent(new Event('input')); }
+  function looperForeign() {
+    try { const tr = Looper._prac().tracks; return tr.some((t, i) => t.L && !(i === 0 && t.L === ownL)); } catch (e) { return false; }
+  }
+  function stopAll(quiet) {
+    if (!play) return;
+    const p = play; play = null; clearInterval(poll); poll = null;
+    try { if (p.mode === 'jam') { if (window.Jam) Jam.stop(); } else if (typeof Looper !== 'undefined') Looper.stopAll(); } catch (e) {}
+    paintPlay(); paintNow(true); renderEx();
+  }
+  // r = { chords, path, prog?, keyPc?, keyName? }
+  function begin(r, o) {
+    const n = o.n, bpm = Math.max(40, Math.min(200, o.bpm | 0)), bars = r.chords.length;
+    const pay = handoff(r, bpm, n);
+    if (o.how === 'jam') {
+      if (!window.Jam) return false;
+      if (play && play.mode === 'looper') stopAll(true);
+      try { if (typeof Looper !== 'undefined' && Looper.busy()) Looper.stopAll(); } catch (e) {}
+      const st = Jam.state(); st.key = { pc: r.keyPc != null ? r.keyPc : r.chords[0].rootPc, major: false };
+      Jam.setSeq(r.chords.map(c => c.name + ':1').join(' '));
+      setBpm(bpm); Jam.stop(); Jam.start();
+      play = { mode: 'jam', r, n, bpm, ex: o.ex || null, label: o.label, hide: !!o.hide, pay, idx: -1 };
+    } else {
+      if (typeof Looper === 'undefined' || !Looper.loadSamples) return false;
+      if (looperForeign() && !confirm(TT('Im Looper sind schon Aufnahmen. Durch den Übe-Loop ersetzen?'))) return false;
+      if (play && play.mode === 'jam') stopAll(true);
+      try { if (window.Jam && Jam.debug && Jam.debug()) Jam.stop(); } catch (e) {}
+      setBpm(bpm); ensureAudio();
+      const data = renderBacking(r.chords.map(c => ({ tones: c.tones, bars: 1 })), bpm, { drums: o.drums, pm: o.pm, dyn: o.dyn });
+      Looper.loadSamples(data); ownL = data.length;
+      try { Looper.setSrcName('Powerchords ' + r.chords.map(c => c.name).join(' ')); } catch (e) {}
+      const bs = $('loopBars'); if (bs && [...bs.options].some(op => op.value === String(bars))) { bs.value = String(bars); bs.dispatchEvent(new Event('change')); }
+      const ls = $('loopStatus'); if (ls) ls.textContent = TT('Powerchords: ') + r.chords.map(c => c.name).join(' – ') + ' · ' + bpm + ' BPM';
+      play = { mode: 'looper', r, n, bpm, ex: o.ex || null, label: o.label, hide: !!o.hide, pay, idx: -1, o };
+    }
+    window.__pcHandoff = pay;
+    try { document.dispatchEvent(new CustomEvent('powerchords-handoff', { detail: pay })); } catch (e) {}
+    clearInterval(poll); poll = setInterval(tick, 90);
+    paintPlay(); renderEx();
+    return true;
+  }
+  function startProg(how) {
+    const r = cur || prog(U.f.prog, U.f.key, U.f.mode, U.f.n);
+    const ok = begin(r, { how: how === 'jam' ? 'jam' : 'looper', n: U.f.n, bpm: U.f.bpm, drums: U.f.drums, label: r.prog.name + ' in ' + r.keyName });
+    if (ok && how === 'send') { const t = $('tab-looper'); if (t) t.click(); }
+  }
+  function startEx(x) {
+    const st = PR.exercises[x.id], r = exSeq(x);
+    begin(r, { how: 'looper', n: x.n, bpm: st.bpm, drums: x.drums || 'drums', pm: x.pm, dyn: x.dyn, ex: x.id, label: 'Übung ' + (EXS.indexOf(x) + 1) + ' · ' + x.title, hide: !!x.rnd });
+  }
+  function retempo(v) {
+    if (!play) return; v = Math.max(40, Math.min(200, v));
+    if (play.ex) { PR.exercises[play.ex].bpm = v; saveProg(); renderEx(); }
+    if (play.mode === 'jam') { play.bpm = v; setBpm(v); play.pay.bpm = v; paintPlay(); return; }
+    const p = play; begin(p.r, Object.assign({}, p.o || {}, { how: 'looper', n: p.n, bpm: v, ex: p.ex, label: p.label, hide: p.hide }));
+  }
+  function nowIdx() {
+    if (!play) return null;
+    if (play.mode === 'jam') {
+      if (!window.Jam) return null;
+      if (!Jam.active()) return Jam.debug && Jam.debug() ? { idx: -1, beat: -1 } : null;
+      const ci = Jam.chordInfo(); if (!ci || ci.pos == null) return { idx: -1, beat: -1 };
+      const i = ci.segs.findIndex(s => ci.pos >= s.a && ci.pos < s.e); return { idx: Math.max(0, i), beat: Math.floor(ci.pos / 1000) % 4 };
+    }
+    if (typeof Looper === 'undefined' || !Looper.busy()) return null;
+    try { const tr = Looper._prac().tracks; if (!tr[0] || tr[0].L !== ownL) return null; } catch (e) {}
+    const ps = Looper.position(); if (!ps || !ps.text) return { idx: -1, beat: -1 };
+    const m = /^(\d+)\.(\d+)$/.exec(ps.text); if (!m) return { idx: -1, beat: -1 };
+    return { idx: Math.min(play.r.chords.length - 1, (+m[1] - 1)), beat: +m[2] - 1 };
+  }
+  let lastKey = '', hid = 0;
+  function tick() {
+    if (!play) return;
+    if (panel.hidden && ++hid % 11) return;                       // anderer Reiter: nur selten nachsehen
+    const n = nowIdx();
+    if (!n) { stopAll(true); return; }
+    if (panel.hidden) return;
+    const k = n.idx + ':' + n.beat; if (k === lastKey) return; lastKey = k;
+    play.idx = n.idx; paintNow(false, n);
+  }
+  function paintPlay() {
+    const el = $('pcPlay'); if (!el || !built) return;
+    if (!play) { el.hidden = true; el.innerHTML = ''; lastKey = ''; return; }
+    el.hidden = false;
+    el.innerHTML = '<div class="pc-row pc-playhead"><span class="caption" translate="no">' + (play.label || '') + '</span><span class="caption">' + (play.mode === 'jam' ? 'Backing Track' : 'Loop im Looper (Spur 1)') + '</span></div>' +
+      '<div class="pc-nowrow"><div class="pc-now"><span class="lbl">jetzt</span><b id="pcNow" translate="no">–</b><span class="pc-where" id="pcNowW"></span></div><div class="pc-next"><span class="lbl">als Nächstes</span><b id="pcNext" translate="no">–</b></div>' +
+      '<div class="pc-beats" id="pcBeats"><i></i><i></i><i></i><i></i></div></div>' +
+      '<div class="pc-bwrap" id="pcPlayBoard"></div>' +
+      '<div class="pc-row pc-acts"><button class="toggle-btn" id="pcStop">■ Stopp</button><button class="toggle-btn" id="pcTD" aria-label="Tempo −5">−5</button><b class="pc-pbpm">' + play.bpm + ' BPM</b><button class="toggle-btn" id="pcTU">Tempo +5</button>' +
+      (play.mode === 'looper' ? '<button class="toggle-btn" id="pcRec">● Spur 2 aufnehmen</button><button class="toggle-btn" id="pcToL">Zum Looper</button>' : '') + '</div>';
+    $('pcStop').addEventListener('click', () => stopAll());
+    $('pcTD').addEventListener('click', () => retempo(play.bpm - 5)); $('pcTU').addEventListener('click', () => retempo(play.bpm + 5));
+    if ($('pcRec')) $('pcRec').addEventListener('click', () => { try { Looper.foot(1); } catch (e) {} });
+    if ($('pcToL')) $('pcToL').addEventListener('click', () => { const t = $('tab-looper'); if (t) t.click(); });
+    lastKey = ''; paintNow(false, { idx: -1, beat: -1 });
+  }
+  function paintNow(onlyList, n) {
+    if (!built) return;
+    const pid = play && play.r === cur ? play.idx : -1;
+    document.querySelectorAll('#pcChords .pc-chord').forEach((b, i) => b.classList.toggle('now', pid === i));
+    if (onlyList || !play || !$('pcNow')) return;
+    const ch = play.r.chords, i = n && n.idx >= 0 ? n.idx : -1, c = i >= 0 ? ch[i] : null, nx = ch[(i + 1) % ch.length];
+    const hideName = play.hide && n && n.beat < 2;                    // Übung 3: Name erst ab Zählzeit 3
+    $('pcNow').textContent = c ? (hideName ? '?' : c.name) : '…';
+    $('pcNowW').textContent = c ? sname(c.rootString) + '-Saite · Bund ' + c.rootFret : 'Einzählen …';
+    $('pcNext').textContent = i >= 0 ? (play.hide ? '?' : nx.name) : ch[0].name;
+    document.querySelectorAll('#pcBeats i').forEach((d, k) => d.classList.toggle('on', n && k === n.beat));
+    const show = c || ch[0];
+    board($('pcPlayBoard'), { marks: chordMarks(show, U.b.lab), muted: [0, 1, 2, 3, 4, 5].filter(s => !show.tones.some(t => t.s === s)), tap: tapPlay });
+  }
+
+  document.addEventListener('tabchange', e => {
+    if (e.detail === 'power') { build(); if (play && !poll) poll = setInterval(tick, 90); paintPlay(); }
+    else stepStop();
+  });
+  if (!panel.hidden) build();
+
+  // Schnittstelle für Tests und andere Reiter
+  window.Powerchords = { calc, prog, place, positions, keyName, spellRel, handoff, tabText, toneLine, renderBacking, options,
+    data: { SHAPES, PROGS, EXS, OPEN, DEG }, progress: () => JSON.parse(JSON.stringify(PR)), ui: () => JSON.parse(JSON.stringify(U)),
+    build, showSec, startProg, startEx: id => startEx(EXS.find(x => x.id === id)), stop: () => stopAll(), retempo: v => retempo(v), playing: () => play ? { mode: play.mode, bpm: play.bpm, idx: play.idx, ex: play.ex, names: play.r.chords.map(c => c.name), L: ownL } : null,
+    exSeq: id => exSeq(EXS.find(x => x.id === id)) };
 })();
 
 </script>
