@@ -782,4 +782,9 @@ Object.assign(window.__EN, { ' Wörter stehen zeitlich nicht in der Reihenfolge 
   "Master/Limiter": "Master/limiter",
   "Master + Amp": "master + amp",
   "Lautsprecher/Kopfhörer": "speakers/headphones",
-  "Zeigt nur, was gerade aktiv ist. Pegel = Spitzenpegel in % von 0 dBFS (100 % = Vollaussteuerung). Gemessen wird nur, solange diese Ansicht offen ist.": "Shows only what is active right now. Level = peak level in % of 0 dBFS (100 % = full scale). Measuring only happens while this view is open." });
+  "Zeigt nur, was gerade aktiv ist. Pegel = Spitzenpegel in % von 0 dBFS (100 % = Vollaussteuerung). Gemessen wird nur, solange diese Ansicht offen ist.": "Shows only what is active right now. Level = peak level in % of 0 dBFS (100 % = full scale). Measuring only happens while this view is open.",
+  "Leistung": "Load",
+  "gemessen": "measured",
+  "geschätzt": "estimated",
+  "geschätzt (Modell)": "estimated (model)",
+  "Leistung = Auslastung der Audio-Berechnung (gelb ab 70 %, rot ab 90 %). Die Prozentzahl oben rechts in jeder Station ist ihr Anteil daran – Anteile geschätzt aus gemessenen Grundkosten je Baustein.": "Load = how busy the audio processing is (yellow from 70 %, red from 90 %). The percentage at the top right of each station is its share of it – shares estimated from measured base costs per building block." });

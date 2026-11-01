@@ -174,6 +174,8 @@ const Rhythm = (() => {
     const k = {};
     Object.entries(kitRaw).forEach(([id, layers]) => { k[id] = layers.map(l => l.map(a => { const b = audioCtx.createBuffer(1, a.length, KIT_SR); b.copyToChannel(a, 0); return b; })); });
     kit = k; kitRaw = null;
+    setTimeout(() => { ensureTails('synth'); wkStart(); }, 0);      // Hall-Puffer und Worklet schon vor dem ersten Schlag bereit
+    if (wk) wkSend('synth');
     if (wantOn) { wantOn = false; setOn(true); }
   }
   function makeKit() {
@@ -199,6 +201,8 @@ const Rhythm = (() => {
     }
     return b;
   }
+  let roomIRb = null;                              // eine Impulsantwort für Faltungshall und vorberechnete Hall-Puffer
+  const roomBuf = () => roomIRb || (roomIRb = roomIR(audioCtx.sampleRate));
   function ensureBus() {
     if (bus) return bus;
     ensureAudio(); makeKit();
@@ -208,19 +212,153 @@ const Rhythm = (() => {
     const sum = audioCtx.createGain(); sum.gain.value = 0.9;
     const eq = EQ7.chain(audioCtx); eq.set(drumEq);
     sum.connect(comp); comp.connect(master); master.connect(eq.input); eq.output.connect(ensureMasterBus());
-    const room = audioCtx.createConvolver(); room.buffer = roomIR(audioCtx.sampleRate);
+    const room = audioCtx.createConvolver(); room.buffer = roomBuf();
     const wet = audioCtx.createGain(); wet.gain.value = 0.22; room.connect(wet); wet.connect(sum);
-    const ch = {};
-    INSTR.forEach(i => {
+    // v119: je Instrument zwei Kanäle (mit Raum-Send / trocken für Schläge mit vorberechnetem Hall). Angeschlossen sind sie nur,
+    // solange dort ein Schlag klingt – ruhende Kanäle (meist 30 von 34) kosten sonst in jedem Audio-Block mit.
+    const ch = {}, chD = {}, lk = {};
+    const mkCh = (i, wet) => {
       const g = audioCtx.createGain(); g.gain.value = i.gain;
       let p = null; try { p = audioCtx.createStereoPanner(); p.pan.value = i.pan; } catch (e) {}
-      if (p) { g.connect(p); p.connect(sum); p.connect(room); } else { g.connect(sum); g.connect(room); }
-      ch[i.id] = g;
-    });
+      if (p) g.connect(p);
+      lk[(wet ? 'w' : 'd') + i.id] = { o: p || g, wet, on: false, until: 0 };
+      return g;
+    };
+    INSTR.forEach(i => { ch[i.id] = mkCh(i, true); chD[i.id] = mkCh(i, false); });
     // Fallback-Stimmen, solange das Kit noch erzeugt wird (erste Sekunde nach dem Start)
-    bus = { master, sum, ch, open: null, dryGain: sum, reverbSend: room, room, wet, eq, linked: true };
+    bus = { master, sum, ch, chD, lk, open: null, openT: null, dryGain: sum, reverbSend: room, room, wet, eq, linked: true };
     if (!roomOn) { try { wet.disconnect(); } catch (e) {} }
+    if (kit) setTimeout(() => ensureTails('synth'), 0);
+    setTimeout(wkStart, 0);
     return bus;
+  }
+  function chLink(key, until) {
+    const l = bus.lk[key]; if (!l) return;
+    if (until > l.until) l.until = until;
+    if (!l.on) { try { l.o.connect(bus.sum); if (l.wet) l.o.connect(bus.room); l.on = true; } catch (e) {} }
+  }
+  function chSweep(now) {                          // Kanal 0,3 s nach dem Ausklingen seines letzten Schlags trennen
+    if (!bus) return;
+    for (const k in bus.lk) { const l = bus.lk[k]; if (l.on && now > l.until + 0.3) { try { l.o.disconnect(); } catch (e) {} l.on = false; } }
+  }
+  // ---- v119: Raumhall je Instrument vorberechnen (statt Faltungshall, der bei laufenden Drums dauernd rechnet) ----
+  // Je Instrument wird die lauteste Anschlagstufe (Variante 1) einmal offline durch denselben Raum geschickt (gleiche
+  // Impulsantwort, Panorama und Kanal-Verstärkung); jeder Schlag spielt dann seinen Hall als fertigen Puffer mit
+  // (Pegel nach Effektivwert der gespielten Variante). Faltung ist linear → bis auf die Variante gleich.
+  // Einmalig ≈ 0,1–0,5 s Rechnen im Hintergrund je Kit und ≈ 10 MB Puffer; der Faltungshall wird abgehängt.
+  const TL = {}; let tlBusy = '';
+  const rmsOf = b => { if (b.__rms != null) return b.__rms; let e = 0, n = 0; for (let c = 0; c < b.numberOfChannels; c++) { const d = b.getChannelData(c); for (let i = 0; i < d.length; i += 2) { e += d[i] * d[i]; n++; } } return (b.__rms = Math.sqrt(e / Math.max(1, n))); };
+  async function buildTails(K) {
+    const ir = roomBuf(), sr = audioCtx.sampleRate, irLen = ir.duration;
+    const items = INSTR.map(i => ({ i, layers: K[i.id] || K[ALIAS[i.id]] })).filter(x => x.layers && x.layers[2] && x.layers[2][0] && !x.layers[2][0].__w);
+    let pos = 0.02;
+    items.forEach(x => { x.rep = x.layers[2][0]; x.at = pos; x.len = x.rep.duration + irLen; pos += x.len + 0.05; });
+    const oc = new OfflineAudioContext(2, Math.ceil((pos + 0.05) * sr), sr);
+    const cv = oc.createConvolver(); cv.buffer = ir; cv.connect(oc.destination);
+    items.forEach(x => {
+      const src = oc.createBufferSource(); src.buffer = x.rep; const g = oc.createGain(); g.gain.value = x.i.gain;
+      let p = null; try { p = oc.createStereoPanner(); p.pan.value = x.i.pan; } catch (e) {}
+      src.connect(g); if (p) { g.connect(p); p.connect(cv); } else g.connect(cv); src.start(x.at);
+    });
+    const out = await oc.startRendering(), A = out.getChannelData(0), B = out.getChannelData(1), M = {};
+    items.forEach(x => {
+      const a = Math.round(x.at * sr), n0 = Math.min(A.length - a, Math.round(x.len * sr));
+      let pk = 0; for (let k = 0; k < n0; k++) pk = Math.max(pk, Math.abs(A[a + k]), Math.abs(B[a + k]));
+      let n = n0; const lim = pk * 3e-4; while (n > 1 && Math.abs(A[a + n - 1]) < lim && Math.abs(B[a + n - 1]) < lim) n--;   // Ende unter −70 dB weg
+      const b = audioCtx.createBuffer(2, Math.max(1, n), sr); b.copyToChannel(A.subarray(a, a + n), 0); b.copyToChannel(B.subarray(a, a + n), 1);
+      M[x.i.id] = { b, rr: rmsOf(x.rep) || 1 };
+    });
+    return M;
+  }
+  function ensureTails(tag) {
+    if (typeof audioCtx === 'undefined' || !audioCtx || TL[tag] || tlBusy === tag || typeof OfflineAudioContext === 'undefined') return;
+    const K = tag === 'synth' ? kit : (kitRealName === tag ? kitReal : null); if (!K) return;
+    tlBusy = tag;
+    buildTails(K).then(M => { Object.keys(TL).forEach(k => { if (k !== 'synth' && k !== tag) delete TL[k]; }); TL[tag] = M; if (wk) wkSend(tag); })   // nur ein echtes Kit im Speicher
+      .catch(() => {}).finally(() => { if (tlBusy === tag) tlBusy = ''; });
+  }
+  // ---- v119: Drum-Stimmen in EINEM AudioWorklet (statt je Schlag Quelle + Verstärker + Hall-Puffer) ----
+  // Mischt alle Schläge selbst: lineare Interpolation wie AudioBufferSourceNode, Panorama-Formel wie StereoPannerNode,
+  // Abdämpfen der offenen HiHat wie setTargetAtTime, Raumhall aus den vorberechneten Puffern. Die Klangdaten wandern
+  // ins Worklet (übertragen, nicht kopiert). Ohne AudioWorklet (oder bei Fehler) spielt der Knoten-Weg darunter.
+  const WK_SRC = `class DrumVox extends AudioWorkletProcessor{
+constructor(){super();this.S={};this.T={};this.v=[];this.open=null;this.port.onmessage=e=>this.msg(e.data);}
+msg(m){if(m.k==='kit')this.S[m.tag]=m.d;else if(m.k==='tails')this.T[m.tag]=m.d;else if(m.k==='free'){delete this.S[m.tag];delete this.T[m.tag];}
+else if(m.k==='cnt')this.port.postMessage({cnt:this.v.length});
+else if(m.k==='drop'){const a=m.at*sampleRate;this.v=this.v.filter(x=>x.st<=a);}
+else if(m.k==='hit'){const S=this.S[m.tag],c=S&&S[m.id]&&S[m.id][m.L]&&S[m.id][m.L][m.n];if(!c)return;const st=m.at*sampleRate;
+if(m.choke&&this.open){this.open.forEach(x=>{if(x.ck<0)x.ck=st;});this.open=null;}
+const th=(m.pan+1)*Math.PI/4,x={a:c[0],b:c[1]||null,st,r:m.r,g:m.g,ck:-1,tau:0.012,o:m.room?[0,1]:[0],
+p:c[1]?(m.pan<=0?[1,Math.cos((m.pan+1)*Math.PI/2),0,Math.sin((m.pan+1)*Math.PI/2)]:[Math.cos(m.pan*Math.PI/2),0,Math.sin(m.pan*Math.PI/2),1]):[Math.cos(th),Math.sin(th)]};
+this.v.push(x);const grp=[x];
+const T=m.tg>0&&this.T[m.tag]&&this.T[m.tag][m.tid];if(T){const y={a:T[0],b:T[1],st,r:1,g:m.tg,ck:-1,tau:0.17,o:[2],p:[1,0,0,1]};this.v.push(y);grp.push(y);}
+if(m.open)this.open=grp;}}
+process(_,O){const f0=currentFrame,n=O[0][0].length,keep=[];if(!this.A)this.A=[0,1,2].map(()=>[new Float32Array(n),new Float32Array(n)]);const A=this.A,used=[false,false,false];
+for(const x of this.v){let i=Math.ceil(x.st-f0);if(i<0)i=0;if(i>=n){keep.push(x);continue;}
+const a=x.a,b=x.b,r=x.r,last=a.length-1,p=x.p;let e=Math.ceil(x.st-f0+last/r),done=false;if(e<=n)done=true;else e=n;
+let q=(f0+i-x.st)*r,g=x.g,dk=1,ci=e;
+if(x.ck>=0){dk=Math.exp(-1/(sampleRate*x.tau));const c0=x.ck-f0;if(c0<=i){g=x.g*Math.exp(-(f0+i-x.ck)/(sampleRate*x.tau));ci=i;if(g<1e-6)done=true;}else ci=Math.ceil(c0);}
+for(let oi=0;oi<x.o.length;oi++){const w=x.o[oi],o=A[w];if(!used[w]){used[w]=true;o[0].fill(0);o[1].fill(0);}const L=o[0],R=o[1];let qq=q,gg=g;
+if(b){const p0=p[0],p1=p[1],p2=p[2],p3=p[3];for(let j=i;j<e;j++){const k=qq|0,fr=qq-k,s0=a[k]+(a[k+1]-a[k])*fr,s1=b[k]+(b[k+1]-b[k])*fr;L[j]+=(s0*p0+s1*p1)*gg;R[j]+=(s0*p2+s1*p3)*gg;qq+=r;if(j>=ci)gg*=dk;}}
+else{const gl=p[0],gr=p[1];for(let j=i;j<e;j++){const k=qq|0,s0=(a[k]+(a[k+1]-a[k])*(qq-k))*gg;L[j]+=s0*gl;R[j]+=s0*gr;qq+=r;if(j>=ci)gg*=dk;}}}
+if(!done)keep.push(x);}
+this.v=keep;for(let w=0;w<3;w++)if(used[w]&&O[w]){O[w][0].set(A[w][0]);O[w][1].set(A[w][1]);}return true;}}
+registerProcessor('drumvox',DrumVox);`;
+  let wk = null, wkBusy = false, wkDead = false;
+  const WK = {};                                   // tag → { ok, rr? } (Klangdaten liegen im Worklet)
+  let wkMod = null;
+  function wkStart() {
+    if (window.__drumNodes || wk || wkBusy || wkDead || typeof audioCtx === 'undefined' || !audioCtx || !audioCtx.audioWorklet || typeof AudioWorkletNode === 'undefined') return;
+    if (!wkMod) { const url = URL.createObjectURL(new Blob([WK_SRC], { type: 'application/javascript' })); wkMod = Promise.race([audioCtx.audioWorklet.addModule(url), new Promise((_, no) => setTimeout(() => no(new Error('Zeit')), 4000))]); wkMod.catch(() => { wkDead = true; }); }
+    if (!bus) return;                              // Knoten erst mit dem Drum-Bus
+    wkBusy = true;
+    wkMod.then(() => {
+      const n = new AudioWorkletNode(audioCtx, 'drumvox', { numberOfInputs: 0, numberOfOutputs: 3, outputChannelCount: [2, 2, 2] });
+      n.connect(bus.sum, 0); n.connect(bus.wet, 2);
+      n.onprocessorerror = () => { wkDead = true; wk = null; try { n.disconnect(); } catch (e) {} };
+      wk = n;
+      if (kit) wkSend('synth'); if (kitReal) wkSend(kitRealName);
+    }).catch(() => { wkDead = true; }).finally(() => { wkBusy = false; });
+  }
+  // Klangdaten (und, sobald gerechnet, die Hall-Puffer) ins Worklet; im Hauptteil bleiben nur Kennzahlen
+  function wkSend(tag) {
+    const K = tag === 'synth' ? kit : (kitRealName === tag ? kitReal : null); if (!wk || !K) return;
+    let st = WK[tag];
+    if (!st) {
+      st = WK[tag] = { ok: false, tails: false };
+      const d = {}, tr = [];
+      Object.entries(K).forEach(([id, layers]) => {
+        d[id] = layers.map(row => row.map(b => { if (b.__w) return null; rmsOf(b); const chs = []; for (let c = 0; c < b.numberOfChannels; c++) { const x = new Float32Array(b.getChannelData(c)); chs.push(x); tr.push(x.buffer); } return chs; }));
+      });
+      wk.port.postMessage({ k: 'kit', tag, d }, tr);
+      st.ok = true;
+    }
+    if (!st.tails && TL[tag]) {
+      const td = {}, t2 = [];
+      Object.entries(TL[tag]).forEach(([id, x]) => { if (!x.b) return; const L = new Float32Array(x.b.getChannelData(0)), R = new Float32Array(x.b.getChannelData(1)); td[id] = [L, R]; t2.push(L.buffer, R.buffer); x.b = null; });
+      wk.port.postMessage({ k: 'tails', tag, d: td }, t2); st.tails = true;
+    }
+    // Puffer im Hauptteil durch Kennzahlen ersetzen, sobald auch der Hall drüben ist (bis dahin braucht ihn buildTails)
+    if (st.tails || !roomOn) Object.values(K).forEach(layers => layers.forEach(row => row.forEach((b, i) => { if (!b.__w) row[i] = { __w: true, duration: b.duration, sampleRate: b.sampleRate, __rms: b.__rms }; })));
+  }
+  function wkHit(id, t, v, layers, L, n, real) {
+    const tag = real ? kitRealName : 'synth', st = WK[tag]; if (!wk || !st || !st.ok) return false;
+    const i = INSTR_BY[id], buf = layers[L][n], rate = 1 + (Math.random() - 0.5) * 0.012, gv = Math.pow(v / [0.4, 0.75, 1][L], 0.9);
+    const tl = roomOn && st.tails && TL[tag] && TL[tag][id], room = roomOn && !tl;
+    if (room) { roomUse = Math.max(roomUse, t + buf.duration + 0.1); roomLink(true); if (!wkRoom) { try { wk.connect(bus.room, 1); wkRoom = true; } catch (e) {} } }
+    if (roomOn && !TL[tag]) ensureTails(tag);
+    const K = real ? kitReal : kit, src = K[id] ? id : ALIAS[id];
+    wk.port.postMessage({ k: 'hit', tag, id: src, tid: id, L, n, at: t, r: rate * (buf.sampleRate || 48000) / audioCtx.sampleRate, g: gv * i.gain, pan: i.pan, room,
+      tg: tl ? gv * (buf.__rms || 0) / tl.rr : 0, choke: id === 'hhc' || id === 'hhp' || id === 'hhh', open: id === 'hho' || id === 'hhh' });
+    return true;
+  }
+  let wkRoom = false;
+  const INSTR_BY = {}; INSTR.forEach(i => { INSTR_BY[i.id] = i; });
+  // Faltungshall nur angeschlossen, solange ein Schlag ohne fertigen Hall-Puffer klingt (er rechnet sonst auch bei Stille)
+  let roomUse = -1e9, roomLinked = true;
+  function roomLink(v) {
+    if (!bus || roomLinked === v) return;
+    try { if (v) bus.room.connect(bus.wet); else bus.room.disconnect(); roomLinked = v; } catch (e) {}
   }
   // ---- Raumhall an/aus (aus: Hall-Berechnung entfällt – hilft bei Aussetzern mit kleinem USB-Puffer) ----
   const roomBtn = document.getElementById('drumRoomBtn');
@@ -267,7 +405,9 @@ const Rhythm = (() => {
           return b;
         }));
       });
-      if (kitName === want) { kitReal = K; kitRealName = want; }   // nur das gewählte Kit im Speicher halten
+      if (kitName === want) { kitReal = K; kitRealName = want; setTimeout(() => ensureTails(want), 0);
+        Object.keys(WK).forEach(tg => { if (tg !== 'synth' && tg !== want) { delete WK[tg]; if (wk) wk.port.postMessage({ k: 'free', tag: tg }); } });
+        if (wk) wkSend(want); }   // nur das gewählte Kit im Speicher halten
       return K;
     })().catch(e => { realErr = String(e && e.message || e); if (kitName === want) { realOn = false; kitName = 'synth'; } return null; })
       .finally(() => { if (realBusy === pr) realBusy = null; paintKitBtn(); });
@@ -290,25 +430,44 @@ const Rhythm = (() => {
   function setLite(v) { /* Klang bleibt im Sparmodus unverändert */ }
   function hit(id, t, v) {
     const b = ensureBus(); if (!b.linked) connectBus(true);
-    if (id === 'hhc' || id === 'hhp' || id === 'hhh') { if (b.open) { try { b.open.gain.cancelScheduledValues(t); b.open.gain.setTargetAtTime(0, t, 0.012); } catch (e) {} b.open = null; } }
+    if (id === 'hhc' || id === 'hhp' || id === 'hhh') {
+      if (b.open) { try { b.open.gain.cancelScheduledValues(t); b.open.gain.setTargetAtTime(0, t, 0.012); } catch (e) {} b.open = null; }
+      if (b.openT) { try { b.openT.gain.cancelScheduledValues(t); b.openT.gain.setTargetAtTime(0, t, 0.17); } catch (e) {} b.openT = null; }   // Hall klingt wie im Raum aus
+    }
     if (!kit) { // einfache Ersatzstimmen
+      roomUse = Math.max(roomUse, t + 0.6); roomLink(true);
       if (id === 'kick') playKick(t, b); else if (id === 'snare' || id === 'clap' || id === 'rim') playSnare(t, b); else if (id !== 'crash' && id !== 'tomh' && id !== 'toml') playHihat(t, v > 0.8, b);
       return;
     }
     const real = realOn && kitReal && (kitReal[id] || kitReal[ALIAS[id]]), layers = real || kit[id] || kit[ALIAS[id]]; if (!layers) return;   // echtes Kit, wo vorhanden
-    const L = v < 0.5 ? 0 : v < 0.86 ? 1 : 2, arr = layers[L], buf = arr[(Math.random() * arr.length) | 0];
+    const L = v < 0.5 ? 0 : v < 0.86 ? 1 : 2, arr = layers[L], ni = (Math.random() * arr.length) | 0, buf = arr[ni];
+    if (wkHit(id, t, v, layers, L, ni, !!real)) { pend.push([t, null]); return; }
+    if (buf.__w) { if (id === 'kick') playKick(t, b); else if (id === 'snare') playSnare(t, b); else playHihat(t, v > 0.8, b); return; }   // Worklet ausgefallen
     const s = audioCtx.createBufferSource(); s.buffer = buf;
     s.playbackRate.value = 1 + (Math.random() - 0.5) * 0.012;
-    const g = audioCtx.createGain(); g.gain.value = Math.pow(v / [0.4, 0.75, 1][L], 0.9) * (L === 2 ? 1 : 1);
-    s.connect(g); g.connect(b.ch[id]); s.start(t);
+    const gv = Math.pow(v / [0.4, 0.75, 1][L], 0.9), g = audioCtx.createGain(); g.gain.value = gv;
+    const tag = real ? kitRealName : 'synth', tl = roomOn && TL[tag] && TL[tag][id] && TL[tag][id].b ? TL[tag][id] : null, end = t + buf.duration / s.playbackRate.value;
+    if (roomOn && !tl) ensureTails(tag);
+    if (tl || !roomOn) { chLink('d' + id, end); g.connect(b.chD[id]); }
+    else { chLink('w' + id, end); g.connect(b.ch[id]); roomUse = Math.max(roomUse, end); roomLink(true); }
+    s.start(t);
+    s.connect(g);
     vEnd(s, [g]);                                   // nach dem Ausklingen abklemmen (Safari hält sonst alles im Graphen)
     pend.push([t, s]);
+    if (tl) {                                       // v119: vorberechneter Raumhall dieses Schlags
+      const s2 = audioCtx.createBufferSource(); s2.buffer = tl.b;
+      const g2 = audioCtx.createGain(); g2.gain.value = gv * rmsOf(buf) / tl.rr;
+      s2.connect(g2); g2.connect(b.wet); s2.start(t);
+      vEnd(s2, [g2]); pend.push([t, s2]);
+      if (id === 'hho' || id === 'hhh') b.openT = g2;
+    }
     if (id === 'hho' || id === 'hhh') b.open = g;
   }
   // Geplante, noch nicht erklungene Schläge – bei einem Rastersprung (neuer Loop-Anfang) werden sie verworfen
   const pend = [];
   function dropPending(after) {
-    for (const [t, s] of pend) if (t > after) { try { s.stop(); } catch (e) {} }
+    for (const [t, s] of pend) if (t > after && s) { try { s.stop(); } catch (e) {} }
+    if (wk) wk.port.postMessage({ k: 'drop', at: after });
     pend.length = 0;
   }
   let lateHits = 0;
@@ -389,6 +548,8 @@ const Rhythm = (() => {
       else nextT = firstAfter(g, Math.max(now + 0.03, nextT - 0.001));
     }
     while (pend.length && pend[0][0] < now - 0.05) pend.shift();
+    chSweep(now);
+    if (roomLinked && now > roomUse + 1.2) { roomLink(false); if (wkRoom) { try { wk.disconnect(bus.room); } catch (e) {} wkRoom = false; } }           // Faltungshall abhängen, wenn sein Nachhall vorbei ist
     const sw = res === 16 ? parseInt(swingEl.value) / 100 : 0, hu = parseInt(humanEl.value) / 100;
     // 0,3 s Vorlauf: kurze Hänger der Oberfläche (Speicher aufräumen, Zeichnen, Laden) verschieben keinen Schlag
     while (nextT < now + AHEAD) {
@@ -816,6 +977,9 @@ const Rhythm = (() => {
     stepDur, res: () => res, midiEvents, setDetected, name: () => styleEl.selectedOptions[0] ? styleEl.selectedOptions[0].text : '',
     drummer: () => ({ dr: Object.assign({}, dr), pat: stepsCopy(), res, fills: fillsEl.value }),
     setKit, kitMode: () => (realOn && kitReal ? 'real' : 'synth'), kitName: () => (realOn && kitReal ? kitRealName : 'synth'), loadReal,
+    _wk: () => wk,
+    engine: () => ({ worklet: !!wk, wk: Object.fromEntries(Object.entries(WK).map(([k, x]) => [k, { ok: x.ok, tails: x.tails }])), tails: Object.fromEntries(Object.entries(TL).map(([k, M]) => [k, { n: Object.keys(M).length, mb: +(Object.values(M).reduce((a, x) => a + (x.b ? x.b.length * 8 : 0), 0) / 1048576).toFixed(1) }])), room: roomLinked,
+      linked: bus ? Object.values(bus.lk).filter(l => l.on).length : 0 }),
     debug: () => ({ on, res, steps: played.slice(-24), sd: stepDur(), kit: !!kit, real: !!(realOn && kitReal), preset: presetKey, late: lateHits, pending: pend.length })
   };
 })();

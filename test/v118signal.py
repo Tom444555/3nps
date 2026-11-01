@@ -28,7 +28,7 @@ async def main():
         await pg.goto(U); await pg.wait_for_timeout(900)
         await pg.evaluate("localStorage.removeItem('3nps-amp-on');localStorage.setItem('3nps-countin','0');localStorage.setItem('3nps-limiter','1');0")
         await pg.reload(); await pg.wait_for_timeout(900)
-        check('v118', 'v118' in await pg.inner_text('.brand'))
+        check('ab v118', int(re.search(r'v(\d+)', await pg.inner_text('.brand')).group(1)) >= 118)
         check('Knopf „Signalweg“ nach Amp-„▾“', await pg.evaluate("document.getElementById('loopAmpSet').nextElementSibling.id") == 'loopSigBtn')
         sr = await pg.evaluate("(ensureAudio(), audioCtx.sampleRate)")
         await pg.evaluate("""(sr=>{const a=new Float32Array(sr*2).map((_,i)=>0.4*Math.sin(2*Math.PI*220*i/sr)), c=new Float32Array(sr*2).map((_,i)=>0.25*Math.sin(2*Math.PI*330*i/sr));

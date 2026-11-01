@@ -1091,3 +1091,13 @@ Gut zu wissen
    - Jede Station zeigt live den Spitzenpegel in % (100 % = 0 dBFS) mit Balken; beim Limiter zusätzlich „GR“ =
      wie viele dB er gerade herunterregelt. Hochformat: von oben nach unten, Querformat: von links nach rechts.
    - Gemessen wird nur, solange die Ansicht offen ist; „Fertig“ schließt sie und trennt alle Messpunkte wieder.
+
+102. Leistung und sparsamere Drums/Drone (v119)
+   - Im „Signalweg“ steht oben „Leistung: xx %“ – wie stark die Audio-Berechnung ausgelastet ist (Balken grün,
+     gelb ab 70 %, rot ab 90 %). Wo der Browser es meldet „gemessen“, sonst (z. B. iPad) „geschätzt“.
+     Oben rechts in jeder Station steht ihr Anteil daran (Anteile geschätzt). Geschlossen wird nichts gemessen.
+   - Drums: alle Schläge laufen in einem Baustein, der Raumhall ist je Instrument vorberechnet – gleicher Klang,
+     etwa halbe Rechenlast. Ein flacher EQ (Spuren, Drums) rechnet gar nicht mehr.
+   - Drone: startet wie gewohnt sofort, rechnet sich im Hintergrund als Schleife (ganze Takte, ca. 32 s) vor und
+     blendet nach einigen Sekunden um – danach kostet sie fast nichts. Tonart, Modus oder Tempo ändern: kurz wieder
+     live, dann neue Schleife. Alle paar Durchläufe wird eine neue Variante gerechnet, damit sich nichts stur wiederholt.

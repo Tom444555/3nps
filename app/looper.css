@@ -606,3 +606,12 @@ html.sig-open .control-bar { visibility: hidden; }   /* Kopfleiste liegt sonst Ã
 .sig-wrap .sg-bar.clip { fill: #ff5a5a; }
 .sig-wrap .sg-ln { stroke: var(--muted, #999); stroke-width: 1.6; fill: none; }
 .sig-wrap .sg-ar { fill: var(--muted, #999); }
+/* v119: Leistung */
+.sig-perf { display: flex; align-items: center; gap: 10px; margin: 2px 0 10px; font: 600 14px var(--f-body, sans-serif); }
+.sig-perf .sig-pbar { flex: 1; height: 10px; border-radius: 5px; background: rgba(0,0,0,.4); overflow: hidden; min-width: 80px; }
+.sig-perf .sig-pbar i { display: block; height: 100%; width: 0; background: #3ddc76; transition: width .25s; }
+.sig-perf .sig-pbar i.warn { background: #ffb347; }
+.sig-perf .sig-pbar i.hot { background: #ff5a5a; }
+.sig-perf b { font: 700 15px var(--f-mono, monospace); min-width: 4.2em; text-align: right; }
+.sig-perf em { font-style: normal; font-weight: 400; color: var(--muted, #999); font-size: 12px; min-width: 7.5em; }
+.sig-wrap .sg-ld { fill: #8fc9ff; font: 600 11px var(--f-mono, monospace); }

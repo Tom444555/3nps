@@ -3748,11 +3748,85 @@ const Looper = (() => {
     if (cur && cur.want.length === want.length && cur.want.every((x, i) => x === want[i])) return;
     if (cur) sigUntap(key);
     if (!want.length || !audioCtx) return;
-    if (!sg.sink) { sg.sink = audioCtx.createGain(); sg.sink.gain.value = 0; sg.sink.connect(audioCtx.destination); }
+    sigSink();
     const an = audioCtx.createAnalyser(); an.fftSize = 2048; an.smoothingTimeConstant = 0; sg.made++;
     const nodes = []; want.forEach(x => { try { x.connect(an); nodes.push(x); } catch (e) {} });
     an.connect(sg.sink);
     sg.taps.set(key, { an, want, nodes });
+  }
+  function sigSink() { if (!sg.sink) { sg.sink = audioCtx.createGain(); sg.sink.gain.value = 0; sg.sink.connect(audioCtx.destination); } return sg.sink; }
+  // ---- v119: Leistung (Audio-Rechenlast) oben in der Ansicht, Anteil je Station ----
+  // Messung nur, solange die Ansicht offen ist: 1) AudioContext.renderCapacity, wo der Browser es kann („gemessen“);
+  // 2) sonst ein winziges Mess-Worklet: Der Audio-Takt rechnet Blöcke in Schüben (z. B. 8 × 128 Abtastwerte, dann Pause).
+  //    Die Zeit vom ersten bis zum letzten Block eines Schubs (Date.now im Worklet) × k/(k−1) = Rechenzeit des Schubs;
+  //    Summe / Wanduhr = Auslastung („geschätzt“). 3) Ohne Worklet/Schübe: Summe der Grundkosten („geschätzt (Modell)“).
+  // Anteile je Station = gemessene Grundkosten je Baustein (ms Rechenzeit je s Audio, Chrome/Mac-Modell, v119) × aktiver Zustand,
+  // auf 100 % normiert – daher „Anteile geschätzt“.
+  const SIG_COST = { in: 1.4, amp: 13.5, trk: 4, fx: 36.7, dr: 45, dnLoop: 5, dnLive: 90, ms: 1, base: 4 };
+  const LM_SRC = `class LoadMeter extends AudioWorkletProcessor{constructor(){super();this.w0=0;this.t0=0;this.last=0;this.k=0;this.busy=0;this.nb=0;this.multi=0;}
+end(){if(this.k>=2){this.busy+=(this.last-this.t0)*this.k/(this.k-1);this.multi++;}this.nb++;}
+process(){const t=Date.now();if(!this.w0){this.w0=this.t0=this.last=t;this.k=1;return true;}
+if(t-this.last>2){this.end();this.t0=t;this.k=1;}else this.k++;this.last=t;
+if(t-this.w0>=1000){this.end();this.port.postMessage({load:this.multi>=Math.max(3,this.nb*0.5)?this.busy/(t-this.w0):null,bursts:this.nb});this.w0=this.t0=t;this.k=1;this.busy=0;this.nb=0;this.multi=0;}
+return true;}}registerProcessor('loadmeter',LoadMeter);`;
+  const pf = { mod: null, node: null, rc: null, load: null, src: '', gen: 0, made: 0 };
+  function perfStart() {
+    pf.load = null; pf.src = ''; const my = ++pf.gen;
+    if (!audioCtx) { pf.src = 'model'; return; }
+    try {
+      if (audioCtx.renderCapacity && typeof audioCtx.renderCapacity.start === 'function') {
+        pf.rc = audioCtx.renderCapacity; pf.rc.onupdate = e => { if (pf.gen === my) { pf.load = e.averageLoad; pf.src = 'rc'; } };
+        pf.rc.start({ updateInterval: 0.5 }); pf.src = 'rc'; return;
+      }
+    } catch (e) { pf.rc = null; }
+    if (!audioCtx.audioWorklet || typeof AudioWorkletNode === 'undefined') { pf.src = 'model'; return; }
+    if (!pf.mod) { pf.mod = audioCtx.audioWorklet.addModule(URL.createObjectURL(new Blob([LM_SRC], { type: 'application/javascript' }))); pf.mod.catch(() => {}); }
+    pf.src = 'model';
+    pf.mod.then(() => {
+      if (!sg.on || pf.gen !== my) return;
+      const n = new AudioWorkletNode(audioCtx, 'loadmeter', { numberOfInputs: 0, numberOfOutputs: 1, outputChannelCount: [1] }); pf.made++;
+      n.port.onmessage = e => { if (pf.gen !== my) return; pf.load = e.data.load; pf.src = e.data.load == null ? 'model' : 'wk'; };
+      n.connect(sigSink()); pf.node = n;
+    }).catch(() => { pf.src = 'model'; });
+  }
+  function perfStop() {
+    pf.gen++;
+    try { if (pf.rc) { pf.rc.stop(); pf.rc.onupdate = null; } } catch (e) {}
+    pf.rc = null;
+    if (pf.node) { try { pf.node.port.onmessage = null; pf.node.disconnect(); } catch (e) {} pf.node = null; }
+    pf.load = null; pf.src = '';
+  }
+  // Grundkosten je Station im aktuellen Zustand (ms/s)
+  function sigCosts(m) {
+    const c = {};
+    m.G.forEach(g => g.forEach(b => {
+      const k = b.k;
+      if (k === 'in') c[k] = b.off ? 0 : SIG_COST.in;
+      else if (k === 'amp') c[k] = amp.nodes ? SIG_COST.amp : 0;
+      else if (/^t\d$/.test(k)) { const t = tracks[+k.slice(1)]; c[k] = t && t.src ? SIG_COST.trk + (t.eq && t.eq.active ? t.eq.active() * 1.1 : 0) : 0; }
+      else if (k === 'fx') c[k] = SIG_COST.fx;
+      else if (k === 'dr') c[k] = SIG_COST.dr;
+      else if (k === 'dn') c[k] = typeof DroneLoop !== 'undefined' && DroneLoop.state().loop ? SIG_COST.dnLoop : SIG_COST.dnLive;
+      else if (k === 'ms') c[k] = SIG_COST.ms;
+      else c[k] = 0;
+    }));
+    return c;
+  }
+  function sigPerfPaint() {
+    if (!sg.model) return;
+    const c = sigCosts(sg.model), sum = Object.values(c).reduce((a, b) => a + b, 0);
+    let load = pf.load, src = pf.src;
+    if (load == null) { load = (sum + SIG_COST.base) / 1000; src = 'model'; }
+    const f = Math.max(0, Math.min(1, load)), bar = $('sigPerfBar'), val = $('sigPerfVal'), sl = $('sigPerfSrc');
+    if (bar) { bar.style.width = (f * 100).toFixed(1) + '%'; bar.className = f >= 0.9 ? 'hot' : f >= 0.7 ? 'warn' : ''; }
+    const txt = Math.round(load * 100) + ' %'; if (val && val.textContent !== txt) val.textContent = txt;
+    const st = T(src === 'rc' ? 'gemessen' : src === 'wk' ? 'geschätzt' : 'geschätzt (Modell)'); if (sl && sl.textContent !== st) sl.textContent = st;
+    sg.share = {};
+    Object.keys(c).forEach(k => {
+      const p = sum > 0 ? Math.round(c[k] / sum * 100) : 0; sg.share[k] = p;
+      const e = sg.els['sgl-' + k]; if (e) { const s2 = c[k] > 0 ? p + ' %' : ''; if (e.textContent !== s2) e.textContent = s2; }
+    });
+    sg.load = load; sg.loadSrc = src;
   }
   function sigReleaseAll() {
     [...sg.taps.keys()].forEach(sigUntap);
@@ -3812,6 +3886,7 @@ const Looper = (() => {
         geo.push({ x, y, w: BW, h });
         let s = '<g data-k="' + b.k + '"><rect class="sg-box' + (b.off ? ' off' : '') + '" x="' + x + '" y="' + y + '" width="' + BW + '" height="' + h + '" rx="8"/>';
         s += '<text class="sg-t" x="' + (x + 9) + '" y="' + (y + 19) + '">' + sgEsc(T(b.t)) + '</text>';
+        s += '<text class="sg-ld" translate="no" id="sgl-' + b.k + '" x="' + (x + BW - 8) + '" y="' + (y + 19) + '" text-anchor="end"></text>';
         s += '<text class="sg-s" x="' + (x + 9) + '" y="' + (y + 35) + '">' + sgEsc(T(b.s)) + '</text>';
         s += '<text class="sg-v" translate="no" id="sgv-' + b.k + '" x="' + (x + 9) + '" y="' + (y + 53) + '">–</text>';
         if (b.gr) s += '<text class="sg-gr" translate="no" id="sgg" x="' + (x + BW - 9) + '" y="' + (y + 53) + '" text-anchor="end">GR 0,0 dB</text>';
@@ -3848,7 +3923,7 @@ const Looper = (() => {
     const W = horiz ? total : maxAcross + 2 * PAD, H = horiz ? maxAcross + 2 * PAD : total;
     sigWrap.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" style="max-width:' + Math.round(W * 1.5) + 'px" role="img" aria-label="' + sgEsc(T('Signalweg')) + '"><path class="sg-ln" d="' + lines.join(' ') + '"/>' + out.join('') + '</svg>';
     sg.els = {};
-    sigWrap.querySelectorAll('[id^="sgv-"],[id^="sgb-"]').forEach(e => { sg.els[e.id] = e; });
+    sigWrap.querySelectorAll('[id^="sgv-"],[id^="sgb-"],[id^="sgl-"]').forEach(e => { sg.els[e.id] = e; });
     sg.els.gr = sigWrap.querySelector('#sgg');
   }
   // Struktur abgleichen (≈4×/s): Abgriffe nachziehen, bei geänderter Kette neu zeichnen
@@ -3872,7 +3947,7 @@ const Looper = (() => {
     sg.raf = requestAnimationFrame(sigTick);
     if (ts - sg.last < 62) return;                                    // ~15 Bilder/s
     sg.last = ts;
-    if ((sg.fr++ & 3) === 0) sigSync();
+    if ((sg.fr++ & 3) === 0) { sigSync(); sigPerfPaint(); }
     if (!sg.buf) sg.buf = new Float32Array(2048);
     const b = sg.buf, seen = new Set();
     sg.taps.forEach((tp, k) => {
@@ -3889,11 +3964,11 @@ const Looper = (() => {
     if (sg.on) return;
     sg.on = true; sg.sig = ''; sg.last = 0; sg.fr = 0;
     sigDlg.hidden = false; document.documentElement.classList.add('sig-open'); sigBtn.classList.add('active'); sigBtn.setAttribute('aria-pressed', 'true');
-    sigSync(); sg.raf = requestAnimationFrame(sigTick);
+    sigSync(); perfStart(); sigPerfPaint(); sg.raf = requestAnimationFrame(sigTick);
   }
   function sigClose() {
     if (!sg.on) return;
-    sg.on = false; cancelAnimationFrame(sg.raf); sg.raf = 0; sigReleaseAll(); sg.model = null; sg.sig = '';
+    sg.on = false; cancelAnimationFrame(sg.raf); sg.raf = 0; perfStop(); sigReleaseAll(); sg.model = null; sg.sig = '';
     sigDlg.hidden = true; document.documentElement.classList.remove('sig-open'); sigBtn.classList.remove('active'); sigBtn.setAttribute('aria-pressed', 'false'); sigWrap.innerHTML = ''; sg.els = {};
   }
   function sigToggle() { if (sg.on) sigClose(); else sigOpen(); return sg.on; }
@@ -4050,7 +4125,8 @@ const Looper = (() => {
     _scene: () => ({ cur: sceneCur, pend: scenePend ? { k: scenePend.k, at: scenePend.at } : null, n: scenes.length, next: nextLoopStart(0), now: audioCtx ? nowFrame() : 0, anchor }),
     // v118: Signalweg
     sigOpen: () => sigOpen(), sigClose: () => sigClose(), sigToggle: () => sigToggle(),
-    _sig: () => ({ on: sg.on, n: sg.taps.size, keys: [...sg.taps.keys()], conn: [...sg.taps.values()].reduce((a, t) => a + t.nodes.length, 0), sink: !!sg.sink, made: sg.made, lv: Object.assign({}, sg.lv), gr: sg.gr, groups: sg.model ? sg.model.G.map(g => g.map(b => b.k)) : [], titles: sg.model ? sg.model.G.map(g => g.map(b => b.t + '|' + b.s)) : [] }),
+    _sigLoad: v => { pf.load = v; pf.src = 'wk'; sigPerfPaint(); return [$('sigPerfBar').className, $('sigPerfVal').textContent]; },
+    _sig: () => ({ on: sg.on, n: sg.taps.size, keys: [...sg.taps.keys()], conn: [...sg.taps.values()].reduce((a, t) => a + t.nodes.length, 0), sink: !!sg.sink, made: sg.made, lv: Object.assign({}, sg.lv), load: sg.on ? sg.load : null, loadSrc: sg.on ? sg.loadSrc : '', share: sg.on ? Object.assign({}, sg.share) : {}, meter: { node: !!pf.node, rc: !!pf.rc, made: pf.made, gen: pf.gen }, gr: sg.gr, groups: sg.model ? sg.model.G.map(g => g.map(b => b.k)) : [], titles: sg.model ? sg.model.G.map(g => g.map(b => b.t + '|' + b.s)) : [] }),
     all: allStartStop
   };
 })();

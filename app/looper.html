@@ -526,8 +526,10 @@
     <div class="modal sig-dlg" id="sigDlg" hidden role="dialog" aria-modal="true" aria-labelledby="sigTitle">
       <div class="modal-card card sig-card">
         <div class="tuner-head"><h2 id="sigTitle">Signalweg</h2><button class="toggle-btn" id="sigClose">Fertig</button></div>
+        <div class="sig-perf" id="sigPerf"><span class="sig-pl">Leistung</span><span class="sig-pbar"><i id="sigPerfBar"></i></span><b id="sigPerfVal" translate="no">–</b><em id="sigPerfSrc"></em></div>
         <div class="sig-wrap" id="sigWrap"></div>
         <p class="pattern-desc sig-note">Zeigt nur, was gerade aktiv ist. Pegel = Spitzenpegel in % von 0 dBFS (100 % = Vollaussteuerung). Gemessen wird nur, solange diese Ansicht offen ist.</p>
+        <p class="pattern-desc sig-note">Leistung = Auslastung der Audio-Berechnung (gelb ab 70 %, rot ab 90 %). Die Prozentzahl oben rechts in jeder Station ist ihr Anteil daran – Anteile geschätzt aus gemessenen Grundkosten je Baustein.</p>
       </div>
     </div>
     <div class="modal" id="impDlg" hidden role="dialog" aria-modal="true" aria-labelledby="impTitle">

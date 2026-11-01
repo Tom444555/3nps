@@ -833,5 +833,178 @@ const NordDrones = (() => {
     if (!quiet) { droneNodes = null; droneOn = false; btnOn(false); setStatus('Aus'); }
   }
   function retune() { if (cur && cur.retune) { cur.retune(); setStatus('An — ' + droneKeyText() + ' (' + NAMES[cur.style] + ')'); } }
-  return { start, stop, retune, has: st => !!STARTS[st] };
+  // v119: Klang bauen, ohne den laufenden Zustand (cur, Knopf, Status) anzufassen – für das Vorrechnen in DroneLoop
+  function build(style) {
+    const prevV = vNodes; vNodes = []; let N = null;
+    try { N = (STARTS[style] || STARTS.v4)(); } finally { if (N) N.all = vNodes; vNodes = prevV; }
+    return N;
+  }
+  return { start, stop, retune, build, has: st => !!STARTS[st], _clear: () => { irCache = {}; noiseBuf = null; } };
 })();
+
+/* ---------- v119: Drone als vorgerechnete Schleife ----------
+   Eine Drone ist ein großer Klang-Graph (viele Oszillatoren, LFOs, Filter und ein Faltungshall), der live
+   ≈ 30 % der Audio-Rechenzeit kostete. Jetzt startet sie wie bisher live (sofort hörbar), rechnet im Hintergrund
+   mit GENAU DEMSELBEN Code in einem OfflineAudioContext eine Schleife (ganze Takte, ≈ 32 s, nach dem Einschwingen)
+   und blendet dann auf diese um; live läuft danach nichts mehr. Die Zeitsteuerung der Verzierungen (setTimeout im
+   Stil-Code) wird beim Vorrechnen auf die Offline-Zeit umgelenkt (suspend/resume), Takt-Bezug über ein eigenes Raster.
+   Naht: 2 s gleich laute Überblendung von Ende in Anfang. Ändern sich Tonart, Modus, Tempo, Stil-Verzierung →
+   sofort wieder live, neu rechnen, umblenden. Alle ~3 Durchläufe wird im Hintergrund eine neue Variante gerechnet
+   (die Zufallsereignisse wiederholen sich so nicht endlos). Ausschalten: localStorage 3nps-drone-live = 1. */
+const DroneLoop = (() => {
+  const XF = 2, FADE = 1.2;
+  const WARM = { v1: 7, v2: 7, v3: 6, v4: 6.5, v5: 7.5, v6: 7.5, v7: 8.5, v8: 6.5, v9: 11, v10: 12, v11: 9 };
+  let S = null, gen = 0;                          // S: { style, mode:'live'|'loop', loop:{src,g,buf,L,t0}, master, wrap, timer, ... }
+  const st = { renders: 0, lastMs: 0, mb: 0, mode: 'aus', err: '' };
+  const ok = () => { try { if (localStorage.getItem('3nps-drone-live') === '1') return false; } catch (e) {} return typeof OfflineAudioContext !== 'undefined' && !!OfflineAudioContext.prototype.suspend; };
+  const bpmNow = () => (parseFloat(document.getElementById('bpm').value) || 80) * (window.__tempoMul || 1);
+  const sig = () => { const o = document.getElementById('pianoShimmer'); return JSON.stringify([S && S.style, rootSel.value, modeSel.value, window.droneKeyOverride || null, Math.round(bpmNow() * 100), !o || o.checked]); };
+  // ---- Vorrechnen ----
+  async function render(style, my) {
+    const sr = audioCtx.sampleRate, bd = 240 / bpmNow();
+    const bars = Math.max(1, Math.round(32 / bd)), L = bars * bd, W = Math.ceil((WARM[style] || 9) / bd) * bd;
+    const total = W + L + XF + 0.1, oc = new OfflineAudioContext(2, Math.ceil(total * sr), sr), Q = 128 / sr;
+    const sink = oc.createGain(); sink.connect(oc.destination);
+    const q = []; let nid = 1;
+    const fakeSet = (fn, ms, ...a) => { const id = 'dl' + (nid++); q.push({ id, at: oc.currentTime + Math.max(0, +ms || 0) / 1000, fn, a }); return id; };
+    const fakeClr = id => { const i = q.findIndex(x => x.id === id); if (i >= 0) q.splice(i, 1); };
+    const E = { audioCtx: oc, masterBus: sink, reverbNode: null, pingPong: null, noiseBuffer: null, droneNodes: null, droneOn: false };
+    const volEl = document.getElementById('droneVolume');
+    let saved = null;
+    const enter = () => {
+      saved = { audioCtx, masterBus, reverbNode, pingPong, noiseBuffer, droneNodes, droneOn, st: window.setTimeout, ct: window.clearTimeout, ea: window.ensureAudio, nb: Rhythm.nextBarTime };
+      audioCtx = E.audioCtx; masterBus = E.masterBus; reverbNode = E.reverbNode; pingPong = E.pingPong; noiseBuffer = E.noiseBuffer; droneNodes = E.droneNodes; droneOn = E.droneOn;
+      window.setTimeout = fakeSet; window.clearTimeout = fakeClr; window.ensureAudio = () => {};
+      Rhythm.nextBarTime = () => { const t = oc.currentTime + 0.15; return Math.ceil(t / bd - 1e-9) * bd; };
+    };
+    const leave = () => {
+      E.reverbNode = reverbNode; E.pingPong = pingPong; E.noiseBuffer = noiseBuffer; E.droneNodes = droneNodes; E.droneOn = droneOn;
+      audioCtx = saved.audioCtx; masterBus = saved.masterBus; reverbNode = saved.reverbNode; pingPong = saved.pingPong; noiseBuffer = saved.noiseBuffer; droneNodes = saved.droneNodes; droneOn = saved.droneOn;
+      window.setTimeout = saved.st; window.clearTimeout = saved.ct; window.ensureAudio = saved.ea; Rhythm.nextBarTime = saved.nb;
+    };
+    const t0 = performance.now(), v0 = volEl.value; let N = null;
+    enter();
+    try {
+      volEl.value = '100';                                 // Lautstärke regelt danach der Echtzeit-Verstärker
+      if (style === 'v2') startDroneV2(); else if (NordDrones.has(style)) N = NordDrones.build(style); else startDroneV1();
+    } finally { volEl.value = v0; leave(); }
+    // Zeitgeber der Verzierungen in Offline-Zeit ausführen
+    const arm = () => {
+      const due = q.length ? Math.min(...q.map(x => x.at)) : Infinity;
+      let t = Math.max(oc.currentTime + Q, due); t = Math.ceil(t / Q - 1e-9) * Q;
+      if (t >= total - 2 * Q) return;
+      oc.suspend(t).then(() => {
+        if (my !== gen) { oc.resume(); return; }
+        enter();
+        try { for (let g = 0; g < 200; g++) { let k = -1; for (let i = 0; i < q.length; i++) if (q[i].at <= oc.currentTime + 1e-6 && (k < 0 || q[i].at < q[k].at)) k = i; if (k < 0) break; const x = q.splice(k, 1)[0]; try { x.fn(...x.a); } catch (e) { st.err = String(e); } } }
+        finally { leave(); }
+        arm(); oc.resume();
+      }).catch(() => {});
+    };
+    arm();
+    const buf = await oc.startRendering();
+    q.length = 0; if (N) { N.alive = false; (N.all || []).forEach(x => { try { x.disconnect(); } catch (e) {} }); }
+    if (my !== gen) return null;
+    const a = Math.round(W * sr), n = Math.round(L * sr), x = Math.round(XF * sr), out = audioCtx.createBuffer(2, n, sr);
+    for (let c = 0; c < 2; c++) {
+      const s = buf.getChannelData(c), d = out.getChannelData(c);
+      d.set(s.subarray(a, a + n));
+      for (let i = 0; i < x; i++) { const w = i / x; d[i] = s[a + i] * Math.sin(w * Math.PI / 2) + s[a + n + i] * Math.cos(w * Math.PI / 2); }   // Naht
+    }
+    st.renders++; st.lastMs = Math.round(performance.now() - t0); st.mb = +(n * 8 / 1048576).toFixed(1);
+    return { buf: out, L, bd };
+  }
+  // ---- Abspielen / Umblenden ----
+  function playLoop(R, at, fadeIn) {
+    const src = audioCtx.createBufferSource(); src.buffer = R.buf; src.loop = true;
+    const g = audioCtx.createGain(); g.gain.setValueAtTime(fadeIn ? 0 : 1, at); if (fadeIn) g.gain.linearRampToValueAtTime(1, at + FADE);
+    src.connect(g); g.connect(S.master); src.start(at);
+    return { src, g, L: R.L, t0: at };
+  }
+  function endLoop(lp, at) {
+    if (!lp) return;
+    try { lp.g.gain.cancelScheduledValues(at); lp.g.gain.setValueAtTime(1, at); lp.g.gain.linearRampToValueAtTime(0, at + FADE); lp.src.stop(at + FADE + 0.05); } catch (e) {}
+    lp.src.onended = () => { try { lp.src.disconnect(); lp.g.disconnect(); } catch (e) {} };
+  }
+  const barAt = () => { const now = audioCtx.currentTime + 0.25; try { const t = Rhythm.nextBarTime(); return t >= now - 0.1 ? Math.max(t, now) : now; } catch (e) { return now; } };
+  function liveToLoop(R) {
+    const at = barAt(), style = S.style;
+    const btn = document.getElementById('droneBtn'), stat = document.getElementById('droneStatus'), txt = stat ? stat.textContent : '';
+    if (!S.master) { S.master = audioCtx.createGain(); S.master.connect(ensureMasterBus()); }
+    S.master.gain.value = parseInt(document.getElementById('droneVolume').value) / 100;
+    S.loop = playLoop(R, at, true); S.mode = 'loop'; st.mode = 'Schleife'; S.passes = 0;
+    const live = droneNodes;
+    // live ausblenden und stoppen (die Stopp-Funktionen blenden selbst ab ≈ 0,8–1,2 s)
+    const doStop = () => {
+      if (!S || S.mode !== 'loop') return;
+      if (droneNodes === live) { stopDroneLive(style); }
+      droneNodes = S.wrap = { master: S.master, loop: true }; droneOn = true;
+      if (btn) { btn.textContent = '■'; btn.classList.add('playing'); } if (stat && txt) stat.textContent = txt;
+    };
+    S.stopT = setTimeout(doStop, Math.max(0, (at - audioCtx.currentTime) * 1000));
+  }
+  function loopToLoop(R) {
+    const at = barAt(), old = S.loop;
+    S.loop = playLoop(R, at, true); endLoop(old, at); S.passes = 0;
+  }
+  async function cycle(kind) {
+    const my = ++gen, style = S.style; S.busy = true;
+    let R = null; try { R = await render(style, my); } catch (e) { st.err = String(e && e.message || e); R = null; }
+    if (!S || my !== gen) return;
+    S.busy = false; S.sig = sig();
+    if (!R) { st.mode = 'live (Vorrechnen fehlgeschlagen)'; return; }
+    if (kind === 'refresh' && S.mode === 'loop') loopToLoop(R); else liveToLoop(R);
+  }
+  function tick() {
+    if (!S) return;
+    if (S.busy) return;
+    if (sig() !== S.sig) { changed(); return; }
+    if (S.mode === 'loop' && S.loop) {                     // Abwechslung: nach ~3 Durchläufen neue Variante
+      const p = (audioCtx.currentTime - S.loop.t0) / S.loop.L;
+      if (p > 2.6 && !S.busy) cycle('refresh');
+    }
+  }
+  // ---- Schnittstelle (aus script.part) ----
+  function begin(style) {
+    cancel();
+    if (!ok() || !droneOn) { st.mode = 'live'; return; }
+    S = { style, mode: 'live', master: null, loop: null, sig: '', busy: false, timer: setInterval(tick, 1000) };
+    st.mode = 'live (rechnet vor)'; S.sig = sig();
+    cycle('first');
+  }
+  function cancel() {
+    if (!S) return; gen++;
+    clearInterval(S.timer); clearTimeout(S.stopT); clearTimeout(S.chT);
+    S = null;
+  }
+  // true = Schleife spielte und ist jetzt aus (stopDrone soll sonst normal stoppen)
+  function stop() {
+    if (!S) return false;
+    const was = S.mode === 'loop' && droneNodes === S.wrap, lp = S.loop, m = S.master;
+    if (S.mode === 'loop' && !was) { /* Umblendung lief noch: live läuft weiter → normal stoppen */ }
+    cancel();
+    if (lp) { endLoop(lp, audioCtx.currentTime); setTimeout(() => { try { m.disconnect(); } catch (e) {} }, (FADE + 0.3) * 1000); }
+    st.mode = 'aus';
+    if (!was) return false;
+    droneNodes = null; droneOn = false;
+    const btn = document.getElementById('droneBtn'); if (btn) { btn.textContent = '▶'; btn.classList.remove('playing'); }
+    const s = document.getElementById('droneStatus'); if (s) s.textContent = 'Aus';
+    return true;
+  }
+  // Tonart/Modus/Tempo/Verzierung geändert: true = übernommen (läuft wieder live und rechnet neu)
+  function changed() {
+    if (!S) return false;
+    if (S.mode === 'live') { S.sig = ''; gen++; S.busy = false; clearTimeout(S.chT); S.chT = setTimeout(() => { if (S && S.mode === 'live') cycle('first'); }, 700); return false; }
+    // Schleife spielt: sofort wieder live (folgt sofort), Schleife ausblenden, neu rechnen
+    const style = S.style, lp = S.loop, m = S.master, btn = document.getElementById('droneBtn');
+    gen++; clearTimeout(S.stopT);
+    if (droneNodes === S.wrap) { droneNodes = null; droneOn = false; }
+    startDroneLive(style);
+    if (lp) { endLoop(lp, audioCtx.currentTime); setTimeout(() => { try { m.disconnect(); } catch (e) {} }, (FADE + 0.3) * 1000); }
+    S.loop = null; S.master = null; S.wrap = null; S.mode = 'live'; st.mode = 'live (rechnet vor)'; S.busy = false;
+    clearTimeout(S.chT); S.chT = setTimeout(() => { if (S && S.mode === 'live') cycle('first'); }, 700);
+    return true;
+  }
+  return { begin, stop, changed, cancel, _buf: () => (S && S.loop ? S.loop.src.buffer : null), _render: style => render(style, gen), _warm: style => WARM[style], state: () => Object.assign({ on: !!S, style: S && S.style, loop: !!(S && S.mode === 'loop'), busy: !!(S && S.busy) }, st) };
+})();
+window.DroneLoop = DroneLoop;

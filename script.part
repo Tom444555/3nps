@@ -900,17 +900,27 @@ let activeDroneStyle = null;
 
 function startDrone() {
   activeDroneStyle = document.getElementById('droneStyle').value;
-  if (activeDroneStyle === 'v2') startDroneV2();
-  else if ((typeof NordDrones !== 'undefined' && NordDrones.has(activeDroneStyle))) NordDrones.start(activeDroneStyle);
+  startDroneLive(activeDroneStyle);
+  if (typeof DroneLoop !== 'undefined') DroneLoop.begin(activeDroneStyle);   // v119: im Hintergrund als Schleife vorrechnen, dann umblenden
+}
+// Die eigentliche Klangerzeugung (live, wie bis v118) – DroneLoop nutzt sie auch zum Vorrechnen
+function startDroneLive(st) {
+  if (st === 'v2') startDroneV2();
+  else if ((typeof NordDrones !== 'undefined' && NordDrones.has(st))) NordDrones.start(st);
   else startDroneV1();
 }
-function stopDrone() {
-  if (activeDroneStyle === 'v2') stopDroneV2();
-  else if ((typeof NordDrones !== 'undefined' && NordDrones.has(activeDroneStyle))) NordDrones.stop();
+function stopDroneLive(st) {
+  if (st === 'v2') stopDroneV2();
+  else if ((typeof NordDrones !== 'undefined' && NordDrones.has(st))) NordDrones.stop();
   else stopDroneV1();
+}
+function stopDrone() {
+  if (typeof DroneLoop !== 'undefined' && DroneLoop.stop()) { activeDroneStyle = null; return; }   // spielt gerade die Schleife
+  stopDroneLive(activeDroneStyle);
   activeDroneStyle = null;
 }
 function updateDroneFreq() {
+  if (typeof DroneLoop !== 'undefined' && DroneLoop.changed()) return;     // Schleife: kurz live weiter, neu vorrechnen
   if (activeDroneStyle === 'v2') updateDroneFreqV2();
   else if ((typeof NordDrones !== 'undefined' && NordDrones.has(activeDroneStyle))) NordDrones.retune();
   else updateDroneFreqV1();
@@ -1118,6 +1128,7 @@ function stopDroneV1() {
     [lfo, lfoSlow, panLfo, pulseLfo, noiseSweepLfo, macroLfo].forEach(o => { try { o.stop(); } catch (e) {} });
     try { noise.stop(); } catch (e) {}
     try { ppd.output.disconnect(); } catch (e) {}
+    try { master.disconnect(); } catch (e) {}   // v119: sonst rechnet der gemeinsame Hall am stillen Rest weiter
   }, 900);
   droneNodes = null;
   droneOn = false;
@@ -1536,6 +1547,7 @@ function stopDroneV2() {
     voices.forEach(v => { try { v.osc.stop(); } catch (e) {} });
     [lfoSlow, tremLfo, panLfo].forEach(o => { try { o.stop(); } catch (e) {} });
     try { ppd.output.disconnect(); } catch (e) {}
+    try { master.disconnect(); } catch (e) {}   // v119
   }, 900);
   droneNodes = null;
   droneOn = false;
