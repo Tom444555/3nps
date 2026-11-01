@@ -1136,3 +1136,27 @@ Gut zu wissen
      Kick). Die Quelle wird nach ihrem Fader abgegriffen (auch stumm steuert sie). Export klingt identisch.
    - Ohne Takes, Tempowechsel, Busse oder Sidechain rechnet das Studio genau so wenig wie vorher; alte Projekte
      laden unverändert (konstantes Tempo).
+
+105. Studio: Chorus, Tremolo, Tonhöhenkorrektur, Amp, Audio quantisieren, Projekt teilen, Akkorde aus Audio (v122)
+   - Neue Spur-Effekte (Spur → „Effekte“ oder im Mischpult auf ein Effektfeld): „Amp (wie im Looper)“ – gleiche
+     Kette wie der Looper-Amp: Gate, Drive (4-fach überabgetastet), Bass/Mitte/Höhen, Box, Pegel, Vorlagen
+     Clean/Blues/Rock/Lead/Metal. „Chorus“ (Rate, Tiefe, Mix). „Tremolo“ (Rate, Tiefe; „Im Takt“ + Notenwert folgt
+     der Tempokarte, auch bei Tempowechseln). Haken an = sofort zu hören, Haken aus = Signalweg exakt wie vorher.
+     Abspielen und Export klingen gleich (die Schwebung hängt an der Projektposition).
+   - „Tonhöhenkorrektur“ (nur Audio-Spuren): Tonart und Skala wählen (Dur, Moll, Pentatonik, chromatisch), „Stärke“
+     (100 % = ganz auf den Ton) und „Geschwindigkeit“ (0 ms = sofort, größer = natürlicher). „Anwenden“ rechnet die
+     korrigierte Fassung im Hintergrund vor (Tonerkennung wie beim Mithören, Verschiebung mit Signalsmith).
+     Haken aus = Original. Beim Schließen des Fensters wird bei Bedarf automatisch angewendet.
+   - Audio quantisieren: Audio-Region antippen → „Quantisieren …“: Raster 1/4, 1/8 oder 1/16, „Stärke“ in %,
+     Verfahren „Schneiden + Verschieben“ (kurze Überblendung) oder „Zeitdehnung zwischen den Anschlägen“.
+     Die Anschläge werden erkannt und auf das Raster der Tempokarte gezogen. Das Original bleibt gespeichert:
+     ↶ oder „Original wiederherstellen“. Nochmal quantisieren geht immer vom Original aus.
+   - Projekt teilen: „Projekt ▾“ → „Projekt als Datei teilen“ packt alles (Spuren, Regionen, Mischpult, Busse,
+     Tempokarte, Marker, Akkorde, Audio als WAV 16 Bit, Verweise auf Instrumente) in eine Datei „Name.loopsmiths“
+     und öffnet das Teilen-Menü (sonst Download). „Projekt importieren …“ liest so eine Datei als neues Projekt ein
+     (neue IDs, Version wird geprüft, Prüfsumme des Audios auch). Große Projekte werden Block für Block gepackt.
+   - Akkorde aus Audio: Audio-Region → „Akkorde erkennen“ (oder „Projekt ▾“ → „Akkordspur …“ → „Akkorde aus dem
+     Mix erkennen“, im Cycle nur der Cycle). Ergebnis: Akkordspur unter dem Lineal, je Takt/halben Takt.
+     Antippen = Akkord ändern (leer = löschen), freie Stelle antippen = neuen Akkord eintragen.
+     „Akkorde“ (links über den Spuren) → „Begleitung aus Akkordspur erzeugen“: Bass, Flächen oder Arpeggio.
+     Das Format ist dasselbe wie im Songwriting (Grundton + Akkordart).
