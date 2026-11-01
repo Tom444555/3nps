@@ -1,0 +1,222 @@
+  <!-- v120: Reiter Powerchords – Hülle; Inhalt baut powerchords.js erst beim ersten Öffnen (Theorie liegt träge im template) -->
+  <section class="panel" id="panel-power" role="tabpanel" aria-labelledby="tab-power" hidden>
+    <div class="card pc-head">
+      <div class="seg pc-subs" id="pcSubs" role="tablist" aria-label="Bereiche">
+        <button class="toggle-btn" data-sec="theorie" role="tab">Theorie</button><button class="toggle-btn" data-sec="schritte" role="tab">Schritt für Schritt</button><button class="toggle-btn" data-sec="brett" role="tab">Griffbrett</button><button class="toggle-btn" data-sec="folgen" role="tab">Akkordfolgen</button><button class="toggle-btn" data-sec="uebungen" role="tab">Übungen</button>
+      </div>
+    </div>
+    <div class="pc-play card" id="pcPlay" hidden></div>
+    <div class="pc-sec-wrap" id="pcSecTheorie" data-sec="theorie" hidden></div>
+    <div class="pc-sec-wrap" id="pcSecSchritte" data-sec="schritte" hidden></div>
+    <div class="pc-sec-wrap" id="pcSecBrett" data-sec="brett" hidden></div>
+    <div class="pc-sec-wrap" id="pcSecFolgen" data-sec="folgen" hidden></div>
+    <div class="pc-sec-wrap" id="pcSecUebungen" data-sec="uebungen" hidden></div>
+    <template id="pcTheoryTpl"><div class="pc-theory" translate="no">
+<p class="caption pc-en" hidden>This section is written in German.</p>
+<details class="card pc-sec" id="pcT1" open><summary><h3>1. Die 1-5-8-Theorie (zentraler Abschnitt)</h3></summary><div class="pc-sec-b">
+<p>Alles Weitere in diesem Reiter baut auf drei Ziffern auf: <b>1, 5, 8</b>. Wenn du sie verstehst, kannst du jeden Powerchord auf dem ganzen Griffbrett finden, ohne Griffe auswendig zu lernen.</p>
+<h4>1.1 Was ist ein Powerchord?</h4>
+<p>Ein Powerchord besteht aus nur zwei bis drei Tönen:</p>
+<ul>
+<li><b>Grundton</b> (1)</li>
+<li><b>reine Quinte</b> (5), sieben Halbtöne über dem Grundton</li>
+<li>optional die <b>Oktave</b> des Grundtons (8)</li>
+</ul>
+<p>Es fehlt die <b>Terz</b>. Sie entscheidet normalerweise, ob ein Akkord nach Dur oder Moll klingt. Ohne Terz ist ein Powerchord <b>weder Dur noch Moll</b>, er ist neutral und passt deshalb zu beiden.</p>
+<p><b>Schreibweise:</b> <code>E5</code>, <code>A5</code>, <code>D5</code> (gesprochen „E fünf“). Die 5 steht für die Quinte, nicht für fünf Töne.</p>
+<p><b>Warum klingt er mit Verzerrung gut?</b> Verzerrung erzeugt Obertöne und Differenztöne. Bei einem vollen Dur- oder Moll-Akkord mit Terz überlagern sich diese zu einem matschigen, rauen Gemisch. Die reine Quinte (Frequenzverhältnis 3:2) bleibt dagegen sauber und klar. Das Ergebnis: dicker, definierter Klang, auch bei viel Gain.</p>
+<h4>1.2 Die drei Ziffern</h4>
+<div class="pc-tbl"><table><thead><tr><th>Ziffer</th><th>Name</th><th>Abstand zum Grundton</th></tr></thead><tbody><tr><td><b>1</b></td><td>Grundton</td><td>0 Halbtöne (der Ton, nach dem der Akkord heißt)</td></tr><tr><td><b>5</b></td><td>reine Quinte</td><td>7 Halbtöne</td></tr><tr><td><b>8</b></td><td>Oktave</td><td>12 Halbtöne (derselbe Ton, eine Etage höher)</td></tr></tbody></table></div>
+<h4>1.3 Woher kommen die Ziffern?</h4>
+<p>Die Zahlen zählen die Töne der <b>Dur-Tonleiter</b>, der bekannten Do-Re-Mi-Leiter. Der Grundton ist der erste Ton (1), danach wird Stufe für Stufe weitergezählt, bis nach sieben Schritten wieder der Anfangston erscheint, jetzt eine Oktave höher: das ist die 8 („Okta“ = acht).</p>
+<p>Herleitung in C-Dur:</p>
+<div class="pc-tbl"><table><thead><tr><th>Stufe</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th></tr></thead><tbody><tr><td>Ton</td><td>C</td><td>D</td><td>E</td><td>F</td><td>G</td><td>A</td><td>H</td><td>C</td></tr></tbody></table></div>
+<p>Für einen Powerchord auf C nimmst du also <b>C (1), G (5), C (8)</b>. Die Töne dazwischen (2, 3, 4, 6, 7) bleiben weg.</p>
+<p>Dasselbe in E-Dur (E F# G# A H C# D# E):</p>
+<div class="pc-tbl"><table><thead><tr><th>Stufe</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th></tr></thead><tbody><tr><td>Ton</td><td>E</td><td>F#</td><td>G#</td><td>A</td><td>H</td><td>C#</td><td>D#</td><td>E</td></tr></tbody></table></div>
+<p>Powerchord <b>E5 = E (1), H (5), E (8)</b>.</p>
+<p>Die Quinte liegt immer <b>sieben Halbtöne</b> über dem Grundton. Das gilt für jeden Grundton, deshalb funktioniert die Griffform überall gleich.</p>
+<h4>1.4 Wo liegen 1, 5, 8 auf dem Griffbrett?</h4>
+<p>Die Saiten sind (bis auf G–H) in Quarten gestimmt. Dadurch ergibt sich ein festes Muster:</p>
+<p><b>Grundton auf der E-Saite</b></p>
+<ul>
+<li><b>1</b> = Grundton auf der E-Saite</li>
+<li><b>5</b> = <b>zwei Bünde höher</b> auf der <b>A-Saite</b></li>
+<li><b>8</b> = <b>zwei Bünde höher</b> auf der <b>D-Saite</b> (auf dem Bund der Quinte)</li>
+</ul>
+<p>Beispiel E5 (offen): E-Saite leer = E (1), A-Saite Bund 2 = H (5), D-Saite Bund 2 = E (8).</p>
+<p><b>Grundton auf der A-Saite (analog, eine Saite höher)</b></p>
+<ul>
+<li><b>1</b> = Grundton auf der A-Saite</li>
+<li><b>5</b> = zwei Bünde höher auf der <b>D-Saite</b></li>
+<li><b>8</b> = zwei Bünde höher auf der <b>G-Saite</b></li>
+</ul>
+<p>Beispiel A5 (offen): A leer = A (1), D-Saite Bund 2 = E (5), G-Saite Bund 2 = A (8).</p>
+<p><b>Sonderfall H-Saite (Stimmungsbruch G–H):</b> Zwischen der G- und der H-Saite liegt eine große Terz (vier Halbtöne) statt einer Quarte (fünf Halbtöne). Deshalb rutscht ein Ton, sobald die H-Saite beteiligt ist, einen Bund nach oben:</p>
+<ul>
+<li><b>Grundton auf der D-Saite:</b> 5 = zwei Bünde höher auf der G-Saite, <b>8 = drei Bünde höher</b> (nicht zwei) auf der H-Saite. Beispiel D5 (offen): D leer (1), G-Saite Bund 2 = A (5), H-Saite Bund 3 = D (8).</li>
+<li><b>Grundton auf der G-Saite:</b> 5 und 8 liegen jeweils <b>drei Bünde höher</b>, auf der H-Saite (5) und der hohen e-Saite (8).</li>
+</ul>
+<p>Merksatz: <b>„Zwei Bünde höher, eine Saite höher“ gilt, bis die H-Saite im Spiel ist. Dort ein Bund mehr.</b></p>
+<h4>1.5 Warum die 3 fehlt</h4>
+<p>Die <b>3</b> ist die Terz (hier in Dur-Tonleiter-Zählweise der dritte Ton). Sie macht den Akkord erst zu Dur (große Terz, 4 Halbtöne) oder Moll (kleine Terz, 3 Halbtöne). Weil bei 1-5-8 die 3 ausgelassen ist, entscheidet nichts über Dur oder Moll. Der Powerchord ist neutral und passt deshalb zu beiden. Was dein Ohr als „Dur“ oder „Moll“ hört, bestimmen dann die Melodie oder die Tonleiter, die du darüber spielst (z. B. Moll-Pentatonik).</p>
+<h4>1.6 Mini-Übung: 1-5-8 hören</h4>
+<ol>
+<li>Greife E5 (3-Ton, offen: E-Saite leer, A-Saite Bund 2, D-Saite Bund 2).</li>
+<li>Schlage die <b>1</b> einzeln an (E-Saite) und singe oder summe den Ton mit.</li>
+<li>Schlage die <b>5</b> einzeln an (A-Saite Bund 2). Achte auf den offenen, „leeren“ Klang gegenüber der 1.</li>
+<li>Schlage die <b>8</b> einzeln an (D-Saite Bund 2). Es ist derselbe Ton wie die 1, nur höher.</li>
+<li>Schlage jetzt alle drei Saiten <b>zusammen</b> an, mit einem langsamen Abschlag.</li>
+<li>Wiederhole die Schritte 1 bis 5 mit der gleichen Form im 3. Bund (G5) und im 5. Bund (A5). Sage dabei laut „eins – fünf – acht“ und den Notennamen.</li>
+</ol>
+<p>Tempo: ohne Metronom, je Ton ruhig ausklingen lassen.</p>
+</div></details>
+<details class="card pc-sec" id="pcT2"><summary><h3>2. Griffe als ASCII-Tabs</h3></summary><div class="pc-sec-b">
+<p>Die Griffform bleibt immer gleich. Die Zahl ist der Bund, <code>n</code> steht für den Bund des Grundtons. Nur die mit Zahl markierten Saiten werden gespielt, alle anderen dämpfst du ab (siehe Abschnitt 5).</p>
+<p>Beispiele unten: Grundton im 3. Bund (E-Saite: G5, A-Saite: C5, D-Saite: F5).</p>
+<h4>2.1 Grundton auf der E-Saite</h4>
+<p>2-Ton (Grundton + Quinte), Beispiel G5:</p>
+<pre class="pc-tab">e|-----|
+H|-----|
+G|-----|
+D|-----|
+A|--5--|   Quinte  (n+2)
+E|--3--|   Grundton (n)</pre>
+<p>3-Ton (zusätzlich Oktave), Beispiel G5:</p>
+<pre class="pc-tab">e|-----|
+H|-----|
+G|-----|
+D|--5--|   Oktave  (n+2)
+A|--5--|   Quinte  (n+2)
+E|--3--|   Grundton (n)</pre>
+<h4>2.2 Grundton auf der A-Saite</h4>
+<p>2-Ton, Beispiel C5:</p>
+<pre class="pc-tab">e|-----|
+H|-----|
+G|-----|
+D|--5--|   Quinte  (n+2)
+A|--3--|   Grundton (n)
+E|--x--|   gedämpft</pre>
+<p>3-Ton, Beispiel C5:</p>
+<pre class="pc-tab">e|-----|
+H|-----|
+G|--5--|   Oktave  (n+2)
+D|--5--|   Quinte  (n+2)
+A|--3--|   Grundton (n)
+E|--x--|   gedämpft</pre>
+<h4>2.3 Grundton auf der D-Saite</h4>
+<p>2-Ton, Beispiel F5:</p>
+<pre class="pc-tab">e|-----|
+H|-----|
+G|--5--|   Quinte  (n+2)
+D|--3--|   Grundton (n)
+A|--x--|
+E|--x--|</pre>
+<p>3-Ton, Beispiel F5. Achtung: Die Oktave liegt hier auf der H-Saite, <b>einen Bund weiter</b> als sonst (n+3 statt n+2):</p>
+<pre class="pc-tab">e|-----|
+H|--6--|   Oktave  (n+3)
+G|--5--|   Quinte  (n+2)
+D|--3--|   Grundton (n)
+A|--x--|
+E|--x--|</pre>
+<h4>2.4 Grundton auf der G-Saite (nur kurz)</h4>
+<p>Die Stimmung zwischen G- und H-Saite ist eine große Terz statt einer Quarte. Deshalb verschiebt sich die Form: Quinte auf der H-Saite und Oktave auf der e-Saite liegen jeweils <b>drei Bünde</b> über dem Grundton (n+3).</p>
+<p>Beispiel C5 (Grundton Bund 5):</p>
+<pre class="pc-tab">e|--8--|   Oktave  (n+3)
+H|--8--|   Quinte  (n+3)
+G|--5--|   Grundton (n)
+D|--x--|
+A|--x--|
+E|--x--|</pre>
+<p>Für die App: G-Saite nur als Hinweis im Theorieteil, nicht im interaktiven Griffbrett (dort E/A/D).</p>
+<h4>2.5 Variante mit Quinte unten (Umkehrung)</h4>
+<p>Hier liegt die <b>Quinte unter dem Grundton</b>. Die Form ist leicht zu greifen, weil die Töne auf zwei benachbarten Saiten im <b>gleichen Bund</b> liegen (die Saiten sind in Quarten gestimmt). Der Akkordname wird als Slash-Akkord geschrieben, z. B. <code>D5/A</code> (Grundton D, tiefster Ton A).</p>
+<p>Grundton auf der A-Saite im 5. Bund (D5/A), 2-Ton:</p>
+<pre class="pc-tab">e|-----|
+H|-----|
+G|-----|
+D|-----|
+A|--5--|   Grundton (n)
+E|--5--|   Quinte darunter (n, gleicher Bund)</pre>
+<p>3-Ton (zusätzlich die Quinte darüber, also Quinte–Grundton–Quinte), D5/A:</p>
+<pre class="pc-tab">e|-----|
+H|-----|
+G|-----|
+D|--7--|   Quinte darüber (n+2)
+A|--5--|   Grundton (n)
+E|--5--|   Quinte darunter (n)</pre>
+<p>Grundton auf der D-Saite im 5. Bund (G5/D), 3-Ton:</p>
+<pre class="pc-tab">e|-----|
+H|-----|
+G|--7--|   Quinte darüber (n+2)
+D|--5--|   Grundton (n)
+A|--5--|   Quinte darunter (n)
+E|--x--|</pre>
+<p>Hinweis: Auf der E-Saite gibt es keine Umkehrung dieser Art, denn darunter liegt keine Saite mehr.</p>
+<h4>2.6 Offene Powerchords</h4>
+<pre class="pc-tab"> E5          A5          D5
+e|-----|   e|-----|   e|-----|
+H|-----|   H|-----|   H|--3--|
+G|-----|   G|--2--|   G|--2--|
+D|--2--|   D|--2--|   D|--0--|
+A|--2--|   A|--0--|   A|--x--|
+E|--0--|   E|--x--|   E|--x--|</pre>
+<p>Eselsbrücke: Bei E5 und A5 greifen zwei Finger nebeneinander im 2. Bund. Bei D5 bilden die Töne D, A, D (offene D-Saite, Quinte im 2. Bund auf G, Oktave im 3. Bund auf H).</p>
+</div></details>
+<details class="card pc-sec" id="pcT3"><summary><h3>3. Grundtöne auf E- und A-Saite (Bund 0–12)</h3></summary><div class="pc-sec-b">
+<div class="pc-tbl"><table><thead><tr><th>Bund</th><th>E-Saite</th><th>A-Saite</th></tr></thead><tbody><tr><td>0</td><td>E</td><td>A</td></tr><tr><td>1</td><td>F</td><td>A#/Bb</td></tr><tr><td>2</td><td>F#/Gb</td><td>H</td></tr><tr><td>3</td><td>G</td><td>C</td></tr><tr><td>4</td><td>G#/Ab</td><td>C#/Db</td></tr><tr><td>5</td><td>A</td><td>D</td></tr><tr><td>6</td><td>A#/Bb</td><td>D#/Eb</td></tr><tr><td>7</td><td>H</td><td>E</td></tr><tr><td>8</td><td>C</td><td>F</td></tr><tr><td>9</td><td>C#/Db</td><td>F#/Gb</td></tr><tr><td>10</td><td>D</td><td>G</td></tr><tr><td>11</td><td>D#/Eb</td><td>G#/Ab</td></tr><tr><td>12</td><td>E</td><td>A</td></tr></tbody></table></div>
+<p>Merkhilfe: Die Töne ohne Vorzeichen liegen nach dem Muster Ganzton – Halbton – Ganzton – Ganzton – Halbton… auseinander. Zwischen E–F und H–C gibt es nur einen Halbton (nur einen Bund Abstand).</p>
+<p>Die D-Saite für das interaktive Griffbrett (Bund 0–12): D, D#/Eb, E, F, F#/Gb, G, G#/Ab, A, A#/Bb, H, C, C#/Db, D.</p>
+</div></details>
+<details class="card pc-sec" id="pcT4"><summary><h3>4. Verschieben: gleiche Form, anderer Akkord</h3></summary><div class="pc-sec-b">
+<p>Eine Griffform wird einfach am Hals entlang verschoben. Der Grundton (tiefster Finger) bestimmt den Namen:</p>
+<ul>
+<li>Form auf der E-Saite im 3. Bund: <b>G5</b>, im 5. Bund: <b>A5</b>, im 7. Bund: <b>H5</b>, im 8. Bund: <b>C5</b></li>
+<li>Die gleiche Form eine Saite höher (A-Saite) im 3. Bund: <b>C5</b>, im 5. Bund: <b>D5</b>, im 7. Bund: <b>E5</b></li>
+</ul>
+<p><b>Tipp für kurze Wege:</b> Derselbe Akkord liegt oft auf zwei Saiten. Wähle die Saite, bei der die nächsten Akkorde näher beieinander liegen.</p>
+<p>Beispiel A5 → D5 → E5:</p>
+<ul>
+<li>Auf der E-Saite: A5 (5. Bund), D5 (10. Bund), E5 (12. Bund) – weite Sprünge.</li>
+<li>Auf der A-Saite: A5 (0. Bund), D5 (5. Bund), E5 (7. Bund) – deutlich enger.</li>
+</ul>
+<p>Faustregel: Akkorde mit Grundton <b>E bis G</b> auf der <b>E-Saite</b>, Akkorde mit Grundton <b>A bis D</b> auf der <b>A-Saite</b> greifen (so bleibst du in den unteren Bünden). Wenn die Folge höher geht, nimm für D, E, F, G die <b>D-Saite</b>.</p>
+</div></details>
+<details class="card pc-sec" id="pcT5"><summary><h3>5. Spieltechnik</h3></summary><div class="pc-sec-b">
+<p><b>Abdämpfen nicht gespielter Saiten</b></p>
+<ul>
+<li>Tiefere, nicht gespielte Saite: mit dem Fingerspitzenbereich des Greiffingers leicht berühren (Saite nicht herunterdrücken).</li>
+<li>Höhere, nicht gespielte Saiten: mit der Unterseite des Greiffingers (flach angelegt) abdämpfen.</li>
+<li>Anschlag nur auf die Zielsaiten ausrichten. Treffer auf Dämpfsaiten dürfen nicht klingen.</li>
+</ul>
+<p><b>Palm Mute</b></p>
+<ul>
+<li>Den Ballen der Anschlagshand locker auf die Saiten direkt am Steg legen.</li>
+<li>Dämpfung stufenweise: leicht aufgelegt = weich, fester = kurz und trocken.</li>
+<li>Gut für Achtelpuls: tiefe Töne gedämpft, Akzente offen.</li>
+</ul>
+<p><b>Abschläge</b></p>
+<ul>
+<li>Bei Powerchords vor allem <b>Abschläge</b> (Downstrokes) spielen: druckvoll, gleichmäßig.</li>
+<li>Für Tempo ab ca. 140 BPM später Wechselschlag, wobei Auf-Schläge leiser bleiben.</li>
+<li>Plektrum flach zur Saite, aus dem Handgelenk schlagen, nicht aus dem Ellbogen.</li>
+</ul>
+<p><b>Lockerheit</b></p>
+<ul>
+<li>Greifdruck so gering wie möglich, gerade so, dass der Ton sauber klingt.</li>
+<li>Daumen hinter dem Hals, Schultern und Handgelenk entspannt.</li>
+<li>Beim Wechsel Finger kaum vom Griffbrett abheben (Wechsel in einer Bewegung, keine „Sprünge“).</li>
+<li>Bei Verspannung: Tempo senken, Pause machen.</li>
+</ul>
+</div></details>
+</div></template>
+    <template id="pcProgTpl"><div class="pc-theory" translate="no">
+<details class="card pc-sec" id="pcT6"><summary><h3>6. Typische Akkordfolgen</h3></summary><div class="pc-sec-b">
+<p>Die Akkorde werden als <b>Stufen</b> (Römische Zahlen) angegeben. Sie beziehen sich auf den Grundton der Tonart (I). Ein kleines „b“ davor bedeutet: einen Halbton tiefer als die Dur-Stufe.</p>
+<div class="pc-tbl"><table><thead><tr><th>Stufe</th><th>Halbtöne über I</th></tr></thead><tbody><tr><td>I</td><td>0</td></tr><tr><td>bIII</td><td>3</td></tr><tr><td>IV</td><td>5</td></tr><tr><td>V</td><td>7</td></tr><tr><td>bVI</td><td>8</td></tr><tr><td>bVII</td><td>10</td></tr></tbody></table></div>
+<div class="pc-tbl"><table><thead><tr><th>Folge</th><th>Stufen</th><th>Beispiel in E</th><th>Beispiel in A</th></tr></thead><tbody><tr><td>Rock-Klassiker</td><td>I – bVII – IV</td><td>E5 – D5 – A5</td><td>A5 – G5 – D5</td></tr><tr><td>Hard-Rock</td><td>I – bIII – IV</td><td>E5 – G5 – A5</td><td>A5 – C5 – D5</td></tr><tr><td>Episch / Dunkel</td><td>I – bVI – bVII</td><td>E5 – C5 – D5</td><td>A5 – F5 – G5</td></tr><tr><td>Grundlagen</td><td>I – IV – V</td><td>E5 – A5 – H5</td><td>A5 – D5 – E5</td></tr></tbody></table></div>
+<p>Auf der Zählzeit: Pro Akkord ein Takt (4/4), anschließend wiederholen (Looper).</p>
+<p><b>Tonleiter dazu:</b> Über die ersten drei Folgen (mit bIII, bVI, bVII) passt die <b>Moll-Pentatonik</b> des Grundtons (E-Moll-Pentatonik zu E-Folgen, A-Moll-Pentatonik zu A-Folgen). Bei I–IV–V klingt die Moll-Pentatonik bluesig (Töne gegen die Dur-Akkorde), die Dur-Pentatonik klingt „heller“. Probier beides aus.</p>
+</div></details>
+</div></template>
+  </section>

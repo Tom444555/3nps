@@ -1101,3 +1101,21 @@ Gut zu wissen
    - Drone: startet wie gewohnt sofort, rechnet sich im Hintergrund als Schleife (ganze Takte, ca. 32 s) vor und
      blendet nach einigen Sekunden um – danach kostet sie fast nichts. Tonart, Modus oder Tempo ändern: kurz wieder
      live, dann neue Schleife. Alle paar Durchläufe wird eine neue Variante gerechnet, damit sich nichts stur wiederholt.
+
+103. Powerchords (v120)
+   - Neuer Reiter „Powerchords“ (nach CAGED): die 1-5-8-Theorie zum Nachlesen und Üben. Bereiche oben:
+     „Theorie“ · „Schritt für Schritt“ · „Griffbrett“ · „Akkordfolgen“ · „Übungen“.
+   - „Schritt für Schritt“ erklärt mit Bild und Ton: Dur-Tonleiter abzählen (1…8), Quinte = 7 Halbtöne,
+     „zwei Bünde höher, eine Saite höher“, Sonderfall H-Saite (ein Bund mehr), Form verschieben, Terz weglassen
+     (Dur, Moll und Powerchord zum Vergleich). „◀ Zurück“ / „Weiter ▶“, jeder Punkt klingt beim Antippen.
+   - „Griffbrett“: Grundton (Notenknöpfe oder Tippen auf die Grundton-Saite), Saite E/A/D, 2-Ton/3-Ton,
+     „Umkehrung (Quinte unten)“ (nur A/D), „Ziffern“/„Notennamen“, „Alle Stufen zeigen“ (jeder Ton als Stufe zum
+     Grundton), „Alle Lagen“ (jede Position desselben Powerchords), dazu Akkordname, Töne mit Rolle und ASCII-Tab.
+   - „Akkordfolgen“: I–bVII–IV, I–bIII–IV, I–bVI–bVII, I–IV–V in jeder Tonart; „Griff-Saite“ Auto wählt die
+     kürzesten Wege („Weg: … Bünde“). „▶ Loop starten“ legt die Folge mit Powerchord-Klang und Drums/Klick als
+     Loop auf Spur 1 des Loopers und zeigt groß „jetzt“ / „als Nächstes“ mit dem Griff; „Tempo +5“, „■ Stopp“,
+     „● Spur 2 aufnehmen“. „An Looper senden“ wechselt dazu in den Looper, „Als Backing abspielen“ nutzt den
+     Backing Track. Liegt im Looper schon etwas, fragt die App vorher.
+   - „Übungen“: sechs Übungen mit Start-/Zieltempo, „▶ Mit Looper starten“, „Tempo +5“ (5er-Schritte, gemerkt),
+     „Tempo geschafft“ (bestes Tempo), Häkchen „geschafft“, Gesamtfortschritt und „Zurücksetzen“. Alles bleibt
+     auf dem Gerät gespeichert.

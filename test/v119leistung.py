@@ -120,7 +120,7 @@ async def main():
         await pg.goto(U); await pg.wait_for_timeout(900)
         await pg.evaluate("localStorage.removeItem('3nps-amp-on');localStorage.setItem('3nps-countin','0');localStorage.setItem('3nps-limiter','1');0")
         await pg.reload(); await pg.wait_for_timeout(1000)
-        check('Version v119', 'v119' in await pg.inner_text('.brand'))
+        check('ab v119', int(__import__('re').search(r'v(\d+)', await pg.inner_text('.brand')).group(1)) >= 119)
         sr = await pg.evaluate("(ensureAudio(), audioCtx.sampleRate)")
         # EQ: flach = keine Filter in der Kette, Klang bitgleich; ein Band an = 1 Filter
         eq = await pg.evaluate("""(async()=>{const k=EQ7.chain(audioCtx); k.set(EQ7.flat()); const a0=k.active(); const v=EQ7.flat(); v.b[3].g=4; k.set(v); const a1=k.active(); v.b[3].g=0; k.set(v); const a2=k.active();
