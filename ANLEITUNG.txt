@@ -1160,3 +1160,16 @@ Gut zu wissen
      Antippen = Akkord ändern (leer = löschen), freie Stelle antippen = neuen Akkord eintragen.
      „Akkorde“ (links über den Spuren) → „Begleitung aus Akkordspur erzeugen“: Bass, Flächen oder Arpeggio.
      Das Format ist dasselbe wie im Songwriting (Grundton + Akkordart).
+
+106. Studio: drei neue Instrumente – E-Bass, Akustikgitarre, E-Piano Wurlitzer (v123)
+   - Spur → „Instrument“ (oder „+ Spur“ → „Instrument (Noten)“): neu in der Liste „E-Bass (echt)“, „Akustikgitarre (echt)“
+     und „E-Piano Wurlitzer (echt)“; ▶ spielt eine Hörprobe. Jedes lädt beim ersten Mal 1–2,3 MB und läuft danach offline
+     (zusammen 4 MB, im Offline-Speicher der App). Bis es geladen ist, klingt ein Synthesizer.
+   - E-Bass: Karoryfer „Fashion Bass“ (CC0), tiefer Bereich ab dem tiefen H (Fis0) bis A4, gezupft, mittlere Anschlagstärke.
+     Passt für „Akkorde → Bass“ als Alternative zum Kontrabass.
+   - Akustikgitarre: Martin HD28 aus der Discord-SFZ-GM-Bank (Jeff Learman, CC0), E2 bis H5.
+   - E-Piano Wurlitzer: Greg Sullivan (sullivang.net), CC BY 3.0 – die Namensnennung steht in der Instrumentenauswahl
+     und in inst/LIZENZ.txt. Zwei Anschlagschichten: ab Anschlag 84 klingt die laute (f), darunter die weiche (mp) Aufnahme.
+   - Alle Quellen und Lizenzen: Datei inst/LIZENZ.txt. Es gibt (noch) keinen MIDI-Import, deshalb keine Zuordnung zu
+     GM-Programmnummern; der MIDI-Export schreibt unverändert Notenspuren.
+

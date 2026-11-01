@@ -2543,7 +2543,8 @@ const Inst = (() => {
     { id: 'strings', name: 'Streicher (echt)', s: 1, att: 0.12, rel: 0.45 }, { id: 'brass', name: 'Blechbläser (echt)', s: 1, att: 0.05, rel: 0.25 },
     { id: 'flute', name: 'Flöte (echt)', s: 1, att: 0.06, rel: 0.25 }, { id: 'organ', name: 'Orgel (echt)', s: 1, att: 0.02, rel: 0.2 },
     { id: 'harp', name: 'Harfe (echt)', s: 1, rel: 0.6 }, { id: 'marimba', name: 'Marimba (echt)', s: 1, rel: 0.3 },
-    { id: 'kbass', name: 'Kontrabass gezupft (echt)', s: 1, rel: 0.15 }, { id: 'sbass', name: 'Synth-Bass', rel: 0.08 },
+    { id: 'kbass', name: 'Kontrabass gezupft (echt)', s: 1, rel: 0.15 }, { id: 'ebass', name: 'E-Bass (echt)', s: 1, rel: 0.12, src: 'Aufnahmen Karoryfer Fashion Bass (CC0), lädt beim ersten Mal' },
+    { id: 'guitar', name: 'Akustikgitarre (echt)', s: 1, rel: 0.35, src: 'Aufnahmen Martin HD28, Jeff Learman (CC0), lädt beim ersten Mal' }, { id: 'wurli', name: 'E-Piano Wurlitzer (echt)', s: 1, rel: 0.3, src: 'Aufnahmen Greg Sullivan (sullivang.net), CC BY 3.0, lädt beim ersten Mal' }, { id: 'sbass', name: 'Synth-Bass', rel: 0.08 },
     { id: 'pad', name: 'Synth-Fläche (Pad)', att: 0.35, rel: 0.9 }, { id: 'lead', name: 'Synth-Lead', att: 0.01, rel: 0.12 },
     { id: 'pluck', name: 'Pluck (Synth)', rel: 0.2 }
   ];
@@ -2560,9 +2561,9 @@ const Inst = (() => {
       const notes = ix.notes.map(n => {
         const a = Math.round(n.s * sr), len = Math.max(1, Math.round(n.l * sr)), b = Engine.ac().createBuffer(nc, len, sr);
         for (let c = 0; c < nc; c++) { const src = all.getChannelData(c), dst = b.getChannelData(c); for (let i = 0; i < len; i++) dst[i] = src[a + i] * g; }
-        return { m: n.m + (n.c || 0) / 100, b, ls: n.ls, le: n.le };
+        return { m: n.m + (n.c || 0) / 100, b, ls: n.ls, le: n.le, v: n.v };
       });
-      return (lib[id] = { notes, loop: !!ix.loop });
+      return (lib[id] = { notes, loop: !!ix.loop, vel: !!ix.vel });
     })().catch(e => { console.warn('Instrument', id, e); UI.say('Instrument „' + label(id) + '“ konnte nicht geladen werden (offline?) – es klingt ersatzweise ein Synthesizer.'); return null; }).finally(() => { delete busy[id]; });
     return busy[id];
   }
@@ -2573,7 +2574,8 @@ const Inst = (() => {
     const d = BY[id] || BY.epiano, L = d.s && lib[id], vel = Math.max(0.05, Math.min(1, v / 127)), end = t + Math.max(0.03, dur), rel = d.rel || 0.2;
     const g = c.createGain(); g.connect(out); const nodes = [g];
     if (L) {
-      let best = L.notes[0]; for (const n of L.notes) if (Math.abs(n.m - m) < Math.abs(best.m - m)) best = n;
+      const pool = L.vel ? L.notes.filter(n => n.v === (v >= 84 ? 1 : 0)) : L.notes;   // v123: Anschlagschichten (mp/f), nur wenn die JSON 'vel' setzt
+      let best = pool[0]; for (const n of pool) if (Math.abs(n.m - m) < Math.abs(best.m - m)) best = n;
       const s = c.createBufferSource(); s.buffer = best.b; s.playbackRate.value = Math.pow(2, (m - best.m) / 12);
       if (L.loop && best.ls != null) { s.loop = true; s.loopStart = best.ls; s.loopEnd = best.le; }
       let last = s;
@@ -2586,7 +2588,7 @@ const Inst = (() => {
       return { stop: (at) => { try { g.gain.cancelScheduledValues(at); g.gain.setTargetAtTime(0, at, 0.02); s.stop(at + 0.1); } catch (e) {} } };
     }
     // Synthesizer (auch Ersatz, wenn Aufnahmen fehlen)
-    const f = mtof(m), oscs = [], k = id === 'sbass' || id === 'kbass' ? 'sbass' : id === 'pad' || id === 'strings' || id === 'organ' ? 'pad' : id === 'lead' || id === 'brass' || id === 'flute' ? 'lead' : id === 'pluck' || id === 'harp' || id === 'marimba' ? 'pluck' : 'epiano';
+    const f = mtof(m), oscs = [], k = id === 'sbass' || id === 'kbass' || id === 'ebass' ? 'sbass' : id === 'pad' || id === 'strings' || id === 'organ' ? 'pad' : id === 'lead' || id === 'brass' || id === 'flute' ? 'lead' : id === 'pluck' || id === 'guitar' || id === 'harp' || id === 'marimba' ? 'pluck' : 'epiano';
     const flt = c.createBiquadFilter(); flt.type = 'lowpass'; flt.connect(g); nodes.push(flt);
     const amp = (0.25 + 0.6 * vel) * 0.35;
     if (k === 'epiano') {
@@ -2648,7 +2650,7 @@ const Inst = (() => {
   // ---- Bedienung ----
   function choose(id) {
     const t = Proj.P.tracks[Proj.tIndex(id)];
-    UI.dialog('<h2>Instrument · ' + t.name.replace(/</g, '&lt;') + '</h2><div class="plist">' + LIST.map(i => '<div class="item' + (i.id === (t.inst || 'epiano') ? ' a' : '') + '" data-i="' + i.id + '"><div class="ic">' + (i.s ? '🎻' : '🎛') + '</div><div style="flex:1"><b>' + i.name + '</b><small>' + (i.s ? 'Aufnahmen VSCO-2 (Versilian Studios), lädt beim ersten Mal' : 'Synthesizer, sofort da') + '</small></div><button class="btn" data-p="' + i.id + '">▶</button></div>').join('') + '</div><div class="btns"><button class="btn p" data-close>Fertig</button></div>');
+    UI.dialog('<h2>Instrument · ' + t.name.replace(/</g, '&lt;') + '</h2><div class="plist">' + LIST.map(i => '<div class="item' + (i.id === (t.inst || 'epiano') ? ' a' : '') + '" data-i="' + i.id + '"><div class="ic">' + (i.s ? '🎻' : '🎛') + '</div><div style="flex:1"><b>' + i.name + '</b><small>' + (i.s ? (i.src || 'Aufnahmen VSCO-2 (Versilian Studios), lädt beim ersten Mal') : 'Synthesizer, sofort da') + '</small></div><button class="btn" data-p="' + i.id + '">▶</button></div>').join('') + '</div><div class="btns"><button class="btn p" data-close>Fertig</button></div>');
     document.getElementById('dlg').onclick = async e => {
       const pb = e.target.closest('[data-p]'); if (pb) { e.stopPropagation(); const k = pb.dataset.p; await load(k); const ac = await Engine.ensure(); [60, 64, 67, 72].forEach((m, j) => voice(ac, ac.destination, k, m - (k.includes('bass') ? 24 : 0), 100, ac.currentTime + 0.05 + j * 0.18, 0.6)); return; }
       const it = e.target.closest('.item'); if (!it) return; const k = it.dataset.i;
