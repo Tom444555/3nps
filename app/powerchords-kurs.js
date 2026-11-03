@@ -161,3 +161,45 @@ PcKurs.K.push({ t: 'Kapitel 2 – Powerchord-Grundlagen', s: [
     ex: ['L:Greife einen willkürlichen Ton auf der D-, G- oder B-Saite und leite ihn per Powerchord nach unten ab („Wo lande ich? B-flat oder A#“).',
       'E:Powerchord-Ableitung: Powerchord auf der E-Saite im 3. Bund (G). Der Finger auf der D-Saite im 5. Bund ist auch ein G. Geschafft, wenn du den Ton auf der D-Saite ohne Tabelle nennst.'] }
 ] });
+
+// ===== Kapitel 3 – Intervalle =====
+PcKurs.K.push({ t: 'Kapitel 3 – Intervalle', s: [
+  { id: 'k3-1', t: '3.1 Namen und Zahlen', p: [
+    'Intervalle sind die Zahlen 1 bis 8 – genauso einfach wie A bis G. Es gibt nur sieben verschiedene Zahlen, denn die 8 ist wieder die 1.',
+    '<b>Nur einmal gibt es: 1, 4, 5, 8.</b> „Es gibt keine große 5 oder kleine 5.“ Die 1 heißt auch Prime.',
+    'Zwischen 4 und 5 liegt der <b>Tritonus</b> – der Lehrer nennt ihn „Bart Simpson“. Er heißt #11, #4 oder b5, aber nie „kleine 5“ oder „große 4“.',
+    '<b>Zweimal gibt es (klein und groß): 2, 3, 6, 7.</b> Klein schreibt man mit b, groß ohne Zeichen.',
+    'Die ganze Reihe: 1, b2, 2, b3, 3, 4, (Bart Simpson), 5, b6, 6, b7, 7, 8.',
+    'Im Powerchord liegen 1, 4, 5, 8 symmetrisch; die 4 liegt unter der 5.',
+    'Fachnamen: Prime, Sekunde, Terz, Quarte, Quinte, Tritonus, Sexte, Septime, Oktave. „Wir bleiben bei Zahlen.“'],
+    g: [{ n: 'Alle Intervalle von A', r: 9, mk: [[0, 5, '1'], [0, 6, 'b2'], [0, 7, '2'], [0, 8, 'b3'], [1, 4, '3'], [1, 5, '4'], [1, 6, 'b5'], [1, 7, '5'], [1, 8, 'b6'], [2, 4, '6'], [2, 5, 'b7'], [2, 6, '7'], [2, 7, '8']], cap: 'Grundton A auf der E-Saite, 5. Bund' }],
+    ex: ['E:Kurz-Quiz „Wie viele Varianten?“: Sage zu jeder Zahl 1 bis 8, ob es sie einmal gibt (1, 4, 5, 8) oder zweimal, klein und groß (2, 3, 6, 7).'] },
+  { id: 'k3-2', t: '3.2 Die 7 – Sonderregel bei Akkordsymbolen', p: [
+    '<b>Bei Intervallen:</b> b7 = kleine Septime, 7 = große Septime.',
+    '<b>Bei Akkordsymbolen:</b> eine einfache „7“ heißt <b>kleine 7</b>. D7 ist also D mit kleiner 7.',
+    'Die <b>große 7</b> schreibt man im Akkordsymbol <b>maj7</b>, <b>M7</b> oder mit Dreieck (Δ7).',
+    'Warum? Bei „Db7“ wüsste man sonst nicht, ob das b zum D gehört (Des) oder zur 7.'],
+    m: '„Wenn es um Intervalle geht: b7 und 7. Wenn es um Akkorde geht: 7 und Major 7. Ich weiß, das ist echt kaputt.“',
+    ex: ['E:Sage zu D7, Dmaj7, DM7 und DΔ7, welche 7 gemeint ist (D7 = kleine 7, die anderen drei = große 7).'] },
+  { id: 'k3-3', t: '3.3 Intervalle auf dem Griffbrett: die Dur-Tonleiter', p: [
+    'Setze den <b>Mittelfinger</b> auf einen Ton der E-Saite, z. B. A im 5. Bund.',
+    'E-Saite: Finger 2 und 4. A-Saite: Finger 1, 2, 4. D-Saite: Finger 1, 3, 4. Kurz: 2-4 | 1-2-4 | 1-3-4.',
+    'Du landest auf der <b>8</b> – derselbe Ton wie beim Powerchord.',
+    'Die Töne heißen 1, 2, 3, 4, 5, 6, 7 (große 7), 8. In der Dur-Tonleiter ist alles „ziemlich groß“.',
+    '<b>b2:</b> Wenn du die 2 kennst, liegt die b2 einen Bund darunter. „Sofort sind wir in einer coolen abgedrehten Tonart.“',
+    '<b>3 = große Terz</b> („happy“), <b>b3 = kleine Terz</b> (Moll, traurig) – einen Bund unter der 3.',
+    'Dann die 4, der Bart Simpson, die 5. Die <b>b6</b> liegt einen Bund unter der 6.',
+    'Der Lehrer leitet fast immer <b>von der 8</b> ab und zählt nach unten: 7, b7, 6, b6, 5, Bart Simpson, 4, 3, b3, 2, b2, 1.'],
+    g: [{ n: 'Dur-Tonleiter A (eine Oktave)', r: 9, mk: [[0, 5, '1'], [0, 7, '2'], [1, 4, '3'], [1, 5, '4'], [1, 7, '5'], [2, 4, '6'], [2, 6, '7'], [2, 7, '8']], cap: 'Finger 2-4 | 1-2-4 | 1-3-4' },
+        { n: 'Die kleinen Varianten', r: 9, mk: [[0, 5, '1'], [0, 6, 'b2'], [1, 3, 'b3'], [2, 3, 'b6'], [2, 5, 'b7'], [2, 7, '8']], cap: 'je ein Bund unter 2, 3, 6, 7' }],
+    ex: ['L:Spiele die Dur-Tonleiter über eine Oktave wie oben und sage dabei 1-2-3-4-5-6-7-8 („so dumm es klingt“). Dann ganz langsam noch einmal.',
+      'L:Finde zu jedem Ton die kleine Variante: b2 unter der 2, b3 unter der 3, b6 und b7 – immer vom Grundton oder von der 8 aus.',
+      'E:Reihe b-Intervalle: Spiele die Tonleiter und zu jedem Ton den Halbton darunter, langsam. Geschafft, wenn du hörst: b3 klingt traurig, 3 klingt fröhlich.'] },
+  { id: 'k3-4', t: '3.4 9, 11, 13 – die Oktave darüber', p: [
+    'Weil 1 = 8 ist, ist 2 = 9. Eine Oktave höher bekommen aber nur manche Zahlen einen neuen Namen.',
+    'Die 3 heißt nie „10“, die 5 bleibt immer 5. Die <b>2 wird zur 9, die 4 zur 11, die 6 zur 13</b> (auch b9, #11, b13).',
+    'Grund: <b>1, 3, 5 (und 7) sind Akkordtöne.</b> Die „coolen Noten dazwischen“ (2, 4, 6) heißen 9, 11, 13, wenn sie <b>zusätzlich</b> zum Akkord gespielt werden – das sind die <b>Akkorderweiterungen</b>.',
+    'Ausblick: Bei den offenen Akkorden (Kapitel 4) gilt: Wer weiß, wo die 3 ist, findet auch die 4 (Sus4) und die 2 (Sus2).'],
+    g: [{ n: '9, 11, 13 über der 8', r: 9, mk: [[0, 5, '1'], [1, 7, '5'], [2, 7, '8'], [3, 4, '9'], [3, 7, '11'], [4, 7, '13']], cap: 'Grundton A, E-Saite 5. Bund' }],
+    ex: ['E:Greife A5 (E-Saite 5. Bund) mit der 8 auf der D-Saite und finde darüber die 9, die 11 und die 13. Sage dazu, welche Zahl sie eine Oktave tiefer hätten (2, 4, 6).'] }
+] });
