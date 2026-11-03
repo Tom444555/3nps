@@ -60,7 +60,7 @@ async def main():
         check('Hoch 820×1180: Touch-Ziele ≥ 44 px, kein Querscrollen', not bad and await pg.evaluate(HS) <= 1, bad[:4])
         await pg.evaluate("document.getElementById('pcK_k4-3')?.scrollIntoView()"); await pg.wait_for_timeout(200)
         await pg.screenshot(path=SHOT + '_hoch.png')
-        await pg.reload(); await pg.wait_for_timeout(1200); await pg.click('#tab-power'); await pg.wait_for_timeout(400)
+        await pg.reload(); await pg.wait_for_timeout(1200); await pg.click('#tab-power'); await pg.wait_for_timeout(400); await pg.evaluate(OPENALL); await pg.wait_for_timeout(300)
         check('Nach Neustart: Kurs-Bereich gemerkt, Häkchen da', await pg.evaluate("!document.getElementById('pcSecKurs').hidden && document.querySelector('#pcSecKurs input[data-kx=\"k2-3-0\"]')?.checked===true"))
         check('Keine Skriptfehler', not errs, errs[:3])
         await ctx.close()
