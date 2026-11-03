@@ -313,3 +313,81 @@ PcKurs.K.push({ t: 'Kapitel 4 – Das CAGED-System', s: [
     ex: ['L:Spiele die Töne der Formen einzeln nacheinander (Arpeggio), z. B. E-Dur mit C-Shape.',
       'E:Spiele E-Dur als Arpeggio in zwei Formen (offen und C-Shape im 7. Bund) und sage dabei die Zahlen 1-3-5-8.'] }
 ] });
+
+// ===== Kapitel 5 – Akkordfunktionen =====
+Object.assign(PcKurs.CH, { G7: [3, 2, 0, 0, 0, 1], Am7: [null, 0, 2, 0, 1, 0], Bm7b5: [null, 2, 3, 2, 3, null], Em7: [0, 2, 2, 0, 3, 0], Fmaj7: [null, null, 3, 2, 1, 0] });
+PcKurs.FO = [null, null, 3, 2, 1, 1];                                  // F offen (xx3211) für Folgen in C
+PcKurs.K.push({ t: 'Kapitel 5 – Akkordfunktionen', s: [
+  { id: 'k5-1', t: '5.1 Die Dur-Tonleiter und ihre Stufenakkorde', p: [
+    'Die Funktionen der Akkorde in einer Dur-Tonleiter helfen später bei Entscheidungen: „mache ich eine Sus4 draus, kann ich Sus2 machen, will ich die 7 vermeiden?“ Das sind die <b>diatonischen Funktionen</b>.',
+    'Abstandsformel der Dur-Tonleiter: <b>2-2-1-2-2-2-1</b> (2 = Ganzton, 1 = Halbton). Das Griffmuster kennst du schon (2-4 | 1-2-4 | 1-3-4).',
+    'Baust du aus den 7 Tonleitertönen Dreiklänge, entstehen „unweigerlich“ bestimmte Akkorde. Beispiel <b>F-Dur</b> (F G A B-flat C D E): F-Dur, G-Moll, A-Moll, B-flat-Dur, C-Dur, D-Moll und E-Moll mit b5.',
+    'Auf der 7. Stufe: „Das B als 5 steht uns nicht zur Verfügung, also B-flat“ – ein <b>verminderter</b> Akkord.',
+    'Reihenfolge in <b>jeder</b> Dur-Tonart: <b>Dur, Moll, Moll, Dur, Dur, Moll, vermindert</b>.',
+    'In C-Dur: <b>C, Dm, Em, F, G, Am, Bm(b5)</b>.',
+    'Warum immer gleich? Die Abstände sind in jeder Tonart gleich; die Halbtonschritte liegen zwischen 3 und 4 und zwischen 7 und 8. Namen ändern sich, <b>Funktionen und Abstände nicht</b>.'],
+    g: [{ n: 'C', iv: '1 3 5', cap: 'Stufe 1' }, { n: 'Dm', iv: '1 b3 5', cap: 'Stufe 2' }, { n: 'Em', iv: '1 b3 5', cap: 'Stufe 3' }, { n: 'F', fr: PcKurs.FO, iv: '1 3 5', cap: 'Stufe 4' },
+        { n: 'G', iv: '1 3 5', cap: 'Stufe 5' }, { n: 'Am', iv: '1 b3 5', cap: 'Stufe 6' }, { n: 'Bm(b5)', r: 11, fr: [null, 2, 3, 4, 3, null], iv: '1 b3 b5', cap: 'Stufe 7 (vermindert)' }],
+    loop: [{ c: ['C', 'Dm', 'Em', 'F', 'G', 'Am'], fr: { F: PcKurs.FO }, bpm: 65, t: 'Stufen 1–6 in C-Dur' }],
+    ex: ['E:Stufen-Reihe in C-Dur: C – Dm – Em – F – G – Am, je 2 Schläge, 60–70 BPM (Vorschlag). Geschafft, wenn du die Stufe 1–6 ohne Nachdenken nennst.'] },
+  { id: 'k5-2', t: '5.2 Tonika, Subdominante, Dominante', p: [
+    'Aus der Schule: <b>Tonika (I), Subdominante (IV), Dominante (V)</b>. Alle drei sind Dur-Akkorde.',
+    '<b>I = zu Hause.</b>',
+    '<b>IV = schwebend:</b> „ich kann hier bleiben, aber ich muss noch mal hin, aber ich bin noch nicht zu Hause“.',
+    '<b>V = instabil, will heim.</b> In C-Dur: C = zu Hause, F = Subdominante, G = Dominante, „will nach Hause zum C“.',
+    'Warum zieht die Dominante? G-Dur = G-B-D. Das <b>B ist einen Halbton vom C weg</b> – der <b>Leitton</b>. Das B will hoch zum C, das D will runter zum C.',
+    'Spielst du <b>G7</b> (Dominantseptakkord, mit kleiner 7), kommt das F dazu. Es will einen Schritt runter zur Terz E von C. Drei ziehende Töne – „ganz schlimm“.',
+    'In einer anderen Tonart hat ein anderer Akkord diesen Zug (in F-Dur z. B. C-Dur).'],
+    m: '1 stabil, 4 schwebend („is floaty“), 5 instabil – will auf die Eins fallen.',
+    g: [{ n: 'C', iv: '1 3 5' }, { n: 'G', iv: '1 3 5' }, { n: 'G7', iv: '1 3 5 b7', cap: 'kleine 7 (F) dazu' }],
+    loop: [{ c: ['C', 'F', 'G', 'C'], fr: { F: PcKurs.FO }, bpm: 70, t: 'I – IV – V – I' }],
+    ex: ['L:Hörvergleich: Spiele I, IV, V in C-Dur nacheinander und höre die Wirkung (zu Hause / schwebend / will heim).',
+      'E:Dominante hören: C – F – G und dort anhalten, erst dann C. Danach G7 statt G: Der Zug wird noch stärker.'] },
+  { id: 'k5-3', t: '5.3 Die Moll-Akkorde = Parallelen', p: [
+    'Die drei Moll-Akkorde (Stufe 2, 3, 6) heißen <b>Parallelen</b>.',
+    'Die <b>6 ist die Tonikaparallele</b>, „immer eine kleine Terz drunter“: C-Dur hat <b>A-Moll</b> als Parallele.',
+    'Die <b>2 ist die Parallele der 4</b>, die <b>3 die Parallele der 5</b>.',
+    'Heißt: <b>1 und 6, 4 und 2, 5 und 3</b> haben ähnliche Funktionen und lassen sich austauschen.',
+    'Warum? A-C-E enthält schon zwei Drittel von C-Dur. In <b>Am7 (A-C-E-G)</b> bleibt ohne das A genau C-Dur (C-E-G) übrig.',
+    'Die Akkorde sind „ineinander verschachtelt“ – der Lehrer nennt das <b>Upper Structure Triad</b>.'],
+    m: '„Wenn der Zug im Ohr ist, ich will auf die 1, dann kann ich die 6 nehmen.“',
+    g: [{ n: 'Am7', iv: '1 b3 5 b7' }, { n: 'C', iv: '1 3 5' }],
+    ex: ['E:Am7 enthält C: Spiele Am7 und dann C und höre, dass die oberen Töne (C, E, G) gleich bleiben.'] },
+  { id: 'k5-4', t: '5.4 Ersetzen im Spiel: 6 statt 1, 2 statt 4', p: [
+    'Spiele in C-Dur erst <b>I-IV-V-I</b>, dann <b>VI-IV-V-VI</b>: Am – F – G – Am („ich lasse die 1 komplett weg“). Er nennt das scherzhaft <b>„die Maidens“</b>, weil Iron Maiden das oft benutzt.',
+    'Eine <b>Kadenz</b> ist: stabil → floaty → instabil → zurück zu stabil (I-IV-V-I).',
+    '<b>Sekundärdominanten</b> sind „Dominanten, die wir uns ausleihen“ – später wichtig für Akkorderweiterungen.',
+    'Mischformen gehen auch: 6-4-5-1 oder 1-4-5-1. Die bekannte <b>1-6-4-5</b>: „1 ein bisschen länger über 6, ist immer noch nur 1, dann 4-5“.',
+    '<b>4 gegen 2 tauschen:</b> statt C-F-G-C spielst du <b>C-Dm-G-C</b>. „Die Funktionen sind gleich.“ „Das ist eigentlich die Standardkadenz.“'],
+    loop: [{ c: ['Am', 'F', 'G', 'Am'], fr: { F: PcKurs.FO }, bpm: 75, t: 'VI – IV – V – VI („die Maidens“)' },
+           { c: ['C', 'Am', 'F', 'G'], fr: { F: PcKurs.FO }, bpm: 75, t: 'I – VI – IV – V' },
+           { c: ['C', 'Dm', 'G', 'C'], bpm: 75, t: 'I – II – V – I' }],
+    ex: ['L:Spiele VI-IV-V-VI statt I-IV-V-I („die Maidens“).', 'L:Spiele I-VI-IV-V.', 'L:Spiele I-II-V-I statt I-IV-V-I.',
+      'E:I-IV-V-VI-Hörspiel: In C je eine Minute I-IV-V-I, VI-IV-V-VI, I-VI-IV-V und I-II-V-I spielen und dir merken, wo „zu Hause“ liegt.'] },
+  { id: 'k5-5', t: '5.5 Jazz und Songwriting', p: [
+    'Im <b>Jazz</b> ist nicht I-IV-V Standard, sondern <b>2-5-1</b> (II-V-I), meist mit vierstimmigen Akkorden.',
+    'Man kann eine 2-5 auf die nächste 2-5 ziehen lassen – „es hört nie auf und irgendwann muss das auflösen“.',
+    'Das kommt daher, dass man die 4 gegen die 2 tauschen kann.'],
+    m: 'Songwriting-Tipp: „Ich will nicht auf dem Happy-4 landen – probiert mal die 2. Die 1 – probiert mal die 6, funktioniert meistens.“',
+    g: [{ n: 'Dm7', iv: '1 b3 5 b7' }, { n: 'G7', iv: '1 3 5 b7' }, { n: 'Cmaj7', iv: '1 3 5 7' }],
+    loop: [{ c: ['Dm7', 'G7', 'Cmaj7', 'Cmaj7'], bpm: 70, t: '2 – 5 – 1 in C' }],
+    ex: ['L:Songwriting: Statt der „Happy-4“ die 2 probieren, statt der 1 die 6.', 'L:Probiere eine 2-5-1 aus.'] },
+  { id: 'k5-6', t: '5.6 Die 3 und die 7', p: [
+    'Die <b>3</b> (in C-Dur E-Moll) ist die Parallele zur 5. Sie zieht „ein bisschen, aber nicht so wirklich“.',
+    'E-Moll ist der obere Dreiklang von <b>Cmaj7 (C-E-G-B)</b>.',
+    'Die <b>7</b> ist der verminderte Akkord, in C-Dur <b>Bm7b5</b> („Moll 7 b5“). Statt einer Quinte hat er eine <b>verminderte Quinte (b5, Bart Simpson)</b> – „keine kleine Quinte“.',
+    'Bauanleitung: 1-5-8 + kleine Terz (aus der großen Terz „eine runter“) + die 5 einen Halbton tiefer = <b>Moll-Akkord mit b5</b>.',
+    'Funktion: Er hat Dominant-Charakter – „eigentlich ein G7 ohne den Grundton“.',
+    '<b>Halbvermindert</b> = 1, kleine Terz, verminderte Quinte, dazu die kleine 7. <b>Vollvermindert</b> hat nur kleine Terzen (mit verminderter Septime) und ist komplett symmetrisch.',
+    'In Pop und Rock ist ein Moll7b5 „sehr unwahrscheinlich“. „Man muss das wissen, man muss ihn können, aber funktionsmäßig verwendet man ihn sehr selten.“'],
+    g: [{ n: 'Cmaj7', iv: '1 3 5 7' }, { n: 'Bm7b5', iv: '1 b3 b5 b7' }, { n: 'G7', iv: '1 3 5 b7' }],
+    ex: ['E:Spiele G7 und danach Bm7b5 und vergleiche: Die Töne B, D, F kommen in beiden vor (G7 ohne Grundton).'] },
+  { id: 'k5-7', t: '5.7 Bilanz: was oft und was selten ersetzt wird', p: [
+    'I-IV-V-I immer. <b>1 gegen 6:</b> absolut. <b>2 gegen 4:</b> absolut (Standard).',
+    'Die 3 seltener, eher nicht als Ersatz für die 5. Die 7 selten.',
+    'Berühmte Folge <b>1-5-6-4</b> (<b>Axis of Awesome</b>) – in Folk, Punk, Pop und Rock; es gibt Videos dazu.',
+    'Ähnlichkeiten: <b>6 ≈ 1, 2 ≈ 4, 3 ≈ 5</b> (aber mehr 1), <b>7 ≈ 5</b> mit Vorsicht.',
+    'Ausblick: Bei der Dominante will er später die kleine 7 weglassen und stattdessen Sus4 oder andere Erweiterungen einsetzen.'],
+    loop: [{ c: ['C', 'G', 'Am', 'F'], fr: { F: PcKurs.FO }, bpm: 80, t: '1 – 5 – 6 – 4 (Axis of Awesome)' }],
+    ex: ['E:Spiele 1-5-6-4 in C (C – G – Am – F) und danach 6-4-1-5 (Am – F – C – G). Sage, welcher Akkord sich nach „zu Hause“ anfühlt.'] }
+] });
