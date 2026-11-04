@@ -49,13 +49,14 @@
   const total = () => K.reduce((a, c) => a + c.s.reduce((b, S) => b + S.ex.length, 0), 0);
   function kp() { const P = A.PR(); P.kurs = P.kurs || {}; return P.kurs; }
   function paintSum() {
-    const st = kp(), n = Object.keys(st).filter(k => st[k]).length, t = total();
+    const st = kp(), n = Object.keys(st).filter(k => st[k] === true).length, t = total();
     const el = document.getElementById('pcKSum'); if (el) el.textContent = n + ' von ' + t + ' Übungen abgehakt';
     const b = document.getElementById('pcKBar'); if (b) b.style.width = (t ? 100 * n / t : 0) + '%';
   }
   function fillChapter(d) {
     if (d._k) return; d._k = true; const ci = +d.dataset.kc, C = K[ci], st = kp();
-    d.querySelector('.pc-sec-b').innerHTML = (C.i ? '<p class="caption" translate="no">' + C.i + '</p>' : '') + C.s.map((S, si) => subHtml(ci, si, S)).join('');
+    if (C.w && window.PcWerk) PcWerk.build(d.querySelector('.pc-sec-b'), A, C);                       // v126: Kapitel 3 = Intervall-Werkstatt
+    else d.querySelector('.pc-sec-b').innerHTML = (C.i ? '<p class="caption" translate="no">' + C.i + '</p>' : '') + C.s.map((S, si) => subHtml(ci, si, S)).join('');
     d.querySelectorAll('[data-kb]').forEach(el => { const [a, b, c] = el.dataset.kb.split('.').map(Number), g = K[a].s[b].g[c], q = grip(g), [f0, f1] = range(q.marks, g.nm && !g.short);
       A.board(el, { marks: q.marks, muted: q.muted, from: f0, to: f1, mini: true }); });
     d.querySelectorAll('input[data-kx]').forEach(c => { c.checked = !!st[c.dataset.kx]; });
@@ -163,7 +164,7 @@ PcKurs.K.push({ t: 'Kapitel 2 – Powerchord-Grundlagen', s: [
 ] });
 
 // ===== Kapitel 3 – Intervalle =====
-PcKurs.K.push({ t: 'Kapitel 3 – Intervalle', s: [
+PcKurs.K.push({ t: 'Kapitel 3 – Intervalle', w: 1, s: [
   { id: 'k3-1', t: '3.1 Namen und Zahlen', p: [
     'Intervalle sind die Zahlen 1 bis 8 – genauso einfach wie A bis G. Es gibt nur sieben verschiedene Zahlen, denn die 8 ist wieder die 1.',
     '<b>Nur einmal gibt es: 1, 4, 5, 8.</b> „Es gibt keine große 5 oder kleine 5.“ Die 1 heißt auch Prime.',
