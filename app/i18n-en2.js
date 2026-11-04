@@ -909,3 +909,16 @@ Object.assign(window.__EN, {
   '▶ Nacheinander': '▶ One by one'
 });
 window.__EN_PAT.unshift([/^(\d+) von (\d+) Übungen abgehakt$/, '$1 of $2 exercises ticked']);
+// v126 Intervall-Werkstatt (Texte werden in powerchords-werkstatt.js über __EN_PCW gewählt)
+window.__EN_PCW = {
+  '1 Eine Saite': '1 One string', '2 Abstand = Intervall': '2 Distance = interval', '3 Zwei Saiten': '3 Two strings', '4 Powerchord': '4 Power chord', '5 Alles zusammen': '5 All together', '✎ Übungen': '✎ Exercises',
+  'Prime': 'unison', 'kl. Sekunde': 'min. 2nd', 'gr. Sekunde': 'maj. 2nd', 'kl. Terz': 'min. 3rd', 'gr. Terz': 'maj. 3rd', 'Quarte': '4th', 'Tritonus': 'tritone', 'Quinte': '5th',
+  'kl. Sexte': 'min. 6th', 'gr. Sexte': 'maj. 6th', 'kl. Septime': 'min. 7th', 'gr. Septime': 'maj. 7th', 'Oktave': 'octave',
+  '☐ Mehrere wählen': '☐ Select several', 'Akkord-Baukasten: Intervalle ankreuzen, der Akkord erscheint.': 'Chord builder: tick intervals, the chord appears.',
+  'Beschriftung': 'Labels', 'Zahl': 'Number', 'Name': 'Name', 'Ton': 'Note', 'Alles': 'All',
+  '▶ Grundton': '▶ Root', '▶ Nacheinander': '▶ One by one', '▶ Zusammen': '▶ Together', '◀ kleiner': '◀ smaller', 'größer ▶': 'larger ▶', '▶ Akkord anhören': '▶ Play chord',
+  'Finde die …': 'Find the …', 'Wie heißt das?': 'What is it?', 'Hör-Quiz': 'Ear quiz', '▶ Nochmal hören': '▶ Hear again', 'Bestes Ergebnis': 'Best result',
+  'Aufgabe': 'Task', 'von': 'of', 'Treffer': 'Hits', 'Weiter ▶': 'Next ▶', 'Neue Runde': 'New round',
+  'Prime / Oktave': 'unison / octave', 'Terzen': 'thirds', 'Sekunden · Sexten · Septimen · Tritonus': 'seconds · sixths · sevenths · tritone',
+  'Merkkarten des Lehrers': 'Teacher’s cards', 'Übungen aus dem Kurs': 'Exercises from the course'
+};
