@@ -1206,3 +1206,19 @@ Gut zu wissen
      oben steht „x von 83 Übungen abgehakt“. „Zurücksetzen“ im Bereich „Übungen“ lässt die Kurs-Häkchen stehen.
    - Im Kurstext heißt der Ton H wie beim Lehrer B (das tiefere B-flat); auf dem Griffbrett steht die Saite weiter als H.
    - Unklare Stellen der Kursaufnahme sind weggelassen; wo der Lehrer keinen Griff nennt, steht ein Standardgriff (markiert).
+
+109. Kurs Kapitel 3: Intervall-Werkstatt (v126)
+   - Powerchords → Kurs → Kapitel 3 „Intervalle“ ist jetzt eine Werkstatt. Schritte oben: 1 Eine Saite (jeder Bund = 1 Halbton,
+     mit Vorschau-Leiste), 2 Abstand = Intervall (mit Grifftipp), 3 Zwei Saiten (gleiches Intervall als Griffform, Sonderfall
+     G→H: ein Bund mehr), 4 Powerchord (1 · 5 · 8 leuchten), 5 Alles zusammen, ✎ Übungen.
+   - Intervall-Knöpfe 1 Prime … 8 Oktave: immer ein Intervall, Grundton rot, Intervall in Familienfarbe (Prime/Oktave rot,
+     Quinte blau, Terzen grün, Quarte violett, Rest grau), Pfeil „+N Halbtöne“, Text „A → C# = große Terz (3)“.
+     ▶ Grundton, ▶ Nacheinander, ▶ Zusammen, ◀ kleiner, größer ▶. Einen Bund tippen = neuer Grundton (Start A, E-Saite, 5. Bund).
+     Andere Lagen des Grundtons sind gestrichelt. Beschriftung: Zahl · Name · Ton · Alles.
+   - „Mehrere wählen“ = Akkord-Baukasten: angekreuzte Intervalle erscheinen zusammen, darunter der Akkord (A5, Dur, Moll, sus2,
+     sus4, add9, add11, 7, maj7, m7, m(maj7), m7b5, vermindert, vollvermindert, maj7(9), m7(11) – nur Arten aus dem Kurs) mit
+     Formel und „▶ Akkord anhören“. Passt nichts: „kein gängiger Akkord“ und der nächste Treffer („noch die 5 dazu → A-Dur“).
+   - Rechts die Merkkarten des Lehrers, darunter die bisherigen Kurs-Übungen zum Abhaken (bleiben erhalten).
+   - ✎ Übungen: „Finde die …“ (Bund tippen, sofort ✓/✗ mit Erklärung), „Wie heißt das?“ (Punkt „?“, Namen wählen),
+     „Hör-Quiz“ (erst 1/5/8, dann mehr). Je 10 Aufgaben, Ergebnis und Bestwert werden gespeichert.
+   - Behoben: Kurstext lief auf dem iPad rechts aus dem Bild – jetzt wird überall umbrochen.
