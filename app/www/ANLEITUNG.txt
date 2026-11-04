@@ -1195,3 +1195,14 @@ Gut zu wissen
    - Grenzen: Die Trennung ist gut, aber nicht perfekt (Hall des Gesangs bleibt teils in der Begleitung, laute Gitarren-Soli
      können im Gesang landen). Sehr lange Lieder brauchen viel Speicher; bei Problemen erst kürzere Ausschnitte trennen.
      Der Karaoke-Zustand wird nicht gespeichert – nach dem Neuladen ist die Spur so, wie sie zuletzt gesichert wurde.
+
+108. Powerchords: Bereich „Kurs“ – Power Chord Theory, Kapitel 1–7 (v125)
+   - Reiter „Powerchords“ → oben „Kurs“ (ganz rechts). Sieben Kapitel: Einleitung, Powerchord-Grundlagen, Intervalle,
+     CAGED, Akkordfunktionen, Sus/Add, 7er-Akkorde. Kapitel antippen = aufklappen (der Inhalt wird erst dann gebaut).
+   - Jedes Unterkapitel: Schritte in der Reihenfolge des Lehrers, Merksätze, Griffbilder (hohe e-Saite oben, Zahlen in den
+     Punkten = Intervalle, x = gedämpft), „▶ Anhören“ (Griff) bzw. „▶ Nacheinander“ (Töne einzeln) und „▶ Loop starten“
+     (Akkordfolge mit Drums als Loop auf Spur 1 des Loopers – Spur 2 und 3 bleiben zum Aufnehmen frei).
+   - Block „Übungen“: zuerst die Übungen des Lehrers, dann „(ergänzt)“ = passende Zusatzübungen. Abhaken wird gespeichert,
+     oben steht „x von 83 Übungen abgehakt“. „Zurücksetzen“ im Bereich „Übungen“ lässt die Kurs-Häkchen stehen.
+   - Im Kurstext heißt der Ton H wie beim Lehrer B (das tiefere B-flat); auf dem Griffbrett steht die Saite weiter als H.
+   - Unklare Stellen der Kursaufnahme sind weggelassen; wo der Lehrer keinen Griff nennt, steht ein Standardgriff (markiert).
