@@ -125,3 +125,17 @@
   .pc-best { flex: 1 1 100%; }
   :root:is([data-theme="light"], [data-theme="precise"]) .pc-m.dx circle { fill: rgba(255,255,255,.16); }
   @media (max-width: 600px) { .pc-now b { font-size: 2.6rem; } .pc-fnames { font-size: 1.4rem; } .pc-chordbox b { font-size: 2rem; } }
+  /* v125 Kurs */
+  .pc-ksub { border-top: 1px solid var(--line); padding-top: 6px; margin-top: 14px; }
+  .pc-ksub:first-child { border-top: 0; margin-top: 0; }
+  .pc-ksteps { margin: 6px 0; padding-left: 1.4em; }
+  .pc-ksteps li { margin: 4px 0; }
+  .pc-kmerk { border-left: 4px solid var(--accent); padding: 6px 10px; margin: 8px 0; font-weight: 600; }
+  .pc-kgrips { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; margin: 10px 0; }
+  .pc-kgrip { display: flex; flex-direction: column; gap: 4px; min-width: 0; padding: 8px; border-radius: 10px; background: color-mix(in srgb, var(--line) 35%, transparent); }
+  .pc-kgrip .toggle-btn { align-self: flex-start; }
+  .pc-kloop { margin: 6px 0; }
+  .pc-kex { margin-top: 8px; }
+  .pc-kex h5 { margin: 6px 0; font-size: .9rem; color: var(--accent); }
+  #panel-power .pc-kchk { display: flex; align-items: flex-start; gap: 8px; padding: 10px 4px; line-height: 1.4; }
+  .pc-kchk input { margin-top: 3px; flex: none; width: 20px; height: 20px; }

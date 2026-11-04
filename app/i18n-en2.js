@@ -903,3 +903,9 @@ window.__EN_PAT.push(
   [/^([A-He])-Saite · Bund (\d+)( ⚠)?$/, '$1 string · fret $2$3'],
   [/^(Auto: .* · )?Weg: (\d+) (Bund|Bünde)$/, (m, a, n) => (a ? a.replace(/ auf ([A-He])-Saite/g, ' on $1 string') : '') + 'Path: ' + n + (n === '1' ? ' fret' : ' frets')]
 );
+// v125 Powerchords-Kurs
+Object.assign(window.__EN, {
+  'Kurs': 'Course',
+  '▶ Nacheinander': '▶ One by one'
+});
+window.__EN_PAT.unshift([/^(\d+) von (\d+) Übungen abgehakt$/, '$1 of $2 exercises ticked']);

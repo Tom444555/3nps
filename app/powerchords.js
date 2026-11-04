@@ -257,11 +257,12 @@
     showSec(U.sec);
   }
   function showSec(v) {
-    if (!['theorie', 'schritte', 'brett', 'folgen', 'uebungen'].includes(v)) v = 'theorie';
+    if (!['theorie', 'schritte', 'brett', 'folgen', 'uebungen', 'kurs'].includes(v)) v = 'theorie';
     U.sec = v; saveUi(); setSeg('pcSubs', v); panel.querySelectorAll('#pcSubs button').forEach(b => b.setAttribute('aria-selected', b.dataset.v === v ? 'true' : 'false'));
     panel.querySelectorAll('.pc-sec-wrap').forEach(w => { w.hidden = w.dataset.sec !== v; });
     if (v === 'schritte') stepShow(); else stepStop();
     if (v === 'brett') renderBoard();
+    if (v === 'kurs' && window.PcKurs) PcKurs.build($('pcSecKurs'), { board, playMidi, strumNow, seqNow, begin, PR: () => PR, saveProg });   // v125: Kurs erst beim Öffnen
   }
   // Unter-Reiter-Knöpfe tragen data-sec, onSeg liest data-v → beides setzen
   panel.querySelectorAll('#pcSubs button').forEach(b => { b.dataset.v = b.dataset.sec; });
@@ -430,7 +431,7 @@
   function buildEx() {
     $('pcSecUebungen').innerHTML = '<div class="card pc-exhead"><div class="pc-row"><b id="pcExSum"></b><button class="toggle-btn" id="pcExReset">Zurücksetzen</button></div><div class="pc-bar"><i id="pcExBar"></i></div>' +
       '<p class="caption">Ein Häkchen setzt du, wenn du die Übung beim Zieltempo drei Mal fehlerfrei und sauber gespielt hast. Erhöhe in 5er-Schritten.</p></div><div id="pcExList"></div>';
-    $('pcExReset').addEventListener('click', () => { if (!confirm(TT('Fortschritt aller Übungen zurücksetzen?'))) return; try { localStorage.removeItem(PKEY); } catch (e) {} PR = loadProg(); saveProg(); renderEx(); });
+    $('pcExReset').addEventListener('click', () => { if (!confirm(TT('Fortschritt aller Übungen zurücksetzen?'))) return; const kk = PR.kurs; try { localStorage.removeItem(PKEY); } catch (e) {} PR = loadProg(); if (kk) PR.kurs = kk; saveProg(); renderEx(); });
     $('pcExList').addEventListener('click', e => {
       const b = e.target.closest('button[data-a]'); if (!b) return; const x = EXS.find(q => q.id === b.dataset.x), st = PR.exercises[x.id];
       if (b.dataset.a === 'go') { startEx(x); return; }
@@ -577,7 +578,7 @@
 
   // Schnittstelle für Tests und andere Reiter
   window.Powerchords = { calc, prog, place, positions, keyName, spellRel, handoff, tabText, toneLine, renderBacking, options,
-    data: { SHAPES, PROGS, EXS, OPEN, DEG }, progress: () => JSON.parse(JSON.stringify(PR)), ui: () => JSON.parse(JSON.stringify(U)),
+    data: { SHAPES, PROGS, EXS, OPEN, DEG }, progress: () => JSON.parse(JSON.stringify(PR)), kurs: () => Object.assign({}, PR.kurs || {}), ui: () => JSON.parse(JSON.stringify(U)),
     build, showSec, startProg, startEx: id => startEx(EXS.find(x => x.id === id)), stop: () => stopAll(), retempo: v => retempo(v), playing: () => play ? { mode: play.mode, bpm: play.bpm, idx: play.idx, ex: play.ex, names: play.r.chords.map(c => c.name), L: ownL } : null,
     exSeq: id => exSeq(EXS.find(x => x.id === id)) };
 })();
