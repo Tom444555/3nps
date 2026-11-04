@@ -74,7 +74,7 @@
   function build(h, api) {
     if (host) return; host = h; A = api;
     h.innerHTML = '<div class="card pc-exhead"><div class="pc-row"><b id="pcKSum"></b></div><div class="pc-bar"><i id="pcKBar"></i></div>' +
-      '<p class="caption" translate="no">Kurs „Power Chord Theory“, Kapitel 1–7, Schritt für Schritt nach den Worten des Lehrers. Im Kurs heißt der Ton H wie beim Lehrer <b>B</b> (das tiefere heißt <b>B-flat</b>). Die Griffbilder zeigen die hohe e-Saite oben; die Zahlen in den Punkten sind die Intervalle.</p></div>' +
+      '<p class="caption" translate="no">Kurs „Power Chord Theory“, Kapitel 1–7, Schritt für Schritt nach den Worten des Lehrers. Im Text heißt der Ton H wie beim Lehrer <b>B</b> (das tiefere heißt <b>B-flat</b>); auf dem Griffbrett steht die Saite wie im übrigen Reiter als H. Die Griffbilder zeigen die hohe e-Saite oben; die Zahlen in den Punkten sind die Intervalle.</p></div>' +
       K.map((C, ci) => '<details class="card pc-sec pc-kc" data-kc="' + ci + '" id="pcKC' + (ci + 1) + '"' + (ci === 0 ? ' open' : '') + '><summary><h3 translate="no">' + C.t + '</h3></summary><div class="pc-sec-b"></div></details>').join('');
     h.addEventListener('click', onClick);
     h.addEventListener('change', e => { const c = e.target.closest('input[data-kx]'); if (!c) return; const st = kp(); if (c.checked) st[c.dataset.kx] = true; else delete st[c.dataset.kx]; A.saveProg(); paintSum(); });
