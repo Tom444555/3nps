@@ -233,3 +233,20 @@
   .pc-winfo { min-height: 5.4em; } .pc-wqbody { min-height: 9em; } .pc-wcap { min-height: 2.6em; }
   .pc-wgrid { grid-template-columns: minmax(0, 1fr) minmax(250px, 29%); }
   @media (max-width: 1000px) { .pc-wgrid { grid-template-columns: minmax(0, 1fr); } }
+  /* v128 „Was spiele ich?“ */
+  .pc-live { display: flex; flex-direction: column; gap: 6px; }
+  .pc-lhead { justify-content: space-between; } .pc-lhead h4 { margin: 0; letter-spacing: .08em; text-transform: uppercase; font-size: .85rem; opacity: .85; }
+  .pc-lvl { display: inline-flex; align-items: flex-end; gap: 3px; height: 18px; margin-left: auto; }
+  .pc-lvl i { width: 4px; border-radius: 2px; background: color-mix(in srgb, currentColor 22%, transparent); }
+  .pc-lvl i:nth-child(1) { height: 6px; } .pc-lvl i:nth-child(2) { height: 9px; } .pc-lvl i:nth-child(3) { height: 12px; } .pc-lvl i:nth-child(4) { height: 15px; } .pc-lvl i:nth-child(5) { height: 18px; }
+  .pc-lvl i.on { background: #4fd18b; }
+  .pc-lst { font-size: .8rem; color: #4fd18b; min-width: 5.5em; text-align: right; }
+  .pc-lname { font: 800 2.6rem/1.1 var(--f-body); min-height: 1.15em; overflow-wrap: anywhere; }
+  .pc-lform, .pc-lbass { font-size: .88rem; min-height: 1.3em; opacity: .9; }
+  .pc-lbass .ok { color: #4fd18b; } .pc-lbass .no { color: #e8b04a; }
+  .pc-ltones { display: grid; grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)); gap: 6px; min-height: 58px; }
+  .pc-ltone { display: flex; flex-direction: column; align-items: center; padding: 6px 2px; border-radius: 10px; border: 1px solid color-mix(in srgb, currentColor 18%, transparent); }
+  .pc-ltone b { font-size: 1.2rem; } .pc-ltone small { font-size: .72rem; opacity: .8; } .pc-ltone.opt { opacity: .6; }
+  .pc-ltone.f1 b { color: #ff6b5e; } .pc-ltone.f5 b { color: #6fb4ff; } .pc-ltone.f3 b { color: #4fd18b; } .pc-ltone.f4 b { color: #c39bff; } .pc-ltone.fx b { color: #9a958f; }
+  .pc-lgame { min-height: 3.2em; } .pc-lgame p { margin: 4px 0; } .pc-lfb.ok { color: #4fd18b; font-weight: 700; } .pc-lfb.no { color: #ff6b5e; font-weight: 700; }
+  .pc-klive { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; } .pc-klive > .toggle-btn { align-self: flex-start; }
