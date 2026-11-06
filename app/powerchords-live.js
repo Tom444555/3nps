@@ -42,6 +42,7 @@
     const bass = pk.find(p => p.w > wm * 0.22 && p.f < 340);
     return { rms, ch, bass: bass ? md(bass.m) : null, top: wm };
   }
+  const PRIOR = { '6': -0.03, 'm6': -0.03, '13': -0.02, '7b5': -0.02, '7s5': -0.02 };   // v131: seltene Arten (Kap. 11: „seltener“) nur bei klarem Signal
   function match(ch, bass) {
     const TY = window.PcWerk ? PcWerk.TY : []; let nrm = 0; for (let i = 0; i < 12; i++) nrm += ch[i] * ch[i]; nrm = Math.sqrt(nrm) || 1;
     const c = Array.from(ch, v => v / nrm), cm = Math.max(...c), res = [];
@@ -49,7 +50,7 @@
       let tn = 0; for (let i = 0; i < 12; i++) tn += T[i] * T[i]; tn = Math.sqrt(tn);
       for (let r = 0; r < 12; r++) { let s = 0; for (let i = 0; i < 12; i++) s += c[md(r + i)] * T[i]; s /= tn;
         t.req.forEach(n => { if (c[md(r + n)] < cm * 0.12) s -= 0.15; });
-        if (r === bass) s += 0.06; res.push({ t, r, s }); } });
+        if (r === bass) s += 0.06; s += PRIOR[t.k] || 0; res.push({ t, r, s }); } });
     res.sort((a, b) => b.s - a.s); const b0 = res[0], b1 = res.find(x => x.t !== b0.t || x.r !== b0.r);
     return b0 ? { t: b0.t, r: b0.r, s: b0.s, margin: b0.s - (b1 ? b1.s : 0) } : null;
   }
@@ -58,7 +59,7 @@
   const W = window.PcWerk;
   function chordName(t, r, bass) { const rn = PcWerk.rootName(r); let n = PcWerk.cname(t, rn); if (bass != null && bass !== r) n += '/' + PcWerk.spell(rn, md(bass - r)); return n; }
   function tonesOf(t, r) { const rn = PcWerk.rootName(r); return t.req.concat(t.opt || []).map(n => n % 12).filter((v, i, a) => a.indexOf(v) === i).sort((a, b) => a - b)
-    .map(n => ({ n, ton: PcWerk.spell(rn, n), lab: (t.nine && t.nine.includes(n)) ? { 2: '9', 5: '11' }[n] : t.k === 'dim7' && n === 9 ? 'bb7' : PcWerk.IV[n][1], opt: (t.opt || []).includes(n) })); }
+    .map(n => ({ n, ton: PcWerk.spell(rn, n), lab: (t.nine && t.nine.includes(n)) ? { 1: 'b9', 2: '9', 3: '#9', 5: '11', 9: '13' }[n] : t.k === 'dim7' && n === 9 ? 'bb7' : t.k === '7s5' && n === 8 ? '#5' : PcWerk.IV[n][1], opt: (t.opt || []).includes(n) })); }
   const S = { card: null, an: null, timer: null, opened: false, buf: null, hist: [], shown: null, game: null, busy: false };
   function cardHtml() {
     return '<div class="pc-live"><div class="pc-row pc-lhead"><h4>' + L0('Was spiele ich?') + '</h4><span class="pc-lvl" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><span class="pc-lst">' + L0('aus') + '</span></div>' +

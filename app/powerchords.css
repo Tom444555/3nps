@@ -304,3 +304,13 @@
   @media (max-width: 600px) { .pc-ktab table { font-size: .76rem; } .pc-ktab td, .pc-ktab th { padding: 5px 4px; } }
   #pcSecKurs .pc-tbl table { table-layout: fixed; width: 100%; } #pcSecKurs .pc-tbl td, #pcSecKurs .pc-tbl th { overflow-wrap: anywhere; }
   @media (max-width: 600px) { #pcSecKurs .pc-tbl table { font-size: .74rem; } #pcSecKurs .pc-tbl td, #pcSecKurs .pc-tbl th { padding: 4px 3px; } }
+  /* v131 Hör-Training, Übungsplan, Technik, Stimmungen, Akkord-Tabelle */
+  .pc-ampel { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 6px; margin: 6px 0; }
+  .pc-amp { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px; border-radius: 10px; border: 1px solid var(--line); }
+  .pc-amp i { width: 16px; height: 16px; border-radius: 50%; background: #6b6762; } .pc-amp.gruen i { background: #4fd18b; } .pc-amp.gelb i { background: #e8b04a; } .pc-amp.rot i { background: #ff6b5e; }
+  .pc-amp small { font-size: .72rem; opacity: .8; }
+  .pc-kplan { border-radius: 16px; padding: 10px; margin: 12px 0; background: color-mix(in srgb, var(--line) 22%, transparent); } .pc-kplan h4 { margin: 0 0 4px; }
+  .pc-tempi .toggle-btn.active { background: #4fd18b; color: #10261a; }
+  .pc-wtab { margin-top: 8px; } .pc-wtab summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; }
+  .pc-wtab tr[data-w] { cursor: pointer; } .pc-wtab td, .pc-wtab th { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: left; } .pc-wtg th { color: #4fd18b; padding-top: 10px; }
+  .pc-wtab table { width: 100%; border-collapse: collapse; table-layout: fixed; } .pc-wtab td { overflow-wrap: anywhere; }

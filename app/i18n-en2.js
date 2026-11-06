@@ -935,3 +935,6 @@ Object.assign(window.__EN, { 'Ziel': 'Goal' });
 Object.assign(window.__EN_PCW, { 'Griff-Tabelle': 'Chord table', 'Akkordsymbole lesen': 'Reading chord symbols', 'Begriffe (Lexikon)': 'Glossary', 'Landkarte: Was benutze ich wann?': 'Map: what to use when?', 'Tonleitern & Tonarten': 'Scales & keys',
   'Erklären': 'Explain', '▶ Anhören': '▶ Listen', 'Stufenakkorde einer Dur-Tonart': 'Chords of a major key' });
 Object.assign(window.__EN, { 'Notenkarte': 'Note map', 'Alle Tonnamen auf jedem Griffbrett ein- oder ausblenden': 'Show or hide all note names on every fretboard' });
+// v131 Üben mit Plan
+Object.assign(window.__EN_PCW, { 'Hör-Training': 'Ear training', 'Technik-Vorübungen': 'Technique warm-ups', 'Stimmungen: Drop D, Cis, C, H': 'Tunings: drop D, C#, C, B', '▶ Runde starten': '▶ Start round',
+  'Übungsplan & Selbstkontrolle': 'Practice plan & self-check', 'geschafft bis': 'done up to', 'Akkord-Tabelle (alle Arten)': 'Chord table (all types)', '▶ Loop starten': '▶ Start loop' });

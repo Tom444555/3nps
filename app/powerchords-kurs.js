@@ -21,12 +21,16 @@
   };
   const TUN = { E: MIDI0, dD: [38, 45, 50, 55, 59, 64], dCis: [37, 45, 50, 55, 59, 64], dC: [36, 45, 50, 55, 59, 64], dB: [35, 45, 50, 55, 59, 64] };
   const SNAME = ['E', 'A', 'D', 'G', 'H', 'e'], LOWN = { 38: 'D', 37: 'Cis', 36: 'C', 35: 'H', 40: 'E' };
-  const base = g => (g.tu ? TUN[g.tu] : MIDI0), snOf = g => (g.tu ? [LOWN[TUN[g.tu][0]]].concat(SNAME.slice(1)) : null);
+  let TUNE = 'E';                                                    // v131: Stimmung für alle Kurs-Griffbilder (nur tiefe Saite)
+  const tuOf = g => g.tu || (TUNE !== 'E' ? TUNE : null);
+  const base = g => (tuOf(g) ? TUN[tuOf(g)] : MIDI0), snOf = g => (tuOf(g) ? [LOWN[TUN[tuOf(g)][0]]].concat(SNAME.slice(1)) : null);
+  const frOf = g => { const fr = g.fr || CH[g.n]; if (!fr || g.tu || TUNE === 'E' || fr[0] == null) return fr; const f = fr.slice(); f[0] += 40 - TUN[TUNE][0]; return f; };
   const K = [];
   // Griff → Marken; g = { n, r?, fr? | mk?, nm?, nine?, s9?, iv?, cap?, arp?, tu? }
   function grip(g) {
-    const B = base(g), fr = g.fr || CH[g.n], r = g.r != null ? g.r : g.nm ? 0 : pcOf(g.n);
-    if (g.mk) return { r, marks: g.mk.map(([s, f, l]) => ({ s, f, lab: l, cls: g.nm ? 'r5' : l === '1' ? 'r1' : l === '8' ? 'r8' : l === '5' ? 'r5' : 'dx3', midi: B[s] + f })), muted: [] };
+    const B = base(g), fr = frOf(g), r = g.r != null ? g.r : g.nm ? 0 : pcOf(g.n);
+    const off = !g.tu && TUNE !== 'E' ? 40 - TUN[TUNE][0] : 0;
+    if (g.mk) return { r, marks: g.mk.map(([s, f0, l]) => { const f = s === 0 ? f0 + off : f0; return { s, f, lab: l, cls: g.nm ? 'r5' : l === '1' ? 'r1' : l === '8' ? 'r8' : l === '5' ? 'r5' : 'dx3', midi: B[s] + f }; }), muted: [] };
     const marks = [], ms = []; let roots = 0;
     fr.forEach((f, s) => { if (f == null) return; ms.push({ s, f, midi: B[s] + f }); });
     ms.slice().sort((a, b) => a.midi - b.midi).forEach(t => {
@@ -127,13 +131,13 @@
     quizDraw(ci);
   }
   // ---------- v130: Griff-Tabelle je Kapitel ----------
-  const tabOf = (g) => (g.fr || CH[g.n]).map(f => f == null ? 'x' : f > 9 ? '(' + f + ')' : String(f)).join('');
+  const tabOf = (g) => frOf(g).map(f => f == null ? 'x' : f > 9 ? '(' + f + ')' : String(f)).join('');
   function gripTable(ci) {
     const C = K[ci], rows = []; C.s.forEach((S, si) => (S.g || []).forEach((g, gi) => { if (g.mk) return; rows.push([S, si, g, gi]); }));
     if (!rows.length) return ci === 0 ? '<details class="pc-ktab"><summary><h4>' + L0('Griff-Tabelle') + ' (Stammtöne)</h4></summary><div class="pc-tbl"><table translate="no"><thead><tr><th>Bund</th>' + [0, 1, 3, 5, 7, 8, 10, 12].map(f => '<th>' + f + '</th>').join('') + '</tr></thead><tbody><tr><td>E-Saite</td>' + ['E', 'F', 'G', 'A', 'B', 'C', 'D', 'E'].map(x => '<td>' + x + '</td>').join('') + '</tr></tbody></table><table translate="no"><thead><tr><th>Bund</th>' + [0, 2, 3, 5, 7, 8, 10, 12].map(f => '<th>' + f + '</th>').join('') + '</tr></thead><tbody><tr><td>A-Saite</td>' + ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'A'].map(x => '<td>' + x + '</td>').join('') + '</tr></tbody></table></div></details>' : '';
     return '<details class="pc-ktab"><summary><h4>' + L0('Griff-Tabelle') + ' (' + rows.length + ')</h4></summary><div class="pc-tbl"><table translate="no"><thead><tr><th>Akkord</th><th>Griff (tief → hoch)</th><th>Formel</th><th>Töne</th><th>Unterkapitel</th></tr></thead><tbody>' +
       rows.map(([S, si, g, gi]) => { const q = grip(g), labs = q.marks.slice().sort((a, b) => a.midi - b.midi);
-        return '<tr data-kpick="' + ci + '.' + si + '.' + gi + '"><td><b>' + esc(g.n) + '</b>' + (g.tu ? ' <span class="caption">(' + LOWN[TUN[g.tu][0]] + '-Stimmung)</span>' : '') + '</td><td class="pc-mono">' + tabOf(g) + '</td><td>' + [...new Set(labs.map(m => m.lab === '8' ? '1' : m.lab))].join(' · ') + '</td><td>' + labs.map(m => spellOf(g, q, m.lab)).join(' ') + '</td><td>' + S.t.replace(/^(\d+\.\d+).*/, '$1') + '</td></tr>'; }).join('') +
+        return '<tr data-kpick="' + ci + '.' + si + '.' + gi + '"><td><b>' + esc(g.n) + '</b>' + (tuOf(g) ? ' <span class="caption">(tiefe Saite ' + LOWN[TUN[tuOf(g)][0]] + ')</span>' : '') + '</td><td class="pc-mono">' + tabOf(g) + '</td><td>' + [...new Set(labs.map(m => m.lab === '8' ? '1' : m.lab))].join(' · ') + '</td><td>' + labs.map(m => spellOf(g, q, m.lab)).join(' ') + '</td><td>' + S.t.replace(/^(\d+\.\d+).*/, '$1') + '</td></tr>'; }).join('') +
       '</tbody></table></div><p class="caption" translate="no">Zeile antippen = Griff auf dem großen Griffbrett zeigen. „x“ = Saite nicht spielen, Zahlen in Klammern = Bund 10 und höher.</p></details>';
   }
   // ---------- Kapitel bauen ----------
@@ -148,6 +152,7 @@
         C.s.map((S, si) => subHtml(ci, si, S)).join('');
       h += '<div class="pc-kquiz" data-kq="' + ci + '"><div class="pc-row"><h4>' + L0('Quiz zum Kapitel') + '</h4><span class="caption pc-kqbest"></span><button class="toggle-btn active" data-kqs="1">' + PcSkin.btn(L0('▶ Quiz starten')) + '</button></div><div class="pc-bwrap pc-kqb"></div><div class="pc-kqbody"></div></div>';
       h += gripTable(ci);
+      if (window.PcPlan) h += PcPlan.planHtml(ci);                            // v131: Übungsplan & Selbstkontrolle
       const mq = C.s.filter(S => S.m).map(S => [S.m, S.t]);
       if (mq.length || C.mk) h += '<div class="pc-kmerke"><h4>' + L0('Merke') + '</h4><div class="pc-kmgrid" translate="no">' + (C.mk || []).map(t => '<div class="pc-wcard f1">' + t + '<small>Merkkarte · Kapitel ' + (ci + 1) + '</small></div>').join('') +
         mq.map(([t, src]) => '<div class="pc-wcard f3">' + t + '<small>Lehrer · ' + src + '</small></div>').join('') + '</div></div>';
@@ -185,6 +190,7 @@
   }
   function build(h, api) {
     if (host) return; host = h; A = api;
+    { const t = (kp()['opt-tune'] || {}).t; if (t && TUN[t]) TUNE = t; }
     h.innerHTML = '<div class="card pc-exhead pc-khome"><h3 class="pc-wt" translate="no">Power Chord Theory – Kurs</h3><div class="pc-row"><b id="pcKSum"></b></div><div class="pc-bar"><i id="pcKBar"></i></div>' +
       '<div class="pc-tiles" id="pcKRings">' + K.map((C, ci) => '<button class="pc-ring pc-tile" data-kring="' + ci + '"><span class="pc-tring"><span class="pc-rsvg"></span><b>' + (ci + 1) + '</b></span><span class="pc-tt"><b translate="no">' + C.short + '</b><span class="pc-td" translate="no">' + (C.d || '') + '</span><span class="pc-tp caption"></span></span></button>').join('') + '</div>' +
       '<p class="caption" translate="no">15 Kapitel, Schritt für Schritt nach den Worten des Lehrers. Tippe eine Kachel an, um das Kapitel zu öffnen. Im Text heißt der Ton H wie beim Lehrer <b>B</b> (das tiefere heißt <b>B-flat</b>); auf dem Griffbrett steht die Saite wie im übrigen Reiter als H. Die Griffbilder zeigen die hohe e-Saite oben; die Zahlen in den Punkten sind die Intervalle.</p></div>' +
@@ -195,7 +201,8 @@
     h.addEventListener('click', e => { const r = e.target.closest('[data-kring]'); if (!r) return; openChapter(+r.dataset.kring + 1); });
     h.addEventListener('change', e => { const c = e.target.closest('input[data-kx]'); if (!c) return; const st = kp(); if (c.checked) st[c.dataset.kx] = true; else delete st[c.dataset.kx]; A.saveProg(); paintSum(); });
     h.querySelectorAll('details.pc-kc').forEach(d => { d.addEventListener('toggle', () => { if (d.open) fillChapter(d); }); if (d.open) fillChapter(d); });
-    if (window.PcExtra) PcExtra.build(h, A);                                  // v130: Werkzeuge (Akkordsymbole, Lexikon, Landkarte, Tonleitern)
+    if (window.PcExtra) PcExtra.build(h, A);
+    if (window.PcPlan) PcPlan.build(h, A);                                    // v131: Hör-Training, Technik, Stimmungen                                  // v130: Werkzeuge (Akkordsymbole, Lexikon, Landkarte, Tonleitern)
     paintSum();
   }
   // Prüfung für Tests: jede Marke passt zu ihrem Intervall bzw. Notennamen, Intervallmenge = Formel
@@ -207,7 +214,12 @@
       if (g.iv) { const want = g.iv.split(' ').map(x => SEM[x]).sort().join(), got = [...new Set(q.marks.map(m => SEM[m.lab]))].sort().join(); if (want !== got) bad.push(g.n + ' Formel ' + g.iv); } });
     return { n: all.length, bad };
   }
-  window.PcKurs = { K, CH, TUN, build, grip, check, total, open: openChapter, quiz: ci => QZ[ci] && { kind: QZ[ci].kind, want: QZ[ci].want, i: QZ[ci].i, hits: QZ[ci].hits, ans: QZ[ci].ans } };
+  function setTuning(t) {                                             // alle gebauten Kapitel neu aufbauen (Häkchen bleiben)
+    if (!TUN[t]) return; TUNE = t; const st = kp(); st['opt-tune'] = { t }; A.saveProg();
+    document.querySelectorAll('#pcSecKurs details.pc-kc').forEach(d => { if (!d._k || K[+d.dataset.kc].w) return; d._k = false; Object.keys(STG).forEach(k => { if (k.startsWith(d.dataset.kc + '.')) delete STG[k]; }); fillChapter(d); });
+  }
+  function loopNow(names, bpm, drums, fr) { const ch = loopChords({ c: names, fr }); A.begin({ chords: ch, path: 0, keyPc: ch[0].rootPc, keyName: ch[0].name }, { how: 'looper', n: 3, bpm: bpm || 70, drums: drums || 'drums', label: 'Kurs · ' + names.join(' – ') }); }
+  window.PcKurs = { K, CH, TUN, build, grip, check, total, open: openChapter, setTuning, tuning: () => TUNE, loopNow, quiz: ci => QZ[ci] && { kind: QZ[ci].kind, want: QZ[ci].want, i: QZ[ci].i, hits: QZ[ci].hits, ans: QZ[ci].ans } };
 })();
 
 // ===== Kapitel 1 – Einleitung =====

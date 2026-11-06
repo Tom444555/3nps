@@ -1938,6 +1938,16 @@ html.sig-open .control-bar { visibility: hidden; }   /* Kopfleiste liegt sonst �
   @media (max-width: 600px) { .pc-ktab table { font-size: .76rem; } .pc-ktab td, .pc-ktab th { padding: 5px 4px; } }
   #pcSecKurs .pc-tbl table { table-layout: fixed; width: 100%; } #pcSecKurs .pc-tbl td, #pcSecKurs .pc-tbl th { overflow-wrap: anywhere; }
   @media (max-width: 600px) { #pcSecKurs .pc-tbl table { font-size: .74rem; } #pcSecKurs .pc-tbl td, #pcSecKurs .pc-tbl th { padding: 4px 3px; } }
+  /* v131 Hör-Training, Übungsplan, Technik, Stimmungen, Akkord-Tabelle */
+  .pc-ampel { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 6px; margin: 6px 0; }
+  .pc-amp { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px; border-radius: 10px; border: 1px solid var(--line); }
+  .pc-amp i { width: 16px; height: 16px; border-radius: 50%; background: #6b6762; } .pc-amp.gruen i { background: #4fd18b; } .pc-amp.gelb i { background: #e8b04a; } .pc-amp.rot i { background: #ff6b5e; }
+  .pc-amp small { font-size: .72rem; opacity: .8; }
+  .pc-kplan { border-radius: 16px; padding: 10px; margin: 12px 0; background: color-mix(in srgb, var(--line) 22%, transparent); } .pc-kplan h4 { margin: 0 0 4px; }
+  .pc-tempi .toggle-btn.active { background: #4fd18b; color: #10261a; }
+  .pc-wtab { margin-top: 8px; } .pc-wtab summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; }
+  .pc-wtab tr[data-w] { cursor: pointer; } .pc-wtab td, .pc-wtab th { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: left; } .pc-wtg th { color: #4fd18b; padding-top: 10px; }
+  .pc-wtab table { width: 100%; border-collapse: collapse; table-layout: fixed; } .pc-wtab td { overflow-wrap: anywhere; }
   /* ===== Rost & Stahl: Hintergrund aus gerostetem Blech, darauf verschraubte Stahlplatten ===== */
   :root {
     --plate-hi: #3a3a40;
@@ -4135,6 +4145,9 @@ Object.assign(window.__EN, { 'Ziel': 'Goal' });
 Object.assign(window.__EN_PCW, { 'Griff-Tabelle': 'Chord table', 'Akkordsymbole lesen': 'Reading chord symbols', 'Begriffe (Lexikon)': 'Glossary', 'Landkarte: Was benutze ich wann?': 'Map: what to use when?', 'Tonleitern & Tonarten': 'Scales & keys',
   'Erklären': 'Explain', '▶ Anhören': '▶ Listen', 'Stufenakkorde einer Dur-Tonart': 'Chords of a major key' });
 Object.assign(window.__EN, { 'Notenkarte': 'Note map', 'Alle Tonnamen auf jedem Griffbrett ein- oder ausblenden': 'Show or hide all note names on every fretboard' });
+// v131 Üben mit Plan
+Object.assign(window.__EN_PCW, { 'Hör-Training': 'Ear training', 'Technik-Vorübungen': 'Technique warm-ups', 'Stimmungen: Drop D, Cis, C, H': 'Tunings: drop D, C#, C, B', '▶ Runde starten': '▶ Start round',
+  'Übungsplan & Selbstkontrolle': 'Practice plan & self-check', 'geschafft bis': 'done up to', 'Akkord-Tabelle (alle Arten)': 'Chord table (all types)', '▶ Loop starten': '▶ Start loop' });
 
 // Sprache (v59): Deutsch ist der Quelltext. Nur im EN-Modus läuft hier etwas:
 // Ein Beobachter übersetzt neue/geänderte Texte im DOM (Text, title, placeholder, aria-label)
@@ -4240,7 +4253,7 @@ Object.assign(window.__EN, { 'Notenkarte': 'Note map', 'Alle Tonnamen auf jedem 
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v130</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v131</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -23272,12 +23285,16 @@ const HILFE = [
   };
   const TUN = { E: MIDI0, dD: [38, 45, 50, 55, 59, 64], dCis: [37, 45, 50, 55, 59, 64], dC: [36, 45, 50, 55, 59, 64], dB: [35, 45, 50, 55, 59, 64] };
   const SNAME = ['E', 'A', 'D', 'G', 'H', 'e'], LOWN = { 38: 'D', 37: 'Cis', 36: 'C', 35: 'H', 40: 'E' };
-  const base = g => (g.tu ? TUN[g.tu] : MIDI0), snOf = g => (g.tu ? [LOWN[TUN[g.tu][0]]].concat(SNAME.slice(1)) : null);
+  let TUNE = 'E';                                                    // v131: Stimmung für alle Kurs-Griffbilder (nur tiefe Saite)
+  const tuOf = g => g.tu || (TUNE !== 'E' ? TUNE : null);
+  const base = g => (tuOf(g) ? TUN[tuOf(g)] : MIDI0), snOf = g => (tuOf(g) ? [LOWN[TUN[tuOf(g)][0]]].concat(SNAME.slice(1)) : null);
+  const frOf = g => { const fr = g.fr || CH[g.n]; if (!fr || g.tu || TUNE === 'E' || fr[0] == null) return fr; const f = fr.slice(); f[0] += 40 - TUN[TUNE][0]; return f; };
   const K = [];
   // Griff → Marken; g = { n, r?, fr? | mk?, nm?, nine?, s9?, iv?, cap?, arp?, tu? }
   function grip(g) {
-    const B = base(g), fr = g.fr || CH[g.n], r = g.r != null ? g.r : g.nm ? 0 : pcOf(g.n);
-    if (g.mk) return { r, marks: g.mk.map(([s, f, l]) => ({ s, f, lab: l, cls: g.nm ? 'r5' : l === '1' ? 'r1' : l === '8' ? 'r8' : l === '5' ? 'r5' : 'dx3', midi: B[s] + f })), muted: [] };
+    const B = base(g), fr = frOf(g), r = g.r != null ? g.r : g.nm ? 0 : pcOf(g.n);
+    const off = !g.tu && TUNE !== 'E' ? 40 - TUN[TUNE][0] : 0;
+    if (g.mk) return { r, marks: g.mk.map(([s, f0, l]) => { const f = s === 0 ? f0 + off : f0; return { s, f, lab: l, cls: g.nm ? 'r5' : l === '1' ? 'r1' : l === '8' ? 'r8' : l === '5' ? 'r5' : 'dx3', midi: B[s] + f }; }), muted: [] };
     const marks = [], ms = []; let roots = 0;
     fr.forEach((f, s) => { if (f == null) return; ms.push({ s, f, midi: B[s] + f }); });
     ms.slice().sort((a, b) => a.midi - b.midi).forEach(t => {
@@ -23378,13 +23395,13 @@ const HILFE = [
     quizDraw(ci);
   }
   // ---------- v130: Griff-Tabelle je Kapitel ----------
-  const tabOf = (g) => (g.fr || CH[g.n]).map(f => f == null ? 'x' : f > 9 ? '(' + f + ')' : String(f)).join('');
+  const tabOf = (g) => frOf(g).map(f => f == null ? 'x' : f > 9 ? '(' + f + ')' : String(f)).join('');
   function gripTable(ci) {
     const C = K[ci], rows = []; C.s.forEach((S, si) => (S.g || []).forEach((g, gi) => { if (g.mk) return; rows.push([S, si, g, gi]); }));
     if (!rows.length) return ci === 0 ? '<details class="pc-ktab"><summary><h4>' + L0('Griff-Tabelle') + ' (Stammtöne)</h4></summary><div class="pc-tbl"><table translate="no"><thead><tr><th>Bund</th>' + [0, 1, 3, 5, 7, 8, 10, 12].map(f => '<th>' + f + '</th>').join('') + '</tr></thead><tbody><tr><td>E-Saite</td>' + ['E', 'F', 'G', 'A', 'B', 'C', 'D', 'E'].map(x => '<td>' + x + '</td>').join('') + '</tr></tbody></table><table translate="no"><thead><tr><th>Bund</th>' + [0, 2, 3, 5, 7, 8, 10, 12].map(f => '<th>' + f + '</th>').join('') + '</tr></thead><tbody><tr><td>A-Saite</td>' + ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'A'].map(x => '<td>' + x + '</td>').join('') + '</tr></tbody></table></div></details>' : '';
     return '<details class="pc-ktab"><summary><h4>' + L0('Griff-Tabelle') + ' (' + rows.length + ')</h4></summary><div class="pc-tbl"><table translate="no"><thead><tr><th>Akkord</th><th>Griff (tief → hoch)</th><th>Formel</th><th>Töne</th><th>Unterkapitel</th></tr></thead><tbody>' +
       rows.map(([S, si, g, gi]) => { const q = grip(g), labs = q.marks.slice().sort((a, b) => a.midi - b.midi);
-        return '<tr data-kpick="' + ci + '.' + si + '.' + gi + '"><td><b>' + esc(g.n) + '</b>' + (g.tu ? ' <span class="caption">(' + LOWN[TUN[g.tu][0]] + '-Stimmung)</span>' : '') + '</td><td class="pc-mono">' + tabOf(g) + '</td><td>' + [...new Set(labs.map(m => m.lab === '8' ? '1' : m.lab))].join(' · ') + '</td><td>' + labs.map(m => spellOf(g, q, m.lab)).join(' ') + '</td><td>' + S.t.replace(/^(\d+\.\d+).*/, '$1') + '</td></tr>'; }).join('') +
+        return '<tr data-kpick="' + ci + '.' + si + '.' + gi + '"><td><b>' + esc(g.n) + '</b>' + (tuOf(g) ? ' <span class="caption">(tiefe Saite ' + LOWN[TUN[tuOf(g)][0]] + ')</span>' : '') + '</td><td class="pc-mono">' + tabOf(g) + '</td><td>' + [...new Set(labs.map(m => m.lab === '8' ? '1' : m.lab))].join(' · ') + '</td><td>' + labs.map(m => spellOf(g, q, m.lab)).join(' ') + '</td><td>' + S.t.replace(/^(\d+\.\d+).*/, '$1') + '</td></tr>'; }).join('') +
       '</tbody></table></div><p class="caption" translate="no">Zeile antippen = Griff auf dem großen Griffbrett zeigen. „x“ = Saite nicht spielen, Zahlen in Klammern = Bund 10 und höher.</p></details>';
   }
   // ---------- Kapitel bauen ----------
@@ -23399,6 +23416,7 @@ const HILFE = [
         C.s.map((S, si) => subHtml(ci, si, S)).join('');
       h += '<div class="pc-kquiz" data-kq="' + ci + '"><div class="pc-row"><h4>' + L0('Quiz zum Kapitel') + '</h4><span class="caption pc-kqbest"></span><button class="toggle-btn active" data-kqs="1">' + PcSkin.btn(L0('▶ Quiz starten')) + '</button></div><div class="pc-bwrap pc-kqb"></div><div class="pc-kqbody"></div></div>';
       h += gripTable(ci);
+      if (window.PcPlan) h += PcPlan.planHtml(ci);                            // v131: Übungsplan & Selbstkontrolle
       const mq = C.s.filter(S => S.m).map(S => [S.m, S.t]);
       if (mq.length || C.mk) h += '<div class="pc-kmerke"><h4>' + L0('Merke') + '</h4><div class="pc-kmgrid" translate="no">' + (C.mk || []).map(t => '<div class="pc-wcard f1">' + t + '<small>Merkkarte · Kapitel ' + (ci + 1) + '</small></div>').join('') +
         mq.map(([t, src]) => '<div class="pc-wcard f3">' + t + '<small>Lehrer · ' + src + '</small></div>').join('') + '</div></div>';
@@ -23436,6 +23454,7 @@ const HILFE = [
   }
   function build(h, api) {
     if (host) return; host = h; A = api;
+    { const t = (kp()['opt-tune'] || {}).t; if (t && TUN[t]) TUNE = t; }
     h.innerHTML = '<div class="card pc-exhead pc-khome"><h3 class="pc-wt" translate="no">Power Chord Theory – Kurs</h3><div class="pc-row"><b id="pcKSum"></b></div><div class="pc-bar"><i id="pcKBar"></i></div>' +
       '<div class="pc-tiles" id="pcKRings">' + K.map((C, ci) => '<button class="pc-ring pc-tile" data-kring="' + ci + '"><span class="pc-tring"><span class="pc-rsvg"></span><b>' + (ci + 1) + '</b></span><span class="pc-tt"><b translate="no">' + C.short + '</b><span class="pc-td" translate="no">' + (C.d || '') + '</span><span class="pc-tp caption"></span></span></button>').join('') + '</div>' +
       '<p class="caption" translate="no">15 Kapitel, Schritt für Schritt nach den Worten des Lehrers. Tippe eine Kachel an, um das Kapitel zu öffnen. Im Text heißt der Ton H wie beim Lehrer <b>B</b> (das tiefere heißt <b>B-flat</b>); auf dem Griffbrett steht die Saite wie im übrigen Reiter als H. Die Griffbilder zeigen die hohe e-Saite oben; die Zahlen in den Punkten sind die Intervalle.</p></div>' +
@@ -23446,7 +23465,8 @@ const HILFE = [
     h.addEventListener('click', e => { const r = e.target.closest('[data-kring]'); if (!r) return; openChapter(+r.dataset.kring + 1); });
     h.addEventListener('change', e => { const c = e.target.closest('input[data-kx]'); if (!c) return; const st = kp(); if (c.checked) st[c.dataset.kx] = true; else delete st[c.dataset.kx]; A.saveProg(); paintSum(); });
     h.querySelectorAll('details.pc-kc').forEach(d => { d.addEventListener('toggle', () => { if (d.open) fillChapter(d); }); if (d.open) fillChapter(d); });
-    if (window.PcExtra) PcExtra.build(h, A);                                  // v130: Werkzeuge (Akkordsymbole, Lexikon, Landkarte, Tonleitern)
+    if (window.PcExtra) PcExtra.build(h, A);
+    if (window.PcPlan) PcPlan.build(h, A);                                    // v131: Hör-Training, Technik, Stimmungen                                  // v130: Werkzeuge (Akkordsymbole, Lexikon, Landkarte, Tonleitern)
     paintSum();
   }
   // Prüfung für Tests: jede Marke passt zu ihrem Intervall bzw. Notennamen, Intervallmenge = Formel
@@ -23458,7 +23478,12 @@ const HILFE = [
       if (g.iv) { const want = g.iv.split(' ').map(x => SEM[x]).sort().join(), got = [...new Set(q.marks.map(m => SEM[m.lab]))].sort().join(); if (want !== got) bad.push(g.n + ' Formel ' + g.iv); } });
     return { n: all.length, bad };
   }
-  window.PcKurs = { K, CH, TUN, build, grip, check, total, open: openChapter, quiz: ci => QZ[ci] && { kind: QZ[ci].kind, want: QZ[ci].want, i: QZ[ci].i, hits: QZ[ci].hits, ans: QZ[ci].ans } };
+  function setTuning(t) {                                             // alle gebauten Kapitel neu aufbauen (Häkchen bleiben)
+    if (!TUN[t]) return; TUNE = t; const st = kp(); st['opt-tune'] = { t }; A.saveProg();
+    document.querySelectorAll('#pcSecKurs details.pc-kc').forEach(d => { if (!d._k || K[+d.dataset.kc].w) return; d._k = false; Object.keys(STG).forEach(k => { if (k.startsWith(d.dataset.kc + '.')) delete STG[k]; }); fillChapter(d); });
+  }
+  function loopNow(names, bpm, drums, fr) { const ch = loopChords({ c: names, fr }); A.begin({ chords: ch, path: 0, keyPc: ch[0].rootPc, keyName: ch[0].name }, { how: 'looper', n: 3, bpm: bpm || 70, drums: drums || 'drums', label: 'Kurs · ' + names.join(' – ') }); }
+  window.PcKurs = { K, CH, TUN, build, grip, check, total, open: openChapter, setTuning, tuning: () => TUNE, loopNow, quiz: ci => QZ[ci] && { kind: QZ[ci].kind, want: QZ[ci].want, i: QZ[ci].i, hits: QZ[ci].hits, ans: QZ[ci].ans } };
 })();
 
 // ===== Kapitel 1 – Einleitung =====
@@ -24507,9 +24532,21 @@ PcKurs.K.push({ t: 'Kapitel 15 – Drop D und tiefere Stimmungen', s: [
     { k: 'dim', nm: 'vermindert', sym: 'm(b5)', req: [0, 3, 6] },
     { k: 'dim7', nm: 'vollvermindert', sym: ' vollvermindert', req: [0, 3, 6, 9] },
     { k: 'maj79', nm: 'Major 7 mit 9', sym: 'maj7(9)', req: [0, 2, 4, 11], opt: [7], nine: [2] },
-    { k: 'm711', nm: 'Moll 7 mit 11', sym: 'm7(11)', req: [0, 3, 5, 10], opt: [7], nine: [5] }
+    { k: 'm711', nm: 'Moll 7 mit 11', sym: 'm7(11)', req: [0, 3, 5, 10], opt: [7], nine: [5] },
+    // v131: 6er, 13er und alterierte Dominanten (Kap. 11)
+    { k: '6', nm: '6er', sym: '6', req: [0, 4, 7, 9] },
+    { k: 'm6', nm: 'Moll 6', sym: 'm6', req: [0, 3, 7, 9] },
+    { k: '79', nm: 'Dominant 7 mit 9', sym: '7(9)', req: [0, 2, 4, 10], opt: [7], nine: [2] },
+    { k: '13', nm: '13er', sym: '13', req: [0, 4, 9, 10], opt: [7, 2], nine: [9, 2] },
+    { k: '7b9', nm: 'alteriert: b9', sym: '7b9', req: [0, 1, 4, 10], opt: [7], nine: [1] },
+    { k: '7s9', nm: 'alteriert: #9', sym: '7#9', req: [0, 3, 4, 10], opt: [7], nine: [3] },
+    { k: '7b5', nm: 'alteriert: b5', sym: '7b5', req: [0, 4, 6, 10] },
+    { k: '7s5', nm: 'alteriert: #5', sym: '7#5', req: [0, 4, 8, 10] }
   ];
-  const tLab = (t, n) => (t.nine && t.nine.includes(n) ? { 2: '9', 5: '11' }[n] : t.k === 'dim7' && n === 9 ? 'bb7' : IV[n][1]);
+  const TYG = [['Grundformen', ['5', 'dur', 'moll']], ['Sus und Add', ['sus2', 'sus4', 'add9', 'madd9', 'add11', 'madd11']], ['Septakkorde', ['7', 'maj7', 'm7', 'mmaj7', 'm7b5', 'dim', 'dim7']],
+    ['6er, 9er und 13er', ['6', 'm6', '79', 'maj79', 'm711', '13']], ['Alterierte Dominanten', ['7b9', '7s9', '7b5', '7s5']]];
+  const NL = { 1: 'b9', 2: '9', 3: '#9', 5: '11', 9: '13' };
+  const tLab = (t, n) => (t.nine && t.nine.includes(n) ? NL[n] : t.k === 'dim7' && n === 9 ? 'bb7' : t.k === '7s5' && n === 8 ? '#5' : IV[n][1]);
   const formula = t => { const a = t.req.slice().sort((x, y) => x - y).map(n => tLab(t, n)), o = (t.opt || []).map(n => '(' + tLab(t, n) + ')');
     if (t.k === '5') return '1 · 5 (· 8)'; const all = t.req.concat(t.opt || []).sort((x, y) => x - y); return all.map(n => (t.opt || []).includes(n) ? '(' + tLab(t, n) + ')' : tLab(t, n)).join(' · '); };
   const cname = (t, rn) => (t.k === 'dur' ? rn + '-Dur' : t.k === 'moll' ? rn + '-Moll' : rn + t.sym);
@@ -24619,7 +24656,7 @@ PcKurs.K.push({ t: 'Kapitel 15 – Drop D und tiefere Stimmungen', s: [
     el.querySelectorAll('.pc-wsl').forEach((l, i) => l.classList.toggle('on', W.seen.has(i + 1) && W.seen.has(i + 2)));
     el.querySelectorAll('[data-w=lab]').forEach(b => b.classList.toggle('active', b.dataset.v === W.lab));
     $q('[data-w=multi]').classList.toggle('active', W.multi); $q('[data-w=multi]').setAttribute('aria-pressed', W.multi ? 'true' : 'false');
-    $q('.pc-wsingle').hidden = W.multi || W.st === 6; $q('.pc-wmulti').hidden = !W.multi || W.st === 6; $q('.pc-wq').hidden = W.st !== 6; $q('.pc-wivs').hidden = W.st === 6;
+    $q('.pc-wsingle').hidden = W.multi || W.st === 6; $q('.pc-wmulti').hidden = !W.multi || W.st === 6; $q('.pc-wtab').hidden = !W.multi || W.st === 6; $q('.pc-wq').hidden = W.st !== 6; $q('.pc-wivs').hidden = W.st === 6;
     $q('.pc-wcap').textContent = CAP[W.st]; $q('.pc-wstrip').hidden = W.st !== 1 || W.multi;
   }
   function paint() { paintIv(); drawBoard(); info(); paintStrip(); if (W.st === 6) paintQuiz(); }
@@ -24684,6 +24721,7 @@ PcKurs.K.push({ t: 'Kapitel 15 – Drop D und tiefere Stimmungen', s: [
     if (w === 'play') { play(b.dataset.v); return; }
     if (w === 'step') { W.n = Math.max(0, Math.min(12, W.n + (+b.dataset.v))); paint(); play('seq'); return; }
     if (w === 'chord') { A.strumNow(chordMidis(W.sel)); return; }
+    if (w === 'tysel') { const t = TY.find(x => x.k === b.dataset.k); W.sel = new Set(t.req.concat(t.opt || [])); paint(); A.strumNow(chordMidis(W.sel)); return; }
     if (w === 'live') { if (W.live) { W.live.scrollIntoView({ behavior: 'smooth', block: 'center' }); PcLive.start(W.live); } return; }
     if (w === 'quiz') { startQuiz(b.dataset.v); return; }
     if (w === 'again') { hearNow(); return; }
@@ -24702,6 +24740,8 @@ PcKurs.K.push({ t: 'Kapitel 15 – Drop D und tiefere Stimmungen', s: [
       '<p class="caption pc-wcap" translate="no"></p><div class="pc-wbw"></div><div class="pc-winfo" translate="no"></div>' +
       '<div class="pc-row pc-wsingle"><button class="toggle-btn" data-w="play" data-v="root">' + L('▶ Grundton') + '</button><button class="toggle-btn" data-w="play" data-v="seq">' + L('▶ Nacheinander') + '</button><button class="toggle-btn" data-w="play" data-v="both">' + L('▶ Zusammen') + '</button><button class="toggle-btn" data-w="step" data-v="-1">' + L('◀ kleiner') + '</button><button class="toggle-btn" data-w="step" data-v="1">' + L('größer ▶') + '</button></div>' +
       '<div class="pc-row pc-wmulti" hidden><button class="toggle-btn active" data-w="chord">' + L('▶ Akkord anhören') + '</button><button class="toggle-btn" data-w="live">' + L('Was spiele ich?') + '</button></div>' +
+      '<details class="pc-wtab" hidden><summary><b>' + L0('Akkord-Tabelle (alle Arten)') + '</b></summary><div class="pc-tbl"><table translate="no"><tbody>' + TYG.map(([g, ks]) => '<tr class="pc-wtg"><th colspan="3">' + g + '</th></tr>' + ks.map(k => { const t = TY.find(x => x.k === k);
+        return '<tr data-w="tysel" data-k="' + k + '"><td><b>A' + t.sym + '</b></td><td>' + formula(t) + '</td><td>' + t.nm + '</td></tr>'; }).join('')).join('') + '</tbody></table></div><p class="caption" translate="no">Zeile antippen = Töne auf dem Griffbrett, Name und Formel oben. 6er/13er und alterierte Akkorde nach Kapitel 11.</p></details>' +
       '<div class="pc-wq" hidden><div class="pc-row">' + [['find', 'Finde die …'], ['name', 'Wie heißt das?'], ['hear', 'Hör-Quiz']].map(([v, t]) => '<button class="toggle-btn pc-wqb" data-w="quiz" data-v="' + v + '"><span>' + L(t) + '</span><small></small></button>').join('') + '</div><div class="pc-wqbody"></div></div>' +
       '<div class="pc-row pc-wleg">' + [['f1', 'Prime / Oktave'], ['f5', 'Quinte'], ['f3', 'Terzen'], ['f4', 'Quarte'], ['fx', 'Sekunden · Sexten · Septimen · Tritonus']].map(([c, t]) => '<span class="pc-wlg ' + c + '">' + L(t) + '</span>').join('') + '</div></div>' +
       '<div class="pc-wright"><div class="card pc-wlive"></div><div class="card"><h4>' + L('Merkkarten des Lehrers') + '</h4><div class="pc-wcards" translate="no">' + CARDS.map(([c, t]) => '<div class="pc-wcard ' + c + '">' + t + '<small>Merkkarte · Lehrer, Kapitel 3</small></div>').join('') + '</div></div>' +
@@ -24761,6 +24801,7 @@ PcKurs.K.push({ t: 'Kapitel 15 – Drop D und tiefere Stimmungen', s: [
     const bass = pk.find(p => p.w > wm * 0.22 && p.f < 340);
     return { rms, ch, bass: bass ? md(bass.m) : null, top: wm };
   }
+  const PRIOR = { '6': -0.03, 'm6': -0.03, '13': -0.02, '7b5': -0.02, '7s5': -0.02 };   // v131: seltene Arten (Kap. 11: „seltener“) nur bei klarem Signal
   function match(ch, bass) {
     const TY = window.PcWerk ? PcWerk.TY : []; let nrm = 0; for (let i = 0; i < 12; i++) nrm += ch[i] * ch[i]; nrm = Math.sqrt(nrm) || 1;
     const c = Array.from(ch, v => v / nrm), cm = Math.max(...c), res = [];
@@ -24768,7 +24809,7 @@ PcKurs.K.push({ t: 'Kapitel 15 – Drop D und tiefere Stimmungen', s: [
       let tn = 0; for (let i = 0; i < 12; i++) tn += T[i] * T[i]; tn = Math.sqrt(tn);
       for (let r = 0; r < 12; r++) { let s = 0; for (let i = 0; i < 12; i++) s += c[md(r + i)] * T[i]; s /= tn;
         t.req.forEach(n => { if (c[md(r + n)] < cm * 0.12) s -= 0.15; });
-        if (r === bass) s += 0.06; res.push({ t, r, s }); } });
+        if (r === bass) s += 0.06; s += PRIOR[t.k] || 0; res.push({ t, r, s }); } });
     res.sort((a, b) => b.s - a.s); const b0 = res[0], b1 = res.find(x => x.t !== b0.t || x.r !== b0.r);
     return b0 ? { t: b0.t, r: b0.r, s: b0.s, margin: b0.s - (b1 ? b1.s : 0) } : null;
   }
@@ -24777,7 +24818,7 @@ PcKurs.K.push({ t: 'Kapitel 15 – Drop D und tiefere Stimmungen', s: [
   const W = window.PcWerk;
   function chordName(t, r, bass) { const rn = PcWerk.rootName(r); let n = PcWerk.cname(t, rn); if (bass != null && bass !== r) n += '/' + PcWerk.spell(rn, md(bass - r)); return n; }
   function tonesOf(t, r) { const rn = PcWerk.rootName(r); return t.req.concat(t.opt || []).map(n => n % 12).filter((v, i, a) => a.indexOf(v) === i).sort((a, b) => a - b)
-    .map(n => ({ n, ton: PcWerk.spell(rn, n), lab: (t.nine && t.nine.includes(n)) ? { 2: '9', 5: '11' }[n] : t.k === 'dim7' && n === 9 ? 'bb7' : PcWerk.IV[n][1], opt: (t.opt || []).includes(n) })); }
+    .map(n => ({ n, ton: PcWerk.spell(rn, n), lab: (t.nine && t.nine.includes(n)) ? { 1: 'b9', 2: '9', 3: '#9', 5: '11', 9: '13' }[n] : t.k === 'dim7' && n === 9 ? 'bb7' : t.k === '7s5' && n === 8 ? '#5' : PcWerk.IV[n][1], opt: (t.opt || []).includes(n) })); }
   const S = { card: null, an: null, timer: null, opened: false, buf: null, hist: [], shown: null, game: null, busy: false };
   function cardHtml() {
     return '<div class="pc-live"><div class="pc-row pc-lhead"><h4>' + L0('Was spiele ich?') + '</h4><span class="pc-lvl" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><span class="pc-lst">' + L0('aus') + '</span></div>' +
@@ -25068,6 +25109,120 @@ PcKurs.K.push({ t: 'Kapitel 15 – Drop D und tiefere Stimmungen', s: [
   }
   document.addEventListener('tabchange', () => { const p = document.getElementById('pcGlPop'); if (p) p.hidden = true; });
   window.PcExtra = { build, parse, GL, degreeChords, SCALES, wrapTerms, sym: v => { const i = host && host.querySelector('#pcSymIn'); if (i) { i.value = v; symShow(); } return parse(v); } };
+})();
+
+// v131: Üben mit Plan – Hör-Training (Dur, Moll, sus, Maj7, 7, 9, b9, #9 mit Ampel), Selbstkontrolle und Übungsplan mit
+// Tempo-Stufen je Kapitel, Technik-Vorübungen (Überstrecken, Dämpfen), Stimmungen (Drop D, Cis, C, H) mit konkreten Griffen.
+// Speicher: powerchords.progress.v1 → kurs["ear"], kurs["plan-k<n>"], kurs["tv-<n>"], kurs["opt-tune"] (Objekte, keine Häkchen-true).
+(function () {
+  const md = x => ((x % 12) + 12) % 12;
+  const L0 = s => (window.__lang === 'en' && window.__EN_PCW && window.__EN_PCW[s]) || s;
+  let A = null, host = null;
+  const kp = () => { const P = A.PR(); P.kurs = P.kurs || {}; return P.kurs; };
+  // ---------- Hör-Training ----------
+  const EAR = [['dur', 'Dur', [0, 4, 7]], ['moll', 'Moll', [0, 3, 7]], ['sus', 'sus (2 oder 4)', null], ['maj7', 'Maj7', [0, 4, 7, 11]], ['7', '7', [0, 4, 7, 10]], ['9', '9', [0, 4, 10, 14]], ['b9', 'b9', [0, 4, 10, 13]], ['s9', '#9', [0, 4, 10, 15]]];
+  const EQ = { q: null };
+  function earVoicing(k, root) {
+    const e = EAR.find(x => x[0] === k); let iv = e[2]; if (k === 'sus') iv = Math.random() < 0.5 ? [0, 2, 7] : [0, 5, 7];
+    return [root - 12].concat(iv.map(n => root + n));
+  }
+  function ampel(st) { if (!st || st[1] < 3) return 'grau'; const r = st[0] / st[1]; return r >= 0.8 ? 'gruen' : r >= 0.5 ? 'gelb' : 'rot'; }
+  function earDraw() {
+    const b = host.querySelector('#pcKT5 .pc-sec-b'); if (!b) return; const st = kp().ear || {}, q = EQ.q;
+    let h = '<div class="pc-ampel">' + EAR.map(([k, n]) => { const s = st[k]; return '<span class="pc-amp ' + ampel(s) + '" data-ek="' + k + '"><i></i><b>' + n + '</b><small>' + (s ? s[0] + '/' + s[1] : '–') + '</small></span>'; }).join('') + '</div>' +
+      '<p class="caption" translate="no">Ampel: grün ab 80 %, gelb ab 50 %, rot darunter (ab 3 Versuchen). Erst hören, dann den Akkordtyp antippen.</p>';
+    if (!q) h += '<button class="toggle-btn active" data-ear="start">' + PcSkin.btn(L0('▶ Runde starten')) + '</button>';
+    else {
+      h += '<div class="pc-row"><button class="toggle-btn" data-ear="again">' + PcSkin.btn(L0('▶ Nochmal hören')) + '</button></div><div class="pc-row">' + EAR.map(([k, n]) => '<button class="toggle-btn" data-ea="' + k + '"' + (q.ans != null ? ' disabled' : '') + ' translate="no">' + n + '</button>').join('') + '</div>';
+      if (q.fb) h += '<p class="pc-wfb ' + (q.ans ? 'ok' : 'no') + '" translate="no">' + q.fb + '</p>';
+      h += '<div class="pc-row"><b class="pc-wcnt">' + L0('Aufgabe') + ' ' + (q.i + 1) + ' ' + L0('von') + ' 10 · ' + L0('Treffer') + ': ' + q.hits + '</b>' + (q.ans != null ? '<button class="toggle-btn active" data-ear="next">' + PcSkin.btn(q.end ? L0('Neue Runde') : L0('Weiter ▶')) + '</button>' : '') + '</div>';
+    }
+    b.innerHTML = h;
+  }
+  function earNew() { const q = EQ.q; q.k = EAR[Math.floor(Math.random() * EAR.length)][0]; q.root = 52 + Math.floor(Math.random() * 8); q.ms = earVoicing(q.k, q.root); q.ans = null; q.fb = ''; setTimeout(() => A.strumNow(q.ms), 120); }
+  // ---------- Übungsplan je Kapitel ----------
+  const STEPS = [60, 70, 80, 90, 100];
+  const SELF = [   // Selbstkontrolle je Kapitel: „Woran erkenne ich, dass ich es kann?“ (ergänzt, aus dem Ziel des Kapitels abgeleitet)
+    ['Ich sage zu jeder Zahl 1–13, ob sie einmal oder zweimal vorkommt.', 'Ich spreche B und B-flat ohne zu stolpern.'],
+    ['Ich greife den Powerchord auf E-, A-, D-Saite ohne Hinsehen.', 'Ich nenne jeden Stammton der E- und A-Saite sofort.'],
+    ['Ich finde jedes Intervall von A aus in unter 5 Sekunden.', 'Ich höre große und kleine Terz sicher heraus.'],
+    ['Ich mache aus E, A und D sofort Moll.', 'Ich greife F als Barré, alle Saiten klingen.'],
+    ['Ich nenne die Stufenakkorde in C-Dur in der richtigen Reihenfolge.', 'Ich spiele I-IV-V-I und VI-IV-V-VI ohne Pause.'],
+    ['Ich mache aus jedem offenen Dur-Akkord Sus2 und Sus4.', 'Ich sage, auf welchen Stufen Sus2/Sus4 nicht passen.'],
+    ['Ich weiß, auf welchen Stufen die große 7 liegt.', 'Ich spiele Autumn Leaves (Anfang) ohne Pause.'],
+    ['Ich leite Drop 2 aus einem Closed Voicing ab.', 'Ich spiele Am7 – D7 – Gmaj7 – Cmaj7 in einer Lage.'],
+    ['Ich spiele C-Dur in allen drei Umkehrungen auf G-B-e.', 'Ich verbinde C – G – Am – F mit kleinen Schritten.'],
+    ['Ich weiß vorher, ob auf einer Stufe 9, 11 oder Major 7 passt.', 'Ich ersetze im Dreiklang die 1 durch die 9.'],
+    ['Ich baue D7 → D7sus2 → D7(9) ab.', 'Ich erkenne E7#9 am Klang.'],
+    ['Ich spiele E-, G-, C- und A-Griff als Arpeggio ohne Lücke.', 'Ich halte 3er- und 4er-Gruppen am Metronom.'],
+    ['Ich baue in jedes Arpeggio die richtige 7 ein.', 'Ich spiele ein Arpeggio überspringend (1→5, 3→1).'],
+    ['Ich greife den Dur-Powerchord und D/F# sauber.', 'Ich halte beim Wechsel gleiche Töne liegen.'],
+    ['Ich stimme Drop D ohne Hilfe.', 'Ich passe einen Powerchord an eine tiefere Stimmung an.']
+  ];
+  function planHtml(ci) {
+    const st = kp()['plan-k' + (ci + 1)] || {}, best = st.bpm || 0, ch = st.ch || [];
+    return '<div class="pc-kplan" data-kplan="' + ci + '"><h4>' + L0('Übungsplan & Selbstkontrolle') + '</h4>' +
+      '<p class="caption" translate="no">(ergänzt) Übe die Übungen dieses Kapitels in Tempo-Stufen. Tippe die Stufe an, die du drei Mal sauber geschafft hast.</p>' +
+      '<div class="pc-row pc-tempi">' + STEPS.map(b => '<button class="toggle-btn' + (b <= best ? ' active' : '') + '" data-pbpm="' + b + '" aria-pressed="' + (b <= best ? 'true' : 'false') + '">' + b + ' BPM</button>').join('') + '<span class="caption pc-pbest">' + (best ? L0('geschafft bis') + ' ' + best + ' BPM' : '') + '</span></div>' +
+      '<div class="pc-kself" translate="no">' + SELF[ci].map((t, i) => '<label class="check pc-kchk"><input type="checkbox" data-pself="' + i + '"' + (ch[i] ? ' checked' : '') + '> <span>' + t + '</span></label>').join('') + '</div></div>';
+  }
+  function planSave(ci, f) { const st = kp(), k = 'plan-k' + (ci + 1); st[k] = Object.assign({ bpm: 0, ch: [] }, st[k] || {}); f(st[k]); A.saveProg(); }
+  // ---------- Technik-Vorübungen ----------
+  const TV = [
+    ['Spinne 1-2-3-4', 'Vier Finger nebeneinander auf einer Saite (Bund 5–8), jeder Ton einzeln. Dann eine Saite höher. Locker bleiben, Daumen hinten in der Mitte.', 'Dehnen vorbereiten'],
+    ['Spinne gespreizt', 'Wie oben, aber Zeigefinger Bund 5, kleiner Finger Bund 9 (ein Bund mehr). Langsam, nur so weit, wie es ohne Schmerz geht.', 'Überstrecken (Kap. 11–15)'],
+    ['Powerchord mit überstrecktem kleinen Finger', 'A-Saite Bund 2 (Zeigefinger), D-Saite Bund 5 (kleiner Finger) – der Dur-Powerchord aus Kapitel 14. Erst nur greifen, dann anschlagen.', 'Kap. 14'],
+    ['Quinte unten', 'Powerchord auf der A-Saite (Bund 3) und mit dem Zeigefinger die tiefe E-Saite im selben Bund mitgreifen (Kap. 14). Klingen alle vier Töne?', 'Kap. 14'],
+    ['Saiten-Kontrolle', 'Nach jedem Griff alle sechs Saiten einzeln anschlagen: Klingen genau die gewollten? Die anderen müssen still sein.', 'Kap. 4'],
+    ['Tiefe Saite antippen', 'Powerchord auf der A-Saite: die Fingerkuppe des Zeigefingers berührt leicht die tiefe E-Saite und dämpft sie.', 'Kap. 2/4'],
+    ['A-Saite blockieren', 'D/F#: Daumen oder Zeigefinger greift F# auf der tiefen E-Saite und legt sich leicht an die A-Saite – sie darf nicht klingen.', 'Kap. 14'],
+    ['Palm Mute', 'Handballen locker am Steg. Achtel auf E5, erst gedämpft, dann offen. Der Ton bleibt klar, nur kürzer.', 'Kap. 2']
+  ];
+  // ---------- Stimmungen ----------
+  const TUNES = [['E', 'Standard (E)', 40], ['dD', 'Drop D', 38], ['dCis', 'Drop Cis', 37], ['dC', 'Drop C', 36], ['dB', 'Drop H (B)', 35]];
+  const P5 = [['D5', 2], ['E5', 4], ['F5', 5], ['G5', 7], ['A5', 9], ['C5', 0]];
+  function tuneGrips(low) { return P5.map(([n, p]) => { const fA = md(p + 7 - 9), fL = fA + (38 - low); return { n, fr: [fL, fA, fA, null, null, null] }; }); }
+  function card(id, title, sub) { return '<details class="card pc-sec pc-ktool" id="' + id + '"><summary><h3>' + title + '</h3></summary><p class="caption pc-ktsub" translate="no">' + sub + '</p><div class="pc-sec-b"></div></details>'; }
+  function build(h, api) {
+    if (host) return; host = h; A = api;
+    const box = h.querySelector('.pc-ktools'); if (!box) return;
+    box.querySelector('.pc-ktoolbar').insertAdjacentHTML('beforeend', [['pcKT5', 'Hör-Training'], ['pcKT6', 'Technik-Vorübungen'], ['pcKT7', 'Stimmungen: Drop D, Cis, C, H']].map(([id, t]) => '<button class="toggle-btn" data-ktool="' + id + '">' + L0(t) + '</button>').join(''));
+    box.insertAdjacentHTML('beforeend', card('pcKT5', L0('Hör-Training'), '(ergänzt) Dur, Moll, sus, Maj7, 7, 9, b9 und #9 am Klang erkennen – die Lücke „Gehörbildung“ des Kurses. 10 Akkorde je Runde.') +
+      card('pcKT6', L0('Technik-Vorübungen'), '(ergänzt) Vorübungen zum Überstrecken und Dämpfen, die der Kurs voraussetzt. Nie mit Schmerz üben.') +
+      card('pcKT7', L0('Stimmungen: Drop D, Cis, C, H'), 'Kapitel 15: Nur die tiefe Saite wird tiefer gestimmt. Wähle die Stimmung – alle Griffbilder im Kurs schalten um.'));
+    box.querySelectorAll('#pcKT5, #pcKT6, #pcKT7').forEach(d => d.addEventListener('toggle', () => { if (d.open) fill(d); }));
+    h.addEventListener('click', onClick); h.addEventListener('change', onChange);
+  }
+  function fill(d) {
+    if (d.id === 'pcKT5') { earDraw(); return; }
+    if (d._f) return; d._f = true; const b = d.querySelector('.pc-sec-b');
+    if (d.id === 'pcKT6') { const st = kp(); b.innerHTML = '<div class="pc-kex" translate="no">' + TV.map(([t, x, k], i) => '<label class="check pc-kchk"><input type="checkbox" data-tv="' + i + '"' + (st['tv-' + i] && st['tv-' + i].done ? ' checked' : '') + '> <span><i>(ergänzt)</i> <b>' + t + '</b> – ' + x + ' <small class="caption">(' + k + ')</small></span></label>').join('') + '</div>' +
+      '<div class="pc-row"><button class="toggle-btn active" data-tvloop="1">' + PcSkin.btn(L0('▶ Loop starten')) + '</button><span class="caption" translate="no">E5 mit Klick, 60 BPM – zum Mitspielen der Vorübungen</span></div>'; }
+    if (d.id === 'pcKT7') tuneDraw();
+  }
+  function tuneDraw() {
+    const b = host.querySelector('#pcKT7 .pc-sec-b'), cur = window.PcKurs ? PcKurs.tuning() : 'E', T = TUNES.find(t => t[0] === cur);
+    b.innerHTML = '<div class="seg pc-seg" id="pcTuneSel">' + TUNES.map(([k, n]) => '<button class="toggle-btn' + (k === cur ? ' active' : '') + '" data-tune="' + k + '">' + n + '</button>').join('') + '</div>' +
+      '<p class="caption" translate="no">' + (cur === 'E' ? 'Standardstimmung: alle Griffe wie im Kurs.' : 'Tiefe Saite: ' + T[1].replace('Drop ', '') + '. „Um denselben Ton zu spielen“, greifst du auf der tiefen Saite ' + (40 - T[2]) + ' Bünde höher; alle anderen Saiten bleiben gleich. Die Griffbilder im Kurs sind umgestellt.') + '</p>' +
+      (cur === 'E' ? '' : '<div class="pc-tbl"><table translate="no"><thead><tr><th>Powerchord</th><th>Griff (tief → hoch)</th><th>Töne</th></tr></thead><tbody>' + tuneGrips(T[2]).map(g => '<tr><td><b>' + g.n + '</b></td><td class="pc-mono">' + g.fr.map(f => f == null ? 'x' : f > 9 ? '(' + f + ')' : f).join('') + '</td><td>' + [T[2] + g.fr[0], 45 + g.fr[1], 50 + g.fr[2]].map(m => ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'H'][md(m)]).join(' ') + '</td></tr>').join('') + '</tbody></table></div>' +
+        '<p class="caption" translate="no">' + (cur === 'dD' ? 'Drop D: alle drei Töne im selben Bund – „ein Finger“.' : 'Die tiefe Saite liegt ' + (38 - T[2]) + ' Bund' + (38 - T[2] > 1 ? 'e' : '') + ' höher als die beiden anderen Töne („einen Bund höher“, Kap. 15).') + '</p>');
+  }
+  function onChange(e) {
+    const s = e.target.closest('[data-pself]'); if (s) { const ci = +s.closest('[data-kplan]').dataset.kplan; planSave(ci, p => { p.ch[+s.dataset.pself] = s.checked; }); return; }
+    const t = e.target.closest('[data-tv]'); if (t) { kp()['tv-' + t.dataset.tv] = { done: t.checked }; A.saveProg(); }
+  }
+  function onClick(e) {
+    const pb = e.target.closest('[data-pbpm]'); if (pb) { const pl = pb.closest('[data-kplan]'), ci = +pl.dataset.kplan, v = +pb.dataset.pbpm; planSave(ci, p => { p.bpm = p.bpm === v ? STEPS[STEPS.indexOf(v) - 1] || 0 : v; }); pl.outerHTML = planHtml(ci); return; }
+    const ea = e.target.closest('[data-ea]'); if (ea) { const q = EQ.q; if (!q || q.ans != null) return; const ok = ea.dataset.ea === q.k, name = EAR.find(x => x[0] === q.k)[1]; q.ans = ok; if (ok) q.hits++;
+      const st = kp(); st.ear = st.ear || {}; const c = st.ear[q.k] = st.ear[q.k] || [0, 0]; c[1]++; if (ok) c[0]++;
+      q.fb = (ok ? '✓ Richtig! ' : '✗ Das war ') + name + '.'; if (q.i === 9) { q.end = true; st['ear-best'] = { best: Math.max((st['ear-best'] || {}).best || 0, q.hits), last: q.hits }; } A.saveProg(); earDraw(); return; }
+    const er = e.target.closest('[data-ear]'); if (er) { const v = er.dataset.ear;
+      if (v === 'start' || (v === 'next' && EQ.q.end)) { EQ.q = { i: 0, hits: 0 }; earNew(); } else if (v === 'next') { EQ.q.i++; earNew(); } else if (v === 'again') A.strumNow(EQ.q.ms);
+      earDraw(); return; }
+    if (e.target.closest('[data-tvloop]')) { if (window.PcKurs) PcKurs.loopNow(['E5'], 60, 'click', { E5: [0, 2, 2, null, null, null] }); return; }
+    const tu = e.target.closest('[data-tune]'); if (tu) { if (window.PcKurs) PcKurs.setTuning(tu.dataset.tune); tuneDraw(); }
+  }
+  window.PcPlan = { build, planHtml, tuneGrips, EAR, earVoicing, ampel, TUNES, _ear: () => EQ.q && { k: EQ.q.k, i: EQ.q.i, hits: EQ.q.hits, ans: EQ.q.ans } };
 })();
 
 </script>

@@ -67,7 +67,7 @@ async def main():
         f1 = await game('maj7', '7'); f2 = await game('dur', '5'); f3 = await game('maj7', 'maj7')
         check('Spiel den Akkord: „b7 statt 7“, „Terz fehlt“, ✓', 'b7 statt 7' in f1 and 'Terz fehlt' in f2 and f3.startswith('✓ Richtig! Cmaj7'), (f1, f2, f3))
         await pg.click('#pcKC3 .pc-wlive [data-l=game]'); await pg.wait_for_timeout(200)
-        check('Knopf „Spiel den Akkord“ nennt einen Akkord', 'Spiel:' in await pg.inner_text('#pcKC3 .pc-lgame'))
+        gt = await pg.inner_text('#pcKC3 .pc-lgame'); check('Knopf „Spiel den Akkord“ nennt einen Akkord', 'Spiel:' in gt, gt)
         # --- Abbau ---
         await pg.click('#pcKC3 .pc-wlive [data-l=listen]'); await pg.wait_for_timeout(300)
         d = await pg.evaluate("[PcLive.debug(),window.__fk.streams.map(s=>s.getTracks().map(t=>t.readyState).join()).join('|')]")
