@@ -928,3 +928,6 @@ Object.assign(window.__EN, { 'Anhören': 'Listen', 'Nacheinander': 'One by one',
 Object.assign(window.__EN_PCW, { 'Was spiele ich?': 'What am I playing?', 'Zuhören': 'Listen', 'Stopp': 'Stop', 'aus': 'off', 'hört zu': 'listening', 'kein Eingang': 'no input', 'kein Zugriff auf den Eingang': 'no access to the input',
   'Spiel den Akkord': 'Play the chord', 'Spiel': 'Play', 'Formel': 'formula', 'Umkehrung': 'inversion', 'sicher erkannt': 'recognised reliably', 'unsicher': 'uncertain' });
 Object.assign(window.__EN, { 'Was spiele ich?': 'What am I playing?' });
+// v129 Kurs: Startseite, Bühne, Quiz
+Object.assign(window.__EN_PCW, { 'Siehe auch': 'See also', 'Quiz zum Kapitel': 'Chapter quiz', '▶ Quiz starten': '▶ Start quiz', 'Merke': 'Remember' });
+Object.assign(window.__EN, { 'Ziel': 'Goal' });

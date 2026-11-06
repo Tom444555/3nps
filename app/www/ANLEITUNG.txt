@@ -1244,3 +1244,14 @@ Gut zu wissen
    - „Spiel den Akkord“: Die App nennt einen Akkord; spielst du ihn, kommt ✓, sonst ein Hinweis („Terz fehlt“, „b7 statt 7“ …).
    - „Stopp“, Reiterwechsel, Bereichswechsel oder Zuklappen beendet das Zuhören; ein von der Karte geöffneter Eingang wird wieder
      geschlossen. Ohne „Zuhören“ läuft nichts.
+
+112. Kurs komplett: 15 Kapitel, Startseite mit Kacheln (v129)
+   - Der Reiter „Powerchords“ startet jetzt mit dem Kurs: 15 Kacheln (quer 4, hochkant 2, schmal 1 nebeneinander) mit
+     Nummer, Titel, Kurzbeschreibung und Fortschrittsring. Neu sind die Kapitel 8–15: Drop 2/Drop 3, Dreiklänge, Ear Candy,
+     7/9-Akkorde, Arpeggios mit Dreiklängen, Arpeggios mit Septakkorden, der „Dur-Powerchord“, Drop D und tiefere Stimmungen.
+   - Jedes Kapitel ist gleich aufgebaut: Ziel → Schritt-Leiste → je Unterkapitel Schritte, großes Griffbrett (Palisander) mit
+     farbigen Intervall-Punkten (Grundton rot, Terz grün, Quinte blau, Septime gelb, Quarte violett, Rest grau),
+     „Zahl / Name / Ton“, „▶ Grundton“, „▶ Nacheinander“, „▶ Zusammen“, darunter die kleinen Griffbilder zum Auswählen,
+     „▶ Loop starten“, Übungen → Quiz mit Trefferzählung (10 Aufgaben, Bestwert gespeichert) → Merke → „Siehe auch“.
+   - Kapitel 3 bleibt die Intervall-Werkstatt. Kapitel 15 zeigt die Griffe in der jeweiligen Stimmung (Saitenname D, Cis, C, H).
+   - Unklare Stellen der Aufnahmen sind weggelassen; wo der Lehrer keinen Griff nennt, steht ein markierter Standardgriff.

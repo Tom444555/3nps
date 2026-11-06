@@ -189,7 +189,7 @@
   let PR = loadProg();
   function saveProg() { PR.updated = new Date().toISOString(); try { localStorage.setItem(PKEY, JSON.stringify(PR)); } catch (e) {} }
   let U = (function () { let d = null; try { d = JSON.parse(localStorage.getItem(UKEY) || 'null'); } catch (e) {} d = d || {};
-    return { sec: d.sec || 'theorie', b: Object.assign({ pc: 7, s: 0, n: 2, inv: false, hi: false, lab: 'num', all: false, pos: false }, d.b || {}),
+    return { sec: d.sec || 'kurs', b: Object.assign({ pc: 7, s: 0, n: 2, inv: false, hi: false, lab: 'num', all: false, pos: false }, d.b || {}),
       f: Object.assign({ prog: 'i-bvii-iv', key: 4, mode: 'auto', n: 2, bpm: 90, drums: 'drums' }, d.f || {}), step: d.step | 0 }; })();
   function saveUi() { try { localStorage.setItem(UKEY, JSON.stringify(U)); } catch (e) {} }
 
@@ -246,7 +246,7 @@
     let h = '<svg class="pc-board' + (mini ? ' mini' : '') + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Griffbrett">';
     h += PcSkin.draw({ x: LM, y: TM, w: cols * CW, h: 6 * RH, a, b, CW, mini, sw: s => mini ? 1 + (5 - s) * 0.25 : 1.2 + (5 - s) * 0.45 });   // v127
     for (let s = 0; s < 6; s++) {
-      h += '<text class="pc-sn" x="' + (mini ? 7 : 11) + '" y="' + Y(s) + '">' + sname(s) + '</text>';
+      h += '<text class="pc-sn" x="' + (mini ? 7 : 11) + '" y="' + Y(s) + '">' + (c.sn ? c.sn[s] : sname(s)) + '</text>';
       if (muted.has(s)) h += '<text class="pc-x" x="' + (mini ? 16 : 30) + '" y="' + Y(s) + '">x</text>';
     }
     for (let f = a; f <= b; f++) h += '<text class="pc-fn" x="' + X(f) + '" y="' + (H - (mini ? 5 : 7)) + '">' + f + '</text>';
@@ -254,7 +254,7 @@
     if (c.tap) for (let s = 0; s < 6; s++) for (let f = a; f <= b; f++) h += '<rect class="pc-cell" data-s="' + s + '" data-f="' + f + '" x="' + (LM + (f - a) * CW) + '" y="' + (TM + (5 - s) * RH) + '" width="' + CW + '" height="' + RH + '"/>';
     (c.marks || []).forEach(m => {
       if (m.f < a || m.f > b) return;
-      h += (/ghost|bad/.test(m.cls || '') ? '' : PcSkin.shadow(X(m.f), Y(m.s), m.small ? R * 0.72 : R)) + '<g class="pc-m ' + (m.cls || '') + '"><circle cx="' + X(m.f) + '" cy="' + Y(m.s) + '" r="' + (m.small ? R * 0.72 : R) + '"/>' + (m.lab != null ? '<text x="' + X(m.f) + '" y="' + Y(m.s) + '">' + m.lab + '</text>' : '') + '</g>';
+      h += (/ghost|bad/.test(m.cls || '') ? '' : PcSkin.shadow(X(m.f), Y(m.s), m.small ? R * 0.72 : R)) + '<g class="pc-m ' + (m.cls || '') + '"><circle cx="' + X(m.f) + '" cy="' + Y(m.s) + '" r="' + (m.small ? R * 0.72 : R) + '"/>' + (m.lab != null ? '<text x="' + X(m.f) + '" y="' + Y(m.s) + '"' + (String(m.lab).includes('\n') ? ' class="pc-ml">' + String(m.lab).split('\n').map((t, i, a) => '<tspan x="' + X(m.f) + '" dy="' + (i ? '1.1em' : (-(a.length - 1) * 0.55) + 'em') + '">' + t + '</tspan>').join('') : '>' + m.lab) + '</text>' : '') + '</g>';
     });
     el.innerHTML = h + '</svg>';
     el._tapFn = c.tap || null;

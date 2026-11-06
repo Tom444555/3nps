@@ -29,7 +29,8 @@ async def main():
         # --- träge: vor dem Öffnen ist der Reiter leer, die Logik aber da ---
         check('Reiter vorhanden, Inhalt erst beim Öffnen', await pg.evaluate("!!document.getElementById('tab-power') && document.getElementById('pcSecTheorie').children.length===0 && !document.getElementById('pcBoard') && !!window.Powerchords"))
         await pg.click('#tab-power'); await pg.wait_for_timeout(500)
-        check('Theorie zuerst, 1-5-8 oben und aufgeklappt', await pg.evaluate("(()=>{const d=document.querySelector('#pcSecTheorie details');return !document.getElementById('pcSecTheorie').hidden && d.id==='pcT1' && d.open && /1-5-8-Theorie/.test(d.querySelector('summary').textContent)})()"))
+        await pg.click('#pcSubs [data-sec=theorie]'); await pg.wait_for_timeout(300)   # v129: Start ist der Kurs
+        check('Theorie, 1-5-8 oben und aufgeklappt', await pg.evaluate("(()=>{const d=document.querySelector('#pcSecTheorie details');return !document.getElementById('pcSecTheorie').hidden && d.id==='pcT1' && d.open && /1-5-8-Theorie/.test(d.querySelector('summary').textContent)})()"))
         check('Theorie wörtlich (Merksatz, Tabs, Spieltechnik)', await pg.evaluate("(()=>{const t=document.getElementById('pcSecTheorie').textContent;return t.includes('„Zwei Bünde höher, eine Saite höher“ gilt, bis die H-Saite im Spiel ist. Dort ein Bund mehr.')&&t.includes('Palm Mute')&&document.querySelectorAll('#pcSecTheorie pre.pc-tab').length>=10&&!!document.querySelector('#pcSecTheorie [translate=no]')})()"))
         # --- 2.7: Grundton-Tabelle = Berechnung (Daten und angezeigte Tabelle) ---
         calc = await pg.evaluate("[...Array(13).keys()].map(f=>[Powerchords.calc({pc:(4+f)%12,s:0,n:2}).f%12===f%12&&Powerchords.calc({pc:(9+f)%12,s:1,n:2}).f%12===f%12, (4+f)%12, (9+f)%12])")
