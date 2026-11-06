@@ -1232,3 +1232,15 @@ Gut zu wissen
    - Werkstatt (Kapitel 3): Schritt-Leiste mit Kreisen und Häkchen für schon besuchte Schritte, große Intervall-Knöpfe
      (Zahl groß, Name klein), das Griffbrett zeigt immer 13 Bünde und bleibt an seinem Platz.
    - Alle Funktionen sind unverändert.
+
+111. „Was spiele ich?“ – Akkorde live erkennen (v128)
+   - Karte „Was spiele ich?“ in der Intervall-Werkstatt (Kurs Kapitel 3, rechts oben), als eigener Knopf am Anfang von Kapitel 6
+     und 7 und im Akkord-Baukasten („Mehrere wählen“ → „Was spiele ich?“).
+   - „Zuhören“ nutzt den Looper-Eingang (öffnet ihn bei Bedarf). Erst wenn ein Ergebnis etwa 0,4 s stabil ist, erscheint es:
+     Name groß (Umkehrung als „C/E“), Formel, die Töne mit Intervall in den Kursfarben, Bass und „sicher erkannt“ / „unsicher“.
+     Die Balken zeigen, dass die App zuhört.
+   - Erkannt werden die 18 Akkordarten des Akkord-Baukastens (Powerchord, Dur, Moll, sus2, sus4, add9, Moll add9, add11,
+     Moll add11, 7, maj7, m7, m(maj7), m7b5, vermindert, vollvermindert, maj7(9), m7(11)).
+   - „Spiel den Akkord“: Die App nennt einen Akkord; spielst du ihn, kommt ✓, sonst ein Hinweis („Terz fehlt“, „b7 statt 7“ …).
+   - „Stopp“, Reiterwechsel, Bereichswechsel oder Zuklappen beendet das Zuhören; ein von der Karte geöffneter Eingang wird wieder
+     geschlossen. Ohne „Zuhören“ läuft nichts.

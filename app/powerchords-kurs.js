@@ -62,8 +62,9 @@
   }
   function fillChapter(d) {
     if (d._k) return; d._k = true; const ci = +d.dataset.kc, C = K[ci], st = kp();
-    if (C.w && window.PcWerk) PcWerk.build(d.querySelector('.pc-sec-b'), A, C);                       // v126: Kapitel 3 = Intervall-Werkstatt
+    if (C.w && window.PcWerk) PcWerk.build(d.querySelector('.pc-sec-b'), A, C);
     else d.querySelector('.pc-sec-b').innerHTML = (C.i ? '<p class="caption" translate="no">' + C.i + '</p>' : '') + C.s.map((S, si) => subHtml(ci, si, S)).join('');
+    if ((ci === 5 || ci === 6) && window.PcLive) d.querySelector('.pc-sec-b').insertAdjacentHTML('afterbegin', '<div class="pc-klive"><button class="toggle-btn" data-klive="1">' + PcSkin.btn('Was spiele ich?') + '</button><div class="card pc-klivebox" hidden></div></div>');   // v128                       // v126: Kapitel 3 = Intervall-Werkstatt
     d.querySelectorAll('[data-kb]').forEach(el => { const [a, b, c] = el.dataset.kb.split('.').map(Number), g = K[a].s[b].g[c], q = grip(g), [f0, f1] = range(q.marks, g.nm && !g.short);
       A.board(el, { marks: q.marks, muted: q.muted, from: f0, to: f1, mini: true }); });
     d.querySelectorAll('input[data-kx]').forEach(c => { c.checked = !!st[c.dataset.kx]; });
@@ -86,6 +87,8 @@
       '<p class="caption" translate="no">Kurs „Power Chord Theory“, Kapitel 1–7, Schritt für Schritt nach den Worten des Lehrers. Im Text heißt der Ton H wie beim Lehrer <b>B</b> (das tiefere heißt <b>B-flat</b>); auf dem Griffbrett steht die Saite wie im übrigen Reiter als H. Die Griffbilder zeigen die hohe e-Saite oben; die Zahlen in den Punkten sind die Intervalle.</p></div>' +
       K.map((C, ci) => '<details class="card pc-sec pc-kc" data-kc="' + ci + '" id="pcKC' + (ci + 1) + '"' + (ci === 0 ? ' open' : '') + '><summary><h3 translate="no">' + C.t + '</h3></summary><div class="pc-sec-b"></div></details>').join('');
     h.addEventListener('click', onClick);
+    h.addEventListener('click', e => { const b = e.target.closest('[data-klive]'); if (!b) return; const box = b.nextElementSibling;
+      if (!box._c) box._c = PcLive.mount(box); box.hidden = !box.hidden; if (box.hidden) PcLive.stop(); else PcLive.start(box._c); });
     h.addEventListener('click', e => { const r = e.target.closest('[data-kring]'); if (!r) return; const d = document.getElementById('pcKC' + (+r.dataset.kring + 1)); d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
     h.addEventListener('change', e => { const c = e.target.closest('input[data-kx]'); if (!c) return; const st = kp(); if (c.checked) st[c.dataset.kx] = true; else delete st[c.dataset.kx]; A.saveProg(); paintSum(); });
     h.querySelectorAll('details.pc-kc').forEach(d => { d.addEventListener('toggle', () => { if (d.open) fillChapter(d); }); if (d.open) fillChapter(d); });

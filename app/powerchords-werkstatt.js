@@ -223,6 +223,7 @@
     if (w === 'play') { play(b.dataset.v); return; }
     if (w === 'step') { W.n = Math.max(0, Math.min(12, W.n + (+b.dataset.v))); paint(); play('seq'); return; }
     if (w === 'chord') { A.strumNow(chordMidis(W.sel)); return; }
+    if (w === 'live') { if (W.live) { W.live.scrollIntoView({ behavior: 'smooth', block: 'center' }); PcLive.start(W.live); } return; }
     if (w === 'quiz') { startQuiz(b.dataset.v); return; }
     if (w === 'again') { hearNow(); return; }
     if (w === 'qa') { const q = W.q, rn = rootName(pit(W.rs, W.rf)), ok = n === q.N;
@@ -239,14 +240,15 @@
       [['num', 'Zahl'], ['name', 'Name'], ['ton', 'Ton'], ['all', 'Alles']].map(([v, t]) => '<button class="toggle-btn" data-w="lab" data-v="' + v + '">' + L(t) + '</button>').join('') + '</div></div>' +
       '<p class="caption pc-wcap" translate="no"></p><div class="pc-wbw"></div><div class="pc-winfo" translate="no"></div>' +
       '<div class="pc-row pc-wsingle"><button class="toggle-btn" data-w="play" data-v="root">' + L('▶ Grundton') + '</button><button class="toggle-btn" data-w="play" data-v="seq">' + L('▶ Nacheinander') + '</button><button class="toggle-btn" data-w="play" data-v="both">' + L('▶ Zusammen') + '</button><button class="toggle-btn" data-w="step" data-v="-1">' + L('◀ kleiner') + '</button><button class="toggle-btn" data-w="step" data-v="1">' + L('größer ▶') + '</button></div>' +
-      '<div class="pc-row pc-wmulti" hidden><button class="toggle-btn active" data-w="chord">' + L('▶ Akkord anhören') + '</button></div>' +
+      '<div class="pc-row pc-wmulti" hidden><button class="toggle-btn active" data-w="chord">' + L('▶ Akkord anhören') + '</button><button class="toggle-btn" data-w="live">' + L('Was spiele ich?') + '</button></div>' +
       '<div class="pc-wq" hidden><div class="pc-row">' + [['find', 'Finde die …'], ['name', 'Wie heißt das?'], ['hear', 'Hör-Quiz']].map(([v, t]) => '<button class="toggle-btn pc-wqb" data-w="quiz" data-v="' + v + '"><span>' + L(t) + '</span><small></small></button>').join('') + '</div><div class="pc-wqbody"></div></div>' +
       '<div class="pc-row pc-wleg">' + [['f1', 'Prime / Oktave'], ['f5', 'Quinte'], ['f3', 'Terzen'], ['f4', 'Quarte'], ['fx', 'Sekunden · Sexten · Septimen · Tritonus']].map(([c, t]) => '<span class="pc-wlg ' + c + '">' + L(t) + '</span>').join('') + '</div></div>' +
-      '<div class="pc-wright"><div class="card"><h4>' + L('Merkkarten des Lehrers') + '</h4><div class="pc-wcards" translate="no">' + CARDS.map(([c, t]) => '<div class="pc-wcard ' + c + '">' + t + '<small>Merkkarte · Lehrer, Kapitel 3</small></div>').join('') + '</div></div>' +
+      '<div class="pc-wright"><div class="card pc-wlive"></div><div class="card"><h4>' + L('Merkkarten des Lehrers') + '</h4><div class="pc-wcards" translate="no">' + CARDS.map(([c, t]) => '<div class="pc-wcard ' + c + '">' + t + '<small>Merkkarte · Lehrer, Kapitel 3</small></div>').join('') + '</div></div>' +
       '<div class="card pc-wkex"><h4>' + L('Übungen aus dem Kurs') + '</h4>' + C.s.map(S => '<section class="pc-ksub" id="pcK_' + S.id + '"><h5 translate="no">' + S.t + '</h5><div class="pc-kbody" translate="no"></div><div class="pc-kex">' +
         S.ex.map((x, xi) => '<label class="check pc-kchk"><input type="checkbox" data-kx="' + S.id + '-' + xi + '"> <span translate="no">' + (x.slice(0, 2) === 'E:' ? '<i>(ergänzt)</i> ' : '') + x.slice(2) + '</span></label>').join('') + '</div></section>').join('') + '</div></div></div>' +
       '<div class="card pc-wstrip"><b translate="no">Vorschau Schritt 1 · Eine Saite: jeder Bund = 1 Halbton weiter</b><div class="pc-wtiles"></div></div></div>';
     host.addEventListener('click', onClick);
+    if (window.PcLive) W.live = PcLive.mount($q('.pc-wlive'));                                   // v128: „Was spiele ich?“
     paint();
   }
   window.PcWerk = { build, chordOf, spell, posBox, posTwo, TY, IV, formula, cname, rootName, state: () => ({ st: W.st, rs: W.rs, rf: W.rf, n: W.n, lab: W.lab, multi: W.multi, sel: [...W.sel], q: W.q && { kind: W.q.kind, i: W.q.i, hits: W.q.hits, N: W.q.N, ans: W.q.ans } }),

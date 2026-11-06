@@ -924,3 +924,7 @@ window.__EN_PCW = {
 };
 // v127: Knöpfe mit SVG-Symbol statt ▶ – Text allein
 Object.assign(window.__EN, { 'Anhören': 'Listen', 'Nacheinander': 'One by one', 'Loop starten': 'Start loop' });
+// v128 „Was spiele ich?“
+Object.assign(window.__EN_PCW, { 'Was spiele ich?': 'What am I playing?', 'Zuhören': 'Listen', 'Stopp': 'Stop', 'aus': 'off', 'hört zu': 'listening', 'kein Eingang': 'no input', 'kein Zugriff auf den Eingang': 'no access to the input',
+  'Spiel den Akkord': 'Play the chord', 'Spiel': 'Play', 'Formel': 'formula', 'Umkehrung': 'inversion', 'sicher erkannt': 'recognised reliably', 'unsicher': 'uncertain' });
+Object.assign(window.__EN, { 'Was spiele ich?': 'What am I playing?' });
