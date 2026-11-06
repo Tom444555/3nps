@@ -39,8 +39,8 @@
     if (S.m) h += '<p class="pc-kmerk">' + S.m + '</p>';
     h += '</div>';
     if (S.g) h += '<div class="pc-kgrips">' + S.g.map((g, gi) => '<div class="pc-kgrip"><b translate="no">' + esc(g.n) + '</b>' + (g.cap ? '<span class="caption" translate="no">' + g.cap + '</span>' : '') +
-      '<div class="pc-bwrap" data-kb="' + ci + '.' + si + '.' + gi + '"></div><button class="toggle-btn" data-k="play" data-kg="' + ci + '.' + si + '.' + gi + '">' + (g.arp || g.mk ? '▶ Nacheinander' : '▶ Anhören') + '</button></div>').join('') + '</div>';
-    if (S.loop) h += S.loop.map((L, li) => '<div class="pc-row pc-kloop"><b translate="no">' + L.c.join(' – ') + '</b><span class="caption" translate="no">' + (L.t || '') + '</span><button class="toggle-btn active" data-k="loop" data-kl="' + ci + '.' + si + '.' + li + '">▶ Loop starten</button></div>').join('');
+      '<div class="pc-bwrap" data-kb="' + ci + '.' + si + '.' + gi + '"></div><button class="toggle-btn" data-k="play" data-kg="' + ci + '.' + si + '.' + gi + '">' + PcSkin.btn(g.arp || g.mk ? '▶ Nacheinander' : '▶ Anhören') + '</button></div>').join('') + '</div>';
+    if (S.loop) h += S.loop.map((L, li) => '<div class="pc-row pc-kloop"><b translate="no">' + L.c.join(' – ') + '</b><span class="caption" translate="no">' + (L.t || '') + '</span><button class="toggle-btn active" data-k="loop" data-kl="' + ci + '.' + si + '.' + li + '">' + PcSkin.btn('▶ Loop starten') + '</button></div>').join('');
     h += '<div class="pc-kex"><h5>Übungen</h5>' + S.ex.map((x, xi) => { const id = S.id + '-' + xi, own = x.slice(0, 2) === 'E:';
       return '<label class="check pc-kchk"><input type="checkbox" data-kx="' + id + '"> <span translate="no">' + (own ? '<i>(ergänzt)</i> ' : '') + x.slice(2) + '</span></label>'; }).join('') + '</div>';
     return h + '</section>';
@@ -48,7 +48,14 @@
   let A = null, host = null;
   const total = () => K.reduce((a, c) => a + c.s.reduce((b, S) => b + S.ex.length, 0), 0);
   function kp() { const P = A.PR(); P.kurs = P.kurs || {}; return P.kurs; }
+  const SHORT = ['Einleitung', 'Grundlagen', 'Intervalle', 'CAGED', 'Funktionen', 'Sus · Add', '7er'];
+  function ring(p) { const c = 2 * Math.PI * 17; return '<svg viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="17" class="pc-rbg"/><circle cx="22" cy="22" r="17" class="pc-rfg" stroke-dasharray="' + (c * p).toFixed(1) + ' ' + c.toFixed(1) + '" transform="rotate(-90 22 22)"/></svg>'; }
+  function paintRings() {
+    const st = kp(); document.querySelectorAll('#pcKRings .pc-ring').forEach((b, ci) => { const ids = []; K[ci].s.forEach(S => S.ex.forEach((x, xi) => ids.push(S.id + '-' + xi)));
+      const d = ids.filter(id => st[id] === true).length, p = ids.length ? d / ids.length : 0; b.querySelector('.pc-rsvg').innerHTML = ring(p); b.classList.toggle('done', p >= 1); b.title = d + ' / ' + ids.length; });
+  }
   function paintSum() {
+    paintRings();
     const st = kp(), n = Object.keys(st).filter(k => st[k] === true).length, t = total();
     const el = document.getElementById('pcKSum'); if (el) el.textContent = n + ' von ' + t + ' Übungen abgehakt';
     const b = document.getElementById('pcKBar'); if (b) b.style.width = (t ? 100 * n / t : 0) + '%';
@@ -75,9 +82,11 @@
   function build(h, api) {
     if (host) return; host = h; A = api;
     h.innerHTML = '<div class="card pc-exhead"><div class="pc-row"><b id="pcKSum"></b></div><div class="pc-bar"><i id="pcKBar"></i></div>' +
+      '<div class="pc-rings" id="pcKRings">' + K.map((C, ci) => '<button class="pc-ring" data-kring="' + ci + '"><span class="pc-rsvg"></span><b>' + (ci + 1) + '</b><span class="pc-rl" translate="no">' + SHORT[ci] + '</span></button>').join('') + '</div>' +
       '<p class="caption" translate="no">Kurs „Power Chord Theory“, Kapitel 1–7, Schritt für Schritt nach den Worten des Lehrers. Im Text heißt der Ton H wie beim Lehrer <b>B</b> (das tiefere heißt <b>B-flat</b>); auf dem Griffbrett steht die Saite wie im übrigen Reiter als H. Die Griffbilder zeigen die hohe e-Saite oben; die Zahlen in den Punkten sind die Intervalle.</p></div>' +
       K.map((C, ci) => '<details class="card pc-sec pc-kc" data-kc="' + ci + '" id="pcKC' + (ci + 1) + '"' + (ci === 0 ? ' open' : '') + '><summary><h3 translate="no">' + C.t + '</h3></summary><div class="pc-sec-b"></div></details>').join('');
     h.addEventListener('click', onClick);
+    h.addEventListener('click', e => { const r = e.target.closest('[data-kring]'); if (!r) return; const d = document.getElementById('pcKC' + (+r.dataset.kring + 1)); d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
     h.addEventListener('change', e => { const c = e.target.closest('input[data-kx]'); if (!c) return; const st = kp(); if (c.checked) st[c.dataset.kx] = true; else delete st[c.dataset.kx]; A.saveProg(); paintSum(); });
     h.querySelectorAll('details.pc-kc').forEach(d => { d.addEventListener('toggle', () => { if (d.open) fillChapter(d); }); if (d.open) fillChapter(d); });
     paintSum();

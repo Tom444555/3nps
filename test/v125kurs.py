@@ -27,7 +27,7 @@ async def main():
         info = await pg.evaluate("(()=>{const ds=[...document.querySelectorAll('#pcSecKurs details.pc-kc')];return {n:ds.length,t:ds.map(d=>d.querySelector('summary').textContent),open:ds.map(d=>d.open),filled:ds.map(d=>d.querySelector('.pc-sec-b').children.length>0)}})()")
         check('7 Kapitel, nur Kapitel 1 offen und gebaut', info['n'] == 7 and info['open'][0] and not any(info['open'][1:]) and info['filled'][0] and not any(info['filled'][1:]), info['t'])
         await pg.evaluate(OPENALL); await pg.wait_for_timeout(500)
-        st = await pg.evaluate("(()=>{const subs=[...document.querySelectorAll('#pcSecKurs .pc-ksub')];return {subs:subs.length,ex:subs.every(s=>s.querySelector('.pc-kex input')),boards:document.querySelectorAll('#pcSecKurs .pc-kgrip svg').length,grips:document.querySelectorAll('#pcSecKurs .pc-kgrip').length,tn:subs.every(s=>s.querySelector('.pc-kbody[translate=no]')),unsicher:document.getElementById('pcSecKurs').textContent.includes('unsicher')}})()")
+        st = await pg.evaluate("(()=>{const subs=[...document.querySelectorAll('#pcSecKurs .pc-ksub')];return {subs:subs.length,ex:subs.every(s=>s.querySelector('.pc-kex input')),boards:document.querySelectorAll('#pcSecKurs .pc-kgrip svg.pc-board').length,grips:document.querySelectorAll('#pcSecKurs .pc-kgrip').length,tn:subs.every(s=>s.querySelector('.pc-kbody[translate=no]')),unsicher:document.getElementById('pcSecKurs').textContent.includes('unsicher')}})()")
         check('Jedes Unterkapitel hat Lehrtext (translate=no) und Übungen', st['subs'] >= 40 and st['ex'] and st['tn'], st)
         check('Jedes Griffbild gezeichnet', st['grips'] > 30 and st['boards'] == st['grips'], st)
         check('Keine [unsicher]-Stellen im Text', not st['unsicher'])

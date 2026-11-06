@@ -922,3 +922,5 @@ window.__EN_PCW = {
   'Prime / Oktave': 'unison / octave', 'Terzen': 'thirds', 'Sekunden · Sexten · Septimen · Tritonus': 'seconds · sixths · sevenths · tritone',
   'Merkkarten des Lehrers': 'Teacher’s cards', 'Übungen aus dem Kurs': 'Exercises from the course'
 };
+// v127: Knöpfe mit SVG-Symbol statt ▶ – Text allein
+Object.assign(window.__EN, { 'Anhören': 'Listen', 'Nacheinander': 'One by one', 'Loop starten': 'Start loop' });

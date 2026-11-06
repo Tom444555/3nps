@@ -193,6 +193,49 @@
       f: Object.assign({ prog: 'i-bvii-iv', key: 4, mode: 'auto', n: 2, bpm: 90, drums: 'drums' }, d.f || {}), step: d.step | 0 }; })();
   function saveUi() { try { localStorage.setItem(UKEY, JSON.stringify(U)); } catch (e) {} }
 
+
+  // ---------- v127: Griffbrett-Look (Palisander, Bundstäbchen mit Verlauf/Glanz/Schatten, umsponnene D/A/E, Knochensattel, Perlmutt, Vignette) ----------
+  // Ohne SVG-Filter: Schatten sind versetzte dunkle Linien/Kreise (billig auf dem iPad). Eindeutige IDs je Griffbrett (versteckte Bereiche brechen sonst url(#…)).
+  window.PcSkin = window.PcSkin || (function () {
+    let uid = 0;
+    function draw(o) {
+      const u = 'pcs' + (++uid), RH = o.h / 6, CW = o.CW, a = o.a, b = o.b, mini = !!o.mini, x0 = o.x, y0 = o.y, W = o.w, H = o.h;
+      const X = f => x0 + (f - a) * CW + CW / 2, Y = s => y0 + (5 - s) * RH + RH / 2, tw = H * 4;
+      let h = '<defs><pattern id="' + u + 'w" patternUnits="userSpaceOnUse" x="' + x0 + '" y="' + y0 + '" width="' + tw + '" height="' + H + '"><image href="img/palisander.jpg" width="' + tw + '" height="' + H + '" preserveAspectRatio="none"/></pattern>' +
+        '<linearGradient id="' + u + 'f" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#5e5b55"/><stop offset=".35" stop-color="#d8d4cc"/><stop offset=".5" stop-color="#fbf9f4"/><stop offset=".7" stop-color="#a9a59d"/><stop offset="1" stop-color="#4a4742"/></linearGradient>' +
+        '<linearGradient id="' + u + 'n" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#cdbf9e"/><stop offset=".45" stop-color="#f6efdf"/><stop offset="1" stop-color="#bfae88"/></linearGradient>' +
+        '<radialGradient id="' + u + 'p" cx=".38" cy=".35" r=".7"><stop offset="0" stop-color="#ffffff"/><stop offset=".45" stop-color="#e9e6dc"/><stop offset=".8" stop-color="#b9c3c4"/><stop offset="1" stop-color="#8f9a9c"/></radialGradient>' +
+        '<linearGradient id="' + u + 'v" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity=".55"/><stop offset=".1" stop-color="#000" stop-opacity="0"/><stop offset=".9" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".55"/></linearGradient>' +
+        '<linearGradient id="' + u + 'h" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#000" stop-opacity=".35"/><stop offset=".05" stop-color="#000" stop-opacity="0"/><stop offset=".95" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".35"/></linearGradient></defs>';
+      h += '<g class="pc-skin"><rect x="' + x0 + '" y="' + y0 + '" width="' + W + '" height="' + H + '" fill="#3a2016"/><rect x="' + x0 + '" y="' + y0 + '" width="' + W + '" height="' + H + '" fill="url(#' + u + 'w)"/>';
+      const ir = mini ? 3.2 : 6;
+      for (let f = Math.max(1, a); f <= b; f++) {
+        const cy = [3, 5, 7, 9, 15, 17, 19, 21].includes(f) ? [y0 + 3 * RH] : f === 12 || f === 24 ? [y0 + 2 * RH, y0 + 4 * RH] : [];
+        cy.forEach(c => { h += '<circle cx="' + (X(f) + .8) + '" cy="' + (c + 1.2) + '" r="' + ir + '" fill="#000" opacity=".35"/><circle cx="' + X(f) + '" cy="' + c + '" r="' + ir + '" fill="url(#' + u + 'p)"/>'; });
+      }
+      h += '<rect x="' + x0 + '" y="' + y0 + '" width="' + W + '" height="' + H + '" fill="url(#' + u + 'v)"/><rect x="' + x0 + '" y="' + y0 + '" width="' + W + '" height="' + H + '" fill="url(#' + u + 'h)"/>';
+      const fw = mini ? 2.4 : 4.2;
+      for (let f = a; f <= b; f++) { const x = x0 + (f - a + 1) * CW;
+        if (f === 0) { const nw = mini ? 5 : 9; h += '<rect x="' + (x - nw / 2 + 2) + '" y="' + y0 + '" width="' + nw + '" height="' + H + '" fill="#000" opacity=".35"/><rect x="' + (x - nw / 2) + '" y="' + (y0 - 1) + '" width="' + nw + '" height="' + (H + 2) + '" rx="1.5" fill="url(#' + u + 'n)"/>'; continue; }
+        h += '<rect x="' + (x + fw / 2) + '" y="' + y0 + '" width="' + (fw * .9) + '" height="' + H + '" fill="#000" opacity=".32"/><rect x="' + (x - fw / 2) + '" y="' + y0 + '" width="' + fw + '" height="' + H + '" fill="url(#' + u + 'f)"/>' +
+          '<line x1="' + (x - fw * .08) + '" y1="' + y0 + '" x2="' + (x - fw * .08) + '" y2="' + (y0 + H) + '" stroke="#fff" stroke-opacity=".75" stroke-width="' + (mini ? .4 : .7) + '"/>'; }
+      for (let s = 0; s < 6; s++) { const y = Y(s), w = o.sw(s), x1 = x0, x2 = x0 + W, wound = s <= 2;
+        h += '<line x1="' + x1 + '" y1="' + (y + w * .9 + 1.2) + '" x2="' + x2 + '" y2="' + (y + w * .9 + 1.2) + '" stroke="#000" stroke-opacity=".38" stroke-width="' + (w + .6) + '"/>' +
+          '<line x1="' + x1 + '" y1="' + y + '" x2="' + x2 + '" y2="' + y + '" stroke="' + (wound ? '#a39c90' : '#cfccc5') + '" stroke-width="' + w + '"/>' +
+          (wound ? '<line x1="' + x1 + '" y1="' + y + '" x2="' + x2 + '" y2="' + y + '" stroke="#efeae0" stroke-width="' + w + '" stroke-dasharray="' + (mini ? '.5 .9' : '.8 1.3') + '"/>' : '') +
+          '<line x1="' + x1 + '" y1="' + (y - w * .22) + '" x2="' + x2 + '" y2="' + (y - w * .22) + '" stroke="#fff" stroke-opacity=".55" stroke-width="' + Math.max(.3, w * .25) + '"/>'; }
+      return h + '</g>';
+    }
+    const shadow = (cx, cy, r) => '<circle class="pc-msh" cx="' + (cx + r * .1) + '" cy="' + (cy + r * .16) + '" r="' + r + '" fill="#000" opacity=".38"/>';
+    const P = { play: '<path d="M5 3.5v13l11-6.5z"/>', back: '<path d="M13 4l-7 6 7 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>',
+      next: '<path d="M7 4l7 6-7 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>', check: '<path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>',
+      pencil: '<path d="M4 16l1-4 8-8 3 3-8 8zM12 5l3 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>', box: '<rect x="3.5" y="3.5" width="13" height="13" rx="3" fill="none" stroke="currentColor" stroke-width="2"/>',
+      boxon: '<rect x="3.5" y="3.5" width="13" height="13" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M6.5 10.5l2.5 2.5 4.5-5.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>' };
+    const icon = n => '<svg class="pc-ic" viewBox="0 0 20 20" aria-hidden="true" fill="currentColor">' + P[n] + '</svg>';
+    // Text mit ▶/◀/☐/✎ → schlichtes SVG-Symbol + Text (keine Emoji-Darstellung auf dem iPad)
+    const btn = t => String(t).replace(/^▶ /, icon('play')).replace(/^◀ /, icon('back')).replace(/ ▶$/, icon('next')).replace(/^☐ /, icon('box')).replace(/^✎ /, icon('pencil'));
+    return { draw, shadow, icon, btn };
+  })();
   // ---------- Griffbrett (SVG) ----------
   const DEGL = ['1', 'b2', '2', 'b3', '3', '4', 'b5', '5', 'b6', '6', 'b7', '7'];
   function board(el, c) {
@@ -201,14 +244,8 @@
     const X = f => LM + (f - a) * CW + CW / 2, Y = s => TM + (5 - s) * RH + RH / 2, R = mini ? 10 : 18;
     const muted = new Set(c.muted || []);
     let h = '<svg class="pc-board' + (mini ? ' mini' : '') + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Griffbrett">';
-    h += '<rect class="pc-wood" x="' + LM + '" y="' + TM + '" width="' + cols * CW + '" height="' + 6 * RH + '" rx="4"/>';
-    for (let f = Math.max(1, a); f <= b; f++) {
-      if ([3, 5, 7, 9, 15].includes(f)) h += '<circle class="pc-inlay" cx="' + X(f) + '" cy="' + (TM + 3 * RH) + '" r="' + (mini ? 3 : 5) + '"/>';
-      if (f === 12) h += '<circle class="pc-inlay" cx="' + X(f) + '" cy="' + (TM + 2 * RH) + '" r="' + (mini ? 3 : 5) + '"/><circle class="pc-inlay" cx="' + X(f) + '" cy="' + (TM + 4 * RH) + '" r="' + (mini ? 3 : 5) + '"/>';
-    }
-    for (let f = a; f <= b; f++) { const x = LM + (f - a + 1) * CW; h += '<line class="' + (f === 0 ? 'pc-nut' : 'pc-fret') + '" x1="' + x + '" y1="' + TM + '" x2="' + x + '" y2="' + (TM + 6 * RH) + '"/>'; }
+    h += PcSkin.draw({ x: LM, y: TM, w: cols * CW, h: 6 * RH, a, b, CW, mini, sw: s => mini ? 1 + (5 - s) * 0.25 : 1.2 + (5 - s) * 0.45 });   // v127
     for (let s = 0; s < 6; s++) {
-      h += '<line class="pc-str" style="stroke-width:' + (mini ? 1 + (5 - s) * 0.25 : 1.2 + (5 - s) * 0.45) + 'px" x1="' + LM + '" y1="' + Y(s) + '" x2="' + (LM + cols * CW) + '" y2="' + Y(s) + '"/>';
       h += '<text class="pc-sn" x="' + (mini ? 7 : 11) + '" y="' + Y(s) + '">' + sname(s) + '</text>';
       if (muted.has(s)) h += '<text class="pc-x" x="' + (mini ? 16 : 30) + '" y="' + Y(s) + '">x</text>';
     }
@@ -217,7 +254,7 @@
     if (c.tap) for (let s = 0; s < 6; s++) for (let f = a; f <= b; f++) h += '<rect class="pc-cell" data-s="' + s + '" data-f="' + f + '" x="' + (LM + (f - a) * CW) + '" y="' + (TM + (5 - s) * RH) + '" width="' + CW + '" height="' + RH + '"/>';
     (c.marks || []).forEach(m => {
       if (m.f < a || m.f > b) return;
-      h += '<g class="pc-m ' + (m.cls || '') + '"><circle cx="' + X(m.f) + '" cy="' + Y(m.s) + '" r="' + (m.small ? R * 0.72 : R) + '"/>' + (m.lab != null ? '<text x="' + X(m.f) + '" y="' + Y(m.s) + '">' + m.lab + '</text>' : '') + '</g>';
+      h += (/ghost|bad/.test(m.cls || '') ? '' : PcSkin.shadow(X(m.f), Y(m.s), m.small ? R * 0.72 : R)) + '<g class="pc-m ' + (m.cls || '') + '"><circle cx="' + X(m.f) + '" cy="' + Y(m.s) + '" r="' + (m.small ? R * 0.72 : R) + '"/>' + (m.lab != null ? '<text x="' + X(m.f) + '" y="' + Y(m.s) + '">' + m.lab + '</text>' : '') + '</g>';
     });
     el.innerHTML = h + '</svg>';
     el._tapFn = c.tap || null;

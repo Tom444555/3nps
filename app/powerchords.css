@@ -190,3 +190,46 @@
   .pc-wtile b { font-size: 1rem; } .pc-wtile.f1 b { color: var(--w1); } .pc-wtile.f5 b { color: var(--w5); } .pc-wtile.f3 b { color: var(--w3); } .pc-wtile.f4 b { color: var(--w4); }
   .pc-wtile.active { outline: 3px solid var(--accent); }
   .pc-wkex .pc-ksub h5 { margin: 4px 0; font-size: .9rem; }
+  /* v127 neuer Look: Karten, Ringe, Schritt-Leiste, große Intervall-Knöpfe, Zitat-Merkkarten, SVG-Symbole */
+  .pc-ic { width: 1.05em; height: 1.05em; vertical-align: -0.16em; margin-right: .38em; flex: none; }
+  .pc-skin { pointer-events: none; }
+  #pcSecKurs .card, #pcSecKurs .pc-kgrip { border-radius: 16px; border: 1px solid color-mix(in srgb, var(--line) 80%, transparent); box-shadow: 0 6px 18px rgba(0,0,0,.18); }
+  #pcSecKurs .pc-kgrip { background: color-mix(in srgb, var(--line) 22%, transparent); padding: 10px; }
+  #pcSecKurs .pc-kgrip > b { font-size: 1.05rem; }
+  .pc-rings { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 8px; }
+  .pc-ring { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; width: 78px; min-height: 74px; border: 0; background: none; color: inherit; cursor: pointer; padding: 2px; }
+  .pc-ring .pc-rsvg { display: block; width: 44px; height: 44px; } .pc-ring .pc-rsvg svg { width: 44px; height: 44px; display: block; }
+  .pc-ring > b { position: absolute; top: 2px; width: 44px; line-height: 44px; text-align: center; font-weight: 800; }
+  .pc-ring .pc-rl { font-size: .72rem; opacity: .8; white-space: nowrap; }
+  .pc-rbg { fill: none; stroke: color-mix(in srgb, currentColor 18%, transparent); stroke-width: 4; }
+  .pc-rfg { fill: none; stroke: #4fd18b; stroke-width: 4; stroke-linecap: round; }
+  .pc-ring.done > b { color: #4fd18b; }
+  #pcSecKurs .pc-kmerk { position: relative; border-left: 0; border-radius: 14px; padding: 12px 14px 10px 44px; background: color-mix(in srgb, var(--line) 30%, transparent); font-weight: 600; }
+  #pcSecKurs .pc-kmerk::before { content: '\201C'; position: absolute; left: 12px; top: 2px; font: 800 2.4rem/1 Georgia, serif; color: #4fd18b; opacity: .8; }
+  #pcSecKurs .pc-kmerk::after { content: 'Merkkarte · Lehrer'; display: block; margin-top: 4px; font-size: .72rem; font-weight: 500; opacity: .65; }
+  .pc-wcard { position: relative; border-left: 0 !important; border-radius: 14px !important; padding: 10px 12px 8px 40px !important; }
+  .pc-wcard::before { content: '\201C'; position: absolute; left: 10px; top: 2px; font: 800 2.1rem/1 Georgia, serif; color: var(--wx); }
+  .pc-wcard.f1::before { color: var(--w1); } .pc-wcard.f5::before { color: var(--w5); } .pc-wcard.f3::before { color: var(--w3); } .pc-wcard.f4::before { color: var(--w4); }
+  .pc-wcard small { display: block; margin-top: 4px; font-size: .7rem; opacity: .6; }
+  .pc-wsteps { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 0; }
+  .pc-wstep { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 8px; border: 0; background: none; color: inherit; font: 600 .95rem var(--f-body); cursor: pointer; border-radius: 22px; opacity: .78; }
+  .pc-wstep.active { opacity: 1; font-weight: 800; } .pc-wstep.seen { opacity: .95; }
+  .pc-wsn { position: relative; display: inline-flex; width: 30px; height: 30px; border-radius: 50%; border: 2px solid color-mix(in srgb, currentColor 45%, transparent); align-items: center; justify-content: center; font-size: .85rem; flex: none; }
+  .pc-wsn .pc-ic { margin: 0; }
+  .pc-wsn > .pc-ic { position: absolute; inset: 0; margin: auto; width: 16px; height: 16px; visibility: hidden; color: #10261a; }
+  .pc-wstep.active .pc-wsn { border-color: #4fd18b; box-shadow: 0 0 0 3px color-mix(in srgb, #4fd18b 30%, transparent); }
+  .pc-wstep.seen .pc-wsn { background: #4fd18b; border-color: #4fd18b; } .pc-wstep.seen .pc-wsn > i { visibility: hidden; } .pc-wstep.seen .pc-wsn > .pc-ic { visibility: visible; }
+  .pc-wsl { display: inline-block; flex: 1 1 14px; min-width: 10px; max-width: 70px; height: 2px; background: color-mix(in srgb, currentColor 25%, transparent); }
+  .pc-wsl.on { background: #4fd18b; }
+  .pc-wivrow { display: grid !important; grid-template-columns: repeat(13, minmax(0, 1fr)); gap: 6px; }
+  @media (max-width: 700px) { .pc-wivrow { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+  #panel-power .pc-w .pc-wiv { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 64px; padding: 4px 2px; border-radius: 14px; min-width: 0; overflow: hidden; }
+  .pc-w .pc-wiv b { font-size: 1.35rem; line-height: 1.1; margin: 0; } .pc-w .pc-wiv span { font-size: .68rem; font-weight: 500; opacity: .85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  .pc-w .pc-wiv.active { background: color-mix(in srgb, #4fd18b 18%, transparent); color: inherit; box-shadow: inset 0 0 0 2px #4fd18b; }
+  .pc-w .pc-wiv.active b { color: #4fd18b; }
+  .pc-wbox { position: relative; display: inline-block; width: 1.05em; height: 1.05em; margin-right: .4em; vertical-align: -0.16em; } .pc-wbox .pc-ic { position: absolute; inset: 0; margin: 0; }
+  .pc-wbox .pc-ic + .pc-ic, .pc-w [data-w=multi].active .pc-wbox .pc-ic:first-child { visibility: hidden; } .pc-w [data-w=multi].active .pc-wbox .pc-ic + .pc-ic { visibility: visible; }
+  .pc-wleft, .pc-wright .card { border-radius: 18px; }
+  .pc-winfo { min-height: 5.4em; } .pc-wqbody { min-height: 9em; } .pc-wcap { min-height: 2.6em; }
+  .pc-wgrid { grid-template-columns: minmax(0, 1fr) minmax(250px, 29%); }
+  @media (max-width: 1000px) { .pc-wgrid { grid-template-columns: minmax(0, 1fr); } }

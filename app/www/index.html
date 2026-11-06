@@ -1824,6 +1824,49 @@ html.sig-open .control-bar { visibility: hidden; }   /* Kopfleiste liegt sonst �
   .pc-wtile b { font-size: 1rem; } .pc-wtile.f1 b { color: var(--w1); } .pc-wtile.f5 b { color: var(--w5); } .pc-wtile.f3 b { color: var(--w3); } .pc-wtile.f4 b { color: var(--w4); }
   .pc-wtile.active { outline: 3px solid var(--accent); }
   .pc-wkex .pc-ksub h5 { margin: 4px 0; font-size: .9rem; }
+  /* v127 neuer Look: Karten, Ringe, Schritt-Leiste, große Intervall-Knöpfe, Zitat-Merkkarten, SVG-Symbole */
+  .pc-ic { width: 1.05em; height: 1.05em; vertical-align: -0.16em; margin-right: .38em; flex: none; }
+  .pc-skin { pointer-events: none; }
+  #pcSecKurs .card, #pcSecKurs .pc-kgrip { border-radius: 16px; border: 1px solid color-mix(in srgb, var(--line) 80%, transparent); box-shadow: 0 6px 18px rgba(0,0,0,.18); }
+  #pcSecKurs .pc-kgrip { background: color-mix(in srgb, var(--line) 22%, transparent); padding: 10px; }
+  #pcSecKurs .pc-kgrip > b { font-size: 1.05rem; }
+  .pc-rings { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 8px; }
+  .pc-ring { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; width: 78px; min-height: 74px; border: 0; background: none; color: inherit; cursor: pointer; padding: 2px; }
+  .pc-ring .pc-rsvg { display: block; width: 44px; height: 44px; } .pc-ring .pc-rsvg svg { width: 44px; height: 44px; display: block; }
+  .pc-ring > b { position: absolute; top: 2px; width: 44px; line-height: 44px; text-align: center; font-weight: 800; }
+  .pc-ring .pc-rl { font-size: .72rem; opacity: .8; white-space: nowrap; }
+  .pc-rbg { fill: none; stroke: color-mix(in srgb, currentColor 18%, transparent); stroke-width: 4; }
+  .pc-rfg { fill: none; stroke: #4fd18b; stroke-width: 4; stroke-linecap: round; }
+  .pc-ring.done > b { color: #4fd18b; }
+  #pcSecKurs .pc-kmerk { position: relative; border-left: 0; border-radius: 14px; padding: 12px 14px 10px 44px; background: color-mix(in srgb, var(--line) 30%, transparent); font-weight: 600; }
+  #pcSecKurs .pc-kmerk::before { content: '\201C'; position: absolute; left: 12px; top: 2px; font: 800 2.4rem/1 Georgia, serif; color: #4fd18b; opacity: .8; }
+  #pcSecKurs .pc-kmerk::after { content: 'Merkkarte · Lehrer'; display: block; margin-top: 4px; font-size: .72rem; font-weight: 500; opacity: .65; }
+  .pc-wcard { position: relative; border-left: 0 !important; border-radius: 14px !important; padding: 10px 12px 8px 40px !important; }
+  .pc-wcard::before { content: '\201C'; position: absolute; left: 10px; top: 2px; font: 800 2.1rem/1 Georgia, serif; color: var(--wx); }
+  .pc-wcard.f1::before { color: var(--w1); } .pc-wcard.f5::before { color: var(--w5); } .pc-wcard.f3::before { color: var(--w3); } .pc-wcard.f4::before { color: var(--w4); }
+  .pc-wcard small { display: block; margin-top: 4px; font-size: .7rem; opacity: .6; }
+  .pc-wsteps { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 0; }
+  .pc-wstep { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 8px; border: 0; background: none; color: inherit; font: 600 .95rem var(--f-body); cursor: pointer; border-radius: 22px; opacity: .78; }
+  .pc-wstep.active { opacity: 1; font-weight: 800; } .pc-wstep.seen { opacity: .95; }
+  .pc-wsn { position: relative; display: inline-flex; width: 30px; height: 30px; border-radius: 50%; border: 2px solid color-mix(in srgb, currentColor 45%, transparent); align-items: center; justify-content: center; font-size: .85rem; flex: none; }
+  .pc-wsn .pc-ic { margin: 0; }
+  .pc-wsn > .pc-ic { position: absolute; inset: 0; margin: auto; width: 16px; height: 16px; visibility: hidden; color: #10261a; }
+  .pc-wstep.active .pc-wsn { border-color: #4fd18b; box-shadow: 0 0 0 3px color-mix(in srgb, #4fd18b 30%, transparent); }
+  .pc-wstep.seen .pc-wsn { background: #4fd18b; border-color: #4fd18b; } .pc-wstep.seen .pc-wsn > i { visibility: hidden; } .pc-wstep.seen .pc-wsn > .pc-ic { visibility: visible; }
+  .pc-wsl { display: inline-block; flex: 1 1 14px; min-width: 10px; max-width: 70px; height: 2px; background: color-mix(in srgb, currentColor 25%, transparent); }
+  .pc-wsl.on { background: #4fd18b; }
+  .pc-wivrow { display: grid !important; grid-template-columns: repeat(13, minmax(0, 1fr)); gap: 6px; }
+  @media (max-width: 700px) { .pc-wivrow { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+  #panel-power .pc-w .pc-wiv { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 64px; padding: 4px 2px; border-radius: 14px; min-width: 0; overflow: hidden; }
+  .pc-w .pc-wiv b { font-size: 1.35rem; line-height: 1.1; margin: 0; } .pc-w .pc-wiv span { font-size: .68rem; font-weight: 500; opacity: .85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  .pc-w .pc-wiv.active { background: color-mix(in srgb, #4fd18b 18%, transparent); color: inherit; box-shadow: inset 0 0 0 2px #4fd18b; }
+  .pc-w .pc-wiv.active b { color: #4fd18b; }
+  .pc-wbox { position: relative; display: inline-block; width: 1.05em; height: 1.05em; margin-right: .4em; vertical-align: -0.16em; } .pc-wbox .pc-ic { position: absolute; inset: 0; margin: 0; }
+  .pc-wbox .pc-ic + .pc-ic, .pc-w [data-w=multi].active .pc-wbox .pc-ic:first-child { visibility: hidden; } .pc-w [data-w=multi].active .pc-wbox .pc-ic + .pc-ic { visibility: visible; }
+  .pc-wleft, .pc-wright .card { border-radius: 18px; }
+  .pc-winfo { min-height: 5.4em; } .pc-wqbody { min-height: 9em; } .pc-wcap { min-height: 2.6em; }
+  .pc-wgrid { grid-template-columns: minmax(0, 1fr) minmax(250px, 29%); }
+  @media (max-width: 1000px) { .pc-wgrid { grid-template-columns: minmax(0, 1fr); } }
   /* ===== Rost & Stahl: Hintergrund aus gerostetem Blech, darauf verschraubte Stahlplatten ===== */
   :root {
     --plate-hi: #3a3a40;
@@ -4008,6 +4051,8 @@ window.__EN_PCW = {
   'Prime / Oktave': 'unison / octave', 'Terzen': 'thirds', 'Sekunden · Sexten · Septimen · Tritonus': 'seconds · sixths · sevenths · tritone',
   'Merkkarten des Lehrers': 'Teacher’s cards', 'Übungen aus dem Kurs': 'Exercises from the course'
 };
+// v127: Knöpfe mit SVG-Symbol statt ▶ – Text allein
+Object.assign(window.__EN, { 'Anhören': 'Listen', 'Nacheinander': 'One by one', 'Loop starten': 'Start loop' });
 
 // Sprache (v59): Deutsch ist der Quelltext. Nur im EN-Modus läuft hier etwas:
 // Ein Beobachter übersetzt neue/geänderte Texte im DOM (Text, title, placeholder, aria-label)
@@ -4113,7 +4158,7 @@ window.__EN_PCW = {
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v126</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v127</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -22677,6 +22722,49 @@ const HILFE = [
       f: Object.assign({ prog: 'i-bvii-iv', key: 4, mode: 'auto', n: 2, bpm: 90, drums: 'drums' }, d.f || {}), step: d.step | 0 }; })();
   function saveUi() { try { localStorage.setItem(UKEY, JSON.stringify(U)); } catch (e) {} }
 
+
+  // ---------- v127: Griffbrett-Look (Palisander, Bundstäbchen mit Verlauf/Glanz/Schatten, umsponnene D/A/E, Knochensattel, Perlmutt, Vignette) ----------
+  // Ohne SVG-Filter: Schatten sind versetzte dunkle Linien/Kreise (billig auf dem iPad). Eindeutige IDs je Griffbrett (versteckte Bereiche brechen sonst url(#…)).
+  window.PcSkin = window.PcSkin || (function () {
+    let uid = 0;
+    function draw(o) {
+      const u = 'pcs' + (++uid), RH = o.h / 6, CW = o.CW, a = o.a, b = o.b, mini = !!o.mini, x0 = o.x, y0 = o.y, W = o.w, H = o.h;
+      const X = f => x0 + (f - a) * CW + CW / 2, Y = s => y0 + (5 - s) * RH + RH / 2, tw = H * 4;
+      let h = '<defs><pattern id="' + u + 'w" patternUnits="userSpaceOnUse" x="' + x0 + '" y="' + y0 + '" width="' + tw + '" height="' + H + '"><image href="img/palisander.jpg" width="' + tw + '" height="' + H + '" preserveAspectRatio="none"/></pattern>' +
+        '<linearGradient id="' + u + 'f" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#5e5b55"/><stop offset=".35" stop-color="#d8d4cc"/><stop offset=".5" stop-color="#fbf9f4"/><stop offset=".7" stop-color="#a9a59d"/><stop offset="1" stop-color="#4a4742"/></linearGradient>' +
+        '<linearGradient id="' + u + 'n" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#cdbf9e"/><stop offset=".45" stop-color="#f6efdf"/><stop offset="1" stop-color="#bfae88"/></linearGradient>' +
+        '<radialGradient id="' + u + 'p" cx=".38" cy=".35" r=".7"><stop offset="0" stop-color="#ffffff"/><stop offset=".45" stop-color="#e9e6dc"/><stop offset=".8" stop-color="#b9c3c4"/><stop offset="1" stop-color="#8f9a9c"/></radialGradient>' +
+        '<linearGradient id="' + u + 'v" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity=".55"/><stop offset=".1" stop-color="#000" stop-opacity="0"/><stop offset=".9" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".55"/></linearGradient>' +
+        '<linearGradient id="' + u + 'h" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#000" stop-opacity=".35"/><stop offset=".05" stop-color="#000" stop-opacity="0"/><stop offset=".95" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".35"/></linearGradient></defs>';
+      h += '<g class="pc-skin"><rect x="' + x0 + '" y="' + y0 + '" width="' + W + '" height="' + H + '" fill="#3a2016"/><rect x="' + x0 + '" y="' + y0 + '" width="' + W + '" height="' + H + '" fill="url(#' + u + 'w)"/>';
+      const ir = mini ? 3.2 : 6;
+      for (let f = Math.max(1, a); f <= b; f++) {
+        const cy = [3, 5, 7, 9, 15, 17, 19, 21].includes(f) ? [y0 + 3 * RH] : f === 12 || f === 24 ? [y0 + 2 * RH, y0 + 4 * RH] : [];
+        cy.forEach(c => { h += '<circle cx="' + (X(f) + .8) + '" cy="' + (c + 1.2) + '" r="' + ir + '" fill="#000" opacity=".35"/><circle cx="' + X(f) + '" cy="' + c + '" r="' + ir + '" fill="url(#' + u + 'p)"/>'; });
+      }
+      h += '<rect x="' + x0 + '" y="' + y0 + '" width="' + W + '" height="' + H + '" fill="url(#' + u + 'v)"/><rect x="' + x0 + '" y="' + y0 + '" width="' + W + '" height="' + H + '" fill="url(#' + u + 'h)"/>';
+      const fw = mini ? 2.4 : 4.2;
+      for (let f = a; f <= b; f++) { const x = x0 + (f - a + 1) * CW;
+        if (f === 0) { const nw = mini ? 5 : 9; h += '<rect x="' + (x - nw / 2 + 2) + '" y="' + y0 + '" width="' + nw + '" height="' + H + '" fill="#000" opacity=".35"/><rect x="' + (x - nw / 2) + '" y="' + (y0 - 1) + '" width="' + nw + '" height="' + (H + 2) + '" rx="1.5" fill="url(#' + u + 'n)"/>'; continue; }
+        h += '<rect x="' + (x + fw / 2) + '" y="' + y0 + '" width="' + (fw * .9) + '" height="' + H + '" fill="#000" opacity=".32"/><rect x="' + (x - fw / 2) + '" y="' + y0 + '" width="' + fw + '" height="' + H + '" fill="url(#' + u + 'f)"/>' +
+          '<line x1="' + (x - fw * .08) + '" y1="' + y0 + '" x2="' + (x - fw * .08) + '" y2="' + (y0 + H) + '" stroke="#fff" stroke-opacity=".75" stroke-width="' + (mini ? .4 : .7) + '"/>'; }
+      for (let s = 0; s < 6; s++) { const y = Y(s), w = o.sw(s), x1 = x0, x2 = x0 + W, wound = s <= 2;
+        h += '<line x1="' + x1 + '" y1="' + (y + w * .9 + 1.2) + '" x2="' + x2 + '" y2="' + (y + w * .9 + 1.2) + '" stroke="#000" stroke-opacity=".38" stroke-width="' + (w + .6) + '"/>' +
+          '<line x1="' + x1 + '" y1="' + y + '" x2="' + x2 + '" y2="' + y + '" stroke="' + (wound ? '#a39c90' : '#cfccc5') + '" stroke-width="' + w + '"/>' +
+          (wound ? '<line x1="' + x1 + '" y1="' + y + '" x2="' + x2 + '" y2="' + y + '" stroke="#efeae0" stroke-width="' + w + '" stroke-dasharray="' + (mini ? '.5 .9' : '.8 1.3') + '"/>' : '') +
+          '<line x1="' + x1 + '" y1="' + (y - w * .22) + '" x2="' + x2 + '" y2="' + (y - w * .22) + '" stroke="#fff" stroke-opacity=".55" stroke-width="' + Math.max(.3, w * .25) + '"/>'; }
+      return h + '</g>';
+    }
+    const shadow = (cx, cy, r) => '<circle class="pc-msh" cx="' + (cx + r * .1) + '" cy="' + (cy + r * .16) + '" r="' + r + '" fill="#000" opacity=".38"/>';
+    const P = { play: '<path d="M5 3.5v13l11-6.5z"/>', back: '<path d="M13 4l-7 6 7 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>',
+      next: '<path d="M7 4l7 6-7 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>', check: '<path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>',
+      pencil: '<path d="M4 16l1-4 8-8 3 3-8 8zM12 5l3 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>', box: '<rect x="3.5" y="3.5" width="13" height="13" rx="3" fill="none" stroke="currentColor" stroke-width="2"/>',
+      boxon: '<rect x="3.5" y="3.5" width="13" height="13" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M6.5 10.5l2.5 2.5 4.5-5.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>' };
+    const icon = n => '<svg class="pc-ic" viewBox="0 0 20 20" aria-hidden="true" fill="currentColor">' + P[n] + '</svg>';
+    // Text mit ▶/◀/☐/✎ → schlichtes SVG-Symbol + Text (keine Emoji-Darstellung auf dem iPad)
+    const btn = t => String(t).replace(/^▶ /, icon('play')).replace(/^◀ /, icon('back')).replace(/ ▶$/, icon('next')).replace(/^☐ /, icon('box')).replace(/^✎ /, icon('pencil'));
+    return { draw, shadow, icon, btn };
+  })();
   // ---------- Griffbrett (SVG) ----------
   const DEGL = ['1', 'b2', '2', 'b3', '3', '4', 'b5', '5', 'b6', '6', 'b7', '7'];
   function board(el, c) {
@@ -22685,14 +22773,8 @@ const HILFE = [
     const X = f => LM + (f - a) * CW + CW / 2, Y = s => TM + (5 - s) * RH + RH / 2, R = mini ? 10 : 18;
     const muted = new Set(c.muted || []);
     let h = '<svg class="pc-board' + (mini ? ' mini' : '') + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Griffbrett">';
-    h += '<rect class="pc-wood" x="' + LM + '" y="' + TM + '" width="' + cols * CW + '" height="' + 6 * RH + '" rx="4"/>';
-    for (let f = Math.max(1, a); f <= b; f++) {
-      if ([3, 5, 7, 9, 15].includes(f)) h += '<circle class="pc-inlay" cx="' + X(f) + '" cy="' + (TM + 3 * RH) + '" r="' + (mini ? 3 : 5) + '"/>';
-      if (f === 12) h += '<circle class="pc-inlay" cx="' + X(f) + '" cy="' + (TM + 2 * RH) + '" r="' + (mini ? 3 : 5) + '"/><circle class="pc-inlay" cx="' + X(f) + '" cy="' + (TM + 4 * RH) + '" r="' + (mini ? 3 : 5) + '"/>';
-    }
-    for (let f = a; f <= b; f++) { const x = LM + (f - a + 1) * CW; h += '<line class="' + (f === 0 ? 'pc-nut' : 'pc-fret') + '" x1="' + x + '" y1="' + TM + '" x2="' + x + '" y2="' + (TM + 6 * RH) + '"/>'; }
+    h += PcSkin.draw({ x: LM, y: TM, w: cols * CW, h: 6 * RH, a, b, CW, mini, sw: s => mini ? 1 + (5 - s) * 0.25 : 1.2 + (5 - s) * 0.45 });   // v127
     for (let s = 0; s < 6; s++) {
-      h += '<line class="pc-str" style="stroke-width:' + (mini ? 1 + (5 - s) * 0.25 : 1.2 + (5 - s) * 0.45) + 'px" x1="' + LM + '" y1="' + Y(s) + '" x2="' + (LM + cols * CW) + '" y2="' + Y(s) + '"/>';
       h += '<text class="pc-sn" x="' + (mini ? 7 : 11) + '" y="' + Y(s) + '">' + sname(s) + '</text>';
       if (muted.has(s)) h += '<text class="pc-x" x="' + (mini ? 16 : 30) + '" y="' + Y(s) + '">x</text>';
     }
@@ -22701,7 +22783,7 @@ const HILFE = [
     if (c.tap) for (let s = 0; s < 6; s++) for (let f = a; f <= b; f++) h += '<rect class="pc-cell" data-s="' + s + '" data-f="' + f + '" x="' + (LM + (f - a) * CW) + '" y="' + (TM + (5 - s) * RH) + '" width="' + CW + '" height="' + RH + '"/>';
     (c.marks || []).forEach(m => {
       if (m.f < a || m.f > b) return;
-      h += '<g class="pc-m ' + (m.cls || '') + '"><circle cx="' + X(m.f) + '" cy="' + Y(m.s) + '" r="' + (m.small ? R * 0.72 : R) + '"/>' + (m.lab != null ? '<text x="' + X(m.f) + '" y="' + Y(m.s) + '">' + m.lab + '</text>' : '') + '</g>';
+      h += (/ghost|bad/.test(m.cls || '') ? '' : PcSkin.shadow(X(m.f), Y(m.s), m.small ? R * 0.72 : R)) + '<g class="pc-m ' + (m.cls || '') + '"><circle cx="' + X(m.f) + '" cy="' + Y(m.s) + '" r="' + (m.small ? R * 0.72 : R) + '"/>' + (m.lab != null ? '<text x="' + X(m.f) + '" y="' + Y(m.s) + '">' + m.lab + '</text>' : '') + '</g>';
     });
     el.innerHTML = h + '</svg>';
     el._tapFn = c.tap || null;
@@ -23108,8 +23190,8 @@ const HILFE = [
     if (S.m) h += '<p class="pc-kmerk">' + S.m + '</p>';
     h += '</div>';
     if (S.g) h += '<div class="pc-kgrips">' + S.g.map((g, gi) => '<div class="pc-kgrip"><b translate="no">' + esc(g.n) + '</b>' + (g.cap ? '<span class="caption" translate="no">' + g.cap + '</span>' : '') +
-      '<div class="pc-bwrap" data-kb="' + ci + '.' + si + '.' + gi + '"></div><button class="toggle-btn" data-k="play" data-kg="' + ci + '.' + si + '.' + gi + '">' + (g.arp || g.mk ? '▶ Nacheinander' : '▶ Anhören') + '</button></div>').join('') + '</div>';
-    if (S.loop) h += S.loop.map((L, li) => '<div class="pc-row pc-kloop"><b translate="no">' + L.c.join(' – ') + '</b><span class="caption" translate="no">' + (L.t || '') + '</span><button class="toggle-btn active" data-k="loop" data-kl="' + ci + '.' + si + '.' + li + '">▶ Loop starten</button></div>').join('');
+      '<div class="pc-bwrap" data-kb="' + ci + '.' + si + '.' + gi + '"></div><button class="toggle-btn" data-k="play" data-kg="' + ci + '.' + si + '.' + gi + '">' + PcSkin.btn(g.arp || g.mk ? '▶ Nacheinander' : '▶ Anhören') + '</button></div>').join('') + '</div>';
+    if (S.loop) h += S.loop.map((L, li) => '<div class="pc-row pc-kloop"><b translate="no">' + L.c.join(' – ') + '</b><span class="caption" translate="no">' + (L.t || '') + '</span><button class="toggle-btn active" data-k="loop" data-kl="' + ci + '.' + si + '.' + li + '">' + PcSkin.btn('▶ Loop starten') + '</button></div>').join('');
     h += '<div class="pc-kex"><h5>Übungen</h5>' + S.ex.map((x, xi) => { const id = S.id + '-' + xi, own = x.slice(0, 2) === 'E:';
       return '<label class="check pc-kchk"><input type="checkbox" data-kx="' + id + '"> <span translate="no">' + (own ? '<i>(ergänzt)</i> ' : '') + x.slice(2) + '</span></label>'; }).join('') + '</div>';
     return h + '</section>';
@@ -23117,7 +23199,14 @@ const HILFE = [
   let A = null, host = null;
   const total = () => K.reduce((a, c) => a + c.s.reduce((b, S) => b + S.ex.length, 0), 0);
   function kp() { const P = A.PR(); P.kurs = P.kurs || {}; return P.kurs; }
+  const SHORT = ['Einleitung', 'Grundlagen', 'Intervalle', 'CAGED', 'Funktionen', 'Sus · Add', '7er'];
+  function ring(p) { const c = 2 * Math.PI * 17; return '<svg viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="17" class="pc-rbg"/><circle cx="22" cy="22" r="17" class="pc-rfg" stroke-dasharray="' + (c * p).toFixed(1) + ' ' + c.toFixed(1) + '" transform="rotate(-90 22 22)"/></svg>'; }
+  function paintRings() {
+    const st = kp(); document.querySelectorAll('#pcKRings .pc-ring').forEach((b, ci) => { const ids = []; K[ci].s.forEach(S => S.ex.forEach((x, xi) => ids.push(S.id + '-' + xi)));
+      const d = ids.filter(id => st[id] === true).length, p = ids.length ? d / ids.length : 0; b.querySelector('.pc-rsvg').innerHTML = ring(p); b.classList.toggle('done', p >= 1); b.title = d + ' / ' + ids.length; });
+  }
   function paintSum() {
+    paintRings();
     const st = kp(), n = Object.keys(st).filter(k => st[k] === true).length, t = total();
     const el = document.getElementById('pcKSum'); if (el) el.textContent = n + ' von ' + t + ' Übungen abgehakt';
     const b = document.getElementById('pcKBar'); if (b) b.style.width = (t ? 100 * n / t : 0) + '%';
@@ -23144,9 +23233,11 @@ const HILFE = [
   function build(h, api) {
     if (host) return; host = h; A = api;
     h.innerHTML = '<div class="card pc-exhead"><div class="pc-row"><b id="pcKSum"></b></div><div class="pc-bar"><i id="pcKBar"></i></div>' +
+      '<div class="pc-rings" id="pcKRings">' + K.map((C, ci) => '<button class="pc-ring" data-kring="' + ci + '"><span class="pc-rsvg"></span><b>' + (ci + 1) + '</b><span class="pc-rl" translate="no">' + SHORT[ci] + '</span></button>').join('') + '</div>' +
       '<p class="caption" translate="no">Kurs „Power Chord Theory“, Kapitel 1–7, Schritt für Schritt nach den Worten des Lehrers. Im Text heißt der Ton H wie beim Lehrer <b>B</b> (das tiefere heißt <b>B-flat</b>); auf dem Griffbrett steht die Saite wie im übrigen Reiter als H. Die Griffbilder zeigen die hohe e-Saite oben; die Zahlen in den Punkten sind die Intervalle.</p></div>' +
       K.map((C, ci) => '<details class="card pc-sec pc-kc" data-kc="' + ci + '" id="pcKC' + (ci + 1) + '"' + (ci === 0 ? ' open' : '') + '><summary><h3 translate="no">' + C.t + '</h3></summary><div class="pc-sec-b"></div></details>').join('');
     h.addEventListener('click', onClick);
+    h.addEventListener('click', e => { const r = e.target.closest('[data-kring]'); if (!r) return; const d = document.getElementById('pcKC' + (+r.dataset.kring + 1)); d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
     h.addEventListener('change', e => { const c = e.target.closest('input[data-kx]'); if (!c) return; const st = kp(); if (c.checked) st[c.dataset.kx] = true; else delete st[c.dataset.kx]; A.saveProg(); paintSum(); });
     h.querySelectorAll('details.pc-kc').forEach(d => { d.addEventListener('toggle', () => { if (d.open) fillChapter(d); }); if (d.open) fillChapter(d); });
     paintSum();
@@ -23679,7 +23770,7 @@ PcKurs.K.push({ t: 'Kapitel 7 – 7er-Akkorde', s: [
   const longN = N => IV[N][2].replace('kl. ', 'kleine ').replace('gr. ', 'große ');
   const art = (N, cap) => (N === 6 ? (cap ? 'Der' : 'der') : (cap ? 'Die' : 'die'));
   const fam = N => (N % 12 === 0 ? 'f1' : N === 7 ? 'f5' : N === 3 || N === 4 ? 'f3' : N === 5 ? 'f4' : 'fx');
-  const L = s => (window.__lang === 'en' && window.__EN_PCW && window.__EN_PCW[s]) || s;
+  const L0 = s => (window.__lang === 'en' && window.__EN_PCW && window.__EN_PCW[s]) || s, L = s => PcSkin.btn(L0(s));
   // ---------- Notennamen (Lehrer: A B C D E F G, B-flat = Bb) ----------
   const LET = 'CDEFGAB', LPC = [0, 2, 4, 5, 7, 9, 11];
   const SH = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'], FL = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
@@ -23748,7 +23839,7 @@ PcKurs.K.push({ t: 'Kapitel 7 – 7er-Akkorde', s: [
   const CAP = { 1: 'Grundton auf einer Saite: jeder Bund = 1 Halbton weiter.', 2: 'Der Abstand in Halbtönen ist das Intervall – egal, auf welcher Saite der Ton liegt.',
     3: 'Dasselbe Intervall als Griffform über zwei Saiten. Achtung G→H: dort ein Bund mehr.', 4: 'Powerchord: 1 · 5 · 8 leuchten, die anderen Intervalle liegen drumherum.',
     5: 'Alle Intervalle um den Grundton, in Familienfarben.', 6: 'Tippe auf dem Griffbrett oder wähle eine Antwort. 10 Aufgaben je Runde.' };
-  const W = { st: 1, rs: 0, rf: 5, n: 4, lab: 'num', multi: false, sel: new Set([0, 4, 7]), q: null };
+  const W = { seen: new Set(), st: 1, rs: 0, rf: 5, n: 4, lab: 'num', multi: false, sel: new Set([0, 4, 7]), q: null };
   let A = null, el = null, C = null;
   const $q = s => el.querySelector(s);
   const effRf = () => (W.st === 1 && W.rf > MAXF - 12 ? W.rf - 12 : W.rf);
@@ -23783,17 +23874,15 @@ PcKurs.K.push({ t: 'Kapitel 7 – 7er-Akkorde', s: [
   }
   function drawBoard() {
     const { out, arrow, alt, rn } = marksFor(), rf = effRf(), rp = md(pit(W.rs, rf));
-    const fs = out.map(m => m.f).concat([rf]); let a = Math.max(0, Math.min(...fs) - 1), b = Math.max(a + 10, Math.max(...fs) + 1);
-    if (b > MAXF) { b = MAXF; a = Math.max(0, Math.min(a, b - 10)); }
-    const cols = b - a + 1, CW = 52, RH = 46, LM = 30, TM = 8, BM = 24, Wd = LM + cols * CW + 6, H = TM + 6 * RH + BM;
+    const fs = out.map(m => m.f).concat([rf]); let a = Math.max(0, Math.min(...fs) - 1);   // v127: immer 13 Bünde → Griffbrett springt nicht
+    if (Math.max(...fs) > a + 12) a = Math.max(...fs) - 12; a = Math.min(a, MAXF - 12); const b = a + 12;
+    const cols = b - a + 1, CW = 56, RH = 56, LM = 30, TM = 8, BM = 24, Wd = LM + cols * CW + 6, H = TM + 6 * RH + BM;
     const X = f => LM + (f - a) * CW + CW / 2, Y = s => TM + (5 - s) * RH + RH / 2;
     let h = '<svg class="pc-wb" viewBox="0 0 ' + Wd + ' ' + H + '" translate="no" role="img" aria-label="Griffbrett"><defs><marker id="pcwAr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="pc-war"/></marker></defs>';
-    h += '<rect class="pc-wood" x="' + LM + '" y="' + TM + '" width="' + cols * CW + '" height="' + 6 * RH + '" rx="4"/>';
-    for (let f = Math.max(1, a); f <= b; f++) { if ([3, 5, 7, 9, 15, 17, 19, 21].includes(f)) h += '<circle class="pc-inlay" cx="' + X(f) + '" cy="' + (TM + 3 * RH) + '" r="5"/>';
-      if (f === 12 || f === 24) h += '<circle class="pc-inlay" cx="' + X(f) + '" cy="' + (TM + 2 * RH) + '" r="5"/><circle class="pc-inlay" cx="' + X(f) + '" cy="' + (TM + 4 * RH) + '" r="5"/>'; }
-    for (let f = a; f <= b; f++) { const x = LM + (f - a + 1) * CW; h += '<line class="' + (f === 0 ? 'pc-nut' : 'pc-fret') + '" x1="' + x + '" y1="' + TM + '" x2="' + x + '" y2="' + (TM + 6 * RH) + '"/>';
+    h += PcSkin.draw({ x: LM, y: TM, w: cols * CW, h: 6 * RH, a, b, CW, sw: s => 1.2 + (5 - s) * 0.45 });   // v127
+    for (let f = a; f <= b; f++) { const x = LM + (f - a + 1) * CW; 
       h += '<text class="pc-fn" x="' + X(f) + '" y="' + (H - 7) + '">' + f + '</text>'; }
-    for (let s = 0; s < 6; s++) h += '<line class="pc-str" style="stroke-width:' + (1.2 + (5 - s) * 0.45) + 'px" x1="' + LM + '" y1="' + Y(s) + '" x2="' + (LM + cols * CW) + '" y2="' + Y(s) + '"/><text class="pc-sn" x="11" y="' + Y(s) + '">' + SN[s] + '</text>';
+    for (let s = 0; s < 6; s++) h += '<text class="pc-sn" x="11" y="' + Y(s) + '">' + SN[s] + '</text>';
     const used = new Set(out.map(m => m.s + ':' + m.f));
     if (W.st !== 6) for (let s = 0; s < 6; s++) for (let f = a; f <= b; f++) if (md(pit(s, f)) === rp && !used.has(s + ':' + f)) {
       h += '<g class="pc-wm ghost"><circle cx="' + X(f) + '" cy="' + Y(s) + '" r="17"/><text x="' + X(f) + '" y="' + Y(s) + '">' + (W.lab === 'ton' ? rn : W.lab === 'num' ? (pit(s, f) > pit(W.rs, rf) ? '8' : '1') : 'Prime') + '</text></g>'; }
@@ -23803,7 +23892,7 @@ PcKurs.K.push({ t: 'Kapitel 7 – 7er-Akkorde', s: [
       h += '<text class="pc-wht ' + fam(arrow.N) + '" x="' + (x1 + x2) / 2 + '" y="' + my + '">+' + arrow.N + ' Halbtöne</text>'; }
     if (alt) h += '<text class="pc-wht alt" x="' + X(alt.f) + '" y="' + (Y(alt.s + 1) - 26) + '">G→H: ein Bund mehr</text>';
     out.forEach(m => { const ls = m.q ? ['?'] : labOf(m), r = W.lab === 'all' ? 22 : 20, fsz = ls.length > 2 ? 8.5 : ls.length > 1 ? 9.5 : (ls[0].length > 3 ? 10 : 13);
-      h += '<g class="pc-wm ' + m.cls + '" data-n="' + m.N + '" data-s="' + m.s + '" data-f="' + m.f + '"><circle cx="' + X(m.f) + '" cy="' + Y(m.s) + '" r="' + r + '"/><text x="' + X(m.f) + '" y="' + Y(m.s) + '" style="font-size:' + fsz + 'px">' +
+      h += (/ghost|dim/.test(m.cls) ? '' : PcSkin.shadow(X(m.f), Y(m.s), r)) + '<g class="pc-wm ' + m.cls + '" data-n="' + m.N + '" data-s="' + m.s + '" data-f="' + m.f + '"><circle cx="' + X(m.f) + '" cy="' + Y(m.s) + '" r="' + r + '"/><text x="' + X(m.f) + '" y="' + Y(m.s) + '" style="font-size:' + fsz + 'px">' +
         ls.map((t, i) => '<tspan x="' + X(m.f) + '" dy="' + (i ? '1.1em' : (-(ls.length - 1) * 0.55) + 'em') + '">' + t + '</tspan>').join('') + '</text></g>'; });
     for (let s = 0; s < 6; s++) for (let f = a; f <= b; f++) h += '<rect class="pc-cell" data-s="' + s + '" data-f="' + f + '" x="' + (LM + (f - a) * CW) + '" y="' + (TM + (5 - s) * RH) + '" width="' + CW + '" height="' + RH + '"/>';
     $q('.pc-wbw').innerHTML = h + '</svg>';
@@ -23827,7 +23916,8 @@ PcKurs.K.push({ t: 'Kapitel 7 – 7er-Akkorde', s: [
   }
   function paintIv() {
     el.querySelectorAll('[data-w=iv]').forEach(b => { const n = +b.dataset.n, on = W.multi ? W.sel.has(n) : n === W.n; b.classList.toggle('active', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
-    el.querySelectorAll('[data-w=st]').forEach(b => b.classList.toggle('active', +b.dataset.v === W.st));
+    W.seen.add(W.st); el.querySelectorAll('[data-w=st]').forEach(b => { const v = +b.dataset.v; b.classList.toggle('active', v === W.st); b.classList.toggle('seen', v !== W.st && W.seen.has(v)); });
+    el.querySelectorAll('.pc-wsl').forEach((l, i) => l.classList.toggle('on', W.seen.has(i + 1) && W.seen.has(i + 2)));
     el.querySelectorAll('[data-w=lab]').forEach(b => b.classList.toggle('active', b.dataset.v === W.lab));
     $q('[data-w=multi]').classList.toggle('active', W.multi); $q('[data-w=multi]').setAttribute('aria-pressed', W.multi ? 'true' : 'false');
     $q('.pc-wsingle').hidden = W.multi || W.st === 6; $q('.pc-wmulti').hidden = !W.multi || W.st === 6; $q('.pc-wq').hidden = W.st !== 6; $q('.pc-wivs').hidden = W.st === 6;
@@ -23903,10 +23993,10 @@ PcKurs.K.push({ t: 'Kapitel 7 – 7er-Akkorde', s: [
   }
   function build(host, api, chapter) {
     A = api; C = chapter; el = host;
-    const ivb = cls => IV.map(([N, num, nm]) => '<button class="toggle-btn pc-wiv ' + fam(N) + '" data-w="iv" data-n="' + N + '" aria-pressed="false"><b>' + num + '</b> ' + L(nm) + '</button>').join('');
+    const ivb = cls => IV.map(([N, num, nm]) => '<button class="toggle-btn pc-wiv ' + fam(N) + '" data-w="iv" data-n="' + N + '" aria-pressed="false"><b>' + num + '</b><span> ' + L(nm) + '</span></button>').join('');
     host.innerHTML = '<div class="pc-w"><h3 class="pc-wt" translate="no">3 · Intervalle – Werkstatt</h3><p class="caption" translate="no">Immer nur ein Intervall auf einmal. Tippe einen Bund, um den Grundton zu ändern.</p>' +
-      '<div class="pc-row pc-wsteps">' + STEPS.map(([v, t]) => '<button class="toggle-btn" data-w="st" data-v="' + v + '">' + L(t) + '</button>').join('') + '</div>' +
-      '<div class="pc-wivs"><div class="pc-row pc-wivrow">' + ivb() + '</div><div class="pc-row"><button class="toggle-btn" data-w="multi" aria-pressed="false">' + L('☐ Mehrere wählen') + '</button><span class="caption">' + L('Akkord-Baukasten: Intervalle ankreuzen, der Akkord erscheint.') + '</span></div></div>' +
+      '<div class="pc-wsteps">' + STEPS.map(([v, t]) => { const m = /^(\S+) (.*)$/.exec(L0(t)); return (v > 1 ? '<i class="pc-wsl"></i>' : '') + '<button class="pc-wstep" data-w="st" data-v="' + v + '"><span class="pc-wsn"><i>' + (v === 6 ? PcSkin.icon('pencil') : m[1]) + '</i>' + PcSkin.icon('check') + '</span><span class="pc-wsx"> ' + m[2] + '</span></button>'; }).join('') + '</div>' +
+      '<div class="pc-wivs"><div class="pc-row pc-wivrow">' + ivb() + '</div><div class="pc-row"><button class="toggle-btn" data-w="multi" aria-pressed="false">' + '<span class="pc-wbox">' + PcSkin.icon('box') + PcSkin.icon('boxon') + '</span>' + L0('☐ Mehrere wählen').replace(/^☐ /, '') + '</button><span class="caption">' + L('Akkord-Baukasten: Intervalle ankreuzen, der Akkord erscheint.') + '</span></div></div>' +
       '<div class="pc-wgrid"><div class="card pc-wleft"><div class="pc-row pc-wlabh"><span class="caption">' + L('Beschriftung') + '</span><div class="seg pc-seg">' +
       [['num', 'Zahl'], ['name', 'Name'], ['ton', 'Ton'], ['all', 'Alles']].map(([v, t]) => '<button class="toggle-btn" data-w="lab" data-v="' + v + '">' + L(t) + '</button>').join('') + '</div></div>' +
       '<p class="caption pc-wcap" translate="no"></p><div class="pc-wbw"></div><div class="pc-winfo" translate="no"></div>' +
@@ -23914,7 +24004,7 @@ PcKurs.K.push({ t: 'Kapitel 7 – 7er-Akkorde', s: [
       '<div class="pc-row pc-wmulti" hidden><button class="toggle-btn active" data-w="chord">' + L('▶ Akkord anhören') + '</button></div>' +
       '<div class="pc-wq" hidden><div class="pc-row">' + [['find', 'Finde die …'], ['name', 'Wie heißt das?'], ['hear', 'Hör-Quiz']].map(([v, t]) => '<button class="toggle-btn pc-wqb" data-w="quiz" data-v="' + v + '"><span>' + L(t) + '</span><small></small></button>').join('') + '</div><div class="pc-wqbody"></div></div>' +
       '<div class="pc-row pc-wleg">' + [['f1', 'Prime / Oktave'], ['f5', 'Quinte'], ['f3', 'Terzen'], ['f4', 'Quarte'], ['fx', 'Sekunden · Sexten · Septimen · Tritonus']].map(([c, t]) => '<span class="pc-wlg ' + c + '">' + L(t) + '</span>').join('') + '</div></div>' +
-      '<div class="pc-wright"><div class="card"><h4>' + L('Merkkarten des Lehrers') + '</h4><div class="pc-wcards" translate="no">' + CARDS.map(([c, t]) => '<div class="pc-wcard ' + c + '">' + t + '</div>').join('') + '</div></div>' +
+      '<div class="pc-wright"><div class="card"><h4>' + L('Merkkarten des Lehrers') + '</h4><div class="pc-wcards" translate="no">' + CARDS.map(([c, t]) => '<div class="pc-wcard ' + c + '">' + t + '<small>Merkkarte · Lehrer, Kapitel 3</small></div>').join('') + '</div></div>' +
       '<div class="card pc-wkex"><h4>' + L('Übungen aus dem Kurs') + '</h4>' + C.s.map(S => '<section class="pc-ksub" id="pcK_' + S.id + '"><h5 translate="no">' + S.t + '</h5><div class="pc-kbody" translate="no"></div><div class="pc-kex">' +
         S.ex.map((x, xi) => '<label class="check pc-kchk"><input type="checkbox" data-kx="' + S.id + '-' + xi + '"> <span translate="no">' + (x.slice(0, 2) === 'E:' ? '<i>(ergänzt)</i> ' : '') + x.slice(2) + '</span></label>').join('') + '</div></section>').join('') + '</div></div></div>' +
       '<div class="card pc-wstrip"><b translate="no">Vorschau Schritt 1 · Eine Saite: jeder Bund = 1 Halbton weiter</b><div class="pc-wtiles"></div></div></div>';
