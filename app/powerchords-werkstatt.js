@@ -122,6 +122,7 @@
       h += '<text class="pc-fn" x="' + X(f) + '" y="' + (H - 7) + '">' + f + '</text>'; }
     for (let s = 0; s < 6; s++) h += '<text class="pc-sn" x="11" y="' + Y(s) + '">' + SN[s] + '</text>';
     const used = new Set(out.map(m => m.s + ':' + m.f));
+    if (window.__pcNotes) for (let s = 0; s < 6; s++) for (let f = a; f <= b; f++) if (!used.has(s + ':' + f)) h += '<text class="pc-nn" x="' + X(f) + '" y="' + Y(s) + '">' + ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', (window.__lang === 'en' ? 'B' : 'H')][md(pit(s, f))] + '</text>';   // v130 Notenkarte
     if (W.st !== 6) for (let s = 0; s < 6; s++) for (let f = a; f <= b; f++) if (md(pit(s, f)) === rp && !used.has(s + ':' + f)) {
       h += '<g class="pc-wm ghost"><circle cx="' + X(f) + '" cy="' + Y(s) + '" r="17"/><text x="' + X(f) + '" y="' + Y(s) + '">' + (W.lab === 'ton' ? rn : W.lab === 'num' ? (pit(s, f) > pit(W.rs, rf) ? '8' : '1') : 'Prime') + '</text></g>'; }
     if (arrow) { const x1 = X(arrow.a.f), y1 = Y(arrow.a.s), x2 = X(arrow.b.f), y2 = Y(arrow.b.s), L0 = Math.hypot(x2 - x1, y2 - y1) || 1, k1 = 21 / L0, k2 = (L0 - 23) / L0;
@@ -251,6 +252,7 @@
     if (window.PcLive) W.live = PcLive.mount($q('.pc-wlive'));                                   // v128: „Was spiele ich?“
     paint();
   }
+  document.addEventListener('pc-notes', () => { if (el && el.isConnected) paint(); });
   window.PcWerk = { build, chordOf, spell, posBox, posTwo, TY, IV, formula, cname, rootName, state: () => ({ st: W.st, rs: W.rs, rf: W.rf, n: W.n, lab: W.lab, multi: W.multi, sel: [...W.sel], q: W.q && { kind: W.q.kind, i: W.q.i, hits: W.q.hits, N: W.q.N, ans: W.q.ans } }),
     set: o => { Object.assign(W, o); if (o.sel) W.sel = new Set(o.sel); if (el) paint(); } };
 })();

@@ -238,7 +238,10 @@
   })();
   // ---------- Griffbrett (SVG) ----------
   const DEGL = ['1', 'b2', '2', 'b3', '3', '4', 'b5', '5', 'b6', '6', 'b7', '7'];
+  const BOARDS = new Set();                                    // v130: Notenkarte – alle Griffbretter neu zeichnen können
+  function redrawBoards() { BOARDS.forEach(el => { if (!el.isConnected) { BOARDS.delete(el); return; } board(el, el._pcCfg); }); try { document.dispatchEvent(new Event('pc-notes')); } catch (e) {} }
   function board(el, c) {
+    BOARDS.add(el); el._pcCfg = c;
     const a = c.from || 0, b = c.to != null ? c.to : 12, cols = b - a + 1, mini = !!c.mini;
     const CW = mini ? 40 : 58, RH = mini ? 26 : 56, LM = mini ? 20 : 40, TM = 6, BM = mini ? 18 : 24, W = LM + cols * CW + 4, H = TM + 6 * RH + BM;
     const X = f => LM + (f - a) * CW + CW / 2, Y = s => TM + (5 - s) * RH + RH / 2, R = mini ? 10 : 18;
@@ -250,6 +253,8 @@
       if (muted.has(s)) h += '<text class="pc-x" x="' + (mini ? 16 : 30) + '" y="' + Y(s) + '">x</text>';
     }
     for (let f = a; f <= b; f++) h += '<text class="pc-fn" x="' + X(f) + '" y="' + (H - (mini ? 5 : 7)) + '">' + f + '</text>';
+    if (window.__pcNotes) { const bs = c.base || MIDI0, occ = new Set((c.marks || []).map(m => m.s + ':' + m.f));   // v130: alle Tonnamen
+      for (let s = 0; s < 6; s++) for (let f = a; f <= b; f++) if (!occ.has(s + ':' + f)) h += '<text class="pc-nn' + (mini ? ' mini' : '') + '" data-s="' + s + '" data-f="' + f + '" x="' + X(f) + '" y="' + Y(s) + '">' + disp(SHARP[md(bs[s] + f)]) + '</text>'; }
     (c.lines || []).forEach(L => { h += '<polyline class="pc-pos' + (L.on ? ' on' : '') + '" points="' + L.pts.map(p => X(p.f) + ',' + Y(p.s)).join(' ') + '"/>'; });
     if (c.tap) for (let s = 0; s < 6; s++) for (let f = a; f <= b; f++) h += '<rect class="pc-cell" data-s="' + s + '" data-f="' + f + '" x="' + (LM + (f - a) * CW) + '" y="' + (TM + (5 - s) * RH) + '" width="' + CW + '" height="' + RH + '"/>';
     (c.marks || []).forEach(m => {
@@ -287,6 +292,10 @@
   function onSeg(id, fn) { $(id).addEventListener('click', e => { const b = e.target.closest('button'); if (b && !b.disabled) fn(b.dataset.v); }); }
   function build() {
     if (built) return; built = true;
+    { const nb = $('pcNotesBtn'); window.__pcNotes = !!(PR.kurs && PR.kurs['opt-notes'] && PR.kurs['opt-notes'].on);   // v130: Notenkarte
+      if (nb) { nb.classList.toggle('active', window.__pcNotes); nb.setAttribute('aria-pressed', window.__pcNotes ? 'true' : 'false');
+        nb.addEventListener('click', () => { window.__pcNotes = !window.__pcNotes; PR.kurs = PR.kurs || {}; PR.kurs['opt-notes'] = { on: window.__pcNotes }; saveProg();
+          nb.classList.toggle('active', window.__pcNotes); nb.setAttribute('aria-pressed', window.__pcNotes ? 'true' : 'false'); redrawBoards(); }); } }
     $('pcSecTheorie').appendChild($('pcTheoryTpl').content.cloneNode(true));
     const pe = panel.querySelector('.pc-en'); if (pe) pe.hidden = !en();
     buildSteps(); buildBoard(); buildProg(); buildEx();

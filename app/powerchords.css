@@ -280,3 +280,27 @@
   .pc-ml { font-size: 9px !important; }
   @media (max-width: 600px) { .pc-tiles { grid-template-columns: minmax(0, 1fr); } }
   .pc-tile .pc-tt > b { overflow-wrap: anywhere; }
+  /* v130 Werkzeuge, Notenkarte, Griff-Tabelle, Lexikon */
+  .pc-headtools { margin-top: 6px; } #pcNotesBtn.active { background: var(--accent); color: var(--accent-ink); }
+  .pc-nn { font: 600 10px var(--f-mono); fill: #f2e6cf; opacity: .78; text-anchor: middle; dominant-baseline: central; pointer-events: none; paint-order: stroke; stroke: rgba(0,0,0,.55); stroke-width: 2px; }
+  .pc-nn.mini { font-size: 7px; stroke-width: 1.4px; }
+  .pc-ktab { margin: 12px 0; } .pc-ktab summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; } .pc-ktab summary h4 { margin: 0; }
+  .pc-ktab table { border-collapse: collapse; width: 100%; font-size: .85rem; margin: 6px 0; } .pc-ktab td, .pc-ktab th { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: left; }
+  .pc-ktab tr[data-kpick] { cursor: pointer; } .pc-mono { font-family: var(--f-mono); }
+  .pc-ktools { display: flex; flex-direction: column; gap: 14px; } .pc-ktoolbar { gap: 8px; }
+  .pc-ktsub { margin: 4px 0 8px; }
+  .pc-symin { min-height: 44px; font: 600 1.1rem var(--f-mono); padding: 0 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--lcd-bg); color: var(--lcd-ink); width: 12em; max-width: 100%; }
+  .pc-symtab tr { cursor: pointer; } .pc-symout { min-height: 6.5em; }
+  .pc-gl { text-decoration: underline dotted #4fd18b; text-underline-offset: 3px; cursor: pointer; }
+  .pc-glpop { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 50; width: min(520px, calc(100vw - 32px)); box-shadow: 0 10px 30px rgba(0,0,0,.45); }
+  .pc-glpop .pc-row { justify-content: space-between; }
+  .pc-glist { display: flex; flex-direction: column; gap: 6px; } .pc-gli { line-height: 1.45; overflow-wrap: anywhere; } .pc-gli .pc-kref { margin-left: 6px; }
+  .pc-map { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+  .pc-mapc { border-radius: 14px; padding: 10px; background: color-mix(in srgb, var(--line) 25%, transparent); display: flex; flex-direction: column; gap: 6px; } .pc-mapc h4 { margin: 0 0 4px; }
+  .pc-mapi { display: flex; align-items: center; gap: 8px; text-align: left; } .pc-mapi b { min-width: 1.6em; color: #4fd18b; }
+  .pc-scb { max-width: 680px; } .pc-degtab td, .pc-degtab th { text-align: center; }
+  #pcGlPop.pc-glpop { position: fixed !important; top: auto; }
+  .pc-ktab table { table-layout: fixed; } .pc-ktab td, .pc-ktab th { overflow-wrap: anywhere; word-break: break-word; }
+  @media (max-width: 600px) { .pc-ktab table { font-size: .76rem; } .pc-ktab td, .pc-ktab th { padding: 5px 4px; } }
+  #pcSecKurs .pc-tbl table { table-layout: fixed; width: 100%; } #pcSecKurs .pc-tbl td, #pcSecKurs .pc-tbl th { overflow-wrap: anywhere; }
+  @media (max-width: 600px) { #pcSecKurs .pc-tbl table { font-size: .74rem; } #pcSecKurs .pc-tbl td, #pcSecKurs .pc-tbl th { padding: 4px 3px; } }

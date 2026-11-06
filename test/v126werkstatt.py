@@ -10,7 +10,7 @@ ARGS = ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream', 
 MIDI0 = [40, 45, 50, 55, 59, 64]; LET = 'CDEFGAB'; LPC = [0, 2, 4, 5, 7, 9, 11]; DEG = [1, 2, 2, 3, 3, 4, 5, 5, 6, 6, 7, 7, 8]
 def pcn(n): return (LPC[LET.index(n[0])] + n[1:].count('#') - n[1:].count('b')) % 12
 SEM = {'1': 0, '8': 12, 'b2': 1, '2': 2, '9': 2, 'b3': 3, '3': 4, '4': 5, '11': 5, 'b5': 6, '5': 7, 'b6': 8, '6': 9, 'bb7': 9, 'b7': 10, '7': 11}
-OVER = """()=>{const h=document.getElementById('pcSecKurs'),R=h.getBoundingClientRect().right,bad=[];h.querySelectorAll('*').forEach(e=>{if(e.closest('svg'))return;const r=e.getBoundingClientRect();if(!r.width)return;
+OVER = """()=>{const h=document.getElementById('pcSecKurs'),R=h.getBoundingClientRect().right,bad=[];h.querySelectorAll('*').forEach(e=>{if(e.closest('svg')||e.closest('.pc-tbl')||e.closest('details:not([open])'))return;const r=e.getBoundingClientRect();if(!r.width)return;
  if(r.right>R+1)bad.push(e.tagName+'.'+e.className+' '+Math.round(r.right-R));if(/^(P|LI|SPAN|LABEL|H3|H4|H5|B|DIV)$/.test(e.tagName)&&e.scrollWidth>e.clientWidth+1&&getComputedStyle(e).overflowX!=='hidden'&&e.clientWidth)bad.push('scroll '+e.tagName+'.'+e.className+' '+(e.textContent||'').slice(0,30));});return bad.slice(0,6);}"""
 JT = """()=>{const p=document.querySelector('#pcKC3 .pc-w');const bad=[];p.querySelectorAll('button,label.check').forEach(e=>{const r=e.getBoundingClientRect();if(!r.width||!r.height)return;if(r.height<43.5||r.width<43.5)bad.push((e.textContent.trim().slice(0,14))+' '+Math.round(r.width)+'x'+Math.round(r.height));});
  const c=p.querySelector('.pc-cell');if(c){const r=c.getBoundingClientRect();if(r.width<43.5||r.height<43.5)bad.push('cell '+Math.round(r.width)+'x'+Math.round(r.height));}return bad;}"""

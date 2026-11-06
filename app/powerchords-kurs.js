@@ -92,7 +92,7 @@
     const [ci, si] = key.split('.').map(Number), S = K[ci].s[si], gi = STG[key] || 0, g = S.g[gi], q = grip(g), B = base(g), [a, b] = fix13(q.marks);
     el.querySelector('.pc-kstn').textContent = g.n; el.querySelector('.pc-kstc').textContent = (g.cap || '').replace(/<[^>]+>/g, '');
     el.querySelectorAll('[data-kl2]').forEach(x => x.classList.toggle('active', x.dataset.kl2 === LABM));
-    A.board(el.querySelector('.pc-kstb'), { marks: stageMarks(g, q), muted: q.muted, from: a, to: b, sn: snOf(g), tap: (s, f) => A.playMidi(B[s] + f) });
+    A.board(el.querySelector('.pc-kstb'), { marks: stageMarks(g, q), muted: q.muted, from: a, to: b, sn: snOf(g), base: B, tap: (s, f) => A.playMidi(B[s] + f) });
     host.querySelectorAll('[data-kpick^="' + key + '."]').forEach(x => x.classList.toggle('sel', +x.dataset.kpick.split('.')[2] === gi));
   }
   // ---------- Griff-Quiz mit Trefferzählung ----------
@@ -112,7 +112,7 @@
     el.querySelector('.pc-kqbest').textContent = best ? L0('Bestes Ergebnis') + ': ' + best.best + ' / 10' : '';
     if (!z) { el.querySelector('.pc-kqb').innerHTML = ''; el.querySelector('.pc-kqbody').innerHTML = '<p class="caption" translate="no">' + (quizGrips(K[ci]).length ? 'Ein Punkt in einem Griff aus diesem Kapitel ist mit „?“ markiert. Welches Intervall ist es? 10 Aufgaben.' : 'Ein Punkt auf der E- oder A-Saite ist mit „?“ markiert. Welcher Stammton ist es (A B C D E F G)? 10 Aufgaben.') + '</p>'; return; }
     const g = z.g, q = grip(g), [a, b] = fix13(q.marks);
-    A.board(el.querySelector('.pc-kqb'), { marks: q.marks.map((m, i) => ({ s: m.s, f: m.f, lab: i === z.k ? (z.ans == null ? '?' : (g.nm ? m.lab : m.lab)) : (g.nm ? m.lab : m.lab), cls: i === z.k ? 'fq' : (g.nm ? 'f5' : fam(m.lab) + ' dimq') })), muted: q.muted, from: a, to: b, sn: snOf(g) });
+    A.board(el.querySelector('.pc-kqb'), { marks: q.marks.map((m, i) => ({ s: m.s, f: m.f, lab: i === z.k ? (z.ans == null ? '?' : (g.nm ? m.lab : m.lab)) : (g.nm ? m.lab : m.lab), cls: i === z.k ? 'fq' : (g.nm ? 'f5' : fam(m.lab) + ' dimq') })), muted: q.muted, from: a, to: b, sn: snOf(g), base: base(g) });
     let h = '<p class="pc-wqp" translate="no">' + (z.kind === 'nt' ? 'Welcher Ton liegt am Punkt „?“' : '<b>' + g.n + '</b>: Welches Intervall liegt am Punkt „?“') + '</p><div class="pc-row">' +
       z.ch.map(c => '<button class="toggle-btn" data-kqa="' + c + '"' + (z.ans != null ? ' disabled' : '') + ' translate="no">' + c + (z.kind === 'iv' ? ' · ' + (NAMES[c] || '').replace('\n', ' ') : '') + '</button>').join('') + '</div>';
     if (z.fb) h += '<p class="pc-wfb ' + (z.ans ? 'ok' : 'no') + '" translate="no">' + z.fb + '</p>';
@@ -126,15 +126,28 @@
     if (z.i === 9) { const st = kp(), k = 'q-k' + (ci + 1), o = st[k] || {}; st[k] = { last: z.hits, best: Math.max(o.best || 0, z.hits), n: 10 }; A.saveProg(); z.end = true; }
     quizDraw(ci);
   }
+  // ---------- v130: Griff-Tabelle je Kapitel ----------
+  const tabOf = (g) => (g.fr || CH[g.n]).map(f => f == null ? 'x' : f > 9 ? '(' + f + ')' : String(f)).join('');
+  function gripTable(ci) {
+    const C = K[ci], rows = []; C.s.forEach((S, si) => (S.g || []).forEach((g, gi) => { if (g.mk) return; rows.push([S, si, g, gi]); }));
+    if (!rows.length) return ci === 0 ? '<details class="pc-ktab"><summary><h4>' + L0('Griff-Tabelle') + ' (Stammtöne)</h4></summary><div class="pc-tbl"><table translate="no"><thead><tr><th>Bund</th>' + [0, 1, 3, 5, 7, 8, 10, 12].map(f => '<th>' + f + '</th>').join('') + '</tr></thead><tbody><tr><td>E-Saite</td>' + ['E', 'F', 'G', 'A', 'B', 'C', 'D', 'E'].map(x => '<td>' + x + '</td>').join('') + '</tr></tbody></table><table translate="no"><thead><tr><th>Bund</th>' + [0, 2, 3, 5, 7, 8, 10, 12].map(f => '<th>' + f + '</th>').join('') + '</tr></thead><tbody><tr><td>A-Saite</td>' + ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'A'].map(x => '<td>' + x + '</td>').join('') + '</tr></tbody></table></div></details>' : '';
+    return '<details class="pc-ktab"><summary><h4>' + L0('Griff-Tabelle') + ' (' + rows.length + ')</h4></summary><div class="pc-tbl"><table translate="no"><thead><tr><th>Akkord</th><th>Griff (tief → hoch)</th><th>Formel</th><th>Töne</th><th>Unterkapitel</th></tr></thead><tbody>' +
+      rows.map(([S, si, g, gi]) => { const q = grip(g), labs = q.marks.slice().sort((a, b) => a.midi - b.midi);
+        return '<tr data-kpick="' + ci + '.' + si + '.' + gi + '"><td><b>' + esc(g.n) + '</b>' + (g.tu ? ' <span class="caption">(' + LOWN[TUN[g.tu][0]] + '-Stimmung)</span>' : '') + '</td><td class="pc-mono">' + tabOf(g) + '</td><td>' + [...new Set(labs.map(m => m.lab === '8' ? '1' : m.lab))].join(' · ') + '</td><td>' + labs.map(m => spellOf(g, q, m.lab)).join(' ') + '</td><td>' + S.t.replace(/^(\d+\.\d+).*/, '$1') + '</td></tr>'; }).join('') +
+      '</tbody></table></div><p class="caption" translate="no">Zeile antippen = Griff auf dem großen Griffbrett zeigen. „x“ = Saite nicht spielen, Zahlen in Klammern = Bund 10 und höher.</p></details>';
+  }
   // ---------- Kapitel bauen ----------
   function fillChapter(d) {
     if (d._k) return; d._k = true; const ci = +d.dataset.kc, C = K[ci], st = kp(), body = d.querySelector('.pc-sec-b');
     if (C.w && window.PcWerk) PcWerk.build(body, A, C);                       // v126: Kapitel 3 = Intervall-Werkstatt
+    if (C.w && window.PcWerk) body.insertAdjacentHTML('beforeend', '<details class="pc-ktab"><summary><h4>' + L0('Griff-Tabelle') + ' (13)</h4></summary><div class="pc-tbl"><table translate="no"><thead><tr><th>Zahl</th><th>Name</th><th>Halbtöne</th><th>von A</th><th>Lage von A (E-Saite 5. Bund)</th></tr></thead><tbody>' +
+      PcWerk.IV.map(([n, num, nm]) => { const p = n ? PcWerk.posBox(0, 5, n) : { s: 0, f: 5 }; return '<tr><td><b>' + num + '</b></td><td>' + nm + '</td><td>' + n + '</td><td>' + PcWerk.spell('A', n) + '</td><td>' + SNAME[p.s] + '-Saite, ' + p.f + '. Bund</td></tr>'; }).join('') + '</tbody></table></div></details>');
     else {
       let h = (C.z ? '<div class="pc-kziel" translate="no"><b>Ziel</b> ' + C.z + '</div>' : '') +
         '<div class="pc-kstepbar">' + C.s.map((S, si) => (si ? '<i class="pc-wsl"></i>' : '') + '<button class="pc-wstep pc-kstep" data-c="' + ci + '" data-s="' + si + '"><span class="pc-wsn"><i>' + (si + 1) + '</i>' + PcSkin.icon('check') + '</span><span class="pc-wsx" translate="no"> ' + S.t.replace(/^\d+\.\d+ /, '') + '</span></button>').join('') + '</div>' +
         C.s.map((S, si) => subHtml(ci, si, S)).join('');
       h += '<div class="pc-kquiz" data-kq="' + ci + '"><div class="pc-row"><h4>' + L0('Quiz zum Kapitel') + '</h4><span class="caption pc-kqbest"></span><button class="toggle-btn active" data-kqs="1">' + PcSkin.btn(L0('▶ Quiz starten')) + '</button></div><div class="pc-bwrap pc-kqb"></div><div class="pc-kqbody"></div></div>';
+      h += gripTable(ci);
       const mq = C.s.filter(S => S.m).map(S => [S.m, S.t]);
       if (mq.length || C.mk) h += '<div class="pc-kmerke"><h4>' + L0('Merke') + '</h4><div class="pc-kmgrid" translate="no">' + (C.mk || []).map(t => '<div class="pc-wcard f1">' + t + '<small>Merkkarte · Kapitel ' + (ci + 1) + '</small></div>').join('') +
         mq.map(([t, src]) => '<div class="pc-wcard f3">' + t + '<small>Lehrer · ' + src + '</small></div>').join('') + '</div></div>';
@@ -144,7 +157,7 @@
     }
     if ((ci === 5 || ci === 6) && window.PcLive) body.insertAdjacentHTML('afterbegin', '<div class="pc-klive"><button class="toggle-btn" data-klive="1">' + PcSkin.btn('Was spiele ich?') + '</button><div class="card pc-klivebox" hidden></div></div>');   // v128
     d.querySelectorAll('[data-kb]').forEach(el => { const [a, b, c] = el.dataset.kb.split('.').map(Number), g = K[a].s[b].g[c], q = grip(g), [f0, f1] = range(q.marks, g.nm && !g.short);
-      A.board(el, { marks: q.marks, muted: q.muted, from: f0, to: f1, mini: true, sn: snOf(g) }); });
+      A.board(el, { marks: q.marks, muted: q.muted, from: f0, to: f1, mini: true, sn: snOf(g), base: base(g) }); });
     d.querySelectorAll('input[data-kx]').forEach(c => { c.checked = !!st[c.dataset.kx]; });
     paintRings();
   }
@@ -155,7 +168,7 @@
   function openChapter(n) { const d = document.getElementById('pcKC' + n); if (!d) return; d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
   function onClick(e) {
     const pick = e.target.closest('[data-kpick]');
-    if (pick && !e.target.closest('button')) { const [ci, si, gi] = pick.dataset.kpick.split('.').map(Number); STG[ci + '.' + si] = gi; drawStage(ci + '.' + si); return; }
+    if (pick && !e.target.closest('button')) { const [ci, si, gi] = pick.dataset.kpick.split('.').map(Number); STG[ci + '.' + si] = gi; drawStage(ci + '.' + si); if (pick.tagName === 'TR') { const st = host.querySelector('.pc-kstage[data-ks="' + ci + '.' + si + '"]'); if (st) st.scrollIntoView({ behavior: 'smooth', block: 'center' }); } return; }
     const l2 = e.target.closest('[data-kl2]'); if (l2) { LABM = l2.dataset.kl2; Object.keys(STG).concat([...host.querySelectorAll('.pc-kstage')].map(x => x.dataset.ks)).forEach(k => drawStage(k)); return; }
     const ref = e.target.closest('[data-kref]'); if (ref) { openChapter(+ref.dataset.kref); return; }
     const qs = e.target.closest('[data-kqs]'); if (qs) { const ci = +qs.closest('[data-kq]').dataset.kq; QZ[ci] = { i: 0, hits: 0 }; quizNew(ci); quizDraw(ci); return; }
@@ -182,6 +195,7 @@
     h.addEventListener('click', e => { const r = e.target.closest('[data-kring]'); if (!r) return; openChapter(+r.dataset.kring + 1); });
     h.addEventListener('change', e => { const c = e.target.closest('input[data-kx]'); if (!c) return; const st = kp(); if (c.checked) st[c.dataset.kx] = true; else delete st[c.dataset.kx]; A.saveProg(); paintSum(); });
     h.querySelectorAll('details.pc-kc').forEach(d => { d.addEventListener('toggle', () => { if (d.open) fillChapter(d); }); if (d.open) fillChapter(d); });
+    if (window.PcExtra) PcExtra.build(h, A);                                  // v130: Werkzeuge (Akkordsymbole, Lexikon, Landkarte, Tonleitern)
     paintSum();
   }
   // Prüfung für Tests: jede Marke passt zu ihrem Intervall bzw. Notennamen, Intervallmenge = Formel

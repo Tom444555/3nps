@@ -931,3 +931,7 @@ Object.assign(window.__EN, { 'Was spiele ich?': 'What am I playing?' });
 // v129 Kurs: Startseite, Bühne, Quiz
 Object.assign(window.__EN_PCW, { 'Siehe auch': 'See also', 'Quiz zum Kapitel': 'Chapter quiz', '▶ Quiz starten': '▶ Start quiz', 'Merke': 'Remember' });
 Object.assign(window.__EN, { 'Ziel': 'Goal' });
+// v130 Werkzeuge
+Object.assign(window.__EN_PCW, { 'Griff-Tabelle': 'Chord table', 'Akkordsymbole lesen': 'Reading chord symbols', 'Begriffe (Lexikon)': 'Glossary', 'Landkarte: Was benutze ich wann?': 'Map: what to use when?', 'Tonleitern & Tonarten': 'Scales & keys',
+  'Erklären': 'Explain', '▶ Anhören': '▶ Listen', 'Stufenakkorde einer Dur-Tonart': 'Chords of a major key' });
+Object.assign(window.__EN, { 'Notenkarte': 'Note map', 'Alle Tonnamen auf jedem Griffbrett ein- oder ausblenden': 'Show or hide all note names on every fretboard' });

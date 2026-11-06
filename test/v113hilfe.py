@@ -24,7 +24,7 @@ async def main():
             r = await pg.evaluate("(u=>fetch(u).then(r=>r.ok&&r.headers.get('content-type')))('%s')" % s)
             if not r or 'image' not in r: bad.append(s)
         check('alle Bilder vorhanden (%d)' % len(srcs), len(srcs) >= 15 and not bad, bad)
-        for q, want in [('latenz', 'latenz'), ('Mastering', 'mastering'), ('fusspedal', 'pedal'), ('takte loopen', 'studio-arrangement'), ('übersicht', 'ueberblick'), ('eingang geht nicht', 'probleme'), ('kurs caged', 'powerchord-kurs'), ('intervall werkstatt', 'intervall-werkstatt'), ('was spiele ich', 'was-spiele-ich')]:
+        for q, want in [('latenz', 'latenz'), ('Mastering', 'mastering'), ('fusspedal', 'pedal'), ('takte loopen', 'studio-arrangement'), ('übersicht', 'ueberblick'), ('eingang geht nicht', 'probleme'), ('kurs caged', 'powerchord-kurs'), ('intervall werkstatt', 'intervall-werkstatt'), ('was spiele ich', 'was-spiele-ich'), ('notenkarte', 'kurs-werkzeuge')]:
             await pg.fill('#hlQ', q); await pg.wait_for_timeout(150)
             hit = await pg.evaluate("(document.querySelector('.hl-hit')||{}).dataset ? document.querySelector('.hl-hit').dataset.id : null")
             check('Suche „%s“ → %s' % (q, want), hit == want, hit)
