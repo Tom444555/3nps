@@ -1914,6 +1914,30 @@ html.sig-open .control-bar { visibility: hidden; }   /* Kopfleiste liegt sonst �
   .pc-ml { font-size: 9px !important; }
   @media (max-width: 600px) { .pc-tiles { grid-template-columns: minmax(0, 1fr); } }
   .pc-tile .pc-tt > b { overflow-wrap: anywhere; }
+  /* v130 Werkzeuge, Notenkarte, Griff-Tabelle, Lexikon */
+  .pc-headtools { margin-top: 6px; } #pcNotesBtn.active { background: var(--accent); color: var(--accent-ink); }
+  .pc-nn { font: 600 10px var(--f-mono); fill: #f2e6cf; opacity: .78; text-anchor: middle; dominant-baseline: central; pointer-events: none; paint-order: stroke; stroke: rgba(0,0,0,.55); stroke-width: 2px; }
+  .pc-nn.mini { font-size: 7px; stroke-width: 1.4px; }
+  .pc-ktab { margin: 12px 0; } .pc-ktab summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; } .pc-ktab summary h4 { margin: 0; }
+  .pc-ktab table { border-collapse: collapse; width: 100%; font-size: .85rem; margin: 6px 0; } .pc-ktab td, .pc-ktab th { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: left; }
+  .pc-ktab tr[data-kpick] { cursor: pointer; } .pc-mono { font-family: var(--f-mono); }
+  .pc-ktools { display: flex; flex-direction: column; gap: 14px; } .pc-ktoolbar { gap: 8px; }
+  .pc-ktsub { margin: 4px 0 8px; }
+  .pc-symin { min-height: 44px; font: 600 1.1rem var(--f-mono); padding: 0 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--lcd-bg); color: var(--lcd-ink); width: 12em; max-width: 100%; }
+  .pc-symtab tr { cursor: pointer; } .pc-symout { min-height: 6.5em; }
+  .pc-gl { text-decoration: underline dotted #4fd18b; text-underline-offset: 3px; cursor: pointer; }
+  .pc-glpop { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 50; width: min(520px, calc(100vw - 32px)); box-shadow: 0 10px 30px rgba(0,0,0,.45); }
+  .pc-glpop .pc-row { justify-content: space-between; }
+  .pc-glist { display: flex; flex-direction: column; gap: 6px; } .pc-gli { line-height: 1.45; overflow-wrap: anywhere; } .pc-gli .pc-kref { margin-left: 6px; }
+  .pc-map { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+  .pc-mapc { border-radius: 14px; padding: 10px; background: color-mix(in srgb, var(--line) 25%, transparent); display: flex; flex-direction: column; gap: 6px; } .pc-mapc h4 { margin: 0 0 4px; }
+  .pc-mapi { display: flex; align-items: center; gap: 8px; text-align: left; } .pc-mapi b { min-width: 1.6em; color: #4fd18b; }
+  .pc-scb { max-width: 680px; } .pc-degtab td, .pc-degtab th { text-align: center; }
+  #pcGlPop.pc-glpop { position: fixed !important; top: auto; }
+  .pc-ktab table { table-layout: fixed; } .pc-ktab td, .pc-ktab th { overflow-wrap: anywhere; word-break: break-word; }
+  @media (max-width: 600px) { .pc-ktab table { font-size: .76rem; } .pc-ktab td, .pc-ktab th { padding: 5px 4px; } }
+  #pcSecKurs .pc-tbl table { table-layout: fixed; width: 100%; } #pcSecKurs .pc-tbl td, #pcSecKurs .pc-tbl th { overflow-wrap: anywhere; }
+  @media (max-width: 600px) { #pcSecKurs .pc-tbl table { font-size: .74rem; } #pcSecKurs .pc-tbl td, #pcSecKurs .pc-tbl th { padding: 4px 3px; } }
   /* ===== Rost & Stahl: Hintergrund aus gerostetem Blech, darauf verschraubte Stahlplatten ===== */
   :root {
     --plate-hi: #3a3a40;
@@ -4107,6 +4131,10 @@ Object.assign(window.__EN, { 'Was spiele ich?': 'What am I playing?' });
 // v129 Kurs: Startseite, Bühne, Quiz
 Object.assign(window.__EN_PCW, { 'Siehe auch': 'See also', 'Quiz zum Kapitel': 'Chapter quiz', '▶ Quiz starten': '▶ Start quiz', 'Merke': 'Remember' });
 Object.assign(window.__EN, { 'Ziel': 'Goal' });
+// v130 Werkzeuge
+Object.assign(window.__EN_PCW, { 'Griff-Tabelle': 'Chord table', 'Akkordsymbole lesen': 'Reading chord symbols', 'Begriffe (Lexikon)': 'Glossary', 'Landkarte: Was benutze ich wann?': 'Map: what to use when?', 'Tonleitern & Tonarten': 'Scales & keys',
+  'Erklären': 'Explain', '▶ Anhören': '▶ Listen', 'Stufenakkorde einer Dur-Tonart': 'Chords of a major key' });
+Object.assign(window.__EN, { 'Notenkarte': 'Note map', 'Alle Tonnamen auf jedem Griffbrett ein- oder ausblenden': 'Show or hide all note names on every fretboard' });
 
 // Sprache (v59): Deutsch ist der Quelltext. Nur im EN-Modus läuft hier etwas:
 // Ein Beobachter übersetzt neue/geänderte Texte im DOM (Text, title, placeholder, aria-label)
@@ -4212,7 +4240,7 @@ Object.assign(window.__EN, { 'Ziel': 'Goal' });
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v129</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v130</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -5156,6 +5184,7 @@ Object.assign(window.__EN, { 'Ziel': 'Goal' });
       <div class="seg pc-subs" id="pcSubs" role="tablist" aria-label="Bereiche">
         <button class="toggle-btn" data-sec="theorie" role="tab">Theorie</button><button class="toggle-btn" data-sec="schritte" role="tab">Schritt für Schritt</button><button class="toggle-btn" data-sec="brett" role="tab">Griffbrett</button><button class="toggle-btn" data-sec="folgen" role="tab">Akkordfolgen</button><button class="toggle-btn" data-sec="uebungen" role="tab">Übungen</button><button class="toggle-btn" data-sec="kurs" role="tab">Kurs</button>
       </div>
+      <div class="pc-row pc-headtools"><button class="toggle-btn" id="pcNotesBtn" aria-pressed="false">Notenkarte</button><span class="caption">Alle Tonnamen auf jedem Griffbrett ein- oder ausblenden</span></div>
     </div>
     <div class="pc-play card" id="pcPlay" hidden></div>
     <div class="pc-sec-wrap" id="pcSecTheorie" data-sec="theorie" hidden></div>
@@ -22465,6 +22494,10 @@ const HILFE = [
     p: ['Die App hört über den Eingang zu und zeigt, welchen Akkord du gerade spielst – mit Formel, Tönen in Kursfarben und Bass (Umkehrung als „C/E“).'],
     s: ['Powerchords → Kurs → Kapitel 3 (Werkstatt, rechts oben) oder in Kapitel 6/7 bzw. im Akkord-Baukasten „Was spiele ich?“ tippen.', '„Zuhören“ tippen – der Eingang öffnet sich, falls er zu ist. Die Balken zeigen den Pegel.', 'Akkord anschlagen und klingen lassen: Nach etwa einer halben Sekunde steht der Name groß da, dazu „sicher erkannt“ oder „unsicher“.', '„Spiel den Akkord“: Die App nennt einen Akkord, du spielst ihn – ✓ oder ein Hinweis wie „Terz fehlt“ oder „b7 statt 7“.', '„Stopp“, ein anderer Reiter oder Zuklappen beendet das Zuhören und schließt den Eingang wieder, wenn die App ihn geöffnet hat.'],
     tip: ['Erkannt werden dieselben 18 Akkordarten wie im Akkord-Baukasten.', 'Sauber und nicht zu leise spielen; gedämpfte Saiten helfen bei Umkehrungen.'] },
+  { id: 'kurs-werkzeuge', t: 'Notenkarte, Griff-Tabellen und Kurs-Werkzeuge', k: 'notenkarte tonnamen griff tabelle akkordsymbol slash lexikon begriffe landkarte tonleiter tonart dorisch lydisch harmonisch moll stufenakkorde',
+    p: ['Hilfen rund um den Kurs im Reiter „Powerchords“.'],
+    s: ['„Notenkarte“ (oben im Reiter): blendet auf jedem Griffbrett alle Tonnamen ein oder aus. Die Wahl bleibt gespeichert.', 'In jedem Kapitel: „Griff-Tabelle“ aufklappen – alle Griffe mit Griffschrift (tief → hoch), Formel und Tönen. Zeile antippen zeigt den Griff groß.', 'Unter den Kapitel-Kacheln: „Akkordsymbole lesen“ (Symbol eintippen, z. B. Am7b5 oder D/F#), „Begriffe (Lexikon)“, „Landkarte: Was benutze ich wann?“ und „Tonleitern & Tonarten“ mit Stufenakkorden.', 'Im Kurstext sind Fachwörter gepunktet unterstrichen – antippen zeigt unten die Erklärung.'],
+    tip: ['Hinter dem Schrägstrich steht immer der tiefste Ton: D/F# = „D über Fis“.'] },
   { id: 'karaoke', t: 'Karaoke – Begleitung ohne Originalgesang', k: 'karaoke ohne gesang begleitung mitsingen playback instrumental original tonhöhe ton',
     p: ['Mit „Karaoke“ singst du selbst zur Begleitung des Liedes – der Originalgesang ist weg, Text und Timing laufen im Reiter „Mitsingen“ wie gewohnt mit.'],
     s: ['Lied laden und abspielen, Reiter „Mitsingen“.', '„🎤 Karaoke“ tippen – beim ersten Mal wird der Gesang getrennt (siehe „Gesang trennen“).', 'Daneben steht „Original: A3“ – der Ton, den der Originalgesang gerade singt. So triffst du die Melodie.', 'Nochmal tippen (oder im Looper „Karaoke ✓“) = zurück zum Original. Die Wiedergabe läuft dabei weiter.'],
@@ -22825,7 +22858,10 @@ const HILFE = [
   })();
   // ---------- Griffbrett (SVG) ----------
   const DEGL = ['1', 'b2', '2', 'b3', '3', '4', 'b5', '5', 'b6', '6', 'b7', '7'];
+  const BOARDS = new Set();                                    // v130: Notenkarte – alle Griffbretter neu zeichnen können
+  function redrawBoards() { BOARDS.forEach(el => { if (!el.isConnected) { BOARDS.delete(el); return; } board(el, el._pcCfg); }); try { document.dispatchEvent(new Event('pc-notes')); } catch (e) {} }
   function board(el, c) {
+    BOARDS.add(el); el._pcCfg = c;
     const a = c.from || 0, b = c.to != null ? c.to : 12, cols = b - a + 1, mini = !!c.mini;
     const CW = mini ? 40 : 58, RH = mini ? 26 : 56, LM = mini ? 20 : 40, TM = 6, BM = mini ? 18 : 24, W = LM + cols * CW + 4, H = TM + 6 * RH + BM;
     const X = f => LM + (f - a) * CW + CW / 2, Y = s => TM + (5 - s) * RH + RH / 2, R = mini ? 10 : 18;
@@ -22837,6 +22873,8 @@ const HILFE = [
       if (muted.has(s)) h += '<text class="pc-x" x="' + (mini ? 16 : 30) + '" y="' + Y(s) + '">x</text>';
     }
     for (let f = a; f <= b; f++) h += '<text class="pc-fn" x="' + X(f) + '" y="' + (H - (mini ? 5 : 7)) + '">' + f + '</text>';
+    if (window.__pcNotes) { const bs = c.base || MIDI0, occ = new Set((c.marks || []).map(m => m.s + ':' + m.f));   // v130: alle Tonnamen
+      for (let s = 0; s < 6; s++) for (let f = a; f <= b; f++) if (!occ.has(s + ':' + f)) h += '<text class="pc-nn' + (mini ? ' mini' : '') + '" data-s="' + s + '" data-f="' + f + '" x="' + X(f) + '" y="' + Y(s) + '">' + disp(SHARP[md(bs[s] + f)]) + '</text>'; }
     (c.lines || []).forEach(L => { h += '<polyline class="pc-pos' + (L.on ? ' on' : '') + '" points="' + L.pts.map(p => X(p.f) + ',' + Y(p.s)).join(' ') + '"/>'; });
     if (c.tap) for (let s = 0; s < 6; s++) for (let f = a; f <= b; f++) h += '<rect class="pc-cell" data-s="' + s + '" data-f="' + f + '" x="' + (LM + (f - a) * CW) + '" y="' + (TM + (5 - s) * RH) + '" width="' + CW + '" height="' + RH + '"/>';
     (c.marks || []).forEach(m => {
@@ -22874,6 +22912,10 @@ const HILFE = [
   function onSeg(id, fn) { $(id).addEventListener('click', e => { const b = e.target.closest('button'); if (b && !b.disabled) fn(b.dataset.v); }); }
   function build() {
     if (built) return; built = true;
+    { const nb = $('pcNotesBtn'); window.__pcNotes = !!(PR.kurs && PR.kurs['opt-notes'] && PR.kurs['opt-notes'].on);   // v130: Notenkarte
+      if (nb) { nb.classList.toggle('active', window.__pcNotes); nb.setAttribute('aria-pressed', window.__pcNotes ? 'true' : 'false');
+        nb.addEventListener('click', () => { window.__pcNotes = !window.__pcNotes; PR.kurs = PR.kurs || {}; PR.kurs['opt-notes'] = { on: window.__pcNotes }; saveProg();
+          nb.classList.toggle('active', window.__pcNotes); nb.setAttribute('aria-pressed', window.__pcNotes ? 'true' : 'false'); redrawBoards(); }); } }
     $('pcSecTheorie').appendChild($('pcTheoryTpl').content.cloneNode(true));
     const pe = panel.querySelector('.pc-en'); if (pe) pe.hidden = !en();
     buildSteps(); buildBoard(); buildProg(); buildEx();
@@ -23301,7 +23343,7 @@ const HILFE = [
     const [ci, si] = key.split('.').map(Number), S = K[ci].s[si], gi = STG[key] || 0, g = S.g[gi], q = grip(g), B = base(g), [a, b] = fix13(q.marks);
     el.querySelector('.pc-kstn').textContent = g.n; el.querySelector('.pc-kstc').textContent = (g.cap || '').replace(/<[^>]+>/g, '');
     el.querySelectorAll('[data-kl2]').forEach(x => x.classList.toggle('active', x.dataset.kl2 === LABM));
-    A.board(el.querySelector('.pc-kstb'), { marks: stageMarks(g, q), muted: q.muted, from: a, to: b, sn: snOf(g), tap: (s, f) => A.playMidi(B[s] + f) });
+    A.board(el.querySelector('.pc-kstb'), { marks: stageMarks(g, q), muted: q.muted, from: a, to: b, sn: snOf(g), base: B, tap: (s, f) => A.playMidi(B[s] + f) });
     host.querySelectorAll('[data-kpick^="' + key + '."]').forEach(x => x.classList.toggle('sel', +x.dataset.kpick.split('.')[2] === gi));
   }
   // ---------- Griff-Quiz mit Trefferzählung ----------
@@ -23321,7 +23363,7 @@ const HILFE = [
     el.querySelector('.pc-kqbest').textContent = best ? L0('Bestes Ergebnis') + ': ' + best.best + ' / 10' : '';
     if (!z) { el.querySelector('.pc-kqb').innerHTML = ''; el.querySelector('.pc-kqbody').innerHTML = '<p class="caption" translate="no">' + (quizGrips(K[ci]).length ? 'Ein Punkt in einem Griff aus diesem Kapitel ist mit „?“ markiert. Welches Intervall ist es? 10 Aufgaben.' : 'Ein Punkt auf der E- oder A-Saite ist mit „?“ markiert. Welcher Stammton ist es (A B C D E F G)? 10 Aufgaben.') + '</p>'; return; }
     const g = z.g, q = grip(g), [a, b] = fix13(q.marks);
-    A.board(el.querySelector('.pc-kqb'), { marks: q.marks.map((m, i) => ({ s: m.s, f: m.f, lab: i === z.k ? (z.ans == null ? '?' : (g.nm ? m.lab : m.lab)) : (g.nm ? m.lab : m.lab), cls: i === z.k ? 'fq' : (g.nm ? 'f5' : fam(m.lab) + ' dimq') })), muted: q.muted, from: a, to: b, sn: snOf(g) });
+    A.board(el.querySelector('.pc-kqb'), { marks: q.marks.map((m, i) => ({ s: m.s, f: m.f, lab: i === z.k ? (z.ans == null ? '?' : (g.nm ? m.lab : m.lab)) : (g.nm ? m.lab : m.lab), cls: i === z.k ? 'fq' : (g.nm ? 'f5' : fam(m.lab) + ' dimq') })), muted: q.muted, from: a, to: b, sn: snOf(g), base: base(g) });
     let h = '<p class="pc-wqp" translate="no">' + (z.kind === 'nt' ? 'Welcher Ton liegt am Punkt „?“' : '<b>' + g.n + '</b>: Welches Intervall liegt am Punkt „?“') + '</p><div class="pc-row">' +
       z.ch.map(c => '<button class="toggle-btn" data-kqa="' + c + '"' + (z.ans != null ? ' disabled' : '') + ' translate="no">' + c + (z.kind === 'iv' ? ' · ' + (NAMES[c] || '').replace('\n', ' ') : '') + '</button>').join('') + '</div>';
     if (z.fb) h += '<p class="pc-wfb ' + (z.ans ? 'ok' : 'no') + '" translate="no">' + z.fb + '</p>';
@@ -23335,15 +23377,28 @@ const HILFE = [
     if (z.i === 9) { const st = kp(), k = 'q-k' + (ci + 1), o = st[k] || {}; st[k] = { last: z.hits, best: Math.max(o.best || 0, z.hits), n: 10 }; A.saveProg(); z.end = true; }
     quizDraw(ci);
   }
+  // ---------- v130: Griff-Tabelle je Kapitel ----------
+  const tabOf = (g) => (g.fr || CH[g.n]).map(f => f == null ? 'x' : f > 9 ? '(' + f + ')' : String(f)).join('');
+  function gripTable(ci) {
+    const C = K[ci], rows = []; C.s.forEach((S, si) => (S.g || []).forEach((g, gi) => { if (g.mk) return; rows.push([S, si, g, gi]); }));
+    if (!rows.length) return ci === 0 ? '<details class="pc-ktab"><summary><h4>' + L0('Griff-Tabelle') + ' (Stammtöne)</h4></summary><div class="pc-tbl"><table translate="no"><thead><tr><th>Bund</th>' + [0, 1, 3, 5, 7, 8, 10, 12].map(f => '<th>' + f + '</th>').join('') + '</tr></thead><tbody><tr><td>E-Saite</td>' + ['E', 'F', 'G', 'A', 'B', 'C', 'D', 'E'].map(x => '<td>' + x + '</td>').join('') + '</tr></tbody></table><table translate="no"><thead><tr><th>Bund</th>' + [0, 2, 3, 5, 7, 8, 10, 12].map(f => '<th>' + f + '</th>').join('') + '</tr></thead><tbody><tr><td>A-Saite</td>' + ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'A'].map(x => '<td>' + x + '</td>').join('') + '</tr></tbody></table></div></details>' : '';
+    return '<details class="pc-ktab"><summary><h4>' + L0('Griff-Tabelle') + ' (' + rows.length + ')</h4></summary><div class="pc-tbl"><table translate="no"><thead><tr><th>Akkord</th><th>Griff (tief → hoch)</th><th>Formel</th><th>Töne</th><th>Unterkapitel</th></tr></thead><tbody>' +
+      rows.map(([S, si, g, gi]) => { const q = grip(g), labs = q.marks.slice().sort((a, b) => a.midi - b.midi);
+        return '<tr data-kpick="' + ci + '.' + si + '.' + gi + '"><td><b>' + esc(g.n) + '</b>' + (g.tu ? ' <span class="caption">(' + LOWN[TUN[g.tu][0]] + '-Stimmung)</span>' : '') + '</td><td class="pc-mono">' + tabOf(g) + '</td><td>' + [...new Set(labs.map(m => m.lab === '8' ? '1' : m.lab))].join(' · ') + '</td><td>' + labs.map(m => spellOf(g, q, m.lab)).join(' ') + '</td><td>' + S.t.replace(/^(\d+\.\d+).*/, '$1') + '</td></tr>'; }).join('') +
+      '</tbody></table></div><p class="caption" translate="no">Zeile antippen = Griff auf dem großen Griffbrett zeigen. „x“ = Saite nicht spielen, Zahlen in Klammern = Bund 10 und höher.</p></details>';
+  }
   // ---------- Kapitel bauen ----------
   function fillChapter(d) {
     if (d._k) return; d._k = true; const ci = +d.dataset.kc, C = K[ci], st = kp(), body = d.querySelector('.pc-sec-b');
     if (C.w && window.PcWerk) PcWerk.build(body, A, C);                       // v126: Kapitel 3 = Intervall-Werkstatt
+    if (C.w && window.PcWerk) body.insertAdjacentHTML('beforeend', '<details class="pc-ktab"><summary><h4>' + L0('Griff-Tabelle') + ' (13)</h4></summary><div class="pc-tbl"><table translate="no"><thead><tr><th>Zahl</th><th>Name</th><th>Halbtöne</th><th>von A</th><th>Lage von A (E-Saite 5. Bund)</th></tr></thead><tbody>' +
+      PcWerk.IV.map(([n, num, nm]) => { const p = n ? PcWerk.posBox(0, 5, n) : { s: 0, f: 5 }; return '<tr><td><b>' + num + '</b></td><td>' + nm + '</td><td>' + n + '</td><td>' + PcWerk.spell('A', n) + '</td><td>' + SNAME[p.s] + '-Saite, ' + p.f + '. Bund</td></tr>'; }).join('') + '</tbody></table></div></details>');
     else {
       let h = (C.z ? '<div class="pc-kziel" translate="no"><b>Ziel</b> ' + C.z + '</div>' : '') +
         '<div class="pc-kstepbar">' + C.s.map((S, si) => (si ? '<i class="pc-wsl"></i>' : '') + '<button class="pc-wstep pc-kstep" data-c="' + ci + '" data-s="' + si + '"><span class="pc-wsn"><i>' + (si + 1) + '</i>' + PcSkin.icon('check') + '</span><span class="pc-wsx" translate="no"> ' + S.t.replace(/^\d+\.\d+ /, '') + '</span></button>').join('') + '</div>' +
         C.s.map((S, si) => subHtml(ci, si, S)).join('');
       h += '<div class="pc-kquiz" data-kq="' + ci + '"><div class="pc-row"><h4>' + L0('Quiz zum Kapitel') + '</h4><span class="caption pc-kqbest"></span><button class="toggle-btn active" data-kqs="1">' + PcSkin.btn(L0('▶ Quiz starten')) + '</button></div><div class="pc-bwrap pc-kqb"></div><div class="pc-kqbody"></div></div>';
+      h += gripTable(ci);
       const mq = C.s.filter(S => S.m).map(S => [S.m, S.t]);
       if (mq.length || C.mk) h += '<div class="pc-kmerke"><h4>' + L0('Merke') + '</h4><div class="pc-kmgrid" translate="no">' + (C.mk || []).map(t => '<div class="pc-wcard f1">' + t + '<small>Merkkarte · Kapitel ' + (ci + 1) + '</small></div>').join('') +
         mq.map(([t, src]) => '<div class="pc-wcard f3">' + t + '<small>Lehrer · ' + src + '</small></div>').join('') + '</div></div>';
@@ -23353,7 +23408,7 @@ const HILFE = [
     }
     if ((ci === 5 || ci === 6) && window.PcLive) body.insertAdjacentHTML('afterbegin', '<div class="pc-klive"><button class="toggle-btn" data-klive="1">' + PcSkin.btn('Was spiele ich?') + '</button><div class="card pc-klivebox" hidden></div></div>');   // v128
     d.querySelectorAll('[data-kb]').forEach(el => { const [a, b, c] = el.dataset.kb.split('.').map(Number), g = K[a].s[b].g[c], q = grip(g), [f0, f1] = range(q.marks, g.nm && !g.short);
-      A.board(el, { marks: q.marks, muted: q.muted, from: f0, to: f1, mini: true, sn: snOf(g) }); });
+      A.board(el, { marks: q.marks, muted: q.muted, from: f0, to: f1, mini: true, sn: snOf(g), base: base(g) }); });
     d.querySelectorAll('input[data-kx]').forEach(c => { c.checked = !!st[c.dataset.kx]; });
     paintRings();
   }
@@ -23364,7 +23419,7 @@ const HILFE = [
   function openChapter(n) { const d = document.getElementById('pcKC' + n); if (!d) return; d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
   function onClick(e) {
     const pick = e.target.closest('[data-kpick]');
-    if (pick && !e.target.closest('button')) { const [ci, si, gi] = pick.dataset.kpick.split('.').map(Number); STG[ci + '.' + si] = gi; drawStage(ci + '.' + si); return; }
+    if (pick && !e.target.closest('button')) { const [ci, si, gi] = pick.dataset.kpick.split('.').map(Number); STG[ci + '.' + si] = gi; drawStage(ci + '.' + si); if (pick.tagName === 'TR') { const st = host.querySelector('.pc-kstage[data-ks="' + ci + '.' + si + '"]'); if (st) st.scrollIntoView({ behavior: 'smooth', block: 'center' }); } return; }
     const l2 = e.target.closest('[data-kl2]'); if (l2) { LABM = l2.dataset.kl2; Object.keys(STG).concat([...host.querySelectorAll('.pc-kstage')].map(x => x.dataset.ks)).forEach(k => drawStage(k)); return; }
     const ref = e.target.closest('[data-kref]'); if (ref) { openChapter(+ref.dataset.kref); return; }
     const qs = e.target.closest('[data-kqs]'); if (qs) { const ci = +qs.closest('[data-kq]').dataset.kq; QZ[ci] = { i: 0, hits: 0 }; quizNew(ci); quizDraw(ci); return; }
@@ -23391,6 +23446,7 @@ const HILFE = [
     h.addEventListener('click', e => { const r = e.target.closest('[data-kring]'); if (!r) return; openChapter(+r.dataset.kring + 1); });
     h.addEventListener('change', e => { const c = e.target.closest('input[data-kx]'); if (!c) return; const st = kp(); if (c.checked) st[c.dataset.kx] = true; else delete st[c.dataset.kx]; A.saveProg(); paintSum(); });
     h.querySelectorAll('details.pc-kc').forEach(d => { d.addEventListener('toggle', () => { if (d.open) fillChapter(d); }); if (d.open) fillChapter(d); });
+    if (window.PcExtra) PcExtra.build(h, A);                                  // v130: Werkzeuge (Akkordsymbole, Lexikon, Landkarte, Tonleitern)
     paintSum();
   }
   // Prüfung für Tests: jede Marke passt zu ihrem Intervall bzw. Notennamen, Intervallmenge = Formel
@@ -24526,6 +24582,7 @@ PcKurs.K.push({ t: 'Kapitel 15 – Drop D und tiefere Stimmungen', s: [
       h += '<text class="pc-fn" x="' + X(f) + '" y="' + (H - 7) + '">' + f + '</text>'; }
     for (let s = 0; s < 6; s++) h += '<text class="pc-sn" x="11" y="' + Y(s) + '">' + SN[s] + '</text>';
     const used = new Set(out.map(m => m.s + ':' + m.f));
+    if (window.__pcNotes) for (let s = 0; s < 6; s++) for (let f = a; f <= b; f++) if (!used.has(s + ':' + f)) h += '<text class="pc-nn" x="' + X(f) + '" y="' + Y(s) + '">' + ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', (window.__lang === 'en' ? 'B' : 'H')][md(pit(s, f))] + '</text>';   // v130 Notenkarte
     if (W.st !== 6) for (let s = 0; s < 6; s++) for (let f = a; f <= b; f++) if (md(pit(s, f)) === rp && !used.has(s + ':' + f)) {
       h += '<g class="pc-wm ghost"><circle cx="' + X(f) + '" cy="' + Y(s) + '" r="17"/><text x="' + X(f) + '" y="' + Y(s) + '">' + (W.lab === 'ton' ? rn : W.lab === 'num' ? (pit(s, f) > pit(W.rs, rf) ? '8' : '1') : 'Prime') + '</text></g>'; }
     if (arrow) { const x1 = X(arrow.a.f), y1 = Y(arrow.a.s), x2 = X(arrow.b.f), y2 = Y(arrow.b.s), L0 = Math.hypot(x2 - x1, y2 - y1) || 1, k1 = 21 / L0, k2 = (L0 - 23) / L0;
@@ -24655,6 +24712,7 @@ PcKurs.K.push({ t: 'Kapitel 15 – Drop D und tiefere Stimmungen', s: [
     if (window.PcLive) W.live = PcLive.mount($q('.pc-wlive'));                                   // v128: „Was spiele ich?“
     paint();
   }
+  document.addEventListener('pc-notes', () => { if (el && el.isConnected) paint(); });
   window.PcWerk = { build, chordOf, spell, posBox, posTwo, TY, IV, formula, cname, rootName, state: () => ({ st: W.st, rs: W.rs, rf: W.rf, n: W.n, lab: W.lab, multi: W.multi, sel: [...W.sel], q: W.q && { kind: W.q.kind, i: W.q.i, hits: W.q.hits, N: W.q.N, ans: W.q.ans } }),
     set: o => { Object.assign(W, o); if (o.sel) W.sel = new Set(o.sel); if (el) paint(); } };
 })();
@@ -24794,6 +24852,222 @@ PcKurs.K.push({ t: 'Kapitel 15 – Drop D und tiefere Stimmungen', s: [
   function judge(r) { const g = S.game; if (!g || g.done) return; const f = feedback(g, r); const e = $c('.pc-lfb'); if (e) { e.textContent = f.txt; e.className = 'pc-lfb ' + (f.ok ? 'ok' : 'no'); } if (f.ok) g.done = true; }
   document.addEventListener('tabchange', e => { if (e.detail !== 'power' && S.timer) stop(); });
   window.PcLive = { mount, start, stop, detect, analyze, match, feedback, chordName, debug: () => ({ listening: !!S.timer, an: !!S.an, ex: !!S.ex, opened: S.opened, shown: S.shown, game: S.game && { k: S.game.t.k, r: S.game.r } }), _game: (k, r) => { S.game = { t: PcWerk.TY.find(x => x.k === k), r, done: false }; if (S.card) S.card.querySelector('.pc-lgame').innerHTML = '<p class="pc-lfb"></p>'; } };
+})();
+
+// v130: Werkzeuge zum Kurs – Akkordsymbole lesen (mit Slash-Akkorden), Begriffslexikon (aus dem Text antippbar),
+// Landkarte „Was benutze ich wann“, Tonleitern/Tonarten/Stufenakkorde (Dur, Moll, harmonisch Moll, dorisch, lydisch).
+// Notenkarte (alle Tonnamen) schaltet window.__pcNotes für jedes Griffbrett im Reiter. Alles erst beim Öffnen gebaut.
+(function () {
+  const md = x => ((x % 12) + 12) % 12;
+  const L0 = s => (window.__lang === 'en' && window.__EN_PCW && window.__EN_PCW[s]) || s;
+  const NPC = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11, H: 11 };
+  const fam = n => { n = md(n); return n === 0 ? 'f1' : n === 7 ? 'f5' : n === 3 || n === 4 ? 'f3' : n === 5 ? 'f4' : n === 10 || n === 11 ? 'f7' : 'fx'; };
+  // ---------- Akkordsymbole ----------
+  const LABX = { 0: '1', 1: 'b2', 2: '2', 3: 'b3', 4: '3', 5: '4', 6: 'b5', 7: '5', 8: '#5', 9: '6', 10: 'b7', 11: '7', 13: 'b9', 14: '9', 15: '#9', 17: '11', 18: '#11', 20: 'b13', 21: '13' };
+  const SYM = [   // [Endung(en), Halbtöne, Erklärung]  – längste zuerst prüfen
+    [['maj7(9)', 'maj9', 'Δ9'], [0, 4, 7, 11, 14], 'Major 7 mit 9 (Kap. 11)'],
+    [['maj7#11', 'maj7(#11)'], [0, 4, 7, 11, 18], 'Major 7 mit #11 – passt auf die 4. Stufe (Kap. 10/14)'],
+    [['m7(9)', 'm9', '-9'], [0, 3, 7, 10, 14], 'Moll 7 mit 9 (Kap. 11)'],
+    [['m7(11)', 'm11', '-11'], [0, 3, 7, 10, 17], 'Moll 7 mit 11 (Kap. 6)'],
+    [['m7b5', 'ø7', 'ø', 'm7(b5)', '-7b5'], [0, 3, 6, 10], 'halbvermindert: Moll mit b5 und kleiner 7 (Kap. 5/7)'],
+    [['m(maj7)', 'mmaj7', 'mΔ7', '-maj7'], [0, 3, 7, 11], 'Moll mit großer 7 (Kap. 7)'],
+    [['m(add9)', 'madd9'], [0, 3, 7, 14], 'Moll mit 9 dazu, ohne 7 (Kap. 6)'],
+    [['m(add11)', 'madd11'], [0, 3, 7, 17], 'Moll mit 11 dazu (Kap. 6)'],
+    [['7sus2'], [0, 2, 7, 10], 'kleine 7, statt der Terz die 2 (Kap. 11)'],
+    [['7sus4'], [0, 5, 7, 10], 'kleine 7, statt der Terz die 4'],
+    [['7(9)', '9'], [0, 4, 7, 10, 14], 'Dur mit kleiner 7 und 9 (Kap. 11)'],
+    [['7b9', '7(b9)'], [0, 4, 7, 10, 13], 'Dominante mit b9 – zieht auf Moll (Kap. 11)'],
+    [['7#9', '7(#9)'], [0, 4, 7, 10, 15], 'Dominante mit #9 – der Hendrix-Akkord (Kap. 11)'],
+    [['7b5', '7(b5)'], [0, 4, 6, 10], 'alterierte Dominante: Quinte tiefer (Kap. 11)'],
+    [['7#5', '7(#5)', '+7', 'aug7'], [0, 4, 8, 10], 'alterierte Dominante: Quinte höher (Kap. 11)'],
+    [['13'], [0, 4, 7, 10, 21], 'kleine 7 plus 6 = 13 (Kap. 11: „Akkordtöne haben Vorrang“)'],
+    [['m13'], [0, 3, 7, 10, 21], 'Moll 7 plus 6 = 13 (Kap. 11)'],
+    [['11'], [0, 7, 10, 14, 17], '7 mit 9 und 11 – meist ohne Terz gegriffen'],
+    [['6/9', '69'], [0, 4, 7, 9, 14], 'Dur mit 6 und 9, ohne 7'],
+    [['maj7', 'M7', 'Δ7', 'Δ', 'j7'], [0, 4, 7, 11], 'Major 7 = große 7 (Kap. 3/7: „7 und Major 7 – echt kaputt“)'],
+    [['m7', '-7', 'mi7', 'min7'], [0, 3, 7, 10], 'Moll 7 (Kap. 7)'],
+    [['dim7', '°7', 'o7'], [0, 3, 6, 9], 'vollvermindert: nur kleine Terzen (Kap. 5/7)'],
+    [['dim', '°', 'o', 'm(b5)', 'mb5'], [0, 3, 6], 'vermindert: Moll mit b5 (Kap. 5)'],
+    [['aug', '+', '#5'], [0, 4, 8], 'übermäßig: Dur mit #5'],
+    [['add9', '(add9)'], [0, 4, 7, 14], 'Dur mit 9 dazu, ohne 7 (Kap. 6)'],
+    [['add11', '(add11)'], [0, 4, 7, 17], 'Dur mit 11 dazu (Kap. 6)'],
+    [['sus2'], [0, 2, 7], 'statt der Terz die 2 (Kap. 6)'],
+    [['sus4', 'sus'], [0, 5, 7], 'statt der Terz die 4 – „sus“ allein meint meist Sus4 (Kap. 6)'],
+    [['m6', '-6'], [0, 3, 7, 9], 'Moll mit 6 („dorisch“, Kap. 11)'],
+    [['6'], [0, 4, 7, 9], 'Dur mit 6, ohne 7 (Kap. 11)'],
+    [['7'], [0, 4, 7, 10], 'nur „7“ = kleine 7: Dominant 7 (Kap. 3/7)'],
+    [['5'], [0, 7], 'Powerchord: 1-5(-8), ohne Terz (Kap. 2)'],
+    [['m', '-', 'mi', 'min'], [0, 3, 7], 'Moll: kleine Terz (Kap. 4)'],
+    [[''], [0, 4, 7], 'Dur: große Terz (Kap. 4)']
+  ];
+  const ENDS = []; SYM.forEach(([e, iv, t]) => e.forEach(x => ENDS.push([x, iv, t]))); ENDS.sort((a, b) => b[0].length - a[0].length);
+  function parse(sym) {
+    const s = String(sym || '').trim().replace(/\s+/g, ''); const m = /^([A-H])(#|b|is|es)?(.*)$/.exec(s); if (!m) return null;
+    let rp = md(NPC[m[1]] + (m[2] === '#' || m[2] === 'is' ? 1 : m[2] === 'b' || m[2] === 'es' ? -1 : 0)); let rest = m[3], bass = null;
+    const sl = /\/([A-H])(#|b|is|es)?$/.exec(rest); if (sl) { bass = md(NPC[sl[1]] + (sl[2] === '#' || sl[2] === 'is' ? 1 : sl[2] ? -1 : 0)); rest = rest.slice(0, sl.index); }
+    const hit = ENDS.find(([e]) => e === rest); if (!hit) return null;
+    const rn = window.PcWerk ? PcWerk.rootName(rp) : 'C', name = (m[1] === 'H' ? 'B' : m[1]) + (m[2] === '#' || m[2] === 'is' ? '#' : m[2] ? 'b' : '');
+    const sharpen = x => (x.endsWith('b') ? x.slice(0, -1) : x + '#'), sp = n => (n === 15 ? PcWerk.spell(name, 3) : n === 18 ? sharpen(PcWerk.spell(name, 5)) : n === 8 && hit[1].includes(4) ? sharpen(PcWerk.spell(name, 7)) : PcWerk.spell(name, md(n) === 0 && n ? 12 : md(n)));
+    const notes = hit[1].map(n => ({ n, lab: LABX[n], ton: window.PcWerk ? sp(n) : '' }));
+    return { root: rp, rn: name, iv: hit[1], notes, txt: hit[2], bass, bassName: bass == null ? null : (window.PcWerk ? PcWerk.rootName(bass) : ''), pcs: [...new Set(hit[1].map(n => md(rp + n)).concat(bass == null ? [] : [bass]))].sort((a, b) => a - b) };
+  }
+  // ---------- Lexikon ----------
+  const GL = [
+    ['Powerchord', 'Grundton, Quinte und meist die Oktave (1-5-8), ohne Terz – weder Dur noch Moll.', 2],
+    ['Intervall', 'Abstand zweier Töne, gezählt als Zahl (1 bis 8, darüber 9, 11, 13).', 3],
+    ['Terz', 'Der Ton, der Dur (große Terz, 4 Halbtöne) oder Moll (kleine Terz, 3 Halbtöne) bestimmt.', 3],
+    ['Quinte', 'Der fünfte Ton, 7 Halbtöne über dem Grundton. „Die unwichtigste“ – sie füllt nur.', 2],
+    ['Tritonus', 'Der Ton zwischen 4 und 5 (b5, #4, #11) – beim Lehrer „Bart Simpson“.', 3],
+    ['Oktave', 'Derselbe Ton zwölf Halbtöne höher: die 8 ist die 1.', 2],
+    ['Stammton', 'Ein Ton ohne Vorzeichen: A B C D E F G.', 2],
+    ['Voicing', 'Wie die Töne eines Akkords verteilt und gegriffen werden (welche Saite, welche Oktave).', 8],
+    ['Closed Voicing', 'Alle Akkordtöne liegen innerhalb einer Oktave – auf der Gitarre oft schwer zu greifen.', 8],
+    ['Drop 2', 'Aus dem Closed Voicing wird die zweite Note von oben eine Oktave tiefer gelegt.', 8],
+    ['Drop 3', 'Aus dem Closed Voicing wird die dritte Note von oben eine Oktave tiefer gelegt.', 8],
+    ['Umkehrung', 'Ein anderer Akkordton als der Grundton liegt unten; jeder Ton „geht einen höher“.', 8],
+    ['Stimmführung', 'Wohin jeder einzelne Ton beim Akkordwechsel geht – möglichst kleine Schritte.', 8],
+    ['Dreiklang', 'Drei Töne eines Akkords: 1-3-5 oder eine Umkehrung davon.', 9],
+    ['Arpeggio', 'Die Akkordtöne nacheinander gespielt statt zusammen.', 12],
+    ['Barré', 'Der Zeigefinger liegt über mehrere Saiten – wie ein Kapodaster.', 4],
+    ['CAGED', 'Die fünf offenen Grundgriffe C, A, G, E, D, die man über das Griffbrett verschiebt.', 4],
+    ['Stufe', 'Position eines Akkords in der Tonart (1 bis 7, oft römisch I–VII).', 5],
+    ['Stufenakkord', 'Akkord, der aus den Tönen der Tonleiter auf einer Stufe entsteht.', 5],
+    ['diatonisch', 'Nur mit den Tönen der Tonart (ohne fremde Töne).', 5],
+    ['Tonika', 'Die 1. Stufe – „zu Hause“.', 5],
+    ['Subdominante', 'Die 4. Stufe – schwebend.', 5],
+    ['Dominante', 'Die 5. Stufe – instabil, will zurück zur 1.', 5],
+    ['Leitton', 'Ein Ton einen Halbton unter dem Ziel (in C-Dur das B) – zieht stark.', 5],
+    ['Kadenz', 'Folge stabil → schwebend → instabil → stabil, z. B. I-IV-V-I.', 5],
+    ['Parallele', 'Moll-Akkord, der mit einem Dur-Akkord zwei Töne teilt (6 zu 1, 2 zu 4, 3 zu 5).', 5],
+    ['Sekundärdominante', 'Eine „ausgeliehene“ Dominante, die auf einen anderen Akkord als die 1 zieht.', 5],
+    ['Upper Structure', 'Ein Dreiklang, der im oberen Teil eines größeren Akkords steckt (z. B. C-Dur in Am7).', 5],
+    ['Sus', '„suspended“: keine Terz, dafür die 2 (Sus2) oder die 4 (Sus4).', 6],
+    ['add', 'Ton „dazu“ bei einem Akkord mit Terz: add9, add11.', 6],
+    ['Extension', 'Zusatzton über der Oktave: 9, 11, 13.', 6],
+    ['Ear Candy', '„Süßigkeit fürs Ohr“: kleiner, schöner Zusatzton oder -part.', 10],
+    ['Major 7', 'Große Septime – einen Halbton unter der 8.', 7],
+    ['Dominant 7', 'Dur-Akkord mit kleiner 7 – im Symbol nur „7“.', 7],
+    ['halbvermindert', 'Moll mit b5 und kleiner 7 (m7b5).', 7],
+    ['vollvermindert', 'Nur kleine Terzen übereinander (°7).', 7],
+    ['alteriert', 'Bei der Dominante „schiebe ich da Zeugs um“: b9, #9, b5, #5.', 11],
+    ['Slash-Akkord', 'Akkord mit anderem Basston, z. B. D/F# = „D über Fis“.', 14],
+    ['harmonisch Moll', 'Moll-Tonleiter mit großer 7 – ihre 5. Stufe ist eine Dominante mit b9.', 11],
+    ['dorisch', 'Moll mit großer 6 – Am6 klingt „dorisch“.', 11],
+    ['lydisch', 'Dur mit #4 (#11) – der Klang der 4. Stufe.', 10],
+    ['Modal Interchange', 'Akkorde aus einer verwandten Tonart (z. B. Moll) ausleihen.', 11],
+    ['Akkordteppich', 'Begleitung aus gleichmäßig weiterlaufenden Akkordtönen, z. B. Arpeggio mit Delay.', 13],
+    ['Hybrid Picking', 'Plektrum plus Finger der Anschlagshand (z. B. Mittelfinger) gleichzeitig.', 13],
+    ['Sweeping', 'Plektrum in einer Bewegung über mehrere Saiten ziehen.', 12],
+    ['Pull-Off', 'Ton durch Abziehen des Fingers klingen lassen.', 12],
+    ['Palm Mute', 'Handballen am Steg dämpft die Saiten.', 2],
+    ['Drop D', 'Tiefe E-Saite einen Ganzton tiefer auf D gestimmt.', 15],
+    ['Low Interval Limits', 'Tiefe kleine Intervalle (z. B. kleine Terz ganz unten) klingen matschig.', 4]
+  ];
+  const glossFind = t => GL.find(g => g[0].toLowerCase() === String(t).toLowerCase());
+  function wrapTerms(root) {                                // erstes Vorkommen je Absatz antippbar machen (nur Lehrtext)
+    const terms = GL.map(g => g[0]).sort((a, b) => b.length - a.length), rx = new RegExp('(^|[^\\wäöüÄÖÜß])(' + terms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')(?=$|[^\\wäöüÄÖÜß])', 'i');
+    root.querySelectorAll('.pc-kbody li, .pc-kbody p').forEach(li => { if (li._gl) return; li._gl = true;
+      const w = document.createTreeWalker(li, NodeFilter.SHOW_TEXT); let n, done = 0; const nodes = []; while ((n = w.nextNode())) nodes.push(n);
+      nodes.forEach(t => { if (done >= 2 || t.parentNode.closest('.pc-gl')) return; const m = rx.exec(t.data); if (!m) return; const i = m.index + m[1].length, term = m[2], g = glossFind(term); if (!g) return;
+        const after = t.splitText(i), rest = after.splitText(term.length), sp = document.createElement('span'); sp.className = 'pc-gl'; sp.setAttribute('role', 'button'); sp.tabIndex = 0; sp.dataset.gl = g[0]; sp.textContent = after.data; after.replaceWith(sp); done++; }); });
+  }
+  // ---------- Tonleitern ----------
+  const SCALES = [
+    ['Dur (ionisch)', [0, 2, 4, 5, 7, 9, 11], '2-2-1-2-2-2-1 – die Grundlage des Kurses (Kap. 5).', false],
+    ['natürliches Moll (äolisch)', [0, 2, 3, 5, 7, 8, 10], 'Die Dur-Tonleiter ab der 6. Stufe (Parallele, Kap. 5).', true],
+    ['harmonisch Moll', [0, 2, 3, 5, 7, 8, 11], 'Moll mit großer 7 – auf der 5. Stufe entsteht die Dominante mit b9 (Kap. 11).', true],
+    ['dorisch', [0, 2, 3, 5, 7, 9, 10], 'Moll mit großer 6 – der Klang von Am6 (Kap. 11).', true],
+    ['lydisch', [0, 2, 4, 6, 7, 9, 11], 'Dur mit #4 (#11) – der Klang der 4. Stufe (Kap. 10/14).', true]
+  ];
+  const ROM = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'], KEYS = ['C', 'G', 'D', 'A', 'E', 'F', 'Bb'];
+  function degreeChords(keyName, sc) {
+    const kp = NPC[keyName[0]] + (keyName[1] === 'b' ? -1 : keyName[1] === '#' ? 1 : 0);
+    return sc.map((_, i) => { const r = sc[i], t3 = md(sc[(i + 2) % 7] - r), t5 = md(sc[(i + 4) % 7] - r), t7 = md(sc[(i + 6) % 7] - r);
+      const q = t3 === 4 && t5 === 7 ? '' : t3 === 3 && t5 === 7 ? 'm' : t3 === 3 && t5 === 6 ? 'm(b5)' : t3 === 4 && t5 === 8 ? '+' : '?';
+      const q7 = t3 === 4 && t5 === 7 ? (t7 === 11 ? 'maj7' : '7') : t3 === 3 && t5 === 7 ? (t7 === 10 ? 'm7' : 'm(maj7)') : t3 === 3 && t5 === 6 ? (t7 === 10 ? 'm7b5' : '°7') : t3 === 4 && t5 === 8 ? '+maj7' : '?';
+      const rn = window.PcWerk ? PcWerk.spell(keyName, r === 0 ? 0 : r) : ''; return { deg: ROM[i], rn, tri: rn + q, sev: rn + q7 }; });
+  }
+  // ---------- Landkarte ----------
+  const MAP = [
+    ['Rock & Metal – Riffs', [[2, 'Powerchord 1-5-8'], [14, 'Dur-Powerchord, Terz im Bass'], [15, 'Drop D, tiefere Stimmung'], [6, 'Sus2 über Powerchord']]],
+    ['Pop & Singer-Songwriter', [[9, 'Dreiklänge, kleine Schritte'], [10, 'Ear Candy: 9, 11, Major 7'], [6, 'Sus und add9'], [4, 'CAGED-Griffe']]],
+    ['Jazz & Begleitung', [[7, '7er-Akkorde'], [8, 'Drop 2 / Drop 3, Stimmführung'], [11, '7(9), b9, #9'], [5, 'Funktionen: 2-5-1']]],
+    ['Blues', [[7, 'Dominant 7 überall'], [11, '#9: Mollterz → Durterz']]],
+    ['Solo & Melodie', [[3, 'Intervalle sehen'], [12, 'Dreiklangs-Arpeggios'], [13, 'Septakkord-Arpeggios, Teppich mit Delay']]],
+    ['Songs verstehen & schreiben', [[5, 'Stufen und Ersatzakkorde'], [10, 'Was passt auf welche Stufe'], [1, 'Zahlen statt Griffbilder']]]
+  ];
+  let A = null, host = null;
+  function card(id, title, sub) { return '<details class="card pc-sec pc-ktool" id="' + id + '"><summary><h3>' + title + '</h3></summary><p class="caption pc-ktsub" translate="no">' + sub + '</p><div class="pc-sec-b"></div></details>'; }
+  function build(h, api) {
+    if (host) return; host = h; A = api;
+    const box = document.createElement('div'); box.className = 'pc-ktools';
+    box.innerHTML = '<div class="pc-row pc-ktoolbar">' + [['pcKT1', 'Akkordsymbole lesen'], ['pcKT2', 'Begriffe (Lexikon)'], ['pcKT3', 'Landkarte: Was benutze ich wann?'], ['pcKT4', 'Tonleitern & Tonarten']].map(([id, t]) => '<button class="toggle-btn" data-ktool="' + id + '">' + L0(t) + '</button>').join('') + '</div>' +
+      card('pcKT1', L0('Akkordsymbole lesen'), 'Was bedeuten die Zeichen hinter dem Grundton? Tippe ein Symbol ein oder wähle eines aus der Tabelle.') +
+      card('pcKT2', L0('Begriffe (Lexikon)'), 'Fachwörter aus dem Kurs. Im Kurstext sind sie gepunktet unterstrichen – antippen zeigt die Erklärung.') +
+      card('pcKT3', L0('Landkarte: Was benutze ich wann?'), '(ergänzt) Übersicht, welches Kapitel für welche Musik am meisten bringt. Kapitel antippen öffnet es.') +
+      card('pcKT4', L0('Tonleitern & Tonarten'), 'So viel Tonleiter, wie der Kurs braucht: Dur und seine Stufenakkorde, dazu Moll, harmonisch Moll, dorisch und lydisch.');
+    const anchor = h.querySelector('.pc-khome'); anchor.after(box);
+    box.querySelectorAll('details.pc-ktool').forEach(d => d.addEventListener('toggle', () => { if (d.open) fill(d); }));
+    h.addEventListener('click', onClick);
+    const gp = document.createElement('div'); gp.className = 'card pc-glpop'; gp.id = 'pcGlPop'; gp.hidden = true; document.body.appendChild(gp); gp.addEventListener('click', onClick);   // fest unten im Bild (nicht im Reiter-Container)
+    new MutationObserver(() => wrapTerms(h)).observe(h, { childList: true, subtree: true }); wrapTerms(h);
+  }
+  function fill(d) {
+    if (d._f) return; d._f = true; const b = d.querySelector('.pc-sec-b');
+    if (d.id === 'pcKT1') {
+      b.innerHTML = '<div class="pc-row"><input class="pc-symin" id="pcSymIn" type="text" value="D/F#" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Akkordsymbol"><button class="toggle-btn active" data-sym="go">' + L0('Erklären') + '</button><button class="toggle-btn" data-sym="play">' + PcSkin.btn(L0('▶ Anhören')) + '</button></div><div class="pc-symout" translate="no"></div>' +
+        '<div class="pc-tbl"><table class="pc-symtab" translate="no"><thead><tr><th>Symbol (Beispiel C)</th><th>Formel</th><th>Bedeutung</th></tr></thead><tbody>' +
+        SYM.map(([e, iv, t]) => '<tr data-sym="C' + e[0] + '"><td><b>C' + e.join(' · C') + '</b></td><td>' + iv.map(n => LABX[n]).join(' · ') + '</td><td>' + t + '</td></tr>').join('') +
+        '<tr data-sym="D/F#"><td><b>D/F#</b></td><td>Akkord / Basston</td><td>Slash-Akkord: „D über Fis“ – die Terz im Bass (Kap. 14). Hinter dem Schrägstrich steht immer der tiefste Ton.</td></tr></tbody></table></div>';
+      symShow();
+    }
+    if (d.id === 'pcKT2') b.innerHTML = '<div class="pc-glist" translate="no">' + GL.slice().sort((x, y) => x[0].localeCompare(y[0], 'de')).map(([t, x, k]) => '<div class="pc-gli"><b>' + t + '</b> – ' + x + ' <button class="toggle-btn pc-kref" data-kref="' + k + '">' + PcSkin.btn('→ ') + 'Kapitel ' + k + '</button></div>').join('') + '</div>';
+    if (d.id === 'pcKT3') b.innerHTML = '<div class="pc-map" translate="no">' + MAP.map(([t, items]) => '<div class="pc-mapc"><h4>' + t + '</h4>' + items.map(([k, x]) => '<button class="toggle-btn pc-kref pc-mapi" data-kref="' + k + '"><b>' + k + '</b><span>' + x + '</span></button>').join('') + '</div>').join('') + '</div>' +
+      '<p class="pc-kmerk" translate="no">„Vom Jazz zu Metal über Shreddy-Arpeggios-Zeug, geile Pop-Dreiklänge … ihr habt hier jetzt alles gelernt.“</p><p class="caption" translate="no">Weg durch den Kurs: Powerchord (2) → Intervalle (3) → CAGED (4) → Funktionen (5) → Sus/Add (6) → 7er (7) → Drop 2/3 (8) → Dreiklänge (9) → Ear Candy (10) → 7/9 (11) → Arpeggios (12, 13) → Dur-Powerchord (14) → Drop D (15).</p>';
+    if (d.id === 'pcKT4') {
+      b.innerHTML = '<div class="pc-row"><div class="seg pc-seg" id="pcScSel">' + SCALES.map((s, i) => '<button class="toggle-btn' + (i ? '' : ' active') + '" data-sc="' + i + '">' + s[0] + '</button>').join('') + '</div></div>' +
+        '<div class="pc-scinfo" translate="no"></div><div class="pc-bwrap pc-scb"></div><div class="pc-row"><button class="toggle-btn" data-scplay="1">' + PcSkin.btn(L0('▶ Nacheinander')) + '</button></div>' +
+        '<h4>' + L0('Stufenakkorde einer Dur-Tonart') + '</h4><div class="pc-row"><div class="seg pc-seg" id="pcKeySel">' + KEYS.map((k, i) => '<button class="toggle-btn' + (i ? '' : ' active') + '" data-key="' + k + '">' + k + '</button>').join('') + '</div></div><div class="pc-tbl pc-degtab" translate="no"></div>' +
+        '<p class="caption" translate="no">Tonart = Grundton + Tonleiter. Merkhilfe des Lehrers (Kap. 10): Zwei Dur-Akkorde nebeneinander gibt es nur auf der 4 und 5. (ergänzt: Moll-, harmonisch-Moll-, dorische und lydische Tonleiter als Übersicht)</p>';
+      scShow(0); keyShow('C');
+    }
+  }
+  let SC = 0, KEY = 'C';
+  function scShow(i) {
+    SC = i; const [n, iv, t, own] = SCALES[i], b = host.querySelector('#pcKT4'); b.querySelectorAll('[data-sc]').forEach(x => x.classList.toggle('active', +x.dataset.sc === i));
+    b.querySelector('.pc-scinfo').innerHTML = '<p><b>' + n + '</b> (ab A): ' + iv.map(x => (x === 6 && !iv.includes(5) ? '#4' : LABX[x])).join(' · ') + ' · ' + iv.map(x => (x === 6 && !iv.includes(5) ? 'D#' : PcWerk.spell('A', x))).join(' ') + '</p><p class="caption">' + (own ? '(ergänzt) ' : '') + t + '</p>';
+    const marks = iv.concat([12]).map(N => { const p = N ? PcWerk.posBox(0, 5, N) : { s: 0, f: 5 }; return { s: p.s, f: p.f, lab: N === 12 ? '8' : N === 6 && !iv.includes(5) ? '#4' : LABX[N], cls: fam(N) + (N === 0 ? ' root' : '') }; });
+    A.board(b.querySelector('.pc-scb'), { marks, from: 3, to: 15, tap: (s, f) => A.playMidi([40, 45, 50, 55, 59, 64][s] + f) });
+  }
+  function keyShow(k) {
+    KEY = k; const b = host.querySelector('#pcKT4'); b.querySelectorAll('[data-key]').forEach(x => x.classList.toggle('active', x.dataset.key === k));
+    const rows = degreeChords(k, SCALES[0][1]);
+    b.querySelector('.pc-degtab').innerHTML = '<table><thead><tr><th>Stufe</th>' + rows.map(r => '<th>' + r.deg + '</th>').join('') + '</tr></thead><tbody><tr><td>Dreiklang</td>' + rows.map(r => '<td>' + r.tri + '</td>').join('') + '</tr><tr><td>Septakkord</td>' + rows.map(r => '<td>' + r.sev + '</td>').join('') + '</tr></tbody></table>';
+  }
+  function symShow() {
+    const inp = host.querySelector('#pcSymIn'), out = host.querySelector('.pc-symout'); if (!inp) return; const r = parse(inp.value);
+    if (!r) { out.innerHTML = '<p class="pc-wfb no">Unbekanntes Symbol. Beispiele: Cmaj7, Am7b5, E7#9, D/F#, Gsus4, Bb6.</p>'; return; }
+    out.innerHTML = '<p class="pc-wline"><b>' + inp.value.trim() + '</b></p><p>' + r.txt + (r.bass != null ? ' · Basston: <b>' + r.bassName + '</b> (Slash-Akkord: „' + r.rn + ' über ' + r.bassName + '“)' : '') + '</p>' +
+      '<div class="pc-ltones">' + r.notes.map(x => '<span class="pc-ltone ' + fam(x.n) + '"><b>' + x.ton + '</b><small>' + x.lab + '</small></span>').join('') + '</div>';
+  }
+  function symPlay() { const r = parse(host.querySelector('#pcSymIn').value); if (!r) return; const ms = r.iv.map(n => 48 + r.root + n); if (r.bass != null) ms.unshift(36 + r.bass); A.strumNow(ms); }
+  function glShow(t, el) {
+    const g = glossFind(t), p = document.getElementById('pcGlPop'); if (!g) return;
+    p.innerHTML = '<div class="pc-row"><b>' + g[0] + '</b><button class="toggle-btn" data-glx="1" aria-label="Schließen">✕</button></div><p translate="no">' + g[1] + '</p><button class="toggle-btn pc-kref" data-kref="' + g[2] + '">' + PcSkin.btn('→ ') + 'Kapitel ' + g[2] + '</button>';
+    p.hidden = false;
+  }
+  function onClick(e) {
+    const t = e.target.closest('[data-ktool]'); if (t) { const d = host.querySelector('#' + t.dataset.ktool); d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+    const gl = e.target.closest('.pc-gl'); if (gl) { glShow(gl.dataset.gl, gl); return; }
+    if (e.target.closest('[data-glx]') || e.target.closest('#pcGlPop .pc-kref')) { document.getElementById('pcGlPop').hidden = true; const r = e.target.closest('#pcGlPop .pc-kref'); if (r) PcKurs.open(+r.dataset.kref); return; }
+    const sy = e.target.closest('[data-sym]');
+    if (sy) { if (sy.tagName === 'TR') { host.querySelector('#pcSymIn').value = sy.dataset.sym; symShow(); symPlay(); } else if (sy.dataset.sym === 'go') symShow(); else symPlay(); return; }
+    const sc = e.target.closest('[data-sc]'); if (sc) { scShow(+sc.dataset.sc); return; }
+    if (e.target.closest('[data-scplay]')) { const iv = SCALES[SC][1].concat([12]); A.seqNow(iv.map(n => 45 + n)); return; }
+    const k = e.target.closest('[data-key]'); if (k) { keyShow(k.dataset.key); return; }
+  }
+  document.addEventListener('tabchange', () => { const p = document.getElementById('pcGlPop'); if (p) p.hidden = true; });
+  window.PcExtra = { build, parse, GL, degreeChords, SCALES, wrapTerms, sym: v => { const i = host && host.querySelector('#pcSymIn'); if (i) { i.value = v; symShow(); } return parse(v); } };
 })();
 
 </script>
