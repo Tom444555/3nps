@@ -1222,3 +1222,13 @@ Gut zu wissen
    - ✎ Übungen: „Finde die …“ (Bund tippen, sofort ✓/✗ mit Erklärung), „Wie heißt das?“ (Punkt „?“, Namen wählen),
      „Hör-Quiz“ (erst 1/5/8, dann mehr). Je 10 Aufgaben, Ergebnis und Bestwert werden gespeichert.
    - Behoben: Kurstext lief auf dem iPad rechts aus dem Bild – jetzt wird überall umbrochen.
+
+110. Powerchords: neuer Look (v127)
+   - Alle Griffbilder im Reiter „Powerchords“ (Kurs, Werkstatt, Schritt für Schritt, Griffbrett, Akkordfolgen, Übungen) sehen
+     jetzt aus wie ein echtes Griffbrett: feines Palisander-Holz, Bundstäbchen mit Glanz und Schatten, umsponnene D-/A-/E-Saiten,
+     Knochensattel, Perlmutt-Punkte, dunkler Rand. Die Holztextur wird erst geladen, wenn du den Reiter öffnest.
+   - Kurs: oben sieben Fortschrittsringe (einer je Kapitel, antippen = zum Kapitel springen), Karten mit runden Ecken,
+     Merksätze als Zitat-Karten („Merkkarte · Lehrer“), schlichte Symbole statt ▶ und ✎.
+   - Werkstatt (Kapitel 3): Schritt-Leiste mit Kreisen und Häkchen für schon besuchte Schritte, große Intervall-Knöpfe
+     (Zahl groß, Name klein), das Griffbrett zeigt immer 13 Bünde und bleibt an seinem Platz.
+   - Alle Funktionen sind unverändert.

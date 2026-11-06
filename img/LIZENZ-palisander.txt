@@ -1,0 +1,5 @@
+palisander.jpg – Griffbrett-Textur (Palisander) für den Reiter „Powerchords“ (v127)
+Typ:     Prozedural erzeugte Textur (eigene Arbeit), keine Fremdquelle.
+Erzeugt: 2026-11-06 mit Python (numpy/PIL), Skript app/img-palisander.py (feste Seeds), 1536x384, horizontal kachelbar.
+Autor:   Eigene Arbeit des Auftraggebers (generiert mit Claude). Keine Namensnennung nötig.
+Lizenz:  Frei nutzbar, keine Einschränkungen (wie CC0).
