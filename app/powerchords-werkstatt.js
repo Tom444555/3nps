@@ -8,7 +8,7 @@
   const longN = N => IV[N][2].replace('kl. ', 'kleine ').replace('gr. ', 'große ');
   const art = (N, cap) => (N === 6 ? (cap ? 'Der' : 'der') : (cap ? 'Die' : 'die'));
   const fam = N => (N % 12 === 0 ? 'f1' : N === 7 ? 'f5' : N === 3 || N === 4 ? 'f3' : N === 5 ? 'f4' : 'fx');
-  const L = s => (window.__lang === 'en' && window.__EN_PCW && window.__EN_PCW[s]) || s;
+  const L0 = s => (window.__lang === 'en' && window.__EN_PCW && window.__EN_PCW[s]) || s, L = s => PcSkin.btn(L0(s));
   // ---------- Notennamen (Lehrer: A B C D E F G, B-flat = Bb) ----------
   const LET = 'CDEFGAB', LPC = [0, 2, 4, 5, 7, 9, 11];
   const SH = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'], FL = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
@@ -77,7 +77,7 @@
   const CAP = { 1: 'Grundton auf einer Saite: jeder Bund = 1 Halbton weiter.', 2: 'Der Abstand in Halbtönen ist das Intervall – egal, auf welcher Saite der Ton liegt.',
     3: 'Dasselbe Intervall als Griffform über zwei Saiten. Achtung G→H: dort ein Bund mehr.', 4: 'Powerchord: 1 · 5 · 8 leuchten, die anderen Intervalle liegen drumherum.',
     5: 'Alle Intervalle um den Grundton, in Familienfarben.', 6: 'Tippe auf dem Griffbrett oder wähle eine Antwort. 10 Aufgaben je Runde.' };
-  const W = { st: 1, rs: 0, rf: 5, n: 4, lab: 'num', multi: false, sel: new Set([0, 4, 7]), q: null };
+  const W = { seen: new Set(), st: 1, rs: 0, rf: 5, n: 4, lab: 'num', multi: false, sel: new Set([0, 4, 7]), q: null };
   let A = null, el = null, C = null;
   const $q = s => el.querySelector(s);
   const effRf = () => (W.st === 1 && W.rf > MAXF - 12 ? W.rf - 12 : W.rf);
@@ -112,17 +112,15 @@
   }
   function drawBoard() {
     const { out, arrow, alt, rn } = marksFor(), rf = effRf(), rp = md(pit(W.rs, rf));
-    const fs = out.map(m => m.f).concat([rf]); let a = Math.max(0, Math.min(...fs) - 1), b = Math.max(a + 10, Math.max(...fs) + 1);
-    if (b > MAXF) { b = MAXF; a = Math.max(0, Math.min(a, b - 10)); }
-    const cols = b - a + 1, CW = 52, RH = 46, LM = 30, TM = 8, BM = 24, Wd = LM + cols * CW + 6, H = TM + 6 * RH + BM;
+    const fs = out.map(m => m.f).concat([rf]); let a = Math.max(0, Math.min(...fs) - 1);   // v127: immer 13 Bünde → Griffbrett springt nicht
+    if (Math.max(...fs) > a + 12) a = Math.max(...fs) - 12; a = Math.min(a, MAXF - 12); const b = a + 12;
+    const cols = b - a + 1, CW = 56, RH = 56, LM = 30, TM = 8, BM = 24, Wd = LM + cols * CW + 6, H = TM + 6 * RH + BM;
     const X = f => LM + (f - a) * CW + CW / 2, Y = s => TM + (5 - s) * RH + RH / 2;
     let h = '<svg class="pc-wb" viewBox="0 0 ' + Wd + ' ' + H + '" translate="no" role="img" aria-label="Griffbrett"><defs><marker id="pcwAr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="pc-war"/></marker></defs>';
-    h += '<rect class="pc-wood" x="' + LM + '" y="' + TM + '" width="' + cols * CW + '" height="' + 6 * RH + '" rx="4"/>';
-    for (let f = Math.max(1, a); f <= b; f++) { if ([3, 5, 7, 9, 15, 17, 19, 21].includes(f)) h += '<circle class="pc-inlay" cx="' + X(f) + '" cy="' + (TM + 3 * RH) + '" r="5"/>';
-      if (f === 12 || f === 24) h += '<circle class="pc-inlay" cx="' + X(f) + '" cy="' + (TM + 2 * RH) + '" r="5"/><circle class="pc-inlay" cx="' + X(f) + '" cy="' + (TM + 4 * RH) + '" r="5"/>'; }
-    for (let f = a; f <= b; f++) { const x = LM + (f - a + 1) * CW; h += '<line class="' + (f === 0 ? 'pc-nut' : 'pc-fret') + '" x1="' + x + '" y1="' + TM + '" x2="' + x + '" y2="' + (TM + 6 * RH) + '"/>';
+    h += PcSkin.draw({ x: LM, y: TM, w: cols * CW, h: 6 * RH, a, b, CW, sw: s => 1.2 + (5 - s) * 0.45 });   // v127
+    for (let f = a; f <= b; f++) { const x = LM + (f - a + 1) * CW; 
       h += '<text class="pc-fn" x="' + X(f) + '" y="' + (H - 7) + '">' + f + '</text>'; }
-    for (let s = 0; s < 6; s++) h += '<line class="pc-str" style="stroke-width:' + (1.2 + (5 - s) * 0.45) + 'px" x1="' + LM + '" y1="' + Y(s) + '" x2="' + (LM + cols * CW) + '" y2="' + Y(s) + '"/><text class="pc-sn" x="11" y="' + Y(s) + '">' + SN[s] + '</text>';
+    for (let s = 0; s < 6; s++) h += '<text class="pc-sn" x="11" y="' + Y(s) + '">' + SN[s] + '</text>';
     const used = new Set(out.map(m => m.s + ':' + m.f));
     if (W.st !== 6) for (let s = 0; s < 6; s++) for (let f = a; f <= b; f++) if (md(pit(s, f)) === rp && !used.has(s + ':' + f)) {
       h += '<g class="pc-wm ghost"><circle cx="' + X(f) + '" cy="' + Y(s) + '" r="17"/><text x="' + X(f) + '" y="' + Y(s) + '">' + (W.lab === 'ton' ? rn : W.lab === 'num' ? (pit(s, f) > pit(W.rs, rf) ? '8' : '1') : 'Prime') + '</text></g>'; }
@@ -132,7 +130,7 @@
       h += '<text class="pc-wht ' + fam(arrow.N) + '" x="' + (x1 + x2) / 2 + '" y="' + my + '">+' + arrow.N + ' Halbtöne</text>'; }
     if (alt) h += '<text class="pc-wht alt" x="' + X(alt.f) + '" y="' + (Y(alt.s + 1) - 26) + '">G→H: ein Bund mehr</text>';
     out.forEach(m => { const ls = m.q ? ['?'] : labOf(m), r = W.lab === 'all' ? 22 : 20, fsz = ls.length > 2 ? 8.5 : ls.length > 1 ? 9.5 : (ls[0].length > 3 ? 10 : 13);
-      h += '<g class="pc-wm ' + m.cls + '" data-n="' + m.N + '" data-s="' + m.s + '" data-f="' + m.f + '"><circle cx="' + X(m.f) + '" cy="' + Y(m.s) + '" r="' + r + '"/><text x="' + X(m.f) + '" y="' + Y(m.s) + '" style="font-size:' + fsz + 'px">' +
+      h += (/ghost|dim/.test(m.cls) ? '' : PcSkin.shadow(X(m.f), Y(m.s), r)) + '<g class="pc-wm ' + m.cls + '" data-n="' + m.N + '" data-s="' + m.s + '" data-f="' + m.f + '"><circle cx="' + X(m.f) + '" cy="' + Y(m.s) + '" r="' + r + '"/><text x="' + X(m.f) + '" y="' + Y(m.s) + '" style="font-size:' + fsz + 'px">' +
         ls.map((t, i) => '<tspan x="' + X(m.f) + '" dy="' + (i ? '1.1em' : (-(ls.length - 1) * 0.55) + 'em') + '">' + t + '</tspan>').join('') + '</text></g>'; });
     for (let s = 0; s < 6; s++) for (let f = a; f <= b; f++) h += '<rect class="pc-cell" data-s="' + s + '" data-f="' + f + '" x="' + (LM + (f - a) * CW) + '" y="' + (TM + (5 - s) * RH) + '" width="' + CW + '" height="' + RH + '"/>';
     $q('.pc-wbw').innerHTML = h + '</svg>';
@@ -156,7 +154,8 @@
   }
   function paintIv() {
     el.querySelectorAll('[data-w=iv]').forEach(b => { const n = +b.dataset.n, on = W.multi ? W.sel.has(n) : n === W.n; b.classList.toggle('active', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
-    el.querySelectorAll('[data-w=st]').forEach(b => b.classList.toggle('active', +b.dataset.v === W.st));
+    W.seen.add(W.st); el.querySelectorAll('[data-w=st]').forEach(b => { const v = +b.dataset.v; b.classList.toggle('active', v === W.st); b.classList.toggle('seen', v !== W.st && W.seen.has(v)); });
+    el.querySelectorAll('.pc-wsl').forEach((l, i) => l.classList.toggle('on', W.seen.has(i + 1) && W.seen.has(i + 2)));
     el.querySelectorAll('[data-w=lab]').forEach(b => b.classList.toggle('active', b.dataset.v === W.lab));
     $q('[data-w=multi]').classList.toggle('active', W.multi); $q('[data-w=multi]').setAttribute('aria-pressed', W.multi ? 'true' : 'false');
     $q('.pc-wsingle').hidden = W.multi || W.st === 6; $q('.pc-wmulti').hidden = !W.multi || W.st === 6; $q('.pc-wq').hidden = W.st !== 6; $q('.pc-wivs').hidden = W.st === 6;
@@ -232,10 +231,10 @@
   }
   function build(host, api, chapter) {
     A = api; C = chapter; el = host;
-    const ivb = cls => IV.map(([N, num, nm]) => '<button class="toggle-btn pc-wiv ' + fam(N) + '" data-w="iv" data-n="' + N + '" aria-pressed="false"><b>' + num + '</b> ' + L(nm) + '</button>').join('');
+    const ivb = cls => IV.map(([N, num, nm]) => '<button class="toggle-btn pc-wiv ' + fam(N) + '" data-w="iv" data-n="' + N + '" aria-pressed="false"><b>' + num + '</b><span> ' + L(nm) + '</span></button>').join('');
     host.innerHTML = '<div class="pc-w"><h3 class="pc-wt" translate="no">3 · Intervalle – Werkstatt</h3><p class="caption" translate="no">Immer nur ein Intervall auf einmal. Tippe einen Bund, um den Grundton zu ändern.</p>' +
-      '<div class="pc-row pc-wsteps">' + STEPS.map(([v, t]) => '<button class="toggle-btn" data-w="st" data-v="' + v + '">' + L(t) + '</button>').join('') + '</div>' +
-      '<div class="pc-wivs"><div class="pc-row pc-wivrow">' + ivb() + '</div><div class="pc-row"><button class="toggle-btn" data-w="multi" aria-pressed="false">' + L('☐ Mehrere wählen') + '</button><span class="caption">' + L('Akkord-Baukasten: Intervalle ankreuzen, der Akkord erscheint.') + '</span></div></div>' +
+      '<div class="pc-wsteps">' + STEPS.map(([v, t]) => { const m = /^(\S+) (.*)$/.exec(L0(t)); return (v > 1 ? '<i class="pc-wsl"></i>' : '') + '<button class="pc-wstep" data-w="st" data-v="' + v + '"><span class="pc-wsn"><i>' + (v === 6 ? PcSkin.icon('pencil') : m[1]) + '</i>' + PcSkin.icon('check') + '</span><span class="pc-wsx"> ' + m[2] + '</span></button>'; }).join('') + '</div>' +
+      '<div class="pc-wivs"><div class="pc-row pc-wivrow">' + ivb() + '</div><div class="pc-row"><button class="toggle-btn" data-w="multi" aria-pressed="false">' + '<span class="pc-wbox">' + PcSkin.icon('box') + PcSkin.icon('boxon') + '</span>' + L0('☐ Mehrere wählen').replace(/^☐ /, '') + '</button><span class="caption">' + L('Akkord-Baukasten: Intervalle ankreuzen, der Akkord erscheint.') + '</span></div></div>' +
       '<div class="pc-wgrid"><div class="card pc-wleft"><div class="pc-row pc-wlabh"><span class="caption">' + L('Beschriftung') + '</span><div class="seg pc-seg">' +
       [['num', 'Zahl'], ['name', 'Name'], ['ton', 'Ton'], ['all', 'Alles']].map(([v, t]) => '<button class="toggle-btn" data-w="lab" data-v="' + v + '">' + L(t) + '</button>').join('') + '</div></div>' +
       '<p class="caption pc-wcap" translate="no"></p><div class="pc-wbw"></div><div class="pc-winfo" translate="no"></div>' +
@@ -243,7 +242,7 @@
       '<div class="pc-row pc-wmulti" hidden><button class="toggle-btn active" data-w="chord">' + L('▶ Akkord anhören') + '</button></div>' +
       '<div class="pc-wq" hidden><div class="pc-row">' + [['find', 'Finde die …'], ['name', 'Wie heißt das?'], ['hear', 'Hör-Quiz']].map(([v, t]) => '<button class="toggle-btn pc-wqb" data-w="quiz" data-v="' + v + '"><span>' + L(t) + '</span><small></small></button>').join('') + '</div><div class="pc-wqbody"></div></div>' +
       '<div class="pc-row pc-wleg">' + [['f1', 'Prime / Oktave'], ['f5', 'Quinte'], ['f3', 'Terzen'], ['f4', 'Quarte'], ['fx', 'Sekunden · Sexten · Septimen · Tritonus']].map(([c, t]) => '<span class="pc-wlg ' + c + '">' + L(t) + '</span>').join('') + '</div></div>' +
-      '<div class="pc-wright"><div class="card"><h4>' + L('Merkkarten des Lehrers') + '</h4><div class="pc-wcards" translate="no">' + CARDS.map(([c, t]) => '<div class="pc-wcard ' + c + '">' + t + '</div>').join('') + '</div></div>' +
+      '<div class="pc-wright"><div class="card"><h4>' + L('Merkkarten des Lehrers') + '</h4><div class="pc-wcards" translate="no">' + CARDS.map(([c, t]) => '<div class="pc-wcard ' + c + '">' + t + '<small>Merkkarte · Lehrer, Kapitel 3</small></div>').join('') + '</div></div>' +
       '<div class="card pc-wkex"><h4>' + L('Übungen aus dem Kurs') + '</h4>' + C.s.map(S => '<section class="pc-ksub" id="pcK_' + S.id + '"><h5 translate="no">' + S.t + '</h5><div class="pc-kbody" translate="no"></div><div class="pc-kex">' +
         S.ex.map((x, xi) => '<label class="check pc-kchk"><input type="checkbox" data-kx="' + S.id + '-' + xi + '"> <span translate="no">' + (x.slice(0, 2) === 'E:' ? '<i>(ergänzt)</i> ' : '') + x.slice(2) + '</span></label>').join('') + '</div></section>').join('') + '</div></div></div>' +
       '<div class="card pc-wstrip"><b translate="no">Vorschau Schritt 1 · Eine Saite: jeder Bund = 1 Halbton weiter</b><div class="pc-wtiles"></div></div></div>';

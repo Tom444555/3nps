@@ -186,7 +186,7 @@ async def main():
             check('Kein waagrechtes Scrollen (' + tag + ')', max(hs) <= 0, hs)
         # Hell
         await pg.evaluate("document.documentElement.dataset.theme='light'"); await pg.click('#pcSubs [data-sec=brett]'); await pg.wait_for_timeout(200)
-        check('Helle Optik: Griffbrett sichtbar', await pg.evaluate("getComputedStyle(document.querySelector('#pcBoard .pc-wood')).fill!=='none' && getComputedStyle(document.querySelector('#panel-power .card')).backgroundColor!==''"))
+        check('Helle Optik: Griffbrett sichtbar', await pg.evaluate("!!document.querySelector('#pcBoard .pc-skin rect[fill^=url]') && getComputedStyle(document.querySelector('#panel-power .card')).backgroundColor!==''"))
         check('Keine Skriptfehler', not errs, errs[:3])
         await ctx.close()
         # --- Englisch: Bedienelemente übersetzt, Theorie bleibt deutsch (translate=no) ---
