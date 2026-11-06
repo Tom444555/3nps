@@ -33,7 +33,7 @@ async def main():
         await pg.evaluate("Powerchords.stop()")
         await pg.click('#pcSubs [data-sec=brett]'); await pg.wait_for_timeout(200); await pg.screenshot(path=SHOT + '_brett.png')
         await pg.click('#pcSubs [data-sec=kurs]'); await pg.wait_for_timeout(300)
-        check('Kapitel-Ringe 1–7', await pg.evaluate("document.querySelectorAll('#pcKRings .pc-ring svg circle.pc-rfg').length") == 7)
+        check('Kapitel-Ringe 1–15', await pg.evaluate("document.querySelectorAll('#pcKRings .pc-ring svg circle.pc-rfg').length") == 15)
         await pg.evaluate("document.querySelectorAll('#pcSecKurs details.pc-kc').forEach(d=>d.open=true)"); await pg.wait_for_timeout(700)
         r = await pg.evaluate(SKIN, '#pcSecKurs .pc-kgrip svg.pc-board'); check('Skin: alle Kurs-Griffbilder', r[0] > 80 and r[0] == r[1], r)
         r = await pg.evaluate(SKIN, '#pcKC3 svg.pc-wb'); check('Skin: Werkstatt', r == [1, 1], r)

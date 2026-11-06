@@ -1,5 +1,5 @@
 # v126: Kurs Kapitel 3 „Intervall-Werkstatt“ – Schritte, Intervalle (Töne nachgerechnet), Akkord-Baukasten (alle Formeln), Quiz, Speicher, kein Überlauf, quer/hoch, EN
-import asyncio, os, itertools
+import asyncio, os, itertools, re
 from playwright.async_api import async_playwright
 U = os.environ.get('U', 'http://localhost:8765/index.html')
 SHOT = os.environ.get('SHOT', '/tmp/v126werkstatt')
@@ -132,9 +132,9 @@ async def main():
         ch = await pg.evaluate("[...document.querySelectorAll('#pcKC3 [data-w=qa]')].map(b=>+b.dataset.n)")
         check('Hör-Quiz: erst 1/5/8, dann mehr', pool <= {0, 7, 12} and len(ch) == 6, (pool, ch))
         sm = await pg.inner_text('#pcKSum')
-        check('Quiz-Ergebnisse zählen nicht als Häkchen; Kapitel-3-Häkchen da', sm.startswith('0 von 83') and await pg.evaluate("!!document.querySelector('#pcKC3 input[data-kx=\"k3-3-0\"]')"), sm)
+        check('Quiz-Ergebnisse zählen nicht als Häkchen; Kapitel-3-Häkchen da', re.match(r'0 von \d+', sm) and await pg.evaluate("!!document.querySelector('#pcKC3 input[data-kx=\"k3-3-0\"]')"), sm)
         await pg.click('#pcKC3 input[data-kx="k3-3-0"]'); await pg.wait_for_timeout(100)
-        check('Häkchen Kapitel 3 gespeichert', (await pg.inner_text('#pcKSum')).startswith('1 von 83') and await pg.evaluate("JSON.parse(localStorage.getItem('powerchords.progress.v1')).kurs['k3-3-0']===true"))
+        check('Häkchen Kapitel 3 gespeichert', re.match(r'1 von \d+', await pg.inner_text('#pcKSum')) and await pg.evaluate("JSON.parse(localStorage.getItem('powerchords.progress.v1')).kurs['k3-3-0']===true"))
         await pg.evaluate("document.querySelectorAll('#pcSecKurs details.pc-kc').forEach(d=>d.open=true)"); await pg.evaluate("PcWerk.set({st:2,n:4,rs:0,rf:5})"); await pg.wait_for_timeout(400)
         o = await pg.evaluate(OVER); bt = await pg.evaluate(JT)
         check('Quer 1366×1024: nichts läuft horizontal über, kein Querscrollen', not o and await pg.evaluate("document.scrollingElement.scrollWidth-innerWidth") <= 1, o)
