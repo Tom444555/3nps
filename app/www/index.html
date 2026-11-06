@@ -1934,6 +1934,10 @@ html.sig-open .control-bar { visibility: hidden; }   /* Kopfleiste liegt sonst �
   .pc-mapi { display: flex; align-items: center; gap: 8px; text-align: left; } .pc-mapi b { min-width: 1.6em; color: #4fd18b; }
   .pc-scb { max-width: 680px; } .pc-degtab td, .pc-degtab th { text-align: center; }
   #pcGlPop.pc-glpop { position: fixed !important; top: auto; }
+  .pc-ktab table { table-layout: fixed; } .pc-ktab td, .pc-ktab th { overflow-wrap: anywhere; word-break: break-word; }
+  @media (max-width: 600px) { .pc-ktab table { font-size: .76rem; } .pc-ktab td, .pc-ktab th { padding: 5px 4px; } }
+  #pcSecKurs .pc-tbl table { table-layout: fixed; width: 100%; } #pcSecKurs .pc-tbl td, #pcSecKurs .pc-tbl th { overflow-wrap: anywhere; }
+  @media (max-width: 600px) { #pcSecKurs .pc-tbl table { font-size: .74rem; } #pcSecKurs .pc-tbl td, #pcSecKurs .pc-tbl th { padding: 4px 3px; } }
   /* ===== Rost & Stahl: Hintergrund aus gerostetem Blech, darauf verschraubte Stahlplatten ===== */
   :root {
     --plate-hi: #3a3a40;
@@ -22490,6 +22494,10 @@ const HILFE = [
     p: ['Die App hört über den Eingang zu und zeigt, welchen Akkord du gerade spielst – mit Formel, Tönen in Kursfarben und Bass (Umkehrung als „C/E“).'],
     s: ['Powerchords → Kurs → Kapitel 3 (Werkstatt, rechts oben) oder in Kapitel 6/7 bzw. im Akkord-Baukasten „Was spiele ich?“ tippen.', '„Zuhören“ tippen – der Eingang öffnet sich, falls er zu ist. Die Balken zeigen den Pegel.', 'Akkord anschlagen und klingen lassen: Nach etwa einer halben Sekunde steht der Name groß da, dazu „sicher erkannt“ oder „unsicher“.', '„Spiel den Akkord“: Die App nennt einen Akkord, du spielst ihn – ✓ oder ein Hinweis wie „Terz fehlt“ oder „b7 statt 7“.', '„Stopp“, ein anderer Reiter oder Zuklappen beendet das Zuhören und schließt den Eingang wieder, wenn die App ihn geöffnet hat.'],
     tip: ['Erkannt werden dieselben 18 Akkordarten wie im Akkord-Baukasten.', 'Sauber und nicht zu leise spielen; gedämpfte Saiten helfen bei Umkehrungen.'] },
+  { id: 'kurs-werkzeuge', t: 'Notenkarte, Griff-Tabellen und Kurs-Werkzeuge', k: 'notenkarte tonnamen griff tabelle akkordsymbol slash lexikon begriffe landkarte tonleiter tonart dorisch lydisch harmonisch moll stufenakkorde',
+    p: ['Hilfen rund um den Kurs im Reiter „Powerchords“.'],
+    s: ['„Notenkarte“ (oben im Reiter): blendet auf jedem Griffbrett alle Tonnamen ein oder aus. Die Wahl bleibt gespeichert.', 'In jedem Kapitel: „Griff-Tabelle“ aufklappen – alle Griffe mit Griffschrift (tief → hoch), Formel und Tönen. Zeile antippen zeigt den Griff groß.', 'Unter den Kapitel-Kacheln: „Akkordsymbole lesen“ (Symbol eintippen, z. B. Am7b5 oder D/F#), „Begriffe (Lexikon)“, „Landkarte: Was benutze ich wann?“ und „Tonleitern & Tonarten“ mit Stufenakkorden.', 'Im Kurstext sind Fachwörter gepunktet unterstrichen – antippen zeigt unten die Erklärung.'],
+    tip: ['Hinter dem Schrägstrich steht immer der tiefste Ton: D/F# = „D über Fis“.'] },
   { id: 'karaoke', t: 'Karaoke – Begleitung ohne Originalgesang', k: 'karaoke ohne gesang begleitung mitsingen playback instrumental original tonhöhe ton',
     p: ['Mit „Karaoke“ singst du selbst zur Begleitung des Liedes – der Originalgesang ist weg, Text und Timing laufen im Reiter „Mitsingen“ wie gewohnt mit.'],
     s: ['Lied laden und abspielen, Reiter „Mitsingen“.', '„🎤 Karaoke“ tippen – beim ersten Mal wird der Gesang getrennt (siehe „Gesang trennen“).', 'Daneben steht „Original: A3“ – der Ton, den der Originalgesang gerade singt. So triffst du die Melodie.', 'Nochmal tippen (oder im Looper „Karaoke ✓“) = zurück zum Original. Die Wiedergabe läuft dabei weiter.'],

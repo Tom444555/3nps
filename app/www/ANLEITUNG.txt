@@ -1255,3 +1255,13 @@ Gut zu wissen
      „▶ Loop starten“, Übungen → Quiz mit Trefferzählung (10 Aufgaben, Bestwert gespeichert) → Merke → „Siehe auch“.
    - Kapitel 3 bleibt die Intervall-Werkstatt. Kapitel 15 zeigt die Griffe in der jeweiligen Stimmung (Saitenname D, Cis, C, H).
    - Unklare Stellen der Aufnahmen sind weggelassen; wo der Lehrer keinen Griff nennt, steht ein markierter Standardgriff.
+
+113. Notenkarte, Griff-Tabellen und Werkzeuge zum Kurs (v130)
+   - „Notenkarte“ (oben im Reiter Powerchords): alle Tonnamen auf jedem Griffbrett ein- und ausblenden – Griffbrett-Bereich,
+     Kurs, Werkstatt, Übungen; in Drop D mit den richtigen Tönen der tiefen Saite. Die Wahl bleibt gespeichert.
+   - Jedes Kapitel hat eine „Griff-Tabelle“: alle Griffe mit Griffschrift (tief → hoch, x = nicht spielen), Formel und Tönen;
+     Kapitel 1 zeigt die Stammtöne, Kapitel 3 alle Intervalle von A. Zeile antippen = Griff auf dem großen Griffbrett.
+   - Unter den Kacheln vier Werkzeuge: „Akkordsymbole lesen“ (eintippen oder Tabelle; auch Slash-Akkorde wie D/F#, mit Klang),
+     „Begriffe (Lexikon)“ (rund 50 Fachwörter; im Kurstext gepunktet unterstrichen und antippbar),
+     „Landkarte: Was benutze ich wann?“ (Rock/Metal, Pop, Jazz, Blues, Solo, Songwriting → Kapitel) und
+     „Tonleitern & Tonarten“ (Dur, natürliches und harmonisches Moll, dorisch, lydisch; Stufenakkorde jeder Dur-Tonart).

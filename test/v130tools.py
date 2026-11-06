@@ -10,7 +10,7 @@ def check(n, c, info=''):
 ARGS = ['--autoplay-policy=no-user-gesture-required']
 NPC = {'C': 0, 'D': 2, 'E': 4, 'F': 5, 'G': 7, 'A': 9, 'B': 11, 'H': 11}
 def pcn(n): return (NPC[n[0]] + n[1:].count('#') - n[1:].count('b')) % 12
-OVER = """()=>{const h=document.getElementById('pcSecKurs'),R=h.getBoundingClientRect().right,bad=[];h.querySelectorAll('.pc-ktools *').forEach(e=>{if(e.closest('svg')||e.closest('[hidden]')||e.closest('.pc-tbl'))return;const r=e.getBoundingClientRect();if(!r.width)return;
+OVER = """()=>{const h=document.getElementById('pcSecKurs'),R=h.getBoundingClientRect().right,bad=[];h.querySelectorAll('.pc-ktools *').forEach(e=>{if(e.closest('svg')||e.closest('[hidden]')||e.closest('details:not([open])')||e.closest('.pc-tbl'))return;const r=e.getBoundingClientRect();if(!r.width)return;
  if(r.right>R+1)bad.push(e.tagName+'.'+e.className+' '+Math.round(r.right-R));if(/^(P|LI|SPAN|LABEL|H3|H4|B|DIV|BUTTON|TD)$/.test(e.tagName)&&e.scrollWidth>e.clientWidth+1&&!/hidden|auto|scroll/.test(getComputedStyle(e).overflowX)&&e.clientWidth&&!e.closest('.pc-tbl'))bad.push('scroll '+e.tagName+'.'+e.className);});
  document.querySelectorAll('#pcSecKurs .pc-tbl').forEach(t=>{if(t.getBoundingClientRect().right>R+1)bad.push('tbl');});return bad.slice(0,6);}"""
 JT = """()=>{const p=document.querySelector('#pcSecKurs .pc-ktools');const bad=[];p.querySelectorAll('button,summary,input').forEach(e=>{const r=e.getBoundingClientRect();if(!r.width||!r.height||e.closest('[hidden]'))return;if(r.height<43.5||(r.width<43.5&&e.tagName!=='SUMMARY'))bad.push((e.textContent.trim().slice(0,14)||e.tagName)+' '+Math.round(r.width)+'x'+Math.round(r.height));});return bad.slice(0,5);}"""

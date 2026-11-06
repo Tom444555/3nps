@@ -300,3 +300,7 @@
   .pc-mapi { display: flex; align-items: center; gap: 8px; text-align: left; } .pc-mapi b { min-width: 1.6em; color: #4fd18b; }
   .pc-scb { max-width: 680px; } .pc-degtab td, .pc-degtab th { text-align: center; }
   #pcGlPop.pc-glpop { position: fixed !important; top: auto; }
+  .pc-ktab table { table-layout: fixed; } .pc-ktab td, .pc-ktab th { overflow-wrap: anywhere; word-break: break-word; }
+  @media (max-width: 600px) { .pc-ktab table { font-size: .76rem; } .pc-ktab td, .pc-ktab th { padding: 5px 4px; } }
+  #pcSecKurs .pc-tbl table { table-layout: fixed; width: 100%; } #pcSecKurs .pc-tbl td, #pcSecKurs .pc-tbl th { overflow-wrap: anywhere; }
+  @media (max-width: 600px) { #pcSecKurs .pc-tbl table { font-size: .74rem; } #pcSecKurs .pc-tbl td, #pcSecKurs .pc-tbl th { padding: 4px 3px; } }
