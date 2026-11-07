@@ -47,9 +47,21 @@
     { k: 'dim', nm: 'vermindert', sym: 'm(b5)', req: [0, 3, 6] },
     { k: 'dim7', nm: 'vollvermindert', sym: ' vollvermindert', req: [0, 3, 6, 9] },
     { k: 'maj79', nm: 'Major 7 mit 9', sym: 'maj7(9)', req: [0, 2, 4, 11], opt: [7], nine: [2] },
-    { k: 'm711', nm: 'Moll 7 mit 11', sym: 'm7(11)', req: [0, 3, 5, 10], opt: [7], nine: [5] }
+    { k: 'm711', nm: 'Moll 7 mit 11', sym: 'm7(11)', req: [0, 3, 5, 10], opt: [7], nine: [5] },
+    // v131: 6er, 13er und alterierte Dominanten (Kap. 11)
+    { k: '6', nm: '6er', sym: '6', req: [0, 4, 7, 9] },
+    { k: 'm6', nm: 'Moll 6', sym: 'm6', req: [0, 3, 7, 9] },
+    { k: '79', nm: 'Dominant 7 mit 9', sym: '7(9)', req: [0, 2, 4, 10], opt: [7], nine: [2] },
+    { k: '13', nm: '13er', sym: '13', req: [0, 4, 9, 10], opt: [7, 2], nine: [9, 2] },
+    { k: '7b9', nm: 'alteriert: b9', sym: '7b9', req: [0, 1, 4, 10], opt: [7], nine: [1] },
+    { k: '7s9', nm: 'alteriert: #9', sym: '7#9', req: [0, 3, 4, 10], opt: [7], nine: [3] },
+    { k: '7b5', nm: 'alteriert: b5', sym: '7b5', req: [0, 4, 6, 10] },
+    { k: '7s5', nm: 'alteriert: #5', sym: '7#5', req: [0, 4, 8, 10] }
   ];
-  const tLab = (t, n) => (t.nine && t.nine.includes(n) ? { 2: '9', 5: '11' }[n] : t.k === 'dim7' && n === 9 ? 'bb7' : IV[n][1]);
+  const TYG = [['Grundformen', ['5', 'dur', 'moll']], ['Sus und Add', ['sus2', 'sus4', 'add9', 'madd9', 'add11', 'madd11']], ['Septakkorde', ['7', 'maj7', 'm7', 'mmaj7', 'm7b5', 'dim', 'dim7']],
+    ['6er, 9er und 13er', ['6', 'm6', '79', 'maj79', 'm711', '13']], ['Alterierte Dominanten', ['7b9', '7s9', '7b5', '7s5']]];
+  const NL = { 1: 'b9', 2: '9', 3: '#9', 5: '11', 9: '13' };
+  const tLab = (t, n) => (t.nine && t.nine.includes(n) ? NL[n] : t.k === 'dim7' && n === 9 ? 'bb7' : t.k === '7s5' && n === 8 ? '#5' : IV[n][1]);
   const formula = t => { const a = t.req.slice().sort((x, y) => x - y).map(n => tLab(t, n)), o = (t.opt || []).map(n => '(' + tLab(t, n) + ')');
     if (t.k === '5') return '1 · 5 (· 8)'; const all = t.req.concat(t.opt || []).sort((x, y) => x - y); return all.map(n => (t.opt || []).includes(n) ? '(' + tLab(t, n) + ')' : tLab(t, n)).join(' · '); };
   const cname = (t, rn) => (t.k === 'dur' ? rn + '-Dur' : t.k === 'moll' ? rn + '-Moll' : rn + t.sym);
@@ -159,7 +171,7 @@
     el.querySelectorAll('.pc-wsl').forEach((l, i) => l.classList.toggle('on', W.seen.has(i + 1) && W.seen.has(i + 2)));
     el.querySelectorAll('[data-w=lab]').forEach(b => b.classList.toggle('active', b.dataset.v === W.lab));
     $q('[data-w=multi]').classList.toggle('active', W.multi); $q('[data-w=multi]').setAttribute('aria-pressed', W.multi ? 'true' : 'false');
-    $q('.pc-wsingle').hidden = W.multi || W.st === 6; $q('.pc-wmulti').hidden = !W.multi || W.st === 6; $q('.pc-wq').hidden = W.st !== 6; $q('.pc-wivs').hidden = W.st === 6;
+    $q('.pc-wsingle').hidden = W.multi || W.st === 6; $q('.pc-wmulti').hidden = !W.multi || W.st === 6; $q('.pc-wtab').hidden = !W.multi || W.st === 6; $q('.pc-wq').hidden = W.st !== 6; $q('.pc-wivs').hidden = W.st === 6;
     $q('.pc-wcap').textContent = CAP[W.st]; $q('.pc-wstrip').hidden = W.st !== 1 || W.multi;
   }
   function paint() { paintIv(); drawBoard(); info(); paintStrip(); if (W.st === 6) paintQuiz(); }
@@ -224,6 +236,7 @@
     if (w === 'play') { play(b.dataset.v); return; }
     if (w === 'step') { W.n = Math.max(0, Math.min(12, W.n + (+b.dataset.v))); paint(); play('seq'); return; }
     if (w === 'chord') { A.strumNow(chordMidis(W.sel)); return; }
+    if (w === 'tysel') { const t = TY.find(x => x.k === b.dataset.k); W.sel = new Set(t.req.concat(t.opt || [])); paint(); A.strumNow(chordMidis(W.sel)); return; }
     if (w === 'live') { if (W.live) { W.live.scrollIntoView({ behavior: 'smooth', block: 'center' }); PcLive.start(W.live); } return; }
     if (w === 'quiz') { startQuiz(b.dataset.v); return; }
     if (w === 'again') { hearNow(); return; }
@@ -242,6 +255,8 @@
       '<p class="caption pc-wcap" translate="no"></p><div class="pc-wbw"></div><div class="pc-winfo" translate="no"></div>' +
       '<div class="pc-row pc-wsingle"><button class="toggle-btn" data-w="play" data-v="root">' + L('▶ Grundton') + '</button><button class="toggle-btn" data-w="play" data-v="seq">' + L('▶ Nacheinander') + '</button><button class="toggle-btn" data-w="play" data-v="both">' + L('▶ Zusammen') + '</button><button class="toggle-btn" data-w="step" data-v="-1">' + L('◀ kleiner') + '</button><button class="toggle-btn" data-w="step" data-v="1">' + L('größer ▶') + '</button></div>' +
       '<div class="pc-row pc-wmulti" hidden><button class="toggle-btn active" data-w="chord">' + L('▶ Akkord anhören') + '</button><button class="toggle-btn" data-w="live">' + L('Was spiele ich?') + '</button></div>' +
+      '<details class="pc-wtab" hidden><summary><b>' + L0('Akkord-Tabelle (alle Arten)') + '</b></summary><div class="pc-tbl"><table translate="no"><tbody>' + TYG.map(([g, ks]) => '<tr class="pc-wtg"><th colspan="3">' + g + '</th></tr>' + ks.map(k => { const t = TY.find(x => x.k === k);
+        return '<tr data-w="tysel" data-k="' + k + '"><td><b>A' + t.sym + '</b></td><td>' + formula(t) + '</td><td>' + t.nm + '</td></tr>'; }).join('')).join('') + '</tbody></table></div><p class="caption" translate="no">Zeile antippen = Töne auf dem Griffbrett, Name und Formel oben. 6er/13er und alterierte Akkorde nach Kapitel 11.</p></details>' +
       '<div class="pc-wq" hidden><div class="pc-row">' + [['find', 'Finde die …'], ['name', 'Wie heißt das?'], ['hear', 'Hör-Quiz']].map(([v, t]) => '<button class="toggle-btn pc-wqb" data-w="quiz" data-v="' + v + '"><span>' + L(t) + '</span><small></small></button>').join('') + '</div><div class="pc-wqbody"></div></div>' +
       '<div class="pc-row pc-wleg">' + [['f1', 'Prime / Oktave'], ['f5', 'Quinte'], ['f3', 'Terzen'], ['f4', 'Quarte'], ['fx', 'Sekunden · Sexten · Septimen · Tritonus']].map(([c, t]) => '<span class="pc-wlg ' + c + '">' + L(t) + '</span>').join('') + '</div></div>' +
       '<div class="pc-wright"><div class="card pc-wlive"></div><div class="card"><h4>' + L('Merkkarten des Lehrers') + '</h4><div class="pc-wcards" translate="no">' + CARDS.map(([c, t]) => '<div class="pc-wcard ' + c + '">' + t + '<small>Merkkarte · Lehrer, Kapitel 3</small></div>').join('') + '</div></div>' +
