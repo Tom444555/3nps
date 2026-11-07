@@ -1948,6 +1948,7 @@ html.sig-open .control-bar { visibility: hidden; }   /* Kopfleiste liegt sonst �
   .pc-wtab { margin-top: 8px; } .pc-wtab summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; }
   .pc-wtab tr[data-w] { cursor: pointer; } .pc-wtab td, .pc-wtab th { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: left; } .pc-wtg th { color: #4fd18b; padding-top: 10px; }
   .pc-wtab table { width: 100%; border-collapse: collapse; table-layout: fixed; } .pc-wtab td { overflow-wrap: anywhere; }
+  .pc-kbts { margin-top: 8px; } .pc-kbts h5 { margin: 6px 0; font-size: .9rem; color: var(--accent); }
   /* ===== Rost & Stahl: Hintergrund aus gerostetem Blech, darauf verschraubte Stahlplatten ===== */
   :root {
     --plate-hi: #3a3a40;
@@ -4148,6 +4149,8 @@ Object.assign(window.__EN, { 'Notenkarte': 'Note map', 'Alle Tonnamen auf jedem 
 // v131 Üben mit Plan
 Object.assign(window.__EN_PCW, { 'Hör-Training': 'Ear training', 'Technik-Vorübungen': 'Technique warm-ups', 'Stimmungen: Drop D, Cis, C, H': 'Tunings: drop D, C#, C, B', '▶ Runde starten': '▶ Start round',
   'Übungsplan & Selbstkontrolle': 'Practice plan & self-check', 'geschafft bis': 'done up to', 'Akkord-Tabelle (alle Arten)': 'Chord table (all types)', '▶ Loop starten': '▶ Start loop' });
+// v132 Begleit-Tracks
+Object.assign(window.__EN_PCW, { 'Begleit-Tracks': 'Backing tracks', '▶ Begleit-Track': '▶ Backing track' });
 
 // Sprache (v59): Deutsch ist der Quelltext. Nur im EN-Modus läuft hier etwas:
 // Ein Beobachter übersetzt neue/geänderte Texte im DOM (Text, title, placeholder, aria-label)
@@ -4253,7 +4256,7 @@ Object.assign(window.__EN_PCW, { 'Hör-Training': 'Ear training', 'Technik-Vorü
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v131</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v132</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -22515,6 +22518,10 @@ const HILFE = [
     p: ['Werkzeuge zum Üben im Kurs (Reiter „Powerchords“).'],
     s: ['„Hör-Training“: Runde starten, Akkord hören, Typ antippen (Dur, Moll, sus, Maj7, 7, 9, b9, #9). Die Ampel zeigt je Typ, wie sicher du bist.', 'In jedem Kapitel unten „Übungsplan & Selbstkontrolle“: Tempo-Stufe antippen, die du drei Mal sauber geschafft hast; Selbstkontrolle abhaken.', '„Technik-Vorübungen“: Überstrecken und Dämpfen vorbereiten, mit Klick-Loop.', '„Stimmungen“: Drop D, Cis, C oder H wählen – alle Griffbilder im Kurs schalten um, dazu konkrete Powerchord-Griffe.', 'Akkord-Baukasten (Kapitel 3, „Mehrere wählen“): „Akkord-Tabelle“ mit allen Arten, auch 6er, 13er und alterierte (b9, #9, b5, #5).'],
     tip: ['Alles wird gespeichert und zählt nicht als Kurs-Häkchen.'] },
+  { id: 'begleit-tracks', t: 'Begleit-Tracks im Kurs', k: 'begleit track begleitung backing bass drums schlagzeug arpeggio delay fläche terz im bass slash mitspielen jam',
+    p: ['Im Kurs (Reiter „Powerchords“) gibt es in zehn Unterkapiteln Begleit-Tracks, die die App selbst erzeugt.'],
+    s: ['Kapitel öffnen und zum Abschnitt „Begleit-Tracks“ scrollen (z. B. 12.5 oder 14.3).', '„▶ Begleit-Track“ antippen – Bass, Drums und je nach Track Fläche oder Arpeggio mit Delay laufen als Loop.', 'Dazu die Griffe aus dem Kapitel spielen; Tempo oben ändern, ■ stoppt.', '„Terz im Bass“ (Kapitel 14): der Bass spielt die Terz statt des Grundtons – so hörst du Slash-Akkorde.'],
+    tip: ['Erst langsam: die Tracks starten zwischen 70 und 90 BPM.'] },
   { id: 'karaoke', t: 'Karaoke – Begleitung ohne Originalgesang', k: 'karaoke ohne gesang begleitung mitsingen playback instrumental original tonhöhe ton',
     p: ['Mit „Karaoke“ singst du selbst zur Begleitung des Liedes – der Originalgesang ist weg, Text und Timing laufen im Reiter „Mitsingen“ wie gewohnt mit.'],
     s: ['Lied laden und abspielen, Reiter „Mitsingen“.', '„🎤 Karaoke“ tippen – beim ersten Mal wird der Gesang getrennt (siehe „Gesang trennen“).', 'Daneben steht „Original: A3“ – der Ton, den der Originalgesang gerade singt. So triffst du die Melodie.', 'Nochmal tippen (oder im Looper „Karaoke ✓“) = zurück zum Original. Die Wiedergabe läuft dabei weiter.'],
@@ -22768,7 +22775,7 @@ const HILFE = [
   // Backing rendern: Powerchord (2 leicht verstimmte Sägezähne je Ton, Verzerrung, Tiefpass), Achtel-Abschläge, Drums oder Klick
   function renderBacking(chords, bpm, o) {
     o = o || {}; const sr = typeof audioCtx !== 'undefined' && audioCtx ? audioCtx.sampleRate : 48000, bf = Math.round(4 * 60 / bpm * sr), beat = bf / 4;
-    const bars = chords.reduce((a, c) => a + (c.bars || 1), 0), N = bars * bf, buf = new Float32Array(N);
+    const bars = chords.reduce((a, c) => a + (c.bars || 1), 0), N = bars * bf; let buf = new Float32Array(N); const bufSwap = b => { buf = b; };
     let seed = 12345; const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x3fffffff - 1; };
     function strum(s0, dur, ms, amp, pm) {
       s0 = Math.round(s0); const n = Math.min(N - s0, Math.round(dur * sr)); if (n <= 0) return;
@@ -22784,6 +22791,7 @@ const HILFE = [
         buf[s0 + i] += y2 * env * amp;
       }
     }
+    function strumInto(dst, s0, dur, ms, amp) { const keep = buf; bufSwap(dst); strum(s0, dur, ms, amp, false); bufSwap(keep); }
     function drum(s0, kind, acc) {
       s0 = Math.round(s0); const len = Math.round((kind === 'k' ? 0.28 : kind === 's' ? 0.18 : kind === 'h' ? 0.05 : 0.03) * sr), n = Math.min(N - s0, len); let ph = 0, hp = 0, last = 0;
       for (let i = 0; i < n; i++) {
@@ -22795,9 +22803,30 @@ const HILFE = [
         buf[s0 + i] += v * (acc ? 1 : 0.8);
       }
     }
+    // v132: Begleit-Tracks – Bass (Grundton oder Terz) und Arpeggio mit Delay, alles hier berechnet (keine Fremddateien)
+    function bassNote(s0, dur, m, amp) {
+      s0 = Math.round(s0); const n = Math.min(N - s0, Math.round(dur * sr)); if (n <= 0) return; const f = 440 * Math.pow(2, (m - 69) / 12); let ph = 0, ph2 = 0, y = 0;
+      for (let i = 0; i < n; i++) { ph += f / sr; if (ph >= 1) ph -= 1; ph2 += 2 * f / sr; if (ph2 >= 1) ph2 -= 1;
+        const x = Math.sin(2 * Math.PI * ph) + 0.25 * Math.sin(2 * Math.PI * ph2) + 0.12 * (2 * ph - 1); y += 0.2 * (x - y);
+        const env = Math.min(1, i / (0.004 * sr)) * Math.exp(-i / (0.9 * sr)) * (i > n - 0.01 * sr ? (n - i) / (0.01 * sr) : 1); buf[s0 + i] += y * env * amp; }
+    }
+    const arpBuf = o.style === 'arp' ? new Float32Array(N) : null;
     let b0 = 0;
     chords.forEach(c => {
       const ms = c.tones.map(t => t.midi);
+      if (o.bass) { const rp = c.rootPc != null ? c.rootPc : ms.slice().sort((a, b) => a - b)[0] % 12, iv = ms.map(m => ((m - rp) % 12 + 12) % 12), th = iv.includes(4) ? 4 : iv.includes(3) ? 3 : 4;
+        const bp = c.bassPc != null ? c.bassPc : ((o.bass === 'third' ? rp + th : rp) % 12 + 12) % 12, bm = 28 + ((bp - 4) % 12 + 12) % 12;
+        for (let b = 0; b < (c.bars || 1); b++) for (let q = 0; q < 4; q++) bassNote((b0 + b) * bf + q * beat, beat * 0.95, bm, q === 0 ? 0.55 : 0.42); }
+      if (o.style === 'arp' || o.style === 'pad' || o.style === 'none') {
+        for (let b = 0; b < (c.bars || 1); b++) {
+          const bs = (b0 + b) * bf;
+          if (o.style === 'pad') strum(bs, bf / sr * 0.98, ms, 0.16, false);
+          if (o.style === 'arp') { const up = ms.slice().sort((a, b) => a - b), seq = up.concat(up.slice(1, -1).reverse()); for (let e = 0; e < 8; e++) strumInto(arpBuf, bs + e * beat / 2, beat * 0.9, [seq[e % seq.length]], e === 0 ? 0.34 : 0.26); }
+          if (o.drums === 'click') for (let q = 0; q < 4; q++) drum(bs + q * beat, 'c', q === 0);
+          else if (o.drums !== 'none') { for (let q = 0; q < 4; q++) drum(bs + q * beat, q % 2 ? 's' : 'k', q === 0); for (let e = 0; e < 8; e++) drum(bs + e * beat / 2, 'h', e % 2 === 0); }
+        }
+        b0 += c.bars || 1; return;
+      }
       for (let b = 0; b < (c.bars || 1); b++) {
         const bs = (b0 + b) * bf;
         for (let e = 0; e < 8; e++) {
@@ -22810,6 +22839,9 @@ const HILFE = [
       }
       b0 += c.bars || 1;
     });
+    if (arpBuf) { const d = Math.round(0.75 * beat), fb = o.delay === false ? 0 : 0.38, wet = new Float32Array(N);   // punktierte Achtel, im Kreis (Loop ohne Naht)
+      for (let r = 1; r <= 4 && fb; r++) { const g = Math.pow(fb, r), off = d * r; for (let i = 0; i < N; i++) wet[(i + off) % N] += arpBuf[i] * g; }
+      for (let i = 0; i < N; i++) buf[i] += arpBuf[i] + wet[i] * 0.8; }
     let pk = 0; for (let i = 0; i < N; i++) { const a = Math.abs(buf[i]); if (a > pk) pk = a; }
     if (pk > 0) { const g = 0.6 / pk; for (let i = 0; i < N; i++) buf[i] *= g; }
     return buf;
@@ -23170,7 +23202,7 @@ const HILFE = [
       if (play && play.mode === 'jam') stopAll(true);
       try { if (window.Jam && Jam.debug && Jam.debug()) Jam.stop(); } catch (e) {}
       setBpm(bpm); ensureAudio();
-      const data = renderBacking(r.chords.map(c => ({ tones: c.tones, bars: 1 })), bpm, { drums: o.drums, pm: o.pm, dyn: o.dyn });
+      const data = renderBacking(r.chords.map(c => ({ tones: c.tones, bars: 1, rootPc: c.rootPc, bassPc: c.bassPc })), bpm, { drums: o.drums, pm: o.pm, dyn: o.dyn, style: o.style, bass: o.bass, delay: o.delay });
       Looper.loadSamples(data); ownL = data.length;
       try { Looper.setSrcName('Powerchords ' + r.chords.map(c => c.name).join(' ')); } catch (e) {}
       const bs = $('loopBars'); if (bs && [...bs.options].some(op => op.value === String(bars))) { bs.value = String(bars); bs.dispatchEvent(new Event('change')); }
@@ -23332,6 +23364,7 @@ const HILFE = [
         '<div class="pc-bwrap" data-kb="' + ci + '.' + si + '.' + gi + '"></div><button class="toggle-btn" data-k="play" data-kg="' + ci + '.' + si + '.' + gi + '">' + PcSkin.btn(g.arp || g.mk ? '▶ Nacheinander' : '▶ Anhören') + '</button></div>').join('') + '</div>';
     }
     if (S.loop) h += S.loop.map((L, li) => '<div class="pc-row pc-kloop"><b translate="no">' + L.c.join(' – ') + '</b><span class="caption" translate="no">' + (L.t || '') + '</span><button class="toggle-btn active" data-k="loop" data-kl="' + ci + '.' + si + '.' + li + '">' + PcSkin.btn('▶ Loop starten') + '</button></div>').join('');
+    if (S.bt) h += '<div class="pc-kbts"><h5>' + L0('Begleit-Tracks') + '</h5>' + S.bt.map((T, ti) => '<div class="pc-row pc-kloop pc-kbt"><b translate="no">' + T.t + '</b><span class="caption" translate="no">' + T.c.join(' – ') + ' · ' + (T.bpm || 70) + ' BPM</span><button class="toggle-btn active" data-k="bt" data-kt="' + ci + '.' + si + '.' + ti + '">' + PcSkin.btn(L0('▶ Begleit-Track')) + '</button></div>').join('') + '</div>';
     h += '<div class="pc-kex"><h5>Übungen</h5>' + S.ex.map((x, xi) => { const id = S.id + '-' + xi, own = x.slice(0, 2) === 'E:';
       return '<label class="check pc-kchk"><input type="checkbox" data-kx="' + id + '"> <span translate="no">' + (own ? '<i>(ergänzt)</i> ' : '') + x.slice(2) + '</span></label>'; }).join('') + '</div>';
     if (S.x && S.x.length) h += '<div class="pc-row pc-krefs"><span class="caption">' + L0('Siehe auch') + '</span>' + S.x.map(n => '<button class="toggle-btn pc-kref" data-kref="' + n + '" translate="no">' + PcSkin.btn('→ ') + 'Kapitel ' + n + ' · ' + K[n - 1].short + '</button>').join('') + '</div>';
@@ -23436,7 +23469,8 @@ const HILFE = [
   }
   function loopChords(L) {
     return L.c.map(n => { const g = Object.assign({ n }, (L.fr && L.fr[n]) ? { fr: L.fr[n] } : {}, L.tu ? { tu: L.tu } : {}), q = grip(g), lo = q.marks.slice().sort((a, b) => a.midi - b.midi)[0];
-      return { name: n, rootPc: q.r, rootString: lo.s, rootFret: lo.f, shapeId: null, tones: q.marks.map(m => ({ s: m.s, f: m.f, midi: m.midi, role: m.lab === '1' ? '1' : m.lab === '8' ? '8' : '5' })) }; });
+      const sl = /\/([A-G](#|b)?)$/.exec(n);
+      return { name: n, rootPc: q.r, bassPc: sl ? pcOf(sl[1]) : null, rootString: lo.s, rootFret: lo.f, shapeId: null, tones: q.marks.map(m => ({ s: m.s, f: m.f, midi: m.midi, role: m.lab === '1' ? '1' : m.lab === '8' ? '8' : '5' })) }; });
   }
   function openChapter(n) { const d = document.getElementById('pcKC' + n); if (!d) return; d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
   function onClick(e) {
@@ -23453,6 +23487,8 @@ const HILFE = [
       if (b.dataset.v === 'root') { const r = q.marks.find(m => m.lab === '1'); A.playMidi(r ? r.midi : ms[0]); } else if (b.dataset.v === 'seq') A.seqNow(g.mk ? q.marks.map(m => m.midi) : ms); else A.strumNow(ms); return; }
     if (b.dataset.k === 'play') { const [a, s, c] = b.dataset.kg.split('.').map(Number), g = K[a].s[s].g[c], q = grip(g);
       const ms = q.marks.map(m => m.midi); if (g.arp || g.mk) A.seqNow(g.mk ? ms : ms.slice().sort((x, y) => x - y)); else A.strumNow(ms); return; }
+    if (b.dataset.k === 'bt') { const [a, s, t] = b.dataset.kt.split('.').map(Number), T = K[a].s[s].bt[t], ch = loopChords(T);   // v132: Begleit-Track
+      A.begin({ chords: ch, path: 0, keyPc: ch[0].rootPc, keyName: ch[0].name }, { how: 'looper', n: 3, bpm: T.bpm || 70, drums: T.drums || 'drums', style: T.style, bass: T.bass, label: 'Begleit-Track · ' + T.t }); return; }
     if (b.dataset.k === 'loop') { const [a, s, l] = b.dataset.kl.split('.').map(Number), L = K[a].s[s].loop[l], ch = loopChords(L);
       A.begin({ chords: ch, path: 0, keyPc: ch[0].rootPc, keyName: ch[0].name }, { how: 'looper', n: 3, bpm: L.bpm || 70, drums: 'drums', label: 'Kurs · ' + L.c.join(' – ') }); }
   }
@@ -23476,7 +23512,7 @@ const HILFE = [
   // Prüfung für Tests: jede Marke passt zu ihrem Intervall bzw. Notennamen, Intervallmenge = Formel
   function check() {
     const bad = [];
-    const all = []; K.forEach(C => C.s.forEach(S => { (S.g || []).forEach(g => all.push(g)); (S.loop || []).forEach(L => L.c.forEach(n => all.push(Object.assign({ n }, L.fr && L.fr[n] ? { fr: L.fr[n] } : {}, L.tu ? { tu: L.tu } : {})))); }));
+    const all = []; K.forEach(C => C.s.forEach(S => { (S.g || []).forEach(g => all.push(g)); (S.loop || []).concat(S.bt || []).forEach(L => L.c.forEach(n => all.push(Object.assign({ n }, L.fr && L.fr[n] ? { fr: L.fr[n] } : {}, L.tu ? { tu: L.tu } : {})))); }));
     all.forEach(g => { const q = grip(g);
       q.marks.forEach(m => { if (g.nm ? md(m.midi) !== pcOf(m.lab) : md(m.midi - q.r) !== SEM[m.lab]) bad.push(g.n + ' ' + m.s + '/' + m.f + ' ' + m.lab); });
       if (g.iv) { const want = g.iv.split(' ').map(x => SEM[x]).sort().join(), got = [...new Set(q.marks.map(m => SEM[m.lab]))].sort().join(); if (want !== got) bad.push(g.n + ' Formel ' + g.iv); } });
@@ -24485,6 +24521,26 @@ PcKurs.K.push({ t: 'Kapitel 15 – Drop D und tiefere Stimmungen', s: [
     'k8-2': [7], 'k8-3': [7], 'k8-6': [7, 11], 'k8-7': [7], 'k9-2': [4, 12], 'k9-5': [7], 'k9-6': [5, 10], 'k10-1': [5, 7], 'k10-2': [6], 'k10-5': [5, 9], 'k11-1': [7], 'k11-2': [6, 7], 'k11-4': [8], 'k11-6': [3],
     'k12-1': [4, 9], 'k12-3': [4], 'k12-5': [5], 'k13-1': [7, 12], 'k13-4': [5, 9], 'k14-1': [2], 'k14-4': [6, 15], 'k14-5': [8, 10], 'k15-2': [3, 14], 'k15-3': [2] };
   PcKurs.K.forEach(C => C.s.forEach(S => { if (X[S.id]) S.x = X[S.id]; }));
+})();
+
+// ===== v132: Begleit-Tracks (von der App erzeugt: Akkorde/Arpeggio, Bass, Drums) =====
+(function () {
+  const K = PcKurs.K, FO = PcKurs.FO, sub = id => { for (const C of K) for (const S of C.s) if (S.id === id) return S; return null; };
+  const D2 = { Am7: [null, 7, 7, 5, 8, null], D7: [null, 5, 7, 5, 7, null], Gmaj7: [null, 5, 5, 4, 7, null], Cmaj7: [null, 3, 5, 4, 5, null] };
+  const T = {
+    'k5-2': [{ t: 'Bass + Drums – du spielst die Akkorde', c: ['C', 'F', 'G', 'C'], fr: { F: FO }, style: 'none', bass: 'root', bpm: 70 }],
+    'k8-6': [{ t: 'Bass + Drums – du spielst Drop 2', c: ['Am7', 'D7', 'Gmaj7', 'Cmaj7'], fr: D2, style: 'none', bass: 'root', bpm: 70 }],
+    'k9-6': [{ t: 'Bass + Drums für deine Dreiklänge', c: ['C', 'G', 'Am', 'F'], fr: { F: FO }, style: 'none', bass: 'root', bpm: 75 }],
+    'k10-5': [{ t: 'Fläche + Bass – spiel Ear Candy darüber', c: ['C', 'G', 'Am', 'F'], fr: { F: FO }, style: 'pad', bass: 'root', bpm: 75 }],
+    'k11-5': [{ t: 'Fläche + Bass: 2-5-1 in Moll', c: ['Am7b5', 'D7b9', 'Gm', 'Gm'], fr: { Am7b5: [null, 0, 1, 0, 1, null], D7b9: [null, 5, 4, 5, 4, null], Gm: [3, 5, 5, 3, 3, 3] }, style: 'pad', bass: 'root', bpm: 70 }],
+    'k12-5': [{ t: 'Arpeggio mit Delay', c: ['E', 'C#m', 'B', 'A'], fr: { E: [12, 14, 14, 13, 12, 12], 'C#m': [9, 11, 11, 9, 9, 9], B: [7, 9, 9, 8, 7, 7], A: [5, 7, 7, 6, 5, 5] }, style: 'arp', bass: 'root', bpm: 70 }],
+    'k13-5': [{ t: 'Arpeggio mit Delay (Akkordteppich)', c: ['Am', 'G', 'F', 'G'], fr: { F: FO }, style: 'arp', bass: 'root', bpm: 70 }],
+    'k14-2': [{ t: 'Terz im Bass zieht aufs C', c: ['G/B', 'C5'], fr: { 'G/B': [null, 2, 5, null, null, null], C5: [null, 3, 5, 5, null, null] }, bass: 'root', bpm: 80 }],
+    'k14-3': [{ t: 'Basslinie D – Fis – G', c: ['D', 'D/F#', 'G', 'G'], fr: { 'D/F#': [2, null, 0, 2, 3, 2] }, style: 'pad', bass: 'root', bpm: 70 },
+              { t: 'Terz im Bass bei jedem Akkord', c: ['C', 'F', 'G', 'C'], fr: { F: FO }, style: 'pad', bass: 'third', bpm: 70 }],
+    'k15-1': [{ t: 'Bass + Drums für das Drop-D-Riff', c: ['D5', 'D5', 'F5', 'G5'], tu: 'dD', fr: { D5: [0, 0, 0, null, null, null], F5: [3, 3, 3, null, null, null], G5: [5, 5, 5, null, null, null] }, style: 'none', bass: 'root', bpm: 90 }]
+  };
+  Object.keys(T).forEach(id => { const S = sub(id); if (S) S.bt = T[id]; });
 })();
 
 // v126: Kurs Kapitel 3 als „Intervall-Werkstatt“ – Schritte, Intervall-Knöpfe, Akkord-Baukasten, Merkkarten, Übungs-Quiz.
