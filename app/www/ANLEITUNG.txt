@@ -1287,3 +1287,14 @@ Gut zu wissen
    - Kapitel 15 spielt das Drop-D-Riff D5 – F5 – G5 mit Bass auf der tiefen D-Saite.
    - Tempo und Akkorde stehen neben jedem Knopf; der Loop läuft wie jeder andere Powerchords-Loop (Tempo oben ändern,
      ■ oben stoppt). Die Akkordspur zeigt die Griffe; Slash-Akkorde spielen den Ton nach dem „/“ im Bass.
+
+116. Griff-Fenster zu den Akkordsymbolen und schnelleres „Was spiele ich?“ (v133)
+   - „Akkordsymbole lesen“: oben steht ein kleines Griffbrett-Fenster. Es zeigt zum eingetippten oder angetippten Symbol
+     sofort einen spielbaren Griff (eine Note je Saite, Griffschrift tief → hoch darunter). „Zahl / Name / Ton“ schaltet die
+     Beschriftung um. Bei Slash-Akkorden (D/F#) liegt der Basston auf der tiefsten gespielten Saite, gestrichelt umrandet.
+     Das Fenster hat eine feste Höhe und bleibt beim Scrollen durch die Tabelle oben unter der Kopfleiste stehen.
+   - „Was spiele ich?“ reagiert schneller: Die App erkennt den Anschlag und wertet nur die Töne seit dem Anschlag aus.
+     Nach gut 0,1 s steht der Akkord blass da („vorläufig“), nach knapp 0,2 s voll („sicher erkannt“ oder „unsicher“),
+     sobald zwei Rechenwege dasselbe ergeben. Vorher dauerte es gut 0,6 s.
+   - Gemessen mit künstlichen Gitarrenakkorden (609 Wechsel): erste Anzeige im Mittel 148 ms statt 634 ms; die volle Anzeige
+     ist so oft richtig wie vorher (99,8 %). Die blasse Anzeige stimmt in etwa 93 % der Fälle.

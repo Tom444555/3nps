@@ -223,7 +223,7 @@
     document.querySelectorAll('#pcSecKurs details.pc-kc').forEach(d => { if (!d._k || K[+d.dataset.kc].w) return; d._k = false; Object.keys(STG).forEach(k => { if (k.startsWith(d.dataset.kc + '.')) delete STG[k]; }); fillChapter(d); });
   }
   function loopNow(names, bpm, drums, fr) { const ch = loopChords({ c: names, fr }); A.begin({ chords: ch, path: 0, keyPc: ch[0].rootPc, keyName: ch[0].name }, { how: 'looper', n: 3, bpm: bpm || 70, drums: drums || 'drums', label: 'Kurs · ' + names.join(' – ') }); }
-  window.PcKurs = { K, CH, TUN, build, grip, check, total, open: openChapter, setTuning, tuning: () => TUNE, loopNow, quiz: ci => QZ[ci] && { kind: QZ[ci].kind, want: QZ[ci].want, i: QZ[ci].i, hits: QZ[ci].hits, ans: QZ[ci].ans } };
+  window.PcKurs = { K, CH, TUN, NAMES, build, grip, check, total, open: openChapter, setTuning, tuning: () => TUNE, loopNow, quiz: ci => QZ[ci] && { kind: QZ[ci].kind, want: QZ[ci].want, i: QZ[ci].i, hits: QZ[ci].hits, ans: QZ[ci].ans } };
 })();
 
 // ===== Kapitel 1 – Einleitung =====

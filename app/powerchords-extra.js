@@ -55,6 +55,57 @@
     const notes = hit[1].map(n => ({ n, lab: LABX[n], ton: window.PcWerk ? sp(n) : '' }));
     return { root: rp, rn: name, iv: hit[1], notes, txt: hit[2], bass, bassName: bass == null ? null : (window.PcWerk ? PcWerk.rootName(bass) : ''), pcs: [...new Set(hit[1].map(n => md(rp + n)).concat(bass == null ? [] : [bass]))].sort((a, b) => a - b) };
   }
+  // ---------- v133: Griff-Fenster – spielbarer Griff zum Symbol (eine Note je Saite, Basston auf der tiefsten gespielten Saite) ----------
+  const OPEN = [40, 45, 50, 55, 59, 64];
+  function voicing(r) {
+    const pcs = new Map(); r.iv.forEach(n => { const pc = md(r.root + n); if (!pcs.has(pc)) pcs.set(pc, n); });
+    const bassPc = r.bass != null ? r.bass : r.root, opt = new Set(r.iv.length >= 4 && r.iv.includes(7) ? [md(r.root + 7)] : []);
+    const need = [...pcs.keys()].filter(pc => !opt.has(pc)), cap = r.iv.length === 2 ? 3 : 6; let best = null;
+    for (let bs = 0; bs <= 2; bs++) { const fb = md(bassPc - OPEN[bs]);
+      for (let lo = Math.max(1, fb - 3); lo <= Math.max(1, fb); lo++) {
+        const W = [0]; for (let f = lo; f <= lo + 3; f++) W.push(f);
+        const opts = []; for (let s = bs + 1; s < 6; s++) opts.push([-1].concat(W.filter(f => pcs.has(md(OPEN[s] + f)))));
+        const pick = new Array(5).fill(-1);
+        const rec = i => {
+          if (i === opts.length) {
+            const fr = [fb].concat(pick), got = new Set([bassPc]); let snd = 1, inner = 0, last = 0, cnt = {};
+            pick.forEach((f, j) => { if (f < 0) return; if (f === 0 && lo >= 4) inner += 1.4; const pc = md(OPEN[bs + 1 + j] + f); got.add(pc); cnt[pc] = (cnt[pc] || 0) + 1; snd++; inner += j + 1 - last - 1; last = j + 1; });
+            if (snd > cap) return; const miss = need.filter(pc => !got.has(pc)).length;
+            const fz = fr.filter(f => f > 0), fm = fz.length ? Math.min(...fz) : 0, bar = fz.filter(f => f === fm).length > 1, fing = fz.filter(f => f > fm).length + (bar ? 1 : fz.filter(f => f === fm).length);
+            if (fing > 4) return;
+            let sc = -10 * miss + Math.min(snd, 4) + 0.3 * Math.max(0, Math.min(snd, cap) - 4) - 0.4 * Math.max(0, fing - 2) - (bar ? 0.5 : 0) - 1.5 * inner - (bs > 1 ? 0.6 : bs * 0.2) - 0.03 * lo; Object.values(cnt).forEach(c => { if (c > 2) sc -= 0.5 * (c - 2); });
+            if (fr.some(f => f > 0 && (f < lo || f > lo + 3)) && fb > 0) return;
+            if (!best || sc > best.sc) best = { sc, bs, fr };
+            return;
+          }
+          for (const f of opts[i]) { pick[i] = f; rec(i + 1); } pick[i] = -1;
+        };
+        rec(0);
+      } }
+    const marks = [], muted = []; for (let s = 0; s < 6; s++) { const f = s < best.bs ? -1 : best.fr[s - best.bs]; if (f < 0) { muted.push(s); continue; }
+      const pc = md(OPEN[s] + f), n = pcs.has(pc) ? pcs.get(pc) : md(pc - r.root); marks.push({ s, f, n, pc, bass: s === best.bs, own: pcs.has(pc) }); }
+    const fs = marks.filter(m => m.f > 0).map(m => m.f), mn = fs.length ? Math.min(...fs) : 1, from = mn > 2 ? mn - 1 : 0;
+    return { marks, muted, from, to: from + 5, midi: marks.map(m => OPEN[m.s] + m.f) };
+  }
+  let WLAB = 'num', WCUR = null;
+  function winHtml() {
+    return '<div class="pc-symwin"><div class="pc-bwrap pc-symwb"></div><div class="pc-symwi"><b class="pc-symwn" translate="no">–</b>' +
+      '<div class="seg pc-seg pc-klab">' + [['num', 'Zahl'], ['name', 'Name'], ['ton', 'Ton']].map(([v, t]) => '<button class="toggle-btn' + (v === WLAB ? ' active' : '') + '" data-wl="' + v + '">' + L0(t) + '</button>').join('') + '</div>' +
+      '<p class="caption pc-symwt" translate="no"></p></div></div>';
+  }
+  function winShow(r, sym) {
+    const w = host.querySelector('.pc-symwin'); if (!w) return; if (r) WCUR = { r, sym }; if (!WCUR) return; r = WCUR.r;
+    const v = voicing(r), NM = (window.PcKurs && PcKurs.NAMES) || {}, ton = n => { const x = r.notes.find(q => md(q.n) === md(n)); return x ? x.ton : ''; };
+    w.querySelector('.pc-symwn').textContent = WCUR.sym;
+    w.querySelectorAll('[data-wl]').forEach(b => b.classList.toggle('active', b.dataset.wl === WLAB));
+    const marks = v.marks.map(m => { const lab = m.own ? LABX[m.n] : LABX[md(m.n)] || '?', t = m.own ? ton(m.n) : r.bassName;
+      return { s: m.s, f: m.f, lab: WLAB === 'name' ? (NM[lab] || lab) : WLAB === 'ton' ? t : lab, cls: fam(m.n) + (md(m.n) === 0 ? ' root' : '') + (m.bass && r.bass != null ? ' bass' : '') }; });
+    A.board(w.querySelector('.pc-symwb'), { marks, muted: v.muted, from: v.from, to: v.to, tap: (s, f) => A.playMidi(OPEN[s] + f) });
+    w.querySelector('.pc-symwt').textContent = 'Griff (tief → hoch): ' + [0, 1, 2, 3, 4, 5].map(s => { const m = v.marks.find(q => q.s === s); return m ? m.f : 'x'; }).join(' ') + (r.bass != null ? ' · Bass: ' + r.bassName : '');
+    w._midi = v.midi;
+  }
+  function winTop() { const w = host && host.querySelector('.pc-symwin'), cb = document.querySelector('.control-bar'); if (!w) return;
+    const fix = cb && /sticky|fixed/.test(getComputedStyle(cb).position); w.style.top = (fix ? Math.round(cb.getBoundingClientRect().height) : 0) + 'px'; }
   // ---------- Lexikon ----------
   const GL = [
     ['Powerchord', 'Grundton, Quinte und meist die Oktave (1-5-8), ohne Terz – weder Dur noch Moll.', 2],
@@ -159,11 +210,11 @@
   function fill(d) {
     if (d._f) return; d._f = true; const b = d.querySelector('.pc-sec-b');
     if (d.id === 'pcKT1') {
-      b.innerHTML = '<div class="pc-row"><input class="pc-symin" id="pcSymIn" type="text" value="D/F#" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Akkordsymbol"><button class="toggle-btn active" data-sym="go">' + L0('Erklären') + '</button><button class="toggle-btn" data-sym="play">' + PcSkin.btn(L0('▶ Anhören')) + '</button></div><div class="pc-symout" translate="no"></div>' +
+      b.innerHTML = winHtml() + '<div class="pc-row"><input class="pc-symin" id="pcSymIn" type="text" value="D/F#" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Akkordsymbol"><button class="toggle-btn active" data-sym="go">' + L0('Erklären') + '</button><button class="toggle-btn" data-sym="play">' + PcSkin.btn(L0('▶ Anhören')) + '</button></div><div class="pc-symout" translate="no"></div>' +
         '<div class="pc-tbl"><table class="pc-symtab" translate="no"><thead><tr><th>Symbol (Beispiel C)</th><th>Formel</th><th>Bedeutung</th></tr></thead><tbody>' +
         SYM.map(([e, iv, t]) => '<tr data-sym="C' + e[0] + '"><td><b>C' + e.join(' · C') + '</b></td><td>' + iv.map(n => LABX[n]).join(' · ') + '</td><td>' + t + '</td></tr>').join('') +
         '<tr data-sym="D/F#"><td><b>D/F#</b></td><td>Akkord / Basston</td><td>Slash-Akkord: „D über Fis“ – die Terz im Bass (Kap. 14). Hinter dem Schrägstrich steht immer der tiefste Ton.</td></tr></tbody></table></div>';
-      symShow();
+      symShow(); winTop(); b.querySelector('#pcSymIn').addEventListener('input', symShow);
     }
     if (d.id === 'pcKT2') b.innerHTML = '<div class="pc-glist" translate="no">' + GL.slice().sort((x, y) => x[0].localeCompare(y[0], 'de')).map(([t, x, k]) => '<div class="pc-gli"><b>' + t + '</b> – ' + x + ' <button class="toggle-btn pc-kref" data-kref="' + k + '">' + PcSkin.btn('→ ') + 'Kapitel ' + k + '</button></div>').join('') + '</div>';
     if (d.id === 'pcKT3') b.innerHTML = '<div class="pc-map" translate="no">' + MAP.map(([t, items]) => '<div class="pc-mapc"><h4>' + t + '</h4>' + items.map(([k, x]) => '<button class="toggle-btn pc-kref pc-mapi" data-kref="' + k + '"><b>' + k + '</b><span>' + x + '</span></button>').join('') + '</div>').join('') + '</div>' +
@@ -191,10 +242,11 @@
   function symShow() {
     const inp = host.querySelector('#pcSymIn'), out = host.querySelector('.pc-symout'); if (!inp) return; const r = parse(inp.value);
     if (!r) { out.innerHTML = '<p class="pc-wfb no">Unbekanntes Symbol. Beispiele: Cmaj7, Am7b5, E7#9, D/F#, Gsus4, Bb6.</p>'; return; }
+    winShow(r, inp.value.trim());
     out.innerHTML = '<p class="pc-wline"><b>' + inp.value.trim() + '</b></p><p>' + r.txt + (r.bass != null ? ' · Basston: <b>' + r.bassName + '</b> (Slash-Akkord: „' + r.rn + ' über ' + r.bassName + '“)' : '') + '</p>' +
       '<div class="pc-ltones">' + r.notes.map(x => '<span class="pc-ltone ' + fam(x.n) + '"><b>' + x.ton + '</b><small>' + x.lab + '</small></span>').join('') + '</div>';
   }
-  function symPlay() { const r = parse(host.querySelector('#pcSymIn').value); if (!r) return; const ms = r.iv.map(n => 48 + r.root + n); if (r.bass != null) ms.unshift(36 + r.bass); A.strumNow(ms); }
+  function symPlay() { const r = parse(host.querySelector('#pcSymIn').value); if (!r) return; const w = host.querySelector('.pc-symwin'); if (w && w._midi) { A.strumNow(w._midi); return; } const ms = r.iv.map(n => 48 + r.root + n); if (r.bass != null) ms.unshift(36 + r.bass); A.strumNow(ms); }
   function glShow(t, el) {
     const g = glossFind(t), p = document.getElementById('pcGlPop'); if (!g) return;
     p.innerHTML = '<div class="pc-row"><b>' + g[0] + '</b><button class="toggle-btn" data-glx="1" aria-label="Schließen">✕</button></div><p translate="no">' + g[1] + '</p><button class="toggle-btn pc-kref" data-kref="' + g[2] + '">' + PcSkin.btn('→ ') + 'Kapitel ' + g[2] + '</button>';
@@ -206,10 +258,12 @@
     if (e.target.closest('[data-glx]') || e.target.closest('#pcGlPop .pc-kref')) { document.getElementById('pcGlPop').hidden = true; const r = e.target.closest('#pcGlPop .pc-kref'); if (r) PcKurs.open(+r.dataset.kref); return; }
     const sy = e.target.closest('[data-sym]');
     if (sy) { if (sy.tagName === 'TR') { host.querySelector('#pcSymIn').value = sy.dataset.sym; symShow(); symPlay(); } else if (sy.dataset.sym === 'go') symShow(); else symPlay(); return; }
+    const wl = e.target.closest('[data-wl]'); if (wl) { WLAB = wl.dataset.wl; winShow(); return; }
     const sc = e.target.closest('[data-sc]'); if (sc) { scShow(+sc.dataset.sc); return; }
     if (e.target.closest('[data-scplay]')) { const iv = SCALES[SC][1].concat([12]); A.seqNow(iv.map(n => 45 + n)); return; }
     const k = e.target.closest('[data-key]'); if (k) { keyShow(k.dataset.key); return; }
   }
   document.addEventListener('tabchange', () => { const p = document.getElementById('pcGlPop'); if (p) p.hidden = true; });
-  window.PcExtra = { build, parse, GL, degreeChords, SCALES, wrapTerms, sym: v => { const i = host && host.querySelector('#pcSymIn'); if (i) { i.value = v; symShow(); } return parse(v); } };
+  window.addEventListener('resize', () => winTop());
+  window.PcExtra = { build, parse, voicing, GL, degreeChords, SCALES, wrapTerms, sym: v => { const i = host && host.querySelector('#pcSymIn'); if (i) { i.value = v; symShow(); } return parse(v); } };
 })();
