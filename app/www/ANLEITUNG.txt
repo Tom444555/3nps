@@ -1298,3 +1298,10 @@ Gut zu wissen
      sobald zwei Rechenwege dasselbe ergeben. Vorher dauerte es gut 0,6 s.
    - Gemessen mit künstlichen Gitarrenakkorden (609 Wechsel): erste Anzeige im Mittel 148 ms statt 634 ms; die volle Anzeige
      ist so oft richtig wie vorher (99,8 %). Die blasse Anzeige stimmt in etwa 93 % der Fälle.
+
+117. Akkordleiste: Name immer sichtbar, nächster Akkord und Takte bis zum Wechsel (v134)
+   - Gilt für die Akkordleiste in „Improvisation“ und „Mitsingen“. Ist ein Akkord-Block breit (z. B. ein Akkord über viele
+     Takte oder Zoom „2“), steht sein Name links und rechts im Block und bleibt beim Mitlaufen am sichtbaren Rand stehen.
+   - Rechts steht zusätzlich „→ nächster Akkord“ (auch wenn der nächste Block noch nicht zu sehen ist) und beim laufenden Block
+     „noch 3 Takte“ bis zum Wechsel. Gleiche Akkorde hintereinander zählen zusammen.
+   - Schmale Blöcke sehen aus wie bisher.

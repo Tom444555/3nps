@@ -924,6 +924,12 @@ html.sig-open .control-bar { visibility: hidden; }   /* Kopfleiste liegt sonst �
     background: var(--surface-2); color: var(--ink); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
     cursor: pointer; overflow: hidden; box-sizing: border-box; transition: background .12s, box-shadow .12s; outline-offset: -3px; }
   .sf-seg b { font: 800 1.45rem var(--f-mono); white-space: nowrap; }
+  /* v134: lange Blöcke – Name links und rechts klebt am sichtbaren Rand der Leiste; overflow: clip statt hidden, damit sticky wirkt */
+  .sf-seg.long { flex-direction: row; justify-content: space-between; align-items: center; overflow: clip; padding: 0; }
+  .sf-seg.long .sf-sl, .sf-seg.long .sf-sr { position: sticky; display: flex; flex-direction: column; gap: 1px; padding: 0 8px; min-width: 0; }
+  .sf-seg.long .sf-sl { left: 0; align-items: flex-start; } .sf-seg.long .sf-sr { right: 0; align-items: flex-end; }
+  .sf-seg.long .sf-sr b { font-size: 1rem; opacity: .85; } .sf-nx { font: 700 .78rem var(--f-mono); white-space: nowrap; color: var(--ink); opacity: .8; }
+  .sf-cd { font: 600 .6rem var(--f-body); color: var(--muted); white-space: nowrap; min-height: 1.1em; } .sf-seg:not(.on) .sf-cd { visibility: hidden; }
   .sf-seg small { font: 700 .62rem var(--f-body); color: var(--muted); letter-spacing: .06em; }
   .sf-seg.tight b { font-size: .95rem; } .sf-seg.tight small { display: none; }
   .sf-seg.rest { background: transparent; border-style: dashed; cursor: default; }
@@ -4266,7 +4272,7 @@ Object.assign(window.__EN_PCW, { 'Begleit-Tracks': 'Backing tracks', '▶ Beglei
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v133</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v134</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -16974,7 +16980,7 @@ if (typeof module !== 'undefined') module.exports = Pitch;
   const segAt = (ci, f) => { if (!ci.segs) return -1; for (let i = 0; i < ci.segs.length; i++) if (f >= ci.segs[i].a && f < ci.segs[i].e) return i; return -1; };
 
   // ---- Akkordleiste ----
-  let bandSig = '', lastOn = -1;
+  let bandSig = '', lastOn = -1, lastCd = '';
   // Zoom der Akkordleiste (und damit der Gesangsspur darunter): 6, 4 oder 2 Takte im Blick
   let zoomBars = (() => { try { const z = +localStorage.getItem('3nps-sf-zoom'); return [6, 4, 2].includes(z) ? z : 6; } catch (e) { return 6; } })();
   const zoomShow = () => { const zb = $('sfZoom'); if (zb) zb.querySelectorAll('button').forEach(b => b.classList.toggle('active', +b.dataset.z === zoomBars)); };
@@ -17005,7 +17011,12 @@ if (typeof module !== 'undefined') module.exports = Pitch;
     ci.segs.forEach((s, i) => {
       const c = parseChord(s.name), w = px(s.e - s.a);
       if (!c) { h += '<div class="sf-seg rest" data-i="' + i + '" style="left:' + px(s.a).toFixed(1) + 'px;width:' + w.toFixed(1) + 'px"></div>'; return; }
-      h += '<button class="sf-seg' + (w < 54 ? ' tight' : '') + (s.fixed ? ' fixed' : '') + '" data-i="' + i + '" style="left:' + px(s.a).toFixed(1) + 'px;width:' + w.toFixed(1) + 'px"><b>' + chordName(c, k) + '</b><small>' + roman(c, k) + '</small></button>';
+      // v134: lange Blöcke – Name klebt links und rechts am sichtbaren Rand (CSS sticky), rechts zusätzlich „→ nächster“ + Takte bis zum Wechsel
+      const nm = chordName(c, k), long = w >= Math.max(220, BW * 0.45);
+      let nx = ''; if (long) for (let j = 1; j < ci.segs.length; j++) { const q = parseChord(ci.segs[(i + j) % ci.segs.length].name); if (q && chordName(q, k) !== nm) { nx = chordName(q, k); break; } }
+      h += '<button class="sf-seg' + (w < 54 ? ' tight' : '') + (long ? ' long' : '') + (s.fixed ? ' fixed' : '') + '" data-i="' + i + '" style="left:' + px(s.a).toFixed(1) + 'px;width:' + w.toFixed(1) + 'px">' +
+        (long ? '<span class="sf-sl"><b>' + nm + '</b><small>' + roman(c, k) + '</small></span><span class="sf-sr"><b>' + nm + '</b><span class="sf-nx">→ ' + (nx || nm) + '</span><small class="sf-cd" translate="no"></small></span>'
+              : '<b>' + nm + '</b><small>' + roman(c, k) + '</small>') + '</button>';
     });
     h += '<div class="sf-ph" id="sfPh"></div>';
     strip.innerHTML = h; lastOn = -2;          // neu aufgebaut: Einrahmung beim nächsten Bild neu setzen
@@ -17040,8 +17051,13 @@ if (typeof module !== 'undefined') module.exports = Pitch;
     if (i !== lastOn) {
       const segs = $('sfStrip').querySelectorAll('.sf-seg');
       segs.forEach(b => b.classList.toggle('on', +b.dataset.i === i));
-      lastOn = i;
+      lastOn = i; lastCd = '';
     }
+    // v134: Takte bis zum Wechsel – nur Text, nur wenn er sich ändert (Taktwechsel)
+    if (i >= 0 && posL != null) { const sg = ci.segs[i], D = ci.downs || [], en = sg.e > posL ? sg.e : sg.e + ci.L;
+      let n = 0; D.forEach(d => { for (const dd of [d, d + ci.L]) if (dd > posL && dd < en - 1) n++; }); n++;
+      const t = window.__lang === 'en' ? n + (n === 1 ? ' bar' : ' bars') : 'noch ' + n + (n === 1 ? ' Takt' : ' Takte');
+      if (t !== lastCd) { lastCd = t; const el = $('sfStrip').querySelector('.sf-seg.on .sf-cd'); if (el) el.textContent = t; } }
     return i;
   }
 
@@ -22520,6 +22536,10 @@ const HILFE = [
     p: ['Die App hört über den Eingang zu und zeigt, welchen Akkord du gerade spielst – mit Formel, Tönen in Kursfarben und Bass (Umkehrung als „C/E“).'],
     s: ['Powerchords → Kurs → Kapitel 3 (Werkstatt, rechts oben) oder in Kapitel 6/7 bzw. im Akkord-Baukasten „Was spiele ich?“ tippen.', '„Zuhören“ tippen – der Eingang öffnet sich, falls er zu ist. Die Balken zeigen den Pegel.', 'Akkord anschlagen: Nach gut einer Zehntelsekunde steht der Name blass da („vorläufig“), kurz danach voll mit „sicher erkannt“ oder „unsicher“.', '„Spiel den Akkord“: Die App nennt einen Akkord, du spielst ihn – ✓ oder ein Hinweis wie „Terz fehlt“ oder „b7 statt 7“.', '„Stopp“, ein anderer Reiter oder Zuklappen beendet das Zuhören und schließt den Eingang wieder, wenn die App ihn geöffnet hat.'],
     tip: ['Erkannt werden dieselben 26 Akkordarten wie im Akkord-Baukasten.', 'Blass = vorläufig (nur die ersten 120 ms ausgewertet); voll = bestätigt.', 'Sauber und nicht zu leise spielen; gedämpfte Saiten helfen bei Umkehrungen.'] },
+  { id: 'akkordleiste', t: 'Akkordleiste: nächster Akkord und Takte bis zum Wechsel', k: 'akkordleiste nächster akkord countdown takte wechsel name sichtbar improvisation mitsingen folgt dem looper langer akkord',
+    p: ['Die Akkordleiste (Improvisation, Mitsingen) zeigt bei breiten Blöcken den Namen immer am sichtbaren Rand.'],
+    s: ['Looper oder Backing Track starten, „folgt dem Looper“ an.', 'Im breiten Block steht der Name links und rechts; er bleibt beim Mitlaufen am Rand stehen.', 'Rechts: „→ G“ = der nächste Akkord, darunter „noch 2 Takte“ bis zum Wechsel.'],
+    tip: ['Mit „6 Takte / 4 / 2“ stellst du ein, wie viele Takte die Leiste zeigt.'] },
   { id: 'symbol-griff', t: 'Akkordsymbol als Griff sehen', k: 'akkordsymbol griff fenster griffbrett symbol eintippen slash bass zahl name ton anzeigen',
     p: ['„Akkordsymbole lesen“ (Reiter „Powerchords“, unter den Kapitel-Kacheln) hat oben ein kleines Griffbrett-Fenster.'],
     s: ['Symbol eintippen (z. B. Am7b5, E7#9, D/F#) oder eine Zeile der Tabelle antippen – das Fenster zeigt sofort einen spielbaren Griff.', '„Zahl / Name / Ton“ schaltet die Beschriftung der Punkte um.', 'Bei Slash-Akkorden liegt der Ton nach dem „/“ auf der tiefsten gespielten Saite und ist gestrichelt umrandet.', 'Beim Scrollen durch die Tabelle bleibt das Fenster oben stehen; Punkt antippen spielt den Ton, „▶ Anhören“ den ganzen Griff.'],

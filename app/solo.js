@@ -146,7 +146,7 @@
   const segAt = (ci, f) => { if (!ci.segs) return -1; for (let i = 0; i < ci.segs.length; i++) if (f >= ci.segs[i].a && f < ci.segs[i].e) return i; return -1; };
 
   // ---- Akkordleiste ----
-  let bandSig = '', lastOn = -1;
+  let bandSig = '', lastOn = -1, lastCd = '';
   // Zoom der Akkordleiste (und damit der Gesangsspur darunter): 6, 4 oder 2 Takte im Blick
   let zoomBars = (() => { try { const z = +localStorage.getItem('3nps-sf-zoom'); return [6, 4, 2].includes(z) ? z : 6; } catch (e) { return 6; } })();
   const zoomShow = () => { const zb = $('sfZoom'); if (zb) zb.querySelectorAll('button').forEach(b => b.classList.toggle('active', +b.dataset.z === zoomBars)); };
@@ -177,7 +177,12 @@
     ci.segs.forEach((s, i) => {
       const c = parseChord(s.name), w = px(s.e - s.a);
       if (!c) { h += '<div class="sf-seg rest" data-i="' + i + '" style="left:' + px(s.a).toFixed(1) + 'px;width:' + w.toFixed(1) + 'px"></div>'; return; }
-      h += '<button class="sf-seg' + (w < 54 ? ' tight' : '') + (s.fixed ? ' fixed' : '') + '" data-i="' + i + '" style="left:' + px(s.a).toFixed(1) + 'px;width:' + w.toFixed(1) + 'px"><b>' + chordName(c, k) + '</b><small>' + roman(c, k) + '</small></button>';
+      // v134: lange Blöcke – Name klebt links und rechts am sichtbaren Rand (CSS sticky), rechts zusätzlich „→ nächster“ + Takte bis zum Wechsel
+      const nm = chordName(c, k), long = w >= Math.max(220, BW * 0.45);
+      let nx = ''; if (long) for (let j = 1; j < ci.segs.length; j++) { const q = parseChord(ci.segs[(i + j) % ci.segs.length].name); if (q && chordName(q, k) !== nm) { nx = chordName(q, k); break; } }
+      h += '<button class="sf-seg' + (w < 54 ? ' tight' : '') + (long ? ' long' : '') + (s.fixed ? ' fixed' : '') + '" data-i="' + i + '" style="left:' + px(s.a).toFixed(1) + 'px;width:' + w.toFixed(1) + 'px">' +
+        (long ? '<span class="sf-sl"><b>' + nm + '</b><small>' + roman(c, k) + '</small></span><span class="sf-sr"><b>' + nm + '</b><span class="sf-nx">→ ' + (nx || nm) + '</span><small class="sf-cd" translate="no"></small></span>'
+              : '<b>' + nm + '</b><small>' + roman(c, k) + '</small>') + '</button>';
     });
     h += '<div class="sf-ph" id="sfPh"></div>';
     strip.innerHTML = h; lastOn = -2;          // neu aufgebaut: Einrahmung beim nächsten Bild neu setzen
@@ -212,8 +217,13 @@
     if (i !== lastOn) {
       const segs = $('sfStrip').querySelectorAll('.sf-seg');
       segs.forEach(b => b.classList.toggle('on', +b.dataset.i === i));
-      lastOn = i;
+      lastOn = i; lastCd = '';
     }
+    // v134: Takte bis zum Wechsel – nur Text, nur wenn er sich ändert (Taktwechsel)
+    if (i >= 0 && posL != null) { const sg = ci.segs[i], D = ci.downs || [], en = sg.e > posL ? sg.e : sg.e + ci.L;
+      let n = 0; D.forEach(d => { for (const dd of [d, d + ci.L]) if (dd > posL && dd < en - 1) n++; }); n++;
+      const t = window.__lang === 'en' ? n + (n === 1 ? ' bar' : ' bars') : 'noch ' + n + (n === 1 ? ' Takt' : ' Takte');
+      if (t !== lastCd) { lastCd = t; const el = $('sfStrip').querySelector('.sf-seg.on .sf-cd'); if (el) el.textContent = t; } }
     return i;
   }
 
