@@ -938,3 +938,5 @@ Object.assign(window.__EN, { 'Notenkarte': 'Note map', 'Alle Tonnamen auf jedem 
 // v131 Üben mit Plan
 Object.assign(window.__EN_PCW, { 'Hör-Training': 'Ear training', 'Technik-Vorübungen': 'Technique warm-ups', 'Stimmungen: Drop D, Cis, C, H': 'Tunings: drop D, C#, C, B', '▶ Runde starten': '▶ Start round',
   'Übungsplan & Selbstkontrolle': 'Practice plan & self-check', 'geschafft bis': 'done up to', 'Akkord-Tabelle (alle Arten)': 'Chord table (all types)', '▶ Loop starten': '▶ Start loop' });
+// v132 Begleit-Tracks
+Object.assign(window.__EN_PCW, { 'Begleit-Tracks': 'Backing tracks', '▶ Begleit-Track': '▶ Backing track' });

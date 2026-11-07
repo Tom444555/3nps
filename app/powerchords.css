@@ -314,3 +314,4 @@
   .pc-wtab { margin-top: 8px; } .pc-wtab summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; }
   .pc-wtab tr[data-w] { cursor: pointer; } .pc-wtab td, .pc-wtab th { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: left; } .pc-wtg th { color: #4fd18b; padding-top: 10px; }
   .pc-wtab table { width: 100%; border-collapse: collapse; table-layout: fixed; } .pc-wtab td { overflow-wrap: anywhere; }
+  .pc-kbts { margin-top: 8px; } .pc-kbts h5 { margin: 6px 0; font-size: .9rem; color: var(--accent); }

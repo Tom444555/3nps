@@ -1277,3 +1277,13 @@ Gut zu wissen
    - „Technik-Vorübungen“: acht ergänzte Übungen zum Überstrecken und Dämpfen, mit Klick-Loop (E5, 60 BPM).
    - „Stimmungen“: Standard, Drop D, Drop Cis, Drop C, Drop H. Alle Kurs-Griffbilder schalten um (tiefe Saite neu benannt,
      Griffe auf der tiefen Saite entsprechend höher); dazu eine Tabelle mit konkreten Powerchord-Griffe je Stimmung.
+
+115. Begleit-Tracks im Kurs (v132)
+   - In zehn Unterkapiteln steht unter „Begleit-Tracks“ ein Knopf „▶ Begleit-Track“ (Kapitel 5.2, 8.6, 9.6, 10.5, 11.5,
+     12.5, 13.5, 14.2, 14.3 und 15.1). Er startet einen Loop, den die App selbst erzeugt – keine fremden Aufnahmen:
+     Bass + Drums (du spielst die Akkorde), Fläche + Bass (du spielst Ear Candy oder 2-5-1 darüber),
+     Arpeggio mit Delay (punktierte Achtel, Kapitel 12 und 13) oder Terz im Bass (Kapitel 14: G/B → C, D – Fis – G,
+     und eine Runde C – F – G – C, in der der Bass immer die Terz spielt).
+   - Kapitel 15 spielt das Drop-D-Riff D5 – F5 – G5 mit Bass auf der tiefen D-Saite.
+   - Tempo und Akkorde stehen neben jedem Knopf; der Loop läuft wie jeder andere Powerchords-Loop (Tempo oben ändern,
+     ■ oben stoppt). Die Akkordspur zeigt die Griffe; Slash-Akkorde spielen den Ton nach dem „/“ im Bass.

@@ -131,7 +131,7 @@
   // Backing rendern: Powerchord (2 leicht verstimmte Sägezähne je Ton, Verzerrung, Tiefpass), Achtel-Abschläge, Drums oder Klick
   function renderBacking(chords, bpm, o) {
     o = o || {}; const sr = typeof audioCtx !== 'undefined' && audioCtx ? audioCtx.sampleRate : 48000, bf = Math.round(4 * 60 / bpm * sr), beat = bf / 4;
-    const bars = chords.reduce((a, c) => a + (c.bars || 1), 0), N = bars * bf, buf = new Float32Array(N);
+    const bars = chords.reduce((a, c) => a + (c.bars || 1), 0), N = bars * bf; let buf = new Float32Array(N); const bufSwap = b => { buf = b; };
     let seed = 12345; const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x3fffffff - 1; };
     function strum(s0, dur, ms, amp, pm) {
       s0 = Math.round(s0); const n = Math.min(N - s0, Math.round(dur * sr)); if (n <= 0) return;
@@ -147,6 +147,7 @@
         buf[s0 + i] += y2 * env * amp;
       }
     }
+    function strumInto(dst, s0, dur, ms, amp) { const keep = buf; bufSwap(dst); strum(s0, dur, ms, amp, false); bufSwap(keep); }
     function drum(s0, kind, acc) {
       s0 = Math.round(s0); const len = Math.round((kind === 'k' ? 0.28 : kind === 's' ? 0.18 : kind === 'h' ? 0.05 : 0.03) * sr), n = Math.min(N - s0, len); let ph = 0, hp = 0, last = 0;
       for (let i = 0; i < n; i++) {
@@ -158,9 +159,30 @@
         buf[s0 + i] += v * (acc ? 1 : 0.8);
       }
     }
+    // v132: Begleit-Tracks – Bass (Grundton oder Terz) und Arpeggio mit Delay, alles hier berechnet (keine Fremddateien)
+    function bassNote(s0, dur, m, amp) {
+      s0 = Math.round(s0); const n = Math.min(N - s0, Math.round(dur * sr)); if (n <= 0) return; const f = 440 * Math.pow(2, (m - 69) / 12); let ph = 0, ph2 = 0, y = 0;
+      for (let i = 0; i < n; i++) { ph += f / sr; if (ph >= 1) ph -= 1; ph2 += 2 * f / sr; if (ph2 >= 1) ph2 -= 1;
+        const x = Math.sin(2 * Math.PI * ph) + 0.25 * Math.sin(2 * Math.PI * ph2) + 0.12 * (2 * ph - 1); y += 0.2 * (x - y);
+        const env = Math.min(1, i / (0.004 * sr)) * Math.exp(-i / (0.9 * sr)) * (i > n - 0.01 * sr ? (n - i) / (0.01 * sr) : 1); buf[s0 + i] += y * env * amp; }
+    }
+    const arpBuf = o.style === 'arp' ? new Float32Array(N) : null;
     let b0 = 0;
     chords.forEach(c => {
       const ms = c.tones.map(t => t.midi);
+      if (o.bass) { const rp = c.rootPc != null ? c.rootPc : ms.slice().sort((a, b) => a - b)[0] % 12, iv = ms.map(m => ((m - rp) % 12 + 12) % 12), th = iv.includes(4) ? 4 : iv.includes(3) ? 3 : 4;
+        const bp = c.bassPc != null ? c.bassPc : ((o.bass === 'third' ? rp + th : rp) % 12 + 12) % 12, bm = 28 + ((bp - 4) % 12 + 12) % 12;
+        for (let b = 0; b < (c.bars || 1); b++) for (let q = 0; q < 4; q++) bassNote((b0 + b) * bf + q * beat, beat * 0.95, bm, q === 0 ? 0.55 : 0.42); }
+      if (o.style === 'arp' || o.style === 'pad' || o.style === 'none') {
+        for (let b = 0; b < (c.bars || 1); b++) {
+          const bs = (b0 + b) * bf;
+          if (o.style === 'pad') strum(bs, bf / sr * 0.98, ms, 0.16, false);
+          if (o.style === 'arp') { const up = ms.slice().sort((a, b) => a - b), seq = up.concat(up.slice(1, -1).reverse()); for (let e = 0; e < 8; e++) strumInto(arpBuf, bs + e * beat / 2, beat * 0.9, [seq[e % seq.length]], e === 0 ? 0.34 : 0.26); }
+          if (o.drums === 'click') for (let q = 0; q < 4; q++) drum(bs + q * beat, 'c', q === 0);
+          else if (o.drums !== 'none') { for (let q = 0; q < 4; q++) drum(bs + q * beat, q % 2 ? 's' : 'k', q === 0); for (let e = 0; e < 8; e++) drum(bs + e * beat / 2, 'h', e % 2 === 0); }
+        }
+        b0 += c.bars || 1; return;
+      }
       for (let b = 0; b < (c.bars || 1); b++) {
         const bs = (b0 + b) * bf;
         for (let e = 0; e < 8; e++) {
@@ -173,6 +195,9 @@
       }
       b0 += c.bars || 1;
     });
+    if (arpBuf) { const d = Math.round(0.75 * beat), fb = o.delay === false ? 0 : 0.38, wet = new Float32Array(N);   // punktierte Achtel, im Kreis (Loop ohne Naht)
+      for (let r = 1; r <= 4 && fb; r++) { const g = Math.pow(fb, r), off = d * r; for (let i = 0; i < N; i++) wet[(i + off) % N] += arpBuf[i] * g; }
+      for (let i = 0; i < N; i++) buf[i] += arpBuf[i] + wet[i] * 0.8; }
     let pk = 0; for (let i = 0; i < N; i++) { const a = Math.abs(buf[i]); if (a > pk) pk = a; }
     if (pk > 0) { const g = 0.6 / pk; for (let i = 0; i < N; i++) buf[i] *= g; }
     return buf;
@@ -533,7 +558,7 @@
       if (play && play.mode === 'jam') stopAll(true);
       try { if (window.Jam && Jam.debug && Jam.debug()) Jam.stop(); } catch (e) {}
       setBpm(bpm); ensureAudio();
-      const data = renderBacking(r.chords.map(c => ({ tones: c.tones, bars: 1 })), bpm, { drums: o.drums, pm: o.pm, dyn: o.dyn });
+      const data = renderBacking(r.chords.map(c => ({ tones: c.tones, bars: 1, rootPc: c.rootPc, bassPc: c.bassPc })), bpm, { drums: o.drums, pm: o.pm, dyn: o.dyn, style: o.style, bass: o.bass, delay: o.delay });
       Looper.loadSamples(data); ownL = data.length;
       try { Looper.setSrcName('Powerchords ' + r.chords.map(c => c.name).join(' ')); } catch (e) {}
       const bs = $('loopBars'); if (bs && [...bs.options].some(op => op.value === String(bars))) { bs.value = String(bars); bs.dispatchEvent(new Event('change')); }
