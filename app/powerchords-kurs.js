@@ -64,6 +64,7 @@
         '<div class="pc-bwrap" data-kb="' + ci + '.' + si + '.' + gi + '"></div><button class="toggle-btn" data-k="play" data-kg="' + ci + '.' + si + '.' + gi + '">' + PcSkin.btn(g.arp || g.mk ? '▶ Nacheinander' : '▶ Anhören') + '</button></div>').join('') + '</div>';
     }
     if (S.loop) h += S.loop.map((L, li) => '<div class="pc-row pc-kloop"><b translate="no">' + L.c.join(' – ') + '</b><span class="caption" translate="no">' + (L.t || '') + '</span><button class="toggle-btn active" data-k="loop" data-kl="' + ci + '.' + si + '.' + li + '">' + PcSkin.btn('▶ Loop starten') + '</button></div>').join('');
+    if (S.bt) h += '<div class="pc-kbts"><h5>' + L0('Begleit-Tracks') + '</h5>' + S.bt.map((T, ti) => '<div class="pc-row pc-kloop pc-kbt"><b translate="no">' + T.t + '</b><span class="caption" translate="no">' + T.c.join(' – ') + ' · ' + (T.bpm || 70) + ' BPM</span><button class="toggle-btn active" data-k="bt" data-kt="' + ci + '.' + si + '.' + ti + '">' + PcSkin.btn(L0('▶ Begleit-Track')) + '</button></div>').join('') + '</div>';
     h += '<div class="pc-kex"><h5>Übungen</h5>' + S.ex.map((x, xi) => { const id = S.id + '-' + xi, own = x.slice(0, 2) === 'E:';
       return '<label class="check pc-kchk"><input type="checkbox" data-kx="' + id + '"> <span translate="no">' + (own ? '<i>(ergänzt)</i> ' : '') + x.slice(2) + '</span></label>'; }).join('') + '</div>';
     if (S.x && S.x.length) h += '<div class="pc-row pc-krefs"><span class="caption">' + L0('Siehe auch') + '</span>' + S.x.map(n => '<button class="toggle-btn pc-kref" data-kref="' + n + '" translate="no">' + PcSkin.btn('→ ') + 'Kapitel ' + n + ' · ' + K[n - 1].short + '</button>').join('') + '</div>';
@@ -168,7 +169,8 @@
   }
   function loopChords(L) {
     return L.c.map(n => { const g = Object.assign({ n }, (L.fr && L.fr[n]) ? { fr: L.fr[n] } : {}, L.tu ? { tu: L.tu } : {}), q = grip(g), lo = q.marks.slice().sort((a, b) => a.midi - b.midi)[0];
-      return { name: n, rootPc: q.r, rootString: lo.s, rootFret: lo.f, shapeId: null, tones: q.marks.map(m => ({ s: m.s, f: m.f, midi: m.midi, role: m.lab === '1' ? '1' : m.lab === '8' ? '8' : '5' })) }; });
+      const sl = /\/([A-G](#|b)?)$/.exec(n);
+      return { name: n, rootPc: q.r, bassPc: sl ? pcOf(sl[1]) : null, rootString: lo.s, rootFret: lo.f, shapeId: null, tones: q.marks.map(m => ({ s: m.s, f: m.f, midi: m.midi, role: m.lab === '1' ? '1' : m.lab === '8' ? '8' : '5' })) }; });
   }
   function openChapter(n) { const d = document.getElementById('pcKC' + n); if (!d) return; d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
   function onClick(e) {
@@ -185,6 +187,8 @@
       if (b.dataset.v === 'root') { const r = q.marks.find(m => m.lab === '1'); A.playMidi(r ? r.midi : ms[0]); } else if (b.dataset.v === 'seq') A.seqNow(g.mk ? q.marks.map(m => m.midi) : ms); else A.strumNow(ms); return; }
     if (b.dataset.k === 'play') { const [a, s, c] = b.dataset.kg.split('.').map(Number), g = K[a].s[s].g[c], q = grip(g);
       const ms = q.marks.map(m => m.midi); if (g.arp || g.mk) A.seqNow(g.mk ? ms : ms.slice().sort((x, y) => x - y)); else A.strumNow(ms); return; }
+    if (b.dataset.k === 'bt') { const [a, s, t] = b.dataset.kt.split('.').map(Number), T = K[a].s[s].bt[t], ch = loopChords(T);   // v132: Begleit-Track
+      A.begin({ chords: ch, path: 0, keyPc: ch[0].rootPc, keyName: ch[0].name }, { how: 'looper', n: 3, bpm: T.bpm || 70, drums: T.drums || 'drums', style: T.style, bass: T.bass, label: 'Begleit-Track · ' + T.t }); return; }
     if (b.dataset.k === 'loop') { const [a, s, l] = b.dataset.kl.split('.').map(Number), L = K[a].s[s].loop[l], ch = loopChords(L);
       A.begin({ chords: ch, path: 0, keyPc: ch[0].rootPc, keyName: ch[0].name }, { how: 'looper', n: 3, bpm: L.bpm || 70, drums: 'drums', label: 'Kurs · ' + L.c.join(' – ') }); }
   }
@@ -208,7 +212,7 @@
   // Prüfung für Tests: jede Marke passt zu ihrem Intervall bzw. Notennamen, Intervallmenge = Formel
   function check() {
     const bad = [];
-    const all = []; K.forEach(C => C.s.forEach(S => { (S.g || []).forEach(g => all.push(g)); (S.loop || []).forEach(L => L.c.forEach(n => all.push(Object.assign({ n }, L.fr && L.fr[n] ? { fr: L.fr[n] } : {}, L.tu ? { tu: L.tu } : {})))); }));
+    const all = []; K.forEach(C => C.s.forEach(S => { (S.g || []).forEach(g => all.push(g)); (S.loop || []).concat(S.bt || []).forEach(L => L.c.forEach(n => all.push(Object.assign({ n }, L.fr && L.fr[n] ? { fr: L.fr[n] } : {}, L.tu ? { tu: L.tu } : {})))); }));
     all.forEach(g => { const q = grip(g);
       q.marks.forEach(m => { if (g.nm ? md(m.midi) !== pcOf(m.lab) : md(m.midi - q.r) !== SEM[m.lab]) bad.push(g.n + ' ' + m.s + '/' + m.f + ' ' + m.lab); });
       if (g.iv) { const want = g.iv.split(' ').map(x => SEM[x]).sort().join(), got = [...new Set(q.marks.map(m => SEM[m.lab]))].sort().join(); if (want !== got) bad.push(g.n + ' Formel ' + g.iv); } });
@@ -1217,4 +1221,24 @@ PcKurs.K.push({ t: 'Kapitel 15 – Drop D und tiefere Stimmungen', s: [
     'k8-2': [7], 'k8-3': [7], 'k8-6': [7, 11], 'k8-7': [7], 'k9-2': [4, 12], 'k9-5': [7], 'k9-6': [5, 10], 'k10-1': [5, 7], 'k10-2': [6], 'k10-5': [5, 9], 'k11-1': [7], 'k11-2': [6, 7], 'k11-4': [8], 'k11-6': [3],
     'k12-1': [4, 9], 'k12-3': [4], 'k12-5': [5], 'k13-1': [7, 12], 'k13-4': [5, 9], 'k14-1': [2], 'k14-4': [6, 15], 'k14-5': [8, 10], 'k15-2': [3, 14], 'k15-3': [2] };
   PcKurs.K.forEach(C => C.s.forEach(S => { if (X[S.id]) S.x = X[S.id]; }));
+})();
+
+// ===== v132: Begleit-Tracks (von der App erzeugt: Akkorde/Arpeggio, Bass, Drums) =====
+(function () {
+  const K = PcKurs.K, FO = PcKurs.FO, sub = id => { for (const C of K) for (const S of C.s) if (S.id === id) return S; return null; };
+  const D2 = { Am7: [null, 7, 7, 5, 8, null], D7: [null, 5, 7, 5, 7, null], Gmaj7: [null, 5, 5, 4, 7, null], Cmaj7: [null, 3, 5, 4, 5, null] };
+  const T = {
+    'k5-2': [{ t: 'Bass + Drums – du spielst die Akkorde', c: ['C', 'F', 'G', 'C'], fr: { F: FO }, style: 'none', bass: 'root', bpm: 70 }],
+    'k8-6': [{ t: 'Bass + Drums – du spielst Drop 2', c: ['Am7', 'D7', 'Gmaj7', 'Cmaj7'], fr: D2, style: 'none', bass: 'root', bpm: 70 }],
+    'k9-6': [{ t: 'Bass + Drums für deine Dreiklänge', c: ['C', 'G', 'Am', 'F'], fr: { F: FO }, style: 'none', bass: 'root', bpm: 75 }],
+    'k10-5': [{ t: 'Fläche + Bass – spiel Ear Candy darüber', c: ['C', 'G', 'Am', 'F'], fr: { F: FO }, style: 'pad', bass: 'root', bpm: 75 }],
+    'k11-5': [{ t: 'Fläche + Bass: 2-5-1 in Moll', c: ['Am7b5', 'D7b9', 'Gm', 'Gm'], fr: { Am7b5: [null, 0, 1, 0, 1, null], D7b9: [null, 5, 4, 5, 4, null], Gm: [3, 5, 5, 3, 3, 3] }, style: 'pad', bass: 'root', bpm: 70 }],
+    'k12-5': [{ t: 'Arpeggio mit Delay', c: ['E', 'C#m', 'B', 'A'], fr: { E: [12, 14, 14, 13, 12, 12], 'C#m': [9, 11, 11, 9, 9, 9], B: [7, 9, 9, 8, 7, 7], A: [5, 7, 7, 6, 5, 5] }, style: 'arp', bass: 'root', bpm: 70 }],
+    'k13-5': [{ t: 'Arpeggio mit Delay (Akkordteppich)', c: ['Am', 'G', 'F', 'G'], fr: { F: FO }, style: 'arp', bass: 'root', bpm: 70 }],
+    'k14-2': [{ t: 'Terz im Bass zieht aufs C', c: ['G/B', 'C5'], fr: { 'G/B': [null, 2, 5, null, null, null], C5: [null, 3, 5, 5, null, null] }, bass: 'root', bpm: 80 }],
+    'k14-3': [{ t: 'Basslinie D – Fis – G', c: ['D', 'D/F#', 'G', 'G'], fr: { 'D/F#': [2, null, 0, 2, 3, 2] }, style: 'pad', bass: 'root', bpm: 70 },
+              { t: 'Terz im Bass bei jedem Akkord', c: ['C', 'F', 'G', 'C'], fr: { F: FO }, style: 'pad', bass: 'third', bpm: 70 }],
+    'k15-1': [{ t: 'Bass + Drums für das Drop-D-Riff', c: ['D5', 'D5', 'F5', 'G5'], tu: 'dD', fr: { D5: [0, 0, 0, null, null, null], F5: [3, 3, 3, null, null, null], G5: [5, 5, 5, null, null, null] }, style: 'none', bass: 'root', bpm: 90 }]
+  };
+  Object.keys(T).forEach(id => { const S = sub(id); if (S) S.bt = T[id]; });
 })();
