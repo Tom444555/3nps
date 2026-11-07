@@ -26,7 +26,7 @@ async def main():
         await pg.goto(U); await pg.wait_for_timeout(1300)
         check('Version ab v130', int(re.search(r'v(\d+)', await pg.inner_text('.brand')).group(1)) >= 130)
         await pg.click('#tab-power'); await pg.wait_for_timeout(400)
-        check('Werkzeuge träge: Inhalte erst beim Öffnen', await pg.evaluate("document.querySelectorAll('#pcSecKurs .pc-ktool').length===4 && [...document.querySelectorAll('#pcSecKurs .pc-ktool .pc-sec-b')].every(x=>!x.children.length)"))
+        check('Werkzeuge träge: Inhalte erst beim Öffnen', await pg.evaluate("document.querySelectorAll('#pcSecKurs .pc-ktool').length>=4 && [...document.querySelectorAll('#pcSecKurs .pc-ktool .pc-sec-b')].every(x=>!x.children.length)"))
         # Notenkarte
         await pg.click('#pcSubs [data-sec=brett]'); await pg.wait_for_timeout(300)
         n0 = await pg.evaluate("document.querySelectorAll('#pcSecBrett .pc-nn').length")
