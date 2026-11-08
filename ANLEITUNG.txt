@@ -1316,3 +1316,18 @@ Gut zu wissen
    - Hinweis: Bei fester Länge steht beim Start in der Statuszeile „Sie endet nach n Takten von selbst.“
    - Akkordleiste (v134): Bei breiten Blöcken steht der Name jetzt auch wieder fest in der Mitte; links und rechts bleibt er
      zusätzlich am Rand stehen. Der Countdown heißt „noch 3 Takte“ (englisch „3 bars left“).
+
+119. Reiter aufgeräumt: vier Bereiche, Unterleiste und „?“ (v136)
+   - Oben stehen nur noch vier Bereiche: „Looper“ (allein, wie gewohnt) · „Lernen“ · „Jammen“ · „Song & Gesang“.
+   - Darunter eine schmale Leiste mit den Unterpunkten:
+     Lernen: „Übersicht“ · „Powerchords-Kurs“ · „CAGED“ · „Quintenzirkel“ · „Technik“ · „Training“
+     Jammen: „Backing Track“ · „Improvisation“
+     Song & Gesang: „Songwriting“ · „Mitsingen“
+     Passen nicht alle in eine Zeile (iPad hochkant), die Leiste seitlich wischen.
+   - Die App merkt sich je Bereich den letzten Unterpunkt. Tippst du wieder auf „Lernen“, bist du dort, wo du aufgehört hast.
+   - „Lernen · Übersicht“: Platz „Heute üben“ und fünf Kacheln mit Symbol, Kurzbeschreibung und Fortschrittsring
+     (Kurs: erledigte Übungen · Technik: Übungsminuten der letzten 7 Tage · Training: erledigte Blöcke der Tagesübung heute;
+     CAGED und Quintenzirkel haben noch keinen Zähler). Die zuletzt benutzte Kachel ist markiert („Zuletzt geöffnet“).
+   - Die Anleitung ist jetzt der runde Knopf „?“ rechts oben. Er öffnet die Anleitung an der Stelle, die zum Bereich passt,
+     in dem du gerade bist. Nochmals „?“ führt zurück.
+   - Inhalte, Einstellungen und gespeicherte Daten sind unverändert. Alte Lesezeichen (…#power, …#jam) funktionieren weiter.
