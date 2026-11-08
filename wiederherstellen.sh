@@ -32,10 +32,17 @@ if [ ! -d /home/claude/3nps-mod/asr ]; then git clone -q --depth 1 -b modelle ht
 mkdir -p "$ZIEL/app/www/asr/lib" "$ZIEL/app/www/asr/models"
 cp /home/claude/3nps-mod/asr/lib/transformers.min.js /home/claude/3nps-mod/asr/lib/ort-wasm-simd-threaded.jsep.* /home/claude/3nps-mod/asr/lib/LICENSE-transformers.txt "$ZIEL/app/www/asr/lib/"
 cp -r /home/claude/3nps-mod/asr/models/. "$ZIEL/app/www/asr/models/"
+# v139: auch in die Quellen (Testserver liest $SRC/app/www; gitignored) – sonst laufen v64asr, v91keep, v124trennen nicht
+mkdir -p "$SRC/app/www/asr/lib" "$SRC/app/www/asr/models"
+cp /home/claude/3nps-mod/asr/lib/transformers.min.js /home/claude/3nps-mod/asr/lib/ort-wasm-simd-threaded.jsep.* /home/claude/3nps-mod/asr/lib/LICENSE-transformers.txt "$SRC/app/www/asr/lib/"
+cp -r /home/claude/3nps-mod/asr/models/. "$SRC/app/www/asr/models/"
 # v124: Gesang trennen – Spleeter-Modelle (Branch „modelle“, asr/models/spleeter/) auch in die Quellen (app/www ist der Testserver-Ordner)
 [ -d /home/claude/3nps-mod/asr/models/spleeter ] && mkdir -p "$SRC/app/www/asr/models" && cp -r /home/claude/3nps-mod/asr/models/spleeter "$SRC/app/www/asr/models/" || true
 [ -d /home/claude/3nps-mod/asr/models/spleeter ] || echo "Hinweis: Spleeter-Modelle fehlen im Branch modelle – test/v124trennen.py braucht sie"
 # Testlieder mit Sprache (Musik aus corpus/ballad_72 + Sprache an 4 s und 22 s)
+# v139: Sprachaufnahmen liegen im Branch „modelle“ unter asr/test/ → nach test/sing/ kopieren
+mkdir -p "$ZIEL/test/sing"
+for l in de en; do [ -f "$ZIEL/test/sing/sprache_$l.wav" ] || cp /home/claude/3nps-mod/asr/test/sprache_$l.wav "$ZIEL/test/sing/" 2>/dev/null || true; done
 [ -f "$ZIEL/test/sing/sprache_de.wav" ] || echo "Hinweis: test/sing/sprache_*.wav fehlen (nicht im Repo) – Sprach-Testlieder werden übersprungen"
 [ -f "$ZIEL/test/sing/sprache_de.wav" ] && python3 - <<'P'
 import numpy as np, scipy.io.wavfile as wf, scipy.signal as ss
@@ -56,4 +63,5 @@ python3 "$ZIEL/test/gen_lang.py" || true
 # App bauen und Testserver starten
 python3 "$ZIEL/app/build.py"
 sh "$ZIEL/test/srv.sh"
+# v139: Pages-Nachbau (Port 8790) für v64offline, v71lieder, v34optik, swtest, vergleich – bei Bedarf: sh test/pages.sh
 echo "Fertig: $ZIEL · Testserver http://localhost:8765/index.html"

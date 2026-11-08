@@ -1,4 +1,4 @@
-# v64: Texterkennung offline – Modell im Speicher „asr-1“, übersteht App-Updates (Pages-Nachbau Port 8790)
+# v64: Texterkennung offline (vorher: sh test/pages.sh) – Modell im Speicher „asr-1“, übersteht App-Updates (Pages-Nachbau Port 8790)
 import asyncio, re
 from playwright.async_api import async_playwright
 from nav import tab as open_tab
@@ -30,11 +30,12 @@ async def main():
         keys = await pg.evaluate("caches.keys()"); n = await pg.evaluate("caches.open('asr-1').then(c=>c.keys()).then(k=>k.length)")
         check('online: erkannt, Modell im Speicher „asr-1“', 'erkannt' in r['msg'] and n >= 8, (r['msg'][:40], keys, n))
         # App-Update simulieren: neuer Service Worker mit anderer Version → asr-1 muss bleiben
-        sw = open('/tmp/claude-0/pages/3nps/sw.js').read(); open('/tmp/claude-0/pages/3nps/sw.js', 'w').write(sw.replace("'3nps-v64'", "'3nps-v64x'"))
+        sw = open('/tmp/claude-0/pages/3nps/sw.js').read(); V = re.search(r"'(3nps-v\d+)'", sw).group(1)   # seit v139: aktuelle Version statt fest „v64“
+        open('/tmp/claude-0/pages/3nps/sw.js', 'w').write(sw.replace("'%s'" % V, "'%sx'" % V))
         await pg.goto(BASE); await pg.wait_for_timeout(1500); await pg.goto(BASE); await pg.wait_for_timeout(1500)
         keys2 = await pg.evaluate("caches.keys()")
         open('/tmp/claude-0/pages/3nps/sw.js', 'w').write(sw)
-        check('Update: alter App-Speicher weg, Modellspeicher bleibt', 'asr-1' in keys2 and '3nps-v64x' in keys2 and '3nps-v64' not in keys2, keys2)
+        check('Update: alter App-Speicher weg, Modellspeicher bleibt', 'asr-1' in keys2 and V + 'x' in keys2 and V not in keys2, keys2)
         await ctx.set_offline(True)
         await pg.goto(BASE); await pg.wait_for_timeout(1000)
         await load(pg, T + 'sing/lied_de.wav'); r2 = await run(pg)

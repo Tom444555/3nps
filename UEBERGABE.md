@@ -26,6 +26,7 @@ git clone -b main https://github.com/Tom444555/3nps.git /home/claude/3nps-main  
 `wiederherstellen.sh` kopiert Quellen und Tests nach `/home/claude/3nps` (die Testskripte nutzen diesen Pfad fest),
 erzeugt alles Testaudio deterministisch neu, baut die App und startet den Testserver auf Port 8765.
 Danach als Kurzprüfung: `cd /home/claude/3nps/test && node liedcheck.js && python3 v31export.py`.
+Für Tests gegen den Pages-Nachbau (v64offline, v71lieder, v34optik, swtest, v62offline): `sh test/pages.sh`.
 
 ## 2. Wer und wofür
 
@@ -396,7 +397,7 @@ Testaudio-Generatoren (alle deterministisch, von `wiederherstellen.sh` aufgerufe
 **Als Nächstes (Stand 08.11.2026, v139 live):**
 - v139 veröffentlicht (jam.css). Alle auf `test/nav.py` umgestellten Alt-Tests + Regressionsliste gelaufen (84 Tests) – grün außer:
   `v119leistung` 21/22 („Schätzung passt zur Messung“: geschätzt 0,10–0,12 gegen CDP 0,03 – Schätzung in dieser Sitzungsumgebung zu hoch, unabhängig von v139; auf dem iPad gegen „gemessen“ prüfen bzw. Toleranz/Schätzer ansehen),
-  nicht lauffähig ohne Zusatz-Aufbau: `v64asr`/`v91keep` (Testlied `test/sing/lied_de.wav` fehlt – wird von keinem Generator erzeugt), `v64offline`/`v71lieder` (Pages-Nachbau Port 8790), `aktionen.py` braucht die URL als Argument.
+  Texterkennung jetzt lauffähig (nach v139 eingerichtet): `wiederherstellen.sh` kopiert `sprache_de/en.wav` aus Branch `modelle` (`asr/test/`) nach `test/sing/` und mischt daraus `lied_de/en.wav`; Whisper + Laufzeit kommen auch nach `3nps-src/app/www/asr/` (Testserver). Neues `sh test/pages.sh` baut den Pages-Nachbau (Port 8790, main + aktueller Bau + Modelle) und startet `hangsrv.py` (8791). `v64offline` liest die Version aus sw.js. Ergebnis: v64asr 18/18, v91keep 10/10, v64offline 3/3, v71lieder 17/17. `aktionen.py` braucht die URL als Argument.
   `v41ideasolo` ist reine Ausgabe (Spur 0, has=True ✓).
 - Kleinigkeit (nicht behoben): Wird direkt nach dem Laden einer Spur „Tonart“ einer anderen Spur angetippt, kann der Quintenzirkel ~1 s später auf die verfeinerte Tonart der neuen Spur springen (zweites `trackkey`-Ereignis nach der Akkorderkennung).
 - Tom testet v133–v138 auf dem iPad (Was spiele ich? Latenz, Akkordleiste, Aufnahme > 4 Takte, neue Reiter, Heute üben, Jammen).
