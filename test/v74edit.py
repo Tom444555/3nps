@@ -1,6 +1,7 @@
 # v74: Tempo ±1 (Kopf), Schleife/Mitsingen ±1 %, Wort dazwischen, Zeile fertig (🔒), Rest nachprüfen (+ ↶), Rest mitziehen stoppt an fertigen Zeilen, Akkorde über dem Mitsingen-Text
 import asyncio, json
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 T = '/home/claude/3nps/test/'; U = 'http://localhost:8765/index.html'
 ok = 0; tot = 0
 def check(n, c, info=''):
@@ -24,7 +25,7 @@ async def main():
             if await pg.is_visible('#impDlg'): await pg.click('#impOk')
             if (await pg.inner_text('#loopStatus')).startswith('Spur 1:'): break
         if await pg.evaluate("Looper.running()"): await pg.click('#loopAll')
-        await pg.click('#tab-solo'); await pg.wait_for_timeout(600)
+        await open_tab(pg, 'solo'); await pg.wait_for_timeout(600)
         # Zeile 0 (Silben 0–5) richtig + Erkennungszeit 0,3 s zu spät; Zeile 1 (6–11) noch auf der Erkennungszeit
         tok = []
         for i, t in enumerate(SYL[:12]):
@@ -84,7 +85,7 @@ async def main():
         # Mitsingen: Akkorde über dem Text
         await pg.click('#sgFDone'); await pg.click('#tab-looper'); await pg.click('#loopAll'); await pg.wait_for_timeout(300)
         await pg.evaluate("Looper.seek(0, Sing.b2f(%s[0].b - 2, Sing.source(SoloInfo()).beats) - Sing.source(SoloInfo()).origPos)" % TK)
-        await pg.click('#tab-singen'); await pg.wait_for_timeout(1500)
+        await open_tab(pg, 'singen'); await pg.wait_for_timeout(1500)
         ch = await pg.evaluate("[...document.querySelectorAll('#sbLine .sb-ch')].map(x=>x.textContent)")
         names = await pg.evaluate("SoloInfo().segs.map(s=>s.name)")
         check('Mitsingen: Akkorde über den Wörtern', len(ch) >= 1 and all(c in names for c in ch) and await pg.evaluate("document.getElementById('sbLine').classList.contains('has-ch')"), (ch, names[:6]))

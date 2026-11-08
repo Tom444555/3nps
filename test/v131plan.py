@@ -2,6 +2,7 @@
 # Selbstkontrolle je Kapitel, Technik-Vorübungen, Stimmungen (Drop D/Cis/C/H) – Griffbilder schalten um; Speicher, kein Überlauf, EN
 import asyncio, os, re
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 U = os.environ.get('U', 'http://localhost:8765/index.html')
 SHOT = os.environ.get('SHOT', '/tmp/v131plan')
 ok = 0; tot = 0
@@ -19,7 +20,7 @@ async def main():
         pg.on('pageerror', lambda e: errs.append(str(e))); pg.on('dialog', lambda d: asyncio.ensure_future(d.accept()))
         await pg.goto(U); await pg.wait_for_timeout(1300)
         check('Version ab v131', int(re.search(r'v(\d+)', await pg.inner_text('.brand')).group(1)) >= 131)
-        await pg.click('#tab-power'); await pg.wait_for_timeout(400)
+        await open_tab(pg, 'power'); await pg.wait_for_timeout(400)
         # Akkord-Baukasten-Tabelle
         await pg.evaluate("document.getElementById('pcKC3').open=true"); await pg.wait_for_timeout(500)
         await pg.click('#pcKC3 [data-w=multi]'); await pg.evaluate("PcWerk.set({rs:0,rf:5})"); await pg.evaluate("document.querySelector('#pcKC3 .pc-wtab').open=true")
@@ -80,7 +81,7 @@ async def main():
         check('Konkrete Griffe für Drop D, Cis, C, H nachgerechnet', not bad and tg['dD'][1][0]['fr'][:3] == [0, 0, 0] and tg['dCis'][1][0]['fr'][:3] == [1, 0, 0] and tg['dC'][1][0]['fr'][:3] == [2, 0, 0], bad)
         await pg.click('#pcKT7 [data-tune=dC]'); await pg.wait_for_timeout(400)
         check('Drop C: Tabelle mit Griffen, tiefe Saite C', 'tiefe Saite C' in await pg.inner_text('#pcKT7') or 'Tiefe Saite: C' in await pg.inner_text('#pcKT7'), (await pg.inner_text('#pcKT7'))[:120])
-        await pg.reload(); await pg.wait_for_timeout(1300); await pg.click('#tab-power'); await pg.wait_for_timeout(400)
+        await pg.reload(); await pg.wait_for_timeout(1300); await open_tab(pg, 'power'); await pg.wait_for_timeout(400)
         check('Stimmung bleibt nach Neustart', await pg.evaluate("PcKurs.tuning()") == 'dC')
         await pg.evaluate("PcKurs.setTuning('E')")
         check('Zurück auf Standard', await pg.evaluate("PcKurs.tuning()") == 'E')
@@ -95,7 +96,7 @@ async def main():
         await ctx.close()
         c2 = await b.new_context(viewport={'width': 1366, 'height': 1024}); pg = await c2.new_page(); e2 = []
         pg.on('pageerror', lambda e: e2.append(str(e)))
-        await pg.goto(U + '?lang=en'); await pg.wait_for_timeout(1200); await pg.click('#tab-power'); await pg.wait_for_timeout(400)
+        await pg.goto(U + '?lang=en'); await pg.wait_for_timeout(1200); await open_tab(pg, 'power'); await pg.wait_for_timeout(400)
         t = await pg.evaluate("[...document.querySelectorAll('#pcSecKurs [data-ktool]')].map(b=>b.textContent).join('|')")
         check('EN: Werkzeuge englisch', 'Ear training' in t and 'Technique' in t and 'Tunings' in t, t)
         check('EN ohne Skriptfehler', not e2, e2[:3])

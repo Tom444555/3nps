@@ -1,6 +1,7 @@
 # v90: „Takte ergänzen“ auch wenn noch KEIN Wort einen Takt hat (Text auf die Stimm-Einsätze), Knopf auch direkt bei der Wortliste
 import asyncio, json
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 T = '/home/claude/3nps/test/'; U = 'http://localhost:8765/index.html'
 SYL = json.load(open(T + 'sing/silben.json'))
 ok = 0; tot = 0
@@ -18,7 +19,7 @@ async def main():
             if await pg.is_visible('#impDlg'): await pg.click('#impOk')
             if (await pg.inner_text('#loopStatus')).startswith('Spur 1:'): break
         if await pg.evaluate("Looper.running()"): await pg.click('#loopAll')
-        await pg.click('#tab-solo'); await pg.wait_for_timeout(600)
+        await open_tab(pg, 'solo'); await pg.wait_for_timeout(600)
         tok = [{"w": "w%d" % i, "b": None, "l": i // 6} for i in range(24)]
         key = await pg.evaluate("Sing.source(SoloInfo()).id")
         await pg.evaluate("(([k,t])=>{const d={v:1,f:{},l:{}};d.f[k]={name:'silben.wav',tok:t};localStorage.setItem('3nps-sing',JSON.stringify(d));Sing._reload();})(%s)" % json.dumps([key, tok]))

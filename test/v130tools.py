@@ -2,6 +2,7 @@
 # Begriffslexikon (aus dem Text antippbar), Landkarte, Tonleitern/Tonarten/Stufenakkorde – Töne nachgerechnet, kein Überlauf, EN
 import asyncio, os, re
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 U = os.environ.get('U', 'http://localhost:8765/index.html')
 SHOT = os.environ.get('SHOT', '/tmp/v130tools')
 ok = 0; tot = 0
@@ -25,7 +26,7 @@ async def main():
         pg.on('pageerror', lambda e: errs.append(str(e))); pg.on('dialog', lambda d: asyncio.ensure_future(d.accept()))
         await pg.goto(U); await pg.wait_for_timeout(1300)
         check('Version ab v130', int(re.search(r'v(\d+)', await pg.inner_text('.brand')).group(1)) >= 130)
-        await pg.click('#tab-power'); await pg.wait_for_timeout(400)
+        await open_tab(pg, 'power'); await pg.wait_for_timeout(400)
         check('Werkzeuge träge: Inhalte erst beim Öffnen', await pg.evaluate("document.querySelectorAll('#pcSecKurs .pc-ktool').length>=4 && [...document.querySelectorAll('#pcSecKurs .pc-ktool .pc-sec-b')].every(x=>!x.children.length)"))
         # Notenkarte
         await pg.click('#pcSubs [data-sec=brett]'); await pg.wait_for_timeout(300)
@@ -40,7 +41,7 @@ async def main():
         dd = await pg.evaluate("[...document.querySelectorAll('#pcK_k15-1 .pc-kstage .pc-nn')].filter(t=>t.dataset.s==='0').map(t=>[+t.dataset.f,t.textContent])")
         check('Notenkarte in Kurs-Griffbrettern, auch in Drop D (tiefe Saite D)', dd and all(NM[(38 + f) % 12] == t for f, t in dd), dd[:4])
         check('Notenkarte auch in der Werkstatt', await pg.evaluate("document.querySelectorAll('#pcKC3 .pc-wb .pc-nn').length") > 40)
-        await pg.reload(); await pg.wait_for_timeout(1300); await pg.click('#tab-power'); await pg.wait_for_timeout(300)
+        await pg.reload(); await pg.wait_for_timeout(1300); await open_tab(pg, 'power'); await pg.wait_for_timeout(300)
         check('Notenkarte bleibt nach Neustart an', await pg.evaluate("document.getElementById('pcNotesBtn').getAttribute('aria-pressed')==='true' && window.__pcNotes===true"))
         await pg.click('#pcNotesBtn'); await pg.wait_for_timeout(100)
         check('Notenkarte aus: keine Namen', await pg.evaluate("document.querySelectorAll('#panel-power .pc-nn').length===0"))
@@ -100,7 +101,7 @@ async def main():
         await ctx.close()
         c2 = await b.new_context(viewport={'width': 1366, 'height': 1024}); pg = await c2.new_page(); e2 = []
         pg.on('pageerror', lambda e: e2.append(str(e)))
-        await pg.goto(U + '?lang=en'); await pg.wait_for_timeout(1200); await pg.click('#tab-power'); await pg.wait_for_timeout(400)
+        await pg.goto(U + '?lang=en'); await pg.wait_for_timeout(1200); await open_tab(pg, 'power'); await pg.wait_for_timeout(400)
         t = await pg.evaluate("[document.getElementById('pcNotesBtn').textContent,[...document.querySelectorAll('#pcSecKurs [data-ktool]')].map(b=>b.textContent).join('|')]")
         check('EN: Notenkarte und Werkzeuge englisch', t[0] == 'Note map' and 'Glossary' in t[1] and 'Scales' in t[1], t)
         check('EN ohne Skriptfehler', not e2, e2[:3])

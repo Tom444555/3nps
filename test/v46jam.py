@@ -1,6 +1,7 @@
 # v46: Backing Track – Beat-Auswahl (gleich wie Looper-Drums), neue Beats, Synth-Klänge (alle hörbar, keine späten Schläge)
 import asyncio
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 U = 'http://localhost:8765/index.html'
 ok = 0; tot = 0
 def check(n, c, info=''):
@@ -12,7 +13,7 @@ async def main():
         pg = await b.new_page(viewport={'width': 1180, 'height': 820}); errs = []
         pg.on('pageerror', lambda e: errs.append(str(e)))
         await pg.goto(U); await pg.wait_for_timeout(800)
-        await pg.click('#tab-jam'); await pg.wait_for_timeout(300)
+        await open_tab(pg, 'jam'); await pg.wait_for_timeout(300)
         opts = await pg.evaluate("[...document.getElementById('jamStyle').options].map(o=>o.value)")
         check('Beat-Auswahl im Backing Track mit neuen Beats', all(k in opts for k in ['house', 'techno', 'trap', 'lofi', 'synthwave', 'breakbeat', 'samba', 'cumbia', 'ballad68', 'rock']), len(opts))
         await pg.select_option('#jamStyle', 'house'); await pg.wait_for_timeout(150)

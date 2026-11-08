@@ -1,6 +1,7 @@
 # v96: Verlangsamen mit Signalsmith Stretch (Worker) – Länge, Qualität, Rückfall, Zeile üben 75 %, Editor-Schleife schaltet nahtlos um
 import asyncio, json
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 T = '/home/claude/3nps/test/'; U = 'http://localhost:8765/index.html'
 ok = 0; tot = 0
 def check(n, c, info=''):
@@ -46,7 +47,7 @@ async def main():
         check('Rückfall auf altes Verfahren funktioniert (Funktion bleibt erhalten)', f)
         # 4) Mitsingen: Zeile üben mit 75 %
         if not await pg.evaluate("Looper.running()"): await pg.click('#loopAll')
-        await pg.click('#tab-solo'); await pg.wait_for_timeout(400); await pg.click('#tab-singen')
+        await open_tab(pg, 'solo'); await pg.wait_for_timeout(400); await open_tab(pg, 'singen')
         await pg.evaluate(SEEK % 10.0); await pg.wait_for_timeout(400)
         await pg.click('#sbSpeed button[data-s="0.75"]'); await pg.evaluate("window.__ssMs=null")
         await pg.click('#sbLoop')

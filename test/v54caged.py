@@ -1,6 +1,7 @@
 # v54: CAGED-Reiter – Formen (Theorie geprüft), Ansichten, Dreiklänge, Lage, Loop folgen, Tabelle, Üben
 import asyncio
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 U = 'http://localhost:8765/index.html'; T = '/home/claude/3nps/test/'; O = '/tmp/claude-0/'
 ok = 0; tot = 0
 def check(n, c, info=''):
@@ -37,7 +38,7 @@ async def main():
                         pcs = sorted((OPEN[s + i] + f) % 12 for i, f in enumerate(q['frets']))
                         if pcs != sorted((r + i) % 12 for i in IV[t][:3]): tb.append((r, t, s, q['frets']))
         check('Dreiklänge: richtige Töne, je Saitengruppe alle Umkehrungen', not tb, tb[:4])
-        await pg.click('#tab-caged'); await pg.wait_for_timeout(400)
+        await open_tab(pg, 'caged'); await pg.wait_for_timeout(400)
         d = await pg.evaluate('Caged.debug()')
         check('Start: C-Dur, alle Formen', d['c'] == {'r': 0, 't': ''} and d['inst'] is None, d['c'])
         await pg.screenshot(path=O + 'cg_alle.png', full_page=True)
@@ -64,7 +65,7 @@ async def main():
         if await pg.evaluate('!!Looper._ed()'): await pg.click('#edClose')
         if not await pg.evaluate('Looper.running()'): await pg.click('#loopAll')
         await pg.wait_for_timeout(800)
-        await pg.click('#tab-caged'); await pg.wait_for_timeout(600)
+        await open_tab(pg, 'caged'); await pg.wait_for_timeout(600)
         d = await pg.evaluate('Caged.debug()')
         check('Folgt dem Loop', d['src'] == 'loop', d['src'])
         check('Loop-Leiste und Tabelle sichtbar', await pg.is_visible('#cgSeq') and await pg.is_visible('#cgTable'))
@@ -85,7 +86,7 @@ async def main():
         d = await pg.evaluate('Caged.debug()')
         check('„folgt dem Loop“ aus: eigener Akkord', d['src'] == 'manual')
         check('Einstellungen gespeichert', await pg.evaluate("JSON.parse(localStorage.getItem('3nps-caged')).follow") == False)
-        await pg.set_viewport_size({'width': 390, 'height': 844}); await pg.click('#tab-caged'); await pg.wait_for_timeout(400)
+        await pg.set_viewport_size({'width': 390, 'height': 844}); await open_tab(pg, 'caged'); await pg.wait_for_timeout(400)
         sw = await pg.evaluate('document.documentElement.scrollWidth')
         check('Schmal: keine Seitenbreite über den Bildschirm', sw <= 392, sw)
         await pg.screenshot(path=O + 'cg_schmal.png', full_page=True)

@@ -1,6 +1,7 @@
 # v89: Wörter ohne Takt („–“) bekommen einen Takt; komplettes Einfügen behält die Zeiten auch bei großen Verschiebungen
 import asyncio, json
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 T = '/home/claude/3nps/test/'; U = 'http://localhost:8765/index.html'
 ok = 0; tot = 0
 def check(n, c, info=''):
@@ -23,7 +24,7 @@ async def main():
         for _ in range(40):
             if await pg.evaluate("!!(window.SoloInfo && Sing.source(SoloInfo()))"): break
             await pg.wait_for_timeout(250)
-        await pg.click('#tab-solo'); await pg.wait_for_timeout(400); await pg.click('#sgToggle'); await pg.wait_for_timeout(400)
+        await open_tab(pg, 'solo'); await pg.wait_for_timeout(400); await pg.click('#sgToggle'); await pg.wait_for_timeout(400)
         w = await pg.evaluate("[...document.querySelectorAll('#sgEdit .sg-warn')].map(x=>x.textContent).join('|')")
         check('Hinweis „5 Wörter ohne Takt“ mit Knopf', '⏱ 5' in w and await pg.is_visible('#sgFill'), w)
         await pg.click('#sgFill'); await pg.wait_for_timeout(300)

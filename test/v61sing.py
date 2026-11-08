@@ -1,6 +1,7 @@
 # v61: Mitsingen Block 1 – Gesangstext mit Timing (Datei im Looper und Song aus dem Songwriting)
 import asyncio, json, os
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 T = '/home/claude/3nps/test/'
 U = 'http://localhost:8765/index.html'
 ok = 0; tot = 0
@@ -30,7 +31,7 @@ async def main():
         src = await pg.evaluate("Looper.singSrc(0)")
         check('Looper liefert Dateibezug', src and len(src['beats']) > 8 and src['origPos'] is not None, src and {k: src[k] for k in ('key', 'origPos', 'L')})
         if await pg.evaluate("Looper.debug().tracks[0].state") != 'playing': await pg.click('#loopAll')
-        await pg.click('#tab-solo'); await pg.wait_for_timeout(500)
+        await open_tab(pg, 'solo'); await pg.wait_for_timeout(500)
         await pg.click('#sgToggle'); await pg.wait_for_timeout(400)
         check('Editor zeigt Datei als Quelle', 'Datei' in await pg.inner_text('#sgEdit') and await pg.is_visible('#sgText'))
         await pg.fill('#sgText', 'eins zwei drei\nvier fünf'); await pg.click('#sgTake'); await pg.wait_for_timeout(300)
@@ -55,7 +56,7 @@ async def main():
             await pg.wait_for_timeout(150)
         check('beim Abspielen leuchtet das aktuelle Wort', on)
         # ziehen (angehalten, Leiste am Anfang)
-        await pg.click('#tab-looper'); await pg.click('#loopAll'); await pg.wait_for_timeout(300); await pg.click('#tab-solo'); await pg.wait_for_timeout(300)
+        await pg.click('#tab-looper'); await pg.click('#loopAll'); await pg.wait_for_timeout(300); await open_tab(pg, 'solo'); await pg.wait_for_timeout(300)
         await pg.evaluate("document.getElementById('sfBand').scrollLeft=0"); await pg.wait_for_timeout(300)
         box = await pg.evaluate("(()=>{const r=document.querySelector('#sgStrip .sg-w[data-i=\"4\"]').getBoundingClientRect();return [r.x+4,r.y+8]})()")
         b0 = (await pg.evaluate(TOK))['f'][k]['tok'][4]['b']
@@ -73,7 +74,7 @@ async def main():
         await pg.click('#sgEdit .sg-chip[data-i="1"]'); bb = tok[1]['b']; await pg.click('#sgEdit .sg-selbar [data-n="1"]'); await pg.wait_for_timeout(150)
         check('▶ verschiebt um ein 16tel', abs((await pg.evaluate(TOK))['f'][k]['tok'][1]['b'] - bb - 0.25) < 1e-6)
         check('Editor bleibt im Stillstand bei der Datei', 'ballad' in await pg.inner_text('#sgEdit'))
-        await pg.click('#tab-looper'); await pg.click('#loopAll'); await pg.wait_for_timeout(300); await pg.click('#tab-solo'); await pg.wait_for_timeout(300)
+        await pg.click('#tab-looper'); await pg.click('#loopAll'); await pg.wait_for_timeout(300); await open_tab(pg, 'solo'); await pg.wait_for_timeout(300)
         await pg.click('#sgEdit .sg-lnum[data-l="1"]'); await pg.wait_for_timeout(200)
         tok = (await pg.evaluate(TOK))['f'][k]['tok']
         check('Zeile neu: nur Zeile 2 ohne Zeit, Einklopfen an', tok[3]['b'] is None and tok[4]['b'] is None and tok[0]['b'] is not None and await pg.is_visible('#sgTap'))
@@ -82,8 +83,8 @@ async def main():
         check('Zeile 2 neu eingeklopft', tok[3]['b'] is not None and tok[4]['b'] is not None)
         # ---- Song aus dem Songwriting ----
         await pg.click('#tab-looper'); await pg.click('#loopAll'); await pg.wait_for_timeout(300)
-        await pg.click('#tab-lied'); await pg.wait_for_timeout(400); await pg.evaluate("document.getElementById('ldTL').checked=true"); await pg.click('#ldPlay'); await pg.wait_for_timeout(1500)
-        await pg.click('#tab-solo'); await pg.wait_for_timeout(600)
+        await open_tab(pg, 'lied'); await pg.wait_for_timeout(400); await pg.evaluate("document.getElementById('ldTL').checked=true"); await pg.click('#ldPlay'); await pg.wait_for_timeout(1500)
+        await open_tab(pg, 'solo'); await pg.wait_for_timeout(600)
         t = await pg.inner_text('#sgEdit')
         check('Song als Quelle, Text aus dem Songwriting, Akkordmarken entfernt', 'Strophe' in t and 'Songwriting' in t and not await pg.is_visible('#sgText') and await pg.evaluate("document.querySelectorAll('#sgEdit .sg-chip').length") == 5, t[:80])
         await pg.click('#sgTapMode'); await taps(pg, 5, 300)
@@ -101,7 +102,7 @@ async def main():
         # ---- Englisch ----
         pg2 = await (await b.new_context(viewport={'width': 1180, 'height': 900})).new_page(); e2 = []
         pg2.on('pageerror', lambda e: e2.append(str(e)))
-        await pg2.goto(U + '?lang=en'); await pg2.wait_for_timeout(800); await pg2.click('#tab-solo'); await pg2.click('#sgToggle'); await pg2.wait_for_timeout(300)
+        await pg2.goto(U + '?lang=en'); await pg2.wait_for_timeout(800); await open_tab(pg2, 'solo'); await pg2.click('#sgToggle'); await pg2.wait_for_timeout(300)
         txt = await pg2.inner_text('#panel-solo')
         check('EN: Gesangstext englisch', 'Lyrics' in txt and 'Gesangstext' not in txt and 'Spiel einen Song' not in txt and 'Play a song from Songwriting' in txt)
         check('EN: keine Skriptfehler', not e2, e2)

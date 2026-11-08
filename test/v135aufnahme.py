@@ -5,6 +5,7 @@
 # Länge stimmt, gespeicherte Einstellung bleibt „Frei“, einmalige Rücksetzung alter „4 Takte“, Akkordleiste Name in der Mitte + Countdown.
 import asyncio, re
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 U = 'http://localhost:8765/index.html'
 WAV = '/home/claude/3nps/test/corpus/rock_120.wav'
 BPM = 200; BAR = 240 / BPM
@@ -59,19 +60,19 @@ async def main():
         r2 = await pg.evaluate("(()=>{const d=Looper.debug();return {L:d.tracks[1].L/d.baseL,st:d.tracks[1].state}})()")
         check('Spur 2: Länge = 2 Loop-Runden (bis zum Stopp aufgerundet)', abs(r2['L'] - 2) < 0.01, r2)
         # Powerchords-Übung → Looper
-        await pg.click('#tab-power'); await pg.wait_for_timeout(600)
+        await open_tab(pg, 'power'); await pg.wait_for_timeout(600)
         await pg.evaluate("Powerchords.build && Powerchords.build(); Powerchords.startEx('ex4'); 0"); await pg.wait_for_timeout(800)
         s = await pg.evaluate("({sel:document.getElementById('loopBars').value,pref:localStorage.getItem('3nps-bars'),p:Powerchords.playing()})")
         check('Übe-Loop (4 Akkorde): Länge vorübergehend 4 Takte, gespeichert bleibt „Frei“', s['p'] and s['sel'] == '4' and s['pref'] == 'free', s)
         await record_long(pg, 'Nach Powerchords-Übung')
         check('… danach steht die Länge wieder auf „Frei“', await pg.evaluate("document.getElementById('loopBars').value") == 'free')
         # Kurs „▶ Loop starten“
-        await pg.click('#tab-power'); await pg.wait_for_timeout(300)
+        await open_tab(pg, 'power'); await pg.wait_for_timeout(300)
         await pg.evaluate("PcKurs.loopNow(['C','Am','F','G'], 90); 0"); await pg.wait_for_timeout(800)
         check('Kurs-Loop läuft, gespeichert bleibt „Frei“', await pg.evaluate("!!Powerchords.playing() && localStorage.getItem('3nps-bars')==='free'"))
         await record_long(pg, 'Nach Kurs-Loop')
         # Begleit-Track im Kurs (Knopf), sonst gleicher Weg über begin()
-        await pg.click('#tab-power'); await pg.wait_for_timeout(300)
+        await open_tab(pg, 'power'); await pg.wait_for_timeout(300)
         await pg.evaluate("Powerchords.showSec('kurs'); 0"); await pg.wait_for_timeout(600)
         await pg.evaluate("document.querySelectorAll('details[id^=pcKC]').forEach(d=>d.open=true); 0"); await pg.wait_for_timeout(1200)
         bt = await pg.evaluate("(()=>{const b=document.querySelector('button[data-k=bt]');if(b){b.click();return b.closest('.pc-kbt').querySelector('b').textContent}return false})()")
@@ -80,7 +81,7 @@ async def main():
         if bt: check('Begleit-Track läuft, gespeichert bleibt „Frei“', await pg.evaluate("!!Powerchords.playing() && localStorage.getItem('3nps-bars')==='free'"))
         else: print('  (kein Begleit-Track-Knopf sichtbar – Kurs-Weg oben deckt begin() ab)')
         # Improvisation öffnen, dann Aufnahme
-        await pg.click('#tab-solo'); await pg.wait_for_timeout(600)
+        await open_tab(pg, 'solo'); await pg.wait_for_timeout(600)
         await record_long(pg, 'Nach Begleit-Track + Improvisation')
         # Neustart: weiterhin frei; eigene Wahl wird weiter gespeichert
         await pg.goto(U); await pg.wait_for_timeout(800)
@@ -91,8 +92,8 @@ async def main():
         await pg.evaluate("Looper.stopAll(); Looper.clearAll(); 0")
         # ---- Akkordleiste: Name auch in der Mitte, Countdown ----
         await setbpm(pg, 160)
-        await pg.evaluate("Jam.setSeq('Cm:8 G:2 Eb F')"); await pg.click('#tab-jam'); await pg.evaluate("Jam.start()"); await pg.wait_for_timeout(800)
-        await pg.click('#tab-solo'); await pg.wait_for_timeout(600)
+        await pg.evaluate("Jam.setSeq('Cm:8 G:2 Eb F')"); await open_tab(pg, 'jam'); await pg.evaluate("Jam.start()"); await pg.wait_for_timeout(800)
+        await open_tab(pg, 'solo'); await pg.wait_for_timeout(600)
         await pg.evaluate("document.querySelector('#sfZoom [data-z=\"4\"]').click()"); await pg.wait_for_timeout(500)
         G = """(()=>{const on=document.querySelector('#sfStrip .sf-seg.on');if(!on||!on.classList.contains('long'))return null;const m=on.querySelector('.sf-sm'),S=on.getBoundingClientRect();
           if(!m)return {mid:null};const M=m.getBoundingClientRect();return {mid:m.querySelector('b').textContent,dc:Math.round((M.left+M.width/2)-(S.left+S.width/2)),
@@ -108,8 +109,8 @@ async def main():
         check('Nichts springt: Höhen konstant', len({(s['h'], s['bh']) for s in sm}) == 1, {(s['h'], s['bh']) for s in sm})
         await pg.evaluate("Jam.stop()")
         await pg.goto(U + '?lang=en'); await pg.wait_for_timeout(800)
-        await pg.evaluate("Jam.setSeq('Cm:8 G:2 Eb F')"); await pg.click('#tab-jam'); await pg.evaluate("Jam.start()"); await pg.wait_for_timeout(600)
-        await pg.click('#tab-solo'); await pg.wait_for_timeout(1200)
+        await pg.evaluate("Jam.setSeq('Cm:8 G:2 Eb F')"); await open_tab(pg, 'jam'); await pg.evaluate("Jam.start()"); await pg.wait_for_timeout(600)
+        await open_tab(pg, 'solo'); await pg.wait_for_timeout(1200)
         g = await pg.evaluate(G)
         check('EN: Countdown „n bars left“, Mitte sichtbar', g and g['mid'] == 'Cm' and re.match(r'^\d+ bars? left$', g['cd'] or ''), g)
         await pg.evaluate("Jam.stop()")

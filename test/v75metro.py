@@ -1,6 +1,7 @@
 # v75: Lieder komplett (Ausklang bleibt), Metronom beim Bearbeiten, Raster nach dem Tempo oben (Wörter behalten ihre Zeit), ↺ erkanntes Raster
 import asyncio, json
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 T = '/home/claude/3nps/test/'; U = 'http://localhost:8765/index.html'
 ok = 0; tot = 0
 def check(n, c, info=''):
@@ -30,7 +31,7 @@ async def main():
           Sing.addClicks(y,src,0,7,0,1,sr);const at=p=>Math.max(...Array.from(y.l.slice(p,p+20)).map(Math.abs));return [0,500,1000,1500,2000,250].map(at)})()""")
         check('Metronom: Klick auf jedem Schlag, Eins lauter, dazwischen still', all(v > 0.2 for v in r[:5]) and r[0] > r[1] and r[4] > r[3] and r[5] < 0.01, [round(v, 2) for v in r])
         await load(pg, T + 'sing/silben.wav')
-        await pg.click('#tab-solo'); await pg.wait_for_timeout(600)
+        await open_tab(pg, 'solo'); await pg.wait_for_timeout(600)
         tok = []
         for i, t in enumerate(SYL[:8]):
             tok.append({"w": "w%d" % i, "b": round(await pg.evaluate(SB + "(%f)" % t), 3), "l": i // 4})

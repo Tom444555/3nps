@@ -2,6 +2,7 @@
 # alle Grundtöne, Grundstellung und Umkehrung; Live-Weg über Fake-Eingang; Übung „Spiel den Akkord“; Abbau.
 import asyncio, os, re
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 U = os.environ.get('U', 'http://localhost:8765/index.html')
 SHOT = os.environ.get('SHOT', '/tmp/v128live')
 ok = 0; tot = 0
@@ -39,7 +40,7 @@ async def main():
         check('Erkennung synthetischer Akkorde ≥ 90 %% (%.1f %%)' % (100 * rate), rate >= 0.9, r['bad'])
         check('Jede der 18 Arten mindestens zu 75 % erkannt', all(v[0] / v[1] >= 0.75 for v in r['per'].values()), {k: v for k, v in r['per'].items() if v[0] / v[1] < 0.75})
         # --- Live über Fake-Eingang (Werkstatt-Karte) ---
-        await pg.click('#tab-power'); await pg.wait_for_timeout(300); await pg.click('#pcSubs [data-sec=kurs]'); await pg.wait_for_timeout(300)
+        await open_tab(pg, 'power'); await pg.wait_for_timeout(300); await pg.click('#pcSubs [data-sec=kurs]'); await pg.wait_for_timeout(300)
         check('Vor „Zuhören“: kein Eingang, kein Analyser', await pg.evaluate("(()=>{const d=PcLive.debug();return !d.listening&&!d.an&&window.__fk.streams.length===0})()"))
         await pg.evaluate("document.getElementById('pcKC3').open=true"); await pg.wait_for_timeout(400)
         await pg.evaluate("__fkPlay(__syn(__voice(PcWerk.TY.find(t=>t.k==='m7'),45,0).ms,48000,48000*3,0),48000)")
@@ -75,7 +76,7 @@ async def main():
         await pg.click('#pcKC3 .pc-wlive [data-l=listen]'); await pg.wait_for_timeout(600)
         await pg.click('#tab-looper'); await pg.wait_for_timeout(400)
         check('Reiterwechsel baut ab', not (await pg.evaluate("PcLive.debug()"))['listening'])
-        await pg.click('#tab-power'); await pg.wait_for_timeout(300)
+        await open_tab(pg, 'power'); await pg.wait_for_timeout(300)
         await pg.evaluate("document.getElementById('pcKC7').open=true;document.getElementById('pcKC6').open=true"); await pg.wait_for_timeout(400)
         await pg.click('#pcKC7 [data-klive]'); await pg.wait_for_timeout(1500)
         dd = await pg.evaluate("[PcLive.debug(), document.querySelector('#pcKC7 .pc-klivebox').hidden, !!document.querySelector('#pcKC7 .pc-klivebox .pc-live')]")

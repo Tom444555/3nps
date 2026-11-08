@@ -1,6 +1,7 @@
 # v64: Texterkennung – Testlied (Musik + Sprache an 4 s und 22 s) laden, erkennen, Wörter/Zeilen/Zeiten prüfen, ausbessern, offline, Englisch
 import asyncio, json, re, time
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 T = '/home/claude/3nps/test/'; U = 'http://localhost:8765/index.html'
 ok = 0; tot = 0
 def check(n, c, info=''):
@@ -13,7 +14,7 @@ async def load(pg, f):
         if await pg.is_visible('#impDlg'): await pg.click('#impOk')
         if re.match(r'^(Spur|Track) 1:', await pg.inner_text('#loopStatus')): break
 async def run(pg, lang):
-    await pg.click('#tab-solo'); await pg.wait_for_timeout(300)
+    await open_tab(pg, 'solo'); await pg.wait_for_timeout(300)
     if not await pg.is_visible('#sgEdit'): await pg.click('#sgToggle'); await pg.wait_for_timeout(300)
     await pg.select_option('#sgLang', lang)
     await pg.evaluate("window.confirm=()=>true")
@@ -31,7 +32,7 @@ async def main():
         ctx.on('request', lambda r: foreign.append(r.url) if not r.url.startswith(('http://localhost:8765', 'blob:', 'data:')) else None)
         await pg.goto(U); await pg.wait_for_timeout(800)
         await load(pg, T + 'sing/lied_de.wav')
-        await pg.click('#tab-solo'); await pg.click('#sgToggle'); await pg.wait_for_timeout(300)
+        await open_tab(pg, 'solo'); await pg.click('#sgToggle'); await pg.wait_for_timeout(300)
         check('Knopf „Text automatisch erkennen“ bei Datei', await pg.is_visible('#sgAuto') and await pg.is_visible('#sgLang'))
         r, dt = await run(pg, 'de')
         d = await pg.evaluate("JSON.parse(localStorage.getItem('3nps-sing'))")
@@ -59,13 +60,13 @@ async def main():
         # Spur und Mitsingen zeigen den Text
         await pg.click('#tab-looper'); await pg.click('#loopAll'); await pg.wait_for_timeout(300)
         await pg.evaluate("(()=>{const s=Looper.singSrc(0);Looper.seek(0, 3.6*s.sr - s.origPos)})()")
-        await pg.click('#tab-singen'); await pg.wait_for_timeout(900)
+        await open_tab(pg, 'singen'); await pg.wait_for_timeout(900)
         check('Mitsingen zeigt den erkannten Text', len(await pg.inner_text('#sbLine')) > 5, await pg.inner_text('#sbLine'))
         check('keine Skriptfehler', not errs, errs[:3])
         # Englisch, zweiter Lauf: Modell kommt jetzt aus dem Speicher
         pg2 = await ctx.new_page(); e2 = []; pg2.on('pageerror', lambda e: e2.append(str(e)))
         await pg2.goto(U + '?lang=en'); await pg2.wait_for_timeout(800); await load(pg2, T + 'sing/lied_en.wav')
-        await pg2.click('#tab-solo'); await pg2.click('#sgToggle'); await pg2.wait_for_timeout(300)
+        await open_tab(pg2, 'solo'); await pg2.click('#sgToggle'); await pg2.wait_for_timeout(300)
         check('EN: Knopf englisch', 'Detect lyrics' in await pg2.inner_text('#sgEdit'))
         r2, dt2 = await run(pg2, 'en')
         d2 = await pg2.evaluate("JSON.parse(localStorage.getItem('3nps-sing'))"); k2 = [k for k in d2['f'] if 'lied_en' in k]
@@ -75,7 +76,7 @@ async def main():
         # Sparsam-Stufe
         pg3 = await ctx.new_page(); e3 = []; pg3.on('pageerror', lambda e: e3.append(str(e)))
         await pg3.goto(U); await pg3.wait_for_timeout(800); await load(pg3, T + 'sing/lied_de.wav')
-        await pg3.click('#tab-solo'); await pg3.wait_for_timeout(300)
+        await open_tab(pg3, 'solo'); await pg3.wait_for_timeout(300)
         if not await pg3.is_visible('#sgEdit'): await pg3.click('#sgToggle'); await pg3.wait_for_timeout(300)
         await pg3.select_option('#sgModel', 'tiny')
         r3, dt3 = await run(pg3, 'de')

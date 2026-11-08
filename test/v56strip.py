@@ -1,6 +1,7 @@
 # v56: Improvisation – Akkordleiste zeigt höchstens 6 Takte und scrollt mit; Wechsel etwas früher; MIDI-Marker mit ♭ als b
 import asyncio
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 U = 'http://localhost:8765/index.html'
 ok = 0; tot = 0
 def check(n, c, info=''):
@@ -13,8 +14,8 @@ async def main():
         await pg.goto(U); await pg.wait_for_timeout(600)
         await pg.evaluate("document.getElementById('bpm').value = 120; document.getElementById('bpm').dispatchEvent(new Event('input'))")
         await pg.evaluate("Jam.setSeq('C Am F G Em Am Dm G C F Bb G')")
-        await pg.click('#tab-jam'); await pg.evaluate("Jam.start()"); await pg.wait_for_timeout(1500)
-        await pg.click('#tab-solo'); await pg.wait_for_timeout(600)
+        await open_tab(pg, 'jam'); await pg.evaluate("Jam.start()"); await pg.wait_for_timeout(1500)
+        await open_tab(pg, 'solo'); await pg.wait_for_timeout(600)
         w = await pg.evaluate("[parseFloat(document.getElementById('sfStrip').style.width), document.getElementById('sfBand').clientWidth]")
         check('12 Takte: Leiste doppelt so breit wie sichtbar (6 Takte im Blick)', abs(w[0] / w[1] - 2) < 0.05, w)
         segw = await pg.evaluate("document.querySelector('#sfStrip .sf-seg').getBoundingClientRect().width")

@@ -1,6 +1,7 @@
 # v25: Reiter Üben – Tagesübung, Gehörbildung, Licks (eigene Licks), Solo-Auswertung
 import asyncio
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 T = '/home/claude/3nps/test/'; O = '/tmp/claude-0/-home-claude-3nps/2ba96aef-49c7-541d-8e92-473a90edb2fb/scratchpad/'
 res = []
 def check(name, ok, info=''):
@@ -19,12 +20,12 @@ async def main():
         pg = await b.new_page(viewport={'width': 1024, 'height': 1366}); errs = []
         pg.on('pageerror', lambda e: errs.append(str(e)))
         await pg.goto('http://localhost:8765/index.html'); await pg.wait_for_timeout(900)
-        tabs = await pg.evaluate("[...document.querySelectorAll('.tab')].map(t => t.textContent)")
-        check('Reiter in heutiger Reihenfolge', tabs == ['Looper', 'Improvisation', 'CAGED', 'Quintenzirkel', 'Backing Track', 'Songwriting', 'Mitsingen', 'Training', 'Technik'], tabs)
-        await pg.click('#tab-ueben'); await pg.wait_for_timeout(300)
+        tabs = await pg.evaluate("[document.getElementById('tab-looper')].concat([...document.querySelectorAll('#subNav [data-tab]')]).map(t => t.textContent)")  # v136: Unterpunkte der neuen Navigation
+        check('Reiter in heutiger Reihenfolge', tabs == ['Looper', 'Übersicht', 'Powerchords-Kurs', 'CAGED', 'Quintenzirkel', 'Technik', 'Training', 'Hör-Training', 'Spickzettel', 'Backing Track', 'Improvisation', 'Songwriting', 'Mitsingen'], tabs)
+        await open_tab(pg, 'ueben'); await pg.wait_for_timeout(300)
         # Tagesübung
         n = await pg.evaluate("document.querySelectorAll('.ub-block').length"); k1 = await pg.inner_text('#ubDayKey')
-        await pg.reload(); await pg.wait_for_timeout(800); await pg.click('#tab-ueben'); await pg.wait_for_timeout(200)
+        await pg.reload(); await pg.wait_for_timeout(800); await open_tab(pg, 'ueben'); await pg.wait_for_timeout(200)
         k2 = await pg.inner_text('#ubDayKey')
         check('Tagesübung: 4 Blöcke, gleicher Plan den ganzen Tag', n == 4 and k1 == k2, k1)
         await pg.click('#ubReroll'); await pg.wait_for_timeout(100)
@@ -33,9 +34,9 @@ async def main():
         await pg.click('[data-go="griff"]'); await pg.wait_for_timeout(300)
         rm = await pg.evaluate("[NOTES.indexOf(rootSel.value), modeSel.value, !document.getElementById('panel-griffbrett').hidden]")
         check('Block 1 öffnet das Griffbrett mit Tonart des Tages', rm[0] == p0[0] and rm[1] == p0[1] and rm[2], rm)
-        await pg.click('#tab-ueben'); await pg.click('[data-go="jam"]'); await pg.wait_for_timeout(300)
+        await open_tab(pg, 'ueben'); await pg.click('[data-go="jam"]'); await pg.wait_for_timeout(300)
         check('Block 3 bereitet den Jam vor', not await pg.evaluate("document.getElementById('panel-jam').hidden") and await pg.evaluate("Jam.state().seq.length") >= 2)
-        await pg.click('#tab-ueben'); await pg.wait_for_timeout(200)
+        await open_tab(pg, 'ueben'); await pg.wait_for_timeout(200)
         # Timer: Block 4 als erledigt markieren → Übungslog
         await pg.evaluate("Ueben.finishBlock('ohr', 180)"); await pg.wait_for_timeout(600)
         check('Erledigt: Fortschritt und Eintrag im Übungslog', await pg.evaluate("document.querySelector('[data-id=\"ohr\"]').classList.contains('done')") and 'Tagesübung' in await pg.inner_text('#logList'), (await pg.inner_text('#logList'))[:80])
@@ -81,7 +82,7 @@ async def main():
         check('Eigener Lick wird mittransponiert (A-Moll → H-Moll: +2 Bünde)', c3 == '3/9 3/11 4/10 5/7', c3)
         await pg.reload(); await pg.wait_for_timeout(800)
         check('Eigener Lick bleibt nach Neustart', await pg.evaluate("Ueben.own().length") == 1)
-        await pg.click('#tab-ueben'); await pg.click('#ubNav [data-s="lick"]'); await pg.select_option('#ubLickSel', await pg.evaluate("Ueben.own()[0].id"))
+        await open_tab(pg, 'ueben'); await pg.click('#ubNav [data-s="lick"]'); await pg.select_option('#ubLickSel', await pg.evaluate("Ueben.own()[0].id"))
         await pg.click('#ubDel'); await pg.wait_for_timeout(100)
         check('Eigenen Lick löschen', await pg.evaluate("Ueben.own().length") == 0)
         # Solo-Auswertung
@@ -102,7 +103,7 @@ async def main():
         y = y / np.abs(y).max() * 0.7
         ok = await pg.evaluate("a => Looper._setTrack(1, Float32Array.from(a))", [round(float(v), 5) for v in y])
         check('Solo in Spur 2 gelegt', ok)
-        await pg.click('#tab-ueben'); await pg.click('#ubNav [data-s="solo"]'); await pg.select_option('#ubSoloTr', '1')
+        await open_tab(pg, 'ueben'); await pg.click('#ubNav [data-s="solo"]'); await pg.select_option('#ubSoloTr', '1')
         await pg.click('#ubAnalyse')
         for _ in range(80):
             await pg.wait_for_timeout(250)

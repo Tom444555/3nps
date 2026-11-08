@@ -1,6 +1,7 @@
 # v21: drei Reiter (Looper | Griffbrett | Quintenzirkel), Begleitung/Song/Log im Griffbrett, Quintenzirkel
 import asyncio
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 T = '/home/claude/3nps/test/'; O = '/tmp/claude-0/-home-claude/2ba96aef-49c7-541d-8e92-473a90edb2fb/scratchpad/'
 res = []
 def check(name, ok, info=''):
@@ -11,10 +12,10 @@ async def main():
         ctx = await b.new_context(viewport={'width': 1024, 'height': 1366}); pg = await ctx.new_page(); errs = []
         pg.on('pageerror', lambda e: errs.append(str(e)))
         await pg.goto('http://localhost:8765/index.html'); await pg.wait_for_timeout(800)
-        tabs = await pg.evaluate("[...document.querySelectorAll('.tab')].map(t => t.textContent)")
-        check('Reiter, Looper links', tabs == ['Looper', 'Improvisation', 'CAGED', 'Quintenzirkel', 'Backing Track', 'Songwriting', 'Mitsingen', 'Training', 'Technik'], tabs)
+        tabs = await pg.evaluate("[document.getElementById('tab-looper')].concat([...document.querySelectorAll('#subNav [data-tab]')]).map(t => t.textContent)")  # v136: Unterpunkte der neuen Navigation
+        check('Reiter, Looper links', tabs == ['Looper', 'Übersicht', 'Powerchords-Kurs', 'CAGED', 'Quintenzirkel', 'Technik', 'Training', 'Hör-Training', 'Spickzettel', 'Backing Track', 'Improvisation', 'Songwriting', 'Mitsingen'], tabs)
         check('Start im Looper', await pg.is_visible('#panel-looper'))
-        await pg.click('#tab-griffbrett'); await pg.wait_for_timeout(400)
+        await open_tab(pg, 'griffbrett'); await pg.wait_for_timeout(400)
         ids = ['fretboard', 'droneBtn', 'btnBass', 'beglDrumsHome', 'audioFile', 'logList', 'statToday']
         inside = await pg.evaluate("ids => ids.map(i => !!document.querySelector('#panel-griffbrett #' + i))", ids)
         check('Griffbrett enthält Begleitung, Song und Log', all(inside), dict(zip(ids, inside)))
@@ -28,7 +29,7 @@ async def main():
         check('Gespeicherter alter Reiter „Begleitung“ öffnet Griffbrett', await pg.is_visible('#panel-griffbrett'))
         # Quintenzirkel
         await pg.select_option('#root', 'D'); await pg.select_option('#mode', 'Ionisch (Dur)')
-        await pg.click('#tab-quinten'); await pg.wait_for_timeout(400)
+        await open_tab(pg, 'quinten'); await pg.wait_for_timeout(400)
         i = await pg.evaluate('Quinten.info()')
         check('Zirkel übernimmt Tonart vom Griffbrett (D-Dur)', await pg.inner_text('#qzKey') == 'D-Dur' and i['acc'] == 2, await pg.inner_text('#qzAcc'))
         check('D-Dur: Tonleiter und Akkorde', i['notes'] == ['D','E','F♯','G','A','B','C♯'] and [c['name'] for c in i['chords']] == ['D','Em','F♯m','G','A','Bm','C♯°'], [c['name'] for c in i['chords']])
@@ -56,7 +57,7 @@ async def main():
             await pg.wait_for_timeout(250)
             if await pg.is_visible('#impDlg'): await pg.click('#impOk')
             if await pg.evaluate("!document.getElementById('thc0').hidden"): break
-        await pg.click('#tab-quinten'); hits = 0; seenQ = set()
+        await open_tab(pg, 'quinten'); hits = 0; seenQ = set()
         for k in range(16):
             await pg.wait_for_timeout(250)
             a = await pg.evaluate("[(Looper.nowChord() || {}).name, document.querySelector('.qz-c3').textContent, document.querySelector('.qz-live').getAttribute('d')]")

@@ -1,6 +1,7 @@
 # v72: präziser setzen – Stimmkurve/Silbenanfänge, Magnet „Stimme“, ♪ an Stimme, Feinschritt 10 ms, Takt-Schleife (auch 50 %), Wort halten = anhören, Takt einklopfen
 import asyncio, json, re
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 T = '/home/claude/3nps/test/'; U = 'http://localhost:8765/index.html'
 ok = 0; tot = 0
 def check(n, c, info=''):
@@ -21,7 +22,7 @@ async def main():
             if await pg.is_visible('#impDlg'): await pg.click('#impOk')
             if (await pg.inner_text('#loopStatus')).startswith('Spur 1:'): break
         if await pg.evaluate("Looper.running()"): await pg.click('#loopAll')
-        await pg.click('#tab-solo'); await pg.wait_for_timeout(600)
+        await open_tab(pg, 'solo'); await pg.wait_for_timeout(600)
         # Text: 12 Wörter je 0,15 s hinter den Silben 0…11
         bs = [await pg.evaluate(SB + "(%f)" % (t + 0.15)) for t in SYL[:12]]
         tok = [{"w": "w%d" % i, "b": round(x, 3), "l": i // 6} for i, x in enumerate(bs)]

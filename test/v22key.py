@@ -1,6 +1,7 @@
 # v22: Quintenzirkel folgt der erkannten Tonart einer Spur (Datei laden / einspielen) und dem Griffbrett
 import asyncio
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 T = '/home/claude/3nps/test/'
 res = []
 def check(name, ok, info=''):
@@ -18,13 +19,13 @@ async def main():
         pg = await b.new_page(viewport={'width': 1024, 'height': 1366}); errs = []
         pg.on('pageerror', lambda e: errs.append(str(e)))
         await pg.goto('http://localhost:8765/index.html'); await pg.wait_for_timeout(800)
-        await pg.click('#tab-griffbrett'); await pg.select_option('#root', 'E'); await pg.select_option('#mode', 'Ionisch (Dur)'); await pg.wait_for_timeout(200)
+        await open_tab(pg, 'griffbrett'); await pg.select_option('#root', 'E'); await pg.select_option('#mode', 'Ionisch (Dur)'); await pg.wait_for_timeout(200)
         check('Startet mit der Griffbrett-Tonart (E-Dur)', await pg.evaluate('Quinten.sel()') == {'k': 4, 'minor': False})
         await pg.click('#tab-looper'); await pg.select_option('#loopCountIn', '0')
         kt = await load(pg, 0, T + 'chords/c_pop_strum.wav')
         s = await pg.evaluate('Quinten.sel()'); tk = await pg.evaluate('Quinten.trackKey()')
         check('Datei geladen (Zirkel zu): springt auf erkannte Tonart', 'C' in kt and s == {'k': 0, 'minor': False} and tk['i'] == 0, f'{kt!r} · {s} · {tk}')
-        await pg.click('#tab-quinten'); await pg.wait_for_timeout(300)
+        await open_tab(pg, 'quinten'); await pg.wait_for_timeout(300)
         txt = await pg.inner_text('#qzKey'); tr = await pg.inner_text('#qzTrack')
         check('Zirkel zeigt C-Dur und „Spur 1: C-Dur“', txt == 'C-Dur' and 'Spur 1' in tr and 'C-Dur' in tr, f'{txt} · {tr}')
         check('Knopf „Tonart von Spur 1“ sichtbar', await pg.is_visible('#qzFromTrack') and '1' in await pg.inner_text('#qzFromTrack'))

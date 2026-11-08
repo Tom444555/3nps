@@ -1,6 +1,7 @@
 # Je Aktion 12× ausführen und die Bildzeiten während der Aktion messen (Summe der Zeit über 33 ms = sichtbares Stocken)
 import asyncio, sys, json
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 URL = sys.argv[1]; T = '/home/claude/3nps/test/'
 async def main():
     async with async_playwright() as p:
@@ -35,7 +36,7 @@ async def main():
         async def ed(i): await pg.click(f'#edit{i % 3}') if i % 2 == 0 else await pg.click('#edClose')
         out.append(await measure('Editor öffnen/schließen', ed))
         for t in ['quinten', 'solo', 'griffbrett']:
-            async def tab(i, t=t): await pg.click('#tab-' + t) if i % 2 == 0 else await pg.click('#tab-looper')
+            async def tab(i, t=t): await open_tab(pg, t) if i % 2 == 0 else await pg.click('#tab-looper')
             out.append(await measure('Reiter ' + t + '/Looper', tab))
         async def th(i): await pg.evaluate("(()=>{const p=document.getElementById('optikPop'); if(p) p.hidden=false;})()"); await pg.select_option('#appTheme', ['metal', 'nordic'][i % 2])
         out.append(await measure('Optik wechseln', th, 6))

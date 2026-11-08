@@ -1,6 +1,7 @@
 # v126: Kurs Kapitel 3 „Intervall-Werkstatt“ – Schritte, Intervalle (Töne nachgerechnet), Akkord-Baukasten (alle Formeln), Quiz, Speicher, kein Überlauf, quer/hoch, EN
 import asyncio, os, itertools, re
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 U = os.environ.get('U', 'http://localhost:8765/index.html')
 SHOT = os.environ.get('SHOT', '/tmp/v126werkstatt')
 ok = 0; tot = 0
@@ -21,7 +22,7 @@ async def main():
         pg.on('pageerror', lambda e: errs.append(str(e))); pg.on('dialog', lambda d: asyncio.ensure_future(d.accept()))
         await pg.goto(U); await pg.wait_for_timeout(1300)
         import re as _re; check('Version ab v126', int(_re.search(r'v(\d+)', await pg.inner_text('.brand')).group(1)) >= 126)
-        await pg.click('#tab-power'); await pg.wait_for_timeout(300); await pg.click('#pcSubs [data-sec=kurs]'); await pg.wait_for_timeout(300)
+        await open_tab(pg, 'power'); await pg.wait_for_timeout(300); await pg.click('#pcSubs [data-sec=kurs]'); await pg.wait_for_timeout(300)
         check('Werkstatt träge (erst beim Aufklappen von Kapitel 3)', await pg.evaluate("!!window.PcWerk && !document.querySelector('#pcKC3 .pc-w')"))
         await pg.evaluate("document.getElementById('pcKC3').open=true"); await pg.wait_for_timeout(400)
         check('Werkstatt gebaut: Schritte, 13 Intervall-Knöpfe, Merkkarten', await pg.evaluate("(()=>{const w=document.querySelector('#pcKC3 .pc-w');return w&&[...w.querySelectorAll('[data-w=st]')].map(b=>b.textContent).join('|')==='1 Eine Saite|2 Abstand = Intervall|3 Zwei Saiten|4 Powerchord|5 Alles zusammen| Übungen'&&w.querySelectorAll('.pc-wivrow [data-w=iv]').length===13&&w.querySelectorAll('.pc-wcard').length>=5})()"))
@@ -152,7 +153,7 @@ async def main():
         await ctx.close()
         c2 = await b.new_context(viewport={'width': 1366, 'height': 1024}); pg = await c2.new_page(); e2 = []
         pg.on('pageerror', lambda e: e2.append(str(e)))
-        await pg.goto(U + '?lang=en'); await pg.wait_for_timeout(1200); await pg.click('#tab-power'); await pg.wait_for_timeout(300); await pg.click('#pcSubs [data-sec=kurs]'); await pg.wait_for_timeout(300)
+        await pg.goto(U + '?lang=en'); await pg.wait_for_timeout(1200); await open_tab(pg, 'power'); await pg.wait_for_timeout(300); await pg.click('#pcSubs [data-sec=kurs]'); await pg.wait_for_timeout(300)
         await pg.evaluate("document.getElementById('pcKC3').open=true"); await pg.wait_for_timeout(400)
         t = await pg.evaluate("[[...document.querySelectorAll('#pcKC3 [data-w=st]')].map(b=>b.textContent).join('|'),document.querySelector('#pcKC3 [data-w=iv][data-n=\"4\"]').textContent,document.querySelector('#pcKC3 [data-w=play][data-v=both]').textContent,document.querySelector('#pcKC3 .pc-wcard').textContent]")
         check('EN: Knöpfe englisch, Merkkarten deutsch', t[0].startswith('1 One string') and 'maj. 3rd' in t[1] and t[2] == 'Together' and 'Zahlen' in t[3], t)

@@ -2,6 +2,7 @@
 # der geladenen Datei und scrollt mit; gedehnte Datei → klare Meldung statt Text eines anderen Liedes; Improvisation folgt der neuen Spur
 import asyncio, json
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 T = '/home/claude/3nps/test/'; U = 'http://localhost:8765/index.html'
 ok = 0; tot = 0
 def check(n, c, info=''):
@@ -37,7 +38,7 @@ async def main():
         if not await pg.evaluate("Looper.running()"): await pg.click('#loopAll')
         await pg.wait_for_timeout(300)
         check('Improvisation folgt der neuen Spur', await pg.evaluate("SoloInfo().track") == 1)
-        await pg.click('#tab-singen')
+        await open_tab(pg, 'singen')
         await pg.evaluate("(()=>{const s=Looper.singSrc(1);Looper.seek(1,Sing.b2f(11.5,s.beats)-s.origPos)})()"); await pg.wait_for_timeout(600)
         w = await pg.evaluate("document.getElementById('sbLine') && document.getElementById('sbLine').textContent"); y1 = await pg.evaluate("document.getElementById('sbList').style.transform")
         check('Mitsingen zeigt den Text der geladenen Datei', w and 'neu0' in w and 'alter' not in w, w)
@@ -47,13 +48,13 @@ async def main():
         # dritte Datei ohne Leeren → gedehnt: kein fremder Text, sondern Hinweis
         await pg.click('#tab-looper'); await load(pg, T + 'corpus/ballad_72.wav', '#file0', clear=False)
         if not await pg.evaluate("Looper.running()"): await pg.click('#loopAll')
-        await pg.evaluate("Looper.seek(0, 10)"); await pg.click('#tab-singen'); await pg.wait_for_timeout(800)
+        await pg.evaluate("Looper.seek(0, 10)"); await open_tab(pg, 'singen'); await pg.wait_for_timeout(800)
         info = await pg.evaluate("[document.getElementById('sbLine') && document.getElementById('sbLine').textContent, SoloInfo().track]")
         check('gedehnte Datei ohne Text: Mitsingen bleibt beim laufenden Lied mit Text (nie der alte fremde Text)', info[0] and 'neu' in info[0] and 'alter' not in info[0], info)
         # nur die gedehnte Datei läuft → Hinweis
         await pg.click('#tab-looper'); await pg.click('#clear1'); await pg.wait_for_timeout(200); await pg.click('#clear1'); await pg.wait_for_timeout(300)
         if not await pg.evaluate("Looper.running()"): await pg.click('#loopAll')
-        await pg.click('#tab-singen'); await pg.wait_for_timeout(800)
+        await open_tab(pg, 'singen'); await pg.wait_for_timeout(800)
         e = await pg.evaluate("[Looper.trackUsed(1), document.getElementById('sbEmpty').hidden, document.getElementById('sbEmpty').textContent]")
         check('läuft nur eine Datei ohne Text: Hinweis statt fremdem Text', e[1] is False and ('Text mit Zeiten' in e[2] or 'gedehnt' in e[2]), e)
         check('keine Skriptfehler', not errs, errs)

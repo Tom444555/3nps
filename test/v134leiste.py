@@ -2,6 +2,7 @@
 # rechts „→ nächster Akkord“ und „noch n Takte“; nichts springt; Text nur bei Takt-/Blockwechsel.
 import asyncio, re
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 U = 'http://localhost:8765/index.html'
 ok = 0; tot = 0
 def check(n, c, info=''):
@@ -19,8 +20,8 @@ async def main():
         check('Version ab v134', int(re.search(r'v(\d+)', await pg.inner_text('.brand')).group(1)) >= 134)
         await pg.evaluate("document.getElementById('bpm').value = 160; document.getElementById('bpm').dispatchEvent(new Event('input'))")
         await pg.evaluate("Jam.setSeq('Cm:8 G:2 Eb F')")
-        await pg.click('#tab-jam'); await pg.evaluate("Jam.start()"); await pg.wait_for_timeout(800)
-        await pg.click('#tab-solo'); await pg.wait_for_timeout(600)
+        await open_tab(pg, 'jam'); await pg.evaluate("Jam.start()"); await pg.wait_for_timeout(800)
+        await open_tab(pg, 'solo'); await pg.wait_for_timeout(600)
         await pg.evaluate("document.querySelector('#sfZoom [data-z=\"2\"]').click()"); await pg.wait_for_timeout(500)
         segs = await pg.evaluate("[...document.querySelectorAll('#sfStrip .sf-seg')].map(s=>[s.classList.contains('long'),s.querySelector('b').textContent,(s.querySelector('.sf-nx')||{}).textContent||''])")
         check('Langer Block (Cm, 8 Takte) hat Name links/rechts und „→ G“', segs[0][0] and segs[0][2] == '→ G', segs[:3])
@@ -53,8 +54,8 @@ async def main():
         # EN
         await pg.evaluate("Jam.stop()")
         await pg.goto(U + '?lang=en'); await pg.wait_for_timeout(800)
-        await pg.evaluate("Jam.setSeq('Cm:8 G:2 Eb F')"); await pg.click('#tab-jam'); await pg.evaluate("Jam.start()"); await pg.wait_for_timeout(600)
-        await pg.click('#tab-solo'); await pg.wait_for_timeout(1200)
+        await pg.evaluate("Jam.setSeq('Cm:8 G:2 Eb F')"); await open_tab(pg, 'jam'); await pg.evaluate("Jam.start()"); await pg.wait_for_timeout(600)
+        await open_tab(pg, 'solo'); await pg.wait_for_timeout(1200)
         g = await pg.evaluate(GEO)
         check('EN: Countdown „n bars“', g and g.get('long') and re.match(r'^\d+ bars?( left)?$', g['cd'] or ''), g)
         await pg.evaluate("Jam.stop()")

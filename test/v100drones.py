@@ -2,6 +2,7 @@
 import asyncio, base64, os
 import numpy as np
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 T = '/home/claude/3nps/test/'; U = 'http://localhost:8765/index.html'
 OUT = os.environ.get('OUT', '')
 PATCH = open(T + 'firsthit.py').read().split('PATCH = r"""')[1].split('"""')[0]
@@ -17,7 +18,7 @@ async def main():
         pg = await (await b.new_context(viewport={'width': 1180, 'height': 900})).new_page(); errs = []
         pg.on('pageerror', lambda e: errs.append(str(e)))
         await pg.add_init_script(PATCH); await pg.goto(U); await pg.wait_for_timeout(800)
-        await pg.click('#tab-griffbrett'); await pg.select_option('#root', 'A')
+        await open_tab(pg, 'griffbrett'); await pg.select_option('#root', 'A')
         for st, name in [('v9', 'Heldensaga'), ('v10', 'Kathedrale'), ('v11', 'Schlachtfeld')]:
             await pg.select_option('#droneStyle', st)
             await pg.evaluate("ensureAudio(); ensureMasterBus(); __rec()")

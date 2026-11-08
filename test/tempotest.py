@@ -1,6 +1,7 @@
 # Tempo ändern bei laufenden Drums (frei): Muster läuft ohne Sprung weiter, Abstände wechseln sauber
 import asyncio
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 res = []
 def check(name, ok, info=''):
     res.append(bool(ok)); print(('OK    ' if ok else 'FEHLER') + '  ' + name + ('  · ' + str(info) if info != '' else ''))
@@ -23,7 +24,7 @@ async def main():
     async with async_playwright() as p:
         b = await p.chromium.launch(args=['--autoplay-policy=no-user-gesture-required']); pg = await b.new_page()
         await pg.goto('http://localhost:8765/index.html'); await pg.wait_for_timeout(800)
-        await pg.click('#tab-griffbrett'); await pg.evaluate("ensureAudio(); Rhythm.setOn(true)")
+        await open_tab(pg, 'griffbrett'); await pg.evaluate("ensureAudio(); Rhythm.setOn(true)")
         for _ in range(20):
             await pg.wait_for_timeout(250)
             if await pg.evaluate("Rhythm.on()"): break

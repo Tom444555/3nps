@@ -1,6 +1,7 @@
 # v113: Bilder für den Reiter „Anleitung“ – echte Bildschirmfotos der App mit Beispieldaten (iPad quer), als JPEG nach app/www/hilfe/
 import asyncio, os, subprocess, sys
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 T = '/home/claude/3nps/test/'; OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../app/www/hilfe/'); TMP = '/tmp/hilfe_png/'
 os.makedirs(OUT, exist_ok=True); os.makedirs(TMP, exist_ok=True)
 U = 'http://localhost:8765/'
@@ -50,7 +51,7 @@ async def main():
         await pg.keyboard.press('Escape'); await pg.goto(U + 'index.html'); await pg.wait_for_timeout(1500)
         for tab, name in [('solo', 'improvisation'), ('caged', 'caged'), ('quinten', 'quintenzirkel'), ('jam', 'backing'), ('lied', 'songwriting'), ('singen', 'mitsingen'), ('ueben', 'training'), ('griffbrett', 'technik')]:
             if await pg.locator('#tab-' + tab).count() == 0: continue
-            await pg.click('#tab-' + tab); await pg.wait_for_timeout(1200); await pg.evaluate('window.scrollTo(0,0)')
+            await open_tab(pg, tab); await pg.wait_for_timeout(1200); await pg.evaluate('window.scrollTo(0,0)')
             await pg.screenshot(path=TMP + name + '.png'); jpg(name)
         # Studio
         await pg.goto(U + 'studio/'); await pg.wait_for_timeout(1500)

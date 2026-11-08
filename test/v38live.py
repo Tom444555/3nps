@@ -1,6 +1,7 @@
 # v38: Live-Schalter (keine Analyse/Sicherung, eingefrorene Anzeigen, Nachholen) + Hänger-Protokoll mit App-Ereignissen
 import asyncio
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 U = 'http://localhost:8765/index.html'; T = '/home/claude/3nps/test/'
 ok = 0; tot = 0
 def check(n, c, info=''):
@@ -30,7 +31,7 @@ async def main():
         await pg.evaluate("Looper.foot(1)"); await pg.wait_for_timeout(9000); await pg.evaluate("Looper.foot(1)"); await pg.wait_for_timeout(2500)
         evs = await pg.evaluate("window.__appEv.map(e=>e[1])")
         check('Live: nach Aufnahme keine Analyse', 'Aufnahme Ende Spur 2' in evs and 'Analyse Spur 2' not in evs, evs[-5:])
-        await pg.click('#tab-quinten'); await pg.wait_for_timeout(300); await pg.click('#tab-looper')
+        await open_tab(pg, 'quinten'); await pg.wait_for_timeout(300); await pg.click('#tab-looper')
         # Live aus → nachholen
         await pg.click('#liveBtn'); await pg.wait_for_timeout(5500)
         evs = await pg.evaluate("window.__appEv.map(e=>e[1])")

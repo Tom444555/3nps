@@ -1,6 +1,7 @@
 # v25: Reiter Jam – Akkordfolge, Begleitung folgt den Akkorden, Tempo-Trainer, Zusammenspiel mit Looper/Solo Finder/Zirkel
 import asyncio
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 T = '/home/claude/3nps/test/'; O = '/tmp/claude-0/-home-claude-3nps/2ba96aef-49c7-541d-8e92-473a90edb2fb/scratchpad/'
 res = []
 def check(name, ok, info=''):
@@ -12,9 +13,9 @@ async def main():
         ctx = await b.new_context(viewport={'width': 1024, 'height': 1366}); pg = await ctx.new_page(); errs = []
         pg.on('pageerror', lambda e: errs.append(str(e)))
         await pg.goto('http://localhost:8765/index.html'); await pg.wait_for_timeout(800)
-        tabs = await pg.evaluate("[...document.querySelectorAll('.tab')].map(t => t.textContent)")
+        tabs = await pg.evaluate("[document.getElementById('tab-looper')].concat([...document.querySelectorAll('#subNav [data-tab]')]).map(t => t.textContent)")  # v136: Unterpunkte der neuen Navigation
         check('Reiter Backing Track vorhanden', 'Backing Track' in tabs, tabs)
-        await pg.click('#tab-jam'); await pg.wait_for_timeout(300)
+        await open_tab(pg, 'jam'); await pg.wait_for_timeout(300)
         check('Drum-Spur wandert in den Jam', await pg.evaluate("!!document.querySelector('#jamDrumsHome .lane-drums')"))
         # Eingabe
         r = await pg.evaluate("[Jam.parse('Am F C G'), Jam.parse('Am7:2 D7 Hm Bb F#m7b5'), Jam.parse('C:½ G:0,5 Xy Fmaj7')].map(x => [x.seq.map(c => c.r + c.t + '/' + c.beats).join(' '), x.bad.join(' ')])")
@@ -61,7 +62,7 @@ async def main():
                 if x[1] != exp: bad += 1
         check('Bass spielt Grundton des jeweiligen Akkords, wechselt genau mit', firsts and bad == 0 and len(firsts) >= 8, f'{len(firsts)} Basstöne · {bad} falsch')
         # Solo Finder und Zirkel folgen
-        await pg.click('#tab-solo'); await pg.wait_for_timeout(600)
+        await open_tab(pg, 'solo'); await pg.wait_for_timeout(600)
         segs = await pg.evaluate("[...document.querySelectorAll('#sfStrip .sf-seg b')].map(b => b.textContent)")
         src = await pg.inner_text('#sfKeySrc')
         ok2 = 0
@@ -70,11 +71,11 @@ async def main():
             a = await pg.evaluate("[document.querySelector('#sfStrip .sf-seg.on b')?.textContent, Jam.nowChord()?.name]")
             if a[0] and a[1] and a[0] == a[1]: ok2 += 1
         check('Solo Finder zeigt die Jam-Folge, Tonart „aus dem Backing Track“', segs == ['Am', 'F', 'C', 'G'] and src == 'aus dem Backing Track' and ok2 >= 10, f'{segs} · {src} · {ok2}/12')
-        await pg.click('#tab-quinten'); await pg.wait_for_timeout(500)
+        await open_tab(pg, 'quinten'); await pg.wait_for_timeout(500)
         c3 = await pg.evaluate("document.querySelector('.qz-c3').textContent")
         check('Quintenzirkel zeigt den Jam-Akkord', c3.startswith('♪'), c3)
         # Stopp
-        await pg.click('#tab-jam'); await pg.click('#jamPlay'); await pg.wait_for_timeout(400)
+        await open_tab(pg, 'jam'); await pg.click('#jamPlay'); await pg.wait_for_timeout(400)
         check("Stopp: Jam aus, Bass-Akkordfolge gelöst, eigene Drums aus, Knopf zurück", not await pg.evaluate("document.getElementById('jamPlay').classList.contains('playing')") and not await pg.evaluate("Jam.active()") and await pg.evaluate("window.bassChordAt == null") and not await pg.evaluate("Rhythm.on()"))
         # Tempo-Trainer: 100 → 108, +4 jeden Durchlauf; Folge 1 Takt Am (2,4 s bei 100)
         await pg.evaluate("Jam.setSeq('Am')")
@@ -100,7 +101,7 @@ async def main():
             if await pg.is_visible('#impDlg'): await pg.click('#impOk')
             if await pg.evaluate("!!Looper._chords(0)"): break
         if not await pg.evaluate("Looper.busy()"): await pg.click('#loopAll'); await pg.wait_for_timeout(300)
-        await pg.click('#tab-jam'); await pg.click('#jamPlay'); await pg.wait_for_timeout(300)
+        await open_tab(pg, 'jam'); await pg.click('#jamPlay'); await pg.wait_for_timeout(300)
         s1 = await pg.inner_text('#jamStatus')
         check('Looper läuft: Jam startet nicht, sagt warum', not await pg.evaluate("Jam.active() || !!Jam.debug()") and 'Looper' in s1, s1)
         await pg.click('#jamPlay'); await pg.wait_for_timeout(2600)
@@ -111,7 +112,7 @@ async def main():
         # gespeichert
         await pg.evaluate("Jam.setSeq('Em C G D:2')"); await pg.reload(); await pg.wait_for_timeout(900)
         check('Folge bleibt nach Neustart erhalten', await pg.evaluate("Jam.state().seq.map(c => c.r + c.t + '/' + c.beats).join(' ')") == '4m/4 0/4 7/4 2/8')
-        await pg.set_viewport_size({'width': 390, 'height': 844}); await pg.click('#tab-jam'); await pg.wait_for_timeout(400)
+        await pg.set_viewport_size({'width': 390, 'height': 844}); await open_tab(pg, 'jam'); await pg.wait_for_timeout(400)
         check('Schmal: kein seitliches Scrollen', await pg.evaluate("document.documentElement.scrollWidth") <= 390)
         await pg.screenshot(path=O + 'v25_jam_schmal.png', full_page=True)
         check('Keine Skriptfehler', not errs, errs[:3])

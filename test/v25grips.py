@@ -1,6 +1,7 @@
 # v25: Akkordgriffe im Solo Finder
 import asyncio
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 T = '/home/claude/3nps/test/'; O = '/tmp/claude-0/-home-claude-3nps/2ba96aef-49c7-541d-8e92-473a90edb2fb/scratchpad/'
 res = []
 def check(name, ok, info=''):
@@ -11,7 +12,7 @@ async def main():
         pg = await b.new_page(viewport={'width': 1024, 'height': 1366}); errs = []
         pg.on('pageerror', lambda e: errs.append(str(e)))
         await pg.goto('http://localhost:8765/index.html'); await pg.wait_for_timeout(800)
-        await pg.click('#tab-solo'); await pg.wait_for_timeout(300)
+        await open_tab(pg, 'solo'); await pg.wait_for_timeout(300)
         await pg.select_option('#sfKeySel', '0:M'); await pg.wait_for_timeout(200)
         check('Start: Griffbild zeigt Tonleiter', 'Tonleiter' in await pg.inner_text('#sfNeckMode .active') and await pg.evaluate("document.getElementById('sfGrips').hidden"))
         await pg.click('.sf-ch:has-text("Am")'); await pg.wait_for_timeout(300)
@@ -38,7 +39,7 @@ async def main():
             await pg.wait_for_timeout(250)
             if await pg.is_visible('#impDlg'): await pg.click('#impOk')
             if await pg.evaluate("!!Looper._chords(0)"): break
-        await pg.click('#tab-solo'); await pg.wait_for_timeout(300)
+        await open_tab(pg, 'solo'); await pg.wait_for_timeout(300)
         if not await pg.evaluate("document.getElementById('sfFollow').checked"): await pg.click('#sfFollow')
         await pg.select_option('#sfKeySel', 'auto')
         await pg.click('#sfNeckMode button[data-m="grip"]')

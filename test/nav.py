@@ -8,5 +8,7 @@ async def tab(pg, name):
     if name == 'hilfe':
         if await pg.get_attribute('#tab-hilfe', 'aria-pressed') != 'true': await pg.click('#tab-hilfe')
         return
+    if not await pg.query_selector('#area-' + AREA[name]):   # ältere Fassung (vor v136, z. B. Vergleich gegen alte index.html): alter Reiter-Knopf
+        await pg.click('#tab-' + name); return
     await pg.click('#area-' + AREA[name])
     if await pg.get_attribute('#tab-' + name, 'aria-selected') != 'true': await pg.click('#tab-' + name)

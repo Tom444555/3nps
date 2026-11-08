@@ -1,6 +1,7 @@
 # v95: ruhiges Mitsingen – Zeilen behalten ihre Höhe, eine Fahrt pro Zeilenwechsel, aktuelle Zeile immer an derselben Stelle, Wortbalken wieder da
 import asyncio, json
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 T = '/home/claude/3nps/test/'; U = 'http://localhost:8765/index.html'
 ok = 0; tot = 0
 def check(n, c, info=''):
@@ -27,7 +28,7 @@ async def main():
             if await pg.evaluate("!!(window.SoloInfo && Sing.source(SoloInfo()))"): break
             await pg.wait_for_timeout(250)
         if not await pg.evaluate("Looper.running()"): await pg.click('#loopAll')
-        await pg.click('#tab-solo'); await pg.wait_for_timeout(400); await pg.click('#tab-singen')
+        await open_tab(pg, 'solo'); await pg.wait_for_timeout(400); await open_tab(pg, 'singen')
         await pg.evaluate(SEEK % 3.0); await pg.wait_for_timeout(300)
         samples = []
         for _ in range(170):            # ~ 25 s mitlaufen (72 BPM ≈ 0,83 s/Schlag → bis Schlag ~33)

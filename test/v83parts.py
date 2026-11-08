@@ -1,6 +1,7 @@
 # v83: Akkord von Hand ändern (Halten in der Akkordleiste), Teile markieren (Spur, Karte, Leadsheet), Teil-Schleife mit Tempo-Trainer
 import asyncio, json
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 T = '/home/claude/3nps/test/'; U = 'http://localhost:8765/index.html'
 ok = 0; tot = 0
 def check(n, c, info=''):
@@ -20,7 +21,7 @@ async def main():
             if await pg.is_visible('#impDlg'): await pg.click('#impOk')
             if (await pg.inner_text('#loopStatus')).startswith('Spur 1:'): break
         if await pg.evaluate("Looper.running()"): await pg.click('#loopAll')
-        await pg.click('#tab-solo'); await pg.wait_for_timeout(700)
+        await open_tab(pg, 'solo'); await pg.wait_for_timeout(700)
         # 1) Akkord halten → ändern
         n0 = await pg.evaluate("SoloInfo().segs[1].name")
         bx = await pg.evaluate("(()=>{const r=document.querySelector('#sfStrip .sf-seg[data-i=\"1\"]').getBoundingClientRect();return [r.x+r.width/2,r.y+r.height/2]})()")

@@ -1,6 +1,7 @@
 # v25: Mithören im Solo Finder – Eingang über Testdatei (A C E F F#), Einordnung zu Am in C-Dur
 import asyncio
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 O = '/tmp/claude-0/-home-claude-3nps/2ba96aef-49c7-541d-8e92-473a90edb2fb/scratchpad/'
 res = []
 def check(name, ok, info=''):
@@ -12,7 +13,7 @@ async def main():
         pg = await ctx.new_page(); errs = []
         pg.on('pageerror', lambda e: errs.append(str(e)))
         await pg.goto('http://localhost:8765/index.html'); await pg.wait_for_timeout(800)
-        await pg.click('#tab-solo'); await pg.wait_for_timeout(300)
+        await open_tab(pg, 'solo'); await pg.wait_for_timeout(300)
         check('Mithören ist aus, kein Eingang offen', not await pg.evaluate("SoloFinder.listen().on") and await pg.evaluate("document.getElementById('sfLive').hidden") and not await pg.evaluate("Looper.debug().mic"))
         await pg.select_option('#sfKeySel', '0:M'); await pg.click('.sf-ch:has-text("Am")'); await pg.click('.sf-sc >> nth=0'); await pg.wait_for_timeout(200)
         await pg.click('#sfListen'); await pg.wait_for_timeout(800)
@@ -36,7 +37,7 @@ async def main():
         st = await pg.evaluate("SoloFinder.listen().st")
         check('Zähler zählt jeden Ton einmal', 4 <= sum(st.values()) <= 12, st)
         await pg.click('#tab-looper'); await pg.wait_for_timeout(300)
-        await pg.click('#tab-solo'); await pg.wait_for_timeout(600)
+        await open_tab(pg, 'solo'); await pg.wait_for_timeout(600)
         check('Nach Reiterwechsel läuft Mithören weiter', await pg.evaluate("SoloFinder.listen().on"))
         await pg.click('#sfListen'); await pg.wait_for_timeout(200)
         check('Ausschalten: Anzeige weg, Looper-Eingang bleibt nutzbar', not await pg.evaluate("SoloFinder.listen().on") and await pg.evaluate("document.getElementById('sfLive').hidden") and await pg.evaluate("Looper.debug().mic"))

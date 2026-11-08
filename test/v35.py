@@ -1,6 +1,7 @@
 # v35: Leistungsfenster anheften/verschieben/kompakt (bleibt offen, Position gespeichert) + Optiken Hell, Präzision, DJ-Pult
 import asyncio, re
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 U = 'http://localhost:8765/index.html'
 ok = 0; tot = 0
 def check(n, c, info=''):
@@ -45,7 +46,7 @@ async def main():
         # Pedal und Bedienung gehen weiter
         await pg.keyboard.press('ArrowUp'); await pg.wait_for_timeout(250)
         check('Pedal mit angeheftetem Fenster', 'Spur 1' in await pg.inner_text('#pedalLast'))
-        await pg.click('#tab-jam'); await pg.wait_for_timeout(200)
+        await open_tab(pg, 'jam'); await pg.wait_for_timeout(200)
         check('Reiterwechsel, Fenster bleibt', await pg.evaluate("document.getElementById('panel-jam').hidden===false && !document.getElementById('perfPop').hidden"))
         # Neustart: offen, gleiche Stelle, kompakt
         before = await pg.evaluate(STATE)

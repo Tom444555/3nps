@@ -2,6 +2,7 @@
 # Startzeiten = Akkordwechsel im Taktraster, Abstand = Länge des Teils, Dauer × Tempo-Faktor = Länge der Aufnahme
 import asyncio
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 T = '/home/claude/3nps/test/'
 res = []
 def check(name, ok, info=''):
@@ -18,7 +19,7 @@ async def main():
             if await pg.evaluate("!!Looper._chords(0)"): break
         await pg.click('#loopSong'); await pg.wait_for_timeout(200); await pg.click('#ldDOk'); await pg.wait_for_timeout(800)
         await pg.click('#loopAll'); await pg.wait_for_timeout(300)
-        await pg.click('#tab-lied'); await pg.wait_for_timeout(300)
+        await open_tab(pg, 'lied'); await pg.wait_for_timeout(300)
         await pg.click('.ld-blk >> nth=0'); await pg.click('#ldOrdEdit [data-a="plus"]'); await pg.click('#ldOrdEdit [data-a="plus"]')
         await pg.click('#ldPlay'); await pg.wait_for_timeout(200)
         if not await pg.evaluate("document.getElementById('ldPlay').classList.contains('playing')"): await pg.click('#ldPlay')

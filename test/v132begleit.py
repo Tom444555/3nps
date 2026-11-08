@@ -1,6 +1,7 @@
 # v132: Begleit-Tracks aus der App (Bass Grundton/Terz/Slash, Fläche, Arpeggio mit Delay, Drums) – startbar aus den Kapiteln
 import asyncio, os, re
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 U = os.environ.get('U', 'http://localhost:8765/index.html')
 SHOT = os.environ.get('SHOT', '/tmp/v132begleit')
 ok = 0; tot = 0
@@ -34,7 +35,7 @@ async def main():
         check('Delay füllt nach (mehr Nachklang zwischen den Tönen als ohne Delay)', a['wetE'] > a['dryE'] * 1.1, (a['wetE'], a['dryE']))
         check('Ohne Stil, Bass und Drums: Stille', a['silent'])
         check('Rechnen schnell (4 Takte < 1,5 s) – Looper unberührt, alles vorab berechnet', a['dt'] < 1500, round(a['dt']))
-        await pg.click('#tab-power'); await pg.wait_for_timeout(400)
+        await open_tab(pg, 'power'); await pg.wait_for_timeout(400)
         await pg.evaluate("document.querySelectorAll('#pcSecKurs details.pc-kc').forEach(d=>d.open=true)"); await pg.wait_for_timeout(1500)
         bts = await pg.evaluate("[...document.querySelectorAll('#pcSecKurs [data-k=bt]')].map(b=>b.dataset.kt)")
         check('Begleit-Tracks in den Kapiteln (≥ 11, u. a. Kap. 5, 8, 9, 10, 11, 12, 13, 14, 15)', len(bts) >= 11 and {int(x.split('.')[0]) + 1 for x in bts} >= {5, 8, 9, 10, 11, 12, 13, 14, 15}, bts)
@@ -55,7 +56,7 @@ async def main():
         await ctx.close()
         c2 = await b.new_context(viewport={'width': 1366, 'height': 1024}); pg = await c2.new_page(); e2 = []
         pg.on('pageerror', lambda e: e2.append(str(e)))
-        await pg.goto(U + '?lang=en'); await pg.wait_for_timeout(1200); await pg.click('#tab-power'); await pg.wait_for_timeout(300)
+        await pg.goto(U + '?lang=en'); await pg.wait_for_timeout(1200); await open_tab(pg, 'power'); await pg.wait_for_timeout(300)
         await pg.evaluate("document.getElementById('pcKC14').open=true"); await pg.wait_for_timeout(500)
         t = await pg.evaluate("[document.querySelector('#pcKC14 .pc-kbts h5').textContent, document.querySelector('#pcKC14 [data-k=bt]').textContent]")
         check('EN: Begleit-Tracks englisch', t[0] == 'Backing tracks' and 'Backing track' in t[1], t)

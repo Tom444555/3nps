@@ -1,6 +1,7 @@
 # v65: Gesangsspur so hoch wie die Akkordleiste, Raster, Ziehen mit Einrast-Anzeige, Wort in der Spur ändern/löschen/teilen/einfügen, Scroll gekoppelt
 import asyncio, json
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 T = '/home/claude/3nps/test/'; U = 'http://localhost:8765/index.html'
 ok = 0; tot = 0
 def check(n, c, info=''):
@@ -23,7 +24,7 @@ async def main():
             if await pg.is_visible('#impDlg'): await pg.click('#impOk')
             if (await pg.inner_text('#loopStatus')).startswith('Spur 1:'): break
         await pg.click('#tab-looper'); await pg.click('#loopAll') if await pg.evaluate("Looper.debug().tracks[0].state==='playing'") else None
-        await pg.click('#tab-solo'); await pg.wait_for_timeout(600)
+        await open_tab(pg, 'solo'); await pg.wait_for_timeout(600)
         h = await pg.evaluate("[document.getElementById('sgStrip').offsetHeight, document.getElementById('sfStrip').offsetHeight]")
         check('Spur so hoch wie die Akkordleiste', h[0] == h[1] and h[0] >= 90, h)
         g = await pg.evaluate("[document.querySelectorAll('#sgStrip .sg-gbar').length, document.querySelectorAll('#sgStrip .sg-gbeat').length, document.querySelectorAll('#sgStrip .sg-g16').length, document.querySelectorAll('#sfStrip .sf-bar').length]")
@@ -147,7 +148,7 @@ async def main():
         off = await pg.evaluate("""(()=>new Promise(res=>{const a=document.getElementById('sfBand'),b=document.getElementById('sgBand');a.scrollTo({left:a.scrollLeft+400,behavior:'smooth'});let mx=0,n=0;const t=setInterval(()=>{mx=Math.max(mx,Math.abs(a.scrollLeft-b.scrollLeft));if(++n>20){clearInterval(t);res(mx)}},16)}))()""")
         check('Spur folgt der Akkordleiste ohne Versatz', off <= 1, off)
         # Abspielstrich auch in der Spur
-        await pg.set_viewport_size({'width': 1180, 'height': 900}); await pg.click('#tab-looper'); await pg.click('#loopAll'); await pg.click('#tab-solo'); await pg.wait_for_timeout(600)
+        await pg.set_viewport_size({'width': 1180, 'height': 900}); await pg.click('#tab-looper'); await pg.click('#loopAll'); await open_tab(pg, 'solo'); await pg.wait_for_timeout(600)
         ph = await pg.evaluate("[document.getElementById('sgPh').style.transform, document.getElementById('sfPh').style.transform]")
         check('Abspielstrich in der Spur', ph[0] and ph[0] == ph[1], ph)
         wt = await pg.evaluate("(()=>{const src=Sing.source(SoloInfo());return Sing.wordsToTok([{w:'a',a:2,e:2.1},{w:'b',a:2.01,e:2.1},{w:'c',a:2.02,e:2.2},{w:'d',a:2.03,e:2.3}],src).map(t=>t.b)})()")

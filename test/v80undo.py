@@ -1,6 +1,7 @@
 # v80: Rückgängig/Wiederholen für alle Textänderungen (Ziehen, Tauschen, Löschen), Tastatur ⌘Z; Versionen bei „Lieder mit Text“
 import asyncio, json
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 T = '/home/claude/3nps/test/'; U = 'http://localhost:8765/index.html'
 ok = 0; tot = 0
 def check(n, c, info=''):
@@ -21,7 +22,7 @@ async def main():
             if await pg.is_visible('#impDlg'): await pg.click('#impOk')
             if (await pg.inner_text('#loopStatus')).startswith('Spur 1:'): break
         if await pg.evaluate("Looper.running()"): await pg.click('#loopAll')
-        await pg.click('#tab-solo'); await pg.wait_for_timeout(700)
+        await open_tab(pg, 'solo'); await pg.wait_for_timeout(700)
         t0 = await pg.evaluate(TK)
         await pg.click('#sgStrip .sg-w[data-i="2"]'); await pg.wait_for_timeout(300)
         check('Fokusleiste: ↶ ↷ da, noch nichts rückgängig zu machen', await pg.is_visible('#sgFUndoE') and await pg.evaluate("document.getElementById('sgFUndoE').disabled"))

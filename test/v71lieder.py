@@ -1,6 +1,7 @@
 # v71: Ideen und „Lieder mit Text“ aufklappbar; Songdatei + Text speichern, laden (ohne Rückfrage, Text zurück), Text teilen, löschen; v24 sieht den Eintrag als Idee
 import asyncio, json, sys
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 T = '/home/claude/3nps/test/'; U = 'http://localhost:8765/index.html'; P = 'http://localhost:8790/3nps/'
 ok = 0; tot = 0
 def check(n, c, info=''):
@@ -25,7 +26,7 @@ async def main():
         check('Ideen und Lieder mit Text als aufklappbare Bereiche', f[0] and f[1], f)
         await pg.evaluate("localStorage.removeItem('3nps-fold-ideaFold')")
         await loadfile(pg)
-        await pg.click('#tab-solo'); await pg.wait_for_timeout(700)
+        await open_tab(pg, 'solo'); await pg.wait_for_timeout(700)
         check('Improvisation: Knopf „💾 Lied speichern“ sichtbar', await pg.is_visible('#sgSave'))
         await pg.click('#sgSave'); await pg.wait_for_timeout(600)
         t = await pg.inner_text('#sgSave'); e = await pg.evaluate(LIED)
@@ -53,7 +54,7 @@ async def main():
             if 'mit Text' in await pg.inner_text('#lsInfo'): break
         st = await pg.evaluate("[Looper.singSrc(0)&&Looper.singSrc(0).key, Object.values(JSON.parse(localStorage.getItem('3nps-sing')||'{\"f\":{}}').f).map(r=>r.tok.length)]")
         check('Laden: Datei auf Spur 1, Text wiederhergestellt, keine Rückfrage', st[0] == KEY and st[1] == [10] and not dlg, (st, dlg, await pg.inner_text('#lsInfo')))
-        await pg.click('#tab-solo'); await pg.wait_for_timeout(700)
+        await open_tab(pg, 'solo'); await pg.wait_for_timeout(700)
         check('Improvisation zeigt den Text', await pg.evaluate("document.querySelectorAll('#sgStrip .sg-w').length") == 10)
         await pg.click('#tab-looper'); await pg.wait_for_timeout(300)
         # zweites Laden bei belegten Spuren → Spuren werden (nach Rückfrage) geleert, Lied wieder auf Spur 1 mit Text (v86)

@@ -1,5 +1,6 @@
 import asyncio
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 T='/home/claude/3nps/test/'
 CI="(()=>{const c=Looper.chordInfo(); return [c.track, (c.tracks||[]).map(t=>t.has), document.getElementById('panel-solo').innerText.includes('Noch keine Akkorde')]})()"
 async def main():
@@ -17,7 +18,7 @@ async def main():
             await pg.reload(); await pg.wait_for_timeout(800)
             if live: await pg.click('#liveBtn')
             await pg.click('#ideaList .idea-row button'); await pg.wait_for_timeout(6000)
-            await pg.click('#tab-solo'); await pg.wait_for_timeout(800)
+            await open_tab(pg, 'solo'); await pg.wait_for_timeout(800)
             print('live',live,'nach Idee    ', await pg.evaluate(CI), await pg.evaluate("[...document.querySelectorAll('#ideaList .idea-row button')].map(b=>b.textContent).join('|')"), errs)
             await ctx.close()
         await b.close()

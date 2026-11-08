@@ -1,6 +1,7 @@
 # v93: Einfügen ohne Zeilenumbrüche teilt automatisch; Mitsingen: Abstand bei Pausen, große Akkorde mit Dauer-Balken, Pausenbalken läuft ab
 import asyncio, json
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 T = '/home/claude/3nps/test/'; U = 'http://localhost:8765/index.html'
 ok = 0; tot = 0
 def check(n, c, info=''):
@@ -24,7 +25,7 @@ async def main():
             if await pg.evaluate("!!(window.SoloInfo && Sing.source(SoloInfo()))"): break
             await pg.wait_for_timeout(250)
         if not await pg.evaluate("Looper.running()"): await pg.click('#loopAll')
-        await pg.click('#tab-solo'); await pg.wait_for_timeout(400); await pg.click('#tab-singen')
+        await open_tab(pg, 'solo'); await pg.wait_for_timeout(400); await open_tab(pg, 'singen')
         await pg.evaluate(SEEK % 13.8); await pg.wait_for_timeout(800)
         r = await pg.evaluate("""(()=>{const row=document.querySelector('#sbList .sb-row.cur');const ws=[...row.querySelectorAll('.sb-w')];
           return {pl:ws.map(w=>getComputedStyle(w).paddingLeft), ch:row.querySelectorAll('.sb-ch').length, chf:row.querySelector('.sb-ch')&&parseFloat(getComputedStyle(row.querySelector('.sb-ch')).fontSize), wf:parseFloat(getComputedStyle(row.querySelector('.sb-line')).fontSize),
@@ -39,7 +40,7 @@ async def main():
             g.append(await pg.evaluate("(()=>{const e=document.querySelector('#sbList .sb-gap.on .sb-gaptrack i');return e?parseFloat(e.style.transform.slice(7)):null})()"))
         check('Pause: Balken wird noch berechnet, ist aber seit v95 ausgeblendet', g[0] is not None and g[1] is not None and g[0] > g[1] > 0 and await pg.evaluate("getComputedStyle(document.querySelector('.sb-gaptrack')).display") == 'none', g)
         # Einfügen eines Textes ohne Zeilenumbrüche → automatisch geteilt
-        await pg.click('#tab-solo'); await pg.wait_for_timeout(300); await pg.click('#sgToggle'); await pg.wait_for_timeout(400)
+        await open_tab(pg, 'solo'); await pg.wait_for_timeout(300); await pg.click('#sgToggle'); await pg.wait_for_timeout(400)
         await pg.evaluate("document.querySelectorAll('#sgEdit details.sg-paste').forEach(d=>d.open=true)")
         await pg.fill('#sgText', ' '.join(x for x, _ in L) + ' ' + ' '.join(x for x, _ in L)); await pg.click('#sgTake'); await pg.wait_for_timeout(400)
         r2 = await pg.evaluate("(()=>{const s=Sing.source(SoloInfo());return {l:s.tok.map(t=>t.l), st:document.getElementById('sgStatus').textContent, warn:!!document.getElementById('sgSplit')}})()")

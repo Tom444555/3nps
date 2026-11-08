@@ -2,6 +2,7 @@
 # Mitsingen läuft mit, wenn aus dem Editor (Teil ▶) abgespielt wird
 import asyncio, json, re, time
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 T = '/home/claude/3nps/test/'; U = 'http://localhost:8765/index.html'
 ok = 0; tot = 0
 def check(n, c, info=''):
@@ -20,7 +21,7 @@ async def main():
         pg.on('pageerror', lambda e: errs.append(str(e)))
         await pg.goto(U); await pg.wait_for_timeout(800)
         await load(pg, T + 'sing/lied_de.wav')
-        await pg.click('#tab-solo'); await pg.wait_for_timeout(400)
+        await open_tab(pg, 'solo'); await pg.wait_for_timeout(400)
         key = await pg.evaluate("Sing.source(SoloInfo()).id")
         tok = [{"w": w, "b": None, "l": l} for l, ln in enumerate(LINES) for w in ln.split()]
         await pg.evaluate("(([k,t])=>{const d={v:1,f:{},l:{}};d.f[k]={name:'lied_de.wav',tok:t,parts:[{name:'Strophe',b:0}]};localStorage.setItem('3nps-sing',JSON.stringify(d));Sing._reload();})(%s)" % json.dumps([key, tok]))
@@ -49,9 +50,9 @@ async def main():
         await pg.evaluate("(st=>{const s=Sing.source(SoloInfo()),d=Sing.data();d.f[s.id].parts=[{name:'Strophe',b:Sing.f2b(st*s.sr,s.beats)}];localStorage.setItem('3nps-sing',JSON.stringify(d));Sing._reload();})(%f)" % st)
         await pg.click('#tab-looper')
         if not await pg.evaluate("Looper.running()"): await pg.click('#loopAll')
-        await pg.wait_for_timeout(1500); await pg.click('#tab-solo'); await pg.wait_for_timeout(400)
+        await pg.wait_for_timeout(1500); await open_tab(pg, 'solo'); await pg.wait_for_timeout(400)
         await pg.click('[data-pplay="0"]'); await pg.wait_for_timeout(300)
-        await pg.click('#tab-singen'); await pg.wait_for_timeout(1500)
+        await open_tab(pg, 'singen'); await pg.wait_for_timeout(1500)
         cur = lambda: pg.evaluate("(()=>{const r=document.querySelector('#sbList .sb-row.cur');return r?+r.dataset.l:-1})()")
         l0 = await cur(); tr0 = await pg.evaluate("document.getElementById('sbList').style.transform")
         await pg.wait_for_timeout(9000)

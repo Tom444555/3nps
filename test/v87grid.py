@@ -1,6 +1,7 @@
 # v87: Text bleibt bei geändertem Schlagraster an seiner Zeit (Sekunden gemerkt); alter Text ohne Sekunden lässt sich per „Text umrechnen“ (Tempo von damals) retten
 import asyncio, json
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 T = '/home/claude/3nps/test/'; U = 'http://localhost:8765/index.html'
 ok = 0; tot = 0
 def check(n, c, info=''):
@@ -18,7 +19,7 @@ async def load(pg, bpm=None):
             await pg.fill('#impBpm', str(bpm) if bpm else ''); await pg.click('#impOk')
         if (await pg.inner_text('#loopStatus')).startswith('Spur 1:'): break
     if await pg.evaluate("Looper.running()"): await pg.click('#loopAll')
-    await pg.click('#tab-solo'); await pg.wait_for_timeout(600)
+    await open_tab(pg, 'solo'); await pg.wait_for_timeout(600)
 async def main():
     async with async_playwright() as p:
         b = await p.chromium.launch(args=['--autoplay-policy=no-user-gesture-required'])

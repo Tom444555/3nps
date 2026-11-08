@@ -1,6 +1,7 @@
 # v82: LRC exportieren (Zeile + Wortzeiten), wieder laden (gleiche Zeiten), LRC ohne Wortzeiten, Leadsheet-PDF mit Akkorden
 import asyncio, json, re
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 T = '/home/claude/3nps/test/'; U = 'http://localhost:8765/index.html'
 ok = 0; tot = 0
 def check(n, c, info=''):
@@ -20,7 +21,7 @@ async def main():
             if await pg.is_visible('#impDlg'): await pg.click('#impOk')
             if (await pg.inner_text('#loopStatus')).startswith('Spur 1:'): break
         if await pg.evaluate("Looper.running()"): await pg.click('#loopAll')
-        await pg.click('#tab-solo'); await pg.wait_for_timeout(700); await pg.click('#sgToggle'); await pg.wait_for_timeout(300)
+        await open_tab(pg, 'solo'); await pg.wait_for_timeout(700); await pg.click('#sgToggle'); await pg.wait_for_timeout(300)
         s0 = await pg.evaluate(SECS)
         async with pg.expect_download() as dl: await pg.click('#sgLrcOut')
         txt = open(await (await dl.value).path(), encoding='utf8').read(); ls = [l for l in txt.split('\n') if re.match(r'^\[\d\d:', l)]

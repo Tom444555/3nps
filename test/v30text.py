@@ -2,6 +2,7 @@ import re
 # v30: Songwriting Schritt 3 + 4 – Text mit Silben/Reimen, Leadsheet-PDF, Song-Code mit Claude hin und zurück
 import asyncio, json
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 T = '/home/claude/3nps/test/'; O = '/tmp/claude-0/-home-claude-3nps/2ba96aef-49c7-541d-8e92-473a90edb2fb/scratchpad/'
 res = []
 def check(name, ok, info=''):
@@ -52,7 +53,7 @@ async def main():
         await pg.goto('http://localhost:8765/index.html'); await pg.wait_for_timeout(800)
         _br = await pg.inner_text('.brand'); _m = re.search(r'v(\d+)', _br)
         check('Version ab v30', bool(_m) and int(_m.group(1)) >= 30, _br)
-        await pg.click('#tab-lied'); await pg.wait_for_timeout(200)
+        await open_tab(pg, 'lied'); await pg.wait_for_timeout(200)
         check('Ohne Song: Claude-Karte sichtbar, Text-Karte nicht', await pg.is_visible('#ldAiCard') and not await pg.is_visible('#ldTextCard'))
         # 1) Ohne Song: Vorlage kopieren
         await pg.click('#ldCopy'); await pg.wait_for_timeout(200)
@@ -87,7 +88,7 @@ async def main():
         sv = saved['versions'][saved['cur']]
         check('Text gespeichert', sv['parts'][0]['lyrics'][1].startswith('Die Lichter der Stadt'))
         await pg.fill('#ldTheme', 'Allein im Auto, Abschied, Morgengrauen'); await pg.wait_for_timeout(600)
-        await pg.reload(); await pg.wait_for_timeout(800); await pg.click('#tab-lied'); await pg.wait_for_timeout(300)
+        await pg.reload(); await pg.wait_for_timeout(800); await open_tab(pg, 'lied'); await pg.wait_for_timeout(300)
         check('Nach Neuladen: Text und Thema noch da', 'Die Lichter der Stadt' in await pg.input_value('.ld-tx >> nth=1 >> .ld-txt') and 'Morgengrauen' in await pg.input_value('#ldTheme'))
         # 4) Prüfen inkl. Text
         await pg.click('#ldCheck'); await pg.wait_for_timeout(200)
@@ -104,7 +105,7 @@ async def main():
         await pg.click('#loopSong'); await pg.wait_for_timeout(200); await pg.select_option('#ldDSong', 'new'); await pg.fill('#ldDNew', 'Mit Aufnahme'); await pg.click('#ldDOk'); await pg.wait_for_timeout(800)
         await pg.click('#loopSong'); await pg.wait_for_timeout(200); await pg.click('#ldDOk'); await pg.wait_for_timeout(800)
         await pg.click('#loopAll'); await pg.wait_for_timeout(300)
-        await pg.click('#tab-lied'); await pg.wait_for_timeout(300)
+        await open_tab(pg, 'lied'); await pg.wait_for_timeout(300)
         await pg.click('.ld-tx >> nth=0 >> .ld-txt'); await pg.keyboard.type('Erste Zeile hier\nzweite Zeile dort'); await pg.wait_for_timeout(600)
         await pg.select_option('#ldGoal', 'reime'); await pg.click('#ldCopy'); await pg.wait_for_timeout(100)
         clip = await pg.evaluate("navigator.clipboard.readText()")

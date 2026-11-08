@@ -2,6 +2,7 @@
 # Sicherung, Zusammenspiel mit Looper/Backing Track/Improvisation, stabile v24 öffnet die Datenbank weiter
 import asyncio, zipfile, io, json
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 T = '/home/claude/3nps/test/'; O = '/tmp/claude-0/-home-claude-3nps/2ba96aef-49c7-541d-8e92-473a90edb2fb/scratchpad/'
 res = []
 def check(name, ok, info=''):
@@ -27,9 +28,9 @@ async def main():
         pg = await ctx.new_page(); errs = []
         pg.on('pageerror', lambda e: errs.append(str(e)))
         await pg.goto('http://localhost:8765/index.html'); await pg.wait_for_timeout(800)
-        tabs = await pg.evaluate("[...document.querySelectorAll('.tab')].map(t => t.textContent)")
-        check('Reiter Songwriting zwischen Backing Track und Training', tabs == ['Looper', 'Improvisation', 'CAGED', 'Quintenzirkel', 'Backing Track', 'Songwriting', 'Mitsingen', 'Training', 'Technik'], tabs)
-        await pg.click('#tab-lied'); await pg.wait_for_timeout(200)
+        tabs = await pg.evaluate("[document.getElementById('tab-looper')].concat([...document.querySelectorAll('#subNav [data-tab]')]).map(t => t.textContent)")  # v136: Unterpunkte der neuen Navigation
+        check('Reiter Songwriting zwischen Backing Track und Training', tabs == ['Looper', 'Übersicht', 'Powerchords-Kurs', 'CAGED', 'Quintenzirkel', 'Technik', 'Training', 'Hör-Training', 'Spickzettel', 'Backing Track', 'Improvisation', 'Songwriting', 'Mitsingen'], tabs)
+        await open_tab(pg, 'lied'); await pg.wait_for_timeout(200)
         check('Ohne Song: Anleitung sichtbar', await pg.is_visible('#ldEmpty') and 'Looper' in await pg.inner_text('#ldEmpty'))
         # 1) Strophe aus dem Looper
         await loadloop(pg)
@@ -46,7 +47,7 @@ async def main():
         await pg.click('#loopSong'); await pg.wait_for_timeout(200)
         check('Zweiter Teil: Vorschlag Refrain, Song vorausgewählt', await pg.evaluate("document.getElementById('ldDType').value") == 'chorus' and await pg.evaluate("document.getElementById('ldDSong').selectedOptions[0].text") == 'Testlied')
         await pg.click('#ldDOk'); await pg.wait_for_timeout(800)
-        await pg.click('#tab-lied'); await pg.wait_for_timeout(300)
+        await open_tab(pg, 'lied'); await pg.wait_for_timeout(300)
         v = await pg.evaluate("Lied.ver()")
         check('Song: 2 Teile, Ablauf Strophe → Refrain, C-Dur, 96 BPM', [p['type'] for p in v['parts']] == ['verse', 'chorus'] and len(v['order']) == 2 and v['key'] == {'pc': 0, 'major': True} and v['bpm'] == 96, [p['name'] for p in v['parts']])
         # Akkorde des Refrains ändern
@@ -76,20 +77,20 @@ async def main():
         check('Bass folgt den Song-Akkorden', set(bass) <= {0, 7, 9, 5} and len(bass) >= 8, sorted(set(bass)))
         check('Ablauf-Block leuchtet mit', await pg.evaluate("!!document.querySelector('.ld-blk.on')"))
         # Improvisation folgt
-        await pg.click('#tab-solo'); await pg.wait_for_timeout(500)
+        await open_tab(pg, 'solo'); await pg.wait_for_timeout(500)
         check('Improvisation zeigt die Song-Akkorde, Tonart „aus dem Song“', await pg.inner_text('#sfKeySrc') == 'aus dem Song' and len(await pg.evaluate("[...document.querySelectorAll('#sfStrip .sf-seg')]")) >= 3)
-        await pg.click('#tab-lied')
+        await open_tab(pg, 'lied')
         # Looper startet → Song stoppt
         await pg.click('#tab-looper'); await pg.click('#loopAll'); await pg.wait_for_timeout(700)
         check('Looper gestartet: Song stoppt', not await pg.evaluate("!!Lied.now()") and not await pg.evaluate("document.getElementById('ldPlay').classList.contains('playing')"))
         await pg.click('#loopAll'); await pg.wait_for_timeout(300)
         # Backing Track startet → Song stoppt
-        await pg.click('#tab-lied'); await playstart(pg); await pg.wait_for_timeout(2600)
-        await pg.click('#tab-jam'); await pg.click('#jamPlay'); await pg.wait_for_timeout(400)
+        await open_tab(pg, 'lied'); await playstart(pg); await pg.wait_for_timeout(2600)
+        await open_tab(pg, 'jam'); await pg.click('#jamPlay'); await pg.wait_for_timeout(400)
         check('Backing Track gestartet: Song stoppt', not await pg.evaluate("document.getElementById('ldPlay').classList.contains('playing')"))
         await pg.click('#jamPlay'); await pg.wait_for_timeout(300)
         # Prüfen und Varianten
-        await pg.click('#tab-lied'); await pg.click('#ldCheck'); await pg.wait_for_timeout(200)
+        await open_tab(pg, 'lied'); await pg.click('#ldCheck'); await pg.wait_for_timeout(200)
         fi = await pg.inner_text('#ldFind')
         check('Prüfen: Rückmeldungen (Länge, Refrain, Bridge …)', '0:50' in fi and 'Refrain' in fi, fi[:160].replace('\n', ' | '))
         vt = await pg.evaluate("[...document.querySelectorAll('.ld-vc b')].map(b => b.textContent)")
@@ -121,7 +122,7 @@ async def main():
             check('Bass-Stimme: Empfehlung umsetzen → neue Version in anderer Tonart', (await pg.evaluate("Lied.ver()"))['key']['pc'] != 0 and 'Stimme' in (await pg.evaluate("Lied.ver()"))['note'], vr2[:100])
         else: check('Bass-Stimme: Tonart passt bereits', 'günstig' in vr2, vr2[:100])
         # Speichern / Neuladen
-        await pg.reload(); await pg.wait_for_timeout(900); await pg.click('#tab-lied'); await pg.wait_for_timeout(300)
+        await pg.reload(); await pg.wait_for_timeout(900); await open_tab(pg, 'lied'); await pg.wait_for_timeout(300)
         check('Nach Neustart: Song, Versionen, Stimmlage erhalten', await pg.evaluate("Lied.song().name") == 'Testlied' and await pg.evaluate("Lied.song().versions.length") >= n0 + 2 and await pg.evaluate("Lied.song().voice.preset") == 'bass')
         # Sicherung enthält Song und Aufnahme
         await pg.click('#tab-looper'); await pg.wait_for_timeout(200)
@@ -130,7 +131,7 @@ async def main():
         d = await dl.value; z = zipfile.ZipFile(io.BytesIO(open(await d.path(), 'rb').read())); head = json.loads(z.read('sicherung.json'))
         check('Sicherung enthält Song und Aufnahme', '3nps-lieder' in head['local'] and any(str(r.get('key', '')).startswith('lied-audio:') for r in head['db']['meta']))
         # Zweiter Song, dann löschen → Aufnahme weg
-        await loadloop(pg); await capture(pg, 'verse', 'new', 'new'); await pg.click('#tab-lied'); await pg.wait_for_timeout(200)
+        await loadloop(pg); await capture(pg, 'verse', 'new', 'new'); await open_tab(pg, 'lied'); await pg.wait_for_timeout(200)
         n_au = await pg.evaluate("AppDB.all('meta').then(a => a.filter(r => String(r.key).startsWith('lied-audio:')).length)")
         await pg.click('#ldDel'); await pg.click('#ldDel'); await pg.wait_for_timeout(500)
         n_au2 = await pg.evaluate("AppDB.all('meta').then(a => a.filter(r => String(r.key).startsWith('lied-audio:')).length)")

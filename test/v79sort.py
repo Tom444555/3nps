@@ -1,6 +1,7 @@
 # v79: Wörter im Editor umsortieren (Ziehen, ⇠/⇢ tauschen; Zeiten bleiben), Spur zeigt übereinanderliegende Wörter (versetzt, „+n“, antippen = Takt breit)
 import asyncio, json
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 T = '/home/claude/3nps/test/'; U = 'http://localhost:8765/index.html'
 ok = 0; tot = 0
 def check(n, c, info=''):
@@ -20,7 +21,7 @@ async def main():
             if await pg.is_visible('#impDlg'): await pg.click('#impOk')
             if (await pg.inner_text('#loopStatus')).startswith('Spur 1:'): break
         if await pg.evaluate("Looper.running()"): await pg.click('#loopAll')
-        await pg.click('#tab-solo'); await pg.wait_for_timeout(700)
+        await open_tab(pg, 'solo'); await pg.wait_for_timeout(700)
         # Stapel: „to the nite“ liegen auf Schlag 9
         st = await pg.evaluate("[[...document.querySelectorAll('#sgStrip .sg-stkn')].map(x=>x.textContent), [...document.querySelectorAll('#sgStrip .sg-w.stk')].map(x=>[+x.dataset.i, x.dataset.lvl||'0', x.offsetTop])]")
         check('übereinanderliegende Wörter: „+2“ und versetzt (orange)', st[0] == ['+2'] and sorted(x[0] for x in st[1]) == [2, 3, 4] and len(set(x[2] for x in st[1])) == 3, st)

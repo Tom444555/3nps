@@ -1,6 +1,7 @@
 # Absturzschutz: automatische Sicherung, Wiederherstellen nach Neuladen; Schutz vor Schadcode in fremden Sicherungen
 import asyncio, json, io, zipfile
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 T = '/home/claude/3nps/test/'
 res = []
 def check(name, ok, info=''):
@@ -53,7 +54,7 @@ async def main():
         await pg.evaluate('window.__noReload = true')
         await pg.set_input_files('#backupFile', '/tmp/claude-0/-home-claude/45a20acb-473b-586f-9346-bf8805004f30/scratchpad/evil.zip'); await pg.wait_for_timeout(1200)
         await pg.reload(); await pg.wait_for_timeout(1200); await pg.click('#tab-looper'); await pg.wait_for_timeout(500)
-        await pg.click('#tab-griffbrett'); await pg.wait_for_timeout(600); await pg.click('#tab-looper'); await pg.wait_for_timeout(300)
+        await open_tab(pg, 'griffbrett'); await pg.wait_for_timeout(600); await pg.click('#tab-looper'); await pg.wait_for_timeout(300)
         rows = await pg.query_selector_all('.idea-row')
         for r in rows: await r.hover()
         pw = await pg.evaluate('window.__pwned || 0'); imgs = await pg.evaluate("document.querySelectorAll('#ideaList img, #logList img').length")

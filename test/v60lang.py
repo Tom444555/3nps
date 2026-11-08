@@ -2,6 +2,7 @@
 import asyncio, re, json
 from playwright.async_api import async_playwright
 from nav import tab
+from nav import tab as open_tab
 ok = 0; tot = 0
 def check(n, c, info=''):
     global ok, tot; tot += 1; ok += bool(c); print(('OK    ' if c else 'FEHLER') + '  ' + n + ('  · ' + str(info) if info else ''))
@@ -17,7 +18,7 @@ async def grab(b,q):
   for t in TABS:
     await tab(pg, t); await pg.wait_for_timeout(700)
     res[t]=set(await pg.evaluate(J,t))
-  if False: await pg.click('#tab-'+sys.argv[1]); await pg.wait_for_timeout(500); await pg.screenshot(path='%s%s_%s.png'%('/tmp/claude-0/-home-claude-3nps/9e6f0204-48ae-57a7-a5e4-ec83ab90c972/scratchpad/',sys.argv[1],q[-2:] or 'de'),full_page=True)
+  if False: await open_tab(pg, sys.argv[1]); await pg.wait_for_timeout(500); await pg.screenshot(path='%s%s_%s.png'%('/tmp/claude-0/-home-claude-3nps/9e6f0204-48ae-57a7-a5e4-ec83ab90c972/scratchpad/',sys.argv[1],q[-2:] or 'de'),full_page=True)
   return res,errs
 SONG={"active":"s1","songs":[{"id":"s1","name":"Auf der Straße","voice":{"preset":"tenor","lo":48,"hi":69},"cur":0,"versions":[{"n":1,"at":1,"note":"Start","key":{"pc":9,"major":False},"bpm":96,"theme":"Unterwegs",
  "parts":[{"id":"p1","name":"Strophe","type":"verse","chords":[{"r":9,"t":"m","beats":4},{"r":5,"t":"","beats":4},{"r":0,"t":"","beats":4},{"r":7,"t":"","beats":4}],"lyrics":["Ich fahr auf der Straße bis zum Ende\nund die Nacht ist lang"]},

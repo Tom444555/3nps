@@ -1,6 +1,7 @@
 # v125: Powerchords – Bereich „Kurs“ (Power Chord Theory, Kapitel 1–7): träge, Griffe geprüft, Häkchen gespeichert, Anhören/Loop, iPad quer/hoch, EN
 import asyncio, os, json
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 U = os.environ.get('U', 'http://localhost:8765/index.html')
 SHOT = os.environ.get('SHOT', '/tmp/v125kurs')
 ok = 0; tot = 0
@@ -21,7 +22,7 @@ async def main():
         await pg.goto(U); await pg.wait_for_timeout(1300)
         v = await pg.evaluate("document.querySelector('meta[name=app-version]')?.content || document.title")
         check('Kurs träge: vor dem Öffnen leer', await pg.evaluate("!!window.PcKurs && document.getElementById('pcSecKurs').children.length===0"))
-        await pg.click('#tab-power'); await pg.wait_for_timeout(400)
+        await open_tab(pg, 'power'); await pg.wait_for_timeout(400)
         check('Startseite des Reiters ist der Kurs (Kacheln)', await pg.evaluate("!document.getElementById('pcSecKurs').hidden && document.querySelectorAll('#pcKRings .pc-tile').length===15"))
         await pg.click('#pcSubs [data-sec=kurs]'); await pg.wait_for_timeout(400)
         info = await pg.evaluate("(()=>{const ds=[...document.querySelectorAll('#pcSecKurs details.pc-kc')];return {n:ds.length,t:ds.map(d=>d.querySelector('summary').textContent),open:ds.map(d=>d.open),filled:ds.map(d=>d.querySelector('.pc-sec-b').children.length>0)}})()")
@@ -60,13 +61,13 @@ async def main():
         check('Hoch 820×1180: Touch-Ziele ≥ 44 px, kein Querscrollen', not bad and await pg.evaluate(HS) <= 1, bad[:4])
         await pg.evaluate("document.getElementById('pcK_k4-3')?.scrollIntoView()"); await pg.wait_for_timeout(200)
         await pg.screenshot(path=SHOT + '_hoch.png')
-        await pg.reload(); await pg.wait_for_timeout(1200); await pg.click('#tab-power'); await pg.wait_for_timeout(400); await pg.evaluate(OPENALL); await pg.wait_for_timeout(300)
+        await pg.reload(); await pg.wait_for_timeout(1200); await open_tab(pg, 'power'); await pg.wait_for_timeout(400); await pg.evaluate(OPENALL); await pg.wait_for_timeout(300)
         check('Nach Neustart: Kurs-Bereich gemerkt, Häkchen da', await pg.evaluate("!document.getElementById('pcSecKurs').hidden && document.querySelector('#pcSecKurs input[data-kx=\"k2-3-0\"]')?.checked===true"))
         check('Keine Skriptfehler', not errs, errs[:3])
         await ctx.close()
         c2 = await b.new_context(viewport={'width': 1366, 'height': 1024}); pg = await c2.new_page(); e2 = []
         pg.on('pageerror', lambda e: e2.append(str(e)))
-        await pg.goto(U + '?lang=en'); await pg.wait_for_timeout(1200); await pg.click('#tab-power'); await pg.wait_for_timeout(300)
+        await pg.goto(U + '?lang=en'); await pg.wait_for_timeout(1200); await open_tab(pg, 'power'); await pg.wait_for_timeout(300)
         await pg.click('#pcSubs [data-sec=kurs]'); await pg.wait_for_timeout(400); await pg.evaluate(OPENALL); await pg.wait_for_timeout(400)
         t = await pg.evaluate("[document.querySelector('#pcSubs [data-sec=kurs]').textContent,document.getElementById('pcKSum').textContent,[...new Set([...document.querySelectorAll('#pcSecKurs .toggle-btn, #pcSecKurs h5')].map(b=>b.textContent))].join('|'),document.querySelector('#pcSecKurs .pc-ksteps li').textContent]")
         check('EN: Knöpfe englisch, Lehrtext bleibt deutsch', t[0] == 'Course' and 'exercises ticked' in t[1] and 'Listen' in t[2] and 'Exercises' in t[2] and 'Übungen' not in t[2] and 'Anhören' not in t[2] and 'Kurs' in t[3], t)

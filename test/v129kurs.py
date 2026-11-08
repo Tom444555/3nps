@@ -3,6 +3,7 @@
 # Loops, Drop-D-Stimmung, nichts springt, kein Überlauf (quer/hoch/390), EN
 import asyncio, os, re
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 U = os.environ.get('U', 'http://localhost:8765/index.html')
 SHOT = os.environ.get('SHOT', '/tmp/v129kurs')
 ok = 0; tot = 0
@@ -22,7 +23,7 @@ async def main():
         await pg.goto(U); await pg.wait_for_timeout(1300)
         check('Version ab v129', int(re.search(r'v(\d+)', await pg.inner_text('.brand')).group(1)) >= 129)
         check('Vor dem Öffnen nichts gebaut', await pg.evaluate("document.getElementById('pcSecKurs').children.length===0"))
-        await pg.click('#tab-power'); await pg.wait_for_timeout(400)
+        await open_tab(pg, 'power'); await pg.wait_for_timeout(400)
         t = await pg.evaluate("[...document.querySelectorAll('#pcKRings .pc-tile')].map(x=>[x.querySelector('.pc-tring b').textContent,x.querySelector('.pc-tt b').textContent,x.querySelector('.pc-td').textContent.length,!!x.querySelector('.pc-rfg')])")
         check('Startseite: 15 Kacheln mit Nummer, Titel, Kurzbeschreibung, Ring', len(t) == 15 and all(x[0] == str(i + 1) and x[1] and x[2] > 10 and x[3] for i, x in enumerate(t)), t[:2])
         check('Quer: 4 Kacheln nebeneinander', await pg.evaluate(COLS) == 4)
@@ -95,7 +96,7 @@ async def main():
         await ctx.close()
         c2 = await b.new_context(viewport={'width': 1366, 'height': 1024}); pg = await c2.new_page(); e2 = []
         pg.on('pageerror', lambda e: e2.append(str(e)))
-        await pg.goto(U + '?lang=en'); await pg.wait_for_timeout(1200); await pg.click('#tab-power'); await pg.wait_for_timeout(400)
+        await pg.goto(U + '?lang=en'); await pg.wait_for_timeout(1200); await open_tab(pg, 'power'); await pg.wait_for_timeout(400)
         await pg.evaluate("document.getElementById('pcKC10').open=true"); await pg.wait_for_timeout(500)
         t = await pg.evaluate("[document.querySelector('#pcKC10 .pc-kmerke h4').textContent,document.querySelector('#pcKC10 [data-kqs]').textContent,document.querySelector('#pcKC10 [data-kl2=ton]').textContent,document.querySelector('#pcKC10 .pc-ksteps li').textContent]")
         check('EN: Knöpfe englisch, Lehrtext deutsch', t[0] == 'Remember' and 'Start quiz' in t[1] and t[2] == 'Note' and 'machen' in t[3], t)

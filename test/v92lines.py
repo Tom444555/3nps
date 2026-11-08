@@ -1,6 +1,7 @@
 # v92: Text ohne Zeilenumbrüche (ganzes Lied = eine Zeile): Mitsingen teilt selbst und scrollt; Editor warnt und teilt dauerhaft
 import asyncio, json
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 T = '/home/claude/3nps/test/'; U = 'http://localhost:8765/index.html'
 ok = 0; tot = 0
 def check(n, c, info=''):
@@ -26,7 +27,7 @@ async def main():
             if await pg.evaluate("!!(window.SoloInfo && Sing.source(SoloInfo()))"): break
             await pg.wait_for_timeout(250)
         if not await pg.evaluate("Looper.running()"): await pg.click('#loopAll')
-        await pg.click('#tab-solo'); await pg.wait_for_timeout(400); await pg.click('#tab-singen')
+        await open_tab(pg, 'solo'); await pg.wait_for_timeout(400); await open_tab(pg, 'singen')
         res = []
         for bb in (8.1, 15.1, 23.1, 29.1):
             await pg.evaluate(SEEK % bb); await pg.wait_for_timeout(800); res.append(await pg.evaluate(ST))
@@ -34,7 +35,7 @@ async def main():
         check('aktuelles Wort stimmt und die aktuelle Zeile wandert weiter', all(r[2] for r in res) and [r[3] for r in res] == [0, 1, 2, 3], [(r[2], r[3]) for r in res])
         check('die Liste scrollt mit', len(set(r[1] for r in res)) == 4, [r[1] for r in res])
         check('gespeicherte Daten unverändert (eine Zeile)', await pg.evaluate("Sing.source(SoloInfo()).tok.every(t=>t.l===0)"))
-        await pg.click('#tab-solo'); await pg.wait_for_timeout(300); await pg.click('#sgToggle'); await pg.wait_for_timeout(400)
+        await open_tab(pg, 'solo'); await pg.wait_for_timeout(300); await pg.click('#sgToggle'); await pg.wait_for_timeout(400)
         w = await pg.evaluate("[...document.querySelectorAll('#sgEdit .sg-warn')].map(x=>x.textContent).join('|')")
         check('Editor warnt: Zeile 1 hat 40 Wörter, Knopf „Zeilen teilen“', 'Zeile 1 hat 38 Wörter' in w and await pg.is_visible('#sgSplit'), w[:80])
         await pg.click('#sgSplit'); await pg.wait_for_timeout(300)

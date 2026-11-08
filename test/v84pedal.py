@@ -1,6 +1,7 @@
 # v84: Fußpedal beim Bearbeiten (1 Schleife, 2/3 Wort zurück/vor, 4 ▶/■, Einklopfen = jedes Pedal ein Tipp), „⋯ Mehr“
 import asyncio, json
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 T = '/home/claude/3nps/test/'; U = 'http://localhost:8765/index.html'
 ok = 0; tot = 0
 def check(n, c, info=''):
@@ -19,7 +20,7 @@ async def main():
             if await pg.is_visible('#impDlg'): await pg.click('#impOk')
             if (await pg.inner_text('#loopStatus')).startswith('Spur 1:'): break
         if await pg.evaluate("Looper.running()"): await pg.click('#loopAll')
-        await pg.click('#tab-solo'); await pg.wait_for_timeout(700)
+        await open_tab(pg, 'solo'); await pg.wait_for_timeout(700)
         await pg.click('#sgStrip .sg-w[data-i="0"]'); await pg.wait_for_timeout(300)
         tracks0 = await pg.evaluate("Looper.debug().tracks.map(t=>t.state).join()")
         await pg.keyboard.press('ArrowLeft'); await pg.wait_for_timeout(200)       # Pedal 3: Wort vor

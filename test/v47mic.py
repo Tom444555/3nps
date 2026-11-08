@@ -1,6 +1,7 @@
 # v47: Eingang bleibt offen – still beendetes Mikrofon wird erkannt und von selbst wieder geöffnet; Reiterwechsel lässt ihn offen
 import asyncio
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 U = 'http://localhost:8765/index.html'
 ok = 0; tot = 0
 def check(n, c, info=''):
@@ -15,7 +16,7 @@ async def main():
         await pg.click('#loopMonitor'); await pg.wait_for_timeout(1200)
         check('Eingang offen', (await pg.evaluate(S))[0])
         for tab in ['quinten', 'solo', 'jam', 'lied', 'ueben', 'griffbrett', 'looper']:
-            await pg.click('#tab-' + tab); await pg.wait_for_timeout(300)
+            await open_tab(pg, tab); await pg.wait_for_timeout(300)
         check('Nach allen Reitern noch offen', (await pg.evaluate(S))[0])
         await pg.evaluate("Looper._micKill()"); await pg.wait_for_timeout(800)
         check('Still beendet: zunächst noch „offen“ angezeigt', (await pg.evaluate(S))[0])

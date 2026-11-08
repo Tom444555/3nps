@@ -4,6 +4,7 @@
 # 2) live über Fake-Eingang gegen die alte index.html (aus Git, per Route ausgeliefert).
 import asyncio, os, re, subprocess, statistics
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 U = os.environ.get('U', 'http://localhost:8765/index.html')
 OLD = os.environ.get('OLD', 'c7f9f43')          # v132
 SHOT = os.environ.get('SHOT', '/tmp/v133schnell')
@@ -42,7 +43,7 @@ LIVE = r"""(async(seq)=>{const out=[];const name=()=>{const d=PcLive.debug();ret
   out.push([k,t1==null?null:Math.round(t1-t0),nm,name()]);}return out;})"""
 SEQ = "[['moll',45],['7',43],['maj7',48],['dur',40],['m7',50],['sus4',45],['dur',43],['moll',52],['7',45],['maj7',41]]"
 async def live(pg):
-    await pg.click('#tab-power'); await pg.wait_for_timeout(300); await pg.click('#pcSubs [data-sec=kurs]'); await pg.wait_for_timeout(300)
+    await open_tab(pg, 'power'); await pg.wait_for_timeout(300); await pg.click('#pcSubs [data-sec=kurs]'); await pg.wait_for_timeout(300)
     await pg.evaluate("document.getElementById('pcKC3').open=true"); await pg.wait_for_timeout(400)
     await pg.evaluate("__fkPlay(__syn(__voice(PcWerk.TY.find(t=>t.k==='5'),40,0).ms,48000,48000*2,0),48000)")
     await pg.click('#pcKC3 .pc-wlive [data-l=listen]'); await pg.wait_for_timeout(1500)
@@ -57,7 +58,7 @@ async def main():
         check('Version ab v133', int(re.search(r'v(\d+)', await pg.inner_text('.brand')).group(1)) >= 133)
         await pg.evaluate(SYN)
         # ---------- 1) Griff-Fenster ----------
-        await pg.click('#tab-power'); await pg.wait_for_timeout(300); await pg.click('#pcSecKurs [data-ktool=pcKT1]'); await pg.wait_for_timeout(700)
+        await open_tab(pg, 'power'); await pg.wait_for_timeout(300); await pg.click('#pcSecKurs [data-ktool=pcKT1]'); await pg.wait_for_timeout(700)
         w = await pg.evaluate("(()=>{const w=document.querySelector('#pcKT1 .pc-symwin'),b=document.querySelector('#pcKT1 .pc-sec-b');return [!!w, b.firstElementChild===w, w.querySelectorAll('.pc-m').length, w.querySelector('.pc-symwn').textContent, getComputedStyle(w).position, !!w.querySelector('.pc-board')]})()")
         check('Fenster oben in „Akkordsymbole lesen“, Palisander-Griffbrett mit Griff (D/F#)', w[0] and w[1] and w[2] >= 4 and w[3] == 'D/F#' and w[4] == 'sticky' and w[5], w)
         bass = await pg.evaluate("(()=>{const m=[...document.querySelectorAll('#pcKT1 .pc-symwin .pc-m')];const b=m.filter(x=>x.classList.contains('bass'));return [b.length, b[0]&&b[0].textContent, (document.querySelector('#pcKT1 .pc-symwt').textContent)]})()")
@@ -136,7 +137,7 @@ async def main():
         check('Live: mindestens so viele richtig wie vorher (%d/10 gegen %d/10)' % (hitsN, hitsO), hitsN >= hitsO and hitsN >= 9)
         await ctx2.close()
         # ---------- EN ----------
-        await pg.goto(U + '?lang=en'); await pg.wait_for_timeout(1200); await pg.click('#tab-power'); await pg.wait_for_timeout(300)
+        await pg.goto(U + '?lang=en'); await pg.wait_for_timeout(1200); await open_tab(pg, 'power'); await pg.wait_for_timeout(300)
         await pg.click('#pcSecKurs [data-ktool=pcKT1]'); await pg.wait_for_timeout(500)
         t = await pg.evaluate("[...document.querySelectorAll('#pcKT1 [data-wl]')].map(b=>b.textContent).join('|')")
         check('EN: Zahl/Name/Ton englisch, Wort „provisional“ vorhanden', t == 'Number|Name|Note' and (await pg.evaluate("window.__EN_PCW['vorläufig']")) == 'provisional', t)

@@ -1,6 +1,7 @@
 # v88: Wörter in falscher zeitlicher Reihenfolge (z. B. nach dem Einfügen eines ganzen Textes): Warnung, „Reihenfolge reparieren“, Mitsingen beginnt mit der ersten Zeile und hängt nicht
 import asyncio, json
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 T = '/home/claude/3nps/test/'; U = 'http://localhost:8765/index.html'
 ok = 0; tot = 0
 def check(n, c, info=''):
@@ -26,7 +27,7 @@ async def main():
             if await pg.evaluate("!!(window.SoloInfo && Sing.source(SoloInfo()))"): break
             await pg.wait_for_timeout(250)
         if not await pg.evaluate("Looper.running()"): await pg.click('#loopAll')
-        await pg.click('#tab-solo'); await pg.wait_for_timeout(400); await pg.click('#sgToggle'); await pg.wait_for_timeout(300)
+        await open_tab(pg, 'solo'); await pg.wait_for_timeout(400); await pg.click('#sgToggle'); await pg.wait_for_timeout(300)
         w = await pg.evaluate("[document.querySelector('#sgEdit .sg-warn') && document.querySelector('#sgEdit .sg-warn').textContent, Sing.outOfOrder()]")
         check('Warnung: genau die zwei falsch liegenden Wörter erkannt', w[0] and w[1] == [7, 16] and w[0].startswith('⚠ 2'), w)
         # Wort „were“ (13.5) darf nicht „hängen“: nach ihm kommt zeitlich „and“ (15), nicht „young“ (30.5)
@@ -39,7 +40,7 @@ async def main():
         check('↶ nimmt die Reparatur zurück', await pg.evaluate("Sing.outOfOrder().length") == 2)
         await pg.click('#sgRedo'); await pg.wait_for_timeout(200)
         # Mitsingen: am Anfang die erste Zeile, dann läuft es mit
-        await pg.click('#tab-singen'); await pg.evaluate(SEEK % 2.0); await pg.wait_for_timeout(700)
+        await open_tab(pg, 'singen'); await pg.evaluate(SEEK % 2.0); await pg.wait_for_timeout(700)
         l0 = await pg.evaluate("+document.querySelector('#sbList .sb-row.cur').dataset.l")
         await pg.evaluate(SEEK % 14.1); await pg.wait_for_timeout(700)
         l1 = await pg.evaluate("[+document.querySelector('#sbList .sb-row.cur').dataset.l, document.querySelector('#sbList .sb-row.cur .sb-w.on') && document.querySelector('#sbList .sb-row.cur .sb-w.on').textContent]")

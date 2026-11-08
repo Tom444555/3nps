@@ -1,6 +1,7 @@
 # v64: Texterkennung offline – Modell im Speicher „asr-1“, übersteht App-Updates (Pages-Nachbau Port 8790)
 import asyncio, re
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 T = '/home/claude/3nps/test/'; BASE = 'http://localhost:8790/3nps/'
 ok = 0; tot = 0
 def check(n, c, info=''):
@@ -13,7 +14,7 @@ async def load(pg, f):
         if await pg.is_visible('#impDlg'): await pg.click('#impOk')
         if re.match(r'^Spur 1:', await pg.inner_text('#loopStatus')): break
 async def run(pg):
-    await pg.click('#tab-solo'); await pg.wait_for_timeout(300)
+    await open_tab(pg, 'solo'); await pg.wait_for_timeout(300)
     if not await pg.is_visible('#sgEdit'): await pg.click('#sgToggle'); await pg.wait_for_timeout(300)
     await pg.select_option('#sgLang', 'de'); await pg.evaluate("window.confirm=()=>true")
     await pg.click('#sgAuto')

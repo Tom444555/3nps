@@ -13,8 +13,8 @@ async def main():
         pg = await ctx.new_page(); errs = []
         pg.on('pageerror', lambda e: errs.append(str(e)))
         await pg.goto('http://localhost:8765/index.html'); await pg.wait_for_timeout(800)
-        tabs = await pg.evaluate("[...document.querySelectorAll('.tab')].map(t => t.textContent)")
-        check('Neue Reiternamen', tabs == ['Looper', 'Quintenzirkel', 'Improvisation', 'Backing Track', 'Training', 'Technik'], tabs)
+        tabs = await pg.evaluate("[document.getElementById('tab-looper')].concat([...document.querySelectorAll('#subNav [data-tab]')]).map(t => t.textContent)")  # v136: Unterpunkte der neuen Navigation
+        check('Neue Reiternamen', tabs == ['Looper', 'Übersicht', 'Powerchords-Kurs', 'CAGED', 'Quintenzirkel', 'Technik', 'Training', 'Hör-Training', 'Spickzettel', 'Backing Track', 'Improvisation', 'Songwriting', 'Mitsingen'], tabs)
         b0 = await pg.evaluate(BOX)
         check('Ohne Loop: keine Box', b0['hidden'])
         await pg.select_option('#loopCountIn', '0')

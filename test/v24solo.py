@@ -1,6 +1,7 @@
 # v24: Solo Finder – Akkordleiste, klingender Akkord, Tonart, mögliche Akkorde, Tonleitern, Griffbild, Wechsel, Ideen
 import asyncio
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 T = '/home/claude/3nps/test/'; O = '/tmp/claude-0/-home-claude-3nps/2ba96aef-49c7-541d-8e92-473a90edb2fb/scratchpad/'
 res = []
 def check(name, ok, info=''):
@@ -11,10 +12,10 @@ async def main():
         pg = await b.new_page(viewport={'width': 1024, 'height': 1366}); errs = []
         pg.on('pageerror', lambda e: errs.append(str(e)))
         await pg.goto('http://localhost:8765/index.html'); await pg.wait_for_timeout(800)
-        tabs = await pg.evaluate("[...document.querySelectorAll('.tab')].map(t => t.textContent)")
-        check('Reiter: Looper · Improvisation · Quintenzirkel · …', tabs == ['Looper', 'Improvisation', 'CAGED', 'Quintenzirkel', 'Backing Track', 'Songwriting', 'Mitsingen', 'Training', 'Technik'], tabs)
+        tabs = await pg.evaluate("[document.getElementById('tab-looper')].concat([...document.querySelectorAll('#subNav [data-tab]')]).map(t => t.textContent)")  # v136: Unterpunkte der neuen Navigation
+        check('Reiter: Looper · Improvisation · Quintenzirkel · …', tabs == ['Looper', 'Übersicht', 'Powerchords-Kurs', 'CAGED', 'Quintenzirkel', 'Technik', 'Training', 'Hör-Training', 'Spickzettel', 'Backing Track', 'Improvisation', 'Songwriting', 'Mitsingen'], tabs)
         # ohne Loop: Hinweis, Tonart vom Griffbrett, trotzdem bedienbar
-        await pg.click('#tab-solo'); await pg.wait_for_timeout(400)
+        await open_tab(pg, 'solo'); await pg.wait_for_timeout(400)
         e0 = await pg.inner_text('#sfStrip'); k0 = await pg.inner_text('#sfKeySrc')
         check('Ohne Loop: Hinweis und Tonart vom Griffbrett', 'Noch keine Akkorde' in e0 and 'Griffbrett' in k0, k0)
         await pg.screenshot(path=O + 'v24_leer.png')
@@ -37,9 +38,9 @@ async def main():
             if await pg.is_visible('#impDlg'): await pg.click('#impOk')
             if await pg.evaluate("!!Looper._chords(0)"): break
         await pg.wait_for_timeout(500)
-        await pg.click('#tab-solo'); await pg.wait_for_timeout(500)
+        await open_tab(pg, 'solo'); await pg.wait_for_timeout(500)
         if not await pg.evaluate("Looper.debug().tracks[0].state === 'playing'"):
-            await pg.click('#tab-looper'); await pg.click('#loopAll'); await pg.wait_for_timeout(200); await pg.click('#tab-solo')
+            await pg.click('#tab-looper'); await pg.click('#loopAll'); await pg.wait_for_timeout(200); await open_tab(pg, 'solo')
         segs = await pg.evaluate("[...document.querySelectorAll('#sfStrip .sf-seg b')].map(b => b.textContent)")
         check('Leiste zeigt die Akkordfolge', segs == ['C', 'G', 'Am', 'F'], segs)
         rom = await pg.evaluate("[...document.querySelectorAll('#sfStrip .sf-seg small')].map(b => b.textContent)")

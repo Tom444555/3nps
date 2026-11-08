@@ -12,7 +12,7 @@ async def main():
         for i, f in enumerate(['chords/c_pop_strum', 'loops/funk_104_3T', 'loops/guitar_only_95_4T']):
             await pg.set_input_files(f'#file{i}', T + f + '.wav'); await pg.wait_for_timeout(4000)
             if await pg.is_visible('#impDlg'): await pg.click('#impOk')
-        tabs = await pg.evaluate("[...document.querySelectorAll('.tab')].map(t => t.dataset.tab)")
+        tabs = await pg.evaluate("['looper'].concat([...document.querySelectorAll('#subNav [data-tab]')].map(t => t.dataset.tab))")  # v136: Unterpunkte
         out = {}
         for r in range(6):
             for t in tabs:

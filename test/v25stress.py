@@ -3,6 +3,7 @@
 # und dass der Jam danach noch exakt im Takt wechselt (keine doppelt angemeldeten Taktmeldungen).
 import asyncio, random
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 T = '/home/claude/3nps/test/'
 res = []
 def check(name, ok, info=''):
@@ -25,7 +26,7 @@ async def main():
         late0 = await pg.evaluate("Rhythm.debug().late")
         tabs = ['looper', 'quinten', 'solo', 'jam', 'ueben', 'griffbrett']
         for k in range(160):
-            t = random.choice(tabs); await pg.click('#tab-' + t); await pg.wait_for_timeout(random.choice([40, 80, 150, 300]))
+            t = random.choice(tabs); await open_tab(pg, t); await pg.wait_for_timeout(random.choice([40, 80, 150, 300]))
             if t == 'solo':
                 a = random.random()
                 if a < 0.3: await pg.click('#sfListen')
@@ -45,7 +46,7 @@ async def main():
         check('Bildrate wie v24 (p99 ≤ 200 ms beim Reiteröffnen)', p99 <= 200, f'Median {ft[len(ft)//2]:.1f} ms · p99 {p99:.1f} ms · lange Tasks {lt}')
         # Jam 20× starten/stoppen (Looper vorher aus)
         await pg.click('#tab-looper'); await pg.click('#loopAll'); await pg.wait_for_timeout(400)
-        await pg.click('#tab-jam'); await pg.evaluate("Jam.setSeq('Am F C G')")
+        await open_tab(pg, 'jam'); await pg.evaluate("Jam.setSeq('Am F C G')")
         await pg.evaluate("(() => { const e = document.getElementById('bpm'); e.value = 120; e.dispatchEvent(new Event('input')); })()")
         for k in range(20):
             await pg.click('#jamPlay'); await pg.wait_for_timeout(random.choice([60, 200, 700])); await pg.click('#jamPlay'); await pg.wait_for_timeout(50)

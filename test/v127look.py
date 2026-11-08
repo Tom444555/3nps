@@ -2,6 +2,7 @@
 # Kapitel-Ringe, Schritt-Leiste, große Intervall-Knöpfe, Zitat-Merkkarten, SVG-Symbole, kein Überlauf (quer/hoch/390), nichts springt
 import asyncio, os, re
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 U = os.environ.get('U', 'http://localhost:8765/index.html')
 SHOT = os.environ.get('SHOT', '/tmp/v127look')
 ok = 0; tot = 0
@@ -21,7 +22,7 @@ async def main():
         check('Version ab v127', int(re.search(r'v(\d+)', await pg.inner_text('.brand')).group(1)) >= 127)
         LD = "performance.getEntriesByType('resource').filter(r=>r.name.includes('palisander')).length"
         check('Holztextur vor dem Öffnen nicht geladen', await pg.evaluate(LD) == 0)
-        await pg.click('#tab-power'); await pg.wait_for_timeout(300)
+        await open_tab(pg, 'power'); await pg.wait_for_timeout(300)
         for sec in ['schritte', 'brett', 'folgen', 'uebungen']:
             await pg.click('#pcSubs [data-sec=%s]' % sec); await pg.wait_for_timeout(300)
         await pg.evaluate("Powerchords.startProg('looper')"); await pg.wait_for_timeout(600)

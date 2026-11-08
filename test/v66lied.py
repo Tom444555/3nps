@@ -2,6 +2,7 @@
 # Wörter in der Spur ändern/einfügen/löschen → landet im Songtext; Zeilen mit [Am] geschützt
 import asyncio, json
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 U = 'http://localhost:8765/index.html'
 ok = 0; tot = 0
 def check(n, c, info=''):
@@ -13,8 +14,8 @@ def song(lyr):
 LY = "Ich singe hier\n\nund [G]dort am Meer"
 LYR = "JSON.parse(localStorage.getItem('3nps-lieder')).songs[0].versions[0].parts[0].lyrics[0]"
 async def start(pg):
-    await pg.click('#tab-lied'); await pg.wait_for_timeout(300); await pg.evaluate("document.getElementById('ldTL').checked=true"); await pg.click('#ldPlay'); await pg.wait_for_timeout(1300)
-    await pg.click('#tab-solo'); await pg.wait_for_timeout(700)
+    await open_tab(pg, 'lied'); await pg.wait_for_timeout(300); await pg.evaluate("document.getElementById('ldTL').checked=true"); await pg.click('#ldPlay'); await pg.wait_for_timeout(1300)
+    await open_tab(pg, 'solo'); await pg.wait_for_timeout(700)
 FOC = "(b=>{const ci=SoloInfo(),src=Sing.source(ci),a=src.toCi(b),D=ci.downs;let k=0;while(k+1<D.length&&D[k+1]<=a+2)k++;Sing.focus(k)})"
 async def edit(pg, i):
     await pg.click('#sgStrip .sg-w[data-i="%s"]' % i); await pg.wait_for_timeout(200)
@@ -63,7 +64,7 @@ async def main():
         await pg.evaluate(FOC + "(1)"); await pg.wait_for_timeout(300); await pg.click('#sgFPlay'); await pg.wait_for_timeout(900)
         check('Song: ▶ ab hier spielt den Teil von vorn', await pg.evaluate("!!Lied.now() && Lied.now().beat < 3"), await pg.evaluate("Lied.now()"))
         # Songwriting zeigt den neuen Text
-        await pg.click('#tab-lied'); await pg.wait_for_timeout(500)
+        await open_tab(pg, 'lied'); await pg.wait_for_timeout(500)
         check('Songwriting-Textfeld zeigt den neuen Text', 'Ich sing\n' in await pg.evaluate("[...document.querySelectorAll('.ld-txt')].map(t=>t.value).join('|')"))
         check('keine neue Version angelegt', await pg.evaluate("JSON.parse(localStorage.getItem('3nps-lieder')).songs[0].versions.length") == 1)
         check('keine Skriptfehler', not errs, errs)
