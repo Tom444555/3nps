@@ -51,3 +51,15 @@ Audio blockweise aus `SDB` (16-Bit-Blöcke) in AudioWorklet mit 24 Stereo-Ausgä
 - `pkill -f` mit zu allgemeinem Muster beendet die eigene Shell; `until pgrep …` kann sich selbst finden.
 - `v63singen` 19/20: Reiterliste im Test veraltet (Powerchords fehlt) – Test anpassen. `v85singen` gelegentlich zeitbedingt rot.
 
+## Weitere Regeln und Hinweise
+
+- `sw.js` löscht nur eigene `3nps-…`-Caches; Kits/Drones/Instrumente im Cache `drums-1` (`/drums/`, `/drones/`, `/inst/`), Modelle in `asr-1`, Studio-Seite unter `studio/index.html`.
+- Leistung im Detail: Ketten/Messpunkte/Analyser nur solange genutzt bzw. Ansicht offen (Hall-Sends erst bei > 0 %, Amp nur wenn an); große Funktionen ins Studio oder lazy (Reiter erst beim Öffnen bauen, Modelle on demand mit Rückfrage). Kein Layout-Umbau während Animationen.
+- CC-BY-Material: Namensnennung auch sichtbar in der App.
+- Englisch: Wörterbuch `window.__EN` in `app/i18n-en2.js`, `T()` übersetzt; neue Einträge am Ende vor `});` anhängen. Lange Lehrtexte `translate=no` wie `hilfe.html`. `v59lang`/`v60lang` prüfen das.
+- Das Studio liest/ergänzt `3nps-app` nur (öffnet ohne Version). localStorage ist mit der v24 gemeinsam.
+- Wartet ein Agent auf einen anderen: neue Dateien zuerst, gemeinsame Dateien erst nach `until git fetch -q origin && git show origin/entwicklung:app/head_app.html | grep -q 'vNN'; do sleep 60; done`. Stop-Hook „uncommitted changes“, während Agenten arbeiten: nicht dazwischen committen.
+- Arbeitsordner `/home/claude/3nps-src`; Testskripte nutzen teils `/home/claude/3nps/test/` (von `wiederherstellen.sh` angelegt). Externe Rohquellen (Samples unter `/home/claude/ext/`, Trennmodell-Archiv) sind nicht im Repo; eingebettet sind nur `app/www/inst/` und `asr/models/spleeter/` bzw. Branch `modelle`.
+- github.io ist aus der Sitzung oft nicht erreichbar – Deploy über `gh run list` prüfen.
+- Konzepte: `KONZEPT-STUDIO.md`, `KONZEPT-MASTERING.md` (M2–M4 offen), `KONZEPT-GESANG-TRENNEN.md` (umgesetzt v124).
+- Spark LIVE: Direct-Monitor aus, wenn Amp/Mithören an. Tom wünscht: gründlich testen, wenig Rückfragen, große Blöcke am Stück.
