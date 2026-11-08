@@ -49,3 +49,31 @@
   .jam-grid .jam-c.cont { border-top-left-radius: 0; border-bottom-left-radius: 0; margin-left: 0; border-left-style: dashed; }
   .jam-head { position: absolute; top: -3px; bottom: -3px; width: 3px; margin-left: -1px; background: var(--accent); border-radius: 2px; box-shadow: 0 0 8px var(--accent); pointer-events: none; z-index: 2; }
   @media (max-width: 520px) { .jam-grid .jam-c b { font-size: .95rem; } .jam-grid .jam-c small { display: none; } .jam-grid { min-height: 50px; } }
+  /* v138: Jammen-Ideen */
+  .jm-fitrow { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1.4fr) minmax(0, 1fr); gap: 6px 14px; align-items: baseline; min-height: 2.6em; }
+  .jm-fitrow > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }   /* keine Zeilenumbrüche → Höhe bleibt beim Akkordwechsel */
+  @media (max-width: 900px) { .jm-fitrow { grid-template-columns: minmax(0, 1fr); } }
+  .jm-fitrow .lbl { margin-right: 6px; } .jm-fitrow b { font-size: 1.05rem; } .jm-arrow { margin: 0 6px; color: var(--muted); }
+  .jm-tones { font-size: .86rem; } .jm-next { font-size: .86rem; color: var(--muted); } .jm-next b { color: var(--ink); font-size: .95rem; }
+  .jm-neckwrap { overflow-x: auto; } .jm-neck { width: 100%; min-width: 620px; height: auto; display: block; }
+  .jm-board { fill: var(--board); stroke: var(--board-edge); } .jm-fret { stroke: var(--fretwire); stroke-width: 1.4; } .jm-nut { stroke: var(--scale-color); stroke-width: 5; }
+  .jm-str { stroke: var(--string); } .jm-inl { fill: rgba(255,255,255,.18); } .jm-fn { fill: var(--muted); font: 600 10px var(--f-body); text-anchor: middle; }
+  .jm-d text { font: 700 8.5px var(--f-body); text-anchor: middle; fill: var(--dot-ink); pointer-events: none; }
+  .jm-d circle { stroke: rgba(0,0,0,.45); stroke-width: 1; }
+  .jm-d.sc circle { fill: var(--scale-color); } .jm-d.ct circle { fill: var(--active-color); } .jm-d.root circle { fill: var(--root-color); } .jm-d.char circle { fill: var(--dub); }
+  .jm-d.root text { fill: #fff; }
+  .jm-irow { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; }
+  .jm-irow .field { min-width: 130px; flex: 1 1 130px; }
+  .jm-out { min-height: 58px; display: flex; align-items: center; }
+  .jm-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .jm-chip { display: inline-flex; flex-direction: column; align-items: center; min-width: 54px; padding: 5px 9px; border-radius: 8px; background: var(--surface-2); border: 1px solid var(--line-soft); }
+  .jm-chip small { color: var(--muted); font-size: .7rem; }
+  .jm-qaind { height: 64px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; gap: 6px; padding: 8px 12px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--line-soft); overflow: hidden; }
+  .jm-qaind b { font-size: 1.05rem; letter-spacing: .02em; }
+  .jm-qaind.q { border-color: var(--t3); background: color-mix(in srgb, var(--t3) 14%, var(--surface-2)); }
+  .jm-qaind.a { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 16%, var(--surface-2)); }
+  .jm-beats { display: flex; gap: 3px; } .jm-beats i { flex: 1 1 0; height: 8px; border-radius: 3px; background: var(--line); }
+  .jm-qaind.q .jm-beats i.on { background: var(--t3); } .jm-qaind.a .jm-beats i.on { background: var(--accent); }
+  #jmRecGo.rec { background: linear-gradient(180deg, #c8463c, #a3352d); border-color: #6d211b; color: #fff; }
+  .jm-rec .caption { flex: 1 1 260px; }
+  .jm-fit .sf-leg i.root { background: var(--root-color); } .jm-fit .sf-leg i.ct { background: var(--active-color); } .jm-fit .sf-leg i.char { background: var(--dub); } .jm-fit .sf-leg i.sc { background: var(--scale-color); }

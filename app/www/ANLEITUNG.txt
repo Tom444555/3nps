@@ -1344,3 +1344,15 @@ Gut zu wissen
      je Runde, „▶ Nochmal hören“, Ampel (grün ab 80 %, gelb ab 50 %, ab 3 Versuchen), Treffer und beste Runde bleiben gespeichert.
    - Neuer Unterpunkt „Spickzettel“: Intervalle, Powerchord- und CAGED-Formen (Tab), Quintenzirkel mit Vorzeichen,
      Akkordsymbole. „🖨 Drucken“ druckt nur den Spickzettel, schwarz auf weiß.
+
+121. Jammen: passende Tonleiter, Akkordfolgen-Ideen, Frage & Antwort, Jam aufnehmen (v138)
+   - „Welche Tonleiter passt?“ (Backing Track): ganzes Griffbrett bis Bund 15 mit den Tönen zum klingenden Akkord,
+     wechselt mit dem Akkord. Rot Grundton, grün Akkordton, gelb Charakterton, hell Tonleiter. Umschalten „Tonleiter“ /
+     „Pentatonik“ / „Akkordtöne“; „Danach“ zeigt den nächsten Akkord. Ohne laufenden Track: erster Akkord der Folge.
+   - „Akkordfolgen-Ideen“: Tonart + Stil (Rock, Blues, Pop, Metal, Funk, Jazz, Ballade) → „🎲 Folge erzeugen“ →
+     „▶ Als Backing Track starten“ (Tempo passend zum Stil, Beat wenn in der Liste vorhanden).
+   - „Frage & Antwort“: Länge 1/2/4 Takte. Die App spielt eine kurze Phrase (Pentatonik der Tonart), dann bist du dran.
+     Die Anzeige wechselt sichtbar zwischen „FRAGE · hör zu“ und „ANTWORT · du spielst“ und zeigt die Schläge.
+   - „⏺ Jam aufnehmen“: Der Backing Track kommt als Spur 1 in den Looper (mit Drums und Bass), Spur 2 nimmt sofort deine
+     Improvisation auf. „■ Aufnahme beenden“ schließt auf ganze Runden ab, „→ Zum Looper“. Die Einstellung „Loop-Länge“
+     wird dabei nicht verändert. Nur mit ganzen Takten (keine ½-Takt-Akkorde).

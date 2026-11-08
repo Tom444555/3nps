@@ -17,7 +17,7 @@ async def main():
         pg.on('pageerror', lambda e: errs.append(str(e)))
         await pg.add_init_script("if(!sessionStorage.getItem('x')){sessionStorage.setItem('x',1);localStorage.setItem('3nps-lernen', JSON.stringify({serie:3,last:'%s'}))}" % Y)
         await pg.goto(U); await pg.wait_for_timeout(900)
-        check('v137', 'v137' in await pg.inner_text('.brand'))
+        check('ab v137', int(re.search(r'v(\d+)', await pg.inner_text('.brand')).group(1)) >= 137)
         lz = await pg.evaluate("[document.getElementById('hrBody').children.length, document.getElementById('spBody').children.length, document.getElementById('lnTiles').children.length]")
         check('Lazy: Hör-Training, Spickzettel, Übersicht beim Start leer', lz == [0, 0, 0], lz)
         await tab(pg, 'lernen'); await pg.wait_for_timeout(300)
