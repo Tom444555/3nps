@@ -23,6 +23,9 @@
   /* v134: lange Blöcke – Name links und rechts klebt am sichtbaren Rand der Leiste; overflow: clip statt hidden, damit sticky wirkt */
   .sf-seg.long { flex-direction: row; justify-content: space-between; align-items: center; overflow: clip; padding: 0; }
   .sf-seg.long .sf-sl, .sf-seg.long .sf-sr { position: sticky; display: flex; flex-direction: column; gap: 1px; padding: 0 8px; min-width: 0; }
+  /* v135: Name zusätzlich fest in der Blockmitte (wie vor v134); die klebenden Ränder liegen darüber und decken sie mit der Blockfarbe ab */
+  .sf-seg.long .sf-sm { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 2px; pointer-events: none; }
+  .sf-seg.long .sf-sl, .sf-seg.long .sf-sr { z-index: 1; background: inherit; align-self: stretch; justify-content: center; }
   .sf-seg.long .sf-sl { left: 0; align-items: flex-start; } .sf-seg.long .sf-sr { right: 0; align-items: flex-end; }
   .sf-seg.long .sf-sr b { font-size: 1rem; opacity: .85; } .sf-nx { font: 700 .78rem var(--f-mono); white-space: nowrap; color: var(--ink); opacity: .8; }
   .sf-cd { font: 600 .6rem var(--f-body); color: var(--muted); white-space: nowrap; min-height: 1.1em; } .sf-seg:not(.on) .sf-cd { visibility: hidden; }

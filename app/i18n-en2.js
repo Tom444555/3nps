@@ -940,3 +940,5 @@ Object.assign(window.__EN_PCW, { 'Hör-Training': 'Ear training', 'Technik-Vorü
   'Übungsplan & Selbstkontrolle': 'Practice plan & self-check', 'geschafft bis': 'done up to', 'Akkord-Tabelle (alle Arten)': 'Chord table (all types)', '▶ Loop starten': '▶ Start loop' });
 // v132 Begleit-Tracks
 Object.assign(window.__EN_PCW, { 'Begleit-Tracks': 'Backing tracks', '▶ Begleit-Track': '▶ Backing track' });
+// v135 Akkordleiste: Takte bis zum Wechsel
+window.__EN_PAT.unshift([/^noch (\d+) Takte?$/, '$1 bars left']);

@@ -28,6 +28,9 @@ const Looper = (() => {
   const countPlayEl = $('loopCountInPlay');
   countPlayEl.checked = loadPref('3nps-countin-play', '1') === '1';
   barsEl.value = loadPref('3nps-bars', 'free');
+  // v135: Übe-Loops aus Powerchords (v120–v134) haben ihre Akkordzahl (meist 4) als Loop-Länge gespeichert → freie Aufnahmen endeten nach 4 Takten.
+  //       Einmalig auf „Frei“ zurück; ab jetzt setzen Übe-Loops die Länge nur vorübergehend (siehe barsTmp).
+  if (loadPref('3nps-bars-v135', '') !== '1') { if (barsEl.value !== 'free') { barsEl.value = 'free'; savePref('3nps-bars', 'free'); } savePref('3nps-bars-v135', '1'); }
   trigEl.checked = loadPref('3nps-trigger', '0') === '1';
   threshEl.value = loadPref('3nps-thresh', '55');
 
@@ -1196,6 +1199,7 @@ const Looper = (() => {
   }
 
   function startNewRecording(t) {
+    if (!baseL) barsRestore();                                        // v135: kein Loop mehr da → vorübergehende Übe-Länge gilt nicht mehr
     const now = nowFrame(), nb = selectedBars();
     const lenTxt = nb ? ' Sie endet nach ' + nb + ' Takt' + (nb === 1 ? '' : 'en') + ' von selbst.' : ' Tippe zum Beenden.';
     if (baseL && !anyRunning()) {
@@ -1909,7 +1913,13 @@ const Looper = (() => {
   snapEl.addEventListener('change', () => savePref('3nps-snap', snapEl.checked ? '1' : '0'));
   countInEl.addEventListener('change', () => savePref('3nps-countin', countInEl.value));
   countPlayEl.addEventListener('change', () => savePref('3nps-countin-play', countPlayEl.checked ? '1' : '0'));
-  barsEl.addEventListener('change', () => { savePref('3nps-bars', barsEl.value); snapEl.closest('label').hidden = barsEl.value !== 'free'; });
+  // v135: data-tmp (Übe-Loop aus Powerchords) = Länge nur für diesen Loop, nicht speichern; bei der nächsten Aufnahme ohne Loop gilt wieder die eigene Wahl
+  let barsTmp = null;
+  barsEl.addEventListener('change', () => {
+    if (barsEl.dataset.tmp) { delete barsEl.dataset.tmp; if (barsTmp === null) barsTmp = loadPref('3nps-bars', 'free'); }
+    else { barsTmp = null; savePref('3nps-bars', barsEl.value); }
+    snapEl.closest('label').hidden = barsEl.value !== 'free'; });
+  function barsRestore() { if (barsTmp === null) return; barsEl.value = barsTmp; barsTmp = null; snapEl.closest('label').hidden = barsEl.value !== 'free'; }
   trigEl.addEventListener('change', async () => { savePref('3nps-trigger', trigEl.checked ? '1' : '0'); $('threshRow').hidden = !trigEl.checked; if (trigEl.checked) await ensureMic(); });
   threshEl.addEventListener('input', () => { savePref('3nps-thresh', threshEl.value); kick(); });
   if (latEl.value !== '') latVal.textContent = latEl.value + ' ms';

@@ -181,7 +181,7 @@
       const nm = chordName(c, k), long = w >= Math.max(220, BW * 0.45);
       let nx = ''; if (long) for (let j = 1; j < ci.segs.length; j++) { const q = parseChord(ci.segs[(i + j) % ci.segs.length].name); if (q && chordName(q, k) !== nm) { nx = chordName(q, k); break; } }
       h += '<button class="sf-seg' + (w < 54 ? ' tight' : '') + (long ? ' long' : '') + (s.fixed ? ' fixed' : '') + '" data-i="' + i + '" style="left:' + px(s.a).toFixed(1) + 'px;width:' + w.toFixed(1) + 'px">' +
-        (long ? '<span class="sf-sl"><b>' + nm + '</b><small>' + roman(c, k) + '</small></span><span class="sf-sr"><b>' + nm + '</b><span class="sf-nx">→ ' + (nx || nm) + '</span><small class="sf-cd" translate="no"></small></span>'
+        (long ? '<span class="sf-sl"><b>' + nm + '</b><small>' + roman(c, k) + '</small></span><span class="sf-sm"><b>' + nm + '</b><small>' + roman(c, k) + '</small></span><span class="sf-sr"><b>' + nm + '</b><span class="sf-nx">→ ' + (nx || nm) + '</span><small class="sf-cd" translate="no"></small></span>'
               : '<b>' + nm + '</b><small>' + roman(c, k) + '</small>') + '</button>';
     });
     h += '<div class="sf-ph" id="sfPh"></div>';
@@ -222,7 +222,7 @@
     // v134: Takte bis zum Wechsel – nur Text, nur wenn er sich ändert (Taktwechsel)
     if (i >= 0 && posL != null) { const sg = ci.segs[i], D = ci.downs || [], en = sg.e > posL ? sg.e : sg.e + ci.L;
       let n = 0; D.forEach(d => { for (const dd of [d, d + ci.L]) if (dd > posL && dd < en - 1) n++; }); n++;
-      const t = window.__lang === 'en' ? n + (n === 1 ? ' bar' : ' bars') : 'noch ' + n + (n === 1 ? ' Takt' : ' Takte');
+      const t = T('noch ' + n + (n === 1 ? ' Takt' : ' Takte'));     // v135: Englisch über i18n (Muster in i18n-en2.js)
       if (t !== lastCd) { lastCd = t; const el = $('sfStrip').querySelector('.sf-seg.on .sf-cd'); if (el) el.textContent = t; } }
     return i;
   }

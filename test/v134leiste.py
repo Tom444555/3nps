@@ -56,7 +56,7 @@ async def main():
         await pg.evaluate("Jam.setSeq('Cm:8 G:2 Eb F')"); await pg.click('#tab-jam'); await pg.evaluate("Jam.start()"); await pg.wait_for_timeout(600)
         await pg.click('#tab-solo'); await pg.wait_for_timeout(1200)
         g = await pg.evaluate(GEO)
-        check('EN: Countdown „n bars“', g and g.get('long') and re.match(r'^\d+ bars?$', g['cd'] or ''), g)
+        check('EN: Countdown „n bars“', g and g.get('long') and re.match(r'^\d+ bars?( left)?$', g['cd'] or ''), g)
         await pg.evaluate("Jam.stop()")
         check('Keine Skriptfehler', not errs, errs[:3])
         await b.close()

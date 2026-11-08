@@ -561,7 +561,7 @@
       const data = renderBacking(r.chords.map(c => ({ tones: c.tones, bars: 1, rootPc: c.rootPc, bassPc: c.bassPc })), bpm, { drums: o.drums, pm: o.pm, dyn: o.dyn, style: o.style, bass: o.bass, delay: o.delay });
       Looper.loadSamples(data); ownL = data.length;
       try { Looper.setSrcName('Powerchords ' + r.chords.map(c => c.name).join(' ')); } catch (e) {}
-      const bs = $('loopBars'); if (bs && [...bs.options].some(op => op.value === String(bars))) { bs.value = String(bars); bs.dispatchEvent(new Event('change')); }
+      const bs = $('loopBars'); if (bs && [...bs.options].some(op => op.value === String(bars))) { bs.dataset.tmp = '1'; bs.value = String(bars); bs.dispatchEvent(new Event('change')); }
       const ls = $('loopStatus'); if (ls) ls.textContent = TT('Powerchords: ') + r.chords.map(c => c.name).join(' – ') + ' · ' + bpm + ' BPM';
       play = { mode: 'looper', r, n, bpm, ex: o.ex || null, label: o.label, hide: !!o.hide, pay, idx: -1, o };
     }
