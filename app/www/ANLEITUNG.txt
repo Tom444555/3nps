@@ -1360,3 +1360,17 @@ Gut zu wissen
 122. Jammen auf schmalen Bildschirmen (v139)
    - Die Kopfzeilen der Karten „Welche Tonleiter passt?“ und „Frage & Antwort“ brechen jetzt um, statt über den Rand
      zu ragen. Die Seite lässt sich bei schmaler Breite (iPad hochkant, Telefon) nicht mehr seitlich verschieben.
+
+123. Neue Optiken „Präzision Nacht“ und „iOS“ (v140)
+   - „App-Optik ▾“ hat zwei neue Einträge hinter „Präzision“. Die Wahl bleibt nach dem Neuladen erhalten.
+   - „Präzision Nacht“: das dunkle Gegenstück zu „Präzision“ – fast schwarzes Graphit, Haarlinien, Skalenstriche,
+     Mono-Ziffern. Eine Leuchtfarbe (Röhren-Orange) für Aktives: gewählte Knöpfe, Intervall-Knöpfe in der Werkstatt,
+     Anzeige oben. Rot nur für Aufnahme. Verstärker-Anklang: Pilotlampe vor dem Namen, Rändel-Knöpfe aus Chrom an den
+     Schiebereglern, ein Hauch Tolex im Hintergrund und Gitter in der Kopfzeile.
+   - „iOS“: wie der Dunkelmodus von iPhone und iPad – schwarzer Grund, gruppierte Karten, Systemschrift, Segment-Steuerung
+     für die Bereiche, Pillen-Knöpfe, Blau als Tönung, Grün/Gelb/Rot im Pegel. Orange nur als kleiner Pilotpunkt.
+   - In beiden Optiken sind die Häkchen-Kästchen (z. B. „Drums“, „Synth“, „Verzierungen“) Kippschalter wie in iOS.
+     Die Abhak-Kästchen im Powerchords-Kurs bleiben Häkchen. Die Spur-Regler behalten ihre Spurfarbe.
+   - Leistung: nur Farben und Formen, keine Bilder, keine Unschärfe-Filter, keine Dauer-Animationen. Leuchten ist ein
+     fester Schatten an aktiven Knöpfen – der Looper läuft so ruhig wie mit jeder anderen Optik.
+   - Englisch heißen die Optiken „Precision Night“ und „iOS“. Die alte Fassung (/stabil/) zeigt dafür „Nordisch“.

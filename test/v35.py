@@ -74,7 +74,7 @@ async def main():
         await pg.click('#pfClose')
         # neue Optiken
         names = await pg.evaluate("[...document.querySelectorAll('#appTheme option')].map(o=>o.value+'='+o.textContent)")
-        check('Neue Optiken in der Auswahl', names[-3:] == ['dj=DJ-Pult', 'light=Hell', 'precise=Präzision'], names)
+        check('Neue Optiken in der Auswahl', 'dj=DJ-Pult' in names and names[names.index('dj=DJ-Pult'):names.index('dj=DJ-Pult') + 3] == ['dj=DJ-Pult', 'light=Hell', 'precise=Präzision'], names)  # ab v140 folgen weitere Optiken
         for th, light in [('light', True), ('precise', True), ('dj', False)]:
             await pg.click('#optikBtn'); await pg.select_option('#appTheme', th); await pg.wait_for_timeout(300)
             r = await pg.evaluate("""(()=>{const lum=c=>{const m=c.match(/[\\d.]+/g).map(Number);return (0.2126*m[0]+0.7152*m[1]+0.0722*m[2])/255};

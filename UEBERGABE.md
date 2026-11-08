@@ -1,6 +1,6 @@
 # 3nps Looper – Übergabe (vollständiger Stand)
 
-Stand: **8. November 2026 · Version v139 (Studio s3)** – live unter https://tom444555.github.io/3nps/ ·
+Stand: **8. November 2026 · Version v140 (Studio s3)** – live unter https://tom444555.github.io/3nps/ ·
 stabile Rückfall-Fassung **v24** unter https://tom444555.github.io/3nps/stabil/
 
 Diese Datei ist das Gedächtnis des Projekts. Alles, was ein neuer Chat wissen muss, steht hier –
@@ -125,7 +125,10 @@ IDs `tab-…`/`panel-…`. Begleitung (Drone, Drums, Bass), alter Song-Player un
 - **Technik:** Griffbrett/3nps-Skalen, Begleitung, Übungslog.
 - Optiken (v34, Reihenfolge der Auswahl): **Klar** `clean` (flach, Graphit, Systemschrift), **Kühl** `ice`, **Nordisch** `nordic`, **Metal** `metal`,
   **Verstärker** `amp`, **Matrix** `matrix` (Zeichenregen als festes Bild `bg-matrix.jpg`, Monospace, Bildschirmzeilen),
-  **DJ-Pult** `dj` (`bg-dj.jpg`/`panel-dj.jpg` aus `tex/dj.py`, LED-Kette per CSS-Maske, Fader-Regler), **Hell** `light`, **Präzision** `precise`.
+  **DJ-Pult** `dj` (`bg-dj.jpg`/`panel-dj.jpg` aus `tex/dj.py`, LED-Kette per CSS-Maske, Fader-Regler), **Hell** `light`, **Präzision** `precise`,
+  **Präzision Nacht** `precise-dark` und **iOS** `ios` (v140, `theme-precise-dark.css` = gemeinsame Basis beider + Präzision Nacht, `theme-ios.css`;
+  nur CSS, keine Bilder/Filter/Dauer-Animationen; `.check > input[type=checkbox]` als Kippschalter außer `#panel-power`; Spur-Fader `.fader/.lane-fader` bleiben nativ in Spurfarbe;
+  iOS-Kopfzeile deckend #161618 statt Blur).
   Helle Optiken (`theme-light.css`): helles Gehäuse, **dunkle Anzeigefenster** (`.track/.editor/.lane/.eq-panel` setzen dort eigene
   `--ink/--muted/--line`), weil Wellenform/Editor/EQ fest auf dunklen Grund zeichnen (`looper.js` 2075/2099, `eq.js`). „Alles sichern“ sichert localStorage `3nps-*` und IndexedDB (sessions, ideas, meta).
 
@@ -147,7 +150,7 @@ IDs `tab-…`/`panel-…`. Begleitung (Drone, Drums, Bass), alter Song-Player un
 | `app/sep.js`, `app/sep-worker.js` | v124 **Gesang trennen**: `window.Sep` (`run(x, sr, opts)` → `{voc, acc}`, `have`, `wav`, `busy`, `cancel`; Fortschrittsfenster `#sepDlg`/`#sepBar`/`#sepPct`/`#sepStop`), im appcfg-Block des Loopers und im Studio; Worker `www/asr/sep-worker.js` (Kopie per `build.py`, gitignored wie `worker.js`) |
 | `app/appcfg.js` | Optik (inkl. Auf-/Zuklappen des Kopf-Knopfs), Sicherung/Wiederherstellung |
 | `app/perf.js` | Leistungsanzeige im Kopf (wird in `build.py` an `appcfg.js` gehängt) |
-| `app/theme-*.css` | Optiken metal, amp, ice, clean, matrix, dj, light (hell + präzision) (Nordisch = Grundstil `metal.css`) |
+| `app/theme-*.css` | Optiken metal, amp, ice, clean, matrix, dj, light (hell + präzision), precise-dark (Basis + Präzision Nacht), ios (Nordisch = Grundstil `metal.css`) |
 | `app/circle.*` | Quintenzirkel |
 | `app/solo.*`, `voicings.js`, `pitch.js` | Improvisation, Akkordgriffe, Tonhöhe (YIN) |
 | `app/passt.js`, `passt.css` | „Was passt“-Box |
@@ -168,7 +171,7 @@ IDs `tab-…`/`panel-…`. Begleitung (Drone, Drums, Bass), alter Song-Player un
 
 - **Kompatibilität mit der stabilen v24 (wichtig):** beide teilen localStorage und IndexedDB. Speicherformate nur erweitern,
   nie ändern; **keine neue DB-Version / kein neuer Store**. `sw.js` löscht nur eigene `3nps-…`-Caches, `/stabil/` bleibt unberührt.
-- **Optik-Speicher:** `3nps-theme` enthält nur, was die v24 kennt (nordic/metal/amp/ice; für clean/matrix steht dort „nordic“),
+- **Optik-Speicher:** `3nps-theme` enthält nur, was die v24 kennt (nordic/metal/amp/ice; für alle neueren Optiken steht dort „nordic“),
   die echte Wahl in `3nps-theme2`. Diese gilt nur, solange `3nps-theme` dazu passt – stellt man in der v24 um, gilt deren Wahl.
   Gleiche Logik im Frühstart-Skript `EARLY` in `build.py`.
 - **Sicherheit/Recht:** CSP ohne fremde Quellen (Test `csptest.py`), keine Server, keine Datenerhebung, Schriften OFL eingebettet,
@@ -216,7 +219,7 @@ IDs `tab-…`/`panel-…`. Begleitung (Drone, Drums, Bass), alter Song-Player un
 
 **Regressionsliste (vor jeder Veröffentlichung, nacheinander):** v102ideas, v59lang, v60lang, v31export, s1studio, v107round, v113hilfe;
 Looper v116looperA, v117looperB, v118signal, v119leistung, v120power, **v135aufnahme** (Aufnahme läuft > 4 Takte, Übe-Loops ändern die Loop-Länge nur vorübergehend);
-Navigation/Lernen/Jammen v136reiter, v137lernen, v138jammen; Speicher s1mem, v100mem (lange Zeitgrenze); Studio s2studio, s3studio, s3pitch, v112mst, v121studioC,
+Navigation/Lernen/Jammen v136reiter, v137lernen, v138jammen; Optiken **v140optik**; Speicher s1mem, v100mem (lange Zeitgrenze); Studio s2studio, s3studio, s3pitch, v112mst, v121studioC,
 v122studioD, v123inst, v124trennen; Gesang v63singen, v81vox, v85singen (gelegentlich zeitbedingt rot). v119leistung misst Zufallsstreuung mit (Drum-Spektrum,
 renderCapacity) – einzelne rote Prüfung einmal wiederholen. Ältere Tests öffnen Unterpunkte seit v136 ebenfalls über `test/nav.py` (`open_tab`).
 
@@ -380,6 +383,7 @@ Testaudio-Generatoren (alle deterministisch, von `wiederherstellen.sh` aufgerufe
 | v137 | Lernen: „Heute üben“ (10-Minuten-Plan, „▶ Los“ mit Timer, Serie), „↩ Weiter: …“ (genaue Stelle), Unterpunkte „Hör-Training“ (Intervalle/Akkorde/Tonleitern, Ampel) und „Spickzettel“ (druckbar) |
 | v138 | Jammen: „Welche Tonleiter passt?“ (Griffbrett folgt dem Akkord), „Akkordfolgen-Ideen“ (7 Stile → Backing Track), „Frage & Antwort“ (1/2/4 Takte), „⏺ Jam aufnehmen“ (Spur 1 Backing, Spur 2 Jam, Loop-Länge unberührt) |
 | v139 | Jammen: Kopfzeilen der Karten „Welche Tonleiter passt?“/„Frage & Antwort“ brechen um (`app/jam.css`) → kein seitliches Scrollen bei schmaler Breite (v25jam 21/21). Alte Tests an die neue Navigation angepasst: v21tabs (Zirkel-Mitlauf 6 s statt 4 s, sonst nur 2 Akkorde), v54caged (CAGED als Unterpunkt in „Lernen“), v22key (2 s warten – Spur 2 meldet ihre Tonart nach der Akkorderkennung ein zweites Mal), restoretest (Kanal-EQ-Format seit v100), v100mem (Stress-Dateien aus `test/long/` statt altem Scratchpad), v138jammen („ab v138“). Lauf aller 84 Tests: grün bis auf die unten unter „Offen“ genannten. |
+| v140 | Zwei neue App-Optiken hinter „Präzision“: **Präzision Nacht** `precise-dark` (Graphit, Haarlinien, Skalenstriche, Mono-Ziffern, Röhren-Orange #ff7a1a als einzige Leuchtfarbe – statische Schatten nur an aktiv/gedrückt, Rot nur REC; Pilotlampe vor dem Namen, Chrom-Rändelknopf an Reglern, Hauch Tolex/Gitter per CSS-Verlauf) und **iOS** `ios` (Dunkelmodus #000/#1c1c1e/#2c2c2e, Systemschrift, inset-grouped Karten Radius 14, Segment-Steuerung, Pillen/Tönungsknöpfe, gefüllt #0071e3 für ≥ 4,5:1, Kippschalter, Orange nur Pilotpunkt). Nur CSS (`app/theme-precise-dark.css`, `app/theme-ios.css`), `appcfg.js` THEME_BG, `EARLY` in build.py, EN „Precision Night“. Studio hat keine Optiken → unverändert. Test `v140optik` 30/30; v35/v59lang an neue Optiken angepasst |
 
 ## 10. Bekannte Grenzen
 
@@ -394,7 +398,9 @@ Testaudio-Generatoren (alle deterministisch, von `wiederherstellen.sh` aufgerufe
 
 ## 11. Offen / Ideen (warten auf den Nutzer)
 
-**Als Nächstes (Stand 08.11.2026, v139 live):**
+**Als Nächstes (Stand 08.11.2026, v140 live):**
+- v140 veröffentlicht (Optiken „Präzision Nacht“, „iOS“). Regressionen grün: v140optik 30/30, v113hilfe 27/27, v102ideas 11/11, v59lang 14/14, v60lang 21/21, v31export 14/14, s1studio 31/31, v107round 16/16, v116looperA 37/37, v117looperB 31/31, v118signal 28/28, v120power 66/66, v127look 23/23, v136reiter 40/40, v137lernen 43/43, v138jammen 40/40, v35 20/20, v34perf 12/12, s3studio 23/23. Screenshots lagen in `/tmp/claude-0/v140shots/` (nicht im Repo).
+  Tom prüft auf dem iPad: Wirkung/Lesbarkeit beider Optiken, Systemschrift (SF Pro gibt es nur auf Apple-Geräten), Kippschalter, Leistung beim Loopen.
 - v139 veröffentlicht (jam.css). Alle auf `test/nav.py` umgestellten Alt-Tests + Regressionsliste gelaufen (84 Tests) – grün außer:
   `v119leistung` 21/22 („Schätzung passt zur Messung“: geschätzt 0,10–0,12 gegen CDP 0,03 – Schätzung in dieser Sitzungsumgebung zu hoch, unabhängig von v139; auf dem iPad gegen „gemessen“ prüfen bzw. Toleranz/Schätzer ansehen),
   Texterkennung jetzt lauffähig (nach v139 eingerichtet): `wiederherstellen.sh` kopiert `sprache_de/en.wav` aus Branch `modelle` (`asr/test/`) nach `test/sing/` und mischt daraus `lied_de/en.wav`; Whisper + Laufzeit kommen auch nach `3nps-src/app/www/asr/` (Testserver). Neues `sh test/pages.sh` baut den Pages-Nachbau (Port 8790, main + aktueller Bau + Modelle) und startet `hangsrv.py` (8791). `v64offline` liest die Version aus sw.js. Ergebnis: v64asr 18/18, v91keep 10/10, v64offline 3/3, v71lieder 17/17. `aktionen.py` braucht die URL als Argument.

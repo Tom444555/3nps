@@ -4,7 +4,7 @@ window.__EN = {
 // ---- Kopf, Reiter, Optik, Leistung ----
 'App-Optik ▾': 'Appearance ▾', 'Leistung ▾': 'Performance ▾', 'App-Optik': 'Appearance', 'Leistung': 'Performance',
 'Live: während des Loopens keine Analyse, keine Sicherung, ruhige Anzeigen – wird beim Ausschalten nachgeholt': 'Live: no analysis, no saving and calm displays while looping – caught up when you switch it off',
-'Klar': 'Clear', 'Kühl': 'Cool', 'Nordisch': 'Nordic', 'Verstärker': 'Amp', 'DJ-Pult': 'DJ Deck', 'Hell': 'Light', 'Präzision': 'Precision',
+'Klar': 'Clear', 'Kühl': 'Cool', 'Nordisch': 'Nordic', 'Verstärker': 'Amp', 'DJ-Pult': 'DJ Deck', 'Hell': 'Light', 'Präzision': 'Precision', 'Präzision Nacht': 'Precision Night',
 'Ziehen zum Verschieben': 'Drag to move', 'Nur die wichtigsten Werte': 'Only the key values', 'Kompakt': 'Compact',
 'Fenster bleibt offen und lässt sich verschieben': 'Window stays open and can be moved', 'Anheften': 'Pin', 'Angeheftet': 'Pinned', 'Schließen': 'Close',
 'Rechenlast': 'CPU load', 'Bedienung': 'Interface', 'Bildrate': 'Frame rate', 'Aussetzer': 'Dropouts', 'Audio-Hänger': 'Audio stalls',

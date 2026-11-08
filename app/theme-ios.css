@@ -1,0 +1,108 @@
+
+  /* ===== v140: Optik „iOS“ – konsequent iOS-Dunkelmodus =====
+     Systemschrift, Grund #000, gruppierte Karten #1c1c1e (Radius 14), Trennlinien in iOS-Grau, Pillen- und Tönungsknöpfe,
+     Segment-Steuerung, Kippschalter, Systemfarben. Kein Blur (auf dem iPad teuer) – Kopfzeile deckend in Material-Grau, ohne Filter.
+     Verstärker nur als Hauch: Pegel und Pilotpunkt in Orange. */
+  :root[data-theme="ios"] {
+    --bg: #000000; --surface: #1c1c1e; --surface-2: #2c2c2e; --raised: #3a3a3c;
+    --ink: #ffffff; --muted: #98989f; --line: #38383a; --line-soft: #2c2c2e;
+    --accent: #0a84ff; --accent-ink: #ffffff; --active-color: #0a84ff;
+    --t1: #ffffff; --t2: #0a84ff; --t3: #ff9f0a;
+    --neon-rec: #ff453a; --neon-dub: #ffd60a; --neon-bar1: #ffffff;
+    --lcd-bg: #1c1c1e; --lcd-ink: #ffffff; --lcd-dim: #98989f;
+    --board: #1c1c1e; --board-edge: #000000; --fretwire: #8e8e93;
+    --string: #aeaeb2; --scale-color: #ffffff; --root-color: #ff453a; --finger-color: #64d2ff; --dub: #ffd60a;
+    --ios-fill: #0071e3;            /* gefüllte Knöpfe: Apple-Blau mit weißer Schrift ≥ 4,5:1 */
+    --ios-tint: rgba(10,132,255,.2); --ios-tint-ink: #64b0ff;
+    --ios-sep: rgba(84,84,88,.65);
+    --sw-off: rgba(120,120,128,.32); --sw-on: #30d158; --sw-knob: #ffffff;
+    --f-display: -apple-system, "SF Pro Display", "Segoe UI", system-ui, sans-serif;
+    --f-body: -apple-system, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+    background: #000000;
+  }
+  :root[data-theme="ios"] body { letter-spacing: -0.003em; }
+  :root[data-theme="ios"] :is(.caption, .status-line, #musicTime, .log-meta) { font-family: var(--f-body); font-variant-numeric: tabular-nums; letter-spacing: 0; }
+  :root[data-theme="ios"] .brand { display: inline-flex; align-items: center; gap: 8px; font-family: var(--f-display); font-weight: 700; font-size: 1.22rem; letter-spacing: -0.02em; color: #ffffff; text-transform: none; }
+  :root[data-theme="ios"] .brand span { font: 500 .7rem var(--f-body); letter-spacing: 0; text-transform: none; color: #98989f; -webkit-text-fill-color: #98989f; }
+  /* Pilotpunkt (Amp-Hauch) */
+  :root[data-theme="ios"] .brand::before { content: ""; width: 8px; height: 8px; flex: 0 0 8px; border-radius: 50%; filter: none; background: #ff9f0a; box-shadow: 0 0 8px rgba(255,159,10,.6); }
+  :root[data-theme="ios"] h2 { font-family: var(--f-display); font-weight: 600; font-size: .95rem; letter-spacing: -0.01em; text-transform: none; color: #ffffff; }
+  /* Kopfzeile: Material-Grau deckend (halbtransparent ohne Blur ließ Text durchscheinen) */
+  :root[data-theme="ios"] .control-bar { background: #161618; border-bottom: .5px solid var(--ios-sep); box-shadow: none; }
+  :root[data-theme="ios"] .lcd { background: #1c1c1e; border: 0; border-radius: 12px; box-shadow: none; }
+  :root[data-theme="ios"] .lcd { font-family: var(--f-body); font-variant-numeric: tabular-nums; }
+  :root[data-theme="ios"] .lcd .k { color: #98989f; letter-spacing: .06em; }
+  :root[data-theme="ios"] .lcd .v { color: #ffffff; text-shadow: none; font-family: var(--f-display); font-weight: 600; font-variant-numeric: tabular-nums; }
+  /* Bereiche als Segment-Steuerung */
+  :root[data-theme="ios"] .tabs { background: rgba(118,118,128,.24); border: 0; border-radius: 10px; box-shadow: none; padding: 2px; margin-top: 12px; }
+  :root[data-theme="ios"] .tab { font-family: var(--f-body); font-weight: 500; font-size: .86rem; text-transform: none; letter-spacing: -0.01em; color: #ffffff; text-shadow: none; border-radius: 8px; }
+  :root[data-theme="ios"] .tab[aria-selected="true"] { background: #636366; color: #ffffff; box-shadow: 0 3px 8px rgba(0,0,0,.12), 0 3px 1px rgba(0,0,0,.04); text-shadow: none; font-weight: 600; }
+  :root[data-theme="ios"] .tabs.areas .help-btn { border: 0; background: rgba(118,118,128,.24); color: #4da3ff; }
+  :root[data-theme="ios"] .tabs.areas .help-btn[aria-pressed="true"] { background: #0a84ff; color: #ffffff; }
+  /* Unterpunkte: Pillen, gewählt = gefüllte Pille */
+  :root[data-theme="ios"] .subtabs .subtab { border-radius: 999px; background: #1c1c1e; border: 0; color: #ffffff; font-weight: 500; }
+  :root[data-theme="ios"] .subtabs .subtab.active, :root[data-theme="ios"] .subtabs .subtab[aria-selected="true"] { background: #ffffff; color: #000000; box-shadow: none; }
+  /* Gruppierte Karten (inset grouped) */
+  :root[data-theme="ios"] .card, :root[data-theme="ios"] .stat-card { background: #1c1c1e; border: 0; border-radius: 14px; box-shadow: none; }
+  :root[data-theme="ios"] .card .card { background: #2c2c2e; }
+  :root[data-theme="ios"] :is(.track, .editor, .lane) { background: #1c1c1e; border: 0; border-radius: 14px; box-shadow: none; }
+  :root[data-theme="ios"] .card :is(.track, .editor, .lane) { background: #2c2c2e; }
+  :root[data-theme="ios"] .track-head { border-bottom: .5px solid var(--ios-sep); }
+  :root[data-theme="ios"] .track.rec-live { box-shadow: 0 0 0 2px #ff453a !important; }
+  :root[data-theme="ios"] .ed-group { background: #2c2c2e; border: 0; border-radius: 12px; box-shadow: none; }
+  :root[data-theme="ios"] .card .ed-group { background: rgba(118,118,128,.12); }
+  :root[data-theme="ios"] .dg-cell { background: #2c2c2e; }
+  :root[data-theme="ios"] .status-line { border-top: .5px solid var(--ios-sep); }
+  /* Knöpfe: graue Pillen; aktiv = Tönung (Blau 20 %), Hauptaktionen = gefüllt */
+  :root[data-theme="ios"] :is(.toggle-btn, .mini button, .file-mini, .tbtn) {
+    background: rgba(118,118,128,.24); border: 0; color: #ffffff; border-radius: 10px; box-shadow: none; text-shadow: none; font-weight: 500;
+  }
+  :root[data-theme="ios"] :is(.toggle-btn, .mini button, .file-mini, .tbtn):active { background: rgba(118,118,128,.4); }
+  :root[data-theme="ios"] .toggle-btn.active { background: var(--ios-tint); color: var(--ios-tint-ink); border: 0; box-shadow: none; text-shadow: none; font-weight: 600; }
+  :root[data-theme="ios"] #playBtn { border-radius: 50%; }
+  :root[data-theme="ios"] #playBtn.playing { background: var(--ios-fill); color: #ffffff; }
+  :root[data-theme="ios"] .foot { background: #2c2c2e; border: 0; border-radius: 14px; color: #ffffff; box-shadow: none; }
+  :root[data-theme="ios"] .foot { font: 600 1rem var(--f-body); letter-spacing: -0.01em; }
+  :root[data-theme="ios"] .eq-btn { font: 500 .8rem var(--f-body); letter-spacing: 0; background: rgba(118,118,128,.24); border: 0; border-radius: 10px; color: #ebebf5; }
+  :root[data-theme="ios"] .eq-btn.on { box-shadow: inset 0 0 0 1.5px var(--tc); color: var(--tc); }
+  :root[data-theme="ios"] .eq-btn.open { background: rgba(118,118,128,.4); }
+  :root[data-theme="ios"] .foot:active { background: #3a3a3c; box-shadow: none; }
+  :root[data-theme="ios"] .export-btn { background: var(--ios-fill) !important; border-color: var(--ios-fill) !important; color: #ffffff !important; border-radius: 10px !important; box-shadow: none !important; }
+  :root[data-theme="ios"] :is(select, .text-in) { background-color: #2c2c2e; border: 0; color: #ffffff; border-radius: 10px; box-shadow: none; }
+  :root[data-theme="ios"] .card :is(select, .text-in) { background-color: rgba(118,118,128,.24); }
+  :root[data-theme="ios"] .chan-info { color: #ebebf5; }
+  :root[data-theme="ios"] .track { --tcd: #636366; --tcg: transparent; }
+  :root[data-theme="ios"] .track.t2 { --tcd: #0a4a8f; --tcg: transparent; }
+  :root[data-theme="ios"] .track.t3 { --tcd: #8a5600; --tcg: transparent; }
+  /* Pegel: iOS-Grün → Gelb → Rot, flach */
+  :root[data-theme="ios"] .meter { background: rgba(118,118,128,.24); box-shadow: none; }
+  :root[data-theme="ios"] #loopMeter, :root[data-theme="ios"] .meter.st #loopMeterR { background-image: linear-gradient(90deg, #30d158 0%, #30d158 66%, #ffd60a 84%, #ff453a 100%); box-shadow: none; }
+  /* Schieberegler: dünne Spur, weißer runder Knopf (Spur-Fader behalten ihre Spurfarbe) */
+  :root[data-theme="ios"] input[type="range"]:not(:is(.fader, .lane-fader) input) { -webkit-appearance: none; appearance: none; height: 28px; background: transparent; accent-color: #0a84ff; }
+  :root[data-theme="ios"] input[type="range"]:not(:is(.fader, .lane-fader) input)::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: rgba(120,120,128,.36); }
+  :root[data-theme="ios"] input[type="range"]:not(:is(.fader, .lane-fader) input)::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; margin-top: -10px; border-radius: 50%; border: 0; background: #ffffff; box-shadow: 0 3px 8px rgba(0,0,0,.35), 0 0 0 .5px rgba(0,0,0,.08); }
+  :root[data-theme="ios"] input[type="range"]:not(:is(.fader, .lane-fader) input)::-moz-range-track { height: 4px; border-radius: 2px; background: rgba(120,120,128,.36); }
+  :root[data-theme="ios"] input[type="range"]:not(:is(.fader, .lane-fader) input)::-moz-range-progress { height: 4px; border-radius: 2px; background: #0a84ff; }
+  :root[data-theme="ios"] input[type="range"]:not(:is(.fader, .lane-fader) input)::-moz-range-thumb { width: 24px; height: 24px; border-radius: 50%; border: 0; background: #ffffff; }
+  /* Kopf-Knöpfe als graue Pillen, Aufklapper wie ein iOS-Menü */
+  :root[data-theme="ios"] .optik-btn { background: rgba(118,118,128,.24); border: 0; color: #ffffff; border-radius: 999px; letter-spacing: 0; text-transform: none; font-weight: 500; }
+  :root[data-theme="ios"] .optik-btn[aria-expanded="true"], :root[data-theme="ios"] .live-btn[aria-pressed="true"] { background: var(--ios-tint); color: var(--ios-tint-ink); }
+  :root[data-theme="ios"] .optik-pop { background: #2c2c2e; border: 0; border-radius: 14px; color: #ffffff; box-shadow: 0 18px 48px rgba(0,0,0,.6); }
+  :root[data-theme="ios"] .optik-pop select { background-color: rgba(118,118,128,.24); }
+  :root[data-theme="ios"] .pf-head { border-bottom: .5px solid var(--ios-sep); }
+  :root[data-theme="ios"] .pf-hbtn { border: 0; background: rgba(118,118,128,.24); border-radius: 999px; }
+  :root[data-theme="ios"] .pf-bar { background: rgba(118,118,128,.24); border-radius: 3px; }
+  :root[data-theme="ios"] .pf-bar i:not(.warn):not(.hot) { background: #30d158; }
+  :root[data-theme="ios"] .pf-bar i.warn { background: #ff9f0a; } :root[data-theme="ios"] .pf-bar i.hot { background: #ff453a; }
+  /* Lernen */
+  :root[data-theme="ios"] .ln-tile { background: #1c1c1e; border: 0; border-radius: 14px; }
+  :root[data-theme="ios"] .ln-tile:hover { background: #232325; }
+  :root[data-theme="ios"] .ln-today { border: 0; background: #1c1c1e; border-radius: 12px; }
+  :root[data-theme="ios"] .card .ln-today { background: rgba(118,118,128,.12); }
+  :root[data-theme="ios"] .pc-w .pc-wiv { background: #2c2c2e; border: 0; }
+  :root[data-theme="ios"] .pc-w .pc-wiv.active { background: var(--ios-tint); box-shadow: inset 0 0 0 2px #0a84ff; }
+  :root[data-theme="ios"] .pc-w .pc-wiv.active b { color: #64b0ff; }
+  :root[data-theme="ios"] .pc-wstep.active .pc-wsn { border-color: #0a84ff; box-shadow: 0 0 0 3px rgba(10,132,255,.3); }
+  :root[data-theme="ios"] .pc-wstep.seen .pc-wsn { background: #30d158; border-color: #30d158; }
+  :root[data-theme="ios"] #pcSecKurs .card, :root[data-theme="ios"] #pcSecKurs .pc-kgrip { border: 0; box-shadow: none; }
+  @media (max-width: 520px) { :root[data-theme="ios"] .brand { font-size: 1.08rem; } }

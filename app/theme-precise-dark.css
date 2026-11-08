@@ -1,0 +1,156 @@
+
+  /* ===== v140: „Präzision Nacht“ (precise-dark) und „iOS“ (ios) – gemeinsame Basis =====
+     Flach und ruhig: keine Texturbilder, kein Lichtkegel, keine Beschläge. Glühen nur als statischer Schatten
+     an aktiven/gedrückten Elementen, nie an Flächen, die beim Mitlaufen neu gezeichnet werden. */
+  :root:is([data-theme="precise-dark"], [data-theme="ios"]) { color-scheme: dark; }
+  :root:is([data-theme="precise-dark"], [data-theme="ios"]) body { background: transparent; }
+  :root:is([data-theme="precise-dark"], [data-theme="ios"]) body::before,
+  :root:is([data-theme="precise-dark"], [data-theme="ios"]) .control-bar::after,
+  :root:is([data-theme="precise-dark"], [data-theme="ios"]) .card::after { display: none; }
+  :root:is([data-theme="precise-dark"], [data-theme="ios"]) :is(h2, .brand) { text-shadow: none; filter: none; background: none; -webkit-text-fill-color: currentColor; }
+  :root:is([data-theme="precise-dark"], [data-theme="ios"]) .cb-inner { padding-bottom: 10px; padding-inline: 16px; }
+  :root:is([data-theme="precise-dark"], [data-theme="ios"]) .wave,
+  :root:is([data-theme="precise-dark"], [data-theme="ios"]) .ed-wave-wrap canvas { box-shadow: none; }
+  :root:is([data-theme="precise-dark"], [data-theme="ios"]) .fretboard { box-shadow: none; }
+  /* Schalter wie iOS: Häkchen-Kästchen in „label.check“ werden zu Kippschaltern (Kurs-Abhaken im Powerchords-Kurs bleibt Häkchen) */
+  :root:is([data-theme="precise-dark"], [data-theme="ios"]) .check > input[type="checkbox"] {
+    -webkit-appearance: none; appearance: none; flex: 0 0 auto; position: relative; margin: 0; cursor: pointer;
+    width: 38px; height: 22px; border-radius: 11px; background: var(--sw-off); border: 0; box-shadow: inset 0 0 0 1px rgba(255,255,255,.06);
+  }
+  :root:is([data-theme="precise-dark"], [data-theme="ios"]) .check > input[type="checkbox"]::before {
+    content: ""; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: var(--sw-knob);
+    box-shadow: 0 1px 3px rgba(0,0,0,.45); transition: transform .18s ease;
+  }
+  :root:is([data-theme="precise-dark"], [data-theme="ios"]) .check > input[type="checkbox"]:checked { background: var(--sw-on); box-shadow: var(--sw-on-glow, none); }
+  :root:is([data-theme="precise-dark"], [data-theme="ios"]) .check > input[type="checkbox"]:checked::before { transform: translateX(16px); }
+  :root:is([data-theme="precise-dark"], [data-theme="ios"]) .check > input[type="checkbox"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  :root:is([data-theme="precise-dark"], [data-theme="ios"]) #panel-power .check > input[type="checkbox"] {
+    -webkit-appearance: auto; appearance: auto; width: auto; height: auto; border-radius: 0; background: none; box-shadow: none; accent-color: var(--accent);
+  }
+  :root:is([data-theme="precise-dark"], [data-theme="ios"]) #panel-power .check > input[type="checkbox"]::before { display: none; }
+  :root:is([data-theme="precise-dark"], [data-theme="ios"]) .pf-hbtn[aria-pressed="true"] { background: var(--ink); color: var(--surface); }
+
+  /* ---------- „Präzision Nacht“: dunkles Präzisionsgerät mit Verstärker-Anklang ----------
+     Graphit statt Grau-Einerlei, Haarlinien, Skalenstriche, Mono-Ziffern, Röhren-Orange als einzige Leuchtfarbe,
+     Rot nur für Aufnahme. Knöpfe weich gerundet wie iOS, Glühen nur bei aktiv. */
+  :root[data-theme="precise-dark"] {
+    --bg: #0c0d0f; --surface: #141518; --surface-2: #1a1c20; --raised: #22252a;
+    --ink: #ecebe6; --muted: #a09d94; --line: #2b2e34; --line-soft: #1f2125;
+    --accent: #ff7a1a; --accent-ink: #160b02; --active-color: #ff7a1a;
+    --t1: #ecebe6; --t2: #ff8c2e; --t3: #7cc8f0;
+    --neon-rec: #ff3b30; --neon-dub: #ffc54a; --neon-bar1: #ffffff;
+    --lcd-bg: #08090a; --lcd-ink: #ffc58f; --lcd-dim: #8a6a50;
+    --board: #18191c; --board-edge: #0c0d0f; --fretwire: #a7aab0;
+    --string: #b9b6ad; --scale-color: #ecebe6; --root-color: #ff6a1a; --finger-color: #7cc8f0; --dub: #ffc54a;
+    --pn-glow: 0 0 0 1px rgba(255,122,26,.55), 0 0 14px rgba(255,122,26,.28);
+    --sw-off: #2a2d33; --sw-on: #ff7a1a; --sw-knob: linear-gradient(180deg, #f4f4f2, #c9cac8); --sw-on-glow: 0 0 10px rgba(255,122,26,.35);
+    /* Hauch Tolex: feines Diagonalgewebe kaum sichtbar, statisch */
+    background:
+      repeating-linear-gradient(45deg, rgba(255,255,255,.012) 0 1px, transparent 1px 3px),
+      repeating-linear-gradient(-45deg, rgba(0,0,0,.18) 0 1px, transparent 1px 3px),
+      #0c0d0f;
+  }
+  /* Marke: Mono-Versalien, davor die Pilotlampe des Verstärkers */
+  :root[data-theme="precise-dark"] .brand { display: inline-flex; align-items: center; gap: 9px; font-family: var(--f-mono); font-weight: 700; font-size: 1.02rem; letter-spacing: .14em; text-transform: uppercase; color: #ecebe6; }
+  :root[data-theme="precise-dark"] .brand span { font: 600 .62rem var(--f-mono); letter-spacing: .1em; text-transform: uppercase; color: #ff9a4a; -webkit-text-fill-color: #ff9a4a; }
+  :root[data-theme="precise-dark"] .brand::before {
+    content: ""; width: 10px; height: 10px; flex: 0 0 10px; border-radius: 50%; filter: none;
+    background: radial-gradient(circle at 40% 35%, #ffe2b8 0 18%, #ff8a2a 45%, #c24a00 100%);
+    box-shadow: 0 0 0 2px #2a2d33, 0 0 0 3px #4a4d54, 0 0 10px rgba(255,122,26,.65);
+  }
+  :root[data-theme="precise-dark"] h2 { font-family: var(--f-mono); font-weight: 700; font-size: .72rem; letter-spacing: .16em; text-transform: uppercase; color: #ecebe6; }
+  :root[data-theme="precise-dark"] h2::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #ff7a1a; margin-right: 9px; vertical-align: 1px; box-shadow: 0 0 6px rgba(255,122,26,.7); }
+  :root[data-theme="precise-dark"] .card-head h2::before { margin-right: 9px; }
+  /* Kopf: Frontplatte mit Haarlinie, ganz feines Lautsprechergitter als Hauch */
+  :root[data-theme="precise-dark"] .control-bar {
+    background: repeating-linear-gradient(0deg, rgba(255,255,255,.018) 0 1px, transparent 1px 4px), linear-gradient(180deg, #16181b, #101113);
+    border-bottom: 1px solid #000; box-shadow: 0 1px 0 #24272c, 0 8px 20px rgba(0,0,0,.45);
+  }
+  :root[data-theme="precise-dark"] .lcd { background: #08090a; border: 1px solid #000; border-radius: 12px; box-shadow: inset 0 0 0 1px #24272c, inset 0 8px 18px rgba(0,0,0,.6); }
+  :root[data-theme="precise-dark"] .lcd .k { color: #a0806a; }
+  :root[data-theme="precise-dark"] .lcd .v { color: #ffc58f; text-shadow: 0 0 8px rgba(255,122,26,.35); font-variant-numeric: tabular-nums; }
+  /* Bereiche: Segment-Steuerung (iOS), gewählt = erhabene Pille mit orangem Skalenstrich */
+  :root[data-theme="precise-dark"] .tabs { background: #101113; border: 1px solid #24272c; border-radius: 12px; box-shadow: inset 0 1px 3px rgba(0,0,0,.6); margin-top: 12px; }
+  :root[data-theme="precise-dark"] .tab { font-family: var(--f-mono); font-weight: 600; font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; color: #a09d94; text-shadow: none; border-radius: 9px; }
+  :root[data-theme="precise-dark"] .tab[aria-selected="true"] {
+    background: linear-gradient(180deg, #2a2d33, #212328); color: #ffffff; text-shadow: none;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.07), inset 0 -2px 0 #ff7a1a, 0 1px 2px rgba(0,0,0,.6);
+  }
+  :root[data-theme="precise-dark"] .tabs.areas .help-btn { border-color: #3a3d44; color: #ecebe6; }
+  :root[data-theme="precise-dark"] .tabs.areas .help-btn[aria-pressed="true"] { border-color: #ff7a1a; color: #ffc58f; box-shadow: var(--pn-glow); }
+  /* Fenster: Haarlinie, weiche Ecken, Skalenstriche oben rechts wie auf einer Reglerskala */
+  :root[data-theme="precise-dark"] .card, :root[data-theme="precise-dark"] .stat-card {
+    background:
+      repeating-linear-gradient(90deg, #3a3d44 0 1px, transparent 1px 6px) calc(100% - 16px) 0 / 61px 5px no-repeat,
+      linear-gradient(180deg, rgba(255,255,255,.022), rgba(255,255,255,0) 120px), #141518;
+    border: 1px solid #24272c; border-radius: 16px; box-shadow: inset 0 1px 0 rgba(255,255,255,.035), 0 10px 26px rgba(0,0,0,.35);
+  }
+  /* Anzeigefenster (Spuren, Editor, Bahnen): tiefer, ganz ruhig */
+  :root[data-theme="precise-dark"] :is(.track, .editor, .lane) { background: #0e0f11; border: 1px solid #22252a; border-radius: 14px; box-shadow: inset 0 1px 0 rgba(255,255,255,.03); }
+  :root[data-theme="precise-dark"] .track-head { border-bottom-color: #22252a; }
+  :root[data-theme="precise-dark"] .track.rec-live { border-color: #ff3b30 !important; box-shadow: 0 0 0 1px #ff3b30, 0 0 16px rgba(255,59,48,.3) !important; }
+  :root[data-theme="precise-dark"] .ed-group { background: #121316; border-color: #22252a; border-radius: 12px; box-shadow: none; }
+  :root[data-theme="precise-dark"] .dg-cell { background: #121316; }
+  :root[data-theme="precise-dark"] .status-line { border-top-color: #22252a; }
+  /* Knöpfe: iOS-artig gerundet, Graphit mit feiner Oberkante; aktiv = Röhren-Glühen */
+  :root[data-theme="precise-dark"] :is(.toggle-btn, .mini button, .file-mini, .tbtn) {
+    background: linear-gradient(180deg, #23262b, #1c1e22); border: 1px solid #30333a; color: #ecebe6; border-radius: 10px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 1px 1px rgba(0,0,0,.4); text-shadow: none;
+  }
+  :root[data-theme="precise-dark"] :is(.toggle-btn, .mini button, .file-mini, .tbtn):active { background: #2a2d33; }
+  :root[data-theme="precise-dark"] .toggle-btn.active {
+    background: linear-gradient(180deg, #3a2414, #2a1a0e); border-color: #ff7a1a; color: #ffd2a8; text-shadow: none; box-shadow: var(--pn-glow);
+  }
+  :root[data-theme="precise-dark"] .subtabs .subtab { border-radius: 999px; }
+  :root[data-theme="precise-dark"] #playBtn { border-radius: 12px; }
+  :root[data-theme="precise-dark"] #playBtn.playing { background: #ff7a1a; border-color: #ff7a1a; color: #160b02; box-shadow: 0 0 16px rgba(255,122,26,.45); }
+  :root[data-theme="precise-dark"] .foot { background: linear-gradient(180deg, #25282d, #1b1d21); border: 1px solid #000; border-radius: 14px; color: #ecebe6; box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 2px 0 #000; }
+  :root[data-theme="precise-dark"] .foot:active { box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 0 0 1px rgba(255,122,26,.6), 0 0 14px rgba(255,122,26,.3); }
+  :root[data-theme="precise-dark"] .export-btn { background: #ff7a1a !important; border-color: #ff7a1a !important; color: #160b02 !important; border-radius: 10px !important; box-shadow: 0 0 12px rgba(255,122,26,.3) !important; }
+  :root[data-theme="precise-dark"] :is(select, .text-in) { background-color: #0e0f11; border: 1px solid #30333a; color: #ecebe6; border-radius: 10px; box-shadow: inset 0 1px 2px rgba(0,0,0,.5); }
+  :root[data-theme="precise-dark"] .eq-btn { background: #121316; border-color: #2b2e34; border-radius: 9px; }
+  :root[data-theme="precise-dark"] .chan-info { color: #c9c6be; }
+  :root[data-theme="precise-dark"] .track { --tcd: #5d5f63; --tcg: transparent; }
+  :root[data-theme="precise-dark"] .track.t2 { --tcd: #8a4614; --tcg: rgba(255,122,26,.18); }
+  :root[data-theme="precise-dark"] .track.t3 { --tcd: #2f5d78; --tcg: transparent; }
+  /* Pegel: dunkles Fenster mit Skalenstrichen; warmweiß → Orange → Rot, ohne Leuchtfilter (ändert sich jedes Bild) */
+  :root[data-theme="precise-dark"] .meter { background: #08090a; box-shadow: inset 0 0 0 1px #000; position: relative; }
+  :root[data-theme="precise-dark"] .meter::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 4;
+    background: repeating-linear-gradient(90deg, rgba(255,255,255,.28) 0 1px, transparent 1px 10%) 0 0 / 100% 30% no-repeat;
+  }
+  :root[data-theme="precise-dark"] #loopMeter, :root[data-theme="precise-dark"] .meter.st #loopMeterR { background-image: linear-gradient(90deg, #8f8c84 0%, #ecebe6 65%, #ff9a2a 84%, #ff3b30 100%); box-shadow: none; }
+  /* Schieberegler: feine Spur, Rändel-Knopf aus Chrom (Spur-Fader behalten ihre Spurfarbe) */
+  :root[data-theme="precise-dark"] input[type="range"]:not(:is(.fader, .lane-fader) input) { -webkit-appearance: none; appearance: none; height: 24px; background: transparent; accent-color: #ff7a1a; }
+  :root[data-theme="precise-dark"] input[type="range"]:not(:is(.fader, .lane-fader) input)::-webkit-slider-runnable-track {
+    height: 4px; border-radius: 2px; background: #2a2d33; box-shadow: inset 0 1px 1px rgba(0,0,0,.6);
+  }
+  :root[data-theme="precise-dark"] input[type="range"]:not(:is(.fader, .lane-fader) input)::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 20px; height: 20px; margin-top: -8px; border-radius: 50%; border: 1px solid #0c0d0f;
+    background: radial-gradient(circle, #e9eaec 0 34%, transparent 36%), repeating-conic-gradient(#c7c9cd 0 10deg, #7d8087 10deg 20deg);
+    box-shadow: 0 0 0 1px rgba(255,255,255,.08), 0 2px 4px rgba(0,0,0,.6);
+  }
+  :root[data-theme="precise-dark"] input[type="range"]:not(:is(.fader, .lane-fader) input):active::-webkit-slider-thumb { box-shadow: 0 0 0 1px rgba(255,122,26,.7), 0 0 10px rgba(255,122,26,.45); }
+  :root[data-theme="precise-dark"] input[type="range"]:not(:is(.fader, .lane-fader) input)::-moz-range-track { height: 4px; border-radius: 2px; background: #2a2d33; }
+  :root[data-theme="precise-dark"] input[type="range"]:not(:is(.fader, .lane-fader) input)::-moz-range-progress { height: 4px; border-radius: 2px; background: #ff7a1a; }
+  :root[data-theme="precise-dark"] input[type="range"]:not(:is(.fader, .lane-fader) input)::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; border: 1px solid #0c0d0f; background: #c7c9cd; }
+  /* Kopf-Knöpfe und Aufklapper */
+  :root[data-theme="precise-dark"] .optik-btn { background: #101113; border-color: #30333a; color: #c9c6be; border-radius: 8px; font-family: var(--f-mono); }
+  :root[data-theme="precise-dark"] .optik-btn[aria-expanded="true"], :root[data-theme="precise-dark"] .live-btn[aria-pressed="true"] { border-color: #ff7a1a; color: #ffd2a8; box-shadow: var(--pn-glow); }
+  :root[data-theme="precise-dark"] .optik-pop { background: #16181b; border: 1px solid #30333a; border-radius: 14px; color: #ecebe6; box-shadow: 0 16px 40px rgba(0,0,0,.6); }
+  :root[data-theme="precise-dark"] .pf-head { border-bottom-color: #2b2e34; }
+  :root[data-theme="precise-dark"] .pf-hbtn { border-color: #30333a; border-radius: 8px; }
+  :root[data-theme="precise-dark"] .pf-row b { font-family: var(--f-mono); }
+  :root[data-theme="precise-dark"] .pf-bar { background: repeating-linear-gradient(90deg, rgba(255,255,255,.14) 0 1px, transparent 1px 10%), #08090a; }
+  :root[data-theme="precise-dark"] .pf-bar i:not(.warn):not(.hot) { background: #ecebe6; }
+  :root[data-theme="precise-dark"] .pf-bar i.warn { background: #ff9a2a; } :root[data-theme="precise-dark"] .pf-bar i.hot { background: #ff3b30; }
+  /* Lernen: Kacheln und Intervall-Werkstatt – aktive Teile glühen orange */
+  :root[data-theme="precise-dark"] .ln-tile { background: #141518; border-color: #24272c; border-radius: 14px; }
+  :root[data-theme="precise-dark"] .ln-tile:hover { border-color: #3a3d44; }
+  :root[data-theme="precise-dark"] .pc-w .pc-wiv { background: linear-gradient(180deg, #1d1f23, #17191c); border-color: #2b2e34; }
+  :root[data-theme="precise-dark"] .pc-w .pc-wiv.active { background: linear-gradient(180deg, #3a2414, #24160c); box-shadow: inset 0 0 0 1px #ff7a1a, 0 0 16px rgba(255,122,26,.35); }
+  :root[data-theme="precise-dark"] .pc-w .pc-wiv.active b { color: #ffb36b; }
+  :root[data-theme="precise-dark"] .pc-wstep.active .pc-wsn { border-color: #ff7a1a; box-shadow: 0 0 0 3px rgba(255,122,26,.22), 0 0 10px rgba(255,122,26,.4); }
+  :root[data-theme="precise-dark"] .pc-wstep.seen .pc-wsn { background: #ff7a1a; border-color: #ff7a1a; color: #160b02; }
+  :root[data-theme="precise-dark"] #pcSecKurs .card, :root[data-theme="precise-dark"] #pcSecKurs .pc-kgrip { border-color: #24272c; }
+  @media (max-width: 520px) { :root[data-theme="precise-dark"] .brand { font-size: .94rem; letter-spacing: .1em; } }
