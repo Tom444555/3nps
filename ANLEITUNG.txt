@@ -1305,3 +1305,14 @@ Gut zu wissen
    - Rechts steht zusätzlich „→ nächster Akkord“ (auch wenn der nächste Block noch nicht zu sehen ist) und beim laufenden Block
      „noch 3 Takte“ bis zum Wechsel. Gleiche Akkorde hintereinander zählen zusammen.
    - Schmale Blöcke sehen aus wie bisher.
+
+118. Aufnahme endete nach 4 Takten – behoben (v135)
+   - Ursache: Ein Übe-Loop aus „Powerchords“ (Übungen, Akkordfolgen „In den Looper“, Kurs „▶ Loop starten“, „▶ Begleit-Track“)
+     stellt die Looper-„Loop-Länge“ auf seine Akkordzahl (meist 4 Takte). Bis v134 wurde das dauerhaft gespeichert – danach
+     endete jede neue Aufnahme nach 4 Takten von selbst, auch nach einem Neustart.
+   - Jetzt gilt die Länge des Übe-Loops nur, solange er im Looper liegt. Sobald du ohne Loop neu aufnimmst, steht wieder
+     deine eigene Wahl (Standard „Frei (Taster)“). Beim ersten Start von v135 wird eine gespeicherte feste Länge einmal auf
+     „Frei“ zurückgesetzt. Eine feste Länge, die du danach selbst wählst, bleibt wie gewohnt gespeichert.
+   - Hinweis: Bei fester Länge steht beim Start in der Statuszeile „Sie endet nach n Takten von selbst.“
+   - Akkordleiste (v134): Bei breiten Blöcken steht der Name jetzt auch wieder fest in der Mitte; links und rechts bleibt er
+     zusätzlich am Rand stehen. Der Countdown heißt „noch 3 Takte“ (englisch „3 bars left“).
