@@ -1999,6 +1999,38 @@ html.sig-open .control-bar { visibility: hidden; }   /* Kopfleiste liegt sonst �
   .ln-tile .ln-d { color: var(--muted); font-size: .8rem; line-height: 1.3; }
   .ln-tile .ln-p { color: var(--muted); font-size: .74rem; margin-top: auto; }
   .ln-tile .ln-last { color: var(--dub); font-size: .76rem; font-weight: 700; }
+  /* v137: Heute üben (Ablauf), Weiter, Hör-Training, Spickzettel */
+  .ln-today .ln-acts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .ln-tiles { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+  .ln-run { position: fixed; left: 50%; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 65; display: flex; align-items: center; gap: 10px;
+    max-width: calc(100vw - 24px); padding: 8px 10px 8px 14px; border-radius: 12px; background: var(--surface-2); border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--line)); box-shadow: 0 6px 24px rgba(0,0,0,.45); color: var(--ink); }
+  .ln-run .ln-rs { display: flex; flex-direction: column; min-width: 0; } .ln-run .ln-rs small { color: var(--muted); font-size: .72rem; }
+  .ln-run .ln-rs b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: .9rem; }
+  .ln-run .ln-rt { font: 700 1.1rem var(--f-mono); font-variant-numeric: tabular-nums; min-width: 3.4em; text-align: right; }
+  .ln-run .toggle-btn { padding: 6px 10px; }
+  .hr-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .hr-cnt { margin-left: auto; font-variant-numeric: tabular-nums; }
+  .hr-amp { display: flex; flex-wrap: wrap; gap: 6px; }
+  .hr-a { display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px; border-radius: 8px; background: var(--surface-2); font-size: .78rem; }
+  .hr-a i { width: 10px; height: 10px; border-radius: 50%; background: var(--line); } .hr-a small { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .hr-a.gruen i { background: #4fd18b; } .hr-a.gelb i { background: #f5c542; } .hr-a.rot i { background: #ff5a4f; }
+  .hr-fbrow { min-height: 38px; } .hr-fb { flex: 1 1 auto; font-weight: 600; } .hr-fb.ok { color: #4fd18b; } .hr-fb.no { color: #ff8a80; }
+  .sp-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 20px; }
+  @media (max-width: 760px) { .sp-grid { grid-template-columns: minmax(0, 1fr); } }
+  .sp-s h3 { margin: 4px 0 6px; font-size: .95rem; }
+  .sp-t { width: 100%; border-collapse: collapse; font-size: .8rem; }
+  .sp-t th, .sp-t td { text-align: left; padding: 3px 6px; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+  .sp-t th { color: var(--muted); font-weight: 600; font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; }
+  .sp-t code { font: 600 .82rem var(--f-mono); letter-spacing: .06em; }
+  @media print {
+    .print-spick body { background: #fff !important; color: #000 !important; }
+    .print-spick body * { visibility: hidden !important; }
+    .print-spick #panel-spick, .print-spick #panel-spick * { visibility: visible !important; color: #000 !important; background: transparent !important; box-shadow: none !important; text-shadow: none !important; }
+    .print-spick #panel-spick { position: absolute; left: 0; top: 0; width: 100%; }
+    .print-spick #spPrint, .print-spick .ln-run { display: none !important; }
+    .print-spick .sp-t th, .print-spick .sp-t td { border-bottom: 1px solid #999 !important; }
+  }
+  #hrBody { display: flex; flex-direction: column; gap: 10px; }
   /* ===== Rost & Stahl: Hintergrund aus gerostetem Blech, darauf verschraubte Stahlplatten ===== */
   :root {
     --plate-hi: #3a3a40;
@@ -4212,6 +4244,9 @@ Object.assign(window.__EN, { 'Lernen': 'Learn', 'Jammen': 'Jam', 'Song & Gesang'
   'Tagesübung, Gehörbildung, Licks, Solo-Auswertung': 'Daily practice, ear training, licks, solo review', 'Blöcke heute': 'blocks today', 'frei üben': 'free practice',
   'Zuletzt geöffnet': 'Last opened', 'Min in 7 Tagen': 'min in 7 days', 'Heute üben': 'Practice today',
   'Tagesübung mit Tonart des Tages, Lick und Gehörbildung': 'Daily practice with key of the day, lick and ear training', '▶ Zur Tagesübung': '▶ Daily practice' });
+// v137 Lernen: Heute üben, Weiter, Hör-Training, Spickzettel
+Object.assign(window.__EN, { 'Intervalle, Akkorde, Tonleitern mit Ampel': 'Intervals, chords, scales with traffic light', 'Spickzettel': 'Cheat sheet', 'Intervalle, Griffformen, Quintenzirkel, Akkordsymbole': 'Intervals, shapes, circle of fifths, chord symbols', 'noch nicht geübt': 'not practised yet', 'zum Nachschlagen': 'for quick reference', 'Kap.': 'Ch.', 'Schritt': 'Step', 'Tonleitern': 'Scales', 'Kurs Kap.': 'Course ch.', 'Weiter ▸': 'Next ▸', 'Fertig ✓': 'Done ✓', 'Geschafft!': 'Done!', 'Serie': 'Streak', 'Tag': 'day', 'Tage': 'days', '▶ Los': '▶ Go', '↩ Weiter:': '↩ Continue:', 'Erst hören, dann antippen. Zehn Aufgaben je Runde; die Ampel merkt sich deine Treffer.': 'Listen first, then tap. Ten questions per round; the traffic light keeps your score.', 'aufwärts': 'up', 'abwärts': 'down', 'zusammen': 'together', 'Ampel: grün ab 80 %, gelb ab 50 %, rot darunter (ab 3 Versuchen).': 'Traffic light: green from 80 %, yellow from 50 %, red below (after 3 tries).', 'Beste Runde': 'Best round', 'Richtig!': 'Correct!', 'Das war': 'That was', 'sus (2 oder 4)': 'sus (2 or 4)', '🖨 Drucken': '🖨 Print', 'Alles Wichtige auf einer Seite – zum Nachschlagen oder Ausdrucken.': 'Everything important on one page – to look up or print.', 'Powerchord-Formen': 'Power chord shapes', 'CAGED-Formen (offen, C-Dur-Familie)': 'CAGED shapes (open, C major family)', 'Akkordsymbole': 'Chord symbols', 'Min': 'min' });
+Object.assign(window.__EN, { 'Hör-Training': 'Ear training', '▶ Runde starten': '▶ Start round' });
 
 // Sprache (v59): Deutsch ist der Quelltext. Nur im EN-Modus läuft hier etwas:
 // Ein Beobachter übersetzt neue/geänderte Texte im DOM (Text, title, placeholder, aria-label)
@@ -4317,7 +4352,7 @@ Object.assign(window.__EN, { 'Lernen': 'Learn', 'Jammen': 'Jam', 'Song & Gesang'
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v136</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v137</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -4402,6 +4437,8 @@ Object.assign(window.__EN, { 'Lernen': 'Learn', 'Jammen': 'Jam', 'Song & Gesang'
     <button class="toggle-btn subtab" role="tab" id="tab-quinten" data-tab="quinten" data-area="lernen" aria-selected="false">Quintenzirkel</button>
     <button class="toggle-btn subtab" role="tab" id="tab-griffbrett" data-tab="griffbrett" data-area="lernen" aria-selected="false">Technik</button>
     <button class="toggle-btn subtab" role="tab" id="tab-ueben" data-tab="ueben" data-area="lernen" aria-selected="false">Training</button>
+    <button class="toggle-btn subtab" role="tab" id="tab-hoer" data-tab="hoer" data-area="lernen" aria-selected="false">Hör-Training</button>
+    <button class="toggle-btn subtab" role="tab" id="tab-spick" data-tab="spick" data-area="lernen" aria-selected="false">Spickzettel</button>
     <button class="toggle-btn subtab" role="tab" id="tab-jam" data-tab="jam" data-area="jammen" aria-selected="false">Backing Track</button>
     <button class="toggle-btn subtab" role="tab" id="tab-solo" data-tab="solo" data-area="jammen" aria-selected="false">Improvisation</button>
     <button class="toggle-btn subtab" role="tab" id="tab-lied" data-tab="lied" data-area="gesang" aria-selected="false">Songwriting</button>
@@ -5711,6 +5748,24 @@ E|--0--|   E|--x--|   E|--x--|</pre>
       <div class="ln-today" id="lnToday"></div>
     </div>
     <div class="ln-tiles" id="lnTiles"></div>
+  </section>
+  <section class="panel" id="panel-hoer" role="tabpanel" aria-labelledby="tab-hoer" hidden>
+    <div class="card hr-card">
+      <div class="card-head"><h2>Hör-Training</h2></div>
+      <p class="caption">Erst hören, dann antippen. Zehn Aufgaben je Runde; die Ampel merkt sich deine Treffer.</p>
+      <div class="hr-row">
+        <div class="seg"><button class="toggle-btn" data-hm="iv">Intervalle</button><button class="toggle-btn" data-hm="ch">Akkorde</button><button class="toggle-btn" data-hm="sc">Tonleitern</button></div>
+        <div class="seg" id="hrDir"><button class="toggle-btn" data-hd="up">aufwärts</button><button class="toggle-btn" data-hd="down">abwärts</button><button class="toggle-btn" data-hd="both">zusammen</button></div>
+      </div>
+      <div id="hrBody"></div>
+    </div>
+  </section>
+  <section class="panel" id="panel-spick" role="tabpanel" aria-labelledby="tab-spick" hidden>
+    <div class="card sp-card">
+      <div class="card-head"><h2>Spickzettel</h2><button class="toggle-btn" id="spPrint">🖨 Drucken</button></div>
+      <p class="caption">Alles Wichtige auf einer Seite – zum Nachschlagen oder Ausdrucken.</p>
+      <div class="sp-grid" id="spBody"></div>
+    </div>
   </section>
 
 
@@ -22586,6 +22641,20 @@ const HILFE = [
     s: ['Tonart wählen, dann eine Vorlage oder Akkorde eintippen: „Am F C G“, „Am7:2 D7“ (2 Takte).', 'Akkord antippen: Länge, verschieben, verdoppeln, entfernen.', '▶ startet Drums, Bass und Fläche. „Beat“ und „Synth-Klang“ wählen den Sound.', 'Tempo-Trainer: Start, Ziel und Schritt – das Tempo steigt von selbst.'] },
   { id: 'training', t: 'Training', k: 'training tagesübung gehörbildung licks intervalle solo auswertung', img: 'training',
     s: ['„Tagesübung“: ca. 15 Minuten Plan mit Timer, erledigte Blöcke landen im Übungslog.', 'Gehörbildung: Intervalle, Akkordtypen, Stufen.', 'Licks: als Tabulatur und im Griffbild, in jeder Tonart, auch halbes Tempo.', 'Solo-Auswertung: Solo über eine Akkordspur einspielen, „Auswerten“.'] },
+  { id: 'heute-ueben', t: 'Heute üben (10 Minuten) und „Weiter, wo du warst“', k: 'heute üben 10 minuten plan los timer serie tage weiter wo du warst zuletzt kapitel fortsetzen',
+    p: ['In „Lernen · Übersicht“ steht oben ein 10-Minuten-Plan: 3 Min Technik · 4 Min aktuelles Kurs-Kapitel · 3 Min Hör-Training. Das Kapitel ist das, an dem du zuletzt warst – sonst das erste mit offenen Übungen.',
+       '„▶ Los“ führt Schritt für Schritt durch: Die App öffnet den passenden Unterpunkt, unten läuft eine kleine Leiste mit Restzeit. Ist die Zeit um, kommt ein kurzer Ton und der nächste Schritt.',
+       'Wer den ganzen Plan schafft, verlängert seine <b>Serie</b> (Tage hintereinander). Ein Tag Pause setzt sie auf 0 zurück.'],
+    s: ['„Lernen“ antippen, Unterpunkt „Übersicht“.', '„▶ Los“ – die Leiste unten zeigt Schritt, Restzeit, „⏸“, „Weiter ▸“ und „✕“ (abbrechen).', 'Nach dem dritten Schritt: „Geschafft! Serie: n Tage“.',
+       '„↩ Weiter: …“ öffnet genau die Stelle, an der du zuletzt warst (z. B. Powerchords-Kurs · Kap. 6 · Schritt 2, Training · Gehörbildung, Hör-Training · Tonleitern).'],
+    tip: ['Die zuletzt benutzte Kachel zeigt „Zuletzt: …“ mit Kapitel bzw. Bereich.'] },
+  { id: 'hoer-training', t: 'Hör-Training: Intervalle, Akkorde, Tonleitern', k: 'hör-training gehör ohr intervalle akkorde tonleitern ampel treffer aufwärts abwärts zusammen kirchentonarten pentatonik',
+    p: ['Eigener Unterpunkt in „Lernen“. Drei Arten: <b>Intervalle</b> (aufwärts, abwärts oder zusammen angeschlagen), <b>Akkorde</b> (dieselben Typen wie im Kurs: Dur, Moll, sus, Maj7, 7, 9, b9, #9) und <b>Tonleitern</b> (Dur, Moll, Dur-/Moll-Pentatonik und die Kirchentonarten).',
+       'Jede Runde hat zehn Aufgaben. Die <b>Ampel</b> zeigt je Intervall/Akkord/Tonleiter, wie sicher du bist (grün ab 80 %, gelb ab 50 %, ab 3 Versuchen). Treffer und beste Runde bleiben gespeichert.'],
+    s: ['„Lernen“ → „Hör-Training“.', 'Art wählen („Intervalle“, „Akkorde“, „Tonleitern“), bei Intervallen die Richtung.', '„▶ Runde starten“, hören, Antwort antippen. „▶ Nochmal hören“ spielt die Aufgabe erneut.', '„Weiter ▶“ zur nächsten Aufgabe, nach zehn Aufgaben „Neue Runde“.'] },
+  { id: 'spickzettel', t: 'Spickzettel (zum Ausdrucken)', k: 'spickzettel nachschlagen drucken intervalle griffformen powerchord caged quintenzirkel akkordsymbole vorzeichen',
+    p: ['Eine Seite mit dem Wichtigsten: Intervalle (Halbtöne, Name, Stufe, von C), Powerchord- und CAGED-Formen als Tab, Quintenzirkel mit Vorzeichen und Parallel-Moll sowie die gängigen Akkordsymbole mit ihren Tönen.'],
+    s: ['„Lernen“ → „Spickzettel“.', '„🖨 Drucken“ druckt nur den Spickzettel – schwarz auf weiß (iPad: Teilen → Drucken bzw. als PDF sichern).'] },
   { id: 'technik', t: 'Technik (Griffbrett, Metronom, Begleitung)', k: 'technik griffbrett 3nps metronom übungslog begleitung positionen', img: 'technik',
     s: ['Griffbild mit Tonleiter und Position wählen.', 'Metronom und Begleitung (Drone, Drums, Bass) starten.', 'Das Übungslog zählt deine Übungszeit.'] },
  ]},
@@ -22758,6 +22827,8 @@ const HILFE = [
 
 // v136: Bereich „Lernen“ – Übersicht mit Kacheln (Icon, Kurzbeschreibung, Fortschrittsring aus vorhandenen Daten).
 // Wird erst beim Öffnen gebaut (tabchange „lernen“); liest nur vorhandene Speicher, schreibt nichts Neues außer über AppNav.
+// v137: „Heute üben“ (10-Minuten-Plan, „▶ Los“ mit Timer, Tages-Serie), „Weiter, wo du warst“, Kacheln Hör-Training + Spickzettel.
+// Neuer Schlüssel localStorage „3nps-lernen“ { serie, last, where: { t, sec, k, s, ub, m } }.
 (function () {
   const $ = id => document.getElementById(id), panel = $('panel-lernen'); if (!panel) return;
   const TT = x => (typeof T === 'function' ? T(x) : x);
@@ -22768,8 +22839,16 @@ const HILFE = [
     { t: 'caged', ic: '◈', n: 'CAGED', d: '5 Griffformen über das ganze Griffbrett' },
     { t: 'quinten', ic: '◎', n: 'Quintenzirkel', d: 'Tonarten, Vorzeichen, verwandte Akkorde' },
     { t: 'griffbrett', ic: '▦', n: 'Technik', d: 'Griffbrett, 3nps-Muster, Begleitung, Übungslog' },
-    { t: 'ueben', ic: '⏱', n: 'Training', d: 'Tagesübung, Gehörbildung, Licks, Solo-Auswertung' }
+    { t: 'ueben', ic: '⏱', n: 'Training', d: 'Tagesübung, Gehörbildung, Licks, Solo-Auswertung' },
+    { t: 'hoer', ic: '👂', n: 'Hör-Training', d: 'Intervalle, Akkorde, Tonleitern mit Ampel' },
+    { t: 'spick', ic: '📋', n: 'Spickzettel', d: 'Intervalle, Griffformen, Quintenzirkel, Akkordsymbole' }
   ];
+  const NAME = {}; TILES.forEach(x => { NAME[x.t] = x.n; });
+  let L = jget('3nps-lernen', {}) || {}; L.where = L.where || null;
+  const lsave = () => { try { localStorage.setItem('3nps-lernen', JSON.stringify(L)); } catch (e) {} };
+  const ymd = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  const yesterday = () => ymd(new Date(Date.now() - 864e5));
+  const serie = () => (L.last === today() || L.last === yesterday()) ? (L.serie || 0) : 0;
   function ring(p) { const c = 2 * Math.PI * 16; return '<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="16" class="ln-rbg"/>' + (p > 0 ? '<circle cx="20" cy="20" r="16" class="ln-rfg" stroke-dasharray="' + (c * Math.min(1, p)).toFixed(1) + ' ' + c.toFixed(1) + '" transform="rotate(-90 20 20)"/>' : '') + '</svg>'; }
   // Fortschritt je Kachel: { p: 0…1, txt }
   function prog(t) {
@@ -22783,13 +22862,19 @@ const HILFE = [
       return { p: n / 4, txt: n + ' / 4 ' + TT('Blöcke heute') };
     }
     if (t === 'griffbrett') return { p: 0, txt: '', async: true };
+    if (t === 'hoer') {
+      const h = jget('3nps-hoer', {}) || {}; let ok = 0, n = 0;
+      ['iv', 'ch', 'sc'].forEach(m => Object.values(h[m] || {}).forEach(c => { ok += c[0]; n += c[1]; }));
+      return { p: n ? ok / n : 0, txt: n ? Math.round(ok / n * 100) + ' % ' + TT('Treffer') + ' (' + n + ')' : TT('noch nicht geübt') };
+    }
+    if (t === 'spick') return { p: 0, txt: TT('zum Nachschlagen') };
     return { p: 0, txt: TT('frei üben') };
   }
   function tile(T0, lastT) {
     const g = prog(T0.t);
     return '<button class="ln-tile' + (T0.t === lastT ? ' last' : '') + '" data-t="' + T0.t + '"><span class="ln-top"><span class="ln-ic" aria-hidden="true">' + T0.ic + '</span><span class="ln-ring">' + ring(g.p) + '</span></span>' +
       '<span class="ln-n">' + T0.n + '</span><span class="ln-d">' + T0.d + '</span><span class="ln-p">' + g.txt + '</span>' +
-      (T0.t === lastT ? '<span class="ln-last">● ' + TT('Zuletzt geöffnet') + '</span>' : '') + '</button>';
+      (T0.t === lastT ? '<span class="ln-last">● ' + (L.where && L.where.t === T0.t && whereDetail() ? TT('Zuletzt') + ': ' + whereDetail() : TT('Zuletzt geöffnet')) + '</span>' : '') + '</button>';
   }
   // Technik: Übungsminuten der letzten 7 Tage aus dem Übungslog (Ziel 60 Min)
   async function technik() {
@@ -22800,23 +22885,208 @@ const HILFE = [
       el.querySelector('.ln-ring').innerHTML = ring(min / 60); el.querySelector('.ln-p').textContent = min + ' ' + TT('Min in 7 Tagen');
     } catch (e) {}
   }
+  // ---- „Weiter, wo du warst“: Stelle merken (nur zuhören, fremde Module bleiben unverändert) ----
+  const SECN = { theorie: 'Theorie', schritte: 'Schritt für Schritt', brett: 'Griffbrett', folgen: 'Akkordfolgen', uebungen: 'Übungen', kurs: 'Kurs' };
+  const UBN = { tag: 'Tagesübung', ohr: 'Gehörbildung', lick: 'Licks', solo: 'Solo-Auswertung' };
+  const HMN = { iv: 'Intervalle', ch: 'Akkorde', sc: 'Tonleitern' };
+  function whereDetail() {
+    const w = L.where; if (!w) return '';
+    if (w.t === 'power' && w.k) return TT('Kap.') + ' ' + w.k + (w.s != null ? ' · ' + TT('Schritt') + ' ' + (w.s + 1) : '');
+    if (w.t === 'power' && w.sec) return TT(SECN[w.sec] || w.sec);
+    if (w.t === 'ueben' && w.ub) return TT(UBN[w.ub] || w.ub);
+    if (w.t === 'hoer' && w.m) return TT(HMN[w.m] || '');
+    return '';
+  }
+  function setWhere(w) { L.where = w; lsave(); }
+  document.addEventListener('tabchange', e => { const n = e.detail; if (window.AppNav && AppNav.area(n) === 'lernen' && n !== 'lernen' && (!L.where || L.where.t !== n)) setWhere({ t: n }); });
+  document.addEventListener('toggle', e => { const d = e.target; if (d && d.matches && d.matches('details.pc-kc') && d.open) setWhere({ t: 'power', sec: 'kurs', k: +d.dataset.kc + 1 }); }, true);
+  document.addEventListener('click', e => {
+    const st = e.target.closest && e.target.closest('#pcSecKurs .pc-kstep'); if (st) { setWhere({ t: 'power', sec: 'kurs', k: +st.dataset.c + 1, s: +st.dataset.s }); return; }
+    const sb = e.target.closest && e.target.closest('#pcSubs button'); if (sb) { const v = sb.dataset.sec || sb.dataset.v; if (v !== 'kurs' || !(L.where && L.where.t === 'power' && L.where.k)) setWhere({ t: 'power', sec: v }); return; }
+    const ub = e.target.closest && e.target.closest('#ubNav button'); if (ub && ub.dataset.s) setWhere({ t: 'ueben', ub: ub.dataset.s });
+  }, true);
+  document.addEventListener('lernenwo', e => setWhere(e.detail));
+  function resume(w) {
+    w = w || L.where; if (!w || !window.AppNav) return;
+    AppNav.show(w.t);
+    if (w.t === 'power' && window.Powerchords) setTimeout(() => {
+      Powerchords.showSec(w.sec || 'kurs');
+      if (w.k && window.PcKurs) { PcKurs.open(w.k);
+        if (w.s != null) setTimeout(() => { const S0 = PcKurs.K[w.k - 1] && PcKurs.K[w.k - 1].s[w.s], el = S0 && document.getElementById('pcK_' + S0.id); if (!el) return;
+          const bar = document.querySelector('.control-bar'), off = bar && getComputedStyle(bar).position === 'sticky' ? bar.getBoundingClientRect().height : 0;   // nicht unter die feste Kopfleiste
+          window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - off - 12, behavior: 'auto' }); }, 600); }
+    }, 30);
+    if (w.t === 'ueben' && w.ub && window.Ueben) Ueben.showSec(w.ub);
+    if (w.t === 'hoer' && w.m && window.Hoer) Hoer.setMode(w.m);
+  }
+  // ---- Heute üben: 3 Min Technik · 4 Min aktuelles Kurs-Kapitel · 3 Min Hör-Training ----
+  function kursKap() {
+    if (L.where && L.where.t === 'power' && L.where.k) return L.where.k;
+    const k = (jget('powerchords.progress.v1', {}) || {}).kurs || {};
+    if (window.PcKurs) for (let ci = 0; ci < PcKurs.K.length; ci++) { const ids = []; PcKurs.K[ci].s.forEach(S0 => S0.ex.forEach((x, xi) => ids.push(S0.id + '-' + xi))); if (ids.some(id => k[id] !== true)) return ci + 1; }
+    return 1;
+  }
+  function plan() { const k = kursKap(); return [{ t: 'griffbrett', min: 3, n: TT('Technik') }, { t: 'power', min: 4, n: TT('Kurs Kap.') + ' ' + k, w: { t: 'power', sec: 'kurs', k } }, { t: 'hoer', min: 3, n: TT('Hör-Training') }]; }
+  let R = null;
+  const fmt = s => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  function runBar() {
+    let b = $('lnRun'); if (!b) { b = document.createElement('div'); b.id = 'lnRun'; b.className = 'ln-run'; b.setAttribute('role', 'status'); document.body.appendChild(b);
+      b.addEventListener('click', e => { const x = e.target.closest('[data-run]'); if (!x || !R) return; const v = x.dataset.run;
+        if (v === 'pause') { R.pause = !R.pause; if (!R.pause) R.end = Date.now() + R.left * 1000; paintRun(); } else if (v === 'next') step(R.i + 1); else if (v === 'stop') stopRun(); }); }
+    return b;
+  }
+  function paintRun() {
+    const b = runBar(), st = R.p[R.i];
+    b.innerHTML = '<span class="ln-rs"><small>' + TT('Heute üben') + ' · ' + (R.i + 1) + '/' + R.p.length + '</small><b>' + st.n + '</b></span><span class="ln-rt" id="lnRunT">' + fmt(R.left) + '</span>' +
+      '<button class="toggle-btn" data-run="pause" aria-label="' + (R.pause ? TT('Weiter') : TT('Pause')) + '">' + (R.pause ? '▶' : '⏸') + '</button><button class="toggle-btn active" data-run="next">' + (R.i + 1 < R.p.length ? TT('Weiter ▸') : TT('Fertig ✓')) + '</button><button class="toggle-btn" data-run="stop" aria-label="' + TT('Abbrechen') + '">✕</button>';
+  }
+  function step(i) {
+    if (!R) return; if (i >= R.p.length) { finish(); return; }
+    R.i = i; R.left = R.p[i].min * 60; R.end = Date.now() + R.left * 1000; R.pause = false;
+    if (i > 0 && window.Quinten) Quinten.playNote(84);
+    paintRun(); const st = R.p[i]; if (st.w) resume(st.w); else if (window.AppNav) AppNav.show(st.t);
+  }
+  function tick() {
+    if (!R || R.pause) return; const left = Math.max(0, Math.ceil((R.end - Date.now()) / 1000));
+    if (left !== R.left) { R.left = left; const t = $('lnRunT'); if (t) t.textContent = fmt(left); }
+    if (left <= 0) step(R.i + 1);
+  }
+  function start() { if (R) return; R = { p: plan(), i: 0 }; R.iv = setInterval(tick, 250); step(0); }
+  function stopRun() { if (!R) return; clearInterval(R.iv); R = null; const b = $('lnRun'); if (b) b.remove(); if (!panel.hidden) today0(); }
+  function finish() {
+    const d = today(); if (L.last !== d) { L.serie = L.last === yesterday() ? (L.serie || 0) + 1 : 1; L.last = d; lsave(); }
+    clearInterval(R.iv); R.iv = null; if (window.Quinten) { Quinten.playNote(84); setTimeout(() => Quinten.playNote(88), 180); }
+    const b = runBar(); b.innerHTML = '<span class="ln-rs"><small>' + TT('Heute üben') + '</small><b>' + TT('Geschafft!') + ' ' + TT('Serie') + ': ' + serie() + ' ' + TT(serie() === 1 ? 'Tag' : 'Tage') + '</b></span><button class="toggle-btn" data-run="stop">✕</button>';
+    setTimeout(() => { if (R && !R.iv) stopRun(); }, 5000);
+  }
   function today0() {
-    $('lnToday').innerHTML = '<span class="ln-tt"><b>' + TT('Heute üben') + '</b><span class="caption">' + TT('Tagesübung mit Tonart des Tages, Lick und Gehörbildung') + '</span></span>' +
-      '<button class="toggle-btn active" id="lnTodayGo">' + TT('▶ Zur Tagesübung') + '</button>';
+    const p = plan(), sr = serie(), w = L.where && NAME[L.where.t] ? L.where : null;
+    $('lnToday').innerHTML = '<span class="ln-tt"><b>' + TT('Heute üben') + ' · 10 Min</b><span class="caption">' + p.map(x => x.min + ' Min ' + x.n).join(' · ') + '</span></span>' +
+      '<span class="ln-acts"><button class="toggle-btn active" id="lnGo">' + TT('▶ Los') + '</button>' +
+      (w ? '<button class="toggle-btn" id="lnResume">' + TT('↩ Weiter:') + ' ' + TT(NAME[w.t]) + (whereDetail() ? ' · ' + whereDetail() : '') + '</button>' : '') + '</span>' +
+      '<span class="ln-serie">' + TT('Serie') + ': ' + sr + ' ' + TT(sr === 1 ? 'Tag' : 'Tage') + (L.last === today() ? ' ✓' : '') + '</span>';
   }
   function build() {
-    const L = window.AppNav ? AppNav.last() : {};
+    const N = window.AppNav ? AppNav.last() : {};
     today0();
-    $('lnTiles').innerHTML = TILES.map(x => tile(x, L.tile)).join('');
+    $('lnTiles').innerHTML = TILES.map(x => tile(x, N.tile)).join('');
     technik();
   }
   panel.addEventListener('click', e => {
     const t = e.target.closest('.ln-tile'); if (t && window.AppNav) { AppNav.show(t.dataset.t); return; }
-    if (e.target.closest('#lnTodayGo') && window.AppNav) AppNav.show('ueben');
+    if (e.target.closest('#lnGo')) { start(); return; }
+    if (e.target.closest('#lnResume')) resume();
   });
   document.addEventListener('tabchange', e => { if (e.detail === 'lernen') build(); });
   if (!panel.hidden) build();
-  window.Lernen = { build, prog };
+  window.Lernen = { build, prog, plan, start, stop: stopRun, _shift: s => { if (R && R.end) R.end -= s * 1000; }, step: i => step(i), run: () => R && { i: R.i, left: R.left, pause: !!R.pause, n: R.p.length }, where: () => L.where && Object.assign({}, L.where), resume, serie, _L: () => JSON.parse(JSON.stringify(L)) };
+})();
+
+// v137: Lernen → „Hör-Training“ (Intervalle auf/ab/zusammen, Akkorde aus dem Kurs-Hör-Training, Tonleitern) mit Ampel und
+// gespeicherter Trefferzählung (localStorage „3nps-hoer“, neu) und „Spickzettel“ (Intervalle, Griffformen, Quintenzirkel,
+// Akkordsymbole; druckfreundlich). Beides wird erst beim Öffnen gebaut (tabchange „hoer“ / „spick“).
+(function () {
+  const $ = id => document.getElementById(id), TT = x => (typeof T === 'function' ? T(x) : x);
+  const ph = $('panel-hoer'), ps = $('panel-spick'); if (!ph || !ps) return;
+  const KEY = '3nps-hoer';
+  let S = (function () { try { return JSON.parse(localStorage.getItem(KEY) || 'null') || {}; } catch (e) { return {}; } })();
+  S.iv = S.iv || {}; S.ch = S.ch || {}; S.sc = S.sc || {}; S.best = S.best || {}; S.mode = S.mode || 'iv'; S.dir = S.dir || 'up';
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
+  const IV = ['kleine Sekunde', 'große Sekunde', 'kleine Terz', 'große Terz', 'Quarte', 'Tritonus', 'Quinte', 'kleine Sexte', 'große Sexte', 'kleine Septime', 'große Septime', 'Oktave'];
+  const CH0 = [['dur', 'Dur', [0, 4, 7]], ['moll', 'Moll', [0, 3, 7]], ['maj7', 'Maj7', [0, 4, 7, 11]], ['7', '7', [0, 4, 7, 10]]];
+  const SC = [['dur', 'Dur', [0, 2, 4, 5, 7, 9, 11, 12]], ['moll', 'Moll', [0, 2, 3, 5, 7, 8, 10, 12]], ['pdur', 'Dur-Pentatonik', [0, 2, 4, 7, 9, 12]], ['pmoll', 'Moll-Pentatonik', [0, 3, 5, 7, 10, 12]],
+    ['dor', 'Dorisch', [0, 2, 3, 5, 7, 9, 10, 12]], ['phr', 'Phrygisch', [0, 1, 3, 5, 7, 8, 10, 12]], ['lyd', 'Lydisch', [0, 2, 4, 6, 7, 9, 11, 12]], ['mix', 'Mixolydisch', [0, 2, 4, 5, 7, 9, 10, 12]], ['lok', 'Lokrisch', [0, 1, 3, 5, 6, 8, 10, 12]]];
+  const chords = () => (window.PcPlan && PcPlan.EAR) || CH0;   // vorhandenes Kurs-Hör-Training (Dur, Moll, sus, Maj7, 7, 9, b9, #9)
+  const items = m => m === 'iv' ? IV.map((n, i) => [String(i + 1), n]) : m === 'ch' ? chords().map(x => [x[0], x[1]]) : SC.map(x => [x[0], x[1]]);
+  const ampel = st => window.PcPlan ? PcPlan.ampel(st) : (!st || st[1] < 3 ? 'grau' : st[0] / st[1] >= 0.8 ? 'gruen' : st[0] / st[1] >= 0.5 ? 'gelb' : 'rot');
+  let Q = null, timers = [];
+  const note = m => { if (window.Quinten) Quinten.playNote(m); };
+  function stopSound() { timers.forEach(clearTimeout); timers = []; }
+  function at(ms, f) { timers.push(setTimeout(f, ms)); }
+  function play() {
+    if (!Q) return; stopSound(); const q = Q;
+    if (q.m === 'iv') { const a = q.base, b = q.base + +q.k; if (q.dir === 'up') { note(a); at(700, () => note(b)); } else if (q.dir === 'down') { note(b); at(700, () => note(a)); } else { note(a); note(b); } }
+    else if (q.m === 'ch') { const ms = window.PcPlan && PcPlan.earVoicing ? PcPlan.earVoicing(q.k, q.base) : [q.base - 12].concat(CH0.find(x => x[0] === q.k)[2].map(n => q.base + n)); ms.forEach((m, i) => at(i * 28, () => note(m))); }
+    else { SC.find(x => x[0] === q.k)[2].forEach((n, i) => at(i * 320, () => note(q.base + n))); }
+  }
+  function newTask() {
+    const it = items(Q.m); Q.k = it[Math.floor(Math.random() * it.length)][0];
+    Q.base = Q.m === 'iv' ? 55 + Math.floor(Math.random() * 10) : Q.m === 'ch' ? 52 + Math.floor(Math.random() * 8) : 52 + Math.floor(Math.random() * 10);
+    Q.ans = null; Q.fb = ''; setTimeout(play, 120);
+  }
+  function draw() {
+    const m = S.mode, st = S[m], it = items(m);
+    let h = '<div class="hr-amp">' + it.map(([k, n]) => { const s = st[k]; return '<span class="hr-a ' + ampel(s) + '"><i></i><b>' + n + '</b><small>' + (s ? s[0] + '/' + s[1] : '–') + '</small></span>'; }).join('') + '</div>' +
+      '<p class="caption">' + TT('Ampel: grün ab 80 %, gelb ab 50 %, rot darunter (ab 3 Versuchen).') + (S.best[m] != null ? ' ' + TT('Beste Runde') + ': ' + S.best[m] + '/10' : '') + '</p>';
+    if (!Q) h += '<div class="hr-row"><button class="toggle-btn active" data-hr="start">' + TT('▶ Runde starten') + '</button></div>';
+    else {
+      h += '<div class="hr-row"><button class="toggle-btn" data-hr="again">' + TT('▶ Nochmal hören') + '</button><b class="hr-cnt">' + TT('Aufgabe') + ' ' + (Q.i + 1) + ' ' + TT('von') + ' 10 · ' + TT('Treffer') + ': ' + Q.hits + '</b></div>' +
+        '<div class="hr-row hr-opts">' + it.map(([k, n]) => '<button class="toggle-btn' + (Q.ans != null && k === Q.k ? ' active' : '') + '" data-ha="' + k + '"' + (Q.ans != null ? ' disabled' : '') + '>' + n + '</button>').join('') + '</div>' +
+        '<div class="hr-row hr-fbrow"><span class="hr-fb ' + (Q.ans ? 'ok' : Q.ans === false ? 'no' : '') + '">' + (Q.fb || '') + '</span>' + (Q.ans != null ? '<button class="toggle-btn active" data-hr="next">' + (Q.end ? TT('Neue Runde') : TT('Weiter ▶')) + '</button>' : '') + '</div>';
+    }
+    $('hrBody').innerHTML = h;
+    ph.querySelectorAll('[data-hm]').forEach(b => b.classList.toggle('active', b.dataset.hm === m));
+    ph.querySelectorAll('[data-hd]').forEach(b => b.classList.toggle('active', b.dataset.hd === S.dir));
+    $('hrDir').style.visibility = m === 'iv' ? 'visible' : 'hidden';      // Platz bleibt → nichts springt
+  }
+  function answer(k) {
+    if (!Q || Q.ans != null) return; const ok = k === Q.k, st = S[Q.m], c = st[Q.k] = st[Q.k] || [0, 0];
+    c[1]++; if (ok) { c[0]++; Q.hits++; }
+    const name = items(Q.m).find(x => x[0] === Q.k)[1];
+    Q.ans = ok; Q.fb = (ok ? '✓ ' + TT('Richtig!') + ' ' : '✗ ' + TT('Das war') + ' ') + name + '.';
+    if (Q.i === 9) { Q.end = true; S.best[Q.m] = Math.max(S.best[Q.m] || 0, Q.hits); S.last = { m: Q.m, hits: Q.hits, at: Date.now() }; }
+    save(); draw();
+  }
+  let built = false;
+  function build() {
+    if (built) return; built = true;
+    ph.addEventListener('click', e => {
+      const hm = e.target.closest('[data-hm]'); if (hm) { setMode(hm.dataset.hm); return; }
+      const hd = e.target.closest('[data-hd]'); if (hd) { S.dir = hd.dataset.hd; save(); if (Q && Q.m === 'iv') { Q.dir = S.dir; } draw(); return; }
+      const ha = e.target.closest('[data-ha]'); if (ha) { answer(ha.dataset.ha); return; }
+      const hr = e.target.closest('[data-hr]'); if (!hr) return; const v = hr.dataset.hr;
+      if (v === 'start') { Q = { m: S.mode, dir: S.dir, i: 0, hits: 0 }; newTask(); draw(); }
+      else if (v === 'again') play();
+      else if (v === 'next') { if (Q.end) Q = { m: S.mode, dir: S.dir, i: 0, hits: 0 }; else Q.i++; newTask(); draw(); }
+    });
+    draw();
+  }
+  function setMode(m) { if (!['iv', 'ch', 'sc'].includes(m)) return; S.mode = m; save(); Q = null; stopSound(); if (built) draw(); document.dispatchEvent(new CustomEvent('lernenwo', { detail: { t: 'hoer', m } })); }
+
+  // ---------------- Spickzettel ----------------
+  const NN = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
+  const ST = ['1', 'b2', '2', 'b3', '3', '4', 'b5', '5', 'b6', '6', 'b7', '7', '8'];
+  const KEYS = [['C', 'Am', '–'], ['G', 'Em', '1♯'], ['D', 'Bm', '2♯'], ['A', 'F#m', '3♯'], ['E', 'C#m', '4♯'], ['B (H)', 'G#m', '5♯'], ['F# / Gb', 'D#m / Ebm', '6♯ / 6♭'],
+    ['Db', 'Bbm', '5♭'], ['Ab', 'Fm', '4♭'], ['Eb', 'Cm', '3♭'], ['Bb', 'Gm', '2♭'], ['F', 'Dm', '1♭']];
+  const SYM = [['C', '1 3 5', 'Dur'], ['Cm', '1 b3 5', 'Moll'], ['C5', '1 5', 'Powerchord'], ['Csus2', '1 2 5', ''], ['Csus4', '1 4 5', ''], ['C6', '1 3 5 6', ''], ['Cm6', '1 b3 5 6', ''],
+    ['C7', '1 3 5 b7', 'Dominant-7'], ['Cmaj7', '1 3 5 7', 'Major-7 (auch CΔ)'], ['Cm7', '1 b3 5 b7', 'Moll-7'], ['Cm7b5', '1 b3 b5 b7', 'halbvermindert (Cø)'], ['Cdim', '1 b3 b5', 'vermindert (C°)'],
+    ['Cdim7', '1 b3 b5 bb7', ''], ['Caug', '1 3 #5', 'übermäßig (C+)'], ['Cadd9', '1 3 5 9', 'ohne 7'], ['C9', '1 3 5 b7 9', ''], ['Cmaj9', '1 3 5 7 9', ''], ['C7#9', '1 3 5 b7 #9', '„Hendrix-Akkord“'], ['C/E', 'C mit E im Bass', 'Slash-Akkord']];
+  const PC = [['E-Saite (1-5)', '35xxxx', 'G5 – Grundton tiefe E-Saite, 3. Bund'], ['A-Saite (1-5)', 'x35xxx', 'C5 – Grundton A-Saite, 3. Bund'], ['D-Saite (1-5)', 'xx57xx', 'G5 – Grundton D-Saite, 5. Bund'],
+    ['E-Saite mit Oktave (1-5-8)', '355xxx', 'G5 mit Oktave'], ['A-Saite mit Oktave (1-5-8)', 'x355xx', 'C5 mit Oktave'], ['Quinte im Bass (5-1)', '33xxxx', 'C5/G – Quinte unten'], ['Drop D', '000xxx', 'D5 – ein Finger über drei Saiten']];
+  const CAGED = [['C-Form', 'x32010', 'Grundton A-Saite (Ringfinger)'], ['A-Form', 'x02220', 'Grundton A-Saite (leer/Zeigefinger)'], ['G-Form', '320003', 'Grundton tiefe E-Saite (Mittelfinger)'],
+    ['E-Form', '022100', 'Grundton tiefe E-Saite (Barré)'], ['D-Form', 'xx0232', 'Grundton D-Saite']];
+  const tbl = (head, rows) => '<table class="sp-t" translate="no"><thead><tr>' + head.map(x => '<th>' + x + '</th>').join('') + '</tr></thead><tbody>' + rows.map(r => '<tr>' + r.map(x => '<td>' + x + '</td>').join('') + '</tr>').join('') + '</tbody></table>';
+  let sBuilt = false;
+  function buildSpick() {
+    if (sBuilt) return; sBuilt = true;
+    const ivRows = [['0', 'Prime', '1', 'C']].concat(IV.map((n, i) => [String(i + 1), n, ST[i + 1], NN[(i + 1) % 12]]));
+    $('spBody').innerHTML =
+      '<section class="sp-s"><h3>' + TT('Intervalle') + '</h3>' + tbl(['HT', 'Name', 'Stufe', 'von C'], ivRows) + '</section>' +
+      '<section class="sp-s"><h3>' + TT('Powerchord-Formen') + '</h3>' + tbl(['Form', 'Tab (tief → hoch)', 'Hinweis'], PC.map(r => ['<b>' + r[0] + '</b>', '<code>' + r[1] + '</code>', r[2]])) +
+      '<h3>' + TT('CAGED-Formen (offen, C-Dur-Familie)') + '</h3>' + tbl(['Form', 'Tab', 'Grundton'], CAGED.map(r => ['<b>' + r[0] + '</b>', '<code>' + r[1] + '</code>', r[2]])) +
+      '<p class="caption" translate="no">Formen verschieben: die leeren Saiten werden zum Barré (Zeigefinger). Reihenfolge den Hals hinauf: C → A → G → E → D → C …</p></section>' +
+      '<section class="sp-s"><h3>' + TT('Quintenzirkel') + '</h3>' + tbl(['Dur', 'Moll (parallel)', 'Vorzeichen'], KEYS) +
+      '<p class="caption" translate="no">Im Uhrzeigersinn je eine Quinte höher (+1♯), gegen den Uhrzeigersinn eine Quarte (+1♭). Akkorde einer Dur-Tonart: I ii iii IV V vi vii° (z. B. C Dm Em F G Am B°).</p></section>' +
+      '<section class="sp-s"><h3>' + TT('Akkordsymbole') + '</h3>' + tbl(['Symbol', 'Töne (Stufen)', 'Name'], SYM.map(r => ['<b>' + r[0] + '</b>', r[1], r[2]])) + '</section>';
+  }
+  ps.addEventListener('click', e => {
+    if (!e.target.closest('#spPrint')) return;
+    document.documentElement.classList.add('print-spick');
+    const off = () => { document.documentElement.classList.remove('print-spick'); window.removeEventListener('afterprint', off); };
+    window.addEventListener('afterprint', off); try { window.print(); } catch (x) {} setTimeout(off, 60000);
+  });
+  document.addEventListener('tabchange', e => { if (e.detail === 'hoer') build(); else { stopSound(); } if (e.detail === 'spick') buildSpick(); });
+  window.Hoer = { build, setMode, answer, task: () => Q && { m: Q.m, k: Q.k, dir: Q.dir, i: Q.i, hits: Q.hits, ans: Q.ans }, stats: () => JSON.parse(JSON.stringify(S)), buildSpick };
 })();
 
 </script>
@@ -25596,11 +25866,11 @@ PcKurs.K.push({ t: 'Kapitel 15 – Drop D und tiefere Stimmungen', s: [
   // Panels/IDs bleiben gleich (panel-…, Chips tragen die alten Knopf-IDs tab-…), Ereignis „tabchange“ wie bisher.
   const $ = id => document.getElementById(id);
   // frühere Reiter (Begleitung, Song, Log) liegen jetzt im Griffbrett
-  const OLD = { begleitung: 'griffbrett', song: 'griffbrett', log: 'griffbrett', anleitung: 'hilfe', powerchords: 'power', backing: 'jam', improvisation: 'solo', songwriting: 'lied', mitsingen: 'singen', training: 'ueben', technik: 'griffbrett' };
-  const AREA = { looper: 'looper', lernen: 'lernen', power: 'lernen', caged: 'lernen', quinten: 'lernen', griffbrett: 'lernen', ueben: 'lernen', jam: 'jammen', solo: 'jammen', lied: 'gesang', singen: 'gesang' };
+  const OLD = { begleitung: 'griffbrett', song: 'griffbrett', log: 'griffbrett', anleitung: 'hilfe', powerchords: 'power', backing: 'jam', improvisation: 'solo', songwriting: 'lied', mitsingen: 'singen', training: 'ueben', technik: 'griffbrett', 'hoer-training': 'hoer', spickzettel: 'spick' };
+  const AREA = { looper: 'looper', lernen: 'lernen', power: 'lernen', caged: 'lernen', quinten: 'lernen', griffbrett: 'lernen', ueben: 'lernen', hoer: 'lernen', spick: 'lernen', jam: 'jammen', solo: 'jammen', lied: 'gesang', singen: 'gesang' };
   const FIRST = { looper: 'looper', lernen: 'lernen', jammen: 'jam', gesang: 'lied' };
   // Anleitung passend zum Bereich/Unterpunkt
-  const HELP = { looper: 'aufnehmen', lernen: 'bereiche', power: 'powerchord-kurs', caged: 'caged', quinten: 'quinten', griffbrett: 'technik', ueben: 'training', jam: 'backing', solo: 'improvisation', lied: 'songwriting', singen: 'mitsingen' };
+  const HELP = { looper: 'aufnehmen', lernen: 'bereiche', power: 'powerchord-kurs', caged: 'caged', quinten: 'quinten', griffbrett: 'technik', ueben: 'training', hoer: 'hoer-training', spick: 'spickzettel', jam: 'backing', solo: 'improvisation', lied: 'songwriting', singen: 'mitsingen' };
   const areaBtns = document.querySelectorAll('.tabs [data-area]'), chips = document.querySelectorAll('#subNav [data-tab]'), sub = $('subNav'), help = $('tab-hilfe');
   const PANELS = ['looper', 'hilfe'].concat([...chips].map(c => c.dataset.tab));
   let last = {}; try { last = JSON.parse(localStorage.getItem('3nps-tab-last') || '{}') || {}; } catch (e) {}
