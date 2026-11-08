@@ -1,6 +1,7 @@
 # v85: Mitsingen als mitlaufende Liste (aktuelle Zeile groß, Wort eingefärbt, Akkorde groß), Pausen mit Sekunden, Zeile antippen; Dateien bis 10 Minuten
 import asyncio, json, re
 from playwright.async_api import async_playwright
+from nav import tab
 T = '/home/claude/3nps/test/'; U = 'http://localhost:8765/index.html'
 ok = 0; tot = 0
 def check(n, c, info=''):
@@ -24,7 +25,7 @@ async def main():
             if await pg.evaluate("!!(window.SoloInfo && Sing.source(SoloInfo()) && Sing.source(SoloInfo()).beats)"): break
             await pg.wait_for_timeout(250)
         if not await pg.evaluate("Looper.running()"): await pg.click('#loopAll')
-        await pg.click('#tab-singen'); await pg.evaluate(SEEK % 9.2); await pg.wait_for_timeout(700)
+        await tab(pg, 'singen'); await pg.evaluate(SEEK % 9.2); await pg.wait_for_timeout(700)
         st = await pg.evaluate("""(()=>{const rows=[...document.querySelectorAll('#sbList .sb-row')],cur=document.querySelector('#sbList .sb-row.cur'),w=cur.querySelector('.sb-w.on'),
           f=x=>parseFloat(getComputedStyle(x).fontSize);return {n:rows.length,cur:+cur.dataset.l,big:f(cur.querySelector('.sb-line')),small:f(rows[3].querySelector('.sb-line')),
           on:w&&w.textContent.replace(/[+-]?\\d+/g,''),col:w&&getComputedStyle(w).color,acc:getComputedStyle(document.documentElement).getPropertyValue('--accent'),

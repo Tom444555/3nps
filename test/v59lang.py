@@ -1,6 +1,7 @@
 # v59: Sprache DE | EN – Schalter, Speicherung, Kopf und Looper ohne deutsche Reste, Meldungen, DE-Modus unverändert
 import asyncio, re
 from playwright.async_api import async_playwright
+from nav import tab
 U = 'http://localhost:8765/index.html'
 ok = 0; tot = 0
 def check(n, c, info=''):
@@ -31,7 +32,8 @@ async def main():
         check('EN: Knopf zeigt DE', await pg.inner_text('#langBtn') == 'DE')
         await pg.reload(); await pg.wait_for_timeout(1200)
         check('EN bleibt nach Neustart', await pg.evaluate("window.__lang") == 'en')
-        check('EN: Reiter übersetzt', await pg.inner_text('#tab-quinten') == 'Circle of fifths', await pg.inner_text('#tab-quinten'))
+        await tab(pg, 'quinten'); await pg.wait_for_timeout(300)
+        check('EN: Bereiche und Unterpunkt übersetzt', await pg.inner_text('#tab-quinten') == 'Circle of fifths' and await pg.inner_text('#area-lernen') == 'Learn' and await pg.inner_text('#area-gesang') == 'Song & vocals', await pg.inner_text('#tab-quinten'))
         async with pg.expect_navigation(): await pg.click('#langBtn')
         await pg.wait_for_timeout(1200)
         check('zurück auf DE', await pg.evaluate("window.__lang==='de' && localStorage.getItem('3nps-lang')==='de'"))

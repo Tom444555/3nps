@@ -942,3 +942,12 @@ Object.assign(window.__EN_PCW, { 'Hör-Training': 'Ear training', 'Technik-Vorü
 Object.assign(window.__EN_PCW, { 'Begleit-Tracks': 'Backing tracks', '▶ Begleit-Track': '▶ Backing track' });
 // v135 Akkordleiste: Takte bis zum Wechsel
 window.__EN_PAT.unshift([/^noch (\d+) Takte?$/, '$1 bars left']);
+// v136 Bereiche + Lernen-Übersicht
+Object.assign(window.__EN, { 'Lernen': 'Learn', 'Jammen': 'Jam', 'Song & Gesang': 'Song & vocals', 'Übersicht': 'Overview', 'Powerchords-Kurs': 'Power chord course',
+  'Backing Track': 'Backing track', 'Songwriting': 'Songwriting', 'Unterpunkte': 'Sub-sections',
+  'Tippe eine Kachel – die App merkt sich, wo du zuletzt warst.': 'Tap a tile – the app remembers where you left off.',
+  '15 Kapitel · Werkstatt · Hör-Training · Begleit-Tracks': '15 chapters · workshop · ear training · backing tracks', '5 Griffformen über das ganze Griffbrett': '5 shapes across the whole neck',
+  'Tonarten, Vorzeichen, verwandte Akkorde': 'Keys, signatures, related chords', 'Griffbrett, 3nps-Muster, Begleitung, Übungslog': 'Fretboard, 3nps patterns, accompaniment, practice log',
+  'Tagesübung, Gehörbildung, Licks, Solo-Auswertung': 'Daily practice, ear training, licks, solo review', 'Blöcke heute': 'blocks today', 'frei üben': 'free practice',
+  'Zuletzt geöffnet': 'Last opened', 'Min in 7 Tagen': 'min in 7 days', 'Heute üben': 'Practice today',
+  'Tagesübung mit Tonart des Tages, Lick und Gehörbildung': 'Daily practice with key of the day, lick and ear training', '▶ Zur Tagesübung': '▶ Daily practice' });

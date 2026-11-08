@@ -1,10 +1,11 @@
 # v60: Englisch in allen Reitern (DE/EN-Vergleich), Songwriting mit eigenem Song: Oberfläche englisch, eigene Inhalte unverändert
 import asyncio, re, json
 from playwright.async_api import async_playwright
+from nav import tab
 ok = 0; tot = 0
 def check(n, c, info=''):
     global ok, tot; tot += 1; ok += bool(c); print(('OK    ' if c else 'FEHLER') + '  ' + n + ('  · ' + str(info) if info else ''))
-TABS=['solo','caged','power','quinten','jam','lied','singen','hilfe','ueben','griffbrett']
+TABS=['lernen','solo','caged','power','quinten','jam','lied','singen','hilfe','ueben','griffbrett']
 J="""(id)=>{const out=new Set();const r=document.getElementById('panel-'+id);if(!r)return [];const w=document.createTreeWalker(r,NodeFilter.SHOW_TEXT|NodeFilter.SHOW_ELEMENT);let n;while((n=w.nextNode())){
  if(n.nodeType===3){const p=n.parentNode;if(p&&/SCRIPT|STYLE|TEXTAREA/.test(p.nodeName))continue;if(p&&p.closest&&p.closest('[translate=no]'))continue;const v=n.nodeValue.trim();if(v)out.add(v);}
  else for(const a of ['title','placeholder','aria-label']){const v=n.getAttribute(a);if(v)out.add('@'+v);}}return [...out];}"""
@@ -14,7 +15,7 @@ async def grab(b,q):
   await pg.goto('http://localhost:8765/index.html'+q); await pg.wait_for_timeout(1200)
   res={}
   for t in TABS:
-    await pg.click('#tab-'+t); await pg.wait_for_timeout(700)
+    await tab(pg, t); await pg.wait_for_timeout(700)
     res[t]=set(await pg.evaluate(J,t))
   if False: await pg.click('#tab-'+sys.argv[1]); await pg.wait_for_timeout(500); await pg.screenshot(path='%s%s_%s.png'%('/tmp/claude-0/-home-claude-3nps/9e6f0204-48ae-57a7-a5e4-ec83ab90c972/scratchpad/',sys.argv[1],q[-2:] or 'de'),full_page=True)
   return res,errs
@@ -26,7 +27,7 @@ JL="""()=>{const out=new Set();const r=document.getElementById('panel-lied');con
  if(n.nodeType===3){const p=n.parentNode;if(p&&/SCRIPT|STYLE|TEXTAREA/.test(p.nodeName))continue;if(p.closest('[translate=no]'))continue;const v=n.nodeValue.trim();if(v)out.add(v);}
  else for(const a of ['title','placeholder','aria-label']){const v=n.getAttribute(a);if(v&&!n.closest('[translate=no]'))out.add('@'+v);}}return [...out];}"""
 
-SAME_OK = re.compile(r'^(@?(Swing|Name|Version|Tempo in BPM|Ghost Notes|Feel|Details|Analyzer|Low Cut|High Cut|Bass|Percussion|Rimshot|Pull|Push|Hi-Hat|Snare|Kick|Ride|Standard|Tom [12])|Master\u00ading|Mastering|Master|Original|True Peak|EBU R128 · ITU-R BS\.1770-4|Deezer \(−15 LUFS\)|Apple Music \(−16 LUFS\)|Spotify, YouTube, Amazon, TIDAL \(−14 LUFS\)|LUFS|dBTP|Auto|Blues|Arpeggio|Dominant 7|Major 7|Lick|Licks|Looper|Song|Drums|Bass|BPM|Beat|Loop|Kick|Snare|Clap|Ride|Rim|Shaker|Tom|Designer|Intro|Outro|Solo|Pre-Chorus|Start|Synth|Tempo|@Tempo|Fills|Neutral|Metal|Rock|Punk|Funk|Disco|House|Techno|Samba|Cumbia|Motown|Boogie|Breakbeat|Hip-Hop|Halftime|E-Piano|Position( \d)?|▶ Start|\d+ min|.*(Shuffle|Blues|Bossa|Stomp|Floor|Soul|Drop|Train Beat|12/8|Lo-Fi|·).*|.*\(.*–.*\)|[A-G][♯♭]?(m|maj|sus|add|°|7|9)*.*|[ivIV°]+)$')
+SAME_OK = re.compile(r'^(@?(Training|Swing|Name|Version|Tempo in BPM|Ghost Notes|Feel|Details|Analyzer|Low Cut|High Cut|Bass|Percussion|Rimshot|Pull|Push|Hi-Hat|Snare|Kick|Ride|Standard|Tom [12])|Master\u00ading|Mastering|Master|Original|True Peak|EBU R128 · ITU-R BS\.1770-4|Deezer \(−15 LUFS\)|Apple Music \(−16 LUFS\)|Spotify, YouTube, Amazon, TIDAL \(−14 LUFS\)|LUFS|dBTP|Auto|Blues|Arpeggio|Dominant 7|Major 7|Lick|Licks|Looper|Song|Drums|Bass|BPM|Beat|Loop|Kick|Snare|Clap|Ride|Rim|Shaker|Tom|Designer|Intro|Outro|Solo|Pre-Chorus|Start|Synth|Tempo|@Tempo|Fills|Neutral|Metal|Rock|Punk|Funk|Disco|House|Techno|Samba|Cumbia|Motown|Boogie|Breakbeat|Hip-Hop|Halftime|E-Piano|Position( \d)?|▶ Start|\d+ min|.*(Shuffle|Blues|Bossa|Stomp|Floor|Soul|Drop|Train Beat|12/8|Lo-Fi|·).*|.*\(.*–.*\)|[A-G][♯♭]?(m|maj|sus|add|°|7|9)*.*|[ivIV°]+)$')
 async def main():
     async with async_playwright() as p:
         b = await p.chromium.launch(args=['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream', '--autoplay-policy=no-user-gesture-required'])
@@ -40,7 +41,7 @@ async def main():
         pg.on('pageerror', lambda e: errs.append(str(e)))
         await pg.add_init_script("localStorage.setItem('3nps-lieder', %s)" % json.dumps(json.dumps(SONG)))
         await pg.goto('http://localhost:8765/index.html?lang=en'); await pg.wait_for_timeout(1000)
-        await pg.click('#tab-lied'); await pg.wait_for_timeout(800)
+        await tab(pg, 'lied'); await pg.wait_for_timeout(800)
         await pg.click('#ldCheck'); await pg.wait_for_timeout(600)
         tx = set(await pg.evaluate(JL))
         de2 = sorted(x for x in tx if re.search(r'[äöüßÄÖÜ]|\b(und|der|die|das|ist|nicht|mit|zum|von|wird|oder|ein|eine|Tippe|noch|keine?|erst|dann|hier|im|bei|den|dem|des|sich|zu|du|Teil|Takte?|Mal)\b', x))

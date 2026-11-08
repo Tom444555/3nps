@@ -4,6 +4,7 @@
 # Braucht die Modelle in app/www/asr/models/spleeter/onnx/ (Branch „modelle“, siehe wiederherstellen.sh) und test/gen_sep.py (wird bei Bedarf aufgerufen).
 import asyncio, json, os, subprocess, sys, time
 from playwright.async_api import async_playwright
+from nav import tab
 T = '/home/claude/3nps/test/'; U = 'http://localhost:8765/index.html'; S = 'http://localhost:8765/studio/'
 if not os.path.exists(T + 'sep/mix.wav'): subprocess.run([sys.executable, os.path.dirname(os.path.abspath(__file__)) + '/gen_sep.py'], check=True)
 ok = 0; tot = 0
@@ -99,7 +100,7 @@ async def main():
         await pg.click('#sepb0'); await pg.wait_for_timeout(300)
         check('„Karaoke“ wieder an', (await pg.evaluate("Looper.kara(0).on")) and await pg.evaluate("Looper.debug().tracks[0].state") == 'playing')
         # --- Mitsingen: Karaoke-Knopf und Tonhöhe des Originalgesangs ---
-        await pg.click('#tab-singen'); await pg.wait_for_timeout(600)
+        await tab(pg, 'singen'); await pg.wait_for_timeout(600)
         check('Mitsingen: „🎤 Karaoke ✓“ zeigt den Zustand', 'Karaoke ✓' in await pg.inner_text('#sbKara'), await pg.inner_text('#sbKara'))
         hits = 0; tries = []
         for tsec in [0.5, 1.5, 2.5, 4.5, 5.5]:

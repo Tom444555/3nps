@@ -1968,6 +1968,37 @@ html.sig-open .control-bar { visibility: hidden; }   /* Kopfleiste liegt sonst �
   .pc-wtab tr[data-w] { cursor: pointer; } .pc-wtab td, .pc-wtab th { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: left; } .pc-wtg th { color: #4fd18b; padding-top: 10px; }
   .pc-wtab table { width: 100%; border-collapse: collapse; table-layout: fixed; } .pc-wtab td { overflow-wrap: anywhere; }
   .pc-kbts { margin-top: 8px; } .pc-kbts h5 { margin: 6px 0; font-size: .9rem; color: var(--accent); }
+  /* v136: Hauptbereiche + Unterleiste + „?“ */
+  .tabs.areas { grid-auto-flow: row; grid-template-columns: repeat(4, minmax(0, 1fr)) auto; align-items: center; margin-bottom: 8px; }
+  .tabs.areas .tab { white-space: normal; line-height: 1.15; min-height: 36px; }
+  .tabs.areas .help-btn { width: 36px; height: 36px; min-height: 0; padding: 0 !important; margin: 0 2px 0 6px; border-radius: 50% !important; font-size: 1rem !important; font-weight: 700; border: 1px solid var(--line); }
+  .tabs.areas .help-btn[aria-pressed="true"] { color: var(--ink); border-color: var(--t2); }
+  .subtabs { display: flex; flex-wrap: nowrap; gap: 6px; overflow-x: auto; overflow-y: hidden; margin: 0 0 14px; padding: 2px 2px 4px; scrollbar-width: none; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; min-height: 36px; }
+  .subtabs::-webkit-scrollbar { display: none; }
+  .subtabs .subtab { flex: 0 0 auto; white-space: nowrap; border-radius: 999px; padding: 6px 14px; font-size: .84rem; }
+  /* Lernen · Übersicht */
+  .ln-today { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; padding: 12px 14px; border-radius: 10px; border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line)); background: color-mix(in srgb, var(--accent) 9%, var(--surface)); }
+  .ln-today .ln-tt { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 220px; }
+  .ln-today .ln-tt b { font-size: 1.02rem; }
+  .ln-today .ln-serie { margin-left: auto; color: var(--muted); font-size: .84rem; white-space: nowrap; }
+  .ln-tiles { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+  @media (max-width: 1000px) { .ln-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (max-width: 620px) { .ln-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .ln-tile { appearance: none; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 6px; min-height: 150px; padding: 12px; border-radius: 12px;
+    background: var(--surface); border: 1px solid var(--line-soft); color: var(--ink); font: inherit; position: relative; }
+  .ln-tile:hover { border-color: var(--line); }
+  .ln-tile.last { border-color: var(--dub); }
+  .ln-tile .ln-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .ln-tile .ln-ic { font-size: 1.5rem; line-height: 1; }
+  .ln-tile svg { width: 40px; height: 40px; flex: 0 0 auto; }
+  .ln-rbg { fill: none; stroke: var(--line); stroke-width: 4; }
+  .ln-rfg { fill: none; stroke: var(--accent); stroke-width: 4; stroke-linecap: round; }
+  .ln-tile[data-t="caged"] .ln-rfg { stroke: var(--t3); } .ln-tile[data-t="quinten"] .ln-rfg { stroke: #b48cff; }
+  .ln-tile[data-t="griffbrett"] .ln-rfg { stroke: var(--root-color); } .ln-tile[data-t="ueben"] .ln-rfg { stroke: var(--dub); }
+  .ln-tile .ln-n { font-size: 1rem; font-weight: 700; }
+  .ln-tile .ln-d { color: var(--muted); font-size: .8rem; line-height: 1.3; }
+  .ln-tile .ln-p { color: var(--muted); font-size: .74rem; margin-top: auto; }
+  .ln-tile .ln-last { color: var(--dub); font-size: .76rem; font-weight: 700; }
   /* ===== Rost & Stahl: Hintergrund aus gerostetem Blech, darauf verschraubte Stahlplatten ===== */
   :root {
     --plate-hi: #3a3a40;
@@ -4172,6 +4203,15 @@ Object.assign(window.__EN_PCW, { 'Hör-Training': 'Ear training', 'Technik-Vorü
 Object.assign(window.__EN_PCW, { 'Begleit-Tracks': 'Backing tracks', '▶ Begleit-Track': '▶ Backing track' });
 // v135 Akkordleiste: Takte bis zum Wechsel
 window.__EN_PAT.unshift([/^noch (\d+) Takte?$/, '$1 bars left']);
+// v136 Bereiche + Lernen-Übersicht
+Object.assign(window.__EN, { 'Lernen': 'Learn', 'Jammen': 'Jam', 'Song & Gesang': 'Song & vocals', 'Übersicht': 'Overview', 'Powerchords-Kurs': 'Power chord course',
+  'Backing Track': 'Backing track', 'Songwriting': 'Songwriting', 'Unterpunkte': 'Sub-sections',
+  'Tippe eine Kachel – die App merkt sich, wo du zuletzt warst.': 'Tap a tile – the app remembers where you left off.',
+  '15 Kapitel · Werkstatt · Hör-Training · Begleit-Tracks': '15 chapters · workshop · ear training · backing tracks', '5 Griffformen über das ganze Griffbrett': '5 shapes across the whole neck',
+  'Tonarten, Vorzeichen, verwandte Akkorde': 'Keys, signatures, related chords', 'Griffbrett, 3nps-Muster, Begleitung, Übungslog': 'Fretboard, 3nps patterns, accompaniment, practice log',
+  'Tagesübung, Gehörbildung, Licks, Solo-Auswertung': 'Daily practice, ear training, licks, solo review', 'Blöcke heute': 'blocks today', 'frei üben': 'free practice',
+  'Zuletzt geöffnet': 'Last opened', 'Min in 7 Tagen': 'min in 7 days', 'Heute üben': 'Practice today',
+  'Tagesübung mit Tonart des Tages, Lick und Gehörbildung': 'Daily practice with key of the day, lick and ear training', '▶ Zur Tagesübung': '▶ Daily practice' });
 
 // Sprache (v59): Deutsch ist der Quelltext. Nur im EN-Modus läuft hier etwas:
 // Ein Beobachter übersetzt neue/geänderte Texte im DOM (Text, title, placeholder, aria-label)
@@ -4277,7 +4317,7 @@ window.__EN_PAT.unshift([/^noch (\d+) Takte?$/, '$1 bars left']);
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v135</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v136</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -4348,18 +4388,24 @@ window.__EN_PAT.unshift([/^noch (\d+) Takte?$/, '$1 bars left']);
 <div class="app">
   <p class="caption" id="caption" style="margin-bottom:10px"></p>
 
-  <nav class="tabs" role="tablist" aria-label="Bereiche">
-    <button class="tab" role="tab" id="tab-looper" data-tab="looper" aria-selected="true">Looper</button>
-    <button class="tab" role="tab" id="tab-solo" data-tab="solo" aria-selected="false">Impro<wbr>visation</button>
-    <button class="tab" role="tab" id="tab-caged" data-tab="caged" aria-selected="false">CAGED</button>
-    <button class="tab" role="tab" id="tab-power" data-tab="power" aria-selected="false">Powerchords</button>
-    <button class="tab" role="tab" id="tab-quinten" data-tab="quinten" aria-selected="false">Quinten<wbr>zirkel</button>
-    <button class="tab" role="tab" id="tab-jam" data-tab="jam" aria-selected="false">Backing<wbr> Track</button>
-    <button class="tab" role="tab" id="tab-lied" data-tab="lied" aria-selected="false">Song<wbr>writing</button>
-    <button class="tab" role="tab" id="tab-singen" data-tab="singen" aria-selected="false">Mit<wbr>singen</button>
-    <button class="tab" role="tab" id="tab-hilfe" data-tab="hilfe" aria-selected="false">Anleitung</button>
-    <button class="tab" role="tab" id="tab-ueben" data-tab="ueben" aria-selected="false">Training</button>
-    <button class="tab" role="tab" id="tab-griffbrett" data-tab="griffbrett" aria-selected="false">Technik</button>
+  <nav class="tabs areas" role="tablist" aria-label="Bereiche">
+    <button class="tab" role="tab" id="tab-looper" data-tab="looper" data-area="looper" aria-selected="true">Looper</button>
+    <button class="tab" role="tab" id="area-lernen" data-area="lernen" aria-selected="false">Lernen</button>
+    <button class="tab" role="tab" id="area-jammen" data-area="jammen" aria-selected="false">Jammen</button>
+    <button class="tab" role="tab" id="area-gesang" data-area="gesang" aria-selected="false">Song &amp; Gesang</button>
+    <button class="tab help-btn" id="tab-hilfe" data-tab="hilfe" aria-pressed="false" aria-label="Anleitung" title="Anleitung">?</button>
+  </nav>
+  <nav class="subtabs" id="subNav" role="tablist" aria-label="Unterpunkte" hidden>
+    <button class="toggle-btn subtab" role="tab" id="tab-lernen" data-tab="lernen" data-area="lernen" aria-selected="false">Übersicht</button>
+    <button class="toggle-btn subtab" role="tab" id="tab-power" data-tab="power" data-area="lernen" aria-selected="false">Powerchords-Kurs</button>
+    <button class="toggle-btn subtab" role="tab" id="tab-caged" data-tab="caged" data-area="lernen" aria-selected="false">CAGED</button>
+    <button class="toggle-btn subtab" role="tab" id="tab-quinten" data-tab="quinten" data-area="lernen" aria-selected="false">Quintenzirkel</button>
+    <button class="toggle-btn subtab" role="tab" id="tab-griffbrett" data-tab="griffbrett" data-area="lernen" aria-selected="false">Technik</button>
+    <button class="toggle-btn subtab" role="tab" id="tab-ueben" data-tab="ueben" data-area="lernen" aria-selected="false">Training</button>
+    <button class="toggle-btn subtab" role="tab" id="tab-jam" data-tab="jam" data-area="jammen" aria-selected="false">Backing Track</button>
+    <button class="toggle-btn subtab" role="tab" id="tab-solo" data-tab="solo" data-area="jammen" aria-selected="false">Improvisation</button>
+    <button class="toggle-btn subtab" role="tab" id="tab-lied" data-tab="lied" data-area="gesang" aria-selected="false">Songwriting</button>
+    <button class="toggle-btn subtab" role="tab" id="tab-singen" data-tab="singen" data-area="gesang" aria-selected="false">Mitsingen</button>
   </nav>
 
   <!-- Griffbrett -->
@@ -5656,6 +5702,15 @@ E|--0--|   E|--x--|   E|--x--|</pre>
       <nav class="card hl-toc" id="hlToc" translate="no"></nav>
       <div class="hl-main" id="hlMain" translate="no"></div>
     </div>
+  </section>
+
+  <section class="panel" id="panel-lernen" role="tabpanel" aria-labelledby="tab-lernen" hidden>
+    <div class="card ln-head">
+      <div class="card-head"><h2>Lernen</h2></div>
+      <p class="caption">Tippe eine Kachel – die App merkt sich, wo du zuletzt warst.</p>
+      <div class="ln-today" id="lnToday"></div>
+    </div>
+    <div class="ln-tiles" id="lnTiles"></div>
   </section>
 
 
@@ -22422,9 +22477,17 @@ const HILFE = [
  { g: 'Grundlagen', items: [
   { id: 'ueberblick', t: 'Was kann die App?', k: 'überblick übersicht start anfang einstieg reiter app was ist bedienung', img: 'looper',
     p: ['Die App ist dein Übungs- und Ideen-Werkzeug für die Gitarre – auf iPad, iPhone, Mac, Windows-PC und Android, im Browser oder als App vom Home-Bildschirm. Im Mittelpunkt steht der <b>Looper</b> mit drei Stereo-Spuren: aufnehmen, Dateien laden, schneiden, mit Drums, Drone, EQ und Hall begleiten und als Idee speichern.',
-       'Oben wählst du die Reiter: <b>Looper</b> · <b>Improvisation</b> (was passt über den Akkord) · <b>CAGED</b> · <b>Powerchords</b> · <b>Quintenzirkel</b> · <b>Backing Track</b> · <b>Songwriting</b> · <b>Mitsingen</b> · <b>Anleitung</b> (diese Seite) · <b>Training</b> · <b>Technik</b>.',
+       'Oben wählst du einen von vier Bereichen: <b>Looper</b> · <b>Lernen</b> (Powerchords-Kurs, CAGED, Quintenzirkel, Technik, Training) · <b>Jammen</b> (Backing Track, Improvisation) · <b>Song &amp; Gesang</b> (Songwriting, Mitsingen). Der runde Knopf <b>„?“</b> rechts oben öffnet diese Anleitung.',
        'Für größere Arbeiten gibt es das <b>Loopsmiths Studio</b> – ein Tonstudio mit beliebig vielen Takten, Mischpult, Instrumenten, Drummer, Mastering und Export. Du erreichst es über „Im Studio ↗“ unter jeder Spur.',
        'Alles bleibt auf deinem Gerät. Es gibt kein Konto und keinen Server. Jedes Gerät speichert für sich – Ideen mitnehmen siehe „Speicher, Sichern“.'] },
+  { id: 'bereiche', t: 'Bereiche, Unterleiste und „?“', k: 'bereiche navigation reiter lernen jammen song gesang unterleiste chips kacheln zuletzt fragezeichen hilfe wo finde ich',
+    p: ['Oben stehen nur noch vier Bereiche: <b>Looper</b> (allein, wie gewohnt), <b>Lernen</b>, <b>Jammen</b> und <b>Song &amp; Gesang</b>. Darunter zeigt eine schmale Leiste die Unterpunkte des Bereichs.',
+       '<b>Lernen:</b> Übersicht · Powerchords-Kurs · CAGED · Quintenzirkel · Technik · Training. <b>Jammen:</b> Backing Track · Improvisation. <b>Song &amp; Gesang:</b> Songwriting · Mitsingen.',
+       'Die App merkt sich je Bereich den letzten Unterpunkt – tippst du wieder auf „Lernen“, bist du genau dort, wo du aufgehört hast.'],
+    s: ['Bereich oben antippen (z. B. „Lernen“).', 'In der Leiste darunter den Unterpunkt wählen. Passen nicht alle in die Zeile (iPad hochkant), die Leiste seitlich wischen.',
+        'In „Lernen“ zeigt die „Übersicht“ Kacheln mit Fortschrittsring; die zuletzt benutzte Kachel ist markiert („Zuletzt geöffnet“).',
+        'Rundes „?“ rechts oben: öffnet die Anleitung passend zum Bereich, in dem du gerade bist. Nochmals „?“ führt zurück.'],
+    tip: ['Ältere Lesezeichen wie …/index.html#power oder #jam funktionieren weiter und öffnen den passenden Bereich.', 'Alle Inhalte, Einstellungen und gespeicherten Daten sind unverändert – sie liegen nur übersichtlicher.'] },
   { id: 'installieren', t: 'Installieren und aktualisieren', k: 'installieren home-bildschirm mac windows pc android iphone chrome edge safari browser icon update aktualisieren version zweimal offline neu',
     s: ['iPad / iPhone: Adresse in Safari öffnen, Teilen-Symbol → „Zum Home-Bildschirm“ → „Hinzufügen“.', 'Mac / Windows: Adresse in Chrome oder Edge öffnen, in der Adressleiste auf das Installieren-Symbol klicken – die App liegt dann im Dock bzw. Startmenü.', 'Android: Adresse in Chrome öffnen, Menü ⋮ → „App installieren“ bzw. „Zum Startbildschirm hinzufügen“.', 'Ab jetzt die App immer über das Symbol starten – sie geht dann auch offline. Ohne Installieren läuft sie ganz normal im Browser.',
         'Neue Version: Die App lädt sie im Hintergrund. Öffne die App <b>zweimal</b>, bis oben die neue Nummer steht (z. B. „3nps · v113“).'],
@@ -22691,6 +22754,69 @@ const HILFE = [
   document.addEventListener('tabchange', e => { if (e.detail === 'hilfe') build(); });
   if (!panel.hidden) build();
   window.Hilfe = { go, search, build, count: () => all.length };
+})();
+
+// v136: Bereich „Lernen“ – Übersicht mit Kacheln (Icon, Kurzbeschreibung, Fortschrittsring aus vorhandenen Daten).
+// Wird erst beim Öffnen gebaut (tabchange „lernen“); liest nur vorhandene Speicher, schreibt nichts Neues außer über AppNav.
+(function () {
+  const $ = id => document.getElementById(id), panel = $('panel-lernen'); if (!panel) return;
+  const TT = x => (typeof T === 'function' ? T(x) : x);
+  const jget = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k) || 'null'); return v == null ? d : v; } catch (e) { return d; } };
+  const today = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+  const TILES = [
+    { t: 'power', ic: '🎸', n: 'Powerchords-Kurs', d: '15 Kapitel · Werkstatt · Hör-Training · Begleit-Tracks' },
+    { t: 'caged', ic: '◈', n: 'CAGED', d: '5 Griffformen über das ganze Griffbrett' },
+    { t: 'quinten', ic: '◎', n: 'Quintenzirkel', d: 'Tonarten, Vorzeichen, verwandte Akkorde' },
+    { t: 'griffbrett', ic: '▦', n: 'Technik', d: 'Griffbrett, 3nps-Muster, Begleitung, Übungslog' },
+    { t: 'ueben', ic: '⏱', n: 'Training', d: 'Tagesübung, Gehörbildung, Licks, Solo-Auswertung' }
+  ];
+  function ring(p) { const c = 2 * Math.PI * 16; return '<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="16" class="ln-rbg"/>' + (p > 0 ? '<circle cx="20" cy="20" r="16" class="ln-rfg" stroke-dasharray="' + (c * Math.min(1, p)).toFixed(1) + ' ' + c.toFixed(1) + '" transform="rotate(-90 20 20)"/>' : '') + '</svg>'; }
+  // Fortschritt je Kachel: { p: 0…1, txt }
+  function prog(t) {
+    if (t === 'power') {
+      const k = (jget('powerchords.progress.v1', {}) || {}).kurs || {}, tot = window.PcKurs && PcKurs.total ? PcKurs.total() : 0;
+      const d = Object.keys(k).filter(x => k[x] === true).length;
+      return tot ? { p: d / tot, txt: d + ' / ' + tot + ' ' + TT('Übungen') } : { p: 0, txt: '' };
+    }
+    if (t === 'ueben') {
+      const d = jget('3nps-uebung', null), n = d && d.date === today() ? Object.keys(d.done || {}).length : 0;
+      return { p: n / 4, txt: n + ' / 4 ' + TT('Blöcke heute') };
+    }
+    if (t === 'griffbrett') return { p: 0, txt: '', async: true };
+    return { p: 0, txt: TT('frei üben') };
+  }
+  function tile(T0, lastT) {
+    const g = prog(T0.t);
+    return '<button class="ln-tile' + (T0.t === lastT ? ' last' : '') + '" data-t="' + T0.t + '"><span class="ln-top"><span class="ln-ic" aria-hidden="true">' + T0.ic + '</span><span class="ln-ring">' + ring(g.p) + '</span></span>' +
+      '<span class="ln-n">' + T0.n + '</span><span class="ln-d">' + T0.d + '</span><span class="ln-p">' + g.txt + '</span>' +
+      (T0.t === lastT ? '<span class="ln-last">● ' + TT('Zuletzt geöffnet') + '</span>' : '') + '</button>';
+  }
+  // Technik: Übungsminuten der letzten 7 Tage aus dem Übungslog (Ziel 60 Min)
+  async function technik() {
+    const el = panel.querySelector('.ln-tile[data-t="griffbrett"]'); if (!el || typeof AppDB === 'undefined') return;
+    try {
+      const since = Date.now() - 7 * 864e5, all = await AppDB.all('sessions');
+      const min = Math.round(all.filter(s => s.ts >= since).reduce((a, s) => a + (s.durationSec || 0), 0) / 60);
+      el.querySelector('.ln-ring').innerHTML = ring(min / 60); el.querySelector('.ln-p').textContent = min + ' ' + TT('Min in 7 Tagen');
+    } catch (e) {}
+  }
+  function today0() {
+    $('lnToday').innerHTML = '<span class="ln-tt"><b>' + TT('Heute üben') + '</b><span class="caption">' + TT('Tagesübung mit Tonart des Tages, Lick und Gehörbildung') + '</span></span>' +
+      '<button class="toggle-btn active" id="lnTodayGo">' + TT('▶ Zur Tagesübung') + '</button>';
+  }
+  function build() {
+    const L = window.AppNav ? AppNav.last() : {};
+    today0();
+    $('lnTiles').innerHTML = TILES.map(x => tile(x, L.tile)).join('');
+    technik();
+  }
+  panel.addEventListener('click', e => {
+    const t = e.target.closest('.ln-tile'); if (t && window.AppNav) { AppNav.show(t.dataset.t); return; }
+    if (e.target.closest('#lnTodayGo') && window.AppNav) AppNav.show('ueben');
+  });
+  document.addEventListener('tabchange', e => { if (e.detail === 'lernen') build(); });
+  if (!panel.hidden) build();
+  window.Lernen = { build, prog };
 })();
 
 </script>
@@ -25466,26 +25592,48 @@ PcKurs.K.push({ t: 'Kapitel 15 – Drop D und tiefere Stimmungen', s: [
 </script>
 <script>
 (function () {
-  const tabs = document.querySelectorAll('.tab');
+  // v136: 4 Hauptbereiche (Looper · Lernen · Jammen · Song & Gesang) + Unterleiste mit Chips; Anleitung als „?“-Knopf.
+  // Panels/IDs bleiben gleich (panel-…, Chips tragen die alten Knopf-IDs tab-…), Ereignis „tabchange“ wie bisher.
+  const $ = id => document.getElementById(id);
   // frühere Reiter (Begleitung, Song, Log) liegen jetzt im Griffbrett
-  const OLD = { begleitung: 'griffbrett', song: 'griffbrett', log: 'griffbrett' };
+  const OLD = { begleitung: 'griffbrett', song: 'griffbrett', log: 'griffbrett', anleitung: 'hilfe', powerchords: 'power', backing: 'jam', improvisation: 'solo', songwriting: 'lied', mitsingen: 'singen', training: 'ueben', technik: 'griffbrett' };
+  const AREA = { looper: 'looper', lernen: 'lernen', power: 'lernen', caged: 'lernen', quinten: 'lernen', griffbrett: 'lernen', ueben: 'lernen', jam: 'jammen', solo: 'jammen', lied: 'gesang', singen: 'gesang' };
+  const FIRST = { looper: 'looper', lernen: 'lernen', jammen: 'jam', gesang: 'lied' };
+  // Anleitung passend zum Bereich/Unterpunkt
+  const HELP = { looper: 'aufnehmen', lernen: 'bereiche', power: 'powerchord-kurs', caged: 'caged', quinten: 'quinten', griffbrett: 'technik', ueben: 'training', jam: 'backing', solo: 'improvisation', lied: 'songwriting', singen: 'mitsingen' };
+  const areaBtns = document.querySelectorAll('.tabs [data-area]'), chips = document.querySelectorAll('#subNav [data-tab]'), sub = $('subNav'), help = $('tab-hilfe');
+  const PANELS = ['looper', 'hilfe'].concat([...chips].map(c => c.dataset.tab));
+  let last = {}; try { last = JSON.parse(localStorage.getItem('3nps-tab-last') || '{}') || {}; } catch (e) {}
+  let cur = null, prev = 'looper';
+  const norm = n => { n = OLD[n] || n; if (FIRST[n] && !AREA[n]) n = last[n] || FIRST[n]; return $('panel-' + n) && PANELS.includes(n) ? n : null; };
   function show(name) {
-    name = OLD[name] || name;
-    tabs.forEach(t => {
-      const on = t.dataset.tab === name;
-      t.setAttribute('aria-selected', on ? 'true' : 'false');
-      document.getElementById('panel-' + t.dataset.tab).hidden = !on;
-    });
-    try { localStorage.setItem('3nps-tab', name); } catch (e) {}
+    name = norm(name) || 'looper';
+    const area = AREA[name] || null;
+    if (name !== 'hilfe') prev = name;
+    cur = name;
+    areaBtns.forEach(b => b.setAttribute('aria-selected', b.dataset.area === area ? 'true' : 'false'));
+    sub.hidden = !area || area === 'looper';
+    chips.forEach(c => { const on = c.dataset.tab === name; c.hidden = c.dataset.area !== area; c.classList.toggle('active', on); c.setAttribute('aria-selected', on ? 'true' : 'false'); });
+    help.setAttribute('aria-pressed', name === 'hilfe' ? 'true' : 'false');
+    PANELS.forEach(p => { const el = $('panel-' + p); if (el) el.hidden = p !== name; });
+    if (area && area !== 'looper') { last[area] = name; if (area === 'lernen' && name !== 'lernen') last.tile = name; }
+    try { localStorage.setItem('3nps-tab', name); localStorage.setItem('3nps-tab-last', JSON.stringify(last)); } catch (e) {}
+    if (!sub.hidden) { const c = sub.querySelector('.active'); if (c) { const l = c.offsetLeft - sub.offsetLeft, r = l + c.offsetWidth; if (l < sub.scrollLeft || r > sub.scrollLeft + sub.clientWidth) sub.scrollLeft = Math.max(0, l - 16); } }   // nur waagerecht, Seite springt nicht
     document.dispatchEvent(new CustomEvent('tabchange', { detail: name }));
   }
-  tabs.forEach(t => t.addEventListener('click', () => show(t.dataset.tab)));
+  areaBtns.forEach(b => b.addEventListener('click', () => show(b.dataset.area === 'looper' ? 'looper' : (last[b.dataset.area] || FIRST[b.dataset.area]))));
+  chips.forEach(c => c.addEventListener('click', () => show(c.dataset.tab)));
+  function openHelp(from) {
+    from = from || prev; show('hilfe');
+    if (window.Hilfe && HELP[from]) Hilfe.go(HELP[from]);
+  }
+  help.addEventListener('click', () => { if (cur === 'hilfe') show(prev); else openHelp(cur); });
   let start = 'looper';
-  const hash = OLD[(location.hash || '').slice(1)] || (location.hash || '').slice(1);
-  try { start = OLD[localStorage.getItem('3nps-tab')] || localStorage.getItem('3nps-tab') || start; } catch (e) {}
-  if (document.getElementById('panel-' + hash)) start = hash;
-  if (!document.getElementById('panel-' + start)) start = 'looper';
-  if (document.getElementById('panel-' + start)) show(start);
+  const hash = (location.hash || '').slice(1);
+  try { start = localStorage.getItem('3nps-tab') || start; } catch (e) {}
+  if (norm(hash)) start = hash;
+  show(start);
+  window.AppNav = { show, openHelp, current: () => cur, area: n => AREA[norm(n) || n] || null, last: () => Object.assign({}, last), AREA, HELP };
 
   // Status des Metronoms auch in der Tempo-Leiste zeigen
   const src = document.getElementById('statusLine');

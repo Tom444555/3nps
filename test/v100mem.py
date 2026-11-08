@@ -3,6 +3,7 @@
 # misst nach jeder Runde den Speicher des Seitenprozesses (nach erzwungener Speicherbereinigung).
 import asyncio, subprocess, sys, os, re, threading, time
 from playwright.async_api import async_playwright
+from nav import tab
 SP = '/tmp/claude-0/-home-claude/1cfc7bee-3f63-5ae7-a8c6-d1d35bb1fb3c/scratchpad/stress/'
 U = 'http://localhost:8765/index.html'
 ROUNDS = int(os.environ.get('ROUNDS', '12'))
@@ -35,8 +36,8 @@ async def main():
                     await pg.click('#impOk')
                 st = await pg.inner_text('#loopStatus')
                 if st.startswith('Spur %d:' % (tr + 1)): break
-            for tab in ['solo', 'singen', 'looper']:
-                await pg.click('#tab-' + tab); await pg.wait_for_timeout(600)
+            for t in ['solo', 'singen', 'looper']:
+                await tab(pg, t); await pg.wait_for_timeout(600)
             await pg.evaluate("window.gc && gc()"); await pg.wait_for_timeout(500); await pg.evaluate("window.gc && gc()")
             h = await cdp.send('Runtime.getHeapUsage')
             m = rss_mb(); res.append(m); lt = await pg.evaluate('window.__lt'); await pg.evaluate('window.__lt=0'); pk = PEAK[0]; PEAK[0] = 0

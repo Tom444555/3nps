@@ -1,6 +1,7 @@
 # v120: Reiter „Powerchords“ – Prüfliste 2.7 der Vorgabe (powerchord-reiter) plus Üben/Looper, Schritt-für-Schritt, alle Stufen
 import asyncio, os, re, json
 from playwright.async_api import async_playwright
+from nav import tab as open_tab
 U = os.environ.get('U', 'http://localhost:8765/index.html')
 ok = 0; tot = 0
 def check(n, c, info=''):
@@ -28,7 +29,7 @@ async def main():
         await pg.goto(U); await pg.wait_for_timeout(1300)
         # --- träge: vor dem Öffnen ist der Reiter leer, die Logik aber da ---
         check('Reiter vorhanden, Inhalt erst beim Öffnen', await pg.evaluate("!!document.getElementById('tab-power') && document.getElementById('pcSecTheorie').children.length===0 && !document.getElementById('pcBoard') && !!window.Powerchords"))
-        await pg.click('#tab-power'); await pg.wait_for_timeout(500)
+        await open_tab(pg, 'power'); await pg.wait_for_timeout(500)
         await pg.click('#pcSubs [data-sec=theorie]'); await pg.wait_for_timeout(300)   # v129: Start ist der Kurs
         check('Theorie, 1-5-8 oben und aufgeklappt', await pg.evaluate("(()=>{const d=document.querySelector('#pcSecTheorie details');return !document.getElementById('pcSecTheorie').hidden && d.id==='pcT1' && d.open && /1-5-8-Theorie/.test(d.querySelector('summary').textContent)})()"))
         check('Theorie wörtlich (Merksatz, Tabs, Spieltechnik)', await pg.evaluate("(()=>{const t=document.getElementById('pcSecTheorie').textContent;return t.includes('„Zwei Bünde höher, eine Saite höher“ gilt, bis die H-Saite im Spiel ist. Dort ein Bund mehr.')&&t.includes('Palm Mute')&&document.querySelectorAll('#pcSecTheorie pre.pc-tab').length>=10&&!!document.querySelector('#pcSecTheorie [translate=no]')})()"))
@@ -115,7 +116,7 @@ async def main():
         check('An Looper senden: BPM 100, Looper-Reiter, Spur 1 = 3 Takte', s['bpm'] == 100 and s['tab'] == 'true' and s['L'] == 3 * round(4 * 60 / 100 * s['sr']) and s['busy'], {k: s[k] for k in ('bpm', 'tab', 'L', 'busy')})
         check('Übergabe-Daten: Folge, Tonart, Akkorde', s['h']['progressionId'] == 'i-bvii-iv' and s['h']['keyPc'] == 9 and [c['name'] for c in s['h']['chords']] == ['A5', 'G5', 'D5'] and 'A5' in s['stat'])
         # Üben-Anzeige läuft im Powerchords-Reiter mit
-        await pg.click('#tab-power'); await pg.wait_for_timeout(300)
+        await open_tab(pg, 'power'); await pg.wait_for_timeout(300)
         seen = set(); hl = set()
         for _ in range(26):
             await pg.wait_for_timeout(250)
@@ -151,7 +152,7 @@ async def main():
         check('Übung 5: gleiche Folge einmal E-, einmal A-Saite', r5 == ['A5@0:5', 'G5@0:3', 'D5@0:10', 'A5@1:0', 'G5@1:10', 'D5@1:5'], r5)
         check('Speicher powerchords.progress.v1 (done, bestBpm)', await pg.evaluate("(()=>{const d=JSON.parse(localStorage.getItem('powerchords.progress.v1'));return d.version===1&&d.exercises.ex1.done===true&&d.exercises.ex2.bestBpm===70&&d.exercises.ex3.bestBpm===null&&!!d.updated})()"))
         await pg.reload(); await pg.wait_for_timeout(1200)
-        if await pg.evaluate("document.getElementById('panel-power').hidden"): await pg.click('#tab-power')
+        if await pg.evaluate("document.getElementById('panel-power').hidden"): await open_tab(pg, 'power')
         await pg.wait_for_timeout(300)
         check('Nach Neustart: Reiter, Bereich und Fortschritt erhalten', await pg.evaluate("!document.getElementById('pcSecUebungen').hidden") and (await pg.inner_text('#pcExSum')).startswith('1 von 6') and await pg.evaluate("document.querySelector('#pcEx_ex1 input').checked") and 'Bestes Tempo: 70' in await pg.inner_text('#pcEx_ex2'))
         await pg.click('#pcExReset'); await pg.wait_for_timeout(300)
@@ -193,9 +194,9 @@ async def main():
         # --- Englisch: Bedienelemente übersetzt, Theorie bleibt deutsch (translate=no) ---
         c2 = await b.new_context(viewport={'width': 1180, 'height': 820}); pg = await c2.new_page(); e2 = []
         pg.on('pageerror', lambda e: e2.append(str(e)))
-        await pg.goto(U + '?lang=en'); await pg.wait_for_timeout(1200); await pg.click('#tab-power'); await pg.wait_for_timeout(500)
+        await pg.goto(U + '?lang=en'); await pg.wait_for_timeout(1200); await open_tab(pg, 'power'); await pg.wait_for_timeout(500)
         tx = await pg.evaluate("[document.getElementById('tab-power').textContent,[...document.querySelectorAll('#pcSubs button')].map(b=>b.textContent).join('|')]")
-        check('EN: Reiter und Bereiche englisch', tx[0] == 'Power chords' and 'Theory' in tx[1] and 'Exercises' in tx[1], tx)
+        check('EN: Reiter und Bereiche englisch', tx[0] == 'Power chord course' and 'Theory' in tx[1] and 'Exercises' in tx[1], tx)
         await pg.click('#pcSubs [data-sec=brett]'); await pg.wait_for_timeout(300)
         check('EN: H heißt B, Bedienelemente englisch', 'B' in await pg.inner_text('#pcNotes') and 'Show all degrees' in await pg.inner_text('#pcSecBrett'))
         check('EN ohne Skriptfehler', not e2, e2[:3])

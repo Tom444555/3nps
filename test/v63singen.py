@@ -1,6 +1,7 @@
 # v63: Reiter Mitsingen – Anzeige, Einzähler, Schlagpunkte, Zeile üben (100/75 %), Mikrofon-Rückmeldung, Übersetzung, Englisch
 import asyncio, json
 from playwright.async_api import async_playwright
+from nav import tab
 T = '/home/claude/3nps/test/'; U = 'http://localhost:8765/index.html'
 ok = 0; tot = 0
 def check(n, c, info=''):
@@ -22,12 +23,13 @@ async def main():
         pg.on('pageerror', lambda e: errs.append(str(e)))
         await pg.add_init_script(INIT); await pg.goto(U); await pg.wait_for_timeout(800)
         tabs = await pg.evaluate("[...document.querySelectorAll('[role=tab]')].map(t=>t.textContent.trim())")
-        check('Reiter „Mitsingen“ nach Songwriting', tabs == ['Looper', 'Improvisation', 'CAGED', 'Quintenzirkel', 'Backing Track', 'Songwriting', 'Mitsingen', 'Anleitung', 'Training', 'Technik'], tabs)
-        await pg.click('#tab-singen'); await pg.wait_for_timeout(300)
+        sub = await pg.evaluate("[...document.querySelectorAll('#subNav [data-area=gesang]')].map(t=>t.textContent.trim())")
+        check('„Mitsingen“ nach Songwriting (Bereich Song & Gesang)', tabs[:4] == ['Looper', 'Lernen', 'Jammen', 'Song & Gesang'] and sub == ['Songwriting', 'Mitsingen'], (tabs[:4], sub))
+        await tab(pg, 'singen'); await pg.wait_for_timeout(300)
         check('ohne Quelle: Hinweis', await pg.is_visible('#sbEmpty'))
         await pg.click('#tab-looper'); await load(pg)
         if await pg.evaluate("Looper.debug().tracks[0].state") != 'playing': await pg.click('#loopAll')
-        await pg.click('#tab-singen'); await seekB(pg, 5.6); await pg.wait_for_timeout(400)
+        await tab(pg, 'singen'); await seekB(pg, 5.6); await pg.wait_for_timeout(400)
         check('Zeile groß angezeigt, nächste klein', (await pg.evaluate("[...document.getElementById('sbLine').querySelectorAll('.sb-w')].map(w=>[...w.childNodes].filter(n=>!(n.classList&&n.classList.contains('sb-ch'))).map(n=>n.textContent).join('')).join(' ').replace(/[+-]?\\d+/g,'').replace(/\\s+/g,' ').trim()")) == 'Hold on to the night' and await pg.inner_text('#sbNext') == 'we were young and free', (await pg.evaluate("[...document.getElementById('sbLine').querySelectorAll('.sb-w')].map(w=>[...w.childNodes].filter(n=>!(n.classList&&n.classList.contains('sb-ch'))).map(n=>n.textContent).join('')).join(' ').replace(/[+-]?\\d+/g,'').replace(/\\s+/g,' ').trim()")))
         cnts = set()
         for _ in range(40):
@@ -76,7 +78,7 @@ async def main():
         # Englisch
         pg2 = await (await b.new_context(viewport={'width': 1180, 'height': 900})).new_page(); e2 = []
         pg2.on('pageerror', lambda e: e2.append(str(e)))
-        await pg2.goto(U + '?lang=en'); await pg2.wait_for_timeout(800); await pg2.click('#tab-singen'); await pg2.wait_for_timeout(300)
+        await pg2.goto(U + '?lang=en'); await pg2.wait_for_timeout(800); await tab(pg2, 'singen'); await pg2.wait_for_timeout(300)
         t = await pg2.inner_text('#panel-singen')
         check('EN: Reiter englisch', await pg2.inner_text('#tab-singen') == 'Sing along' and 'Practise line' in t and 'Check timing' in t and 'Übersetzung' not in t, await pg2.inner_text('#tab-singen'))
         check('EN: keine Skriptfehler', not e2, e2)

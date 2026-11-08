@@ -1,6 +1,7 @@
 # v31: ganzer Song für Logic (ZIP) aus dem Songwriting + langsame Dateien werden nicht mehr mit doppeltem Tempo geladen
 import asyncio, zipfile, io, struct, json
 from playwright.async_api import async_playwright
+from nav import tab
 T = '/home/claude/3nps/test/'; O = '/tmp/claude-0/-home-claude-3nps/2ba96aef-49c7-541d-8e92-473a90edb2fb/scratchpad/'
 res = []
 def check(name, ok, info=''):
@@ -21,7 +22,7 @@ async def main():
         ctx = await b.new_context(viewport={'width': 1024, 'height': 1366}, accept_downloads=True); await ctx.grant_permissions(['microphone'])
         pg = await ctx.new_page(); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)))
         await pg.goto('http://localhost:8765/index.html'); await pg.wait_for_timeout(800)
-        check('Version v135', 'v135' in await pg.inner_text('.brand'))
+        check('Version v136', 'v136' in await pg.inner_text('.brand'))
         # 1) Langsame Dateien: Tempo nicht doppelt
         for f, want in [('oktave/o_arp8_66.wav', 66), ('oktave/o_strum16_70.wav', 70), ('oktave2/p_softpop_61.wav', 61), ('long/L_ballad_live_74.wav', 74)]:
             await pg.evaluate("Looper.stopAll && Looper.stopAll()")
@@ -38,7 +39,7 @@ async def main():
         await pg.click('#loopSong'); await pg.wait_for_timeout(200); await pg.fill('#ldDNew', 'Exporttest'); await pg.click('#ldDOk'); await pg.wait_for_timeout(800)
         await pg.click('#loopSong'); await pg.wait_for_timeout(200); await pg.click('#ldDOk'); await pg.wait_for_timeout(800)
         await pg.click('#loopAll'); await pg.wait_for_timeout(300)
-        await pg.click('#tab-lied'); await pg.wait_for_timeout(300)
+        await tab(pg, 'lied'); await pg.wait_for_timeout(300)
         v = await pg.evaluate("Lied.ver()")
         await pg.select_option('#ldAdd', v['parts'][0]['id']); await pg.select_option('#ldAdd', v['parts'][1]['id'])
         await pg.click('.ld-tx >> nth=0 >> .ld-txt'); await pg.keyboard.type('Erste Zeile hier\nzweite Zeile dort'); await pg.wait_for_timeout(600)

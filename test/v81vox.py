@@ -1,6 +1,7 @@
 # v81: Gesangsspur dazuladen – Versatz erkannt, Stimmkurve nur aus dem Gesang (genau die Silben), gespeichert und beim nächsten Laden wieder da, entfernen
 import asyncio, json
 from playwright.async_api import async_playwright
+from nav import tab
 T = '/home/claude/3nps/test/'; U = 'http://localhost:8765/index.html'
 ok = 0; tot = 0
 def check(n, c, info=''):
@@ -13,7 +14,7 @@ async def load(pg):
         if await pg.is_visible('#impDlg'): await pg.click('#impOk')
         if (await pg.inner_text('#loopStatus')).startswith('Spur 1:'): break
     if await pg.evaluate("Looper.running()"): await pg.click('#loopAll')
-    await pg.click('#tab-solo'); await pg.wait_for_timeout(700)
+    await tab(pg, 'solo'); await pg.wait_for_timeout(700)
 async def env(pg):
     await pg.evaluate("Sing.voiceEnv()")
     for _ in range(60):

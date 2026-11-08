@@ -10,8 +10,8 @@ async def main():
         pg = await (await b.new_context(viewport={'width': 1180, 'height': 820})).new_page(); errs = []
         pg.on('pageerror', lambda e: errs.append(str(e)))
         await pg.goto('http://localhost:8765/index.html'); await pg.wait_for_timeout(900)
-        tabs = await pg.evaluate("[...document.querySelectorAll('.tab')].map(t=>t.textContent.replace(/\\u00ad/g,''))")
-        check('Reiter „Anleitung“ nach „Mitsingen“', 'Anleitung' in tabs and tabs.index('Anleitung') == tabs.index('Mitsingen') + 1, tabs)
+        hb = await pg.evaluate("(()=>{const b=document.getElementById('tab-hilfe'),n=b.closest('nav'),r=b.getBoundingClientRect(),q=n.getBoundingClientRect();return {t:b.textContent,l:b.getAttribute('aria-label'),right:q.right-r.right}})()")
+        check('Anleitung als runder „?“-Knopf rechts in der Hauptleiste', hb['t'] == '?' and hb['l'] == 'Anleitung' and hb['right'] < 20, hb)
         await pg.click('#tab-hilfe'); await pg.wait_for_timeout(500)
         n = await pg.evaluate("Hilfe.count()"); toc = await pg.locator('#hlToc a').count(); art = await pg.locator('.hl-topic').count()
         check('Inhaltsverzeichnis und Themen (≥ 30)', n >= 30 and toc == n and art == n, (n, toc, art))
@@ -24,7 +24,7 @@ async def main():
             r = await pg.evaluate("(u=>fetch(u).then(r=>r.ok&&r.headers.get('content-type')))('%s')" % s)
             if not r or 'image' not in r: bad.append(s)
         check('alle Bilder vorhanden (%d)' % len(srcs), len(srcs) >= 15 and not bad, bad)
-        for q, want in [('latenz', 'latenz'), ('Mastering', 'mastering'), ('fusspedal', 'pedal'), ('takte loopen', 'studio-arrangement'), ('übersicht', 'ueberblick'), ('eingang geht nicht', 'probleme'), ('kurs caged', 'powerchord-kurs'), ('intervall werkstatt', 'intervall-werkstatt'), ('was spiele ich', 'was-spiele-ich'), ('notenkarte', 'kurs-werkzeuge'), ('hör training', 'kurs-ueben'), ('begleit track', 'begleit-tracks'), ('akkordsymbol griff', 'symbol-griff'), ('nächster akkord', 'akkordleiste'), ('aufnahme bricht ab', 'loop-laenge')]:
+        for q, want in [('latenz', 'latenz'), ('Mastering', 'mastering'), ('fusspedal', 'pedal'), ('takte loopen', 'studio-arrangement'), ('übersicht', 'ueberblick'), ('unterleiste bereiche', 'bereiche'), ('eingang geht nicht', 'probleme'), ('kurs caged', 'powerchord-kurs'), ('intervall werkstatt', 'intervall-werkstatt'), ('was spiele ich', 'was-spiele-ich'), ('notenkarte', 'kurs-werkzeuge'), ('hör training', 'kurs-ueben'), ('begleit track', 'begleit-tracks'), ('akkordsymbol griff', 'symbol-griff'), ('nächster akkord', 'akkordleiste'), ('aufnahme bricht ab', 'loop-laenge')]:
             await pg.fill('#hlQ', q); await pg.wait_for_timeout(150)
             hit = await pg.evaluate("(document.querySelector('.hl-hit')||{}).dataset ? document.querySelector('.hl-hit').dataset.id : null")
             check('Suche „%s“ → %s' % (q, want), hit == want, hit)
