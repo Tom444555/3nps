@@ -6,3 +6,21 @@
     </div>
     <div class="ln-tiles" id="lnTiles"></div>
   </section>
+  <section class="panel" id="panel-hoer" role="tabpanel" aria-labelledby="tab-hoer" hidden>
+    <div class="card hr-card">
+      <div class="card-head"><h2>Hör-Training</h2></div>
+      <p class="caption">Erst hören, dann antippen. Zehn Aufgaben je Runde; die Ampel merkt sich deine Treffer.</p>
+      <div class="hr-row">
+        <div class="seg"><button class="toggle-btn" data-hm="iv">Intervalle</button><button class="toggle-btn" data-hm="ch">Akkorde</button><button class="toggle-btn" data-hm="sc">Tonleitern</button></div>
+        <div class="seg" id="hrDir"><button class="toggle-btn" data-hd="up">aufwärts</button><button class="toggle-btn" data-hd="down">abwärts</button><button class="toggle-btn" data-hd="both">zusammen</button></div>
+      </div>
+      <div id="hrBody"></div>
+    </div>
+  </section>
+  <section class="panel" id="panel-spick" role="tabpanel" aria-labelledby="tab-spick" hidden>
+    <div class="card sp-card">
+      <div class="card-head"><h2>Spickzettel</h2><button class="toggle-btn" id="spPrint">🖨 Drucken</button></div>
+      <p class="caption">Alles Wichtige auf einer Seite – zum Nachschlagen oder Ausdrucken.</p>
+      <div class="sp-grid" id="spBody"></div>
+    </div>
+  </section>

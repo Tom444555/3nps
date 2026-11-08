@@ -1331,3 +1331,16 @@ Gut zu wissen
    - Die Anleitung ist jetzt der runde Knopf „?“ rechts oben. Er öffnet die Anleitung an der Stelle, die zum Bereich passt,
      in dem du gerade bist. Nochmals „?“ führt zurück.
    - Inhalte, Einstellungen und gespeicherte Daten sind unverändert. Alte Lesezeichen (…#power, …#jam) funktionieren weiter.
+
+120. Lernen: Heute üben, Weiter wo du warst, Hör-Training, Spickzettel (v137)
+   - „Lernen · Übersicht“ oben: „Heute üben · 10 Min“ = 3 Min Technik · 4 Min aktuelles Kurs-Kapitel · 3 Min Hör-Training.
+     „▶ Los“ öffnet nacheinander die passenden Stellen; unten läuft eine kleine Leiste mit Restzeit („⏸“, „Weiter ▸“, „✕“).
+     Ist die Zeit um, kommt ein kurzer Ton und der nächste Schritt. Wer alle drei schafft, verlängert die „Serie“ (Tage
+     hintereinander, ein Tag Pause setzt sie zurück).
+   - „↩ Weiter: …“ öffnet genau die Stelle, an der du zuletzt warst (z. B. „Powerchords-Kurs · Kap. 6 · Schritt 2“,
+     „Training · Gehörbildung“, „Hör-Training · Tonleitern“). Die Kachel zeigt „Zuletzt: …“.
+   - Neuer Unterpunkt „Hör-Training“: „Intervalle“ („aufwärts“, „abwärts“, „zusammen“), „Akkorde“ (dieselben Typen wie im Kurs)
+     und „Tonleitern“ (Dur, Moll, Dur-/Moll-Pentatonik, Dorisch, Phrygisch, Lydisch, Mixolydisch, Lokrisch). Zehn Aufgaben
+     je Runde, „▶ Nochmal hören“, Ampel (grün ab 80 %, gelb ab 50 %, ab 3 Versuchen), Treffer und beste Runde bleiben gespeichert.
+   - Neuer Unterpunkt „Spickzettel“: Intervalle, Powerchord- und CAGED-Formen (Tab), Quintenzirkel mit Vorzeichen,
+     Akkordsymbole. „🖨 Drucken“ druckt nur den Spickzettel, schwarz auf weiß.

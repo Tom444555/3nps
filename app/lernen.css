@@ -29,3 +29,35 @@
   .ln-tile .ln-d { color: var(--muted); font-size: .8rem; line-height: 1.3; }
   .ln-tile .ln-p { color: var(--muted); font-size: .74rem; margin-top: auto; }
   .ln-tile .ln-last { color: var(--dub); font-size: .76rem; font-weight: 700; }
+  /* v137: Heute üben (Ablauf), Weiter, Hör-Training, Spickzettel */
+  .ln-today .ln-acts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .ln-tiles { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+  .ln-run { position: fixed; left: 50%; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 65; display: flex; align-items: center; gap: 10px;
+    max-width: calc(100vw - 24px); padding: 8px 10px 8px 14px; border-radius: 12px; background: var(--surface-2); border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--line)); box-shadow: 0 6px 24px rgba(0,0,0,.45); color: var(--ink); }
+  .ln-run .ln-rs { display: flex; flex-direction: column; min-width: 0; } .ln-run .ln-rs small { color: var(--muted); font-size: .72rem; }
+  .ln-run .ln-rs b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: .9rem; }
+  .ln-run .ln-rt { font: 700 1.1rem var(--f-mono); font-variant-numeric: tabular-nums; min-width: 3.4em; text-align: right; }
+  .ln-run .toggle-btn { padding: 6px 10px; }
+  .hr-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .hr-cnt { margin-left: auto; font-variant-numeric: tabular-nums; }
+  .hr-amp { display: flex; flex-wrap: wrap; gap: 6px; }
+  .hr-a { display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px; border-radius: 8px; background: var(--surface-2); font-size: .78rem; }
+  .hr-a i { width: 10px; height: 10px; border-radius: 50%; background: var(--line); } .hr-a small { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .hr-a.gruen i { background: #4fd18b; } .hr-a.gelb i { background: #f5c542; } .hr-a.rot i { background: #ff5a4f; }
+  .hr-fbrow { min-height: 38px; } .hr-fb { flex: 1 1 auto; font-weight: 600; } .hr-fb.ok { color: #4fd18b; } .hr-fb.no { color: #ff8a80; }
+  .sp-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 20px; }
+  @media (max-width: 760px) { .sp-grid { grid-template-columns: minmax(0, 1fr); } }
+  .sp-s h3 { margin: 4px 0 6px; font-size: .95rem; }
+  .sp-t { width: 100%; border-collapse: collapse; font-size: .8rem; }
+  .sp-t th, .sp-t td { text-align: left; padding: 3px 6px; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+  .sp-t th { color: var(--muted); font-weight: 600; font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; }
+  .sp-t code { font: 600 .82rem var(--f-mono); letter-spacing: .06em; }
+  @media print {
+    .print-spick body { background: #fff !important; color: #000 !important; }
+    .print-spick body * { visibility: hidden !important; }
+    .print-spick #panel-spick, .print-spick #panel-spick * { visibility: visible !important; color: #000 !important; background: transparent !important; box-shadow: none !important; text-shadow: none !important; }
+    .print-spick #panel-spick { position: absolute; left: 0; top: 0; width: 100%; }
+    .print-spick #spPrint, .print-spick .ln-run { display: none !important; }
+    .print-spick .sp-t th, .print-spick .sp-t td { border-bottom: 1px solid #999 !important; }
+  }
+  #hrBody { display: flex; flex-direction: column; gap: 10px; }
