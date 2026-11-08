@@ -40,6 +40,7 @@ async def main():
         check('Neue Spur (Zirkel offen): springt sofort auf deren Tonart', s == (await pg.evaluate("(() => { const t = Quinten.trackKey(); return { k: t.k, minor: t.minor }; })()")) and (await pg.evaluate('Quinten.trackKey().i')) == 1, f'{k2!r} → {txt}')
         await pg.screenshot(path='/tmp/claude-0/-home-claude-3nps/2ba96aef-49c7-541d-8e92-473a90edb2fb/scratchpad/v22_key.png')
         # Griffbrett ändern (z. B. Tonart-Knopf der Spur 1 übernimmt) → Zirkel folgt
+        await pg.wait_for_timeout(2000)   # v139: Spur 2 meldet ihre Tonart nach der Akkorderkennung ein zweites Mal (trackkey) – erst danach tippen
         await pg.click('#tab-looper'); await pg.click('#key0'); await pg.wait_for_timeout(300)
         check('Spur-Tonart übernommen → Zirkel folgt dem Griffbrett', await pg.evaluate('Quinten.sel()') == {'k': 0, 'minor': False} and await pg.evaluate('rootSel.value') == 'C')
         # Spur löschen → Spurhinweis verschwindet, wenn es diese Spur war

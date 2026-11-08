@@ -35,7 +35,8 @@ async def main():
         s1 = [await pg.evaluate(f'Looper._stereo({i})') for i in range(2)]
         ok = all(x and y and x['L'] == y['L'] and abs(x['corr'] - y['corr']) < 0.003 for x, y in zip(s0, s1))
         eq = await pg.evaluate('Looper.getTrackEq(0)')
-        check('Spuren, Stereo und EQ wiederhergestellt', ok and eq == [2, 0, 0, 0, 0, 0, -3], f"{[y['L'] for y in s1]} · EQ {eq}")
+        eqg = [x['g'] for x in eq['b'][1:8]] if isinstance(eq, dict) else eq   # seit v100: Kanal-EQ {v:2, b:[…]}
+        check('Spuren, Stereo und EQ wiederhergestellt', ok and eqg == [2, 0, 0, 0, 0, 0, -3], f"{[y['L'] for y in s1]} · EQ {eq}")
         st = await pg.evaluate('Looper.debug().tracks.map(t => t.state)')
         check('Spuren laufen wieder', st[:2] == ['playing', 'playing'], st)
         # Verwerfen

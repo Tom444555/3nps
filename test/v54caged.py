@@ -14,8 +14,8 @@ async def main():
         pg.on('pageerror', lambda e: errs.append(str(e)))
         await pg.add_init_script("localStorage.setItem('3nps-edfull','0'); localStorage.removeItem('3nps-caged')")
         await pg.goto(U); await pg.wait_for_timeout(600)
-        tabs = await pg.eval_on_selector_all('.tab', 'e => e.map(x => x.textContent)')
-        check('Reiter CAGED direkt nach Improvisation', tabs[1:3] == ['Improvisation', 'CAGED'], tabs)
+        tabs = await pg.eval_on_selector_all('.subtab[data-area="lernen"]', 'e => e.map(x => x.textContent.trim())')   # seit v136: Unterpunkt im Bereich „Lernen“
+        check('CAGED als Unterpunkt in „Lernen“', 'CAGED' in tabs, tabs)
         # Theorie: jede Form, jeder Grundton, jede Art – nur Akkordtöne, Grundton dabei, alle 5 Formen vorhanden
         bad = []; missing = []
         for t in IV:

@@ -1,6 +1,6 @@
 # 3nps Looper – Übergabe (vollständiger Stand)
 
-Stand: **8. November 2026 · Version v138 (Studio s3)** – live unter https://tom444555.github.io/3nps/ ·
+Stand: **8. November 2026 · Version v139 (Studio s3)** – live unter https://tom444555.github.io/3nps/ ·
 stabile Rückfall-Fassung **v24** unter https://tom444555.github.io/3nps/stabil/
 
 Diese Datei ist das Gedächtnis des Projekts. Alles, was ein neuer Chat wissen muss, steht hier –
@@ -378,6 +378,7 @@ Testaudio-Generatoren (alle deterministisch, von `wiederherstellen.sh` aufgerufe
 | v136 | Reiter aufgeräumt: 4 Bereiche (Looper · Lernen · Jammen · Song & Gesang), Unterleiste mit Chips, „?“ = Anleitung passend zum Bereich, Lernen-Übersicht mit Kacheln/Ringen, letzter Unterpunkt je Bereich gemerkt; Tests über `test/nav.py` |
 | v137 | Lernen: „Heute üben“ (10-Minuten-Plan, „▶ Los“ mit Timer, Serie), „↩ Weiter: …“ (genaue Stelle), Unterpunkte „Hör-Training“ (Intervalle/Akkorde/Tonleitern, Ampel) und „Spickzettel“ (druckbar) |
 | v138 | Jammen: „Welche Tonleiter passt?“ (Griffbrett folgt dem Akkord), „Akkordfolgen-Ideen“ (7 Stile → Backing Track), „Frage & Antwort“ (1/2/4 Takte), „⏺ Jam aufnehmen“ (Spur 1 Backing, Spur 2 Jam, Loop-Länge unberührt) |
+| v139 | Jammen: Kopfzeilen der Karten „Welche Tonleiter passt?“/„Frage & Antwort“ brechen um (`app/jam.css`) → kein seitliches Scrollen bei schmaler Breite (v25jam 21/21). Alte Tests an die neue Navigation angepasst: v21tabs (Zirkel-Mitlauf 6 s statt 4 s, sonst nur 2 Akkorde), v54caged (CAGED als Unterpunkt in „Lernen“), v22key (2 s warten – Spur 2 meldet ihre Tonart nach der Akkorderkennung ein zweites Mal), restoretest (Kanal-EQ-Format seit v100), v100mem (Stress-Dateien aus `test/long/` statt altem Scratchpad), v138jammen („ab v138“). Lauf aller 84 Tests: grün bis auf die unten unter „Offen“ genannten. |
 
 ## 10. Bekannte Grenzen
 
@@ -392,9 +393,12 @@ Testaudio-Generatoren (alle deterministisch, von `wiederherstellen.sh` aufgerufe
 
 ## 11. Offen / Ideen (warten auf den Nutzer)
 
-**Als Nächstes (Stand 08.11.2026, v138 live):**
-- v139 vorbereiten: `app/jam.css` (Kopfzeilen der Karten „Welche Tonleiter passt?“/„Frage & Antwort“ umbrechen) ist auf `entwicklung` committet, aber noch NICHT veröffentlicht – behebt seitliches Scrollen bei schmaler Breite (v25jam 20/21 → 21/21). Version +1, Regressionen, veröffentlichen.
-- Alte Tests sind auf `test/nav.py` umgestellt (v21…v135). Stichprobe: v135aufnahme 24/24, v28lied 34/34, v25jam 21/21 (mit jam.css). Noch rot: v21tabs 17/18 („Klingender Looper-Akkord leuchtet im Zirkel“ – prüfen, ob echter Fehler seit v136 oder Testzeit), v54caged 20/21 (erwartet alte Reiterreihenfolge → Test anpassen). Übrige umgestellte Alt-Tests noch nicht gelaufen.
+**Als Nächstes (Stand 08.11.2026, v139 live):**
+- v139 veröffentlicht (jam.css). Alle auf `test/nav.py` umgestellten Alt-Tests + Regressionsliste gelaufen (84 Tests) – grün außer:
+  `v119leistung` 21/22 („Schätzung passt zur Messung“: geschätzt 0,10–0,12 gegen CDP 0,03 – Schätzung in dieser Sitzungsumgebung zu hoch, unabhängig von v139; auf dem iPad gegen „gemessen“ prüfen bzw. Toleranz/Schätzer ansehen),
+  nicht lauffähig ohne Zusatz-Aufbau: `v64asr`/`v91keep` (Testlied `test/sing/lied_de.wav` fehlt – wird von keinem Generator erzeugt), `v64offline`/`v71lieder` (Pages-Nachbau Port 8790), `aktionen.py` braucht die URL als Argument.
+  `v41ideasolo` ist reine Ausgabe (Spur 0, has=True ✓).
+- Kleinigkeit (nicht behoben): Wird direkt nach dem Laden einer Spur „Tonart“ einer anderen Spur angetippt, kann der Quintenzirkel ~1 s später auf die verfeinerte Tonart der neuen Spur springen (zweites `trackkey`-Ereignis nach der Akkorderkennung).
 - Tom testet v133–v138 auf dem iPad (Was spiele ich? Latenz, Akkordleiste, Aufnahme > 4 Takte, neue Reiter, Heute üben, Jammen).
 
 - v135 offen: auf dem iPad prüfen, ob nach Update (zweimal öffnen) „Loop-Länge“ auf „Frei“ steht und Aufnahmen bis zum Tippen laufen. Rücksetzung war einmalig für jede gespeicherte feste Länge (auch eine bewusst gewählte).

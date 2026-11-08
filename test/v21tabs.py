@@ -58,12 +58,12 @@ async def main():
             if await pg.is_visible('#impDlg'): await pg.click('#impOk')
             if await pg.evaluate("!document.getElementById('thc0').hidden"): break
         await open_tab(pg, 'quinten'); hits = 0; seenQ = set()
-        for k in range(16):
+        for k in range(24):
             await pg.wait_for_timeout(250)
             a = await pg.evaluate("[(Looper.nowChord() || {}).name, document.querySelector('.qz-c3').textContent, document.querySelector('.qz-live').getAttribute('d')]")
             if a[0] and a[1].endswith(a[0].replace('#', '♯')) and a[2]: hits += 1; seenQ.add(a[0])
             if k == 8: await pg.screenshot(path=O + 'v21_quinten.png', full_page=False)
-        check('Klingender Looper-Akkord leuchtet im Zirkel (wechselt mit)', hits >= 13 and len(seenQ) >= 3, f'{hits} · {sorted(seenQ)}')
+        check('Klingender Looper-Akkord leuchtet im Zirkel (wechselt mit)', hits >= 19 and len(seenQ) >= 3, f'{hits} · {sorted(seenQ)}')
         await pg.set_viewport_size({'width': 390, 'height': 844}); await pg.wait_for_timeout(300)
         ow = await pg.evaluate("document.documentElement.scrollWidth")
         check('Schmal (iPhone): kein seitliches Scrollen', ow <= 390, ow)

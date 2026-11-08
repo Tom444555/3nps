@@ -4,7 +4,11 @@
 import asyncio, subprocess, sys, os, re, threading, time
 from playwright.async_api import async_playwright
 from nav import tab
-SP = '/tmp/claude-0/-home-claude/1cfc7bee-3f63-5ae7-a8c6-d1d35bb1fb3c/scratchpad/stress/'
+SP = '/home/claude/3nps/test/stress/'   # v139: früher Scratchpad einer alten Sitzung → aus den Lang-Liedern anlegen
+import os, shutil
+if not os.path.exists(SP + 'song3.wav'):
+    os.makedirs(SP, exist_ok=True)
+    for n, f in enumerate(['L_rock_song_112', 'L_blues_shuffle_96', 'L_pop_late_drums_128'], 1): shutil.copy('/home/claude/3nps/test/long/%s.wav' % f, SP + 'song%d.wav' % n)
 U = 'http://localhost:8765/index.html'
 ROUNDS = int(os.environ.get('ROUNDS', '12'))
 def rss_mb():

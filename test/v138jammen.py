@@ -16,7 +16,7 @@ async def main():
         pg.on('pageerror', lambda e: errs.append(str(e)))
         pg.on('dialog', lambda d: asyncio.ensure_future(d.accept()))
         await pg.goto(U); await pg.wait_for_timeout(900)
-        check('v138', 'v138' in await pg.inner_text('.brand'))
+        check('ab v138', int(re.search(r'v(\d+)', await pg.inner_text('.brand')).group(1)) >= 138)
         check('Lazy: Jammen-Karten beim Start leer', await pg.evaluate("['jmFit','jmIdeas','jmQa','jmRec'].every(i=>document.getElementById(i).children.length===0)"))
         await pg.evaluate("Jam.state().key={pc:9,major:false}; Jam.setSeq('Am F C G'); 0")
         await tab(pg, 'jam'); await pg.wait_for_timeout(400)

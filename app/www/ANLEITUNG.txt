@@ -1356,3 +1356,7 @@ Gut zu wissen
    - „⏺ Jam aufnehmen“: Der Backing Track kommt als Spur 1 in den Looper (mit Drums und Bass), Spur 2 nimmt sofort deine
      Improvisation auf. „■ Aufnahme beenden“ schließt auf ganze Runden ab, „→ Zum Looper“. Die Einstellung „Loop-Länge“
      wird dabei nicht verändert. Nur mit ganzen Takten (keine ½-Takt-Akkorde).
+
+122. Jammen auf schmalen Bildschirmen (v139)
+   - Die Kopfzeilen der Karten „Welche Tonleiter passt?“ und „Frage & Antwort“ brechen jetzt um, statt über den Rand
+     zu ragen. Die Seite lässt sich bei schmaler Breite (iPad hochkant, Telefon) nicht mehr seitlich verschieben.
