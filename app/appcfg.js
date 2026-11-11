@@ -36,7 +36,8 @@ const AppCfg = (() => {
 
   function applyTheme(v) {
     if (!THEME_BG[v]) v = 'nordic';
-    if (v !== 'nordic') root.dataset.theme = v; else delete root.dataset.theme;
+    // v142: „Minimal“ zeigt unabhängig von der Optik die einfachste Darstellung (die Wahl bleibt gespeichert)
+    if (v !== 'nordic' && window.__dev !== 'min') root.dataset.theme = v; else delete root.dataset.theme;
     const m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', THEME_BG[v]);
     // v24 (/stabil/) kennt nur nordic/metal/amp/ice: dort steht für neue Optiken „nordic“, die echte Wahl in 3nps-theme2
     try { localStorage.setItem('3nps-theme', V24[v] ? v : 'nordic'); localStorage.setItem('3nps-theme2', v); } catch (e) {}
@@ -48,6 +49,7 @@ const AppCfg = (() => {
   try { cur = readTheme(); } catch (e) {}
   if (themeSel) { themeSel.value = THEME_BG[cur] ? cur : 'nordic'; themeSel.addEventListener('change', () => applyTheme(themeSel.value)); }
   applyTheme(cur);
+  document.addEventListener('devchange', e => { if (e.detail && (e.detail.dev === 'min' || e.detail.prev === 'min')) { try { applyTheme(readTheme()); } catch (x) {} } });
   const oBtn = $('optikBtn'), oPop = $('optikPop');
   function optikOpen(on) { if (!oBtn || !oPop) return; oPop.hidden = !on; oBtn.setAttribute('aria-expanded', on ? 'true' : 'false');
     if (on) document.dispatchEvent(new CustomEvent('hdrpop', { detail: 'optik' })); }

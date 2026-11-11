@@ -172,7 +172,8 @@
       const sl = /\/([A-G](#|b)?)$/.exec(n);
       return { name: n, rootPc: q.r, bassPc: sl ? pcOf(sl[1]) : null, rootString: lo.s, rootFret: lo.f, shapeId: null, tones: q.marks.map(m => ({ s: m.s, f: m.f, midi: m.midi, role: m.lab === '1' ? '1' : m.lab === '8' ? '8' : '5' })) }; });
   }
-  function openChapter(n) { const d = document.getElementById('pcKC' + n); if (!d) return; d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  // v142: instant = ohne weiches Scrollen (für „↩ Weiter“, das danach selbst genau zum Schritt springt – sonst überholt das weiche Scrollen den Sprung)
+  function openChapter(n, instant) { const d = document.getElementById('pcKC' + n); if (!d) return; d.open = true; d.scrollIntoView({ behavior: instant ? 'instant' : 'smooth', block: 'start' }); }
   function onClick(e) {
     const pick = e.target.closest('[data-kpick]');
     if (pick && !e.target.closest('button')) { const [ci, si, gi] = pick.dataset.kpick.split('.').map(Number); STG[ci + '.' + si] = gi; drawStage(ci + '.' + si); if (pick.tagName === 'TR') { const st = host.querySelector('.pc-kstage[data-ks="' + ci + '.' + si + '"]'); if (st) st.scrollIntoView({ behavior: 'smooth', block: 'center' }); } return; }

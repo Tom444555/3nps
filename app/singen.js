@@ -63,10 +63,14 @@ const Singen = (() => {
   }
 
   // ---- Anzeige (jedes Bild, solange der Reiter offen ist) ----
+  // v142: im Stillstand (Schlagposition seit ~0,5 s unverändert, kein Üben/Mikrofon) nur noch 5×/s statt in jedem Bild
+  let stillN = 0, lastNb, tok = 0;
   function frame() {
-    raf = requestAnimationFrame(frame);
+    if ((stillN > 30 && !player && !mic) || window.__dev === 'min') { raf = -1; const my = ++tok; setTimeout(() => { if (raf === -1 && tok === my) frame(); }, 200); }
+    else raf = requestAnimationFrame(frame);
     paintKara();
     const src = getSrc(), has = timed(src);
+    { const nb0 = has ? src.nowB : null; stillN = nb0 === lastNb ? stillN + 1 : 0; lastNb = nb0; }
     if ($('sbEmpty').hidden !== !!has) { $('sbEmpty').hidden = !!has; $('sbStage').hidden = !has; }
     if (!has) {
       if (srcTxt !== '–') { srcTxt = '–'; $('sbSrc').textContent = '–'; } $('sbCount').textContent = ''; lineSig = ''; listSig = '';
@@ -280,7 +284,8 @@ const Singen = (() => {
     if (!$('panel-singen')) return;
     $('sbEmpty').dataset.def = $('sbEmpty').textContent;
     const vis = () => !$('panel-singen').hidden;
-    const run = () => { if (vis()) { if (!raf) raf = requestAnimationFrame(frame); } else { cancelAnimationFrame(raf); raf = 0; stopPlayer(); stopMic(); } };
+    const run = () => { if (vis()) { if (!raf) raf = requestAnimationFrame(frame); } else { if (raf > 0) cancelAnimationFrame(raf); raf = 0; stopPlayer(); stopMic(); } };
+    $('panel-singen').addEventListener('pointerdown', () => { stillN = 0; }, { passive: true });
     document.addEventListener('tabchange', () => setTimeout(run, 0));
     new MutationObserver(run).observe($('panel-singen'), { attributes: true, attributeFilter: ['hidden'] });
     $('sbLoop').addEventListener('click', () => { if (player) { stopPlayer(); return; } const src = getSrc(); if (src) startPlayer(focus(src).line); });

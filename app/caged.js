@@ -215,7 +215,7 @@
   function renderSeq() {
     const seq = cur.seq, box = $('cgSeq'), card = $('cgLoopCard');
     const show = cur.src !== 'manual' && seq.length;
-    box.hidden = !show; card.hidden = !show;
+    if (box.hidden !== !show) box.hidden = !show; if (card.hidden !== !show) card.hidden = !show;
     if (!show) { seqSig = ''; return; }
     const sig = seq.map(x => x.name).join(',') + '|' + S.pos + '|' + cur.inst0 + '|' + flats;
     if (sig !== seqSig) {
@@ -243,6 +243,7 @@
 
   // ---- Aktualisieren (alle 120 ms, solange der Reiter offen ist) ----
   let sig = '';
+  const tx = (id, v) => { const e = $(id); if (e._tx !== v || e.textContent === '') { e._tx = v; e.textContent = v; } };   // v142: nur bei Änderung schreiben
   function update(force) {
     if (panel.hidden && !force) return;
     let ci = null;
@@ -255,14 +256,14 @@
         if (k < 0) k = cur.src === 'loop' && cur.on >= 0 && cur.on < seq.length && cur.seq.length === seq.length ? cur.on : 0;
         let n = -1; for (let j = 1; j <= seq.length; j++) { const q = seq[(k + j) % seq.length]; if (q.c.r !== seq[k].c.r || q.c.t !== seq[k].c.t) { n = (k + j) % seq.length; break; } }
         cur = { c: seq[k].c, next: n >= 0 ? seq[n].c : null, src: 'loop', seq, on: k, inst0: cur.inst0, playing: ci.pos != null, key: ci.key || null };
-        $('cgFollowInfo').textContent = ci.pos != null ? (ci.jam ? 'Backing Track läuft' : ci.lied ? 'Song läuft' : 'Loop läuft') : 'Loop steht – Akkord antippen';
+        tx('cgFollowInfo', ci.pos != null ? (ci.jam ? 'Backing Track läuft' : ci.lied ? 'Song läuft' : 'Loop läuft') : 'Loop steht – Akkord antippen');
       }
     } else {
       cur = { c: { r: S.root, t: S.type }, next: null, src: 'manual', seq: [], on: -1, inst0: cur.inst0 };
-      $('cgFollowInfo').textContent = S.follow ? 'kein Loop mit Akkorden' : '';
+      tx('cgFollowInfo', S.follow ? 'kein Loop mit Akkorden' : '');
     }
-    $('cgSrcLbl').textContent = cur.src === 'loop' ? (cur.playing ? 'Klingt jetzt' : 'Akkord im Loop') : 'Akkord';
-    $('cgRoot').disabled = $('cgType').disabled = cur.src === 'loop';
+    tx('cgSrcLbl', cur.src === 'loop' ? (cur.playing ? 'Klingt jetzt' : 'Akkord im Loop') : 'Akkord');
+    { const dis = cur.src === 'loop'; if ($('cgRoot').disabled !== dis) $('cgRoot').disabled = dis; if ($('cgType').disabled !== dis) $('cgType').disabled = dis; }
     const ns = (cur.key ? cur.key.pc + '' + cur.key.major : '') + cur.c.r + cur.c.t + '|' + (cur.next ? cur.next.r + cur.next.t : '') + '|' + JSON.stringify(S) + '|' + triSel;
     if (force || ns !== sig) {
       sig = ns;

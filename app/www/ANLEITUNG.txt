@@ -1380,3 +1380,27 @@ Gut zu wissen
      darunter) werden nur noch neu gezeichnet, wenn sich etwas ändert (Zoom, Auswahl, Schnitt, Größe, Akkordwechsel).
      Pro Bild wandert nur der Abspielstrich. Die Pegel neben den Spuren schreiben nur noch geänderte Werte.
    - Aussehen, Klang und Timing bleiben gleich. Auf älteren iPads ruckelt die Anzeige beim Loopen spürbar weniger.
+
+125. Gerät: „Automatisch · Neues iPad · Altes iPad · Minimal“ (v142)
+   - Oben unter „Leistung ▾“ gibt es jetzt den Schalter „Gerät“. Die Wahl bleibt gespeichert. Klang der Spuren und
+     Timing sind in jeder Stellung gleich.
+   - „Automatisch“ (Vorgabe): misst nach dem Start zweimal kurz, wie flüssig das Gerät zeichnet, und wählt „Neues iPad“
+     oder höchstens „Altes iPad“ (nie „Minimal“). Darunter steht, was gewählt wurde und warum. Den Audio-Puffer ändert
+     „Automatisch“ nicht.
+   - „Neues iPad“: volle Darstellung wie bisher.
+   - „Altes iPad“: Anzeigen mit etwa 16 Bildern pro Sekunde, Pegel grob (10-%-Stufen) und flach in Spurfarbe, keine
+     Schatten, kein Glühen, keine Texturen und Verläufe auf den Flächen, keine Übergänge – in jeder App-Optik.
+     Wellenform in einfacher Auflösung, „Was passt“ aktualisiert seltener, die Drone rechnet keine neuen Varianten
+     nach (bleibt vorgerechnet). Großer Audio-Puffer (ab dem nächsten Start der App).
+   - „Minimal“ für ganz schwache Geräte – alles aus „Altes iPad“ plus: Statt Taktkreis und Pegelbalken steht Takt und
+     Schlag als Zahl da (ändert sich höchstens je Schlag), darunter je Spur ein Lämpchen für Aufnahme (rot) und eines
+     für Übersteuern (orange). Wellenform und Editor sind stehende Bilder ohne Abspielstrich. Einfachste Darstellung:
+     einfarbige Flächen, keine Hintergrundbilder, Systemschrift – egal welche App-Optik gewählt ist (die Wahl bleibt).
+     Aus sind: „Was passt“, Akkord-Mitlauf im Spurkopf, Live-Analyse neuer Aufnahmen (wird beim Zurückschalten
+     nachgeholt), „Signalweg“ und „Hall/Echo“ (Knöpfe grau mit „in „Minimal“ aus“). Gespeicherte Einstellungen gehen
+     nicht verloren und gelten beim Zurückschalten wieder. Aufnehmen, Abspielen, Overdub, Stopp und Lautstärke wie immer.
+     Die anderen Bereiche bleiben benutzbar, nur ohne laufende Animationen.
+   - Außerdem: Der Hall der Drone wird nur noch einmal gerechnet (vorher bei jeder neuen Variante alle ~80 s – das
+     war der einzige spürbare Hänger beim Loopen). CAGED, Improvisation, Jammen und Mitsingen arbeiten im Stillstand
+     nicht mehr im Hintergrund weiter.
+   - „Weiter: Powerchords-Kurs · Kap. … · Schritt …“ unter „Lernen“ springt wieder genau an den Schritt.

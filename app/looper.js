@@ -466,8 +466,9 @@ const Looper = (() => {
   function connectTrackFx(t) {
     if (!t.eq) return;
     if (!t.sR) { t.sR = audioCtx.createGain(); t.sD = audioCtx.createGain(); t.eq.output.connect(t.sR); t.eq.output.connect(t.sD); t.sRon = t.sDon = false; }
-    t.sR.gain.setTargetAtTime(t.fx.rev / 100, audioCtx.currentTime, 0.02); t.sD.gain.setTargetAtTime(t.fx.dly / 100, audioCtx.currentTime, 0.02);
-    const wantR = t.fx.rev > 0, wantD = t.fx.dly > 0;
+    const off = window.__dev === 'min', fr = off ? 0 : t.fx.rev, fd = off ? 0 : t.fx.dly;   // v142: „Minimal“ – Sends aus, Werte bleiben gespeichert
+    t.sR.gain.setTargetAtTime(fr / 100, audioCtx.currentTime, 0.02); t.sD.gain.setTargetAtTime(fd / 100, audioCtx.currentTime, 0.02);
+    const wantR = fr > 0, wantD = fd > 0;
     if (wantR !== t.sRon) { if (wantR) t.sR.connect(ensureFxBus().rev); else { const g = t.sR; setTimeout(() => { if (!t.sRon) try { g.disconnect(); } catch (e) {} }, 80); } t.sRon = wantR; }
     if (wantD !== t.sDon) { if (wantD) t.sD.connect(ensureFxBus().dly); else { const g = t.sD; setTimeout(() => { if (!t.sDon) try { g.disconnect(); } catch (e) {} }, 80); } t.sDon = wantD; }
   }
@@ -1280,7 +1281,7 @@ const Looper = (() => {
     rebuildMix(t); ev('Aufnahme Ende Spur ' + (t.i + 1));
     const al = r.kind === 'new' ? alignNewTake(t) : '';
     // Live: nach eigenen Aufnahmen nichts analysieren (wird beim Ausschalten nachgeholt); Laden wertet immer sofort aus
-    if (window.__live) t.livePend = true; else detectTrackKey(t);
+    if (window.__live || devMin()) t.livePend = true; else detectTrackKey(t);   // v142: in „Minimal“ ebenfalls nachgeholt
     if (r.stopAfter) {
       stopSrc(t); t.state = 'stopped';
       setStatus('Spur ' + (t.i + 1) + ' aufgenommen und gestoppt. Tippe auf Play zum Abspielen.' + al);
@@ -1959,7 +1960,7 @@ const Looper = (() => {
     } else infoEl.textContent = 'Kein Loop';
     kick();
   }
-  function kick() { if (!rafId) rafId = requestAnimationFrame(tick); }
+  function kick() { if (!rafId) rafId = window.__dev === 'min' ? (setTimeout(tick, 16), 1) : requestAnimationFrame(tick); }
 
   let css = null;
   function colors() {
@@ -1967,9 +1968,12 @@ const Looper = (() => {
     const g = n => c.getPropertyValue(n).trim();
     return { ink: g('--ink'), muted: g('--muted'), line: g('--line'), rec: g('--root-color'), dub: g('--dub'), bg: g('--surface-2'), t: [g('--t1'), g('--t2'), g('--t3')] };
   }
+  // v142: Geräte-Profil – „Altes iPad“/„Minimal“ zeichnen Leinwände in einfacher Auflösung (1 Punkt je CSS-Pixel)
+  const devOld = () => window.__dev === 'old' || window.__dev === 'min', devMin = () => window.__dev === 'min';
+  const DPR = () => devOld() ? 1 : (window.devicePixelRatio || 1);
   // v141: Maße aus dem ResizeObserver (_w/_h) statt Layout-Lesen in jedem Bild
   function fit(cv) {
-    const dpr = window.devicePixelRatio || 1, w = cv._w != null ? cv._w : cv.clientWidth, h = cv._h != null ? cv._h : cv.clientHeight;
+    const dpr = DPR(), w = cv._w != null ? cv._w : cv.clientWidth, h = cv._h != null ? cv._h : cv.clientHeight;
     if (!w || !h) return null;
     if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
     const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h);
@@ -1983,7 +1987,7 @@ const Looper = (() => {
   function blitCache(cv, ctx, key) {
     const c = cv._cache;
     if (!key || !c || c.key !== key || c.cv.width !== cv.width || c.cv.height !== cv.height || performance.now() - c.at > 2000) return false;
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = DPR();
     ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
     ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(c.cv, 0, 0); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     return true;
@@ -2030,7 +2034,7 @@ const Looper = (() => {
         const frac = Math.max(0, Math.min(1, prog - k));
         if (frac > 0) {
           ctx.beginPath(); ctx.arc(cx, cy, R, a0, a0 + (a1 - a0) * frac);
-          if (!dim && !window.__lite && !window.__live) { // Neon-Schein als breite, transparente Striche
+          if (!dim && !window.__lite && !window.__live && !devOld()) { // Neon-Schein als breite, transparente Striche
             ctx.strokeStyle = c; ctx.globalAlpha = 0.16; ctx.lineWidth = lw * 2.0; ctx.stroke();
             ctx.globalAlpha = 0.32; ctx.lineWidth = lw * 1.5; ctx.stroke();
           }
@@ -2140,7 +2144,7 @@ const Looper = (() => {
 
   function drawWave(t, C) {
     const f = fit(t.wave); if (!f) return;
-    const { ctx, w, h } = f, tc = C.t[t.i], dpr = window.devicePixelRatio || 1;
+    const { ctx, w, h } = f, tc = C.t[t.i], dpr = DPR();
     if (!t.L || !t.mix) {
       ctx.strokeStyle = C.line; ctx.setLineDash([4, 4]); ctx.strokeRect(0.5, 0.5, w - 1, h - 1); ctx.setLineDash([]);
       return;
@@ -2174,7 +2178,36 @@ const Looper = (() => {
     }
     storeCache(t.wave, wKey);
     }
-    if (t.src) { const ph = phase(playFrame(), t.L) / t.L; const x = Math.round(ph * w * dpr) / dpr; ctx.fillStyle = C.ink; ctx.fillRect(x - 1, 0, 2, h); }
+    if (t.src && !devMin()) { const ph = phase(playFrame(), t.L) / t.L; const x = Math.round(ph * w * dpr) / dpr; ctx.fillStyle = C.ink; ctx.fillRect(x - 1, 0, 2, h); }
+  }
+
+  // v142: „Minimal“ – statt Taktkreisen und Pegeln nur Takt.Schlag als Zahl (geschrieben nur bei Änderung, also höchstens je Schlag)
+  // und je Spur ein Lämpchen für Aufnahme und Übersteuern; Wellenformen und Editor als stehendes Bild (neu nur bei Bedienung/Größe/Inhalt).
+  function minText(t) {
+    const now = audioCtx ? playFrame() : 0, LB = t.L || baseL;
+    const pos = fr => { const bf = barOf(LB), bt = bf / 4; return (Math.floor(fr / bf) + 1) + '.' + (Math.floor(mod(fr, bf) / bt) + 1); };
+    const isRec = rec && rec.t === t;
+    if (isRec && rec.armed) return ['●', 'wartet auf Signal'];
+    if ((isRec && now < rec.start) || (!isRec && t.src && now < anchor)) {
+      const leftB = ((isRec ? rec.start : anchor) - now) / beatFrames();
+      return [leftB > 4 ? '−' + Math.ceil(leftB / 4) : String(Math.max(1, Math.ceil(leftB))), leftB > 4 ? 'Takte Vorzähler' : 'Vorzähler'];
+    }
+    if (isRec && rec.kind === 'first') { const nb = selectedBars(); return [pos(Math.max(0, now - rec.start)), nb ? 'Aufnahme · ' + nb + ' Takte' : 'Aufnahme']; }
+    if (isRec) return [pos(rec.kind === 'overdub' ? phase(now, t.L) : Math.max(0, now - rec.start)), rec.kind === 'overdub' ? 'Overdub' : 'Aufnahme'];
+    if (t.L) return t.src ? [pos(phase(now, t.L)), 'Spur ' + (t.i + 1)] : ['■', 'Gestoppt'];
+    return ['–', 'Leer'];
+  }
+  let minSig = '';
+  function minFrame(C, nowMs) {
+    tracks.forEach(t => {
+      if (!t.rmEl) return;
+      const [a, b] = minText(t);
+      if (t.rmA !== a) { t.rmA = a; t.rmEl.children[0].textContent = a; }
+      if (t.rmB !== b) { t.rmB = b; t.rmEl.children[1].textContent = b; }
+    });
+    const sg = [drawGen, ed.t ? ed.t.i : -1, ed.s, ed.e, ed.v0, ed.zoom, ed.drag ? nowMs : 0, edCv._w, edCv._h]
+      .concat(tracks.map(t => [oid(t.mix), t.L, t.src ? 1 : 0, t.wave._w, t.wave._h].join(','))).join('|');
+    if (sg !== minSig) { minSig = sg; tracks.forEach(t => drawWave(t, C)); drawEditor(C); }
   }
 
   let lastDraw = 0;
@@ -2183,13 +2216,15 @@ const Looper = (() => {
     rafId = null;
     const nowMs = performance.now();
     const visible = !panelEl.hidden && !document.hidden;
-    if (visible) watchJank(nowMs);
-    if (visible && nowMs - lastDraw >= (window.__lite || window.__live ? 66 : 33)) {      // höchstens 30 (sparsam 15) Bilder pro Sekunde
+    const min = devMin();
+    if (visible && !min) watchJank(nowMs);
+    // höchstens 30 Bilder pro Sekunde (sparsam/Live 15, „Altes iPad“ ≈ 16); „Minimal“: keine Zeichnung pro Bild, nur Zahlen/Lämpchen (≈ 16×/s geprüft, geschrieben nur bei Änderung)
+    if (visible && nowMs - lastDraw >= (min ? 45 : window.__lite || window.__live ? 66 : devOld() ? 60 : 33)) {
       lastDraw = nowMs;
       const C = css || (css = colors());
-      tracks.forEach(t => { if (!t.mh) { const mh = t.meter.clientHeight; if (mh) { t.mh = mh; t.meter.style.setProperty('--mh', (mh - 6) + 'px'); } } });
-      tracks.forEach(t => { drawRing(t, C); drawWave(t, C); });
-      tracks.forEach(t => {                       // Spurkopf rechts: klingender und kommender Akkord
+      if (!min) tracks.forEach(t => { if (!t.mh) { const mh = t.meter.clientHeight; if (mh) { t.mh = mh; t.meter.style.setProperty('--mh', (mh - 6) + 'px'); } } });
+      if (min) minFrame(C, nowMs); else tracks.forEach(t => { drawRing(t, C); drawWave(t, C); });
+      if (!min) tracks.forEach(t => {                       // Spurkopf rechts: klingender und kommender Akkord
         const c = t.chords, has = !!(t.src && c && c.L === t.L && c.segs.some(q => q.name !== '–'));
         const i = has ? chordAt(t, phase(playFrame(), t.L)) : -1;
         const nm = i >= 0 ? c.segs[i].name : null;
@@ -2201,16 +2236,15 @@ const Looper = (() => {
         const nx = nextChord(c, i);
         t.chnB.hidden = !nx; if (nx) t.chnB.lastChild.textContent = window.spellChord ? spellChord(nx, t.key) : nx;
       });
-      drawEditor(C);
+      if (!min) drawEditor(C);
       // v141: erst lesen (Maße aus dem ResizeObserver), dann nur geänderte Werte schreiben – kein erzwungenes Layout pro Bild
       const mp = meterEl.parentNode, bgS = ((mp._w != null ? mp._w : mp.clientWidth) || 200) + 'px 100%', hot = !!rec && !rec.armed;
-      if (stereoSeen) {
+      if (min) {} else if (stereoSeen) {
         setSt(meterEl, 'width', (toMeter(levelL) * 100) + '%');
         setSt(meterR, 'width', (toMeter(levelR) * 100) + '%'); setSt(meterR, 'background-size', bgS); meterR.classList.toggle('hot', hot);
       } else setSt(meterEl, 'width', (toMeter(level) * 100) + '%');
-      setSt(meterEl, 'background-size', bgS);
+      if (!min) { setSt(meterEl, 'background-size', bgS); setSt(threshMark, 'left', (toMeter(threshold()) * 100) + '%'); }
       meterEl.classList.toggle('hot', hot);
-      setSt(threshMark, 'left', (toMeter(threshold()) * 100) + '%');
       const th = toMeter(threshold()) * 100, thS = th.toFixed(1) + '%';
       tracks.forEach(t => {
         const live = !!(rec && rec.t === t);
@@ -2231,9 +2265,10 @@ const Looper = (() => {
         t.pkL = lvL >= t.pkL ? lvL : Math.max(lvL, t.pkL - 1.2);
         t.pkR = lvR >= t.pkR ? lvR : Math.max(lvR, t.pkR - 1.2);
         t.peakHold = Math.max(t.pkL, t.pkR);
-        setLv(t, t.mL, lvL, t.pkL); setLv(t, t.mR, lvR, t.pkR);
-        setSt(t.meter, '--th', thS);
-        t.meter.classList.toggle('clip', lvL > 98 || lvR > 98);
+        const clip = lvL > 98 || lvR > 98;
+        if (min) { if (clip) t.clipUntil = nowMs + 1200; t.rmEl && t.rmEl.classList.toggle('clip', nowMs < (t.clipUntil || 0)); t.rmEl && t.rmEl.classList.toggle('rec', live && !rec.armed); }
+        else { setLv(t, t.mL, lvL, t.pkL); setLv(t, t.mR, lvR, t.pkR); setSt(t.meter, '--th', thS); }
+        t.meter.classList.toggle('clip', clip);
         (t.trEl || (t.trEl = t.meter.closest('.track'))).classList.toggle('rec-live', live);
         t.meter.classList.toggle('live', live);
         t.meter.classList.toggle('armed', live && rec.armed);
@@ -2242,13 +2277,14 @@ const Looper = (() => {
     }
     tracks.forEach(t => { if (t.foot.dataset.state !== footState(t)) update(); });
     const active = anyRunning() || rec || level > 0.001 || tracks.some(t => t.peakHold > 0.5) || ed.drag || ed.loop || countEnd > nowFrame();
-    if (active) { if (visible) rafId = requestAnimationFrame(tick); else { rafId = 1; setTimeout(() => { rafId = null; tick(); }, 250); } }
+    if (active) { if (visible && !min) rafId = requestAnimationFrame(tick); else { rafId = 1; setTimeout(() => { rafId = null; tick(); }, visible ? 55 : 250); } }
   }
   // v141: Stil nur schreiben, wenn sich der Wert ändert; Pegel auf ganze Bildpunkte der Anzeige gerundet
   function setSt(el, p, v) { const c = el._st || (el._st = {}); if (c[p] !== v) { c[p] = v; el.style.setProperty(p, v); } }
   // Pegel + Spitze eines Kanals in einem Schreibzugriff (Inline-Stil der .tm-ch enthält nur diese beiden Werte)
+  // v142: „Altes iPad“ zeigt die Pegel grob in 10-%-Stufen (weniger Schreibzugriffe)
   function setLv(t, el, lv, pk) {
-    const H = t.mh || 0, q = v => (H ? Math.round(v * H / 100) / H * 100 : v).toFixed(1) + '%', v = '--lv: ' + q(lv) + '; --pk: ' + q(pk) + ';';
+    const H = t.mh || 0, q = devOld() ? v => (Math.round(v / 10) * 10) + '%' : v => (H ? Math.round(v * H / 100) / H * 100 : v).toFixed(1) + '%', v = '--lv: ' + q(lv) + '; --pk: ' + q(pk) + ';';
     if (el._lvs !== v) { el._lvs = v; el.style.cssText = v; }
   }
   // v141: ein ResizeObserver merkt die Maße (Leinwände, Pegel, Eingangspegel) – tick() liest kein Layout mehr
@@ -2258,6 +2294,12 @@ const Looper = (() => {
     kick();
   });
   tracks.forEach(t => { sizeRO.observe(t.ring); sizeRO.observe(t.wave); t.meter._trk = t; sizeRO.observe(t.meter); });
+  // v142: Anzeige für „Minimal“ (liegt in derselben Rasterzelle wie der Taktkreis – feste Höhe, nichts springt)
+  tracks.forEach(t => {
+    const d = document.createElement('div'); d.className = 'ring-min'; d.id = 'ringMin' + t.i; d.setAttribute('aria-live', 'off');
+    d.innerHTML = '<b class="rm-pos">–</b><small class="rm-lbl">Leer</small><span class="rm-lamps"><i class="lamp rec" title="Aufnahme"></i><i class="lamp clip" title="Übersteuern"></i></span>';
+    t.ring.insertAdjacentElement('afterend', d); t.rmEl = d;
+  });
   sizeRO.observe($('edWave')); sizeRO.observe($('edOver')); sizeRO.observe(meterEl.parentNode);
 
   // ---- Spur-Editor: Schneiden, Synchronisieren, Tonart ----
@@ -3370,7 +3412,7 @@ const Looper = (() => {
   function drawOverview(t, tc) {
     const f = fit(edOv); if (!f) return;
     const { ctx, w, h } = f; blockPeaks(t);
-    const oKey = ed.drag ? null : [w, h, window.devicePixelRatio || 1, oid(t), oid(t.mix), t.L, t.bpMax, tc, ed.s, ed.e, ed.v0, span(), drawGen].join('|');
+    const oKey = ed.drag ? null : [w, h, DPR(), oid(t), oid(t.mix), t.L, t.bpMax, tc, ed.s, ed.e, ed.v0, span(), drawGen].join('|');
     if (!blitCache(edOv, ctx, oKey)) {
     ctx.fillStyle = '#08080a'; ctx.fillRect(0, 0, w, h);
     const n = Math.floor(w), st = t.L / n;
@@ -3385,7 +3427,7 @@ const Looper = (() => {
     ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 1.5; ctx.strokeRect(vx + 0.75, 0.75, vw - 1.5, h - 1.5);
     storeCache(edOv, oKey);
     }
-    if (t.src) { const p = phase(playFrame(), t.L) / t.L * w; ctx.fillStyle = '#fff'; ctx.fillRect(p - 0.5, 0, 1.5, h); }
+    if (t.src && !devMin()) { const p = phase(playFrame(), t.L) / t.L * w; ctx.fillStyle = '#fff'; ctx.fillRect(p - 0.5, 0, 1.5, h); }
   }
 
   function drawEditor(C) {
@@ -3395,7 +3437,7 @@ const Looper = (() => {
     if (!ed.zoom) { ed.zoom = 1; ed.v0 = 0; }
     clampView();
     const f = fit(edCv); if (!f) return;
-    const { ctx, w, h } = f, tc = NEON.t[t.i], v0 = ed.v0, sp = span(), X = fr => (fr - v0) / sp * w, dpr = window.devicePixelRatio || 1;
+    const { ctx, w, h } = f, tc = NEON.t[t.i], v0 = ed.v0, sp = span(), X = fr => (fr - v0) / sp * w, dpr = DPR();
     const hasCh = !!(t.chords && t.chords.L === t.L && t.chords.segs.some(q => q.name !== '–'));
     const top = hasCh ? 36 : 18;                        // Zeitleiste (18 px), darunter die Akkordzeile
     const curK = hasCh && t.src ? chordAt(t, phase(playFrame(), t.L)) : -1;
@@ -3514,7 +3556,7 @@ const Looper = (() => {
     let pf = null;
     if (ed.loop) { const el = Math.max(0, audioCtx.currentTime - (audioCtx.outputLatency || 0) - ed.loop.t0) * sr, ln = ed.loop.b - ed.loop.a; pf = ed.loop.a + (ln > 0 ? el % ln : 0); }
     else if (t.src) pf = phase(playFrame(), t.L);
-    if (pf != null) { const p = X(pf); if (p >= -2 && p <= w + 2) { ctx.fillStyle = '#ffffff'; ctx.fillRect(p - 1, 0, 2, h); ctx.beginPath(); ctx.moveTo(p - 6, 0); ctx.lineTo(p + 6, 0); ctx.lineTo(p, 8); ctx.fill(); } }
+    if (pf != null && !devMin()) { const p = X(pf); if (p >= -2 && p <= w + 2) { ctx.fillStyle = '#ffffff'; ctx.fillRect(p - 1, 0, 2, h); ctx.beginPath(); ctx.moveTo(p - 6, 0); ctx.lineTo(p + 6, 0); ctx.lineTo(p, 8); ctx.fill(); } }
     drawOverview(t, tc);
   }
 
@@ -4107,7 +4149,7 @@ return true;}}registerProcessor('loadmeter',LoadMeter);`;
     if (L && sg.els.gr) { const r = typeof L.reduction === 'number' ? L.reduction : (L.reduction && L.reduction.value) || 0; sg.gr = limOn() ? r : 0; sg.els.gr.textContent = 'GR ' + (sg.gr < -0.05 ? '−' : '') + Math.abs(sg.gr).toFixed(1).replace('.', window.__lang === 'en' ? '.' : ',') + ' dB'; }
   }
   function sigOpen() {
-    if (sg.on) return;
+    if (sg.on || devMin()) return;
     sg.on = true; sg.sig = ''; sg.last = 0; sg.fr = 0;
     sigDlg.hidden = false; document.documentElement.classList.add('sig-open'); sigBtn.classList.add('active'); sigBtn.setAttribute('aria-pressed', 'true');
     sigSync(); perfStart(); sigPerfPaint(); sg.raf = requestAnimationFrame(sigTick);
@@ -4123,6 +4165,32 @@ return true;}}registerProcessor('loadmeter',LoadMeter);`;
   sigDlg.addEventListener('click', e => { if (e.target === sigDlg) sigClose(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && sg.on) sigClose(); });
   window.addEventListener('resize', () => { if (sg.on) sg.sig = ''; });
+
+  // ---- v142: Geräte-Profil gewechselt („Leistung ▾“ → Gerät) ----
+  // „Minimal“: Signalweg und Hall/Echo-Sends aus (Schalter sichtbar deaktiviert, Werte bleiben gespeichert), Akkord-Mitlauf im
+  // Spurkopf aus, Analyse neuer Aufnahmen wird beim Zurückschalten nachgeholt. Klang der trockenen Spuren und Timing unverändert.
+  function devApply() {
+    const min = devMin(), off = T('in „Minimal“ aus');
+    drawGen++; css = null; minSig = ''; lastDraw = 0;
+    if (min && sg.on) sigClose();
+    if (sigBtn.disabled !== min) sigBtn.disabled = min;
+    if (min) sigBtn.dataset.minoff = off; else delete sigBtn.dataset.minoff;
+    tracks.forEach(t => {
+      t.mh = 0; t.chdName = undefined; t.rmA = t.rmB = null;
+      if (min && t.thC) t.thC.hidden = true;
+      if (t.fxBtn) {
+        if (min && t.fxPanel && !t.fxPanel.hidden) { t.fxPanel.hidden = true; t.fxBtn.setAttribute('aria-expanded', 'false'); t.fxBtn.classList.remove('open'); }
+        if (t.fxBtn.disabled !== min) t.fxBtn.disabled = min;
+        if (min) t.fxBtn.dataset.minoff = off; else delete t.fxBtn.dataset.minoff;
+      }
+      if (t.eq && audioCtx) connectTrackFx(t);
+      if (!min && t.livePend && !window.__live) { t.livePend = false; if (t.L) detectTrackKey(t); }
+      if (!min) { t.meter.classList.remove('clip'); }
+    });
+    kick();
+  }
+  document.addEventListener('devchange', devApply);
+  if (window.__dev === 'min') setTimeout(devApply, 0);
 
   return {
     getMix, loadSamples, update, position, getSession, sessionMix, sessionSecs, sessionMixEq, loadSession, setTrackEq: (i, v) => setTrackEq(tracks[i], v, false), getTrackEq: i => EQ7.norm(tracks[i].eqVals), setTrackFx: (i, v) => setTrackFx(tracks[i], v, false), changes: () => changeN, setSrcName: n => tracks.forEach(t => { if (t.L) t.srcName = n || ''; }), srcNames: () => tracks.map(t => t.L ? t.srcName || '' : null), getTrackFx: i => Object.assign({}, tracks[i].fx), fxBus: () => Object.assign({}, fxBusV), getDroneState, setDroneState,

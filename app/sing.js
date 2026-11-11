@@ -248,7 +248,7 @@ const Sing = (() => {
     if (ui.open) paintEditor(src);
     const has = live && live.tok && live.tok.some(t => t.b != null);
     { const sv = $('sgSave'); if (sv) { const hv = !(live && live.kind === 'file'); if (sv.hidden !== hv) sv.hidden = hv; } }
-    band.hidden = !live || live.kind === 'none'; const lineEl = $('sgLine'); if (lineEl) lineEl.hidden = !has;
+    { const hb = !live || live.kind === 'none'; if (band.hidden !== hb) band.hidden = hb; } const lineEl = $('sgLine'); if (lineEl && lineEl.hidden !== !has) lineEl.hidden = !has;   // v142: nur bei Änderung
     if (band.hidden) { laneSig = ''; lineSig = ''; focusUi(null, ci); return; }
     focusUi(live, ci);
     if (lineEl) lineEl.hidden = !has;

@@ -161,7 +161,7 @@
     const band = $('sfBand'), strip = $('sfStrip');
     if (!ci.segs) {
       if (bandSig !== 'none') { strip.innerHTML = '<div class="sf-empty">Noch keine Akkorde – lade im Looper eine Datei oder spiel etwas ein. Bis dahin: Tonart wählen und unten einen Akkord antippen.</div>'; strip.style.width = ''; bandSig = 'none'; }
-      $('sfHead').hidden = true; return;
+      if (!$('sfHead').hidden) $('sfHead').hidden = true; return;   // v142: nur bei Änderung schreiben
     }
     const sig = ci.track + '|' + ci.L + '|' + ci.segs.map(s => s.name + s.a).join(',') + '|' + ci.downs.join(',') + '|' + k.pc + k.major + '|' + band.clientWidth + '|' + zoomBars + '|' + (focusBar != null);
     if (sig === bandSig) return;
@@ -186,7 +186,7 @@
     });
     h += '<div class="sf-ph" id="sfPh"></div>';
     strip.innerHTML = h; lastOn = -2;          // neu aufgebaut: Einrahmung beim nächsten Bild neu setzen
-    $('sfHead').hidden = false;
+    if ($('sfHead').hidden) $('sfHead').hidden = false;
     if (focusBar != null && focusBar >= bars) focusBar = bars - 1;
   }
   function tickBand(ci) {
@@ -485,7 +485,7 @@
     $('sfTracks').querySelectorAll('button').forEach(b => {
       const i = b.dataset.t === 'auto' ? null : +b.dataset.t;
       b.classList.toggle('active', (state.track == null && i == null) || state.track === i);
-      if (i != null) b.disabled = !(ci.tracks[i] && ci.tracks[i].has);
+      if (i != null) { const dis = !(ci.tracks[i] && ci.tracks[i].has); if (b.disabled !== dis) b.disabled = dis; }
     });
     renderBand(ci, k);
     const on = tickBand(ci);
@@ -572,8 +572,9 @@
   function showPlay() {
     const LP = typeof Looper !== 'undefined' ? Looper : null; if (!LP || !LP.running) { playEl.hidden = true; return; }
     const run = LP.running(), has = LP.hasLoop();
-    playEl.disabled = !has && !run;
-    playEl.textContent = run ? '⏸ Pause' : LP.paused() ? '▶ Weiter' : '▶ Start';
+    const dis = !has && !run, txt = run ? '⏸ Pause' : LP.paused() ? '▶ Weiter' : '▶ Start';   // v142: nur bei Änderung schreiben
+    if (playEl.disabled !== dis) playEl.disabled = dis;
+    if (playEl._tx !== txt) { playEl.textContent = txt; playEl._tx = txt; }
     playEl.classList.toggle('active', run);
   }
   playEl.addEventListener('click', () => { if (typeof Looper !== 'undefined') { Looper.pauseToggle(); showPlay(); } });

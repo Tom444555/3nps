@@ -961,7 +961,8 @@ const DroneLoop = (() => {
     if (sig() !== S.sig) { changed(); return; }
     if (S.mode === 'loop' && S.loop) {                     // Abwechslung: nach ~3 Durchläufen neue Variante
       const p = (audioCtx.currentTime - S.loop.t0) / S.loop.L;
-      if (p > 2.6 && !S.busy) cycle('refresh');
+      // v142: „Altes iPad“/„Minimal“ behalten die erste Variante (kein Neuberechnen alle ~80 s)
+      if (p > 2.6 && !S.busy && window.__dev !== 'old' && window.__dev !== 'min') cycle('refresh');
     }
   }
   // ---- Schnittstelle (aus script.part) ----

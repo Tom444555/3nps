@@ -212,6 +212,11 @@
   .pf-bar i.warn { background: #e0b341; } .pf-bar i.hot { background: #e2574c; }
   .pf-note { margin: 8px 0 0; color: #8fa0ae; font-size: .68rem; line-height: 1.35; height: 5.4em; overflow: hidden; }
   .optik-pop select { width: 100%; min-height: 40px; }
+  /* v142: Geräte-Schalter (Segment, feste Höhe – nichts springt beim Umschalten) */
+  .dev-seg { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+  .dev-seg .dev-b { min-height: 34px; padding: 4px 3px; font-size: .58rem; letter-spacing: .03em; line-height: 1.15; white-space: normal; }
+  .dev-info { height: 8.2em; overflow: auto; }
+  .perf-pop.compact .dev-info { display: none; }
   @media (prefers-reduced-motion: reduce) { .note-dot { transition: none; } }
   .bpm-step { flex: 0 0 auto; width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); font: 700 1.05rem var(--f-body); cursor: pointer; touch-action: manipulation; padding: 0; }
   .bpm-step:active { background: var(--accent); color: #000; }
@@ -220,7 +225,7 @@
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v141</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v142</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -248,6 +253,9 @@
           <button class="pf-hbtn" id="pfPin" aria-pressed="false" title="Fenster bleibt offen und lässt sich verschieben">Anheften</button>
           <button class="pf-hbtn pf-x" id="pfClose" aria-label="Schließen">✕</button>
         </div>
+        <div class="pf-sec">Gerät</div>
+        <div class="dev-seg" role="group" aria-label="Gerät"><button class="pf-hbtn dev-b" id="devAuto" data-dev="auto" aria-pressed="true">Automatisch</button><button class="pf-hbtn dev-b" id="devNew" data-dev="new" aria-pressed="false">Neues iPad</button><button class="pf-hbtn dev-b" id="devOld" data-dev="old" aria-pressed="false">Altes iPad</button><button class="pf-hbtn dev-b" id="devMin" data-dev="min" aria-pressed="false">Minimal</button></div>
+        <p class="pf-note dev-info" id="devInfo"></p>
         <div class="pf-sec">Rechenlast</div>
         <div class="pf-row"><span>Bedienung</span><span class="pf-bar"><i id="pfCpuBar"></i></span><b id="pfCpu">–</b></div>
         <div class="pf-row pf-more"><span>Bildrate</span><span></span><b id="pfFps">–</b></div>

@@ -43,8 +43,8 @@ script = script[:a1] + song + script[b1:]
 old = "  input.connect(airShelf);\n  airShelf.connect(saturator);\n  saturator.connect(limiter);"
 assert old in script
 script = script.replace(old, "  input.connect(airShelf);\n  airShelf.connect(limiter);")
-script = script.replace("{ latencyHint: 'interactive' }", "{ latencyHint: window.__audioHint = (function () { try { return /^(lite|stable)$/.test(localStorage.getItem('3nps-perf')) ? 'playback' : 'balanced'; } catch (e) { return 'balanced'; } })() }")
-assert "'playback' : 'balanced'" in script
+script = script.replace("{ latencyHint: 'interactive' }", "{ latencyHint: window.__audioHint = (function () { try { return /^(lite|stable)$/.test(localStorage.getItem('3nps-perf')) || /^(old|min)$/.test(localStorage.getItem('3nps-device')) ? 'playback' : 'balanced'; } catch (e) { return 'balanced'; } })() }")
+assert "'playback' : 'balanced'" in script and '3nps-device' in script
 old_k = "function keyMidiNotes() {\n  const rootIdx = NOTES.indexOf(rootSel.value);\n  const intervals = MODES[modeSel.value];"
 assert old_k in script
 script = script.replace(old_k, "function keyMidiNotes() {\n  const ov = window.droneKeyOverride || null;\n  const rootIdx = NOTES.indexOf(ov && ov.root ? ov.root : rootSel.value);\n  const intervals = MODES[ov && ov.mode ? ov.mode : modeSel.value];")
@@ -68,7 +68,7 @@ for _f in ['panel-dark.jpg', 'runes.png', 'emblem.png', 'corner-tl.png', 'corner
            'tolex.jpg', 'alu.jpg', 'alu-dark.jpg', 'grille.jpg', 'screw.png', 'jewel.png',
            'bg-ice.jpg', 'panel-ice.jpg', 'icicles.png', 'rivet-ice.png', 'emblem-ice.png']: shutil.copy(A + 'tex/' + _f, A + 'www/' + _f)
 themecss = rd(A + 'theme-metal.css') + rd(A + 'theme-amp.css') + rd(A + 'theme-ice.css') + rd(A + 'theme-clean.css') + rd(A + 'theme-matrix.css') + rd(A + 'theme-dj.css') + rd(A + 'theme-light.css') + rd(A + 'theme-precise-dark.css') + rd(A + 'theme-ios.css')
-appcfg = rd(A + 'appcfg.js') + '\n' + rd(A + 'perf.js') + '\n' + rd(A + 'lieder.js') + '\n' + rd(A + 'sep.js')
+appcfg = rd(A + 'appcfg.js') + '\n' + rd(A + 'perf.js') + '\n' + rd(A + 'geraet.js') + '\n' + rd(A + 'lieder.js') + '\n' + rd(A + 'sep.js')
 def _ff(fam, fn, w='400'):
     b = base64.b64encode(open(A + 'fonts/' + fn, 'rb').read()).decode()
     return "@font-face{font-family:'%s';font-style:normal;font-weight:%s;font-display:swap;src:url(data:font/woff;base64,%s) format('woff')}" % (fam, w, b)
@@ -76,11 +76,11 @@ def _ff(fam, fn, w='400'):
 FONTS = '<style>' + ''.join([_ff('Uncial Antiqua', 'uncial.woff'), _ff('Metal Mania', 'metalmania.woff'), _ff('Black Ops One', 'blackopsone.woff'),
                              _ff('Russo One', 'russoone.woff'), _ff('Michroma', 'michroma.woff'), _ff('Cinzel', 'cinzel700.woff', '600 700')]) + '</style>'
 CSP = '<meta http-equiv="Content-Security-Policy" content="default-src \'self\'; script-src \'self\' \'unsafe-inline\' \'wasm-unsafe-eval\' blob:; worker-src \'self\' blob:; style-src \'self\' \'unsafe-inline\'; img-src \'self\' data: blob:; font-src \'self\' data:; media-src \'self\' blob: data:; connect-src \'self\' blob: data:; manifest-src \'self\'; object-src \'none\'; base-uri \'none\'; form-action \'none\'">'
-EARLY = "<script>try{var t=localStorage.getItem('3nps-theme')||'nordic',u=localStorage.getItem('3nps-theme2');if(u&&/^(nordic|metal|amp|ice|clean|matrix|dj|light|precise|precise-dark|ios)$/.test(u)&&(/^(metal|amp|ice|nordic)$/.test(u)?u:'nordic')===t)t=u;if(t!=='nordic'&&/^(metal|amp|ice|clean|matrix|dj|light|precise|precise-dark|ios)$/.test(t)){document.documentElement.dataset.theme=t;}}catch(e){}</script>\n"
+EARLY = "<script>try{var d=localStorage.getItem('3nps-device'),da=localStorage.getItem('3nps-device-auto');d=/^(new|old|min)$/.test(d)?d:(da==='old'?'old':'new');window.__dev=d;if(d!=='new')document.documentElement.classList.add('dev-old');if(d==='min')document.documentElement.classList.add('dev-min');}catch(e){window.__dev='new'}try{var t=localStorage.getItem('3nps-theme')||'nordic',u=localStorage.getItem('3nps-theme2');if(u&&/^(nordic|metal|amp|ice|clean|matrix|dj|light|precise|precise-dark|ios)$/.test(u)&&(/^(metal|amp|ice|nordic)$/.test(u)?u:'nordic')===t)t=u;if(window.__dev!=='min'&&t!=='nordic'&&/^(metal|amp|ice|clean|matrix|dj|light|precise|precise-dark|ios)$/.test(t)){document.documentElement.dataset.theme=t;}}catch(e){}</script>\n"
 
 # --- Kopf/Markup ---
 ACCEPT = 'audio/*,video/*,.mp3,.wav,.wave,.aif,.aiff,.aifc,.m4a,.m4b,.aac,.caf,.flac,.alac,.ogg,.oga,.opus,.mp4,.mov,.3gp,.webm,.amr'
-head = head.replace('</style>', lcss + metal + themecss + '</style>', 1)
+head = head.replace('</style>', lcss + metal + themecss + rd(A + 'geraet.css') + '</style>', 1)
 head = head.replace('step="1" value="80"', 'step="any" value="80"')
 # v112: Mastering ist ins Studio umgezogen (master.js liefert weiter window.Master für den Song-Export)
 head = head.replace('LOOPER_PANEL', lhtml).replace('CIRCLE_PANEL', rd(A + 'circle.html')).replace('SINGEN_PANEL', rd(A + 'singen.html')).replace('MASTER_PANEL', '').replace('HILFE_PANEL', rd(A + 'hilfe.html')).replace('LERNEN_PANEL', rd(A + 'lernen.html')).replace('POWER_PANEL', rd(A + 'powerchords.html')).replace('SOLO_PANEL', rd(A + 'solo.html')).replace('CAGED_PANEL', rd(A + 'caged.html')).replace('JAM_PANEL', rd(A + 'jam.html')).replace('LIED_PANEL', rd(A + 'lied.html')).replace('UEBEN_PANEL', rd(A + 'uebung.html'))

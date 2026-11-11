@@ -59,8 +59,12 @@
     for (let k = 1; k < n; k++) { const j = (i + k) % n, q = ci.segs[j].name; if (q !== '–' && q !== cur) return j; }
     return -1;
   }
+  let skip = 0;
   function tick() {
     if (panel.hidden || document.hidden || !window.SoloFinder || !SoloFinder.quick) return;
+    // v142: Geräte-Profil – „Minimal“: aus (Box weg), „Altes iPad“: nur jedes 4. Mal (≈ 2×/s statt 8×/s)
+    if (window.__dev === 'min') { if (!box.hidden) { box.hidden = true; sig = ''; } return; }
+    if (window.__dev === 'old' && (skip = (skip + 1) % 4) !== 0) return;
     const ci = Looper.chordInfo(null);
     const live = !!(ci && ci.segs && ci.playing && ci.pos != null);
     let i = -1;
@@ -142,5 +146,6 @@
     $('passtMv').innerHTML = mv;
   }
   setInterval(() => { if (!window.__live) tick(); }, 120);
+  document.addEventListener('devchange', () => { sig = ''; skip = 0; tick(); });
   window.PasstBox = { tick, hold: () => hold.on, state: () => ({ hidden: box.hidden, open, held: hold.on, chord: $('passtCh').textContent, scale: $('passtSc').textContent }) };
 })();

@@ -346,7 +346,7 @@
       if (head) { head.hidden = false; head.style.left = (col / 16 * 100) + '%'; lastHead = head; }
       if (bar !== lastBar) { $('jamSeq').querySelectorAll('.jam-bars span').forEach(sp => sp.classList.toggle('on', +sp.dataset.bar === bar)); lastBar = bar; }
     } else if (lastHead) { lastHead.hidden = true; lastHead = null; $('jamSeq').querySelectorAll('.jam-bars span.on').forEach(sp => sp.classList.remove('on')); lastBar = -1; }
-    $('jamBpm').textContent = Math.round(parseFloat($('bpm').value));
+    { const v = String(Math.round(parseFloat($('bpm').value))), e = $('jamBpm'); if (e._tx !== v) { e._tx = v; e.textContent = v; } }   // v142: nur bei Änderung
     $('jamPass').textContent = run && !run.pending ? 'Durchlauf ' + (run.pass + 1) + (st.trainer.on ? ' · Ziel ' + st.trainer.target + ' BPM' : '') : '';
   }
   // Bedienung

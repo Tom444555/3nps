@@ -1,0 +1,55 @@
+
+  /* ===== v142: Geräte-Profil (Klassen am <html>, gesetzt vom frühen Skript und von geraet.js) =====
+     dev-old = „Altes iPad“ und „Minimal“: flache Flächen für alle Optiken – keine Schatten, kein Glühen, keine Texturen/Verläufe
+     auf den großen Flächen, keine Masken, keine Übergänge/Animationen. Pegel flach in Spurfarbe. */
+  html.dev-old *, html.dev-old *::before, html.dev-old *::after {
+    box-shadow: none !important; text-shadow: none !important; filter: none !important;
+    backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+    mask-image: none !important; -webkit-mask-image: none !important;
+    transition: none !important; animation: none !important;
+  }
+  html.dev-old, html.dev-old body, html.dev-old body::before, html.dev-old body::after,
+  html.dev-old .control-bar, html.dev-old .control-bar::before, html.dev-old .control-bar::after,
+  html.dev-old .card, html.dev-old .card::before, html.dev-old .card::after, html.dev-old .stat-card,
+  html.dev-old .track, html.dev-old .lane, html.dev-old .editor, html.dev-old .tabs, html.dev-old .foot,
+  html.dev-old .meter, html.dev-old .meter::after, html.dev-old .tmeter, html.dev-old .tmeter::after,
+  html.dev-old .string-row, html.dev-old .fretboard, html.dev-old .jam-grid, html.dev-old .sb-scroll,
+  html.dev-old .eq-track, html.dev-old .file-mini, html.dev-old .brand::before, html.dev-old .dg-name,
+  html.dev-old .toggle-btn:not(.active), html.dev-old .tbtn:not(.playing):not(:active), html.dev-old .mini button:not(.on) {
+    background-image: none !important;
+  }
+  /* Marken-Schrift mit Verlauf (Kühl, Metal) bleibt lesbar */
+  html.dev-old .brand { -webkit-text-fill-color: currentColor !important; color: var(--ink) !important; }
+  html.dev-old .tm-fill { background: var(--tc, #39ff9f) !important; border-radius: 1px !important; }
+  html.dev-old .tmeter.clip .tm-fill { background: #ff2d55 !important; }
+  html.dev-old .tmeter::after { display: none !important; }
+  html.dev-old .tm-ch::before { display: none; }
+  html.dev-old #loopMeter, html.dev-old .meter.st #loopMeterR { background: var(--accent, #39ff9f) !important; }
+  html.dev-old #loopMeter.hot, html.dev-old .meter.st #loopMeterR.hot { background: #ff2d55 !important; }
+  html.dev-old .tmeter.clip, html.dev-old .track.rec-live { border-color: #ff2d55 !important; }
+
+  /* dev-min = „Minimal“: einfachste Darstellung ohne Optik (data-theme ist weg), Systemschrift, keine Bilder/Verläufe.
+     Statt Taktkreis und Pegel: Takt.Schlag als Zahl und zwei Lämpchen je Spur (Aufnahme, Übersteuern). */
+  html.dev-min *, html.dev-min *::before, html.dev-min *::after { background-image: none !important; }
+  html.dev-min *, html.dev-min *::before, html.dev-min *::after { font-family: -apple-system, system-ui, "Segoe UI", sans-serif !important; }
+  html.dev-min :is(.rm-pos, .lcd, .lcd *, pre, code, .pf-row b, .caption, .status-line) { font-family: ui-monospace, "SF Mono", Menlo, monospace !important; }
+  html.dev-min :is(.toggle-btn.active, .tbtn.playing, #playBtn.playing, .play-btn.playing, .mini button.on, .seg .toggle-btn.active, #loopFlash.active, .lane .lane-on.active) { background-color: var(--accent) !important; color: var(--accent-ink) !important; }
+  html.dev-min .tab[aria-selected="true"] { background-color: var(--surface-2) !important; }
+  .ring-min { display: none; }
+  html.dev-min .ring-row > .ring, html.dev-min .ring-row > .ring-min { grid-area: 1 / 1; }
+  html.dev-min .ring-row > .ring { visibility: hidden; }
+  html.dev-min .ring-min { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-width: 0; overflow: hidden; }
+  html.dev-min .rm-pos { font: 600 2rem/1 ui-monospace, "SF Mono", Menlo, monospace; font-variant-numeric: tabular-nums; color: var(--ink); height: 1em; white-space: nowrap; }
+  html.dev-min .rm-lbl { font: 600 .66rem/1.2 -apple-system, system-ui, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); height: 1.2em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  html.dev-min .rm-lamps { display: flex; gap: 10px; height: 12px; }
+  html.dev-min .lamp { width: 12px; height: 12px; border-radius: 50%; background: #3a3a3f; border: 1px solid #000; }
+  html.dev-min .ring-min.rec .lamp.rec { background: #ff2d55; }
+  html.dev-min .ring-min.clip .lamp.clip { background: #ffb04a; }
+  html.dev-min .tmeter > * { visibility: hidden; }
+  html.dev-min .tmeter { opacity: .35 !important; }
+  html.dev-min .tmeter.clip { opacity: 1 !important; background: #5a1020 !important; }
+  html.dev-min .meter #loopMeter, html.dev-min .meter #loopMeterR, html.dev-min .meter .thresh { visibility: hidden; }
+  html.dev-min .meter #loopMeter.hot { visibility: visible; width: 100% !important; background: #ff2d55 !important; opacity: .5; }
+  html.dev-min [id^="thc"] { display: none !important; }
+  html.dev-min [data-minoff]::after { content: " · " attr(data-minoff); font-size: .85em; opacity: .8; }
+  html.dev-min button:disabled[data-minoff] { opacity: .55; }

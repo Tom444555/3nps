@@ -84,10 +84,10 @@
     AppNav.show(w.t);
     if (w.t === 'power' && window.Powerchords) setTimeout(() => {
       Powerchords.showSec(w.sec || 'kurs');
-      if (w.k && window.PcKurs) { PcKurs.open(w.k);
+      if (w.k && window.PcKurs) { PcKurs.open(w.k, w.s != null);
         if (w.s != null) setTimeout(() => { const S0 = PcKurs.K[w.k - 1] && PcKurs.K[w.k - 1].s[w.s], el = S0 && document.getElementById('pcK_' + S0.id); if (!el) return;
           const bar = document.querySelector('.control-bar'), off = bar && getComputedStyle(bar).position === 'sticky' ? bar.getBoundingClientRect().height : 0;   // nicht unter die feste Kopfleiste
-          window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - off - 12, behavior: 'auto' }); }, 600); }
+          window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - off - 12, behavior: 'instant' }); }, 600); }
     }, 30);
     if (w.t === 'ueben' && w.ub && window.Ueben) Ueben.showSec(w.ub);
     if (w.t === 'hoer' && w.m && window.Hoer) Hoer.setMode(w.m);

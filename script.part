@@ -306,22 +306,29 @@ function midiToFreq(midi) {
 }
 
 let reverbNode = null;
+// v142: Der Hall-Impuls wird nur EINMAL je Abtastrate gerechnet und gemerkt – die vorgerechnete Drone baut
+// sonst bei jeder neuen Variante (alle ~80 s) 2 × 6 s Rauschen neu (lange Aufgabe bis 400 ms auf schwachen Geräten).
+let reverbIR = null;
 function ensureReverb() {
   if (reverbNode) return reverbNode;
   const duration = 6, decay = 2.4;
   const rate = audioCtx.sampleRate;
   const length = rate * duration;
-  const impulse = audioCtx.createBuffer(2, length, rate);
-  for (let ch = 0; ch < 2; ch++) {
-    const raw = new Float32Array(length);
-    for (let i = 0; i < length; i++) {
-      raw[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, decay);
+  if (!reverbIR || reverbIR.rate !== rate) {
+    const ch2 = [];
+    for (let ch = 0; ch < 2; ch++) {
+      const raw = new Float32Array(length);
+      for (let i = 0; i < length; i++) {
+        raw[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, decay);
+      }
+      // natürliche Höhendämpfung über die Zeit (wie Luftabsorption in einem echten Raum) —
+      // macht den Hall weich statt nach hartem, digitalem Rauschen zu klingen
+      ch2.push(onePoleLowpass(raw, rate, 5200));
     }
-    // natürliche Höhendämpfung über die Zeit (wie Luftabsorption in einem echten Raum) —
-    // macht den Hall weich statt nach hartem, digitalem Rauschen zu klingen
-    const smoothed = onePoleLowpass(raw, rate, 5200);
-    impulse.copyToChannel(smoothed, ch);
+    reverbIR = { rate, ch: ch2 };
   }
+  const impulse = audioCtx.createBuffer(2, length, rate);
+  for (let ch = 0; ch < 2; ch++) impulse.copyToChannel(reverbIR.ch[ch], ch);
   reverbNode = audioCtx.createConvolver();
   reverbNode.buffer = impulse;
   return reverbNode;
@@ -350,13 +357,13 @@ function ensurePingPong() {
   return pingPong;
 }
 
-let noiseBuffer = null;
+let noiseBuffer = null, noiseData = null;
 function ensureNoiseBuffer() {
   if (noiseBuffer) return noiseBuffer;
   const size = audioCtx.sampleRate * 2;
   noiseBuffer = audioCtx.createBuffer(1, size, audioCtx.sampleRate);
-  const data = noiseBuffer.getChannelData(0);
-  for (let i = 0; i < size; i++) data[i] = Math.random() * 2 - 1;
+  if (!noiseData || noiseData.length !== size) { noiseData = new Float32Array(size); for (let i = 0; i < size; i++) noiseData[i] = Math.random() * 2 - 1; }   // v142: einmal je Rate
+  noiseBuffer.copyToChannel(noiseData, 0);
   return noiseBuffer;
 }
 
