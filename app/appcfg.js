@@ -18,7 +18,16 @@
     const m = /^([A-G](?:#|♯|b|♭)?)(.*)$/.exec(name || ''); if (!m || PCS[m[1]] == null) return name;
     return spellPc(PCS[m[1]], k) + m[2];
   }
-  window.spellPc = spellPc; window.spellChord = spellChord;
+  // v143: eine gemeinsame Schreibweise für Tonarten überall (Spurkopf, Improvisation, Jammen, Kopfzeile): „A♭-Dur“, „F♯-Moll“
+  function keyName(k) { return k && k.pc != null ? spellPc(k.pc, k) + (k.major ? '-Dur' : '-Moll') : ''; }
+  // Modus mit Grundton (Griffbrett): Vorzeichen der Stamm-Durtonart, z. B. „A♭ Ionisch“, „F♯ Dorisch“
+  const MODE_OFF = { Ionisch: 0, Dorisch: 2, Phrygisch: 4, Lydisch: 5, Mixolydisch: 7, 'Äolisch': 9, Lokrisch: 11 };
+  function modeName(rootName, mode) {
+    const pc = PCS[String(rootName).trim()], m = String(mode || '').replace(/ \(.*\)/, '');
+    if (pc == null) return rootName + ' ' + m;
+    const off = MODE_OFF[m]; return (off == null ? SH[md(pc)] : spellPc(pc, { pc: md(pc - off), major: true })) + ' ' + m;
+  }
+  window.spellPc = spellPc; window.spellChord = spellChord; window.keyName = keyName; window.modeName = modeName;
 })();
 /* ---------- App: Optik umschalten, alles sichern und wiederherstellen ---------- */
 const AppCfg = (() => {

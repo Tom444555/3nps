@@ -123,7 +123,8 @@
   }
   function buildIdeas() {
     const k = S.key || (window.Jam ? Jam.state().key : { pc: 9, major: false });
-    let opts = ''; for (let p = 0; p < 12; p++) opts += '<option value="' + p + ':M">' + NN[p] + '-Dur</option>'; for (let p = 0; p < 12; p++) opts += '<option value="' + p + ':m">' + NN[p] + '-Moll</option>';
+    const kn = (p, M) => window.keyName ? window.keyName({ pc: p, major: M }) : NN[p] + (M ? '-Dur' : '-Moll');   // v143: gemeinsame Schreibweise
+    let opts = ''; for (let p = 0; p < 12; p++) opts += '<option value="' + p + ':M">' + kn(p, true) + '</option>'; for (let p = 0; p < 12; p++) opts += '<option value="' + p + ':m">' + kn(p, false) + '</option>';
     $('jmIdeas').innerHTML = '<h2>' + TT('Akkordfolgen-Ideen') + '</h2>' +
       '<div class="jm-irow"><label class="field"><span>' + TT('Tonart') + '</span><select id="jmKey" aria-label="' + TT('Tonart') + '">' + opts + '</select></label>' +
       '<label class="field"><span>' + TT('Stil') + '</span><select id="jmStyle" aria-label="' + TT('Stil') + '">' + Object.keys(ST).map(s => '<option value="' + s + '">' + TT(s) + '</option>').join('') + '</select></label></div>' +

@@ -80,7 +80,7 @@ EARLY = "<script>try{var d=localStorage.getItem('3nps-device'),da=localStorage.g
 
 # --- Kopf/Markup ---
 ACCEPT = 'audio/*,video/*,.mp3,.wav,.wave,.aif,.aiff,.aifc,.m4a,.m4b,.aac,.caf,.flac,.alac,.ogg,.oga,.opus,.mp4,.mov,.3gp,.webm,.amr'
-head = head.replace('</style>', lcss + metal + themecss + rd(A + 'geraet.css') + '</style>', 1)
+head = head.replace('</style>', lcss + metal + themecss + rd(A + 'geraet.css') + rd(A + 'bedienung.css') + '</style>', 1)
 head = head.replace('step="1" value="80"', 'step="any" value="80"')
 # v112: Mastering ist ins Studio umgezogen (master.js liefert weiter window.Master für den Song-Export)
 head = head.replace('LOOPER_PANEL', lhtml).replace('CIRCLE_PANEL', rd(A + 'circle.html')).replace('SINGEN_PANEL', rd(A + 'singen.html')).replace('MASTER_PANEL', '').replace('HILFE_PANEL', rd(A + 'hilfe.html')).replace('LERNEN_PANEL', rd(A + 'lernen.html')).replace('POWER_PANEL', rd(A + 'powerchords.html')).replace('SOLO_PANEL', rd(A + 'solo.html')).replace('CAGED_PANEL', rd(A + 'caged.html')).replace('JAM_PANEL', rd(A + 'jam.html')).replace('LIED_PANEL', rd(A + 'lied.html')).replace('UEBEN_PANEL', rd(A + 'uebung.html'))

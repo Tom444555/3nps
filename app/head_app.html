@@ -225,7 +225,7 @@
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v142</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v143</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -286,7 +286,7 @@
       <div class="cell"><span class="k">Takt</span><span class="v" id="lcdPos">1.1</span></div>
       <div class="cell"><span class="k">Tempo</span><span class="v"><span id="bpmVal">80</span></span></div>
       <div class="cell"><span class="k">Taktart</span><span class="v small">4/4</span></div>
-      <div class="cell"><span class="k">Tonart</span><span class="v small" id="lcdKey">G Ionisch</span></div>
+      <div class="cell" title="Tonart des Griffbrett-Trainers (Lernen › Technik) – die Spuren zeigen ihre eigene Tonart"><span class="k">Griffbrett</span><span class="v small" id="lcdKey">G Ionisch</span></div>
       <div id="statusMirror"></div>
     </div>
     <div class="tempo-ctl">
@@ -299,7 +299,6 @@
 </header>
 
 <div class="app">
-  <p class="caption" id="caption" style="margin-bottom:10px"></p>
 
   <nav class="tabs areas" role="tablist" aria-label="Bereiche">
     <button class="tab" role="tab" id="tab-looper" data-tab="looper" data-area="looper" aria-selected="true">Looper</button>
@@ -326,6 +325,7 @@
   <!-- Griffbrett -->
   <section class="panel" id="panel-griffbrett" role="tabpanel" aria-labelledby="tab-griffbrett" hidden>
     <div class="card">
+      <p class="caption" id="caption"></p><!-- v143: Startton-Zeile gehört zum Griffbrett-Trainer, nicht in den Kopf -->
       <div class="fields">
         <label class="field"><span>Grundton</span><select id="root"></select></label>
         <label class="field"><span>Modus</span><select id="mode"></select></label>

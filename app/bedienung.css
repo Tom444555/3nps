@@ -1,0 +1,91 @@
+
+  /* ===== v143: Looper-Bedienung – Touch-Ziele ≥ 44 px, Aufnahme ohne Scrollen erreichbar =====
+     Nur Maße (Höhe/Breite/Abstände), keine Farben – gilt für alle Optiken und alle Geräte-Profile. */
+  :root { --hit: 44px; }
+  /* Kopf: App-Optik ▾ · Leistung ▾ · Live · EN, Tempo − / +, Bereiche */
+  .control-bar .optik-btn { min-height: var(--hit); min-width: var(--hit); padding-block: 0; padding-inline: 12px; display: inline-flex; align-items: center; justify-content: center; }
+  .brand-col { gap: 2px; }
+  .brand { display: flex; align-items: center; min-height: 28px; }
+  .brand > span { margin-left: .35em; }
+  /* „EN“ bleibt klein im Schriftzug, die Tippfläche reicht unsichtbar auf 44 × 44 px */
+  .lang-btn { position: relative; }
+  .lang-btn::after { content: ""; position: absolute; left: 50%; top: 50%; width: max(100%, var(--hit)); height: var(--hit); transform: translate(-50%, -50%); }
+  .control-bar .bpm-step { width: var(--hit); height: var(--hit); }
+  .control-bar .tbtn { height: var(--hit); }
+  .tabs .tab, .tabs.areas .tab { min-height: var(--hit); }
+  .tabs .help-btn { min-width: var(--hit); }
+  .control-bar input[type="range"] { min-height: var(--hit); margin-block: 0; }
+  .perf-pop .pf-hbtn { min-height: 36px; padding-inline: 9px; }
+  .perf-pop .dev-seg .dev-b { min-height: var(--hit); }
+
+  /* Looper: alle Knöpfe und Auswahlfelder mindestens 44 px hoch */
+  #panel-looper :is(button, select, .file-mini, .toggle-btn, input[type="number"]) { min-height: var(--hit); }
+  #panel-looper .toggle-btn { min-width: var(--hit); }
+  #panel-looper :is(.toggle-btn, .file-mini) { display: inline-flex; align-items: center; justify-content: center; }
+  #panel-looper .mini button, #panel-looper .file-mini { padding-block: 0; display: flex; align-items: center; justify-content: center; }
+  #panel-looper .amp-set { min-width: var(--hit); }
+  #panel-looper .layer-bar button, #panel-looper .scene-list button { min-width: var(--hit); height: var(--hit); }
+  #panel-looper input[type="range"] { min-height: var(--hit); margin-block: 0; }
+  #panel-looper .fader { min-height: var(--hit); }
+  #panel-looper label.check, #panel-looper .check { min-height: var(--hit); display: flex; align-items: center; gap: 8px; }
+  #panel-looper input[type="checkbox"] { width: 22px; height: 22px; flex: none; }
+  #panel-looper summary { min-height: var(--hit); display: flex; align-items: center; }
+  #panel-looper .text-in { min-height: var(--hit); }
+  #panel-looper kbd { display: inline-flex; align-items: center; }
+
+  /* „Was passt“: Kopfzeile 44 px, Knopf zum Einklappen über die ganze Höhe */
+  .passt-h { height: var(--hit); }
+  .passt-tgl { min-height: var(--hit); padding-inline: 4px 10px; }
+  .passt-hold, .passt-go { padding-block: 0; }
+
+  /* Spurkopf straffer: feste Höhe für alle Spuren (auch leere) – nichts springt, Ring und REC stehen auf einer Linie */
+  .tracks .track-head { min-height: 0; height: 74px; padding-bottom: 6px; overflow: hidden; align-items: flex-start; flex-wrap: nowrap; }
+  .tracks .track-head .th-chords { align-self: flex-end; }
+  .tracks .track-head .th-left { flex: 1 1 auto; min-width: 0; gap: 4px; }
+  .tracks .track-head .th-name { flex-wrap: nowrap; max-width: 100%; overflow: hidden; }
+  .tracks .tsrc { display: none; }
+  .tracks .keybadge { min-height: var(--hit); display: inline-flex; flex-direction: column; justify-content: center; line-height: 1.1; }
+  .tracks .chdbadge { min-height: var(--hit); box-sizing: border-box; }
+  /* Spur-Knöpfe EQ · Hall/Echo · Im Studio · Gesang trennen zu zweit nebeneinander */
+  .track-btns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+  .track-btns .eq-btn { min-height: var(--hit); margin-top: 0; padding-block: 0; white-space: normal; line-height: 1.15; }
+
+  /* iPad quer: Taktkreis an die Bildschirmhöhe koppeln, damit REC und Spur-Knöpfe ohne Scrollen sichtbar sind */
+  @media (orientation: landscape) and (min-width: 900px) {
+    .tracks .ring { max-width: min(100%, 17vh); max-width: min(100%, 17dvh); margin-inline: auto; }
+    .looper-card .track { gap: 8px; }
+    /* Loop-Länge und Übe-Tempo mit Beschriftung links daneben – der Block wird flacher */
+    .looper-top { grid-template-columns: minmax(150px, 330px) 1fr; }
+    .looper-top .top-left .field { flex-direction: row; align-items: center; gap: 8px; }
+    .looper-top .top-left .field > span { flex: 0 0 82px; }
+    .looper-top .top-left .field > select { flex: 1 1 auto; }
+    .passt { padding-top: 4px; }
+  }
+
+  /* Hochkant (iPad 820): Kopf bricht um – Höhe für alle Spuren gleich */
+  @media (max-width: 1020px) and (min-width: 561px) {
+    .tracks .track-head { height: 128px; min-height: 0; flex-wrap: wrap; align-items: flex-start; align-content: flex-start; }
+    .tracks .track-head .th-chords { margin-left: 0; }
+  }
+  /* Telefon: Spuren gleich unter dem Titel, darunter Was passt, Loop-Länge und Eingang */
+  @media (max-width: 560px) {
+    .looper-card > .card-head { order: -2; }
+    .looper-card > .tracks, .looper-card > .track-eqs { order: -1; }
+    .tracks .track-head { height: auto; min-height: 76px; flex-wrap: wrap; align-items: flex-start; }
+    .track-btns { grid-template-columns: 1fr; }
+    #panel-looper .mini button, #panel-looper .file-mini { min-height: var(--hit); }
+  }
+  /* iPad hochkant: „Was passt“ dreispaltig wie quer (feste Höhe 108 px) statt zweizeilig */
+  @media (max-width: 860px) and (min-width: 700px) {
+    .passt-b { grid-template-columns: minmax(150px, 0.85fr) minmax(0, 1.45fr) minmax(0, 1.2fr); grid-template-rows: none; height: 108px; row-gap: 0; }
+    .passt-mv { grid-column: auto; flex-direction: column; gap: 8px; }
+  }
+  /* Telefon: Anzeige im Kopf in einer Zeile (Takt · Tempo · Taktart · Griffbrett) – der feste Kopf wird flacher */
+  @media (max-width: 640px) {
+    .lcd { grid-template-columns: auto auto auto minmax(0, 1fr); column-gap: 14px; }
+    .lcd .cell .v { overflow: hidden; text-overflow: ellipsis; }
+  }
+  @media (max-width: 560px) {
+    .tracks .track-head { min-height: 100px; align-content: flex-start; }
+    .tracks .track-head .th-name { flex-wrap: wrap; row-gap: 4px; overflow: visible; }
+  }

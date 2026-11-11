@@ -414,8 +414,10 @@
   }));
   // Tonart-Auswahl füllen
   const ks = $('jamKey');
-  for (let p = 0; p < 12; p++) ks.add(new Option(SHARP[p] + (FLAT[p] !== SHARP[p] ? '/' + FLAT[p] : '') + '-Dur', p + ':M'));
-  for (let p = 0; p < 12; p++) ks.add(new Option(SHARP[p] + (FLAT[p] !== SHARP[p] ? '/' + FLAT[p] : '') + '-Moll', p + ':m'));
+  // v143: gleiche Schreibweise wie Spurkopf und Improvisation (window.keyName: „A♭-Dur“, „F♯-Moll“)
+  const kn = (p, M) => window.keyName ? window.keyName({ pc: p, major: M }) : SHARP[p] + (FLAT[p] !== SHARP[p] ? '/' + FLAT[p] : '') + (M ? '-Dur' : '-Moll');
+  for (let p = 0; p < 12; p++) ks.add(new Option(kn(p, true), p + ':M'));
+  for (let p = 0; p < 12; p++) ks.add(new Option(kn(p, false), p + ':m'));
   let uiTimer = null;
   document.addEventListener('tabchange', e => {
     clearInterval(uiTimer); uiTimer = null;

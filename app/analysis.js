@@ -94,7 +94,7 @@ const Analyzer = (() => {
     const r = await run('chords', channels, sr, (d, r2) => ({ chords: chordAnalyse(d, r2, beats, o) }), o);
     return r && r.chords ? r.chords : null;
   }
-  const label = r => NOTES[r.pc] + (r.major ? '-Dur' : '-Moll');
+  const label = r => window.keyName ? window.keyName(r) : NOTES[r.pc] + (r.major ? '-Dur' : '-Moll');   // v143: gemeinsame Schreibweise
   const short = r => NOTES[r.pc] + (r.major ? '' : 'm');
   function apply(r) {
     rootSel.value = NOTES[r.pc];

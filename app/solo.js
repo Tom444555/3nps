@@ -46,7 +46,7 @@
   const flats = k => [5, 10, 3, 8, 1].includes(parentMajor(k));
   const nn = (pc, k) => window.spellPc ? spellPc(pc, k) : (k && flats(k) ? FLAT : SHARP)[md(pc)];
   const chordName = (c, k) => nn(c.r, k) + (SUF[c.t] != null ? SUF[c.t] : c.t);
-  const keyLabel = k => nn(k.pc, k) + (k.major ? '-Dur' : '-Moll');
+  const keyLabel = k => window.keyName ? window.keyName(k) : nn(k.pc, k) + (k.major ? '-Dur' : '-Moll');   // v143: gemeinsame Schreibweise
   const qual = t => /^(m|m7|m6|m9|m11)$/.test(t) ? 'm' : /^(dim|m7b5)$/.test(t) ? 'd' : /^(sus|5)/.test(t) ? '*' : 'M';
   const keyPcs = k => MAJ.map(x => md(parentMajor(k) + x));
   // Stufe des Akkords in der Tonart (römisch), bei Fremdakkorden mit ♭/♯

@@ -530,6 +530,12 @@ const Looper = (() => {
     sb.insertAdjacentElement('afterend', b); t.sepB = b;
     b.addEventListener('click', () => { if (karaValid(t)) karaoke(t, !t.kara.on); else sepTrack(t).catch(err => setStatus(T('Gesang trennen ging nicht: ') + (err && err.message || err))); });
   });
+  // v143: EQ · Hall/Echo · Im Studio · Gesang trennen in ein Raster zu zweit (44-px-Knöpfe, Spur wird nicht höher)
+  tracks.forEach(t => {
+    const eqb = $('eqb' + t.i); if (!eqb) return;
+    const g = document.createElement('div'); g.className = 'track-btns'; eqb.parentNode.insertBefore(g, eqb);
+    ['eqb', 'fxb', 'studiob', 'sepb'].forEach(k => { const b = $(k + t.i); if (b) g.appendChild(b); });
+  });
   function karaValid(t) {
     const k = t.kara; if (!k) return false;
     if (t.L !== k.L || !t.layers.length || (t.layers[0] !== k.acc && t.layers[0] !== k.orig)) { t.kara = null; return false; }
@@ -3116,7 +3122,7 @@ const Looper = (() => {
       const ks = t.key ? t.key.pc + (t.key.major ? 'M' : 'm') : '';
       if (ks !== (t.keySent || '')) { t.keySent = ks; document.dispatchEvent(new CustomEvent('trackkey', { detail: { track: t.i, key: t.key ? { pc: t.key.pc, major: !!t.key.major } : null } })); }
       t.keyB.hidden = !t.key;
-      if (t.key) { t.keyB.innerHTML = '<small>Tonart</small>' + Analyzer.label(t.key).replace('-', ' '); t.keyB.title = 'Tonart ' + Analyzer.label(t.key) + ' für Griffbrett und Drone übernehmen'; }
+      if (t.key) { t.keyB.innerHTML = '<small>Tonart</small>' + Analyzer.label(t.key); t.keyB.title = 'Tonart ' + Analyzer.label(t.key) + ' für Griffbrett und Drone übernehmen'; }
     });
     if (ed.t) {
       $('edKeyRes').textContent = ed.t.key ? Analyzer.label(ed.t.key) : 'nicht erkannt';
@@ -4522,8 +4528,8 @@ const Pedal = (() => {
 /* ---------- LCD in der Kontrollleiste ---------- */
 (function () {
   const posEl = document.getElementById('lcdPos'), keyEl = document.getElementById('lcdKey');
-  const setKey = () => { keyEl.textContent = rootSel.value + ' ' + modeSel.value.replace(/ \(.*\)/, ''); };
-  rootSel.addEventListener('change', setKey); modeSel.addEventListener('change', setKey); setKey();
+  const setKey = () => { keyEl.textContent = window.modeName ? window.modeName(rootSel.value, modeSel.value) : rootSel.value + ' ' + modeSel.value.replace(/ \(.*\)/, ''); };   // v143: Vorzeichen wie überall
+  rootSel.addEventListener('change', setKey); modeSel.addEventListener('change', setKey); setKey(); setTimeout(setKey, 0);
   setInterval(() => {
     let text = '1.1', recOn = false;
     const p = Looper.position();
