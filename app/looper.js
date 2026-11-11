@@ -1967,12 +1967,33 @@ const Looper = (() => {
     const g = n => c.getPropertyValue(n).trim();
     return { ink: g('--ink'), muted: g('--muted'), line: g('--line'), rec: g('--root-color'), dub: g('--dub'), bg: g('--surface-2'), t: [g('--t1'), g('--t2'), g('--t3')] };
   }
+  // v141: Maße aus dem ResizeObserver (_w/_h) statt Layout-Lesen in jedem Bild
   function fit(cv) {
-    const dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight;
+    const dpr = window.devicePixelRatio || 1, w = cv._w != null ? cv._w : cv.clientWidth, h = cv._h != null ? cv._h : cv.clientHeight;
     if (!w || !h) return null;
     if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
     const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h);
     return { ctx, w, h };
+  }
+  // v141: ruhende Bildteile (Wellenform, Raster, Akkorde) zwischenspeichern – pro Bild nur kopieren + Abspielstrich zeichnen.
+  // Schlüssel = alle Eingaben des ruhenden Teils; drawGen steigt bei jeder Bedienung, nach 2 s wird zur Sicherheit neu gezeichnet.
+  let drawGen = 0, oidN = 0;
+  const oids = new WeakMap(), oid = o => o == null ? 0 : (oids.get(o) || (oids.set(o, ++oidN), oidN));
+  ['pointerdown', 'pointerup', 'input', 'change', 'keydown', 'click', 'wheel'].forEach(ev => document.addEventListener(ev, () => { drawGen++; }, { capture: true, passive: true }));
+  function blitCache(cv, ctx, key) {
+    const c = cv._cache;
+    if (!key || !c || c.key !== key || c.cv.width !== cv.width || c.cv.height !== cv.height || performance.now() - c.at > 2000) return false;
+    const dpr = window.devicePixelRatio || 1;
+    ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(c.cv, 0, 0); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return true;
+  }
+  function storeCache(cv, key) {
+    if (!key) { cv._cache = null; return; }
+    const c = cv._cache || (cv._cache = { cv: document.createElement('canvas') });
+    if (c.cv.width !== cv.width || c.cv.height !== cv.height) { c.cv.width = cv.width; c.cv.height = cv.height; }
+    const x = c.cv.getContext('2d'); x.clearRect(0, 0, c.cv.width, c.cv.height); x.drawImage(cv, 0, 0);
+    c.key = key; c.at = performance.now();
   }
 
   // Neonfarben für die Taktkreise; der erste Takt bekommt immer eine eigene Farbe
@@ -2133,6 +2154,8 @@ const Looper = (() => {
       const step = t.L / n, rmsR = (a, b, arr) => { let p = 0; for (let k = Math.floor(a / 64), e = Math.max(k + 1, Math.ceil(b / 64)); k < e && k < arr.length; k++) if (arr[k] > p) p = arr[k]; return p; };
       for (let x = 0; x < n; x++) { const a = x * step, b = (x + 1) * step; t.peaks[x] = peakRange(t, a, b, 'l') / t.bpMax; t.peaks[n + x] = peakRange(t, a, b, 'r') / t.bpMax; t.peaks[2 * n + x] = Math.min(1, rmsR(a, b, bp.rl) * 1.41 / t.bpMax); t.peaks[3 * n + x] = Math.min(1, rmsR(a, b, bp.rr) * 1.41 / t.bpMax); }
     }
+    const wKey = [w, h, dpr, oid(t.peaks), t.src ? 1 : 0, tc, C.line, t.L, oid(trackBeats(t)), drawGen].join('|');
+    if (!blitCache(t.wave, ctx, wKey)) {
     ctx.fillStyle = tc; ctx.globalAlpha = t.src ? 0.16 : 0.08;
     ctx.beginPath(); ctx.roundRect ? ctx.roundRect(0, 0, w, h, 4) : ctx.rect(0, 0, w, h); ctx.fill();
     const cw = 1 / dpr, mid = Math.round(h / 2 * dpr) / dpr, amp = (h - 4) / 2;
@@ -2149,6 +2172,8 @@ const Looper = (() => {
         if (b.bar) ctx.fillRect(x, 0, cw * Math.max(1, Math.round(dpr)), h);
         else if (barPx >= 40) { ctx.fillRect(x, 0, cw, 4); ctx.fillRect(x, h - 4, cw, 4); } });
     }
+    storeCache(t.wave, wKey);
+    }
     if (t.src) { const ph = phase(playFrame(), t.L) / t.L; const x = Math.round(ph * w * dpr) / dpr; ctx.fillStyle = C.ink; ctx.fillRect(x - 1, 0, 2, h); }
   }
 
@@ -2162,6 +2187,7 @@ const Looper = (() => {
     if (visible && nowMs - lastDraw >= (window.__lite || window.__live ? 66 : 33)) {      // höchstens 30 (sparsam 15) Bilder pro Sekunde
       lastDraw = nowMs;
       const C = css || (css = colors());
+      tracks.forEach(t => { if (!t.mh) { const mh = t.meter.clientHeight; if (mh) { t.mh = mh; t.meter.style.setProperty('--mh', (mh - 6) + 'px'); } } });
       tracks.forEach(t => { drawRing(t, C); drawWave(t, C); });
       tracks.forEach(t => {                       // Spurkopf rechts: klingender und kommender Akkord
         const c = t.chords, has = !!(t.src && c && c.L === t.L && c.segs.some(q => q.name !== '–'));
@@ -2176,15 +2202,16 @@ const Looper = (() => {
         t.chnB.hidden = !nx; if (nx) t.chnB.lastChild.textContent = window.spellChord ? spellChord(nx, t.key) : nx;
       });
       drawEditor(C);
-      const bgS = (meterEl.parentNode.clientWidth || 200) + 'px 100%', hot = !!rec && !rec.armed;
+      // v141: erst lesen (Maße aus dem ResizeObserver), dann nur geänderte Werte schreiben – kein erzwungenes Layout pro Bild
+      const mp = meterEl.parentNode, bgS = ((mp._w != null ? mp._w : mp.clientWidth) || 200) + 'px 100%', hot = !!rec && !rec.armed;
       if (stereoSeen) {
-        meterEl.style.width = (toMeter(levelL) * 100) + '%';
-        meterR.style.width = (toMeter(levelR) * 100) + '%'; meterR.style.backgroundSize = bgS; meterR.classList.toggle('hot', hot);
-      } else meterEl.style.width = (toMeter(level) * 100) + '%';
-      meterEl.style.backgroundSize = bgS;
+        setSt(meterEl, 'width', (toMeter(levelL) * 100) + '%');
+        setSt(meterR, 'width', (toMeter(levelR) * 100) + '%'); setSt(meterR, 'background-size', bgS); meterR.classList.toggle('hot', hot);
+      } else setSt(meterEl, 'width', (toMeter(level) * 100) + '%');
+      setSt(meterEl, 'background-size', bgS);
       meterEl.classList.toggle('hot', hot);
-      threshMark.style.left = (toMeter(threshold()) * 100) + '%';
-      const th = toMeter(threshold()) * 100;
+      setSt(threshMark, 'left', (toMeter(threshold()) * 100) + '%');
+      const th = toMeter(threshold()) * 100, thS = th.toFixed(1) + '%';
       tracks.forEach(t => {
         const live = !!(rec && rec.t === t);
         let lvL, lvR;
@@ -2204,12 +2231,10 @@ const Looper = (() => {
         t.pkL = lvL >= t.pkL ? lvL : Math.max(lvL, t.pkL - 1.2);
         t.pkR = lvR >= t.pkR ? lvR : Math.max(lvR, t.pkR - 1.2);
         t.peakHold = Math.max(t.pkL, t.pkR);
-        t.mL.style.setProperty('--lv', lvL.toFixed(1) + '%'); t.mL.style.setProperty('--pk', t.pkL.toFixed(1) + '%');
-        t.mR.style.setProperty('--lv', lvR.toFixed(1) + '%'); t.mR.style.setProperty('--pk', t.pkR.toFixed(1) + '%');
-        t.meter.style.setProperty('--th', th.toFixed(1) + '%');
-        const mh = t.meter.clientHeight; if (mh && mh !== t.mh) { t.mh = mh; t.meter.style.setProperty('--mh', (mh - 6) + 'px'); }
+        setLv(t, t.mL, lvL, t.pkL); setLv(t, t.mR, lvR, t.pkR);
+        setSt(t.meter, '--th', thS);
         t.meter.classList.toggle('clip', lvL > 98 || lvR > 98);
-        t.meter.closest('.track').classList.toggle('rec-live', live);
+        (t.trEl || (t.trEl = t.meter.closest('.track'))).classList.toggle('rec-live', live);
         t.meter.classList.toggle('live', live);
         t.meter.classList.toggle('armed', live && rec.armed);
       });
@@ -2219,8 +2244,21 @@ const Looper = (() => {
     const active = anyRunning() || rec || level > 0.001 || tracks.some(t => t.peakHold > 0.5) || ed.drag || ed.loop || countEnd > nowFrame();
     if (active) { if (visible) rafId = requestAnimationFrame(tick); else { rafId = 1; setTimeout(() => { rafId = null; tick(); }, 250); } }
   }
-  tracks.forEach(t => { new ResizeObserver(kick).observe(t.ring); new ResizeObserver(kick).observe(t.wave); });
-  new ResizeObserver(kick).observe($('edWave')); new ResizeObserver(kick).observe($('edOver'));
+  // v141: Stil nur schreiben, wenn sich der Wert ändert; Pegel auf ganze Bildpunkte der Anzeige gerundet
+  function setSt(el, p, v) { const c = el._st || (el._st = {}); if (c[p] !== v) { c[p] = v; el.style.setProperty(p, v); } }
+  // Pegel + Spitze eines Kanals in einem Schreibzugriff (Inline-Stil der .tm-ch enthält nur diese beiden Werte)
+  function setLv(t, el, lv, pk) {
+    const H = t.mh || 0, q = v => (H ? Math.round(v * H / 100) / H * 100 : v).toFixed(1) + '%', v = '--lv: ' + q(lv) + '; --pk: ' + q(pk) + ';';
+    if (el._lvs !== v) { el._lvs = v; el.style.cssText = v; }
+  }
+  // v141: ein ResizeObserver merkt die Maße (Leinwände, Pegel, Eingangspegel) – tick() liest kein Layout mehr
+  const sizeRO = new ResizeObserver(es => {
+    es.forEach(e => { const el = e.target; el._w = el.clientWidth; el._h = el.clientHeight;
+      const t = el._trk; if (t && el._h && el._h !== t.mh) { t.mh = el._h; el.style.setProperty('--mh', (el._h - 6) + 'px'); } });
+    kick();
+  });
+  tracks.forEach(t => { sizeRO.observe(t.ring); sizeRO.observe(t.wave); t.meter._trk = t; sizeRO.observe(t.meter); });
+  sizeRO.observe($('edWave')); sizeRO.observe($('edOver')); sizeRO.observe(meterEl.parentNode);
 
   // ---- Spur-Editor: Schneiden, Synchronisieren, Tonart ----
   const ed = { t: null, s: 0, e: 0, drag: null, lastOp: null, offMs: 0, peaks: null, peaksFor: null, peaksW: 0, zoom: 1, v0: 0, h: 's', loop: null };
@@ -3332,6 +3370,8 @@ const Looper = (() => {
   function drawOverview(t, tc) {
     const f = fit(edOv); if (!f) return;
     const { ctx, w, h } = f; blockPeaks(t);
+    const oKey = ed.drag ? null : [w, h, window.devicePixelRatio || 1, oid(t), oid(t.mix), t.L, t.bpMax, tc, ed.s, ed.e, ed.v0, span(), drawGen].join('|');
+    if (!blitCache(edOv, ctx, oKey)) {
     ctx.fillStyle = '#08080a'; ctx.fillRect(0, 0, w, h);
     const n = Math.floor(w), st = t.L / n;
     ctx.fillStyle = tc; ctx.globalAlpha = 0.45;
@@ -3343,6 +3383,8 @@ const Looper = (() => {
     ctx.fillStyle = 'rgba(255,138,26,.22)'; ctx.fillRect(ed.s / t.L * w, 0, (ed.e - ed.s) / t.L * w, h);
     const vx = ed.v0 / t.L * w, vw = Math.max(4, span() / t.L * w);
     ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 1.5; ctx.strokeRect(vx + 0.75, 0.75, vw - 1.5, h - 1.5);
+    storeCache(edOv, oKey);
+    }
     if (t.src) { const p = phase(playFrame(), t.L) / t.L * w; ctx.fillStyle = '#fff'; ctx.fillRect(p - 0.5, 0, 1.5, h); }
   }
 
@@ -3356,6 +3398,10 @@ const Looper = (() => {
     const { ctx, w, h } = f, tc = NEON.t[t.i], v0 = ed.v0, sp = span(), X = fr => (fr - v0) / sp * w, dpr = window.devicePixelRatio || 1;
     const hasCh = !!(t.chords && t.chords.L === t.L && t.chords.segs.some(q => q.name !== '–'));
     const top = hasCh ? 36 : 18;                        // Zeitleiste (18 px), darunter die Akkordzeile
+    const curK = hasCh && t.src ? chordAt(t, phase(playFrame(), t.L)) : -1;
+    const eKey = ed.drag ? null : [w, h, dpr, oid(t), t.L, oid(t.mix), t.bpMax, oid(t.chords), oid(t.key), oid(t.orig), t.origPos, t.orig && t.orig.barMed, bpm(), oid(trackBeats(t)), oid(trackOnsets(t)),
+      ed.s, ed.e, v0, sp, ed.h, tc, C.muted, C.ink, NEON.bar1, hasCh, curK, t.src ? 1 : 0, !!window.spellChord, drawGen].join('|');
+    if (!blitCache(edCv, ctx, eKey)) {
     ctx.fillStyle = '#0b0b0d'; ctx.fillRect(0, 0, w, h);
     ctx.fillStyle = 'rgba(255,255,255,.04)'; ctx.fillRect(0, 0, w, 18);
     // Raster: erkannte Takte kräftig, erkannte Schläge fein
@@ -3462,6 +3508,8 @@ const Looper = (() => {
       ctx.fillRect(x - 1.5, top, 3, h - top);
       ctx.beginPath(); ctx.moveTo(x, h - 26); ctx.lineTo(x + 16 * dir, h - 18); ctx.lineTo(x, h - 10); ctx.closePath(); ctx.fill();
     });
+    storeCache(edCv, eKey);
+    }
     // Abspielposition (hörbar, Ausgabelatenz herausgerechnet)
     let pf = null;
     if (ed.loop) { const el = Math.max(0, audioCtx.currentTime - (audioCtx.outputLatency || 0) - ed.loop.t0) * sr, ln = ed.loop.b - ed.loop.a; pf = ed.loop.a + (ln > 0 ? el % ln : 0); }

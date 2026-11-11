@@ -1,6 +1,6 @@
 # 3nps Looper – Übergabe (vollständiger Stand)
 
-Stand: **8. November 2026 · Version v140 (Studio s3)** – live unter https://tom444555.github.io/3nps/ ·
+Stand: **11. November 2026 · Version v141 (Studio s3)** – live unter https://tom444555.github.io/3nps/ ·
 stabile Rückfall-Fassung **v24** unter https://tom444555.github.io/3nps/stabil/
 
 Diese Datei ist das Gedächtnis des Projekts. Alles, was ein neuer Chat wissen muss, steht hier –
@@ -219,7 +219,7 @@ IDs `tab-…`/`panel-…`. Begleitung (Drone, Drums, Bass), alter Song-Player un
 
 **Regressionsliste (vor jeder Veröffentlichung, nacheinander):** v102ideas, v59lang, v60lang, v31export, s1studio, v107round, v113hilfe;
 Looper v116looperA, v117looperB, v118signal, v119leistung, v120power, **v135aufnahme** (Aufnahme läuft > 4 Takte, Übe-Loops ändern die Loop-Länge nur vorübergehend);
-Navigation/Lernen/Jammen v136reiter, v137lernen, v138jammen; Optiken **v140optik**; Speicher s1mem, v100mem (lange Zeitgrenze); Studio s2studio, s3studio, s3pitch, v112mst, v121studioC,
+Navigation/Lernen/Jammen v136reiter, v137lernen, v138jammen; Optiken **v140optik**; Zeichnen **v141zeichnen** (Speicher = frisches Bild, Layouts/s, DOM-Änderungen/s); Speicher s1mem, v100mem (lange Zeitgrenze); Studio s2studio, s3studio, s3pitch, v112mst, v121studioC,
 v122studioD, v123inst, v124trennen; Gesang v63singen, v81vox, v85singen (gelegentlich zeitbedingt rot). v119leistung misst Zufallsstreuung mit (Drum-Spektrum,
 renderCapacity) – einzelne rote Prüfung einmal wiederholen. Ältere Tests öffnen Unterpunkte seit v136 ebenfalls über `test/nav.py` (`open_tab`).
 
@@ -384,6 +384,7 @@ Testaudio-Generatoren (alle deterministisch, von `wiederherstellen.sh` aufgerufe
 | v138 | Jammen: „Welche Tonleiter passt?“ (Griffbrett folgt dem Akkord), „Akkordfolgen-Ideen“ (7 Stile → Backing Track), „Frage & Antwort“ (1/2/4 Takte), „⏺ Jam aufnehmen“ (Spur 1 Backing, Spur 2 Jam, Loop-Länge unberührt) |
 | v139 | Jammen: Kopfzeilen der Karten „Welche Tonleiter passt?“/„Frage & Antwort“ brechen um (`app/jam.css`) → kein seitliches Scrollen bei schmaler Breite (v25jam 21/21). Alte Tests an die neue Navigation angepasst: v21tabs (Zirkel-Mitlauf 6 s statt 4 s, sonst nur 2 Akkorde), v54caged (CAGED als Unterpunkt in „Lernen“), v22key (2 s warten – Spur 2 meldet ihre Tonart nach der Akkorderkennung ein zweites Mal), restoretest (Kanal-EQ-Format seit v100), v100mem (Stress-Dateien aus `test/long/` statt altem Scratchpad), v138jammen („ab v138“). Lauf aller 84 Tests: grün bis auf die unten unter „Offen“ genannten. |
 | v140 | Zwei neue App-Optiken hinter „Präzision“: **Präzision Nacht** `precise-dark` (Graphit, Haarlinien, Skalenstriche, Mono-Ziffern, Röhren-Orange #ff7a1a als einzige Leuchtfarbe – statische Schatten nur an aktiv/gedrückt, Rot nur REC; Pilotlampe vor dem Namen, Chrom-Rändelknopf an Reglern, Hauch Tolex/Gitter per CSS-Verlauf) und **iOS** `ios` (Dunkelmodus #000/#1c1c1e/#2c2c2e, Systemschrift, inset-grouped Karten Radius 14, Segment-Steuerung, Pillen/Tönungsknöpfe, gefüllt #0071e3 für ≥ 4,5:1, Kippschalter, Orange nur Pilotpunkt). Nur CSS (`app/theme-precise-dark.css`, `app/theme-ios.css`), `appcfg.js` THEME_BG, `EARLY` in build.py, EN „Precision Night“. Studio hat keine Optiken → unverändert. Test `v140optik` 30/30; v35/v59lang an neue Optiken angepasst |
+| v141 | **Looper zeichnet sparsam** (Prüfbericht L1/L2/L7, `looper.js`): ein `sizeRO` (ResizeObserver) merkt `_w/_h` der Leinwände (Ring, Welle, `edWave`, `edOver`), Pegelhöhe `t.mh`/`--mh` und Breite des Eingangspegels – `fit()` und `tick()` lesen kein Layout mehr pro Bild (nur einmal, wenn `t.mh` = 0, z. B. nach `readNeon`). Pegel: `setLv(t, el, lv, pk)` schreibt `--lv/--pk` je Kanal in **einem** `cssText` und nur bei Änderung (auf ganze Pixel der Pegelhöhe gerundet), `setSt(el, prop, v)` für `--th`, Eingangspegel-Breite/`background-size`, `threshMark.left` (Wertspeicher `el._st` – diese Stile schreibt nur `tick()`). Wellenformen: `blitCache/storeCache` – ruhender Teil wird auf die Leinwand gezeichnet und in eine Offscreen-Leinwand kopiert (`cv._cache`), danach pro Bild nur `drawImage` + Abspielstrich (pixelgleich). Schlüssel aus allen Eingaben (Maße, dpr, `oid()` von Spur/mix/peaks/chords/key/orig/Beats/Onsets, Auswahl, Ausschnitt, Griff, Farben, klingender Akkord im Editor, `t.src`) + `drawGen` (steigt bei jeder Bedienung: pointerdown/up, input, change, keydown, click, wheel, Capture auf document); beim Ziehen (`ed.drag`) kein Speicher; Sicherheits-Neuzeichnen alle 2 s. Messung (`/tmp/claude-0/pruef/mitlauf.py`, 3 Spuren + Drums + Drone, 20 s): 1× Layouts 85 → 29–31/s, Script 89 → 38–43 ms/s, DOM-Änderungen 332 → 180/s, Hauptthread 384 → 270 ms/s; 4× gedrosselt lange Aufgaben 129 → 16–37, Bilder > 50 ms 7,7 % → 0,9–4,4 %, fps 34 → 37–50 (Streuung zwischen Läufen groß). Bildvergleich 3 Optiken × 3 Breiten: pixelgleich. Test `v141zeichnen` 14/14. |
 
 ## 10. Bekannte Grenzen
 
@@ -398,7 +399,8 @@ Testaudio-Generatoren (alle deterministisch, von `wiederherstellen.sh` aufgerufe
 
 ## 11. Offen / Ideen (warten auf den Nutzer)
 
-**Als Nächstes (Stand 08.11.2026, v140 live):**
+**Als Nächstes (Stand 11.11.2026, v141 live):**
+- v141 veröffentlicht (Looper zeichnet sparsam, Werte im Verlauf). Tom prüft auf dem iPad: Loopen mit 3 Spuren + Editor offen – ruckelt weniger? Pegel/Wellen sehen aus wie vorher? Danach Pakete v142–v145 (Rahmen `/tmp/claude-0/briefing-pakete.md`, Prüfbericht `/tmp/claude-0/pruef/BERICHT.md` – liegen nicht im Repo).
 - v140 veröffentlicht (Optiken „Präzision Nacht“, „iOS“). Regressionen grün: v140optik 30/30, v113hilfe 27/27, v102ideas 11/11, v59lang 14/14, v60lang 21/21, v31export 14/14, s1studio 31/31, v107round 16/16, v116looperA 37/37, v117looperB 31/31, v118signal 28/28, v120power 66/66, v127look 23/23, v136reiter 40/40, v137lernen 43/43, v138jammen 40/40, v35 20/20, v34perf 12/12, s3studio 23/23. Screenshots lagen in `/tmp/claude-0/v140shots/` (nicht im Repo).
   Tom prüft auf dem iPad: Wirkung/Lesbarkeit beider Optiken, Systemschrift (SF Pro gibt es nur auf Apple-Geräten), Kippschalter, Leistung beim Loopen.
 - v139 veröffentlicht (jam.css). Alle auf `test/nav.py` umgestellten Alt-Tests + Regressionsliste gelaufen (84 Tests) – grün außer:
