@@ -1404,3 +1404,22 @@ Gut zu wissen
      war der einzige spürbare Hänger beim Loopen). CAGED, Improvisation, Jammen und Mitsingen arbeiten im Stillstand
      nicht mehr im Hintergrund weiter.
    - „Weiter: Powerchords-Kurs · Kap. … · Schritt …“ unter „Lernen“ springt wieder genau an den Schritt.
+
+126. Looper-Bedienung: große Tippflächen, Aufnahme ohne Scrollen, einheitliche Tonarten (v143)
+   - Alle Knöpfe im Looper und im Kopf sind jetzt mindestens 44 Pixel hoch („App-Optik ▾“, „Leistung ▾“, „Live“,
+     Tempo − / +, Bereiche, „▾“ am Amp, ■ ↶ ✕ ✂ ♫ je Spur, Auswahlfelder, Häkchen samt Text). „EN“ bleibt klein,
+     lässt sich aber großzügig antippen. Gilt in jeder App-Optik und in jedem Geräte-Profil.
+   - iPad quer: Mit geladenen Spuren und offenem „Was passt“ sind REC/Overdub und die Spurknöpfe aller drei Spuren
+     ohne Scrollen zu sehen. Dafür ist der Taktkreis im Querformat etwas kleiner, „Loop-Länge“ und „Übe-Tempo“ haben
+     die Beschriftung links daneben und der Spurkopf ist flacher. „Was passt“ lässt sich mit „Was passt ▾“ einklappen –
+     das bleibt gespeichert.
+   - iPad hochkant: „Was passt“ steht in drei Spalten (wie quer), REC und Spurknöpfe sind ohne Scrollen sichtbar.
+   - Telefon: Die Spuren stehen gleich unter „Looper“, darunter „Was passt“, Loop-Länge und Eingang. Die Anzeige im
+     Kopf (Takt, Tempo, Taktart, Griffbrett) steht in einer Zeile.
+   - Alle Spurköpfe sind gleich hoch – auch eine leere Spur: Taktkreis und REC stehen auf einer Linie.
+   - „EQ“, „Hall/Echo“, „Im Studio ↗“ und „Gesang trennen“ stehen zu zweit nebeneinander (Telefon: untereinander).
+   - Tonarten werden überall gleich geschrieben, z. B. „A♭-Dur“ statt „G# Dur“: im Spurkopf, in der Improvisation, in
+     den Auswahlfeldern von Jammen und in den Meldungen.
+   - Die Anzeige oben heißt jetzt „Griffbrett“ statt „Tonart“: Sie zeigt die Tonart des Griffbrett-Trainers (Lernen ›
+     Technik), nicht die der Spuren – die steht im Spurkopf. Die Zeile „Startton: … (Stufe …)“ steht jetzt in
+     Lernen › Technik statt über den Bereichen.

@@ -710,7 +710,7 @@ const LiedCore = (() => {
   // Akkordname; Akkorde außerhalb der Tonart nach ihrer Stufe schreiben (♭III in G-Dur = B♭, nicht A♯)
   const cname = (c, k) => { const R = k ? roman(c, k) : ''; const tb = R[0] === '♭' ? FLAT : R[0] === '♯' ? SHARP : (k && flats(k) ? FLAT : SHARP); return tb[md(c.r)] + (SUF[c.t] != null ? SUF[c.t] : c.t); };
   const qual = t => /^(m|m7|m6|m9|m11)$/.test(t) ? 'm' : /^(dim|m7b5)$/.test(t) ? 'd' : /^(sus|5)/.test(t) ? '*' : 'M';
-  const keyLabel = k => nn(k.pc, k) + (k.major ? '-Dur' : '-Moll');
+  const keyLabel = k => window.keyName ? window.keyName(k) : nn(k.pc, k) + (k.major ? '-Dur' : '-Moll');   // v143: gemeinsame Schreibweise
   const SCALE = k => k.major ? [0, 2, 4, 5, 7, 9, 11] : [0, 2, 3, 5, 7, 8, 10];
   function roman(c, k) {
     const rel = md(c.r - k.pc), q = qual(c.t), ref = SCALE(k), B = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
