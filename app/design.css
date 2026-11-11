@@ -1,0 +1,111 @@
+
+  /* ===== v144: Feinschliff Design =====
+     Feste Stufen für Schrift und Radius (looper.css/passt.css nutzen nur noch diese Variablen), klarere Kartentitel,
+     ein Aktiv-Stil für alle drei Navigationsebenen, Sonderknöpfe in „Präzision Nacht“/„iOS“, Platzhalter-Kontrast,
+     Spurknöpfe ≥ 44 px auch auf iPad hochkant und Telefon, „Was passt“ auf iPad hochkant ohne abgeschnittene Texte,
+     Mitsingen ohne Lied mit ordentlichem Leerzustand. Keine Klang-/Timing-Änderung. */
+  :root {
+    --fs-xs: .625rem;  /* 10 px – Mini-Beschriftungen in Großbuchstaben */
+    --fs-s: .75rem;    /* 12 px – Hinweise, Werte */
+    --fs-m: .8125rem;  /* 13 px – Text, Knöpfe */
+    --fs-l: .9375rem;  /* 15 px – Kartentitel, wichtige Knöpfe */
+    --fs-xl: 1.125rem; /* 18 px – Zwischenzeilen, Tonleiter */
+    --fs-xxl: 1.3125rem; /* 21 px – große Werte */
+    --fs-hero: 2.6rem; /* klingender Akkord */
+    --r-s: 6px; --r-m: 10px; --r-l: 14px;
+  }
+
+  /* Kartentitel: deutlich größer als der Text (vorher 13,8 px bzw. 11,5 px bei 12,8 px Text).
+     Nordisch: Textschrift statt Zierschrift (die bleibt dem Markennamen), Farbe und Prägung bleiben. */
+  :root:not([data-theme]) h2 { font-family: var(--f-body); font-weight: 700; font-size: var(--fs-l); letter-spacing: .02em; }
+  :root[data-theme="precise-dark"] h2 { font-size: var(--fs-l); letter-spacing: .1em; }
+  :root[data-theme="ios"] h2 { font-size: var(--fs-l); }
+
+  /* Ein Aktiv-Stil für Bereich → Unterpunkt → Kurs-Abschnitt (je Optik der Stil ihres aktiven Knopfs) */
+  :root:not([data-theme]):not(.dev-min) :is(.tabs .tab[aria-selected="true"], .subtabs .subtab[aria-selected="true"], .subtabs .subtab.active, #panel-power .pc-subs .toggle-btn.active) {
+    background: linear-gradient(180deg, #e2b56a 0%, #b9813b 55%, #8e5c24 100%); color: #1c1006; border-color: #3a2208;
+    box-shadow: 0 1px 0 rgba(255,236,190,.55) inset, 0 -1px 0 rgba(0,0,0,.35) inset, 0 0 12px rgba(226,160,80,.28), 0 2px 3px rgba(0,0,0,.55);
+    text-shadow: 0 1px 0 rgba(255,230,180,.35);
+  }
+  :root[data-theme="precise-dark"] :is(.tabs .tab[aria-selected="true"], .subtabs .subtab[aria-selected="true"], .subtabs .subtab.active, #panel-power .pc-subs .toggle-btn.active) {
+    background: linear-gradient(180deg, #3a2414, #2a1a0e); color: #ffd2a8; border-color: #ff7a1a; text-shadow: none;
+    box-shadow: inset 0 0 0 1px #ff7a1a, var(--pn-glow, 0 0 10px rgba(255,122,26,.3));
+  }
+  :root[data-theme="ios"] :is(.tabs .tab[aria-selected="true"], .subtabs .subtab[aria-selected="true"], .subtabs .subtab.active, #panel-power .pc-subs .toggle-btn.active) {
+    background: var(--ios-fill); color: #ffffff; border-color: var(--ios-fill); box-shadow: none; text-shadow: none; font-weight: 600;
+  }
+
+  /* Sonderknöpfe: „Blitz: jeder Takt“ und ein gedrückter Spurknopf (✂ offen) folgen der Optik statt Orange */
+  :root[data-theme="ios"] :is(#loopFlash.active, #panel-looper .mini button.on) {
+    background: var(--ios-tint); color: var(--ios-tint-ink); border-color: transparent; box-shadow: none; text-shadow: none; font-weight: 600;
+  }
+  :root[data-theme="precise-dark"] :is(#loopFlash.active, #panel-looper .mini button.on) {
+    background: linear-gradient(180deg, #3a2414, #2a1a0e); border-color: #ff7a1a; color: #ffd2a8; text-shadow: none; box-shadow: var(--pn-glow, 0 0 10px rgba(255,122,26,.3));
+  }
+
+  /* Platzhalter in Eingabefeldern: Optik-Grau statt Browser-Grau (#757575 war auf Dunkel < 4,5:1) */
+  :is(input, textarea)::placeholder { color: var(--muted); opacity: 1; }
+
+  /* Spurknöpfe ■ ↶ ✕ ✂ ♫ ≥ 44 px breit – iPad hochkant: Ränder etwas schmaler, eine Reihe bleibt */
+  @media (max-width: 1020px) and (min-width: 561px) {
+    #panel-looper .looper-card { padding-inline: 14px; }
+    #panel-looper .looper-card .tracks { gap: 8px; }
+    #panel-looper .tracks .track { padding-inline: 6px; }
+    #panel-looper .tracks .mini { gap: 3px; }
+  }
+  /* Telefon: zwei Spalten (■ ↶ · ✕ ✂ · ♫ über die ganze Breite) */
+  @media (max-width: 560px) {
+    #panel-looper .looper-card .tracks { gap: 6px; }
+    #panel-looper .tracks .track { padding-inline: 4px; }
+    #panel-looper .tracks .mini { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
+    #panel-looper .tracks .mini > :last-child { grid-column: 1 / -1; }
+  }
+
+  /* „Was passt“ auf iPad hochkant: Texte umbrechen statt „…“ – feste Höhe 132 px (springt nicht),
+     in Stellung „Taktkreise: Klein“ ist der Kreis etwas kleiner, damit REC und Spurknöpfe ohne Scrollen sichtbar sind */
+  @media (max-width: 860px) and (min-width: 700px) {
+    .passt-b { height: 132px; grid-template-columns: minmax(150px, .8fr) minmax(0, 1.45fr) minmax(0, 1.2fr); }
+    .passt-now { gap: 3px; }
+    .passt-chr { flex-direction: column; align-items: flex-start; height: auto; gap: 3px; }
+    .passt-ch { font-size: 2.1rem; }
+    .passt-chi { gap: 1px; }
+    .passt-rom, .passt-ct, .passt-ln, .passt-c small, .passt-row .passt-l { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.22; }
+    .passt-nx { height: 22px; line-height: 22px; overflow: visible; }
+    .passt-dr { height: auto; }
+    .passt-d { -webkit-line-clamp: 5; font-size: var(--fs-s); line-height: 1.3; }
+    .passt-mv { gap: 6px; }
+  }
+
+  /* Mitsingen ohne Lied: Hinweis groß und mittig, dazu zwei Wege zum Lied */
+  .sb-stage[hidden], .sb-emptybox[hidden] { display: none; }
+  .sb-emptybox { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center; min-height: min(48vh, 420px); padding: 24px 16px; box-sizing: border-box; }
+  .sb-e-ic { width: 72px; height: 72px; border-radius: 50%; display: grid; place-items: center; font: 400 2.2rem/1 var(--f-body); color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 14%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); }
+  .sb-e-h { margin: 6px 0 0; font: 700 var(--fs-xl) var(--f-body); color: var(--ink); }
+  .sb-emptybox .sb-empty { margin: 0; max-width: 46ch; font: 500 var(--fs-l)/1.45 var(--f-body); color: var(--muted); }
+  .sb-e-b { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 6px; }
+  .sb-e-b .toggle-btn { min-height: 44px; padding-inline: 18px; }
+
+  /* Looper: übrige Größen aus den Grundregeln (Knöpfe 12,8 · Häkchen 13,6 · Hinweise 11,5/11,8 · Feldnamen 11,2 · Zeilennamen 12,2) auf die Stufen */
+  #panel-looper :is(.toggle-btn, select, .text-in, label.check, .pattern-desc) { font-size: var(--fs-m); }
+  #panel-looper :is(.caption, .status-line, .field > span, .row > .lbl, .pedal-act small) { font-size: var(--fs-s); }
+  #panel-looper .sf-tag { font-size: var(--fs-xs); }
+  /* Radien im Looper (Nordisch): Knöpfe/Felder klein, Spuren/Kästen mittel – Segment-Knöpfe behalten ihre Form */
+  :root:not([data-theme]) #panel-looper :is(.toggle-btn, select, .text-in):not(.seg .toggle-btn) { border-radius: var(--r-s); }
+  :root:not([data-theme]) #panel-looper :is(.track, .editor, .lane) { border-radius: var(--r-m); }
+  /* Unterpunkte: läuft die Chipzeile über (iPad hochkant, Telefon), blendet der rechte Rand aus – man sieht, dass es weitergeht */
+  .subtabs { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); padding-right: 24px; }
+
+  /* Taktkreise: Groß (Vorgabe, Größe wie v142) · Klein (kompakt wie v143 – REC/Overdub und ■ ↶ ✕ ✂ ♫ auf dem iPad ohne Scrollen).
+     Schalter unter „App-Optik ▾“, gespeichert in 3nps-ringe; Klasse ring-klein am <html> setzt schon das frühe Skript (kein Springen beim Start).
+     Die Leinwand meldet die neue Größe über den ResizeObserver – Zeichnen und Zwischenspeicher bauen sich neu auf. */
+  @media (orientation: landscape) and (min-width: 900px) {
+    html.ring-klein .tracks .ring { max-width: min(100%, 17vh); max-width: min(100%, 17dvh); margin-inline: auto; }
+  }
+  @media (max-width: 860px) and (min-width: 700px) {
+    html.ring-klein .tracks .ring { max-width: min(100%, 13.5vh); max-width: min(100%, 13.5dvh); margin-inline: auto; }
+  }
+  .ring-opt { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 10px; }
+  .ring-opt-l { font: 600 var(--fs-s) var(--f-body); color: var(--muted); white-space: nowrap; }
+  .ring-opt .seg { display: inline-flex; }
+  .ring-opt .seg .toggle-btn { min-height: 44px; min-width: 64px; }

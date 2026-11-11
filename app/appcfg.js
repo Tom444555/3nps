@@ -59,6 +59,19 @@ const AppCfg = (() => {
   if (themeSel) { themeSel.value = THEME_BG[cur] ? cur : 'nordic'; themeSel.addEventListener('change', () => applyTheme(themeSel.value)); }
   applyTheme(cur);
   document.addEventListener('devchange', e => { if (e.detail && (e.detail.dev === 'min' || e.detail.prev === 'min')) { try { applyTheme(readTheme()); } catch (x) {} } });
+  // v144: Taktkreise Groß (Vorgabe) · Klein – Klasse ring-klein am <html>, gespeichert in 3nps-ringe
+  const ringSeg = $('ringSeg');
+  window.setRings = function (v) {
+    v = v === 'klein' ? 'klein' : 'gross';
+    document.documentElement.classList.toggle('ring-klein', v === 'klein');
+    try { localStorage.setItem('3nps-ringe', v); } catch (e) {}
+    if (ringSeg) ringSeg.querySelectorAll('button').forEach(b => { const on = b.dataset.r === v; b.classList.toggle('active', on); b.setAttribute('aria-pressed', String(on)); });
+  };
+  if (ringSeg) {
+    let rv = 'gross'; try { rv = localStorage.getItem('3nps-ringe') === 'klein' ? 'klein' : 'gross'; } catch (e) {}
+    window.setRings(rv);
+    ringSeg.addEventListener('click', e => { const b = e.target.closest('button'); if (b) window.setRings(b.dataset.r); });
+  }
   const oBtn = $('optikBtn'), oPop = $('optikPop');
   function optikOpen(on) { if (!oBtn || !oPop) return; oPop.hidden = !on; oBtn.setAttribute('aria-expanded', on ? 'true' : 'false');
     if (on) document.dispatchEvent(new CustomEvent('hdrpop', { detail: 'optik' })); }

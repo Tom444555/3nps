@@ -3,6 +3,7 @@
 # EQ · Hall/Echo · Im Studio · Gesang trennen zu zweit, eine gemeinsame Tonart-Schreibweise („A♭-Dur“ in Spurkopf, Improvisation,
 # Jammen), Kopf-Anzeige „Griffbrett“ statt „Tonart“, Startton-Zeile nur noch in Technik. In allen vier Geräte-Profilen
 # (Automatisch · Neues iPad · Altes iPad · Minimal) und den Optiken nordic / precise-dark / ios. Englisch, keine Skriptfehler.
+# v144: Taktkreise haben wieder die Vorgabe „Groß“ (v142) – „REC ohne Scrollen“ gilt für die Stellung „Klein“ (App-Optik ▾ › Taktkreise).
 import asyncio, os, re
 from playwright.async_api import async_playwright
 from nav import tab as open_tab
@@ -33,7 +34,7 @@ async def run(p, theme, dev, w, h, errs, deep=False):
     b = await p.chromium.launch(args=ARGS)
     ctx = await b.new_context(viewport={'width': w, 'height': h}, has_touch=True, is_mobile=(w < 500)); pg = await ctx.new_page()
     pg.on('pageerror', lambda e: errs.append(str(e))); pg.on('dialog', lambda d: asyncio.ensure_future(d.dismiss()))
-    await pg.add_init_script(f"localStorage.setItem('3nps-theme2','{theme}');localStorage.setItem('3nps-theme','nordic');localStorage.setItem('3nps-device','{dev}');if(!sessionStorage.getItem('v143')){{localStorage.removeItem('3nps-passt-auf');sessionStorage.setItem('v143','1')}}")
+    await pg.add_init_script(f"localStorage.setItem('3nps-theme2','{theme}');localStorage.setItem('3nps-theme','nordic');localStorage.setItem('3nps-device','{dev}');localStorage.setItem('3nps-ringe','klein');if(!sessionStorage.getItem('v143')){{localStorage.removeItem('3nps-passt-auf');sessionStorage.setItem('v143','1')}}")
     await pg.goto(U); await pg.wait_for_timeout(1600); await open_tab(pg, 'looper')
     tag = f'{theme}/{dev} {w}×{h}:'
     await load2(pg)

@@ -185,7 +185,7 @@
   // ---------- Landkarte ----------
   const MAP = [
     ['Rock & Metal – Riffs', [[2, 'Powerchord 1-5-8'], [14, 'Dur-Powerchord, Terz im Bass'], [15, 'Drop D, tiefere Stimmung'], [6, 'Sus2 über Powerchord']]],
-    ['Pop & Singer-Songwriter', [[9, 'Dreiklänge, kleine Schritte'], [10, 'Ear Candy: 9, 11, Major 7'], [6, 'Sus und add9'], [4, 'CAGED-Griffe']]],
+    ['Pop & Singer-Songwriter', [[9, 'Dreiklänge, kleine Schritte'], [10, 'Ohrenschmaus: 9, 11, Major 7'], [6, 'Sus und add9'], [4, 'CAGED-Griffe']]],
     ['Jazz & Begleitung', [[7, '7er-Akkorde'], [8, 'Drop 2 / Drop 3, Stimmführung'], [11, '7(9), b9, #9'], [5, 'Funktionen: 2-5-1']]],
     ['Blues', [[7, 'Dominant 7 überall'], [11, '#9: Mollterz → Durterz']]],
     ['Solo & Melodie', [[3, 'Intervalle sehen'], [12, 'Dreiklangs-Arpeggios'], [13, 'Septakkord-Arpeggios, Teppich mit Delay']]],

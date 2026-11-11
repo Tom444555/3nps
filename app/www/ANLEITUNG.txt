@@ -1423,3 +1423,24 @@ Gut zu wissen
    - Die Anzeige oben heißt jetzt „Griffbrett“ statt „Tonart“: Sie zeigt die Tonart des Griffbrett-Trainers (Lernen ›
      Technik), nicht die der Spuren – die steht im Spurkopf. Die Zeile „Startton: … (Stufe …)“ steht jetzt in
      Lernen › Technik statt über den Bereichen.
+
+127. Feinschliff Design und Taktkreise „Groß · Klein“ (v144)
+   - Taktkreise: Unter „App-Optik ▾“ gibt es den Schalter „Taktkreise: Groß · Klein“. „Groß“ ist die Vorgabe – die
+     Kreise sind wieder so groß wie vor v143. „Klein“ ist die kompakte Größe: Auf dem iPad quer und hochkant sind dann
+     REC/Overdub und ■ ↶ ✕ ✂ ♫ aller Spuren ohne Scrollen zu sehen. Die Wahl bleibt gespeichert, Umschalten geht auch
+     während der Wiedergabe. In „Minimal“ steht weiter die Zahl statt eines Kreises.
+   - Die Spurknöpfe ■ ↶ ✕ ✂ ♫ sind jetzt auch auf dem iPad hochkant und auf dem Telefon mindestens 44 Pixel breit
+     (Telefon: zwei Spalten, ♫ über die ganze Breite).
+   - „Was passt“ auf dem iPad hochkant: Texte brechen um statt mit „…“ abgeschnitten zu werden (z. B. „VI · Tonika-
+     Vertreter“, die Pentatonik-Töne, der Satz zur Tonleiter). Der Block hat eine feste Höhe – nichts springt.
+   - Einheitlicheres Schriftbild im Looper: wenige feste Schriftgrößen und Rundungen. Kartentitel („Looper“, „Mitsingen“ …)
+     sind größer als der Text; in „Nordisch“ in gut lesbarer Schrift statt der Zierschrift (die bleibt beim Namen oben).
+   - Ein Aktiv-Stil für alle drei Ebenen: Bereich (z. B. „Lernen“), Unterpunkt („Powerchords-Kurs“) und Kurs-Abschnitt
+     („Kurs“) sind in derselben Farbe der App-Optik markiert. Läuft die Zeile der Unterpunkte über, blendet der rechte
+     Rand aus – man sieht, dass es weitergeht.
+   - „Präzision Nacht“ und „iOS“: „Blitz: jeder Takt“ (eingeschaltet) und ein gedrückter Spurknopf (✂) sind gut lesbar in
+     der Farbe der Optik statt Orange. Platzhalter in Eingabefeldern („Name (optional)“ …) sind besser lesbar.
+   - „Mitsingen“ ohne Lied: statt einer leeren Fläche ein klarer Hinweis in der Mitte mit „Lieder mit Text“ (öffnet die
+     gespeicherten Lieder im Looper) und „Gesangstext anlegen“ (öffnet die Improvisation).
+   - Deutsche Namen: Überschrift „Powerchords-Kurs“ (nach dem Kurs „Power Chord Theory“), Kapitel 10 „Ohrenschmaus“
+     (Ear Candy), „Enge Lagen (Closed Voicings)“.

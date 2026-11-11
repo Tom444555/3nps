@@ -15,7 +15,9 @@ for ln in rd(A + 'looper.css').split('\n'):
     if depth == 0: take = s.startswith('.eq')
     if take: css.append(ln)
     depth += ln.count('{') - ln.count('}')
-eqcss = '\n'.join(css) + '\n.toggle-btn{appearance:none;padding:5px 10px;border-radius:7px;background:var(--surf2);border:1px solid var(--line);font-size:12px;color:var(--ink)}.toggle-btn.active{border-color:var(--acc);color:var(--acc)}\n'
+# v144: looper.css nutzt Schrift-/Radius-Stufen als Variablen – die Stufen aus design.css mitnehmen
+root_vars = re.search(r':root \{[^}]*--fs-xs[^}]*\}', rd(A + 'design.css')).group(0)
+eqcss = root_vars + '\n' + '\n'.join(css) + '\n.toggle-btn{appearance:none;padding:5px 10px;border-radius:7px;background:var(--surf2);border:1px solid var(--line);font-size:12px;color:var(--ink)}.toggle-btn.active{border-color:var(--acc);color:var(--acc)}\n'
 
 # v122: Amp-Kette des Loopers (v117) unverändert übernehmen – derselbe Code, aus looper.js herausgeschnitten
 lp = rd(A + 'looper.js')

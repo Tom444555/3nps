@@ -52,7 +52,6 @@
 
   /* iPad quer: Taktkreis an die Bildschirmhöhe koppeln, damit REC und Spur-Knöpfe ohne Scrollen sichtbar sind */
   @media (orientation: landscape) and (min-width: 900px) {
-    .tracks .ring { max-width: min(100%, 17vh); max-width: min(100%, 17dvh); margin-inline: auto; }
     .looper-card .track { gap: 8px; }
     /* Loop-Länge und Übe-Tempo mit Beschriftung links daneben – der Block wird flacher */
     .looper-top { grid-template-columns: minmax(150px, 330px) 1fr; }

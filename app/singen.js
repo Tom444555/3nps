@@ -71,7 +71,7 @@ const Singen = (() => {
     paintKara();
     const src = getSrc(), has = timed(src);
     { const nb0 = has ? src.nowB : null; stillN = nb0 === lastNb ? stillN + 1 : 0; lastNb = nb0; }
-    if ($('sbEmpty').hidden !== !!has) { $('sbEmpty').hidden = !!has; $('sbStage').hidden = !has; }
+    if ($('sbEmptyBox').hidden !== !!has || $('sbStage').hidden !== !has) { $('sbEmptyBox').hidden = !!has; $('sbEmpty').hidden = !!has; $('sbStage').hidden = !has; }
     if (!has) {
       if (srcTxt !== '–') { srcTxt = '–'; $('sbSrc').textContent = '–'; } $('sbCount').textContent = ''; lineSig = ''; listSig = '';
       const why = emptyWhy === 'stretch' ? T('Das Lied läuft ins Tempo eines anderen Loops gedehnt – dafür gibt es keinen Gesangstext. Lade es mit „Andere Spuren vorher leeren“ (oder über „Lieder mit Text“).') : emptyWhy === 'notext' ? T('Für dieses Lied gibt es noch keinen Text mit Zeiten (Improvisation → „🎤 Gesangstext“).') : '';
@@ -283,6 +283,9 @@ const Singen = (() => {
   function init() {
     if (!$('panel-singen')) return;
     $('sbEmpty').dataset.def = $('sbEmpty').textContent;
+    // v144: Leerzustand – direkt zu den gespeicherten Liedern (Looper unten) oder zum Gesangstext (Improvisation)
+    $('sbGoSongs').addEventListener('click', () => { const t = $('tab-looper'), f = $('lsFold'); if (t) t.click(); if (f) { f.open = true; setTimeout(() => f.scrollIntoView({ block: 'start' }), 60); } });
+    $('sbGoText').addEventListener('click', () => { const t = $('tab-solo'); if (t) t.click(); });
     const vis = () => !$('panel-singen').hidden;
     const run = () => { if (vis()) { if (!raf) raf = requestAnimationFrame(frame); } else { if (raf > 0) cancelAnimationFrame(raf); raf = 0; stopPlayer(); stopMic(); } };
     $('panel-singen').addEventListener('pointerdown', () => { stillN = 0; }, { passive: true });

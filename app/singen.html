@@ -1,7 +1,7 @@
   <section class="panel" id="panel-singen" role="tabpanel" aria-labelledby="tab-singen" hidden>
     <div class="card sb-card">
       <div class="card-head"><h2>Mitsingen</h2><span class="caption" id="sbSrc">–</span></div>
-      <div class="sb-stage" id="sbStage" translate="no">
+      <div class="sb-stage" id="sbStage" translate="no" hidden>
         <div class="sb-top">
           <div class="sb-dots" id="sbDots" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
           <div class="sb-wait" id="sbWait" aria-live="off"></div>
@@ -10,8 +10,9 @@
         <div class="sb-scroll" id="sbScroll"><div class="sb-list" id="sbList"></div></div>
         <p class="sb-next" id="sbNext" hidden></p>
       </div>
+      <div class="sb-emptybox" id="sbEmptyBox"><div class="sb-e-ic" aria-hidden="true">♪</div><p class="sb-e-h">Noch kein Text zum Mitsingen</p><p class="sb-empty" id="sbEmpty">Spiel einen Song aus dem Songwriting oder einen Loop aus einer geladenen Datei ab, dessen Gesangstext ein Timing hat (Improvisation → „🎤 Gesangstext“).</p><div class="sb-e-b"><button class="toggle-btn active" id="sbGoSongs">Lieder mit Text</button><button class="toggle-btn" id="sbGoText">Gesangstext anlegen</button></div></div>
       <div class="sb-tools sb-kara"><button class="toggle-btn" id="sbKara" aria-pressed="false">🎤 Karaoke</button><span class="sb-pitch" id="sbPitch" translate="no" aria-live="off"></span><span class="caption" id="sbKaraInfo">Spielt die Begleitung ohne Originalgesang (trennt beim ersten Mal den Gesang in der App).</span></div>
-      <p class="sb-empty caption" id="sbEmpty">Spiel einen Song aus dem Songwriting oder einen Loop aus einer geladenen Datei ab, dessen Gesangstext ein Timing hat (Improvisation → „🎤 Gesangstext“).</p>
+      
     </div>
     <div class="card">
       <div class="card-head"><h2>Üben</h2><span class="caption">Zeile für Zeile, auch langsam</span></div>

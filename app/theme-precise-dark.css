@@ -58,7 +58,7 @@
     background: radial-gradient(circle at 40% 35%, #ffe2b8 0 18%, #ff8a2a 45%, #c24a00 100%);
     box-shadow: 0 0 0 2px #2a2d33, 0 0 0 3px #4a4d54, 0 0 10px rgba(255,122,26,.65);
   }
-  :root[data-theme="precise-dark"] h2 { font-family: var(--f-mono); font-weight: 700; font-size: .72rem; letter-spacing: .16em; text-transform: uppercase; color: #ecebe6; }
+  :root[data-theme="precise-dark"] h2 { font-family: var(--f-mono); font-weight: 700; font-size: var(--fs-s); letter-spacing: .16em; text-transform: uppercase; color: #ecebe6; }
   :root[data-theme="precise-dark"] h2::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #ff7a1a; margin-right: 9px; vertical-align: 1px; box-shadow: 0 0 6px rgba(255,122,26,.7); }
   :root[data-theme="precise-dark"] .card-head h2::before { margin-right: 9px; }
   /* Kopf: Frontplatte mit Haarlinie, ganz feines Lautsprechergitter als Hauch */
@@ -66,12 +66,12 @@
     background: repeating-linear-gradient(0deg, rgba(255,255,255,.018) 0 1px, transparent 1px 4px), linear-gradient(180deg, #16181b, #101113);
     border-bottom: 1px solid #000; box-shadow: 0 1px 0 #24272c, 0 8px 20px rgba(0,0,0,.45);
   }
-  :root[data-theme="precise-dark"] .lcd { background: #08090a; border: 1px solid #000; border-radius: 12px; box-shadow: inset 0 0 0 1px #24272c, inset 0 8px 18px rgba(0,0,0,.6); }
+  :root[data-theme="precise-dark"] .lcd { background: #08090a; border: 1px solid #000; border-radius: var(--r-l); box-shadow: inset 0 0 0 1px #24272c, inset 0 8px 18px rgba(0,0,0,.6); }
   :root[data-theme="precise-dark"] .lcd .k { color: #a0806a; }
   :root[data-theme="precise-dark"] .lcd .v { color: #ffc58f; text-shadow: 0 0 8px rgba(255,122,26,.35); font-variant-numeric: tabular-nums; }
   /* Bereiche: Segment-Steuerung (iOS), gewählt = erhabene Pille mit orangem Skalenstrich */
-  :root[data-theme="precise-dark"] .tabs { background: #101113; border: 1px solid #24272c; border-radius: 12px; box-shadow: inset 0 1px 3px rgba(0,0,0,.6); margin-top: 12px; }
-  :root[data-theme="precise-dark"] .tab { font-family: var(--f-mono); font-weight: 600; font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; color: #a09d94; text-shadow: none; border-radius: 9px; }
+  :root[data-theme="precise-dark"] .tabs { background: #101113; border: 1px solid #24272c; border-radius: var(--r-l); box-shadow: inset 0 1px 3px rgba(0,0,0,.6); margin-top: 12px; }
+  :root[data-theme="precise-dark"] .tab { font-family: var(--f-mono); font-weight: 600; font-size: var(--fs-s); text-transform: uppercase; letter-spacing: .08em; color: #a09d94; text-shadow: none; border-radius: var(--r-m); }
   :root[data-theme="precise-dark"] .tab[aria-selected="true"] {
     background: linear-gradient(180deg, #2a2d33, #212328); color: #ffffff; text-shadow: none;
     box-shadow: inset 0 1px 0 rgba(255,255,255,.07), inset 0 -2px 0 #ff7a1a, 0 1px 2px rgba(0,0,0,.6);
@@ -83,18 +83,18 @@
     background:
       repeating-linear-gradient(90deg, #3a3d44 0 1px, transparent 1px 6px) calc(100% - 16px) 0 / 61px 5px no-repeat,
       linear-gradient(180deg, rgba(255,255,255,.022), rgba(255,255,255,0) 120px), #141518;
-    border: 1px solid #24272c; border-radius: 16px; box-shadow: inset 0 1px 0 rgba(255,255,255,.035), 0 10px 26px rgba(0,0,0,.35);
+    border: 1px solid #24272c; border-radius: var(--r-l); box-shadow: inset 0 1px 0 rgba(255,255,255,.035), 0 10px 26px rgba(0,0,0,.35);
   }
   /* Anzeigefenster (Spuren, Editor, Bahnen): tiefer, ganz ruhig */
-  :root[data-theme="precise-dark"] :is(.track, .editor, .lane) { background: #0e0f11; border: 1px solid #22252a; border-radius: 14px; box-shadow: inset 0 1px 0 rgba(255,255,255,.03); }
+  :root[data-theme="precise-dark"] :is(.track, .editor, .lane) { background: #0e0f11; border: 1px solid #22252a; border-radius: var(--r-l); box-shadow: inset 0 1px 0 rgba(255,255,255,.03); }
   :root[data-theme="precise-dark"] .track-head { border-bottom-color: #22252a; }
   :root[data-theme="precise-dark"] .track.rec-live { border-color: #ff3b30 !important; box-shadow: 0 0 0 1px #ff3b30, 0 0 16px rgba(255,59,48,.3) !important; }
-  :root[data-theme="precise-dark"] .ed-group { background: #121316; border-color: #22252a; border-radius: 12px; box-shadow: none; }
+  :root[data-theme="precise-dark"] .ed-group { background: #121316; border-color: #22252a; border-radius: var(--r-l); box-shadow: none; }
   :root[data-theme="precise-dark"] .dg-cell { background: #121316; }
   :root[data-theme="precise-dark"] .status-line { border-top-color: #22252a; }
   /* Knöpfe: iOS-artig gerundet, Graphit mit feiner Oberkante; aktiv = Röhren-Glühen */
   :root[data-theme="precise-dark"] :is(.toggle-btn, .mini button, .file-mini, .tbtn) {
-    background: linear-gradient(180deg, #23262b, #1c1e22); border: 1px solid #30333a; color: #ecebe6; border-radius: 10px;
+    background: linear-gradient(180deg, #23262b, #1c1e22); border: 1px solid #30333a; color: #ecebe6; border-radius: var(--r-m);
     box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 1px 1px rgba(0,0,0,.4); text-shadow: none;
   }
   :root[data-theme="precise-dark"] :is(.toggle-btn, .mini button, .file-mini, .tbtn):active { background: #2a2d33; }
@@ -102,13 +102,13 @@
     background: linear-gradient(180deg, #3a2414, #2a1a0e); border-color: #ff7a1a; color: #ffd2a8; text-shadow: none; box-shadow: var(--pn-glow);
   }
   :root[data-theme="precise-dark"] .subtabs .subtab { border-radius: 999px; }
-  :root[data-theme="precise-dark"] #playBtn { border-radius: 12px; }
+  :root[data-theme="precise-dark"] #playBtn { border-radius: var(--r-l); }
   :root[data-theme="precise-dark"] #playBtn.playing { background: #ff7a1a; border-color: #ff7a1a; color: #160b02; box-shadow: 0 0 16px rgba(255,122,26,.45); }
-  :root[data-theme="precise-dark"] .foot { background: linear-gradient(180deg, #25282d, #1b1d21); border: 1px solid #000; border-radius: 14px; color: #ecebe6; box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 2px 0 #000; }
+  :root[data-theme="precise-dark"] .foot { background: linear-gradient(180deg, #25282d, #1b1d21); border: 1px solid #000; border-radius: var(--r-l); color: #ecebe6; box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 2px 0 #000; }
   :root[data-theme="precise-dark"] .foot:active { box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 0 0 1px rgba(255,122,26,.6), 0 0 14px rgba(255,122,26,.3); }
-  :root[data-theme="precise-dark"] .export-btn { background: #ff7a1a !important; border-color: #ff7a1a !important; color: #160b02 !important; border-radius: 10px !important; box-shadow: 0 0 12px rgba(255,122,26,.3) !important; }
-  :root[data-theme="precise-dark"] :is(select, .text-in) { background-color: #0e0f11; border: 1px solid #30333a; color: #ecebe6; border-radius: 10px; box-shadow: inset 0 1px 2px rgba(0,0,0,.5); }
-  :root[data-theme="precise-dark"] .eq-btn { background: #121316; border-color: #2b2e34; border-radius: 9px; }
+  :root[data-theme="precise-dark"] .export-btn { background: #ff7a1a !important; border-color: #ff7a1a !important; color: #160b02 !important; border-radius: var(--r-m) !important; box-shadow: 0 0 12px rgba(255,122,26,.3) !important; }
+  :root[data-theme="precise-dark"] :is(select, .text-in) { background-color: #0e0f11; border: 1px solid #30333a; color: #ecebe6; border-radius: var(--r-m); box-shadow: inset 0 1px 2px rgba(0,0,0,.5); }
+  :root[data-theme="precise-dark"] .eq-btn { background: #121316; border-color: #2b2e34; border-radius: var(--r-m); }
   :root[data-theme="precise-dark"] .chan-info { color: #c9c6be; }
   :root[data-theme="precise-dark"] .track { --tcd: #5d5f63; --tcg: transparent; }
   :root[data-theme="precise-dark"] .track.t2 { --tcd: #8a4614; --tcg: rgba(255,122,26,.18); }
@@ -135,17 +135,17 @@
   :root[data-theme="precise-dark"] input[type="range"]:not(:is(.fader, .lane-fader) input)::-moz-range-progress { height: 4px; border-radius: 2px; background: #ff7a1a; }
   :root[data-theme="precise-dark"] input[type="range"]:not(:is(.fader, .lane-fader) input)::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; border: 1px solid #0c0d0f; background: #c7c9cd; }
   /* Kopf-Knöpfe und Aufklapper */
-  :root[data-theme="precise-dark"] .optik-btn { background: #101113; border-color: #30333a; color: #c9c6be; border-radius: 8px; font-family: var(--f-mono); }
+  :root[data-theme="precise-dark"] .optik-btn { background: #101113; border-color: #30333a; color: #c9c6be; border-radius: var(--r-m); font-family: var(--f-mono); }
   :root[data-theme="precise-dark"] .optik-btn[aria-expanded="true"], :root[data-theme="precise-dark"] .live-btn[aria-pressed="true"] { border-color: #ff7a1a; color: #ffd2a8; box-shadow: var(--pn-glow); }
-  :root[data-theme="precise-dark"] .optik-pop { background: #16181b; border: 1px solid #30333a; border-radius: 14px; color: #ecebe6; box-shadow: 0 16px 40px rgba(0,0,0,.6); }
+  :root[data-theme="precise-dark"] .optik-pop { background: #16181b; border: 1px solid #30333a; border-radius: var(--r-l); color: #ecebe6; box-shadow: 0 16px 40px rgba(0,0,0,.6); }
   :root[data-theme="precise-dark"] .pf-head { border-bottom-color: #2b2e34; }
-  :root[data-theme="precise-dark"] .pf-hbtn { border-color: #30333a; border-radius: 8px; }
+  :root[data-theme="precise-dark"] .pf-hbtn { border-color: #30333a; border-radius: var(--r-m); }
   :root[data-theme="precise-dark"] .pf-row b { font-family: var(--f-mono); }
   :root[data-theme="precise-dark"] .pf-bar { background: repeating-linear-gradient(90deg, rgba(255,255,255,.14) 0 1px, transparent 1px 10%), #08090a; }
   :root[data-theme="precise-dark"] .pf-bar i:not(.warn):not(.hot) { background: #ecebe6; }
   :root[data-theme="precise-dark"] .pf-bar i.warn { background: #ff9a2a; } :root[data-theme="precise-dark"] .pf-bar i.hot { background: #ff3b30; }
   /* Lernen: Kacheln und Intervall-Werkstatt – aktive Teile glühen orange */
-  :root[data-theme="precise-dark"] .ln-tile { background: #141518; border-color: #24272c; border-radius: 14px; }
+  :root[data-theme="precise-dark"] .ln-tile { background: #141518; border-color: #24272c; border-radius: var(--r-l); }
   :root[data-theme="precise-dark"] .ln-tile:hover { border-color: #3a3d44; }
   :root[data-theme="precise-dark"] .pc-w .pc-wiv { background: linear-gradient(180deg, #1d1f23, #17191c); border-color: #2b2e34; }
   :root[data-theme="precise-dark"] .pc-w .pc-wiv.active { background: linear-gradient(180deg, #3a2414, #24160c); box-shadow: inset 0 0 0 1px #ff7a1a, 0 0 16px rgba(255,122,26,.35); }
