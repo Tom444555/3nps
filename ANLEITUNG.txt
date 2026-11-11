@@ -1374,3 +1374,9 @@ Gut zu wissen
    - Leistung: nur Farben und Formen, keine Bilder, keine Unschärfe-Filter, keine Dauer-Animationen. Leuchten ist ein
      fester Schatten an aktiven Knöpfen – der Looper läuft so ruhig wie mit jeder anderen Optik.
    - Englisch heißen die Optiken „Precision Night“ und „iOS“. Die alte Fassung (/stabil/) zeigt dafür „Nordisch“.
+
+124. Looper zeichnet sparsamer (v141)
+   - Beim Mitlaufen rechnet die Anzeige deutlich weniger: Die Wellenformen (Spur, Editor „Spur … bearbeiten“, Übersicht
+     darunter) werden nur noch neu gezeichnet, wenn sich etwas ändert (Zoom, Auswahl, Schnitt, Größe, Akkordwechsel).
+     Pro Bild wandert nur der Abspielstrich. Die Pegel neben den Spuren schreiben nur noch geänderte Werte.
+   - Aussehen, Klang und Timing bleiben gleich. Auf älteren iPads ruckelt die Anzeige beim Loopen spürbar weniger.
