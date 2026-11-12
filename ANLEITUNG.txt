@@ -1488,3 +1488,16 @@ Gut zu wissen
      Zeichnung ohne Schatten. „Minimal“ zeigt nur die Zeichnung, das 3D-Modell wird gar nicht geladen.
    - Verlässt du „Rig“, wird nichts mehr gezeichnet; nach zwei Minuten gibt die App den Speicher des 3D-Modells frei.
    - Hinweis: Strat- und Les-Paul-Formen sind hier nur zum eigenen Üben nachgebildet.
+
+130. Rig: Spark LIVE und Reactor 50 wie in den Apps (v147)
+   - Ziel „Spark LIVE“: Die Signalkette zeigt die sieben festen Plätze der Spark-App in derselben Reihenfolge –
+     GATE · COMP/WAH · DRIVE · AMP · MOD/EQ · DELAY · REVERB – als Pedale an einer roten Linie, der Amp in der Mitte
+     breiter. Leere oder ausgeschaltete Plätze sind ausgegraut. Der Amp hat GAIN · BASS · MIDDLE · TREBLE · VOLUME und
+     einen OFF-Schalter. Wo es passt, steht das Spark-Modell dabei (z. B. Noise Gate, LA Comp, Booster, AD Clean,
+     Digital Delay, Ambient), sonst „ähnlichstes Modell in der Spark-App wählen“.
+   - Ziel „Reactor 50“: Kacheln wie in der Reactor-App – Gate · Comp · Drive · Mod · Wah · EQ · Amp · Delay · Reverb
+     (Wah und EQ sind aus). Amp mit GAIN · BASS · MIDDLE · TREBLE · MASTER, Mod als Chorus mit E.LEVEL · RATE · DEPTH ·
+     TONE. Modellvorschläge: Noise Gate, Opto Comp, grünes Drive-Modell, Analog Chorus, 80s Crunch, Analog Delay,
+     Studio-Reverb-Modell. Die Regler gibt es in der Reactor-App und am Verstärker; 0–10 entspricht dem Reglerweg.
+   - Prompt und Stichpunkte („Spark-App einstellen“ bzw. „Reactor-App einstellen“) benutzen dieselben Namen.
+     BIAS X bleibt wie bisher.
