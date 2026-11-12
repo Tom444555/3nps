@@ -1444,3 +1444,21 @@ Gut zu wissen
      gespeicherten Lieder im Looper) und „Gesangstext anlegen“ (öffnet die Improvisation).
    - Deutsche Namen: Überschrift „Powerchords-Kurs“ (nach dem Kurs „Power Chord Theory“), Kapitel 10 „Ohrenschmaus“
      (Ear Candy), „Enge Lagen (Closed Voicings)“.
+
+128. Schlanker Start und Studio im Looper-Look (v145)
+   - Die App startet mit weniger Daten: Die Zierschriften der Optiken (Nordisch, Iron Maiden, Amp, Eiswand) und das
+     englische Wörterbuch liegen jetzt als eigene Dateien bereit. Geladen wird nur, was die gewählte Optik bzw. Sprache
+     braucht. Die Schrift der gewählten Optik kommt gleich mit – es blitzt keine falsche Schrift auf.
+   - Die Hintergrundbilder der Optiken liegen in einem eigenen Speicher, der Updates übersteht. Nach dem Start werden die
+     Bilder der gewählten Optik dort abgelegt, die anderen, sobald man sie unter „App-Optik ▾“ wählt. Bisher benutzte
+     Bilder werden beim Update übernommen. Offline geht der Wechsel zu jeder Optik, die man schon einmal gewählt hat.
+     Bei einer noch nie gewählten Optik fehlen offline nur die Bilder (Schrift und Farben stimmen).
+   - Updates laden weniger (etwa 3,5 MB statt 9 MB) und holen garantiert die neue Fassung. Weiterhin gilt: App zweimal
+     öffnen, dann steht oben die neue Version.
+   - Die Anleitung wird erst beim ersten Öffnen aufgebaut.
+   - Studio: Oben steht jetzt „Studio 3nps · v145 · s3“, passend zu „Looper 3nps · v145“. Das Studio übernimmt die
+     Farbe der im Looper gewählten Optik (z. B. Blau bei „iOS“, Orange bei „Präzision Nacht“) und bei Nordisch, Iron
+     Maiden, Amp und Eiswand auch die Schrift des Namens. Bei „Minimal“ bleibt es schlicht.
+   - Studio auf dem Telefon: Die Leiste „Arrangement · Mischpult · Noten · Mastering · Aus dem Looper“ steht in einer
+     eigenen Zeile und passt ganz auf den Bildschirm. Unter „Aus dem Looper“ heißt der Hinweis dort „Oben etwas
+     auswählen“ (die Liste steht darüber).

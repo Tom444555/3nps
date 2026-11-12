@@ -69,14 +69,36 @@ for _f in ['panel-dark.jpg', 'runes.png', 'emblem.png', 'corner-tl.png', 'corner
            'bg-ice.jpg', 'panel-ice.jpg', 'icicles.png', 'rivet-ice.png', 'emblem-ice.png']: shutil.copy(A + 'tex/' + _f, A + 'www/' + _f)
 themecss = rd(A + 'theme-metal.css') + rd(A + 'theme-amp.css') + rd(A + 'theme-ice.css') + rd(A + 'theme-clean.css') + rd(A + 'theme-matrix.css') + rd(A + 'theme-dj.css') + rd(A + 'theme-light.css') + rd(A + 'theme-precise-dark.css') + rd(A + 'theme-ios.css')
 appcfg = rd(A + 'appcfg.js') + '\n' + rd(A + 'perf.js') + '\n' + rd(A + 'geraet.js') + '\n' + rd(A + 'lieder.js') + '\n' + rd(A + 'sep.js')
-def _ff(fam, fn, w='400'):
+# v145: Schriften als eigene Dateien (fonts/*.woff) statt Base64 im Kopf – der Browser lädt eine Schrift erst, wenn eine Optik sie braucht.
+# Die gewählte Optik lädt ihre Schriften per <link rel=preload> (EARLY) gleich mit, font-display:block → nie eine falsche Schrift.
+# sw.js legt alle sechs (zus. ≈ 260 KB) im App-Speicher ab, damit der Optik-Wechsel auch offline geht.
+os.makedirs(A + 'www/fonts', exist_ok=True)
+FONT_FILES = {'Uncial Antiqua': 'uncial.woff', 'Metal Mania': 'metalmania.woff', 'Black Ops One': 'blackopsone.woff',
+              'Russo One': 'russoone.woff', 'Michroma': 'michroma.woff', 'Cinzel': 'cinzel700.woff'}
+for _fn in FONT_FILES.values(): shutil.copy(A + 'fonts/' + _fn, A + 'www/fonts/' + _fn)
+def _ff(fam, fn, w='400', pre=''):
+    return "@font-face{font-family:'%s';font-style:normal;font-weight:%s;font-display:block;src:url(%sfonts/%s) format('woff')}" % (fam, w, pre, fn)
+def fonts_css(pre=''):
+    return '<style>' + ''.join([_ff('Uncial Antiqua', 'uncial.woff', pre=pre), _ff('Metal Mania', 'metalmania.woff', pre=pre), _ff('Black Ops One', 'blackopsone.woff', pre=pre),
+                                _ff('Russo One', 'russoone.woff', pre=pre), _ff('Michroma', 'michroma.woff', pre=pre), _ff('Cinzel', 'cinzel700.woff', '600 700', pre=pre)]) + '</style>'
+FONTS = fonts_css()
+def _ffb(fam, fn, w='400'):
     b = base64.b64encode(open(A + 'fonts/' + fn, 'rb').read()).decode()
     return "@font-face{font-family:'%s';font-style:normal;font-weight:%s;font-display:swap;src:url(data:font/woff;base64,%s) format('woff')}" % (fam, w, b)
-# Schriften liegen in der App (SIL Open Font License, siehe SCHRIFTEN-LIZENZ.txt) – keine Anfragen an fremde Server
-FONTS = '<style>' + ''.join([_ff('Uncial Antiqua', 'uncial.woff'), _ff('Metal Mania', 'metalmania.woff'), _ff('Black Ops One', 'blackopsone.woff'),
-                             _ff('Russo One', 'russoone.woff'), _ff('Michroma', 'michroma.woff'), _ff('Cinzel', 'cinzel700.woff', '600 700')]) + '</style>'
+# Vorschau für Claude bleibt eine einzige Datei: Schriften dort weiter eingebettet
+FONTS_PV = '<style>' + ''.join([_ffb(k, v, '600 700' if k == 'Cinzel' else '400') for k, v in FONT_FILES.items()]) + '</style>'
+# Schriften je Optik (gemessen: alle Reiter besucht) – nordic = Grundoptik (metal.css)
+THEME_FONTS = {'nordic': ['uncial.woff'], 'metal': ['metalmania.woff', 'blackopsone.woff'], 'amp': ['russoone.woff', 'michroma.woff'], 'ice': ['cinzel700.woff']}
+# Hintergrundbilder je Optik aus den CSS-Dateien (nordic = metal.css). sw.js lädt nur diese vorab (Speicher „optik-1“).
+THEME_IMG = {'nordic': sorted(set(re.findall(r'url\("([\w.-]+\.(?:jpg|png))"\)', rd(A + 'metal.css'))))}
+for _t in ['metal', 'amp', 'ice', 'clean', 'matrix', 'dj', 'light', 'precise-dark', 'ios']:
+    _l = sorted(set(re.findall(r'url\("([\w.-]+\.(?:jpg|png))"\)', rd(A + 'theme-' + _t + '.css'))))
+    if _l: THEME_IMG[_t] = _l
+ALL_IMG = sorted(set(x for l in THEME_IMG.values() for x in l))
+for _f in ALL_IMG: assert os.path.exists(A + 'www/' + _f), _f
+_sw = rd(A + 'www/sw.js'); assert sorted(json.loads(re.search(r'const OPTIK_IMG = (\[.*?\]);', _sw).group(1).replace("'", '"'))) == ALL_IMG, 'sw.js OPTIK_IMG passt nicht zu den Optik-CSS'
 CSP = '<meta http-equiv="Content-Security-Policy" content="default-src \'self\'; script-src \'self\' \'unsafe-inline\' \'wasm-unsafe-eval\' blob:; worker-src \'self\' blob:; style-src \'self\' \'unsafe-inline\'; img-src \'self\' data: blob:; font-src \'self\' data:; media-src \'self\' blob: data:; connect-src \'self\' blob: data:; manifest-src \'self\'; object-src \'none\'; base-uri \'none\'; form-action \'none\'">'
-EARLY = "<script>try{var d=localStorage.getItem('3nps-device'),da=localStorage.getItem('3nps-device-auto');d=/^(new|old|min)$/.test(d)?d:(da==='old'?'old':'new');window.__dev=d;if(d!=='new')document.documentElement.classList.add('dev-old');if(d==='min')document.documentElement.classList.add('dev-min');}catch(e){window.__dev='new'}try{if(localStorage.getItem('3nps-ringe')==='klein')document.documentElement.classList.add('ring-klein');}catch(e){}try{var t=localStorage.getItem('3nps-theme')||'nordic',u=localStorage.getItem('3nps-theme2');if(u&&/^(nordic|metal|amp|ice|clean|matrix|dj|light|precise|precise-dark|ios)$/.test(u)&&(/^(metal|amp|ice|nordic)$/.test(u)?u:'nordic')===t)t=u;if(window.__dev!=='min'&&t!=='nordic'&&/^(metal|amp|ice|clean|matrix|dj|light|precise|precise-dark|ios)$/.test(t)){document.documentElement.dataset.theme=t;}}catch(e){}</script>\n"
+EARLY = "<script>try{var d=localStorage.getItem('3nps-device'),da=localStorage.getItem('3nps-device-auto');d=/^(new|old|min)$/.test(d)?d:(da==='old'?'old':'new');window.__dev=d;if(d!=='new')document.documentElement.classList.add('dev-old');if(d==='min')document.documentElement.classList.add('dev-min');}catch(e){window.__dev='new'}try{if(localStorage.getItem('3nps-ringe')==='klein')document.documentElement.classList.add('ring-klein');}catch(e){}try{var t=localStorage.getItem('3nps-theme')||'nordic',u=localStorage.getItem('3nps-theme2');if(u&&/^(nordic|metal|amp|ice|clean|matrix|dj|light|precise|precise-dark|ios)$/.test(u)&&(/^(metal|amp|ice|nordic)$/.test(u)?u:'nordic')===t)t=u;if(window.__dev!=='min'&&t!=='nordic'&&/^(metal|amp|ice|clean|matrix|dj|light|precise|precise-dark|ios)$/.test(t)){document.documentElement.dataset.theme=t;}if(window.__dev!=='min'){var F=" + json.dumps(THEME_FONTS, separators=(',', ':')) + "[t]||[];for(var i=0;i<F.length;i++){var l=document.createElement('link');l.rel='preload';l.as='font';l.type='font/woff';l.crossOrigin='anonymous';l.href='fonts/'+F[i];document.head.appendChild(l);}}}catch(e){}window.__OPTIK_IMG=" + json.dumps(THEME_IMG, separators=(',', ':')) + ";</script>\n"
 
 # --- Kopf/Markup ---
 ACCEPT = 'audio/*,video/*,.mp3,.wav,.wave,.aif,.aiff,.aifc,.m4a,.m4b,.aac,.caf,.flac,.alac,.ogg,.oga,.opus,.mp4,.mov,.3gp,.webm,.amr'
@@ -91,8 +113,10 @@ old_b = "  const rootIdx = NOTES.indexOf(rootSel.value);\n  const intervals = MO
 assert old_b in script
 script = script.replace(old_b, "  const ovc = typeof window.bassChordAt === 'function' ? window.bassChordAt(t) : null;\n  const rootIdx = ovc ? ovc.root : NOTES.indexOf(rootSel.value);\n  const intervals = MODES[modeSel.value];\n  const baseMidi = 36 + rootIdx;\n  const midi = deg === 'fifth' ? baseMidi + (ovc ? ovc.fifth : intervals[4]) : baseMidi;", 1)
 script = script.replace("'Aus – folgt dem Tempo unten'", "'Aus – folgt dem Tempo oben'")
+# v145: Anleitungs-Daten (≈ 88 KB) in einer Funktion – der Browser legt die Objekte erst beim ersten Öffnen an
+HILFE_FN = 'function __hilfeDaten() {\n' + rd(A + 'hilfe-daten.js') + '\nreturn HILFE;\n}'
 rhythm = rd(A + 'eq.js') + '\n' + rd(A + 'kit.js') + '\n' + rd(A + 'rhythm.js') + '\n' + rd(A + 'drones.js')
-body = head + script + '\n<script>\n' + rhythm + '\n</script>\n<script>\n' + looper + '\n</script>\n<script>\n' + appcfg + '\n</script>\n<script>\n' + rd(A + 'circle.js') + '\n</script>\n<script>\n' + rd(A + 'voicings.js') + '\n' + rd(A + 'pitch.js') + '\n' + rd(A + 'solo.js') + '\n' + rd(A + 'passt.js') + '\n' + rd(A + 'caged.js') + '\n' + rd(A + 'sing.js') + '\n' + rd(A + 'singen.js') + '\n</script>\n<script>\n' + rd(A + 'jam.js') + '\n' + rd(A + 'jammen.js') + '\n</script>\n<script>\n' + rd(A + 'licks.js') + '\n' + rd(A + 'uebung.js') + '\n</script>\n<script>\n' + rd(A + 'lied-core.js') + '\n' + rd(A + 'lied-text.js') + '\n' + rd(A + 'lied-pdf.js') + '\n' + rd(A + 'lied-export.js') + '\n' + rd(A + 'lied.js') + '\n</script>\n<script>\n' + rd(A + 'master-dsp.js') + '\n' + rd(A + 'master.js') + '\n</script>\n<script>\n' + rd(A + 'hilfe-daten.js') + '\n' + rd(A + 'hilfe.js') + '\n' + rd(A + 'lernen.js') + '\n' + rd(A + 'hoer.js') + '\n</script>\n<script>\n' + rd(A + 'powerchords.js') + '\n' + rd(A + 'powerchords-kurs.js') + '\n' + rd(A + 'powerchords-werkstatt.js') + '\n' + rd(A + 'powerchords-live.js') + '\n' + rd(A + 'powerchords-extra.js') + '\n' + rd(A + 'powerchords-plan.js') + '\n</script>\n' + tabs
+body = head + script + '\n<script>\n' + rhythm + '\n</script>\n<script>\n' + looper + '\n</script>\n<script>\n' + appcfg + '\n</script>\n<script>\n' + rd(A + 'circle.js') + '\n</script>\n<script>\n' + rd(A + 'voicings.js') + '\n' + rd(A + 'pitch.js') + '\n' + rd(A + 'solo.js') + '\n' + rd(A + 'passt.js') + '\n' + rd(A + 'caged.js') + '\n' + rd(A + 'sing.js') + '\n' + rd(A + 'singen.js') + '\n</script>\n<script>\n' + rd(A + 'jam.js') + '\n' + rd(A + 'jammen.js') + '\n</script>\n<script>\n' + rd(A + 'licks.js') + '\n' + rd(A + 'uebung.js') + '\n</script>\n<script>\n' + rd(A + 'lied-core.js') + '\n' + rd(A + 'lied-text.js') + '\n' + rd(A + 'lied-pdf.js') + '\n' + rd(A + 'lied-export.js') + '\n' + rd(A + 'lied.js') + '\n</script>\n<script>\n' + rd(A + 'master-dsp.js') + '\n' + rd(A + 'master.js') + '\n</script>\n<script>\n' + HILFE_FN + '\n' + rd(A + 'hilfe.js') + '\n' + rd(A + 'lernen.js') + '\n' + rd(A + 'hoer.js') + '\n</script>\n<script>\n' + rd(A + 'powerchords.js') + '\n' + rd(A + 'powerchords-kurs.js') + '\n' + rd(A + 'powerchords-werkstatt.js') + '\n' + rd(A + 'powerchords-live.js') + '\n' + rd(A + 'powerchords-extra.js') + '\n' + rd(A + 'powerchords-plan.js') + '\n</script>\n' + tabs
 
 top = '''<!doctype html>
 <html lang="de">
@@ -117,12 +141,17 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') {
   window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 }
 </script>'''
-I18N = '<script>\n' + rd(A + 'i18n-en.js') + '\n' + rd(A + 'i18n-en2.js') + '\n' + rd(A + 'i18n.js') + '\n</script>\n'
+# v145: Englisch-Wörterbuch (≈ 170 KB) als eigene Datei, nur im EN-Modus synchron nachgeladen (Sprachwechsel lädt die Seite neu)
+EN_DICT = rd(A + 'i18n-en.js') + '\n' + rd(A + 'i18n-en2.js')
+open(A + 'www/i18n-en.js', 'w', encoding='utf8').write(EN_DICT)
+I18N = ('<script>try{var q=/[?&]lang=(de|en)\\b/.exec(location.search);if((q?q[1]:localStorage.getItem(\'3nps-lang\'))===\'en\')document.write(\'<script src="i18n-en.js"><\\/script>\');}catch(e){}</script>\n'
+        + '<script>\n' + rd(A + 'i18n.js') + '\n</script>\n')
+I18N_PV = '<script>\n' + EN_DICT + '\n' + rd(A + 'i18n.js') + '\n</script>\n'   # Vorschau bleibt eine einzige Datei
 app = top + body.replace('<header class="control-bar">', '</head>\n<body>\n' + I18N + '<header class="control-bar">', 1) + sw + '\n</body>\n</html>\n'
 open(A + 'www/index.html', 'w', encoding='utf8').write(app)
 
 # --- Vorschau für Claude ---
-pv = '<title>Looper-Vorschau</title>\n' + FONTS + '\n' + EARLY + I18N + '<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>\n' + body
+pv = '<title>Looper-Vorschau</title>\n' + FONTS_PV + '\n' + EARLY.replace('document.head.appendChild(l);', '') + I18N_PV + '<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>\n' + body
 pv = pv.replace("let start = 'griffbrett';", "let start = 'looper';")
 old_mic = "setStatus('Kein Zugriff aufs Mikrofon. Erlaube ihn in den iPad-Einstellungen unter Datenschutz → Mikrofon bzw. für die Website in Safari (aA → Website-Einstellungen → Mikrofon).');"
 assert old_mic in pv

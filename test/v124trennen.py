@@ -114,6 +114,7 @@ async def main():
         await pg.click('#sbKara'); await pg.wait_for_timeout(400)
         check('Mitsingen: Karaoke aus schaltet die Spur zurück', not (await pg.evaluate("Looper.kara(0).on")) and (await pg.inner_text('#sbPitch')) == '', await pg.inner_text('#sbKara'))
         # --- Englisch ---
+        if await pg.evaluate("typeof window.__EN === 'undefined'"): await pg.add_script_tag(url='http://localhost:8765/i18n-en.js')   # v145: Wörterbuch nur im EN-Modus geladen
         en = await pg.evaluate("(() => { const k = ['Gesang trennen', 'Karaoke ✓', 'Abbrechen', 'Gesang herauslösen (in der App)', 'Spielt die Begleitung ohne Originalgesang (trennt beim ersten Mal den Gesang in der App).']; return k.filter(x => !(window.__EN && __EN[x])) })()")
         check('Englische Texte vorhanden', not en, en)
         check('Looper: keine Skriptfehler', not errs, errs[:4])

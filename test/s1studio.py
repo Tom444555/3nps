@@ -22,7 +22,7 @@ async def main():
         pg.on('pageerror', lambda e: errs.append(str(e)))
         pg.on('console', lambda m: m.type == 'error' and errs.append(m.text))
         await pg.goto(L); await pg.wait_for_timeout(900)
-        check('Looper v144', 'v144' in await pg.inner_text('.brand'))
+        check('Looper v145', 'v145' in await pg.inner_text('.brand'))
         sr = await pg.evaluate("(ensureAudio(), audioCtx.sampleRate)")
         # 4 Takte bei 100 BPM = 9,6 s, 3 Spuren; dazu ein Loop mit 2 Takten bei 120 BPM
         await pg.evaluate(MK, [sr, 100, 3, 9.6, 'idee', 'idA', 'Testidee'])
@@ -32,7 +32,7 @@ async def main():
         check('Looper: Knopf „Studio“ an jeder Idee', await pg.locator('#ideaList [data-act="studio"]').count() >= 2)
         await pg.locator('.idea-row[data-id="idA"] [data-act="studio"]').click()
         await pg.wait_for_url(re.compile(r'.*/studio/.*'), timeout=8000); await pg.wait_for_timeout(1500)
-        check('Studio öffnet (eigene Seite)', 'Loopsmiths' in await pg.inner_text('.brand'), await pg.title())
+        check('Studio öffnet (eigene Seite)', 'Studio' in (await pg.evaluate("document.querySelector('.brand').textContent")) and 'Loopsmiths' in await pg.title(), await pg.title())   # v145: Name wie im Looper „Studio 3nps · vNN“
         check('„Aus dem Looper“ zeigt die Idee vorgewählt', await pg.locator('#v-brw:not([hidden]) .item.a').count() == 1 and 'Testidee' in await pg.inner_text('#bPrev'))
         check('Vorschau mit 3 Wellenformen', await pg.locator('#bTr canvas').count() == 3)
         await pg.click('#bNew'); await pg.wait_for_function("Proj.P && Proj.P.tracks.length===3 && UI.view==='arr'", timeout=20000)

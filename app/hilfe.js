@@ -1,21 +1,23 @@
 // v113: Reiter „Anleitung“ – Inhalt aus hilfe-daten.js, erst beim Öffnen gebaut; Suche nach Begriffen (auch ohne Umlaute/Groß-Klein)
 (function () {
-  const $ = id => document.getElementById(id), panel = $('panel-hilfe'); if (!panel || typeof HILFE === 'undefined') return;
+  const $ = id => document.getElementById(id), panel = $('panel-hilfe'); if (!panel || (typeof __hilfeDaten !== 'function' && typeof HILFE === 'undefined')) return;
+  // v145: Daten erst beim ersten Öffnen/Suchen erzeugen (build.py packt hilfe-daten.js in die Funktion __hilfeDaten)
+  let H = null; const data = () => H || (H = typeof __hilfeDaten === 'function' ? __hilfeDaten() : HILFE);
   const TT = x => (typeof T === 'function' ? T(x) : x);
   const fold = s => String(s).toLowerCase().replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss').replace(/[„“"'.,:;!?()…·→↗↩]/g, ' ');
   const strip = h => String(h).replace(/<[^>]+>/g, '');
-  const all = []; HILFE.forEach(g => g.items.forEach(it => { it.g = g.g; it.txt = strip([it.t].concat(it.p || [], it.s || [], it.tip || []).join(' ')); it.idx = fold(it.t + ' ' + it.k + ' ' + it.txt); it.tf = fold(it.t + ' ' + it.k); all.push(it); }));
+  let all = null; const index = () => { if (all) return all; all = []; data().forEach(g => g.items.forEach(it => { it.g = g.g; it.txt = strip([it.t].concat(it.p || [], it.s || [], it.tip || []).join(' ')); it.idx = fold(it.t + ' ' + it.k + ' ' + it.txt); it.tf = fold(it.t + ' ' + it.k); all.push(it); })); return all; };
   let built = false;
   function build() {
     if (built) return; built = true;
-    $('hlToc').innerHTML = HILFE.map(g => '<h4>' + g.g + '</h4>' + g.items.map(it => '<a href="#hl-' + it.id + '" data-id="' + it.id + '">' + it.t + '</a>').join('')).join('');
-    $('hlMain').innerHTML = HILFE.map(g => '<div class="hl-group">' + g.g + '</div>' + g.items.map(it =>
+    index(); $('hlToc').innerHTML = data().map(g => '<h4>' + g.g + '</h4>' + g.items.map(it => '<a href="#hl-' + it.id + '" data-id="' + it.id + '">' + it.t + '</a>').join('')).join('');
+    $('hlMain').innerHTML = data().map(g => '<div class="hl-group">' + g.g + '</div>' + g.items.map(it =>
       '<article class="card hl-topic" id="hl-' + it.id + '"><h3>' + it.t + '</h3>' +
       (it.p ? it.p.map(x => '<p>' + x + '</p>').join('') : '') +
       (it.img ? '<img class="hl-img" loading="lazy" decoding="async" src="hilfe/' + it.img + '.jpg" alt="Bild: ' + it.t + '">' : '') +
       (it.s ? '<h5>Schritt für Schritt</h5><ol>' + it.s.map(x => '<li>' + x + '</li>').join('') + '</ol>' : '') +
       (it.tip ? '<h5>Gut zu wissen</h5><ul class="tip">' + it.tip.map(x => '<li>' + x + '</li>').join('') + '</ul>' : '') + '</article>').join('')).join('');
-    $('hlCount').textContent = all.length + TT(' Themen');
+    $('hlCount').textContent = index().length + TT(' Themen');
     $('hlEn').hidden = window.__lang !== 'en';
   }
   function go(id) {
@@ -30,7 +32,7 @@
   // Suche: alle Wörter müssen vorkommen; Treffer im Titel/Stichwort zählen mehr
   function search(q) {
     const w = fold(q).split(/\s+/).filter(x => x.length > 1); if (!w.length) return [];
-    return all.map(it => { let sc = 0; for (const x of w) { if (!it.idx.includes(x)) return null; sc += it.tf.includes(x) ? 10 : 1; if (fold(it.t).includes(x)) sc += 10; } return { it, sc }; }).filter(Boolean).sort((a, b) => b.sc - a.sc).map(r => r.it);
+    return index().map(it => { let sc = 0; for (const x of w) { if (!it.idx.includes(x)) return null; sc += it.tf.includes(x) ? 10 : 1; if (fold(it.t).includes(x)) sc += 10; } return { it, sc }; }).filter(Boolean).sort((a, b) => b.sc - a.sc).map(r => r.it);
   }
   function snippet(it, q) {
     const w = fold(q).split(/\s+/).filter(x => x.length > 1), f = fold(it.txt); let i = -1; for (const x of w) { i = f.indexOf(x); if (i >= 0) break; }
@@ -51,5 +53,5 @@
   $('hlMain').addEventListener('click', e => { const im = e.target.closest('.hl-img'); if (im) im.classList.toggle('big'); });
   document.addEventListener('tabchange', e => { if (e.detail === 'hilfe') build(); });
   if (!panel.hidden) build();
-  window.Hilfe = { go, search, build, count: () => all.length };
+  window.Hilfe = { go, search, build, count: () => index().length };
 })();

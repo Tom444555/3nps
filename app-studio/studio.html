@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="theme-color" content="#141416">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <title>Loopsmiths Studio</title>
+<script>try{var d=localStorage.getItem('3nps-device'),t=localStorage.getItem('3nps-theme')||'nordic',u=localStorage.getItem('3nps-theme2');if(u&&/^(nordic|metal|amp|ice|clean|matrix|dj|light|precise|precise-dark|ios)$/.test(u)&&(/^(metal|amp|ice|nordic)$/.test(u)?u:'nordic')===t)t=u;if(d!=='min'&&/^(nordic|metal|amp|ice|clean|matrix|dj|light|precise|precise-dark|ios)$/.test(t))document.documentElement.dataset.lt=t;}catch(e){}</script>
 <style>
 :root{--bg:#141416;--surf:#1d1d21;--surf2:#25252b;--line:#34343b;--soft:#2a2a30;--ink:#ececf1;--mut:#8f909a;--acc:#4cc38a;--t1:#e4f2ff;--t2:#2de2ff;--t3:#86a8ff;--y:#f2c230;--r:#ff5d5d;--tc:#7fd8ff;--f-mono:ui-monospace,"SF Mono",Menlo,monospace;--text:#ececf1;--muted:#8f909a}
 *{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:14px/1.4 -apple-system,"SF Pro Text",system-ui,sans-serif;-webkit-font-smoothing:antialiased;overscroll-behavior:none}
@@ -14,11 +15,11 @@ body{display:flex;flex-direction:column;height:100dvh;overflow:hidden;padding:en
 button,select,input{font:inherit;color:inherit}
 button{cursor:pointer}
 .btn{appearance:none;padding:7px 12px;border-radius:9px;background:var(--surf2);border:1px solid var(--line);font-size:13px;white-space:nowrap;touch-action:manipulation}
-.btn:disabled{opacity:.4}.btn.p{background:var(--acc);color:#0c1a12;border-color:var(--acc);font-weight:600}.btn.on{border-color:var(--acc);color:var(--acc)}.btn.danger{border-color:var(--r);color:var(--r)}
+.btn:disabled{opacity:.4}.btn.p{background:var(--acc);color:var(--acc-ink);border-color:var(--acc);font-weight:600}.btn.on{border-color:var(--acc);color:var(--acc)}.btn.danger{border-color:var(--r);color:var(--r)}
 select,input[type=text],input[type=number]{background:var(--surf2);border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:13px}
 .top{flex:none;display:flex;align-items:center;gap:10px;padding:8px 12px;background:linear-gradient(#202026,#18181c);border-bottom:1px solid var(--line);flex-wrap:wrap}
 .brand{white-space:nowrap;font:700 19px Georgia,serif}.brand span{color:var(--mut);font:500 11px var(--f-mono);margin-left:6px}
-.tp{display:flex;gap:5px}.tp .btn{width:42px;height:38px;padding:0;font-size:16px}.tp .rec{color:var(--r)}.tp .btn.rec.on{background:var(--r);color:#fff;border-color:var(--r)}.tp .btn.play.on{background:var(--acc);color:#0c1a12;border-color:var(--acc)}
+.tp{display:flex;gap:5px}.tp .btn{width:42px;height:38px;padding:0;font-size:16px}.tp .rec{color:var(--r)}.tp .btn.rec.on{background:var(--r);color:#fff;border-color:var(--r)}.tp .btn.play.on{background:var(--acc);color:var(--acc-ink);border-color:var(--acc)}
 .lcd{display:flex;gap:14px;padding:4px 12px;border-radius:8px;background:#0b0f0d;border:1px solid #23302a;font-family:var(--f-mono);color:#9ff0c6;white-space:nowrap}
 .lcd small{display:block;font-size:9px;color:#5e8a73;letter-spacing:.12em}.lcd b{font-weight:500;font-size:16px}.lcd input{width:62px;background:transparent;border:0;padding:0;color:#9ff0c6;font:500 16px var(--f-mono)}
 .views{display:flex;background:var(--surf2);border:1px solid var(--line);border-radius:9px;padding:3px;margin-left:auto}
@@ -68,7 +69,7 @@ main{flex:1;min-height:0;position:relative}
 /* Aus dem Looper */
 .brw{flex:1;min-height:0;display:grid;grid-template-columns:330px 1fr}
 .side{background:var(--surf);border-right:1px solid var(--line);padding:12px;display:flex;flex-direction:column;gap:8px;overflow-y:auto}
-.seg{display:flex;flex-wrap:wrap;gap:5px}.seg button{appearance:none;padding:5px 10px;border-radius:8px;background:var(--surf2);border:1px solid var(--line);font-size:12px}.seg button.a{background:var(--acc);color:#0c1a12;border-color:var(--acc)}
+.seg{display:flex;flex-wrap:wrap;gap:5px}.seg button{appearance:none;padding:5px 10px;border-radius:8px;background:var(--surf2);border:1px solid var(--line);font-size:12px}.seg button.a{background:var(--acc);color:var(--acc-ink);border-color:var(--acc)}
 .item{display:flex;gap:10px;align-items:center;padding:8px 10px;border-radius:9px;background:var(--surf2);border:1px solid var(--line);cursor:pointer}
 .item.a{border-color:var(--t2);box-shadow:0 0 0 1px var(--t2) inset}.item .ic{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;font-size:15px;background:#2f2f37;flex:none}
 .item b{font-size:13px}.item small{display:block;color:var(--mut);font-size:11px}
@@ -92,6 +93,21 @@ main{flex:1;min-height:0;position:relative}
 .fxp{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}.fxp .card{padding:10px}.fxp label{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--mut);margin-top:6px}.fxp input[type=range]{width:100%}
 @media (max-width:1320px){.brand span{display:none}.views button{padding:6px 7px}.lcd{gap:10px}.top{gap:8px}}
 @media (max-width:900px){.arr{grid-template-columns:132px 1fr}.th .n small{display:none}.dock{grid-template-columns:1fr 1fr;height:auto}.dock .box:nth-child(2){display:none}.brw{grid-template-columns:1fr}.side{max-height:40vh}.lcd{gap:8px}.views{margin-left:0}}
+@media (max-width:900px){.w-wide{display:none}}
+@media (max-width:600px){.views{order:5;flex:1 1 100%;min-width:0}.views button{flex:1 1 auto;min-width:0;padding:7px 3px;font-size:12px;overflow:hidden;text-overflow:ellipsis}}
+/* v145: Studio übernimmt Akzentfarbe und Namensschrift der im Looper gewählten Optik (data-lt, Schriften aus ../fonts, nur bei Bedarf geladen) */
+@font-face{font-family:'Uncial Antiqua';font-weight:400;font-display:block;src:url(../fonts/uncial.woff) format('woff')}@font-face{font-family:'Metal Mania';font-weight:400;font-display:block;src:url(../fonts/metalmania.woff) format('woff')}@font-face{font-family:'Russo One';font-weight:400;font-display:block;src:url(../fonts/russoone.woff) format('woff')}@font-face{font-family:'Cinzel';font-weight:600 700;font-display:block;src:url(../fonts/cinzel700.woff) format('woff')}
+:root{--acc-ink:#0c1a12}
+:root[data-lt=nordic] .brand{font:400 20px 'Uncial Antiqua',Georgia,serif;color:#e7d3ae}
+:root[data-lt=metal]{--acc:#ff3b30;--acc-ink:#fff}:root[data-lt=metal] .brand{font:400 22px 'Metal Mania',Impact,sans-serif;letter-spacing:.04em}
+:root[data-lt=amp]{--acc:#ff3b2f;--acc-ink:#fff}:root[data-lt=amp] .brand{font:400 19px 'Russo One',Impact,sans-serif;letter-spacing:.05em}
+:root[data-lt=ice]{--acc:#7fd8ff}:root[data-lt=ice] .brand{font:700 19px 'Cinzel',Georgia,serif;letter-spacing:.08em;color:#d9f3ff}
+:root[data-lt=clean]{--acc:#e8e9ec}:root[data-lt=matrix]{--acc:#00ff41}:root[data-lt=dj]{--acc:#00c8ff}:root[data-lt=light]{--acc:#4f9bff}
+:root[data-lt=precise]{--acc:#ff5a00;--acc-ink:#fff}:root[data-lt=precise-dark]{--acc:#ff7a1a}:root[data-lt=ios]{--acc:#0a84ff;--acc-ink:#fff}
+:root:is([data-lt=precise],[data-lt=precise-dark]) .brand{font:700 16px var(--f-mono);letter-spacing:.14em;text-transform:uppercase}
+:root:is([data-lt=precise],[data-lt=precise-dark]) .brand span{color:var(--acc)}
+:root[data-lt=ios] .brand,:root[data-lt=clean] .brand,:root[data-lt=light] .brand,:root[data-lt=dj] .brand{font:650 18px -apple-system,'SF Pro Display',system-ui,sans-serif;letter-spacing:-.01em}
+@media (min-width:901px){.w-narrow{display:none}}
 EQCSS
 MASTERCSS
 .mstwrap{flex:1;min-height:0;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;max-width:980px;margin:0 auto;width:100%}
@@ -102,7 +118,7 @@ MASTERCSS
 </style></head>
 <body>
 <div class="top">
-  <div class="brand">Loopsmiths <span>Studio · SVER</span></div>
+  <div class="brand">Studio <span>3nps · LVER · SVER</span></div>
   <div class="tp"><button class="btn" id="bHome" title="Zum Anfang">⏮</button><button class="btn play" id="bPlay" title="Abspielen / Stopp">▶</button><button class="btn rec" id="bRec" title="Aufnehmen">●</button><button class="btn" id="bCyc" title="Cycle (Schleife)">⟲</button><button class="btn" id="bClick" title="Metronom">♩</button></div>
   <div class="lcd"><div><small>TAKT</small><b id="lPos">1.1.1</b></div><div><small>TEMPO</small><input id="lBpm" type="number" min="40" max="240" step="0.1" aria-label="Tempo"></div><div><small>TAKTART</small><b id="lSig">4/4</b></div><div><small>TONART</small><b id="lKey" translate="no">–</b></div></div>
   <div class="views" id="views"><button data-v="arr" class="a">Arrangement</button><button data-v="mix">Mischpult</button><button data-v="roll">Noten</button><button data-v="mst">Mastering</button><button data-v="brw">Aus dem Looper</button></div>
@@ -138,7 +154,7 @@ MASTERCSS
   <section class="view" id="v-mix" hidden><div class="mix" id="mix"></div></section>
   <section class="view" id="v-roll" hidden><div class="rollwrap"><div class="rdock" id="rTop"></div><div class="roll" id="roll"><canvas id="rcv"></canvas></div><div class="rdock" id="rDock"></div></div></section>
   <section class="view" id="v-mst" hidden><div class="mstwrap">MASTERHTML</div></section>
-  <section class="view" id="v-brw" hidden><div class="brw"><div class="side"><div class="seg" id="bFilt"></div><div id="bList" class="plist"></div><p class="note">Alles, was du im Looper speicherst, erscheint hier sofort – ohne Export. Geladen wird erst, wenn du es übernimmst.</p></div><div class="prev" id="bPrev"><p class="empty">Links etwas auswählen.</p></div></div></section>
+  <section class="view" id="v-brw" hidden><div class="brw"><div class="side"><div class="seg" id="bFilt"></div><div id="bList" class="plist"></div><p class="note">Alles, was du im Looper speicherst, erscheint hier sofort – ohne Export. Geladen wird erst, wenn du es übernimmst.</p></div><div class="prev" id="bPrev"><p class="empty"><span class="w-wide">Links</span><span class="w-narrow">Oben</span> etwas auswählen.</p></div></div></section>
 </main>
 <div class="status" id="status">Bereit.</div>
 <div class="modal" id="modal" hidden><div class="dlg" id="dlg"></div></div>

@@ -6,6 +6,7 @@ S = os.path.dirname(os.path.abspath(__file__)) + '/'
 A = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/app/'
 OUT = A + 'www/studio/'
 SVER = 's3'
+LVER = re.search(r'3nps · (v\d+)', open(A + 'head_app.html', encoding='utf8').read()).group(1)   # v145: Looper-Version im Namen wie im Looper
 rd = lambda p: open(p, encoding='utf8').read()
 
 # EQ-Aussehen wie im Looper: alle Regeln, deren Auswahl mit .eq beginnt (mehrzeilige Regeln vollständig)
@@ -39,7 +40,7 @@ parts.append(rd(S + 'mst.js'))
 parts.append(rd(A + 'master.js'))   # v112: Mastering-Reiter aus dem Looper (gleicher Code, Quellen aus dem Projekt)
 mh = rd(A + 'master.html').replace('<section class="panel" id="panel-master" role="tabpanel" aria-labelledby="tab-master" hidden>', '<div id="panel-master">').replace('</section>', '</div>')
 mh = re.sub(r'<select id="msSrc"[^>]*>.*?</select>', '<select id="msSrc" aria-label="Quelle"><option value="mix">Projekt-Mix (ganzes Projekt)</option><option value="cycle">Projekt-Mix (nur Cycle-Bereich)</option><option value="file">Datei laden …</option></select>', mh, flags=re.S)
-html = rd(S + 'studio.html').replace('EQCSS', eqcss).replace('MASTERCSS', rd(A + 'master.css')).replace('MASTERHTML', mh).replace('SVER', SVER)
+html = rd(S + 'studio.html').replace('EQCSS', eqcss).replace('MASTERCSS', rd(A + 'master.css')).replace('MASTERHTML', mh).replace('SVER', SVER).replace('LVER', LVER)
 html = html.replace('SCRIPTS', '<script>\n' + '\n</script>\n<script>\n'.join(parts) + '\n</script>')
 os.makedirs(OUT, exist_ok=True)
 open(OUT + 'index.html', 'w', encoding='utf8').write(html)
