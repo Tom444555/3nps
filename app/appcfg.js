@@ -58,6 +58,16 @@ const AppCfg = (() => {
   try { cur = readTheme(); } catch (e) {}
   if (themeSel) { themeSel.value = THEME_BG[cur] ? cur : 'nordic'; themeSel.addEventListener('change', () => applyTheme(themeSel.value)); }
   applyTheme(cur);
+  // v145: Bilder der gewählten Optik in den Optik-Speicher legen (sw.js „optik-1“, überlebt Updates) – offline sicher;
+  // die anderen Optiken kommen erst dazu, wenn man sie wählt. Etwas nach dem Start, damit es den Start nicht bremst.
+  function warmOptik(v) {
+    const L = (window.__OPTIK_IMG || {})[v];
+    if (!L || !L.length || window.__dev === 'min' || !('caches' in window) || !window.isSecureContext) return;
+    caches.open('optik-1').then(c => Promise.all(L.map(f => c.match(f).then(hit => hit || fetch(f).then(r => (r.ok ? c.put(f, r) : null)))))).catch(() => {});
+  }
+  document.addEventListener('themechange', e => setTimeout(() => warmOptik(e.detail), 800));
+  window.addEventListener('load', () => setTimeout(() => { try { warmOptik(readTheme()); } catch (e) {} }, 3000));
+  window.__warmOptik = warmOptik;
   document.addEventListener('devchange', e => { if (e.detail && (e.detail.dev === 'min' || e.detail.prev === 'min')) { try { applyTheme(readTheme()); } catch (x) {} } });
   // v144: Taktkreise Groß (Vorgabe) · Klein – Klasse ring-klein am <html>, gespeichert in 3nps-ringe
   const ringSeg = $('ringSeg');
