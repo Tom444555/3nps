@@ -1462,3 +1462,29 @@ Gut zu wissen
    - Studio auf dem Telefon: Die Leiste „Arrangement · Mischpult · Noten · Mastering · Aus dem Looper“ steht in einer
      eigenen Zeile und passt ganz auf den Bildschirm. Unter „Aus dem Looper“ heißt der Hinweis dort „Oben etwas
      auswählen“ (die Liste steht darüber).
+
+129. Rig: Sounds und Gitarren-Schaltung (v146)
+   - Neuer Bereich „Rig“ oben neben „Song & Gesang“. Er wird erst beim ersten Antippen geladen – der Start der App und
+     der Looper bleiben genau wie bisher. Oben wählst du „Sounds“ oder „Gitarren“; die App merkt sich die letzte Ansicht.
+   - Sounds: Gitarre wählen (Schecter PT Apocalypse, Strat ’95, Les Paul Studio), Ziel-Gerät (BIAS X, Reactor 50,
+     Spark LIVE) und einen Sound aus der Bibliothek (Clean Funk, Blues Crunch, Classic Rock, Modern High-Gain, Ambient
+     Clean (Stereo), Singing Lead). „An der Gitarre“ zeigt Schalterstellung, Volume/Tone und Coil-Split.
+   - Signalkette: Jeder Block (Gate, Kompressor, Drive, Amp, Box, Modulation, Delay, Hall) zeigt seine Drehknöpfe.
+     Block antippen → darunter Schieberegler, „An/Aus“ und „Stereo“. Der Prompt passt sich sofort an.
+   - Prompt: englischer Text für BIAS X (bei Reactor/Spark mit Hinweis, was am Gerät und was in der App eingestellt
+     wird), darunter Stichpunkte für die Gitarre. „Prompt kopieren“ legt ihn in die Zwischenablage.
+     „Als eigenen Sound sichern“ legt ihn mit ★ in der Bibliothek ab (gespeichert im Gerät und in „Alles sichern“),
+     „Eigenen Sound löschen“ entfernt ihn wieder, „Zurücksetzen“ holt die gespeicherte Fassung zurück.
+   - Gitarren: Zeichnung oder 3D-Modell der Gitarre. Aktive Pickups bzw. Spulen leuchten orange, beim Coil-Split
+     (Schecter: Tone-Poti ziehen) ist die abgeschaltete Spule blau umrandet. Wahlschalter und Regler darunter stellen
+     Schalterstellung und Potis ein; Zeiger und Hebel bewegen sich mit.
+   - „Verkabelung: AN“ zeigt die Kabel als nummerierte Leitungen, darunter die Liste mit Spannung (mV) und Strom (µA)
+     beim kräftigen Anschlag. Ganz unten der Schaltplan, die Klangkurve (Resonanzspitze) und eine Erklärung, was die
+     Einstellung bewirkt.
+   - 3D-Modell: mit einem Finger drehen, mit zwei zoomen. „Korpus“ fährt nah an Pickups und Regler, „Ganz“ zeigt die
+     ganze Gitarre. „3D-Modell“/„Zeichnung“ schaltet um. Das 3D-Modell und seine Programmteile (three.js) werden erst
+     beim ersten Öffnen geladen (etwa 2,5 MB) und danach im Gerät behalten – dann geht es auch offline.
+   - „Leistung ▾ › Gerät“: „Altes iPad“ zeigt das 3D-Modell schlichter (ohne Spiegelungen und Lackglanz) und die
+     Zeichnung ohne Schatten. „Minimal“ zeigt nur die Zeichnung, das 3D-Modell wird gar nicht geladen.
+   - Verlässt du „Rig“, wird nichts mehr gezeichnet; nach zwei Minuten gibt die App den Speicher des 3D-Modells frei.
+   - Hinweis: Strat- und Les-Paul-Formen sind hier nur zum eigenen Üben nachgebildet.

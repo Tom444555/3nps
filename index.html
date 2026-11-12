@@ -2003,7 +2003,7 @@ html.sig-open .control-bar { visibility: hidden; }   /* Kopfleiste liegt sonst �
   .pc-wtab table { width: 100%; border-collapse: collapse; table-layout: fixed; } .pc-wtab td { overflow-wrap: anywhere; }
   .pc-kbts { margin-top: 8px; } .pc-kbts h5 { margin: 6px 0; font-size: .9rem; color: var(--accent); }
   /* v136: Hauptbereiche + Unterleiste + „?“ */
-  .tabs.areas { grid-auto-flow: row; grid-template-columns: repeat(4, minmax(0, 1fr)) auto; align-items: center; margin-bottom: 8px; }
+  .tabs.areas { grid-auto-flow: row; grid-template-columns: repeat(5, minmax(0, 1fr)) auto; align-items: center; margin-bottom: 8px; }
   .tabs.areas .tab { white-space: normal; line-height: 1.15; min-height: 36px; }
   .tabs.areas .help-btn { width: 36px; height: 36px; min-height: 0; padding: 0 !important; margin: 0 2px 0 6px; border-radius: 50% !important; font-size: 1rem !important; font-weight: 700; border: 1px solid var(--line); }
   .tabs.areas .help-btn[aria-pressed="true"] { color: var(--ink); border-color: var(--t2); }
@@ -3683,7 +3683,7 @@ html.sig-open .control-bar { visibility: hidden; }   /* Kopfleiste liegt sonst �
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v145</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v146</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -3764,6 +3764,7 @@ html.sig-open .control-bar { visibility: hidden; }   /* Kopfleiste liegt sonst �
     <button class="tab" role="tab" id="area-lernen" data-area="lernen" aria-selected="false">Lernen</button>
     <button class="tab" role="tab" id="area-jammen" data-area="jammen" aria-selected="false">Jammen</button>
     <button class="tab" role="tab" id="area-gesang" data-area="gesang" aria-selected="false">Song &amp; Gesang</button>
+    <button class="tab" role="tab" id="tab-rig" data-tab="rig" data-area="rig" aria-selected="false">Rig</button>
     <button class="tab help-btn" id="tab-hilfe" data-tab="hilfe" aria-pressed="false" aria-label="Anleitung" title="Anleitung">?</button>
   </nav>
   <nav class="subtabs" id="subNav" role="tablist" aria-label="Unterpunkte" hidden>
@@ -5087,6 +5088,8 @@ E|--0--|   E|--x--|   E|--x--|</pre>
     </div>
   </section>
 
+  <!-- v146 Rig: Inhalt kommt erst beim ersten Öffnen aus rig/rig.js (+ rig/rig.css) -->
+  <section class="panel" id="panel-rig" role="tabpanel" aria-labelledby="tab-rig" hidden><div class="card rig-wait"><p class="pattern-desc">Rig wird geladen …</p></div></section>
   <section class="panel" id="panel-lernen" role="tabpanel" aria-labelledby="tab-lernen" hidden>
     <div class="card ln-head">
       <div class="card-head"><h2>Lernen</h2></div>
@@ -22388,11 +22391,11 @@ const HILFE = [
  { g: 'Grundlagen', items: [
   { id: 'ueberblick', t: 'Was kann die App?', k: 'überblick übersicht start anfang einstieg reiter app was ist bedienung', img: 'looper',
     p: ['Die App ist dein Übungs- und Ideen-Werkzeug für die Gitarre – auf iPad, iPhone, Mac, Windows-PC und Android, im Browser oder als App vom Home-Bildschirm. Im Mittelpunkt steht der <b>Looper</b> mit drei Stereo-Spuren: aufnehmen, Dateien laden, schneiden, mit Drums, Drone, EQ und Hall begleiten und als Idee speichern.',
-       'Oben wählst du einen von vier Bereichen: <b>Looper</b> · <b>Lernen</b> (Powerchords-Kurs, CAGED, Quintenzirkel, Technik, Training) · <b>Jammen</b> (Backing Track, Improvisation) · <b>Song &amp; Gesang</b> (Songwriting, Mitsingen). Der runde Knopf <b>„?“</b> rechts oben öffnet diese Anleitung.',
+       'Oben wählst du einen von fünf Bereichen: <b>Looper</b> · <b>Lernen</b> (Powerchords-Kurs, CAGED, Quintenzirkel, Technik, Training) · <b>Jammen</b> (Backing Track, Improvisation) · <b>Song &amp; Gesang</b> (Songwriting, Mitsingen) · <b>Rig</b> (Sounds für BIAS X/Reactor/Spark, Gitarren-Schaltung). Der runde Knopf <b>„?“</b> rechts oben öffnet diese Anleitung.',
        'Für größere Arbeiten gibt es das <b>Loopsmiths Studio</b> – ein Tonstudio mit beliebig vielen Takten, Mischpult, Instrumenten, Drummer, Mastering und Export. Du erreichst es über „Im Studio ↗“ unter jeder Spur.',
        'Alles bleibt auf deinem Gerät. Es gibt kein Konto und keinen Server. Jedes Gerät speichert für sich – Ideen mitnehmen siehe „Speicher, Sichern“.'] },
   { id: 'bereiche', t: 'Bereiche, Unterleiste und „?“', k: 'bereiche navigation reiter lernen jammen song gesang unterleiste chips kacheln zuletzt fragezeichen hilfe wo finde ich',
-    p: ['Oben stehen nur noch vier Bereiche: <b>Looper</b> (allein, wie gewohnt), <b>Lernen</b>, <b>Jammen</b> und <b>Song &amp; Gesang</b>. Darunter zeigt eine schmale Leiste die Unterpunkte des Bereichs.',
+    p: ['Oben stehen fünf Bereiche: <b>Looper</b> (allein, wie gewohnt), <b>Lernen</b>, <b>Jammen</b>, <b>Song &amp; Gesang</b> und <b>Rig</b> (ohne Unterleiste). Darunter zeigt eine schmale Leiste die Unterpunkte des Bereichs.',
        '<b>Lernen:</b> Übersicht · Powerchords-Kurs · CAGED · Quintenzirkel · Technik · Training. <b>Jammen:</b> Backing Track · Improvisation. <b>Song &amp; Gesang:</b> Songwriting · Mitsingen.',
        'Die App merkt sich je Bereich den letzten Unterpunkt – tippst du wieder auf „Lernen“, bist du genau dort, wo du aufgehört hast.'],
     s: ['Bereich oben antippen (z. B. „Lernen“).', 'In der Leiste darunter den Unterpunkt wählen. Passen nicht alle in die Zeile (iPad hochkant), die Leiste seitlich wischen.',
@@ -22585,6 +22588,12 @@ const HILFE = [
     tip: ['Mit Kopfhörern singen, wenn du „🎤 Timing prüfen“ nutzt.', 'Der Karaoke-Zustand wird nicht gespeichert; die getrennte Begleitung liegt aber als Idee bereit.'] },
   { id: 'mitsingen', t: 'Mitsingen', k: 'mitsingen karaoke text singen zeile üben timing prüfen übersetzung', img: 'mitsingen',
     s: ['Ein Lied mit Text laufen lassen, Reiter „Mitsingen“.', 'Die aktuelle Zeile ist hell, das gesungene Wort füllt sich; vor Einsätzen zählt die App herunter.', '„↻ Zeile üben“ wiederholt eine Zeile, auch mit 75 % oder 50 %.', '„🎤 Timing prüfen“ zeigt je Wort, ob du zu früh oder zu spät bist (mit Kopfhörern).'] },
+  { id: 'rig', t: 'Rig: Sounds und Gitarren-Schaltung', k: 'rig sound sounds bias x reactor spark prompt signalkette amp effekte gitarre gitarren schecter strat les paul pickup humbucker single coil split schalter poti tone volume verkabelung 3d modell',
+    p: ['Im Bereich <b>Rig</b> baust du Sounds für deine Geräte und siehst, was in deiner Gitarre passiert. Er wird erst beim ersten Öffnen geladen; Start und Looper bleiben unverändert.',
+       '<b>Sounds:</b> Gitarre, Ziel-Gerät (BIAS X, Reactor 50, Spark LIVE) und einen Sound aus der Bibliothek wählen. Die Signalkette zeigt jeden Block mit Drehknöpfen; daraus entsteht ein englischer Prompt für BIAS X mit Stichpunkten für die Gitarre.',
+       '<b>Gitarren:</b> Zeichnung oder 3D-Modell. Aktive Pickups leuchten orange, eine per Coil-Split abgeschaltete Spule ist blau. Mit „Verkabelung: AN“ siehst du nummerierte Kabel mit Spannung und Strom, darunter Schaltplan, Klangkurve und Erklärung.'],
+    s: ['Oben „Rig“ antippen, dann „Sounds“.', 'Gitarre, Ziel-Gerät und Sound wählen.', 'Einen Block der Signalkette antippen und mit den Schiebereglern einstellen; „An/Aus“ und „Stereo“ daneben.', '„Prompt kopieren“ und in BIAS X einfügen – oder „Als eigenen Sound sichern“ (★).', '„Gitarren“: Schalterstellung und Regler wählen und zusehen, welche Pickups/Spulen aktiv sind.'],
+    tip: ['3D-Modell: mit einem Finger drehen, mit zwei zoomen; „Korpus“ zeigt Pickups und Regler von nah.', 'Unter „Leistung ▾ › Gerät“: „Altes iPad“ zeigt das 3D-Modell schlichter, „Minimal“ nur die Zeichnung.', 'Eigene Sounds sind in „Alles sichern“ enthalten.'] },
  ]},
  { g: 'Loopsmiths Studio', items: [
   { id: 'studio-start', t: 'Ins Studio und zurück', k: 'studio öffnen wechseln zurück looper ↩ im studio', img: 'st-arr',
@@ -25744,31 +25753,42 @@ PcKurs.K.push({ t: 'Kapitel 15 – Drop D und tiefere Stimmungen', s: [
   const $ = id => document.getElementById(id);
   // frühere Reiter (Begleitung, Song, Log) liegen jetzt im Griffbrett
   const OLD = { begleitung: 'griffbrett', song: 'griffbrett', log: 'griffbrett', anleitung: 'hilfe', powerchords: 'power', backing: 'jam', improvisation: 'solo', songwriting: 'lied', mitsingen: 'singen', training: 'ueben', technik: 'griffbrett', 'hoer-training': 'hoer', spickzettel: 'spick' };
-  const AREA = { looper: 'looper', lernen: 'lernen', power: 'lernen', caged: 'lernen', quinten: 'lernen', griffbrett: 'lernen', ueben: 'lernen', hoer: 'lernen', spick: 'lernen', jam: 'jammen', solo: 'jammen', lied: 'gesang', singen: 'gesang' };
-  const FIRST = { looper: 'looper', lernen: 'lernen', jammen: 'jam', gesang: 'lied' };
+  const AREA = { looper: 'looper', lernen: 'lernen', power: 'lernen', caged: 'lernen', quinten: 'lernen', griffbrett: 'lernen', ueben: 'lernen', hoer: 'lernen', spick: 'lernen', jam: 'jammen', solo: 'jammen', lied: 'gesang', singen: 'gesang', rig: 'rig' };
+  const FIRST = { looper: 'looper', lernen: 'lernen', jammen: 'jam', gesang: 'lied', rig: 'rig' };
   // Anleitung passend zum Bereich/Unterpunkt
-  const HELP = { looper: 'aufnehmen', lernen: 'bereiche', power: 'powerchord-kurs', caged: 'caged', quinten: 'quinten', griffbrett: 'technik', ueben: 'training', hoer: 'hoer-training', spick: 'spickzettel', jam: 'backing', solo: 'improvisation', lied: 'songwriting', singen: 'mitsingen' };
+  const HELP = { looper: 'aufnehmen', lernen: 'bereiche', power: 'powerchord-kurs', caged: 'caged', quinten: 'quinten', griffbrett: 'technik', ueben: 'training', hoer: 'hoer-training', spick: 'spickzettel', jam: 'backing', solo: 'improvisation', lied: 'songwriting', singen: 'mitsingen', rig: 'rig' };
   const areaBtns = document.querySelectorAll('.tabs [data-area]'), chips = document.querySelectorAll('#subNav [data-tab]'), sub = $('subNav'), help = $('tab-hilfe');
-  const PANELS = ['looper', 'hilfe'].concat([...chips].map(c => c.dataset.tab));
+  const PANELS = ['looper', 'hilfe', 'rig'].concat([...chips].map(c => c.dataset.tab));
   let last = {}; try { last = JSON.parse(localStorage.getItem('3nps-tab-last') || '{}') || {}; } catch (e) {}
   let cur = null, prev = 'looper';
   const norm = n => { n = OLD[n] || n; if (FIRST[n] && !AREA[n]) n = last[n] || FIRST[n]; return $('panel-' + n) && PANELS.includes(n) ? n : null; };
+  // v146: Reiter „Rig“ – Code, Stil (und später three.js/3D-Modell) erst beim ersten Öffnen laden; Start und Looper bleiben unberührt
+  let rigLoading = false;
+  function loadRig() {
+    if (rigLoading || window.Rig) return;
+    rigLoading = true;
+    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'rig/rig.css'; document.head.appendChild(l);
+    const s = document.createElement('script'); s.src = 'rig/rig.js';
+    s.onerror = () => { rigLoading = false; const w = document.querySelector('#panel-rig .rig-wait p'); if (w) w.textContent = 'Rig konnte nicht geladen werden – bitte mit Internet einmal öffnen.'; };
+    l.onload = l.onerror = () => document.head.appendChild(s);   // erst Stil, dann Code (kein ungestaltetes Aufblitzen)
+  }
   function show(name) {
     name = norm(name) || 'looper';
     const area = AREA[name] || null;
     if (name !== 'hilfe') prev = name;
     cur = name;
     areaBtns.forEach(b => b.setAttribute('aria-selected', b.dataset.area === area ? 'true' : 'false'));
-    sub.hidden = !area || area === 'looper';
+    sub.hidden = !area || area === 'looper' || area === 'rig';
     chips.forEach(c => { const on = c.dataset.tab === name; c.hidden = c.dataset.area !== area; c.classList.toggle('active', on); c.setAttribute('aria-selected', on ? 'true' : 'false'); });
     help.setAttribute('aria-pressed', name === 'hilfe' ? 'true' : 'false');
     PANELS.forEach(p => { const el = $('panel-' + p); if (el) el.hidden = p !== name; });
-    if (area && area !== 'looper') { last[area] = name; if (area === 'lernen' && name !== 'lernen') last.tile = name; }
+    if (name === 'rig') loadRig();
+    if (area && area !== 'looper' && area !== 'rig') { last[area] = name; if (area === 'lernen' && name !== 'lernen') last.tile = name; }
     try { localStorage.setItem('3nps-tab', name); localStorage.setItem('3nps-tab-last', JSON.stringify(last)); } catch (e) {}
     if (!sub.hidden) { const c = sub.querySelector('.active'); if (c) { const l = c.offsetLeft - sub.offsetLeft, r = l + c.offsetWidth; if (l < sub.scrollLeft || r > sub.scrollLeft + sub.clientWidth) sub.scrollLeft = Math.max(0, l - 16); } }   // nur waagerecht, Seite springt nicht
     document.dispatchEvent(new CustomEvent('tabchange', { detail: name }));
   }
-  areaBtns.forEach(b => b.addEventListener('click', () => show(b.dataset.area === 'looper' ? 'looper' : (last[b.dataset.area] || FIRST[b.dataset.area]))));
+  areaBtns.forEach(b => b.addEventListener('click', () => show(b.dataset.area === 'looper' || b.dataset.area === 'rig' ? b.dataset.area : (last[b.dataset.area] || FIRST[b.dataset.area]))));
   chips.forEach(c => c.addEventListener('click', () => show(c.dataset.tab)));
   function openHelp(from) {
     from = from || prev; show('hilfe');

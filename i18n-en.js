@@ -1227,3 +1227,28 @@ Object.assign(window.__EN, { 'Welche Tonleiter passt?': 'Which scale fits?', 'Er
 Object.assign(window.__EN, { 'Tonart des Griffbrett-Trainers (Lernen › Technik) – die Spuren zeigen ihre eigene Tonart': 'Key of the fretboard trainer (Learn › Technique) – the tracks show their own key' });
 // v144 Feinschliff Design
 Object.assign(window.__EN, { 'Noch kein Text zum Mitsingen': 'No lyrics to sing along yet', 'Gesangstext anlegen': 'Add lyrics', 'Taktkreise': 'Beat rings', 'Groß': 'Large', 'Klein': 'Small' });
+// v146 Reiter „Rig“ (Haupt-Beschriftungen)
+Object.assign(window.__EN, { 'Rig': 'Rig', 'Gitarren': 'Guitars', 'Gitarre': 'Guitar', 'Ziel-Gerät': 'Target device', 'Sound-Bibliothek': 'Sound library', 'An der Gitarre': 'On the guitar',
+  'Signalkette': 'Signal chain', 'antippen zum Einstellen': 'tap to adjust', 'Prompt kopieren': 'Copy prompt', 'Als eigenen Sound sichern': 'Save as my sound', 'Eigenen Sound löschen': 'Delete my sound',
+  'Eigenen Sound löschen?': 'Delete my sound?', 'Prompt kopiert': 'Prompt copied', 'Markiert – jetzt kopieren': 'Selected – copy now', 'Gesichert: ': 'Saved: ', 'Speicher voll – nicht gesichert': 'Storage full – not saved',
+  'Sounds für BIAS X, Reactor 50 und Spark LIVE · Signalkette und Gitarren-Schaltung': 'Sounds for BIAS X, Reactor 50 and Spark LIVE · signal chain and guitar wiring',
+  'Englischer Prompt für BIAS X, darunter Stichpunkte zur Gitarre. Stereo-Effekte sind gekennzeichnet. Für Reactor und Spark zeigt die Kette, wo welcher Regler stehen soll.': 'English prompt for BIAS X, below it notes for the guitar. Stereo effects are marked. For Reactor and Spark the chain shows where each knob should be.',
+  'Pickup-Wahlschalter': 'Pickup selector', 'Was passiert gerade': 'What is happening', 'Erklärung': 'Explanation', 'Verkabelung': 'Wiring', 'Verkabelung: AN': 'Wiring: ON', 'Verkabelung: AUS': 'Wiring: OFF',
+  'Korpus': 'Body', 'Ganz': 'Whole', '3D-Modell': '3D model', 'Zeichnung': 'Drawing', 'An': 'On', 'Kompressor': 'Compressor', 'Schalter': 'Switch', 'Beide': 'Both',
+  'gezogen': 'pulled', 'gedrückt': 'pushed', 'Pegel ca.': 'Level approx.', 'Resonanz': 'Resonance', 'Brummen': 'Hum', 'Charakter': 'Character', 'hell': 'bright', 'ausgewogen': 'balanced', 'warm': 'warm',
+  'Gitarre einstellen:': 'Guitar settings:', 'Tone-Poti ziehen': 'pull the tone knob', 'gedrückt (Humbucker)': 'pushed (humbucker)', 'Rig wird geladen …': 'Loading Rig …',
+  'Rig konnte nicht geladen werden – bitte mit Internet einmal öffnen.': 'Rig could not be loaded – please open it once with internet.',
+  'Coil-Split: AN (Tone-Poti gezogen)': 'Coil split: ON (tone knob pulled)', 'Coil-Split: AUS (Humbucker)': 'Coil split: OFF (humbucker)',
+  '3D-Modell wird geladen …': 'Loading 3D model …', '3D-Modell nicht verfügbar – Zeichnung': '3D model not available – drawing',
+  'Profil „Minimal“: nur die Zeichnung, das 3D-Modell wird nicht geladen.': 'Profile “Minimal”: drawing only, the 3D model is not loaded.',
+  'Strat: dein Modell aus druckwerk · Schecter und Les Paul: eigene 3D-Modelle. Mit einem Finger drehen, mit zwei zoomen.': 'Strat: your model from druckwerk · Schecter and Les Paul: own 3D models. Rotate with one finger, zoom with two.',
+  'Zeichnung · „Zeichnung“ antippen für das 3D-Modell.': 'Drawing · tap “Drawing” for the 3D model.',
+  'Vereinfachte Klangkurve (Pickup + Kabel + Poti): Höhe und Lage der Resonanzspitze bestimmen, wie hell es klingt.': 'Simplified tone curve (pickup + cable + pot): height and position of the resonance peak decide how bright it sounds.' });
+Object.assign(window.__EN, { 'Knackig, perkussiv, viel Attack – Rhythmusgitarre mit Kompressor.': 'Tight, percussive, lots of attack – rhythm guitar with compressor.',
+  'Leicht angezerrt, reagiert auf Anschlag und Volume-Poti.': 'Light breakup, responds to picking and the volume knob.', '70er-Jahre-Rock: Mitten, Biss, britischer Amp.': '70s rock: mids, bite, British amp.',
+  'Tight, viel Gain, enge Bässe – für Riffs mit der Schecter.': 'Tight, lots of gain, focused lows – for riffs with the Schecter.', 'Weite Flächen: Stereo-Chorus, Ping-Pong-Delay, großer Hall.': 'Wide pads: stereo chorus, ping-pong delay, big reverb.',
+  'Solo mit Sustain, Mitten nach vorn, Delay hinterher.': 'Lead with sustain, mids forward, trailing delay.',
+  'BIAS X: Werte gelten für die Regler im Plugin (0–10). Stereo-Blöcke im Stereo-Pfad betreiben.': 'BIAS X: values are for the knobs in the plugin (0–10). Run stereo blocks in the stereo path.',
+  'Reactor 50: Amp-Regler am Verstärker wie gezeigt, Effekte in der App. Werte 0–10 = Reglerstellung (12 Uhr = 5). Modellnamen in der App können abweichen – ähnlichsten Amp wählen.': 'Reactor 50: amp knobs on the amp as shown, effects in the app. Values 0–10 = knob position (12 o’clock = 5). Model names in the app may differ – pick the most similar amp.',
+  'Spark LIVE: Amp-Block und Effekte in der Spark-App; Stereo-Effekte nur über Kopfhörer/Stereo-Ausgang hörbar.': 'Spark LIVE: amp block and effects in the Spark app; stereo effects only audible via headphones/stereo output.',
+  'Tone-Poti herausziehen (Single-Coil)': 'pull the tone knob (single coil)', 'Tone-Poti gedrückt lassen (Humbucker)': 'leave the tone knob pushed (humbucker)' });

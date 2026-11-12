@@ -1,5 +1,5 @@
 // Offline-Cache für die 3nps-App. Bei Updates CACHE-Version hochzählen.
-const CACHE = '3nps-v145';
+const CACHE = '3nps-v146';
 const ASR = 'asr-1';
 const DRUMS = 'drums-1';   // echtes Kit (v98): eigener Speicher, überlebt Updates (Version erhöhen, wenn sich kit.flac ändert)   // Name ohne „3nps-“: wird beim Update nicht gelöscht (Version erhöhen, wenn sich das Modell ändert)
 // v145: Schriften und Englisch-Wörterbuch als eigene Dateien (klein, offline immer da); Optik-Bilder nicht mehr hier, siehe OPTIK.
@@ -10,6 +10,16 @@ const CORE = ['index.html', 'stretch/worker.js', 'stretch/SignalsmithStretch.js'
 // übernommen (ohne Netz), damit offline nichts fehlt. Ändert sich ein Bild: Namen erhöhen (optik-2).
 const OPTIK = 'optik-1';
 const OPTIK_IMG = ['bg-metal.jpg', 'panel.jpg', 'panel-dark.jpg', 'runes.png', 'emblem.png', 'corner-tl.png', 'corner-tr.png', 'corner-bl.png', 'corner-br.png', 'bg-iron.jpg', 'panel-iron.jpg', 'stud-iron.png', 'studs-iron.png', 'emblem-iron.png', 'tolex.jpg', 'alu.jpg', 'alu-dark.jpg', 'grille.jpg', 'screw.png', 'jewel.png', 'bg-ice.jpg', 'panel-ice.jpg', 'icicles.png', 'rivet-ice.png', 'emblem-ice.png', 'bg-matrix.jpg', 'bg-dj.jpg', 'panel-dj.jpg'];
+// v146 Rig: nichts davon in der Erst-Installation. three.js + Strat-Modell (≈ 2,6 MB) beim ersten Öffnen in eigenem Speicher, der
+// Updates überlebt (Namen erhöhen, wenn sich dort etwas ändert). Rig-Code (rig.js/rig.css/rig3d.js) liegt im App-Speicher; wer Rig schon
+// benutzt hat, bekommt die neue Fassung beim Update gleich mit (sonst ginge Rig nach einem Update erst wieder mit Internet).
+const RIG = 'rig-1';
+const RIG_CODE = ['rig/rig.js', 'rig/rig.css', 'rig/rig3d.js'];
+const isRigLib = url => url.origin === self.location.origin && (url.pathname.includes('/rig/three/') || url.pathname.endsWith('/rig/strat.glb'));
+function keepRig(c) {
+  return caches.keys().then(keys => keys.filter(k => k.startsWith('3nps-') && k !== CACHE).reduce((p, k) => p.then(r => r || caches.open(k).then(o => o.match(new URL('rig/rig.js', self.registration.scope).href))), Promise.resolve(null)))
+    .then(used => used ? c.addAll(RIG_CODE.map(u => new Request(u, { cache: 'reload' }))) : null).catch(() => {});
+}
 function isOptik(url) { const f = url.pathname.slice(url.pathname.lastIndexOf('/') + 1); return url.origin === self.location.origin && OPTIK_IMG.includes(f) && !url.pathname.includes('/studio/'); }
 // Bilder aus früheren App-Speichern (bis v144 lagen alle Optik-Bilder dort) in OPTIK übernehmen – kein Netz nötig
 function keepOptik() {
@@ -22,7 +32,7 @@ function keepOptik() {
 
 self.addEventListener('install', e => {
   // v145: am Browser-Zwischenspeicher vorbei laden – sonst kann beim Update noch die alte index.html in den neuen Speicher geraten
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE.map(u => new Request(u, { cache: 'reload' })))).then(keepOptik).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE.map(u => new Request(u, { cache: 'reload' }))).then(() => keepRig(c))).then(keepOptik).then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k.startsWith('3nps-') && k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
@@ -39,6 +49,10 @@ self.addEventListener('fetch', e => {
   }
   if (isOptik(url)) {   // v145: Optik-Bilder – Speicher zuerst, sonst laden und merken
     e.respondWith(caches.open(OPTIK).then(c => c.match(req).then(hit => hit || fetch(req).then(r => { if (r.ok) c.put(req, r.clone()); return r; }))));
+    return;
+  }
+  if (isRigLib(url)) {   // v146: three.js + Strat-Modell – Speicher zuerst, sonst laden und merken
+    e.respondWith(caches.open(RIG).then(c => c.match(req).then(hit => hit || fetch(req).then(r => { if (r.ok) c.put(req, r.clone()); return r; }))));
     return;
   }
   if (url.pathname.includes('/asr/')) {
