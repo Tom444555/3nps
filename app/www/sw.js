@@ -1,5 +1,5 @@
 // Offline-Cache für die 3nps-App. Bei Updates CACHE-Version hochzählen.
-const CACHE = '3nps-v146';
+const CACHE = '3nps-v147';
 const ASR = 'asr-1';
 const DRUMS = 'drums-1';   // echtes Kit (v98): eigener Speicher, überlebt Updates (Version erhöhen, wenn sich kit.flac ändert)   // Name ohne „3nps-“: wird beim Update nicht gelöscht (Version erhöhen, wenn sich das Modell ändert)
 // v145: Schriften und Englisch-Wörterbuch als eigene Dateien (klein, offline immer da); Optik-Bilder nicht mehr hier, siehe OPTIK.

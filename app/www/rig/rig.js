@@ -130,25 +130,63 @@ const fmtK=v=>typeof v==="number"?(Math.round(v*10)/10).toString().replace(".","
 
 /* ---------- Ziel-Anpassung (Reactor/Spark: Amp-Regler am Gerät) ---------- */
 function tgtNote(){return tSel==="bias"?"BIAS X: Werte gelten für die Regler im Plugin (0–10). Stereo-Blöcke im Stereo-Pfad betreiben."
- :tSel==="reactor"?"Reactor 50: Amp-Regler am Verstärker wie gezeigt, Effekte in der App. Werte 0–10 = Reglerstellung (12 Uhr = 5). Modellnamen in der App können abweichen – ähnlichsten Amp wählen."
+ :tSel==="reactor"?"Reactor 50: Regler gibt es in der Reactor-App und am Verstärker; Werte 0–10 entsprechen dem Reglerweg."
  :"Spark LIVE: Amp-Block und Effekte in der Spark-App; Stereo-Effekte nur über Kopfhörer/Stereo-Ausgang hörbar."}
 
 //==PROMPT
+/* ---------- v147 Spark LIVE: feste 7 Plätze wie in der Spark-App, Amp-Regler GAIN · BASS · MIDDLE · TREBLE · VOLUME ---------- */
+// v147: Ziele mit eigener Kette wie in der jeweiligen App (nach Toms Screenshots): feste Plätze, Regler-Namen, nur dort sichtbare Modellnamen
+const TGT={
+ spark:{app:"Spark LIVE",short:"Spark",slots:[["gate","GATE"],["comp","COMP/WAH"],["drv","DRIVE"],["amp","AMP"],["mod","MOD/EQ"],["dly","DELAY"],["rev","REVERB"]],
+  amp:[["Gain","GAIN"],["Bass","BASS"],["Mid","MIDDLE"],["Treble","TREBLE"],["Master","VOLUME"]],mod:null,fixed:{},
+  hint:"ähnlichstes Modell in der Spark-App wählen",hintEn:"closest model in the Spark app",set:"Spark-App einstellen:",pre:"Spark LIVE app"},
+ reactor:{app:"Reactor 50",short:"Reactor",slots:[["gate","Gate"],["comp","Comp"],["drv","Drive"],["mod","Mod"],["wah","Wah"],["eq","EQ"],["amp","Amp"],["dly","Delay"],["rev","Reverb"]],
+  amp:[["Gain","GAIN"],["Bass","BASS"],["Mid","MIDDLE"],["Treble","TREBLE"],["Master","MASTER"]],mod:[["Mix","E.LEVEL"],["Rate","RATE"],["Depth","DEPTH"],["Tone","TONE"]],fixed:{wah:"Wah",eq:"EQ7"},
+  hint:"ähnlichstes Modell in der Reactor-App wählen",hintEn:"closest model in the Reactor app",set:"Reactor-App einstellen:",pre:"Reactor 50 – knobs in the Reactor app and on the amp"}};
+const TG=()=>TGT[tSel]||null;
+// nur Modellnamen, die auf Toms Screenshots zu sehen sind – und nur, wo sie passen (abgeschnittene Namen umschrieben)
+function tgtModel(c){const n=c.name.toLowerCase();
+  if(tSel==="spark"){
+   if(c.type==="gate")return "Noise Gate";
+   if(c.type==="comp")return "LA Comp";
+   if(c.type==="drv")return /boost/.test(n)?"Booster":"";
+   if(c.type==="amp")return c.style==="clean"?"AD Clean":"";
+   if(c.type==="mod")return /\beq\b/.test(n)?"Guitar EQ":"";
+   if(c.type==="dly")return /delay/.test(n)&&!/analog|ping/.test(n)?"Digital Delay":"";
+   if(c.type==="rev")return /shimmer|ambient/.test(n)?"Ambient":"";}
+  if(tSel==="reactor"){
+   if(c.type==="gate")return "Noise Gate";
+   if(c.type==="comp")return "Opto Comp";
+   if(c.type==="drv")return /overdrive|tube/.test(n)?"grünes Drive-Modell":"";
+   if(c.type==="mod")return /chorus/.test(n)?"Analog Chorus":"";
+   if(c.type==="amp")return /british|plexi/.test(n)&&c.style!=="hi"?"80s Crunch":"";
+   if(c.type==="dly")return /analog/.test(n)?"Analog Delay":"";
+   if(c.type==="rev")return /room|plate|hall/.test(n)&&!/shimmer/.test(n)?"Studio-Reverb-Modell":"";}
+  return ""}
+// Regler eines Blocks je Ziel: [Anzeigename, Schlüssel in c.k, Wert]
+function knobsOf(c){const g=TG();
+  if(g&&c.type==="amp")return g.amp.filter(([k])=>k in c.k).map(([k,l])=>[l,k,c.k[k]]);
+  if(g&&g.mod&&c.type==="mod")return g.mod.map(([k,l])=>[l,k,c.k[k]??5]);
+  return Object.entries(c.k).map(([k,v])=>[k,k,v])}
+function tgtSlots(){const g=TG();return g.slots.map(([t,l])=>{const i=cur.chain.findIndex(c=>c.type===t);return {t,l,i,c:i<0?null:cur.chain[i],fx:g.fixed[t]||""}})}
+const slotOf=c=>{const g=TG();const sl=g&&g.slots.find(x=>x[0]===c.type);return sl?sl[1]:TYPE[c.type]};
 function prompt(){const g=G[gSel],gs=cur.g[gSel]||{},pos=(g.positions.find(p=>p.k===gs.pos)||g.positions[0]);
   const on=cur.chain.filter(c=>c.on);const amp=on.find(c=>c.type==="amp");
   const st=on.filter(c=>c.st).map(c=>EN[c.type]);
   const lvl=v=>v<=2?"very low":v<=4?"low":v<=6?"medium":v<=8?"high":"very high";
-  const nm=c=>c.name.toLowerCase().includes(EN[c.type].split(" ")[0])?c.name:c.name+" "+EN[c.type];const desc=c=>{const ks=Object.entries(c.k).map(([n,v])=>typeof v==="number"?`${n} ${fmtK(v)}/10`:`${n}: ${v}`).join(", ");return `- ${c.st?"[STEREO] ":""}${nm(c)} (${ks})`};
+  const nm=c=>c.name.toLowerCase().includes(EN[c.type].split(" ")[0])?c.name:c.name+" "+EN[c.type];const desc=c=>{if(TG())return tgDesc(c);const ks=Object.entries(c.k).map(([n,v])=>typeof v==="number"?`${n} ${fmtK(v)}/10`:`${n}: ${v}`).join(", ");return `- ${c.st?"[STEREO] ":""}${nm(c)} (${ks})`};
   const pu=pos.on.map(id=>g.pickups.find(p=>p.id===id)).map(p=>p.name.toLowerCase()).join(" + ");
   const kind=g.split&&gs.split?"coil-split (single-coil sound)":g.type==="sss"?"single-coil":"humbucker";
+  const tgDesc=c=>{const g=TG(),m=tgtModel(c);return `- ${c.st?"[STEREO] ":""}${slotOf(c)}: ${c.name}${m?" → "+g.short+": "+({"grünes Drive-Modell":"green drive model","Studio-Reverb-Modell":"studio reverb model"}[m]||m):" → "+g.hintEn} (${knobsOf(c).map(([l,,v])=>typeof v==="number"?`${l} ${fmtK(v)}/10`:`${l}: ${v}`).join(", ")})`};
   let t=`Create a "${cur.name}" guitar tone for a ${g.name} (${pu} ${kind}${pos.on.length>1?" pickups":" pickup"}).\n`+
   `Character: ${cur.en||cur.desc}\n`+(amp?`Amp: ${amp.name}, gain ${lvl(amp.k.Gain)}, mids ${lvl(amp.k.Mid)}.\n`:"")+
-  `Signal chain in this order:\n${on.map(desc).join("\n")}\n`+
+  (TG()?`${TG().app} chain (${TG().slots.map(x=>x[1]).join(" · ")}):\n${tgtSlots().map(x=>!x.c||!x.c.on?`- ${x.l}: OFF`:desc(x.c)).join("\n")}\n`:`Signal chain in this order:\n${on.map(desc).join("\n")}\n`)+
   (st.length?`STEREO: run the ${st.join(", ")} in stereo with a wide image; everything before stays mono.\n`:`Mono signal path, no stereo effects.\n`)+
   `Output level around -12 dB peak, no clipping.`;
-  if(tSel!=="bias")t=`(${tSel==="reactor"?"Reactor 50 – amp knobs on the amp, effects in the app":"Spark LIVE app"})\n`+t;
+  if(TG())t=`(${TG().pre})\n`+t;
   const de=[`• ${T("Schalter")}: ${T(pos.l)}`].concat(g.pots.map(([k,l])=>`• ${l}: ${fmtK(gs[k]??10)}`)).concat(g.split?[`• Coil-Split: ${T(gs.split?"Tone-Poti ziehen":"gedrückt (Humbucker)")}`]:[]);
-  return t+"\n\n"+T("Gitarre einstellen:")+"\n"+de.join("\n");
+  let sp="";if(TG())sp="\n\n"+T(TG().set)+"\n"+tgtSlots().map(x=>{if(!x.c||!x.c.on)return `• ${x.l}: OFF`;const m=tgtModel(x.c);return `• ${x.l}: ${m?T(m):T(TG().hint)}`+(x.t==="amp"||(x.t==="mod"&&TG().mod)?" · "+knobsOf(x.c).map(([l,,v])=>`${l} ${fmtK(v)}`).join(" · "):"")}).join("\n");
+  return t+sp+"\n\n"+T("Gitarre einstellen:")+"\n"+de.join("\n");
 }
 
 //==STATE
@@ -391,18 +429,41 @@ function load(id) {
 
 /* ---------- Render: Sounds (in Teilen, damit Schieberegler beim Ziehen nicht neu gebaut werden) ---------- */
 const chip = (on, attr, html) => `<button class="toggle-btn${on ? ' active' : ''}" ${attr}>${html}</button>`;
+function renderSpark() {   // v147: feste 7 Plätze auf roter Linie wie in der Spark-App (eigene Darstellung, keine Grafiken der App)
+  $('chain').innerHTML = '<div class="rg-sp">' + tgtSlots().map(x => {
+    const c = x.c, on = c && c.on, amp = x.t === 'amp', m = c ? tgtModel(c) : '';
+    const kn = c ? knobsOf(c).filter(([, , v]) => typeof v === 'number') : [];
+    return `<div class="rg-spi${amp ? ' rg-spamp' : ''}${on ? '' : ' rg-off'}${c && x.i === blkSel ? ' rg-sel' : ''}"${c ? ` data-b="${x.i}" role="button" tabindex="0"` : ''}>` +
+      `<div class="rg-sped">${amp ? `<span class="rg-spoff${on ? '' : ' on'}">OFF</span>` : ''}${c && c.st ? '<span class="rg-st">STEREO</span>' : ''}` +
+      `<div class="rg-spm">${c ? esc(m || c.name) : '–'}</div>` +
+      (amp ? `<div class="rg-spk">${kn.map(([l, , v]) => `<div class="rg-kn">${knob(v, 34)}<b>${fmtK(v)}</b>${l}</div>`).join('')}</div>` : `<div class="rg-spk1">${kn.length ? knob(kn[0][2], 30) : ''}</div>`) +
+      `</div><div class="rg-spl">${amp && on ? '<i class="rg-dot"></i>' : ''}${x.l}</div></div>`;
+  }).join('') + '</div>';
+}
+function renderReactor() {   // v147: Kacheln mit Typ oben, Modell darunter, durch eine Linie verbunden (eigene Darstellung nach Toms Screenshots)
+  $('chain').innerHTML = '<div class="rg-rx">' + tgtSlots().map(x => {
+    const c = x.c, on = c && c.on, m = c ? (tgtModel(c) || c.name) : (x.fx || '–');
+    const kn = c && (x.t === 'amp' || x.t === 'mod') ? knobsOf(c).filter(([, , v]) => typeof v === 'number') : [];
+    return `<div class="rg-rxi${x.t === 'amp' ? ' rg-rxamp' : ''}${on ? '' : ' rg-off'}${c && x.i === blkSel ? ' rg-sel' : ''}"${c ? ` data-b="${x.i}" role="button" tabindex="0"` : ''}>` +
+      `<div class="rg-rxt">${x.l}${on && x.t === 'amp' ? ' <i class="rg-dot rg-gold"></i>' : ''}${c && c.st ? ' <span class="rg-st">STEREO</span>' : ''}</div><div class="rg-rxm">${esc(T(m))}</div>` +
+      (kn.length ? `<div class="rg-rxk">${kn.map(([l, , v]) => `<div class="rg-kn">${knob(v, 30)}<b>${fmtK(v)}</b>${l}</div>`).join('')}</div>` : '') + '</div>';
+  }).join('<span class="rg-rxl"></span>') + '</div>';
+}
 function renderChain() {
+  if (tSel === 'spark') return renderSpark();
+  if (tSel === 'reactor') return renderReactor();
   $('chain').innerHTML = cur.chain.map((c, i) => `${i ? '<span class="rg-arrow">›</span>' : ''}<div class="rg-blk${c.type === 'amp' ? ' rg-amp' : ''}${c.on ? '' : ' rg-off'}${i === blkSel ? ' rg-sel' : ''}" data-b="${i}" role="button" tabindex="0">${c.st ? '<span class="rg-st">STEREO</span>' : ''}<div class="rg-t">${TYPE[c.type]}</div><div class="rg-n">${esc(c.name)}</div><div class="rg-knobs">${Object.entries(c.k).map(([n, v]) => `<div class="rg-kn">${typeof v === 'number' ? knob(v, 40) : '<div class="rg-kv">' + esc(v) + '</div>'}${typeof v === 'number' ? `<b>${fmtK(v)}</b>` : '<b>&nbsp;</b>'}${n}</div>`).join('')}</div></div>`).join('');
 }
 function renderPrompt() { $('prompt').textContent = prompt(); }
 function renderEdHead() {
-  const c = cur.chain[blkSel]; $('edName').textContent = `${TYPE[c.type]}: ${c.name}`;
-  $('edOn').textContent = c.on ? 'An' : 'Aus'; $('edOn').classList.toggle('active', !!c.on);
+  const c = cur.chain[blkSel], sp = !!TG();
+  $('edName').textContent = sp ? `${slotOf(c)}: ${c.name}` + (tgtModel(c) ? ` → ${T(tgtModel(c))}` : ` · ${T(TG().hint)}`) : `${TYPE[c.type]}: ${c.name}`;
+  $('edOn').textContent = tSel === 'spark' ? (c.on ? 'ON' : 'OFF') : (c.on ? 'An' : 'Aus'); $('edOn').classList.toggle('active', !!c.on);
   $('edSt').classList.toggle('active', !!c.st);
 }
 function renderEd() {
   const c = cur.chain[blkSel]; renderEdHead();
-  $('ed').innerHTML = Object.entries(c.k).filter(([, v]) => typeof v === 'number').map(([n, v]) => `<label class="rg-sl"><span><span>${n}</span><b>${fmtK(v)}</b></span><input type="range" min="0" max="10" step="0.5" value="${v}" data-k="${esc(n)}"></label>`).join('');
+  $('ed').innerHTML = knobsOf(c).filter(([, , v]) => typeof v === 'number').map(([l, n, v]) => `<label class="rg-sl"><span><span>${l}</span><b>${fmtK(v)}</b></span><input type="range" min="0" max="10" step="0.5" value="${v}" data-k="${esc(n)}"></label>`).join('');
 }
 function renderGuitarSet() {
   const g = G[gSel], gs = cur.g[gSel] || {}; $('gName').textContent = g.name;
@@ -427,7 +488,7 @@ host.addEventListener('click', e => {
   const m = e.target.closest('#rg-mainSeg button'); if (m) { setView(m.dataset.v); return; }
   const g = e.target.closest('[data-g]'); if (g) { gSel = g.dataset.g; render(); persist(); return; }
   const p = e.target.closest('[data-p]'); if (p) { load(p.dataset.p); return; }
-  const t = e.target.closest('[data-t]'); if (t) { tSel = t.dataset.t; render(); persist(); return; }
+  const t = e.target.closest('[data-t]'); if (t) { tSel = t.dataset.t; if (TG() && !TG().slots.some(x => x[0] === cur.chain[blkSel].type)) blkSel = Math.max(0, cur.chain.findIndex(c => c.type === 'amp')); render(); persist(); return; }
   const b = e.target.closest('[data-b]'); if (b) { blkSel = +b.dataset.b; renderChain(); renderEd(); return; }
   const g2 = e.target.closest('[data-g2]'); if (g2) { if (gw !== g2.dataset.g2) { gw = g2.dataset.g2; st2 = defaultState(gw); persist(); } renderG(); return; }
   const ps = e.target.closest('[data-pos]'); if (ps) { st2.pos = ps.dataset.pos; renderG(); return; }
@@ -569,7 +630,7 @@ document.addEventListener('tabchange', e => { if (e.detail === 'rig') show(); el
 load(saved.p && allP().some(x => x.id === saved.p) ? saved.p : P[0].id);
 window.Rig = {
   show, hide, setView, view: () => viewSel,
-  state: () => ({ view: viewSel, g: gSel, t: tSel, p: pSel, gw, st: Object.assign({}, st2), view3d, showW, mine: mine.length, prompt: prompt(), lv: levels(), model: model() }),
+  state: () => ({ view: viewSel, g: gSel, t: tSel, p: pSel, gw, st: Object.assign({}, st2), view3d, showW, mine: mine.length, prompt: prompt(), chain: cur.chain.map(c => c.name), lv: levels(), model: model() }),
   three: () => v3, threeInfo: () => (v3 ? v3.info() : null), _free3d: free3d,
 };
 if (window.AppNav && AppNav.current() === 'rig') show();

@@ -72,7 +72,8 @@ async def main():
         await pg.click('[data-p=amb]'); await pg.wait_for_timeout(150); pr = await pg.inner_text('#rg-prompt')
         check('„Ambient Clean (Stereo)“: STEREO-Zeile + [STEREO]-Blöcke', 'STEREO: run the modulation, delay, reverb in stereo' in pr and pr.count('[STEREO]') == 3, pr[:400])
         await pg.click('#rg-tSeg [data-t=reactor]'); await pg.wait_for_timeout(100); pr = await pg.inner_text('#rg-prompt')
-        check('Ziel Reactor 50: Hinweis vorn, Badge', pr.startswith('(Reactor 50 – amp knobs on the amp') and await pg.inner_text('#rg-prT') == 'Reactor 50')
+        check('Ziel Reactor 50: Hinweis vorn, Badge', pr.startswith('(Reactor 50 – ') and await pg.inner_text('#rg-prT') == 'Reactor 50')
+        await pg.click('#rg-tSeg [data-t=bias]')   # v147: Reactor/Spark haben eigene Ketten (v147spark) – hier die BIAS-Kette
         await pg.click('[data-g=strat]'); await pg.wait_for_timeout(100); pr = await pg.inner_text('#rg-prompt')
         check('Gitarre Strat: Prompt + Stellung 4 + Tone-Regler', 'for a Stratocaster ’95 (middle + neck single-coil pickups)' in pr and '• Schalter: 4 M+N' in pr and '• Tone Neck: 6' in pr, pr[-160:])
         # Regler im Amp-Block: Schieberegler bleibt dasselbe Element, Wert landet in Kette und Prompt, nichts springt
