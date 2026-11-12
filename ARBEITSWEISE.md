@@ -7,7 +7,7 @@ Aktuelle Regressionsliste und Versionsstand stehen in UEBERGABE.md (Abschnitt 8 
 1. Quellen `/home/claude/3nps-src` (entwicklung), Veröffentlichung `/home/claude/3nps-main` (main). Zuerst `UEBERGABE.md` lesen. Testserver `sh test/srv.sh` (Port 8765, `app/www`). Bauen `python3 app/build.py && python3 app-studio/build.py`. Tests nacheinander, Studio mit `bypass_csp=True`. Netz: nur GitHub sicher.
 2. Regeln: Looper-Leistung zuerst (Schweres nur bei Bedarf/geöffneter Ansicht, sonst exakt alter Signalweg); IDB nur erweitern; CSP lokal; nur freie Lizenzen + Lizenzdatei; neue Looper-Texte englisch in `app/i18n-en2.js`; Studio-Module `window.X = X`; nie `git add -f app`, Dateien einzeln hinzufügen.
 3. Ablauf: pull --rebase → umsetzen → Version +1 (`app/head_app.html`, `app/www/sw.js`, `test/v31export.py`, `test/s1studio.py`, `test/v107round.py`; neuere Tests prüfen „ab vNN“) → bauen → neuer Test `test/vNNname.py` (inkl. „keine Skriptfehler“) + Regressionen → Doku (ANLEITUNG.txt neuer Abschnitt, UEBERGABE.md, Anleitung-Thema in `app/hilfe-daten.js`) → commit (deutsch, Attributionszeilen) + push (bei rejected rebase, neu bauen) → main veröffentlichen, auf `gh run … completed success` warten → knapp melden.
-4. Regressionen: immer v102ideas, v59lang, v60lang, v31export, s1studio, v107round, v113hilfe; Looper-Funktionen v116looperA, v117looperB, v118signal, v119leistung, v120power; Audio/Leistung s1mem, v100mem (bis zum Ende, lange Zeitgrenze); Studio s2studio, s3studio, s3pitch, v112mst, v121studioC, v122studioD, v123inst, v124trennen; Gesang v63singen, v81vox, v85singen.
+4. Regressionen: immer v146rig, v102ideas, v59lang, v60lang, v31export, s1studio, v107round, v113hilfe; Looper-Funktionen v116looperA, v117looperB, v118signal, v119leistung, v120power; Audio/Leistung s1mem, v100mem (bis zum Ende, lange Zeitgrenze); Studio s2studio, s3studio, s3pitch, v112mst, v121studioC, v122studioD, v123inst, v124trennen; Gesang v63singen, v81vox, v85singen.
 
 ## Repository
 
@@ -53,7 +53,7 @@ Audio blockweise aus `SDB` (16-Bit-Blöcke) in AudioWorklet mit 24 Stereo-Ausgä
 
 ## Weitere Regeln und Hinweise
 
-- `sw.js` löscht nur eigene `3nps-…`-Caches; Kits/Drones/Instrumente im Cache `drums-1` (`/drums/`, `/drones/`, `/inst/`), Modelle in `asr-1`, Studio-Seite unter `studio/index.html`.
+- `sw.js` löscht nur eigene `3nps-…`-Caches; Kits/Drones/Instrumente im Cache `drums-1` (`/drums/`, `/drones/`, `/inst/`), Modelle in `asr-1`, Studio-Seite unter `studio/index.html`. v146: three.js + Strat-Modell in `rig-1` (beim ersten Öffnen von Rig).
 - Leistung im Detail: Ketten/Messpunkte/Analyser nur solange genutzt bzw. Ansicht offen (Hall-Sends erst bei > 0 %, Amp nur wenn an); große Funktionen ins Studio oder lazy (Reiter erst beim Öffnen bauen, Modelle on demand mit Rückfrage). Kein Layout-Umbau während Animationen.
 - CC-BY-Material: Namensnennung auch sichtbar in der App.
 - Englisch: Wörterbuch `window.__EN` in `app/i18n-en2.js`, `T()` übersetzt; neue Einträge am Ende vor `});` anhängen. Lange Lehrtexte `translate=no` wie `hilfe.html`. `v59lang`/`v60lang` prüfen das.

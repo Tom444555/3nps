@@ -16,7 +16,7 @@ async def main():
         await pg.goto(U); await pg.wait_for_timeout(900)
         check('ab v136', int(re.search(r'v(\d+)', await pg.inner_text('.brand')).group(1)) >= 136)
         main_ = await pg.evaluate("[...document.querySelectorAll('.tabs.areas [data-area]')].map(b=>b.textContent.trim())")
-        check('Oben genau 4 Hauptbereiche', main_ == ['Looper', 'Lernen', 'Jammen', 'Song & Gesang'], main_)
+        check('Oben genau 4 Hauptbereiche (+ Rig ab v146)', main_[:4] == ['Looper', 'Lernen', 'Jammen', 'Song & Gesang'] and main_[4:] in ([], ['Rig']), main_)
         v = await pg.evaluate(VIS)
         check('Start: Looper allein, ohne Unterleiste', v['cur'] == 'looper' and v['vis'] == ['looper'] and v['area'] == ['looper'] and not v['sub'], v)
         await pg.click('#area-lernen'); await pg.wait_for_timeout(300); v = await pg.evaluate(VIS)

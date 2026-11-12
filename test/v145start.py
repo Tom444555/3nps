@@ -163,6 +163,7 @@ def switch(base, to):
 async def part_c(p):
     base = up_dirs(); UP = 'http://localhost:8792/3nps/'
     newver = re.search(r'3nps · (v\d+)', open(WWW + 'index.html', encoding='utf8').read()).group(1)
+    oldver = re.search(r'3nps · (v\d+)', subprocess.run('git -C %s show %s:index.html' % (MAIN, OLD), shell=True, capture_output=True, text=True).stdout).group(1)   # v146: Vorgänger-Version aus OLD (nicht fest v144)
     imgs_all = json.loads(re.search(r'window.__OPTIK_IMG=(\{.*?\});', open(WWW + 'index.html', encoding='utf8').read()).group(1))
     b = await p.chromium.launch()
     for th in THEMES:
@@ -186,9 +187,9 @@ async def part_c(p):
         late = [f for f, t in r['fl'] if t > r['fcp'] + 100]   # font-display:block: bis dahin unsichtbar statt falscher Schrift, höchstens ~1–6 Bilder
         want = FONTS.get(th, [])
         loaded = sorted(set(f for f, t in r['fl']))
-        check('Update %s: v144 → 1. Öffnen alt → 2. Öffnen (offline) %s, Optik bleibt' % (th, newver), 'v144' in v0 and 'v144' in v1 and newver in v2 and r['th'] == th, (v0, v1, v2, r['th']))
+        check('Update %s: %s → 1. Öffnen alt → 2. Öffnen (offline) %s, Optik bleibt' % (th, oldver, newver), oldver in v0 and oldver in v1 and newver in v2 and r['th'] == th, (v0, v1, v2, r['th']))
         check('Update %s offline: Schrift ≤ 100 ms nach dem ersten Bild, Hintergrund-Bilder aus dem Speicher, keine Fehlanfragen' % th,
-              not late and loaded == sorted(want) and all(got) and not bad and 'optik-1' in keys and not any(k.startswith('3nps-v144') for k in keys),
+              not late and loaded == sorted(want) and all(got) and not bad and 'optik-1' in keys and not any(k.startswith('3nps-' + oldver) for k in keys),
               (r['fcp'], r['fl'], got, bad[:3], bg[:60], keys))
         check('Update %s: keine Skriptfehler' % th, not E, E[:2])
         await ctx.close()

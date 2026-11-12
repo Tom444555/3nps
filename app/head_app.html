@@ -225,7 +225,7 @@
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v145</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v146</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -306,6 +306,7 @@
     <button class="tab" role="tab" id="area-lernen" data-area="lernen" aria-selected="false">Lernen</button>
     <button class="tab" role="tab" id="area-jammen" data-area="jammen" aria-selected="false">Jammen</button>
     <button class="tab" role="tab" id="area-gesang" data-area="gesang" aria-selected="false">Song &amp; Gesang</button>
+    <button class="tab" role="tab" id="tab-rig" data-tab="rig" data-area="rig" aria-selected="false">Rig</button>
     <button class="tab help-btn" id="tab-hilfe" data-tab="hilfe" aria-pressed="false" aria-label="Anleitung" title="Anleitung">?</button>
   </nav>
   <nav class="subtabs" id="subNav" role="tablist" aria-label="Unterpunkte" hidden>
@@ -471,6 +472,8 @@ LIED_PANEL
 SINGEN_PANEL
 MASTER_PANEL
 HILFE_PANEL
+  <!-- v146 Rig: Inhalt kommt erst beim ersten Öffnen aus rig/rig.js (+ rig/rig.css) -->
+  <section class="panel" id="panel-rig" role="tabpanel" aria-labelledby="tab-rig" hidden><div class="card rig-wait"><p class="pattern-desc">Rig wird geladen …</p></div></section>
 LERNEN_PANEL
 
   <!-- Üben -->

@@ -1,5 +1,5 @@
   /* v136: Hauptbereiche + Unterleiste + „?“ */
-  .tabs.areas { grid-auto-flow: row; grid-template-columns: repeat(4, minmax(0, 1fr)) auto; align-items: center; margin-bottom: 8px; }
+  .tabs.areas { grid-auto-flow: row; grid-template-columns: repeat(5, minmax(0, 1fr)) auto; align-items: center; margin-bottom: 8px; }
   .tabs.areas .tab { white-space: normal; line-height: 1.15; min-height: 36px; }
   .tabs.areas .help-btn { width: 36px; height: 36px; min-height: 0; padding: 0 !important; margin: 0 2px 0 6px; border-radius: 50% !important; font-size: 1rem !important; font-weight: 700; border: 1px solid var(--line); }
   .tabs.areas .help-btn[aria-pressed="true"] { color: var(--ink); border-color: var(--t2); }

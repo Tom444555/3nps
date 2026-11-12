@@ -1,0 +1,97 @@
+/* v146 Reiter „Rig“ – nur unter #panel-rig, Farben/Schrift aus der App (--ink, --muted, --line, --accent, --f-body),
+   Karten = .card, Knöpfe = .toggle-btn (folgen damit jeder Optik). Feste Höhen, damit beim Bedienen nichts springt. */
+#panel-rig [hidden] { display: none !important; }
+#panel-rig .rg-view { display: flex; flex-direction: column; gap: 14px; }
+#panel-rig .rg-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+#panel-rig .rg-top h2 { margin: 0; }
+#panel-rig .rg-main .toggle-btn { min-height: 44px; min-width: 110px; }
+#panel-rig .rg-lbl { font: 600 var(--fs-xs, .625rem) var(--f-body); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 2px 2px -6px; }
+#panel-rig .rg-chips { display: flex; gap: 8px; overflow-x: auto; padding: 2px 0 4px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+#panel-rig .rg-chips::-webkit-scrollbar { display: none; }
+#panel-rig .rg-chips .toggle-btn, #panel-rig .rg-pos .toggle-btn { flex: none; min-height: 44px; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; }
+#panel-rig .rg-seg { display: flex; width: 100%; }
+#panel-rig .rg-seg .toggle-btn { flex: 1; min-height: 40px; }
+#panel-rig .rg-mine { color: #ffd60a; }
+#panel-rig .rg-badge { font: 700 var(--fs-xs, .625rem) var(--f-body); letter-spacing: .04em; padding: 3px 8px; border-radius: 6px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+#panel-rig .card-head h2 { margin: 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#panel-rig .rg-desc { min-height: 2.9em; }
+#panel-rig .rg-hint { font-size: var(--fs-s, .75rem); color: var(--muted); line-height: 1.45; }
+#panel-rig .rg-gnote { min-height: 4.4em; }
+#panel-rig .rg-row { display: flex; gap: 8px; align-items: center; }
+#panel-rig .rg-wrap { flex-wrap: wrap; }
+#panel-rig .rg-wrap .toggle-btn { min-height: 44px; }
+/* Gitarren-Einstellung (Sounds) */
+#panel-rig .rg-gset { display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end; min-height: 96px; }
+#panel-rig .rg-gk { text-align: center; font-size: 11px; color: var(--muted); min-width: 52px; }
+#panel-rig .rg-gk svg { display: block; margin: 0 auto; }
+#panel-rig .rg-gk b { display: block; color: var(--ink); font-size: 12px; }
+#panel-rig .rg-sw3 { display: flex; flex-direction: column; gap: 3px; }
+#panel-rig .rg-sw3 span { font-size: 11px; padding: 3px 8px; border-radius: 6px; border: 1px solid var(--line); color: var(--muted); }
+#panel-rig .rg-sw3 span.on { background: #ff9f0a; border-color: #ff9f0a; color: #000; font-weight: 700; }
+#panel-rig .rg-pill { border-radius: 8px; padding: 6px 10px; font-weight: 600; font-size: 12px; margin-bottom: 4px; border: 1px solid var(--line); color: var(--muted); }
+#panel-rig .rg-pill.on { background: #64d2ff; border-color: #64d2ff; color: #000; }
+/* Signalkette */
+#panel-rig .rg-chain { display: flex; gap: 10px; overflow-x: auto; padding: 4px 2px 10px; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; min-height: 172px; }
+#panel-rig .rg-blk { flex: none; scroll-snap-align: start; width: 168px; min-height: 158px; border-radius: 12px; padding: 10px; background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.02)); border: 1px solid var(--line); cursor: pointer; position: relative; color: var(--ink); }
+#panel-rig .rg-blk.rg-off { opacity: .38; }
+#panel-rig .rg-blk.rg-sel { outline: 2px solid var(--accent); outline-offset: 1px; }
+#panel-rig .rg-blk .rg-t { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+#panel-rig .rg-blk .rg-n { font-weight: 700; font-size: 13px; margin: 1px 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 2px; }
+#panel-rig .rg-st { position: absolute; top: 8px; right: 8px; font-size: 9px; font-weight: 800; background: #64d2ff; color: #000; border-radius: 5px; padding: 1px 5px; }
+#panel-rig .rg-knobs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px 2px; }
+#panel-rig .rg-kn { text-align: center; font-size: 10px; color: var(--muted); overflow: hidden; }
+#panel-rig .rg-kn svg { display: block; margin: 0 auto; }
+#panel-rig .rg-kn b { display: block; color: var(--ink); font-size: 11px; font-weight: 600; }
+#panel-rig .rg-kv { height: 40px; display: grid; place-items: center; font-size: 10.5px; color: var(--ink); line-height: 1.15; }
+#panel-rig .rg-arrow { flex: none; align-self: center; color: var(--muted); font-size: 18px; }
+#panel-rig .rg-amp { width: 250px; background: linear-gradient(180deg, #3a2a12, #241a0c); border-color: #6b4a1c; }
+#panel-rig .rg-edhead { display: flex; justify-content: space-between; align-items: center; gap: 8px; min-height: 44px; }
+#panel-rig .rg-edhead b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#panel-rig .rg-edhead .toggle-btn { min-height: 40px; min-width: 64px; }
+#panel-rig .rg-ed { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px 16px; align-content: start; min-height: 116px; }
+#panel-rig .rg-sl { font-size: var(--fs-m, .8125rem); display: block; }
+#panel-rig .rg-sl > span { display: flex; justify-content: space-between; }
+#panel-rig input[type=range] { width: 100%; min-height: 32px; accent-color: var(--accent); }
+#panel-rig .rg-pre { white-space: pre-wrap; font: 12.5px/1.45 ui-monospace, Menlo, monospace; background: rgba(0,0,0,.35); border: 1px solid var(--line); border-radius: 10px; padding: 12px; margin: 0; color: var(--ink); min-height: 24em; -webkit-user-select: text; user-select: text; }
+#panel-rig .toggle-btn.rg-blue { background: #0a84ff; border-color: #0a84ff; color: #fff; }
+/* Gitarren */
+#panel-rig .rg-vbar { display: flex; justify-content: flex-end; gap: 6px; flex-wrap: wrap; }
+#panel-rig .rg-vbar .toggle-btn { min-height: 40px; }
+#panel-rig .rg-stage { position: relative; height: min(72vh, 720px); min-height: 360px; border-radius: 12px; overflow: hidden; }
+#panel-rig #rg-body { width: 100%; height: 100%; display: block; }
+#panel-rig .rg-v3d { position: absolute; inset: 0; touch-action: none; }
+#panel-rig .rg-v3msg { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); padding: 10px 16px; border-radius: 10px; background: rgba(0,0,0,.7); color: var(--ink); font-size: var(--fs-m, .8125rem); }
+#panel-rig #rg-v3Hint { min-height: 2.9em; padding: 0 4px; }
+#panel-rig .rg-leg { min-height: 182px; padding: 0 4px; }
+#panel-rig .rg-legr { display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 3px 0; }
+#panel-rig .rg-legn { width: 20px; height: 20px; border-radius: 10px; border: 1.6px solid; display: grid; place-items: center; font-size: 11px; font-weight: 800; flex: none; }
+#panel-rig .rg-legt { flex: 1; min-width: 0; }
+#panel-rig .rg-legu { color: var(--muted); width: 56px; text-align: right; }
+#panel-rig .rg-grid2 { display: grid; grid-template-columns: 1fr; gap: 14px; }
+@media (min-width: 820px) { #panel-rig .rg-grid2 { grid-template-columns: 1fr 1fr; } }
+#panel-rig .rg-pos { display: flex; gap: 6px; flex-wrap: wrap; }
+#panel-rig .rg-split { min-height: 44px; }
+#panel-rig .rg-split .toggle-btn { min-height: 44px; }
+#panel-rig .rg-split.rg-none { visibility: hidden; }
+#panel-rig .rg-poted { min-height: 120px; }
+#panel-rig .rg-char { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+#panel-rig .rg-char div { border: 1px solid var(--line); border-radius: 10px; padding: 8px 4px; text-align: center; font-size: 11px; color: var(--muted); }
+#panel-rig .rg-char b { display: block; font-size: 16px; color: var(--ink); white-space: nowrap; }
+#panel-rig .rg-curve { width: 100%; display: block; }
+#panel-rig .rg-expl { margin: 0; padding: 0 0 0 18px; min-height: 13.5em; }
+#panel-rig .rg-expl li { margin: 4px 0; font-size: var(--fs-m, .8125rem); }
+#panel-rig .rg-wiring { width: 100%; max-width: 760px; display: block; margin: 0 auto; }
+#panel-rig .rg-wtxt { color: var(--ink); font-size: var(--fs-m, .8125rem); }
+#panel-rig .rg-toast { position: fixed; left: 50%; bottom: calc(30px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: #3a3a3c; color: #fff; padding: 10px 16px; border-radius: 12px; font-size: 14px; opacity: 0; transition: opacity .25s; pointer-events: none; z-index: 80; }
+#panel-rig .rg-toast.on { opacity: 1; }
+/* Altes iPad / Minimal: keine Verläufe, keine Übergänge */
+html.dev-old #panel-rig .rg-blk { background: rgba(255,255,255,.04); }
+html.dev-old #panel-rig .rg-amp { background: #2e2210; }
+html.dev-old #panel-rig .rg-toast { transition: none; }
+/* helle Optiken: dunkle Fläche für Zeichnung/Prompt (Zeichnungen sind auf dunklen Grund gemalt) */
+:root[data-theme="light"] #panel-rig :is(.rg-stage, .rg-wiring, .rg-curve), :root[data-theme="precise"] #panel-rig :is(.rg-stage, .rg-wiring, .rg-curve) { background: #1c1c1e; border-radius: 12px; }
+@media (max-width: 560px) {
+  #panel-rig .rg-char { grid-template-columns: repeat(2, 1fr); }
+  #panel-rig .rg-stage { height: min(70vh, 600px); }
+}
+:root[data-theme="light"] #panel-rig .rg-pre, :root[data-theme="precise"] #panel-rig .rg-pre { background: rgba(0,0,0,.05); }
