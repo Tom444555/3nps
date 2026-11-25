@@ -3729,7 +3729,7 @@ html.dev-min #msFoldCard { display: none !important; }
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v152</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v153</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -7676,6 +7676,46 @@ function beatAnalyse(x, sr, opts) {
   // Sicherheit der Eins: Abstand der besten zur zweitbesten Zählung (in Einheiten der Streuung)
   const avgs = dsc.map((v, k) => v / Math.max(1, dct[k])), srt = avgs.slice().sort((p, q) => q - p);
   const downConf = (srt[0] - srt[1]) / (Math.sqrt(avgs.reduce((p, v) => p + v * v, 0) / 4) || 1);
+  // v153: Gegenprobe 1 ↔ 3 über die Harmonie. Akkordwechsel liegen auf der Eins – ein Takt, der an der richtigen Eins beginnt,
+  // klingt deshalb eher nach EINEM Akkord als ein um zwei Schläge verschobener (der an jedem Wechsel zwei Akkorde mischt).
+  // Bei Shuffle/Blues (Walking Bass, dünne Gitarre) sieht das grobe Chroma oben das nicht; hier wird feiner gemessen
+  // (langes Fenster, zwei je Schlag) und je Takt verglichen, wie gut er zu einem Dur-/Moll-Dreiklang passt.
+  // Getauscht wird nur, wenn die bisherige Entscheidung zwischen beiden knapp ist (Abstand < 2), mindestens 8 Takte da sind
+  // und der Vorteil der anderen Zählung über die Takte hinweg deutlich ist: t-Wert > 1 + bisheriger Abstand (je sicherer die
+  // alte Entscheidung, desto mehr Beleg braucht der Tausch). Sonst bleibt alles wie bisher. Messung: test/einsmess.js.
+  const marg13 = avgs[down] - avgs[(down + 2) % 4];
+  if (opts.barFit !== false && nb >= 40 && marg13 < 2) {
+    let N4 = 1024; while (N4 < sr * 0.3) N4 *= 2;
+    const w4 = new Float64Array(N4); for (let i = 0; i < N4; i++) w4[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / N4);
+    const hz4 = sr / N4, bA = Math.ceil(60 / hz4), bE = Math.min(N4 / 2 - 1, Math.floor(1000 / hz4)), pc4 = new Int8Array(bE + 1);
+    for (let b = bA; b <= bE; b++) pc4[b] = ((Math.round(69 + 12 * Math.log2(b * hz4 / 440)) % 12) + 12) % 12;
+    const fr4 = new Float64Array(N4);
+    const cH = beats.map((b, i) => {
+      const e = i + 1 < nb ? beats[i + 1] : b + period, v = new Float64Array(12);
+      for (const q of [0.3, 0.7]) {
+        const st = Math.round((b + (e - b) * q) * hop + N / 2) - N4 / 2; if (st < 0 || st + N4 > x.length) continue;
+        for (let k = 0; k < N4; k++) fr4[k] = x[st + k] * w4[k];
+        const F = fft(fr4);
+        for (let k = bA; k <= bE; k++) v[pc4[k]] += Math.sqrt(F.re[k] * F.re[k] + F.im[k] * F.im[k]);
+      }
+      let n2 = 0; for (let c = 0; c < 12; c++) n2 += v[c] * v[c]; n2 = Math.sqrt(n2) || 1; for (let c = 0; c < 12; c++) v[c] /= n2; return v;
+    });
+    const fitBar = i => {                       // Takt ab Schlag i: beste Übereinstimmung mit einem Dur-/Moll-Dreiklang (Kosinus)
+      const v = new Float64Array(12); let n2 = 0;
+      for (let j = 0; j < 4; j++) for (let c = 0; c < 12; c++) v[c] += cH[i + j][c];
+      for (let c = 0; c < 12; c++) n2 += v[c] * v[c];
+      let best = 0; for (let r0 = 0; r0 < 12; r0++) { const s5 = v[r0] + v[(r0 + 7) % 12]; best = Math.max(best, s5 + v[(r0 + 4) % 12], s5 + v[(r0 + 3) % 12]); }
+      return best / (Math.sqrt(3 * n2) || 1);
+    };
+    const df = []; for (let i = down + 4; i + 6 <= nb; i += 4) df.push(fitBar(i + 2) + fitBar(i - 2) - 2 * fitBar(i));
+    let tFit = 0;
+    if (df.length >= 8) {
+      const mu = df.reduce((p, v) => p + v, 0) / df.length, sdv = Math.sqrt(df.reduce((p, v) => p + (v - mu) ** 2, 0) / (df.length - 1)) || 1e-9;
+      tFit = mu / (sdv / Math.sqrt(df.length));
+      if (tFit > 1 + marg13) down = (down + 2) % 4;
+    }
+    if (opts.debug && opts.debugDown) opts.debugDown.barFit = { t: tFit, n: df.length, marg: marg13 };
+  }
   if (opts.downShift) down = (down + opts.downShift + 400) % 4;
 
   // ---------- Ergebnis ----------
