@@ -1597,3 +1597,10 @@ Gut zu wissen
      Beim Wieder-Einlesen bleibt so die Herkunft erhalten – „Import entfernen“ nimmt nur echte Importe heraus und nennt
      vorher Anzahl, Stunden und Zeitraum.
    - Profil „Minimal“: nur Schalter, Kennzahlen, Liste und Daten. Gerechnet wird nur beim Öffnen und nach Änderungen.
+
+139. Aufräumen nach dem Studio (v156)
+   - Für dich ändert sich nichts Sichtbares: Looper, Klang, Ideen, Mastering-Karte und „Gesang trennen“ arbeiten wie vorher.
+   - Entfernt wurden nur die unsichtbaren Reste des Studios (seit v148 nicht mehr erreichbar): Umschalten ins Studio und zurück,
+     die Studio-Instrumente (≈ 20 MB auf dem Server) und englische Studio-Texte. In der Anleitung „?“ fehlt bei „Ideen“ der
+     veraltete Hinweis auf „Studio“.
+   - Die alte Adresse …/3nps/studio/ führt weiter in den Looper. Gespeicherte Studio-Projekte auf dem iPad bleiben unangetastet.
