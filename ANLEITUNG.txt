@@ -1557,3 +1557,25 @@ Gut zu wissen
    - Gemessen mit 388 Teststücken: Shuffle/Blues 72 statt 61 von 94 richtig, alle anderen Stücke unverändert.
    - Bleibt die Eins trotzdem daneben (z. B. Slow Blues mit Slide-Gitarre oder Akkorde nur auf 2 und 4): im Editor ✂
      „Takt-Eins falsch? ◀ / ▶ 1 Schlag“ verschiebt das Raster wie bisher.
+
+137. Übezeit: Üben an/aus, Themen, Import aus Numbers (v154)
+   - Neu unter „Lernen“: Unterpunkt „Übezeit“ (auch als Kachel in der Übersicht). Großer Schalter „Üben: An / Aus“ mit der
+     laufenden Zeit („läuft seit 14:02“). Zusätzlich im Looper oben rechts in der Looper-Karte ein Knopf „Üben“ (grün mit
+     „● 0:42“, solange die Zeit läuft) – so muss der Looper nicht verlassen werden. In der Kopfleiste war kein Platz, ohne
+     dass dort etwas umbricht.
+   - Einschalten merkt nur den Startzeitpunkt; die Zeit läuft auch bei geschlossener App weiter. Ausschalten speichert
+     Start, Ende und Dauer (auf volle Minuten). Unter 1 Minute wird nichts gespeichert; nach mehr als 8 Stunden fragt die
+     App nach („Speichern“ mit korrigierter Dauer, „Verwerfen“, „Weiterlaufen“).
+   - „Was übe ich?“: Technik · Tonleitern/Pentatonik · Akkorde/Rhythmus · Improvisation · Songs · Looper/Jammen · Gesang ·
+     Theorie · Frei oder „ohne Thema“; unter „Themen …“ eigene hinzufügen, umbenennen, ausblenden. Themenwechsel bei
+     laufender Zeit teilt die Einheit nahtlos. Dazu eine freie „Notiz“.
+   - „Summen“: Heute · Diese Woche · Dieser Monat · Dieses Jahr · Insgesamt. „Letzte Einheiten“ seitenweise; antippen →
+     Thema, Dauer, Notiz ändern oder „Löschen“. Importierte Einheiten sind mit „Import“ markiert.
+   - „Übezeit importieren …“: die ZIP aus Numbers („Exportieren › CSV“) direkt wählen oder eine einzelne CSV. Gezählt wird
+     jede „Ende“-Zeile; ein zweiter Import doppelt nichts. Meldung: „N Einheiten, X h, von … bis … übernommen (M schon
+     vorhanden)“. „Import entfernen“ nimmt nur Importiertes heraus, selbst Gezähltes bleibt.
+   - „Als CSV exportieren“: dasselbe Format wie die Numbers-Tabelle (Start-/Ende-Zeilen, „Thema – Notiz“), lässt sich wieder
+     importieren. „Alles sichern“ nimmt die Übezeit mit.
+   - Der „Übe-Verlauf“ in „Technik“ zählt die Übezeit mit (über Jahre je Monat gebündelt) und hat den Knopf „Ganze Übersicht“.
+     Metronom-Zeit innerhalb einer gezählten Übezeit wird nicht doppelt gerechnet.
+   - Die Seite wird erst beim ersten Öffnen aufgebaut; am Looper und am Klang ändert sich nichts.
