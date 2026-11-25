@@ -1579,3 +1579,21 @@ Gut zu wissen
    - Der „Übe-Verlauf“ in „Technik“ zählt die Übezeit mit (über Jahre je Monat gebündelt) und hat den Knopf „Ganze Übersicht“.
      Metronom-Zeit innerhalb einer gezählten Übezeit wird nicht doppelt gerechnet.
    - Die Seite wird erst beim ersten Öffnen aufgebaut; am Looper und am Klang ändert sich nichts.
+
+138. Übezeit: Übersicht und Nachtragen (v155)
+   - Die Seite „Lernen › Übezeit“ ist neu geordnet: oben kompakt der Schalter (Themen-Chips in einer Zeile zum Wischen,
+     Notiz), daneben „＋ Einheit nachtragen“. Darunter:
+   - „Überblick“: Heute · Diese Woche · Dieser Monat · Dieses Jahr mit ▲/▼ (grün/rot) zum Vorzeitraum – jeweils bis zum
+     gleichen Zeitpunkt (z. B. Woche bis heute gegen Vorwoche bis zum gleichen Wochentag) –, Insgesamt, Ø je Übetag,
+     Übetage, Serie (aktuell/beste), längste Einheit, beste Woche.
+   - „Verlauf“ wie ein Börsenkurs: 1W · 1M · 3M · 1J · 3J · Alles (je Tag, je Woche oder je Monat gebündelt), „je Zeitraum“
+     oder „aufsummiert“ (Gesamtstunden), Auswahl je Thema, Hoch/Tief/Ø.
+   - „Wann geübt“ (Ø je Wochentag, Tageszeit), „Monate und Jahre“, „Kalender“ (ein Feld je Tag, je heller desto mehr;
+     Jahr mit ‹ ›), „Woran geübt“ (Zeit und Anteil je Thema; antippen = Verlauf nur dieses Themas). Unten Liste und Daten.
+   - „＋ Einheit nachtragen“: Datum (auch ältere Tage), Beginn und Ende – oder nur die Dauer (ohne Uhrzeit ab 12:00) –,
+     Thema, Notiz. Geprüft wird: Ende nach Beginn, höchstens 24 h, nicht in der Zukunft; überschneidet sich die Einheit mit
+     einer vorhandenen, fragt die App nach. In der Liste als „nachgetragen“ markiert; Datum und Beginn sind dort änderbar.
+   - Export: selbst gezählte und nachgetragene Einheiten tragen in „Übungen“ den Zusatz „[App]“ bzw. „[nachgetragen]“.
+     Beim Wieder-Einlesen bleibt so die Herkunft erhalten – „Import entfernen“ nimmt nur echte Importe heraus und nennt
+     vorher Anzahl, Stunden und Zeitraum.
+   - Profil „Minimal“: nur Schalter, Kennzahlen, Liste und Daten. Gerechnet wird nur beim Öffnen und nach Änderungen.

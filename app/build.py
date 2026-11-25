@@ -9,7 +9,7 @@ rd = lambda p: open(p, encoding='utf8').read()
 head = rd(A + 'head_app.html')
 script = rd(D + 'script.part')
 tabs = rd(D + 'tabs.js')
-storage = rd(A + 'storage.js') + '\n' + rd(A + 'verlauf.js') + '\n' + rd(A + 'uebezeit.js')   # v152: Übe-Verlauf · v154: Übezeit
+storage = rd(A + 'storage.js') + '\n' + rd(A + 'verlauf.js') + '\n' + '\n'.join(l.strip() for l in rd(A + 'uebezeit.js').split('\n') if not l.strip().startswith('//'))   # v152 · v155: Übezeit ohne Einrückung/Kommentarzeilen (index.html < 2,1 MB): Übe-Verlauf · v154: Übezeit
 looper = rd(A + 'looper.js')
 lhtml = rd(A + 'looper.html')
 lcss = rd(A + 'looper.css') + rd(A + 'circle.css') + rd(A + 'solo.css') + rd(A + 'caged.css') + rd(A + 'jam.css') + rd(A + 'uebung.css') + rd(A + 'passt.css') + rd(A + 'lied.css') + rd(A + 'sing.css') + rd(A + 'singen.css') + rd(A + 'master.css') + rd(A + 'verlauf.css') + rd(A + 'uebezeit.css') + rd(A + 'hilfe.css') + rd(A + 'powerchords.css') + rd(A + 'lernen.css')
@@ -161,6 +161,7 @@ open(A + 'www/index.html', 'w', encoding='utf8').write(app)
 # --- Vorschau für Claude ---
 pv = '<title>Looper-Vorschau</title>\n' + FONTS_PV + '\n' + EARLY.replace('document.head.appendChild(l);', '') + I18N_PV + '<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>\n' + body
 pv = pv.replace("let start = 'griffbrett';", "let start = 'looper';")
+pv += '<style>' + rd(A + 'uebezeit-ansicht.css') + '</style>\n<script>\n' + rd(A + 'uebezeit-ansicht.js') + '\n</script>\n'   # Vorschau bleibt eine Datei
 old_mic = "setStatus('Kein Zugriff aufs Mikrofon. Erlaube ihn in den iPad-Einstellungen unter Datenschutz → Mikrofon bzw. für die Website in Safari (aA → Website-Einstellungen → Mikrofon).');"
 assert old_mic in pv
 pv = pv.replace(old_mic, "setStatus('In der Vorschau ist das Mikrofon gesperrt. Nimm den Demo-Loop oben, in der App funktioniert die Aufnahme.');")
@@ -202,6 +203,8 @@ document.getElementById('demoLoop').addEventListener('click', () => {
 open(D + 'preview.html', 'w', encoding='utf8').write(pv)
 print('app', len(app), 'preview', len(pv))
 
+# v155: Übezeit-Übersicht als eigene Dateien (erst beim ersten Öffnen der Seite geladen, sw.js legt sie vorab ab)
+shutil.copy(A + 'uebezeit-ansicht.js', A + 'www/uebezeit-ansicht.js'); shutil.copy(A + 'uebezeit-ansicht.css', A + 'www/uebezeit-ansicht.css')
 # Texterkennung (v64): Worker neben die Modelle legen (Modelle selbst kommen aus dem Branch „modelle“)
 import os, shutil
 os.makedirs(A + 'www/asr', exist_ok=True)

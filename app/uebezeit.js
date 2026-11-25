@@ -5,7 +5,8 @@
    (Ausschalten = Einheit dazu + Laufzustand weg in einem setItem; ein Absturz verliert und doppelt nichts).
    Format v1 (Teil B liest nur):
      { v: 1, run: null | { s: Start (ms) }, th: gewähltes Thema ('' = ohne), nt: Notiz,
-       u: [[ende_s, dauer_s, herkunft (0 = selbst gezählt, 1 = Import), thema, notiz], …] }   – nach Ende sortiert, Minutengenau
+       u: [[ende_s, dauer_s, herkunft (0 = selbst gezählt, 1 = Import, 2 = nachgetragen), thema, notiz], …] }
+   v155: Export kennzeichnet Herkunft 0/2 in „Übungen“ mit „[App]“ bzw. „[nachgetragen]“, der Import stellt sie wieder her.   – nach Ende sortiert, Minutengenau
    Themen: „3nps-uebezeit-themen“ { c: [[id, name], …] eigene, r: { id: neuer Name }, h: [ausgeblendete ids] }.
    Beim Start: nur Kopfknopf (ein getItem); die Seite wird erst beim ersten Öffnen gebaut. Keine Timer außer der Minutenanzeige bei laufender Zeit. */
 window.Uebezeit = (() => {
@@ -39,8 +40,8 @@ window.Uebezeit = (() => {
   const minR = ms => Math.round(ms / 60000) * 60;
   function unitFrom(s, e, d0) {
     if (e - s < 60000) return null;   // unter 1 Minute wird nicht gespeichert
-    const a = minR(s), b = Math.max(minR(e), a + 60);
-    return [b, b - a, 0, d0.th || '', (d0.nt || '').trim()];
+    const b = minR(e), dur = Math.max(1, Math.round((e - s) / 60000)) * 60;   // Dauer auf ganze Minuten, Ende auf volle Minute (Start = Ende − Dauer)
+    return [b, dur, 0, d0.th || '', (d0.nt || '').trim()];
   }
 
   /* ---------- Formate ---------- */
@@ -51,6 +52,8 @@ window.Uebezeit = (() => {
   const loc = () => (window.__lang === 'en' ? 'en-GB' : 'de-DE');
   const dday = t => new Date(t).toLocaleDateString(loc(), { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' });
   const numDate = t => { const d = new Date(t); return p2(d.getDate()) + '.' + p2(d.getMonth() + 1) + '.' + d.getFullYear() + ', ' + p2(d.getHours()) + ':' + p2(d.getMinutes()); };
+  const ymd = t => { const d = new Date(t); return d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate()); };
+  const at = (date, time) => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date || ''), h = /^(\d{1,2}):(\d{2})/.exec(time || ''); if (!m || !h) return null; return new Date(+m[1], +m[2] - 1, +m[3], +h[1], +h[2]).getTime(); };
   const durTxt = sec => { const h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60), s = Math.round(sec % 60); const o = []; if (h) o.push(h + 'h'); if (m) o.push(m + 'm'); if (s) o.push(s + 's'); return o.join(' ') || '0ms'; };
 
   /* ---------- Schalter ---------- */
@@ -164,8 +167,9 @@ window.Uebezeit = (() => {
       const r = rows[i]; if (!r || (r[1] || '').trim() !== 'Ende') continue;
       const e = parseDate(r[0]), d = parseDur(r[2]);
       if (e == null || d == null) continue;
-      const [th, nt] = splitNote(r[3], t);
-      out.push([Math.round(e / 1000), d, 1, th, nt]);
+      const mk = /\s*\[(App|nachgetragen)\]\s*$/.exec(r[3] || ''), txt = mk ? (r[3] || '').slice(0, mk.index) : r[3];
+      const [th, nt] = splitNote(txt, t);
+      out.push([Math.round(e / 1000), d, mk ? (mk[1] === 'App' ? 0 : 2) : 1, th, nt]);
     }
     return out;
   }
@@ -180,7 +184,7 @@ window.Uebezeit = (() => {
     const d = load(), have = new Set(d.u.map(x => x[0] + '|' + x[1]));
     let n = 0, dup = 0, sec = 0, a = Infinity, b = -Infinity;
     units.forEach(u => {
-      const k = u[0] + '|' + u[1];
+      const k = u[0] + '|' + u[1];   // Herkunft zählt nicht zum Schlüssel
       if (have.has(k)) { dup++; return; }
       have.add(k); d.u.push(u); n++; sec += u[1]; a = Math.min(a, u[0]); b = Math.max(b, u[0]);
     });
@@ -204,7 +208,9 @@ window.Uebezeit = (() => {
     const d = load(), t = topics(), q = v => /[;"\r\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
     const L = ['Datum und Uhrzeit;Start/Ende;Übungszeit;Übungen'];
     d.u.forEach(u => {
-      const e = u[0] * 1000, txt = u[3] ? tname(u[3], t) + (u[4] ? ' – ' + u[4] : '') : (u[4] || '');
+      const e = u[0] * 1000, mk = u[2] === 0 ? '[App]' : u[2] === 2 ? '[nachgetragen]' : '';
+      let txt = u[3] ? tname(u[3], t) + (u[4] ? ' – ' + u[4] : '') : (u[4] || '');
+      if (mk) txt = txt ? txt + ' ' + mk : mk;
       L.push(numDate(e - u[1] * 1000) + ';Start;!!;');
       L.push(numDate(e) + ';Ende;' + durTxt(u[1]) + ';' + q(txt));
     });
@@ -251,23 +257,32 @@ window.Uebezeit = (() => {
   }
   function build() {
     const root = $('uzRoot'); if (!root || built) return; built = true;
+    if (window.UebezeitAnsicht || document.querySelector('link[href="uebezeit-ansicht.css"]')) root.classList.add('uz-css'); else loadViz();
+    const card = (cls, id, h, body) => '<div class="card uz-card ' + cls + '"' + (id ? ' id="' + id + '"' : '') + '><div class="card-head"><h2>' + esc(TT(h)) + '</h2></div>' + body + '</div>';
     root.innerHTML =
-      '<div class="card uz-card"><div class="card-head"><h2>' + esc(TT('Übezeit')) + '</h2></div>'
+      '<div class="card uz-card uz-sw"><div class="card-head"><h2>' + esc(TT('Übezeit')) + '</h2><button type="button" class="toggle-btn uz-addb" id="uzAddBtn">＋ ' + esc(TT('Einheit nachtragen')) + '</button></div>'
       + '<div class="uz-top"><button type="button" class="uz-btn" id="uzBtn" aria-pressed="false">' + esc(TT('Üben: Aus')) + '</button>'
       + '<div class="uz-now"><div class="uz-time" id="uzTime">0:00</div><div class="caption" id="uzSince"></div></div></div>'
       + '<div class="uz-lbl">' + esc(TT('Was übe ich?')) + '</div><div class="uz-chips" id="uzChips"></div>'
       + '<div class="uz-edit" id="uzEdit" hidden></div>'
       + '<label class="field uz-note"><span>' + esc(TT('Notiz (optional)')) + '</span><input type="text" id="uzNote" maxlength="300" autocomplete="off" placeholder="' + esc(TT('z. B. Pentatonik Lage 1')) + '"></label>'
       + '<p class="caption uz-msg" id="uzMsg" role="status"></p></div>'
-      + '<div class="card uz-card"><div class="card-head"><h2>' + esc(TT('Summen')) + '</h2></div><div class="uz-sums" id="uzSums"></div><p class="caption" id="uzSumN"></p></div>'
-      + '<div class="card uz-card"><div class="card-head"><h2>' + esc(TT('Letzte Einheiten')) + '</h2></div><div class="uz-list" id="uzList"></div>'
+      // v155: Übersicht (Kacheln, Verlauf, Balken, Kalender, Themen) – gezeichnet von uebezeit-ansicht.js
+      + card('uz-kpic', 'uzKpiCard', 'Überblick', '<div class="uz-sums" id="uzSums"></div><div class="uz-sums uz-kpi2" id="uzKpi2"></div><p class="caption" id="uzSumN"></p>')
+      + card('uz-viz uz-full', 'uzVerlauf', 'Verlauf', '<div id="uzVl"></div>')
+      + card('uz-viz', 'uzWann', 'Wann geübt', '<div id="uzWn"></div>')
+      + card('uz-viz', 'uzMonate', 'Monate und Jahre', '<div id="uzMj"></div>')
+      + card('uz-viz uz-full', 'uzKal', 'Kalender', '<div id="uzKl"></div>')
+      + card('uz-viz uz-full', 'uzThemen', 'Woran geübt', '<div id="uzTh"></div>')
+      + '<div class="card uz-card uz-full" id="uzListCard"><div class="card-head"><h2>' + esc(TT('Letzte Einheiten')) + '</h2></div><div class="uz-list" id="uzList"></div>'
       + '<div class="uz-pg" id="uzPg"><button type="button" class="toggle-btn" id="uzNewer">‹ ' + esc(TT('Neuere')) + '</button><span class="caption" id="uzPgN"></span><button type="button" class="toggle-btn" id="uzOlder">' + esc(TT('Ältere')) + ' ›</button></div></div>'
-      + '<div class="card uz-card"><div class="card-head"><h2>' + esc(TT('Daten')) + '</h2></div><div class="uz-data">'
+      + '<div class="card uz-card uz-full" id="uzDaten"><div class="card-head"><h2>' + esc(TT('Daten')) + '</h2></div><div class="uz-data">'
       + '<button type="button" class="toggle-btn" id="uzImp">' + esc(TT('Übezeit importieren …')) + '</button><input type="file" id="uzFile" accept=".zip,.csv,text/csv,application/zip" hidden>'
       + '<button type="button" class="toggle-btn" id="uzExp">' + esc(TT('Als CSV exportieren')) + '</button>'
       + '<button type="button" class="toggle-btn" id="uzRm">' + esc(TT('Import entfernen')) + '</button></div>'
       + '<p class="caption uz-msg" id="uzDataMsg" role="status"></p>'
       + '<p class="caption">' + esc(TT('Import: die ZIP-Datei aus Numbers („Exportieren › CSV“) direkt wählen oder eine einzelne CSV. Gezählt wird jede „Ende“-Zeile; schon vorhandene Einheiten werden nicht doppelt übernommen. Der Export hat dasselbe Format und lässt sich hier wieder einlesen. „Alles sichern“ im Looper nimmt die Übezeit mit.')) + '</p></div>';
+    $('uzAddBtn').addEventListener('click', () => addForm());
     $('uzBtn').addEventListener('click', toggle);
     $('uzNote').addEventListener('input', e => setNote(e.target.value));
     $('uzChips').addEventListener('click', e => {
@@ -304,12 +319,13 @@ window.Uebezeit = (() => {
     });
     $('uzExp').addEventListener('click', () => { exportCsv(); $('uzDataMsg').textContent = TT('CSV erstellt') + ' (' + load().u.length + ' ' + TT('Einheiten') + ').'; });
     $('uzRm').addEventListener('click', () => {
-      const n = load().u.filter(x => x[2] === 1).length;
+      const im = load().u.filter(x => x[2] === 1), n = im.length;
       if (!n) { $('uzDataMsg').textContent = TT('Keine importierten Einheiten vorhanden.'); return; }
-      if (!confirm(TT('Alle importierten Einheiten entfernen?') + ' (' + n + ')\n' + TT('Selbst gezählte Einheiten bleiben.'))) return;
+      const f = t => new Date(t * 1000).toLocaleDateString(loc(), { day: '2-digit', month: '2-digit', year: 'numeric' });
+      if (!confirm(TT('Importierte Einheiten entfernen?') + '\n' + n + ' ' + TT(n === 1 ? 'Einheit' : 'Einheiten') + ', ' + fmtHM(im.reduce((a, x) => a + x[1], 0)) + ', ' + TT('von') + ' ' + f(im[0][0]) + ' ' + TT('bis') + ' ' + f(im[n - 1][0]) + '.\n' + TT('Selbst gezählte und nachgetragene Einheiten bleiben.'))) return;
       $('uzDataMsg').textContent = removeImport() + ' ' + TT('importierte Einheiten entfernt.');
     });
-    paintAll(); paintChips(); paintSums(); paintList();
+    // gezeichnet wird danach im tabchange-Handler (einmal)
   }
   function paintRun(d) {
     const b = $('uzBtn'); if (!b) return;
@@ -333,7 +349,21 @@ window.Uebezeit = (() => {
       + tlist(t).map(id => '<div class="uz-erow' + (t.h.includes(id) ? ' off' : '') + '"><input type="text" data-ren="' + esc(id) + '" value="' + esc(tname(id, t)) + '" maxlength="40" aria-label="' + esc(TT('Umbenennen')) + '">'
         + '<button type="button" class="toggle-btn" data-hide="' + esc(id) + '">' + esc(TT(t.h.includes(id) ? 'Thema einblenden' : 'Thema ausblenden')) + '</button></div>').join('');
   }
+  // v155: Übersicht (uebezeit-ansicht.js/.css) erst beim ersten Öffnen laden – Start und index.html bleiben schlank
+  let vizLoading = false;
+  function loadViz() {
+    if (vizLoading || window.UebezeitAnsicht) return; vizLoading = true;
+    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'uebezeit-ansicht.css'; document.head.appendChild(l);
+    l.addEventListener('load', () => { const r = $('uzRoot'); if (r) r.classList.add('uz-css'); });
+    l.addEventListener('error', () => { const r = $('uzRoot'); if (r) r.classList.add('uz-css'); });
+    const sc = document.createElement('script'); sc.src = 'uebezeit-ansicht.js';
+    sc.onload = () => paintViz();
+    sc.onerror = () => { vizLoading = false; };
+    l.onload = l.onerror = () => document.head.appendChild(sc);   // erst Stil, dann Code
+  }
+  const paintViz = () => { if (!built) return; if (window.UebezeitAnsicht) UebezeitAnsicht.paint(load()); else loadViz(); };
   function paintSums() {
+    if (window.UebezeitAnsicht) return;   // Kacheln mit ▲/▼ zeichnet uebezeit-ansicht.js (paintViz)   // v155: Kacheln mit ▲/▼ zeichnet uebezeit-ansicht.js (paintViz)
     const el = $('uzSums'); if (!el) return; const d = load(), s = sums(d, Date.now());
     el.innerHTML = [['Heute', s.heute], ['Diese Woche', s.woche], ['Dieser Monat', s.monat], ['Dieses Jahr', s.jahr], ['Insgesamt', s.gesamt]]
       .map(x => '<div class="uz-sum"><div class="uz-sv">' + esc(fmtHM(x[1])) + '</div><div class="caption">' + esc(TT(x[0])) + '</div></div>').join('');
@@ -346,7 +376,7 @@ window.Uebezeit = (() => {
     for (let i = from; i > from - PER && i >= 0; i--) {
       const u = d.u[i], e = u[0] * 1000, s = e - u[1] * 1000;
       rows.push('<div class="uz-row' + (editIdx === i ? ' open' : '') + '" data-i="' + i + '" role="button" tabindex="0"><div class="uz-r1"><span class="uz-rd">' + esc(dday(e)) + '</span><b class="uz-rdur">' + esc(fmtHM(u[1])) + '</b></div>'
-        + '<div class="uz-r2 caption"><span>' + hhmm(s) + '–' + hhmm(e) + '</span>' + (u[3] ? '<span class="uz-tag">' + esc(tname(u[3], t)) + '</span>' : '') + (u[2] === 1 ? '<span class="uz-imp">' + esc(TT('Import')) + '</span>' : '')
+        + '<div class="uz-r2 caption"><span>' + hhmm(s) + '–' + hhmm(e) + '</span>' + (u[3] ? '<span class="uz-tag">' + esc(tname(u[3], t)) + '</span>' : '') + (u[2] === 1 ? '<span class="uz-imp">' + esc(TT('Import')) + '</span>' : u[2] === 2 ? '<span class="uz-imp">' + esc(TT('nachgetragen')) + '</span>' : '')
         + (u[4] ? '<span class="uz-rn">' + esc(u[4]) + '</span>' : '') + '</div>'
         + (editIdx === i ? editor(u, t) : '') + '</div>');
     }
@@ -355,8 +385,10 @@ window.Uebezeit = (() => {
     $('uzNewer').disabled = page === 0; $('uzOlder').disabled = page >= pages - 1;
   }
   function editor(u, t) {
-    const ids = [''].concat(tlist(t)), m = Math.round(u[1] / 60);
-    return '<div class="uz-ed"><label class="field"><span>' + esc(TT('Thema')) + '</span><select id="uzEdTh">' + ids.map(id => '<option value="' + esc(id) + '"' + (id === u[3] ? ' selected' : '') + '>' + esc(tname(id, t)) + '</option>').join('') + '</select></label>'
+    const ids = [''].concat(tlist(t)), m = Math.round(u[1] / 60), st = (u[0] - u[1]) * 1000;
+    return '<div class="uz-ed"><label class="field"><span>' + esc(TT('Datum')) + '</span><input type="date" id="uzEdDate" value="' + ymd(st) + '" max="' + ymd(Date.now()) + '"></label>'
+      + '<label class="field"><span>' + esc(TT('Beginn')) + '</span><input type="time" id="uzEdTime" value="' + hhmm(st) + '"></label>'
+      + '<label class="field"><span>' + esc(TT('Thema')) + '</span><select id="uzEdTh">' + ids.map(id => '<option value="' + esc(id) + '"' + (id === u[3] ? ' selected' : '') + '>' + esc(tname(id, t)) + '</option>').join('') + '</select></label>'
       + '<label class="field"><span>' + esc(TT('Dauer (Minuten)')) + '</span><input type="number" id="uzEdDur" min="0" max="1440" step="1" value="' + m + '" inputmode="numeric"></label>'
       + '<label class="field uz-edn"><span>' + esc(TT('Notiz')) + '</span><input type="text" id="uzEdNote" maxlength="300" value="' + esc(u[4]) + '"></label>'
       + '<div class="uz-edb"><button type="button" class="toggle-btn active" data-act="save">' + esc(TT('Speichern')) + '</button><button type="button" class="toggle-btn" data-act="cancel">' + esc(TT('Abbrechen')) + '</button><button type="button" class="toggle-btn uz-del" data-act="del">' + esc(TT('Löschen')) + '</button></div></div>';
@@ -368,6 +400,7 @@ window.Uebezeit = (() => {
     else {
       if (ch.th != null) u[3] = ch.th; if (ch.nt != null) u[4] = String(ch.nt).trim().slice(0, 300);
       if (ch.min != null && ch.min >= 0) { const s = u[0] - u[1]; u[1] = Math.round(ch.min) * 60; u[0] = s + u[1]; }
+      if (ch.start != null && !isNaN(ch.start)) { const e = minR(ch.start) + u[1]; if (e * 1000 <= Date.now() + 60000) u[0] = e; }   // v155: Datum/Beginn ändern (nicht in die Zukunft)
     }
     const ok = store(d); changed(); return ok;
   }
@@ -375,8 +408,64 @@ window.Uebezeit = (() => {
     const i = editIdx; if (i == null) return;
     if (a === 'cancel') { editIdx = null; paintList(); return; }
     if (a === 'del') { if (!confirm(TT('Diese Einheit löschen?'))) return; editIdx = null; editUnit(i, { del: true }); say(TT('Einheit gelöscht.')); return; }
-    const min = parseFloat($('uzEdDur').value);
-    editIdx = null; editUnit(i, { th: $('uzEdTh').value, nt: $('uzEdNote').value, min: isNaN(min) ? null : min });
+    const min = parseFloat($('uzEdDur').value), st = at($('uzEdDate').value, $('uzEdTime').value);
+    editIdx = null; editUnit(i, { th: $('uzEdTh').value, nt: $('uzEdNote').value, min: isNaN(min) ? null : min, start: st });
+  }
+  /* ---------- v155: Einheit nachtragen ----------
+     f = { date: 'JJJJ-MM-TT', from: 'HH:MM'|'', to: 'HH:MM'|'', h, m, th, nt }. Beginn+Ende ODER Dauer (mit Beginn oder Ende; ohne Uhrzeit ab 12:00
+     bzw. bis jetzt, wenn das in der Zukunft läge). Ergebnis { err } | { overlap: n, s, e } | { ok: Einheit }. force = Überschneidung bestätigt. */
+  function addUnit(f, force) {
+    const now = Date.now(), dur = ((+f.h || 0) * 60 + (+f.m || 0)) * 60000;
+    let s = f.from ? at(f.date, f.from) : null, e = f.to ? at(f.date, f.to) : null;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(f.date || '')) return { err: TT('Bitte ein Datum wählen.') };
+    if (s != null && e != null) { if (e <= s) return { err: TT('Das Ende muss nach dem Beginn liegen.') }; }
+    else if (dur > 0) {
+      if (s != null) e = s + dur; else if (e != null) s = e - dur;
+      else { s = at(f.date, '12:00'); e = s + dur; if (e > now) { e = now; s = now - dur; } }
+    } else return { err: TT('Beginn und Ende oder eine Dauer angeben.') };
+    if (e - s <= 0) return { err: TT('Die Dauer muss größer als 0 sein.') };
+    if (e - s > 24 * 3600e3) return { err: TT('Höchstens 24 Stunden je Einheit.') };
+    if (e > now + 60000) return { err: TT('Die Einheit liegt in der Zukunft.') };
+    const a = minR(s), b = Math.max(minR(e), a + 60), d = load();
+    const ov = d.u.filter(u => u[0] - u[1] < b && u[0] > a).length + (d.run && d.run.s / 1000 < b ? 1 : 0);
+    if (ov && !force) return { overlap: ov, s: a * 1000, e: b * 1000 };
+    const u = [b, b - a, 2, f.th || '', String(f.nt || '').trim().slice(0, 300)];
+    d.u.push(u); if (!store(d)) return { err: TT('Konnte nicht speichern – Speicher voll oder privates Surfen.') };
+    changed(); return { ok: u };
+  }
+  function addForm() {
+    let w = $('uzAdd');
+    if (!w) { w = document.createElement('div'); w.id = 'uzAdd'; w.className = 'uz-ask'; document.body.appendChild(w); }
+    const t = topics(), d = load(), ids = [''].concat(tlist(t).filter(id => !t.h.includes(id)));
+    let th = d.th || '';
+    w.innerHTML = '<div class="uz-askbox uz-addbox card" role="dialog" aria-modal="true" aria-labelledby="uzAddH"><h2 id="uzAddH">' + esc(TT('Einheit nachtragen')) + '</h2>'
+      + '<p class="caption">' + esc(TT('Beginn und Ende – oder nur die Dauer. Eines reicht.')) + '</p>'
+      + '<div class="uz-addg"><label class="field uz-addd"><span>' + esc(TT('Datum')) + '</span><input type="date" id="uzAdDate" value="' + ymd(Date.now()) + '" max="' + ymd(Date.now()) + '"></label>'
+      + '<label class="field"><span>' + esc(TT('Beginn')) + '</span><input type="time" id="uzAdFrom"></label>'
+      + '<label class="field"><span>' + esc(TT('Ende')) + '</span><input type="time" id="uzAdTo"></label>'
+      + '<label class="field"><span>' + esc(TT('Dauer: Stunden')) + '</span><input type="number" id="uzAdH" min="0" max="24" inputmode="numeric" placeholder="0"></label>'
+      + '<label class="field"><span>' + esc(TT('Minuten')) + '</span><input type="number" id="uzAdM" min="0" max="59" inputmode="numeric" placeholder="0"></label></div>'
+      + '<div class="uz-lbl">' + esc(TT('Thema')) + '</div><div class="uz-chips uz-addch" id="uzAdTh">' + ids.map(id => '<button type="button" class="toggle-btn' + (id === th ? ' active' : '') + '" data-fth="' + esc(id) + '">' + esc(tname(id, t)) + '</button>').join('') + '</div>'
+      + '<label class="field"><span>' + esc(TT('Notiz')) + '</span><input type="text" id="uzAdNote" maxlength="300" autocomplete="off"></label>'
+      + '<p class="caption uz-msg bad" id="uzAdErr" role="alert"></p>'
+      + '<div class="uz-edb"><button type="button" class="toggle-btn active" data-a="save">' + esc(TT('Speichern')) + '</button><button type="button" class="toggle-btn" data-a="cancel">' + esc(TT('Abbrechen')) + '</button></div></div>';
+    w.hidden = false;
+    const val = () => ({ date: $('uzAdDate').value, from: $('uzAdFrom').value, to: $('uzAdTo').value, h: $('uzAdH').value, m: $('uzAdM').value, th, nt: $('uzAdNote').value });
+    w.onclick = e => {
+      const c = e.target.closest('[data-fth]');
+      if (c) { th = c.dataset.fth; w.querySelectorAll('[data-fth]').forEach(b => b.classList.toggle('active', b === c)); return; }
+      const b = e.target.closest('button[data-a]'); if (!b && e.target !== w) return;
+      if (!b || b.dataset.a === 'cancel') { w.hidden = true; return; }
+      let r = addUnit(val());
+      if (r.overlap) {
+        const f2 = t2 => new Date(t2).toLocaleString(loc(), { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+        if (!confirm(TT('Überschneidet sich mit') + ' ' + r.overlap + ' ' + TT(r.overlap === 1 ? 'vorhandenen Einheit' : 'vorhandenen Einheiten') + ' (' + f2(r.s) + '–' + hhmm(r.e) + ').\n' + TT('Trotzdem speichern? Die Zeit zählt dann doppelt.'))) { $('uzAdErr').textContent = TT('Nicht gespeichert – Zeiten anpassen.'); return; }
+        r = addUnit(val(), true);
+      }
+      if (r.err) { $('uzAdErr').textContent = r.err; return; }
+      w.hidden = true; say(TT('Nachgetragen:') + ' ' + fmtHM(r.ok[1]) + ' · ' + dday(r.ok[0] * 1000));
+    };
+    const i = $('uzAdFrom'); if (i) i.focus();
   }
   // Nachfrage bei vergessenem Ausschalten (> 8 h): Dauer korrigieren, verwerfen oder weiterlaufen lassen
   function ask8(s, now) {
@@ -398,7 +487,7 @@ window.Uebezeit = (() => {
   }
   function changed() {
     paintAll();
-    if (built) { paintChips(); paintSums(); paintList(); }
+    if (built) { paintChips(); paintSums(); paintList(); paintViz(); }
     if (window.UebeVerlauf && UebeVerlauf.refresh) UebeVerlauf.refresh();
   }
   // Kopfknopf verdrahten (das ist alles, was beim Start passiert)
@@ -406,9 +495,9 @@ window.Uebezeit = (() => {
     const b = $('uebenBtn'); if (b) b.addEventListener('click', toggle);
     paintAll();
     document.addEventListener('visibilitychange', paintAll);
-    document.addEventListener('tabchange', e => { if (e.detail === 'uebezeit') { build(); paintAll(); paintChips(); paintSums(); paintList(); } });
+    document.addEventListener('tabchange', e => { if (e.detail === 'uebezeit') { build(); paintAll(); paintChips(); paintSums(); paintList(); paintViz(); } });
     window.addEventListener('storage', e => { if (e.key === KEY || e.key === TKEY) changed(); });
   }
   if ($('uebenBtn')) init(); else document.addEventListener('DOMContentLoaded', init);   // Kopf steht schon im DOM → sofort, damit tabchange beim Start ankommt
-  return { on, off, toggle, setTopic, setNote, load, importFile, importMsg, removeImport, csv, exportCsv, merge, sums, topics, tname, editUnit, built: () => built, KEY, _parse: { csvRows, parseDur, parseDate, unzip } };
+  return { on, off, toggle, setTopic, setNote, load, importFile, importMsg, removeImport, csv, exportCsv, merge, sums, topics, tname, editUnit, addUnit, addForm, fmtHM, dday, hhmm, esc, built: () => built, KEY, DEF, _parse: { csvRows, parseDur, parseDate, unzip } };
 })();
