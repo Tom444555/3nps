@@ -1537,3 +1537,13 @@ Gut zu wissen
      Die Tabelle zeigt Lautheit, True Peak und Dynamik vorher/nachher.
    - „Original“ / „Master“ mit „gleich laut vergleichen“ anhören, dann „Als WAV exportieren“ (24 Bit, Name mit „Master“).
    - Anleitung „?“: Thema „Mastering (Lautheit für Spotify & Co.)“.
+
+135. Übe-Verlauf als Diagramm (v152)
+   - In „Technik“ unter „Letzte Einheiten“ gibt es die Karte „Übe-Verlauf“. Aufgeklappt zeigt sie wie ein Börsenkurs:
+     groß den aktuellen Wert, darunter ▲/▼ die Veränderung, eine Linie und „Hoch“/„Tief“.
+   - „Übezeit“: Summe der Übungsminuten im Zeitraum, ▲/▼ zum gleich langen Zeitraum davor; Linie je Tag (ab 3 Monaten je Woche).
+     „Tempo“: höchstes Tempo je Übungstag, ▲/▼ seit dem ersten Tag im Zeitraum.
+   - Zeitraum: „1W“ · „1M“ · „3M“ · „1J“ · „Alles“ (wird gemerkt).
+   - Gezählt wird nur, was gespeichert ist: Metronom-Einheiten im Griffbrett ab 5 Sekunden und erledigte Blöcke der
+     Tagesübung. Spielen im Looper zählt nicht mit. Ohne Einträge steht ein Hinweis da – der Verlauf wächst ab jetzt.
+   - Die Karte rechnet nur, wenn sie offen ist; am Looper ändert sich nichts.
