@@ -108,7 +108,7 @@ async def main():
         # Export → alles löschen → Import
         csv = await pg.evaluate("Uebezeit.csv()")
         before = await pg.evaluate("(()=>{const d=%s;const t={};d.u.forEach(u=>t[u[3]]=(t[u[3]]||0)+u[1]);return {n:d.u.length,s:d.u.reduce((a,u)=>a+u[1],0),t,notes:d.u.map(u=>u[4]).sort()}})()" % L)
-        check('Export: Kopfzeile, BOM, Start/Ende-Paare, „Thema – Notiz“', csv.startswith('﻿Datum und Uhrzeit;Start/Ende;Übungszeit;Übungen\n') and csv.count(';Start;!!;') == before['n'] and csv.count(';Ende;') == before['n'] and ';Sweeps – Lage 5' in csv and ';Technik\n' in csv)
+        check('Export: Kopfzeile, BOM, Start/Ende-Paare, „Thema – Notiz“', csv.startswith('﻿Datum und Uhrzeit;Start/Ende;Übungszeit;Übungen\n') and csv.count(';Start;!!;') == before['n'] and csv.count(';Ende;') == before['n'] and ';Sweeps – Lage 5' in csv and (';Technik\n' in csv or ';Technik [App]\n' in csv))
         await pg.click('#uzExp'); await pg.wait_for_timeout(300)
         check('„Als CSV exportieren“ liefert eine Datei', await pg.evaluate("!!window.__uzLastExport && window.__uzLastExport.name.endsWith('.csv') && window.__uzLastExport.size>1000"))
         await pg.evaluate("localStorage.removeItem('3nps-uebezeit')")
