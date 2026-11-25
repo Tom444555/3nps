@@ -53,27 +53,6 @@ async def main():
             if await pg.locator('#tab-' + tab).count() == 0: continue
             await open_tab(pg, tab); await pg.wait_for_timeout(1200); await pg.evaluate('window.scrollTo(0,0)')
             await pg.screenshot(path=TMP + name + '.png'); jpg(name)
-        # Studio
-        await pg.goto(U + 'studio/'); await pg.wait_for_timeout(1500)
-        await pg.evaluate("UI.show('brw')"); await pg.wait_for_timeout(800)
-        if await pg.locator('#bList .item').count(): await pg.click('#bList .item >> nth=0'); await pg.wait_for_timeout(1200)
-        await pg.screenshot(path=TMP + 'st-looper.png'); jpg('st-looper')
-        if await pg.locator('#bNew').count(): await pg.click('#bNew'); await pg.wait_for_timeout(4000)
-        await pg.evaluate("UI.show('roll'); document.getElementById('cProg').value='Am D E Am'; Roll.gen('bass')"); await pg.wait_for_timeout(800)
-        await pg.screenshot(path=TMP + 'st-noten.png'); jpg('st-noten')
-        await pg.evaluate("UI.show('arr')"); await pg.click('#tAdd'); await pg.click('#dlg .item[data-k=\"drum\"]'); await pg.wait_for_timeout(1500)
-        await pg.evaluate("Proj.P.cycle={on:true,a:0,b:Proj.bar()*2}; Engine.setCycle(); Arr.zoomAll(); Arr.V.sel=Proj.P.regions[0].id; Arr.V.selTrack=Proj.P.regions[0].track; UI.inspect(); UI.sync()"); await pg.wait_for_timeout(800)
-        await pg.screenshot(path=TMP + 'st-arr.png'); jpg('st-arr')
-        await pg.evaluate("UI.show('mix')"); await pg.wait_for_timeout(700); await pg.screenshot(path=TMP + 'st-mix.png'); jpg('st-mix')
-        await pg.evaluate("UI.show('mst')"); await pg.wait_for_timeout(500); await pg.select_option('#msSrc', 'mix'); await pg.click('#msLoad')
-        for _ in range(60):
-            await pg.wait_for_timeout(300)
-            if 'Gemessen' in await pg.inner_text('#msStatus'): break
-        await pg.click('#msRun')
-        for _ in range(80):
-            await pg.wait_for_timeout(300)
-            if 'Fertig' in await pg.inner_text('#msStatus'): break
-        await pg.screenshot(path=TMP + 'st-mastering.png'); jpg('st-mastering')
         await b.close()
     print(sorted(os.listdir(OUT)))
 asyncio.run(main())

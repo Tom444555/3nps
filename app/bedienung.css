@@ -47,7 +47,7 @@
   .tracks .tsrc { display: none; }
   .tracks .keybadge { min-height: var(--hit); display: inline-flex; flex-direction: column; justify-content: center; line-height: 1.1; }
   .tracks .chdbadge { min-height: var(--hit); box-sizing: border-box; }
-  /* Spur-Knöpfe EQ · Hall/Echo · Im Studio · Gesang trennen zu zweit nebeneinander */
+  /* Spur-Knöpfe EQ · Hall/Echo · Gesang trennen zu zweit nebeneinander */
   .track-btns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
   .track-btns .eq-btn { min-height: var(--hit); margin-top: 0; padding-block: 0; white-space: normal; line-height: 1.15; }
 

@@ -46,7 +46,7 @@
   }
 
   // ---------- Oberfläche ----------
-  // v151: Oberfläche erst beim Öffnen der Looper-Karte „Mastering“ (mount); im Studio sofort (#panel-master)
+  // v151: Oberfläche erst beim Öffnen der Looper-Karte „Mastering“ (mount)
   const api = window.Master = { measure, normalize, target, reportText, TARGETS };
   let mounted = false;
   api.mount = panel => { if (mounted || !panel) return; mounted = true; mountUI(panel); };
@@ -74,7 +74,6 @@
   async function getSource() {
     const v = $('msSrc').value;
     if (v === 'file') return null;   // über Dateiauswahl
-    if (window.MasterSource) { const r = await window.MasterSource(v); if (r) return r; }   // v112: Studio liefert Projekt-Mix
     if (v === 'mix') {                // v151: Looper-Mix aller Spuren (mit Spur-EQ/Hall/Echo, wie „Ideen“), ohne Drums/Drone
       const L = typeof Looper !== 'undefined' ? Looper : null, sess = L && L.getSession && L.getSession();
       if (!sess) throw new Error(TT('Im Looper ist noch nichts aufgenommen oder geladen.'));
@@ -192,7 +191,6 @@
 
   Object.assign(api, { cur: () => cur, load, run, startPlay, stopPlay, playing: () => !!play });
   }
-  if ($('panel-master')) api.mount($('panel-master'));
   const fold = $('msFold');   // v151: Looper-Karte – zu = nichts aufgebaut, nichts gerechnet, kein Knoten am Signalweg
   if (fold) fold.addEventListener('toggle', () => {
     if (fold.open && !mounted) { const body = $('msBody'), tpl = $('msTpl'); if (body && tpl) { body.appendChild(tpl.content.cloneNode(true)); api.mount(body); } }

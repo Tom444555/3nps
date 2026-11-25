@@ -521,7 +521,6 @@ html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleis
   .track-head .th-chords { flex: none; margin-left: auto; }
   .tsrc { font-size: var(--fs-s); color: var(--muted); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .tsrc:empty { display: none; }
-  .studio-btn { margin-top: 4px; }
   .idea-hint { margin: 2px 0 6px; font-size: var(--fs-s); } .idea-hint:empty { display: none; }
   .idea-bulk { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 8px; }
   .idea-bulk .toggle-btn { padding: 4px 10px; font-size: var(--fs-s); }

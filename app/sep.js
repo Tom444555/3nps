@@ -1,4 +1,4 @@
-// ---- v124: Gesang trennen (Spleeter 2-Stems im Worker asr/sep-worker.js) – gemeinsam für Looper und Studio ----
+// ---- v124: Gesang trennen (Spleeter 2-Stems im Worker asr/sep-worker.js) ----
 // Nichts wird geladen, bevor jemand „Gesang trennen“ antippt: kein Worker, keine Laufzeit, kein Modell.
 // Ablauf: Rückfrage beim ersten Mal (Download ~79 MB, danach im Speicher „asr-1“ wie die Whisper-Modelle) → auf 44,1 kHz →
 // Worker (Gesangsmodell, dann Begleitungsmodell, Maske, ISTFT) → Gesang zurück auf die Abtastrate → Begleitung = Original − Gesang.
@@ -6,7 +6,7 @@
 const Sep = (() => {
   const T0 = s => (typeof T === 'function' ? T(s) : s);
   const SIZE_MB = 79, KEY = '3nps-sep-have', SR = 44100;
-  const base = () => (/\/studio\//.test(location.pathname) ? '../' : '') + 'asr/';
+  const base = () => 'asr/';
   let job = null;
   const ls = (k, v) => { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } };
   async function have() {

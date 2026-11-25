@@ -4,24 +4,24 @@ Nachschlagewerk zum Skill `looper` (ergänzt UEBERGABE.md). **Nie ganz lesen** �
 Aktuelle Regressionsliste und Versionsstand stehen in UEBERGABE.md (Abschnitt 8 bzw. Kopfzeile) – die gelten vor diesem Text.
 
 ## Briefing für Arbeits-Agenten
-1. Quellen `/home/claude/3nps-src` (entwicklung), Veröffentlichung `/home/claude/3nps-main` (main). Zuerst `UEBERGABE.md` lesen. Testserver `sh test/srv.sh` (Port 8765, `app/www`). Bauen `python3 app/build.py` (nie `app-studio/build.py`). Tests nacheinander. Paket-Rahmen: `PAKETE-v149-v154.md`. Netz: nur GitHub sicher.
+1. Quellen `/home/claude/3nps-src` (entwicklung), Veröffentlichung `/home/claude/3nps-main` (main). Zuerst `UEBERGABE.md` lesen. Testserver `sh test/srv.sh` (Port 8765, `app/www`). Bauen `python3 app/build.py` (einziges Bau-Skript; `app-studio/` seit v156 gelöscht). Tests nacheinander. Paket-Rahmen: `PAKETE-v149-v154.md`. Netz: nur GitHub sicher.
 2. Regeln: Looper-Leistung zuerst (Schweres nur bei Bedarf/geöffneter Ansicht, sonst exakt alter Signalweg); IDB nur erweitern; CSP lokal; nur freie Lizenzen + Lizenzdatei; neue Looper-Texte englisch in `app/i18n-en2.js`; Studio-Module `window.X = X`; nie `git add -f app`, Dateien einzeln hinzufügen.
 3. Ablauf: pull --rebase → umsetzen → Version +1 (`app/head_app.html`, `app/www/sw.js`, `test/v31export.py`; neuere Tests prüfen „ab vNN“) → bauen → neuer Test `test/vNNname.py` (inkl. „keine Skriptfehler“) + Regressionen → Doku (ANLEITUNG.txt neuer Abschnitt, UEBERGABE.md, Anleitung-Thema in `app/hilfe-daten.js`) → commit (deutsch, Attributionszeilen) + push (bei rejected rebase, neu bauen) → main veröffentlichen, auf `gh run … completed success` warten → knapp melden.
-4. Regressionen: immer v146rig, v102ideas, v59lang, v60lang, v31export, v113hilfe, v148ohnestudio; Looper-Funktionen v116looperA, v117looperB, v118signal, v119leistung, v120power; Audio/Leistung v100mem (bis zum Ende, lange Zeitgrenze), v124trennen; Studio-Tests entfallen seit v148 (Studio entfernt, siehe UEBERGABE „Als Nächstes“); Gesang v63singen, v81vox, v85singen.
+4. Regressionen: immer v146rig, v102ideas, v59lang, v60lang, v31export, v113hilfe, v148ohnestudio; Looper-Funktionen v116looperA, v117looperB, v118signal, v119leistung, v120power; Audio/Leistung v100mem (bis zum Ende, lange Zeitgrenze), v124trennen; Studio-Tests und `app-studio/` seit v156 gelöscht (Rückweg: UEBERGABE Abschnitt 11); Paket-Tests v148ohnestudio … v156aufraeumen laut UEBERGABE Abschnitt 8; Gesang v63singen, v81vox, v85singen.
 
 ## Repository
 
 | Branch | Inhalt |
 |---|---|
-| `main` | fertige App für GitHub Pages (`index.html`, `sw.js`, `ANLEITUNG.txt`, `hilfe/` Bilder, `studio/`, `drums/`, `drones/`, `inst/`, `stretch/`, `asr/` inkl. `asr/models/spleeter/`) + `stabil/` (v24) |
-| `entwicklung` | Quellen `app/`, `app-studio/`, `script.part`, `tabs.js`, Tests `test/`, `UEBERGABE.md`, Konzepte, `wiederherstellen.sh` |
+| `main` | fertige App für GitHub Pages (`index.html`, `sw.js`, `ANLEITUNG.txt`, `hilfe/` Bilder, `studio/` (nur Weiterleitung), `drums/`, `drones/`, `stretch/`, `asr/` inkl. `asr/models/spleeter/`) + `stabil/` (v24) |
+| `entwicklung` | Quellen `app/`, `script.part`, `tabs.js`, Tests `test/`, `UEBERGABE.md`, Konzepte, `wiederherstellen.sh` |
 | `modelle` | Whisper- und Spleeter-Modelle + Laufzeit, per GitHub Action geholt |
 | `stabil-v24`, `stabil-v24-quellen` | Sicherung der v24 |
 
 ## Looper – wichtige Stellen (Stand v124)
 
 - Ideen-IIFE in `looper.js`: Ablagen `cat` idee/loop/backing/team, Filter, Verschieben einzeln/mehrfach (`#ideaSelBtn`, `#ideaBulkTo`); geladene Idee `loaded` → „Aktualisieren“ überschreibt dieselbe id, Spurname `.tsrc` (`Looper.setSrcName`).
-- „Im Studio ↗“ je Spur (`#studiob<i>`, speichert nur bei `Looper.changes()`) → `studio/?idea=<id>&from=looper`; Looper-AudioContext wird geschlossen (`hardStop`, BroadcastChannel `3nps-audio`); Rückweg „↩ Looper“ (`Exp.backToLooper`, ≤ 3 Stems) → `../?load=<id>`.
+- (v156 gelöscht, nur Verlauf) „Im Studio ↗“ je Spur (`#studiob<i>`, speichert nur bei `Looper.changes()`) → `studio/?idea=<id>&from=looper`; Looper-AudioContext wird geschlossen (`hardStop`, BroadcastChannel `3nps-audio`); Rückweg „↩ Looper“ (`Exp.backToLooper`, ≤ 3 Stems) → `../?load=<id>`.
 - Hall/Echo je Spur: `FX_ROOMS`, `ensureFxBus`, `setTrackFx`, Session-Feld `fx`, Export über `fxRender`. `AppDB` öffnet nach „connection is closing“ selbst neu.
 - v116: „Stimmen“ (YIN, a′ 430–450 Hz), „Ebenen“ (max. 8 Overdub-Ebenen, stumm/löschen/↶), Übe-Tempo 100/90/75/50 % (Signalsmith, Aufnahme gesperrt), „Tasten belegen (Tippen · Halten · Doppelt tippen)“.
 - v117: „Amp“ + „▾“ (Gate im Eingangs-Worklet, WaveShaper 4x, Klang, Box, Pegel; aus = alter Weg; Mithören am Limiter vorbei), „Szenen“ (Session-Feld, Wechsel am Loop-Anfang), Pedal „Nächste/Vorherige Szene“, „Amp an / aus“.
@@ -30,7 +30,7 @@ Aktuelle Regressionsliste und Versionsstand stehen in UEBERGABE.md (Abschnitt 8 
 - v124: Spurknopf „Gesang trennen“ → „Karaoke ✓“; Mitsingen „🎤 Karaoke“; Spleeter 2-Stems (ONNX im Worker, ORT aus `asr/lib`, ~79 MB on demand).
 - Spurkopf: `.track-head` bricht um, `.th-left` min 160 px.
 
-## Studio – Aufbau (Details UEBERGABE.md)
+## Studio – Aufbau (seit v156 gelöscht; Quellen im Git-Verlauf, Rückweg UEBERGABE Abschnitt 11)
 
 Audio blockweise aus `SDB` (16-Bit-Blöcke) in AudioWorklet mit 24 Stereo-Ausgängen; je Spur Sättigung→EQ7→Kompressor→Pan→Fader, Sends Hall/Delay, Master Glue+Limiter; Busse 1–4 und Sidechain nur bei Nutzung. Projekt-JSON mit Undo/Autosicherung; Tempokarte (sprunghafte Tempo-/Taktwechsel an Taktgrenzen, Audio bleibt in Sekunden). v121 Takes/Comping, v122 Effekte Amp/Chorus/Tremolo/Tonhöhenkorrektur, „Quantisieren …“, `.loopsmiths`-Projektdatei, „Akkorde erkennen“ + Akkordspur, v123 Instrumente „E-Bass (echt)“, „Akustikgitarre (echt)“, „E-Piano Wurlitzer (echt)“ (`test/gen_inst.py`, `test/gen_inst2.py`, Velocity-Layer), v124 „Gesang trennen“ an Regionen. Module `window.X = X` (top-level `const` ist kein window-Feld!).
 
@@ -53,7 +53,7 @@ Audio blockweise aus `SDB` (16-Bit-Blöcke) in AudioWorklet mit 24 Stereo-Ausgä
 
 ## Weitere Regeln und Hinweise
 
-- `sw.js` löscht nur eigene `3nps-…`-Caches; Kits/Drones/Instrumente im Cache `drums-1` (`/drums/`, `/drones/`, `/inst/`), Modelle in `asr-1`, Studio-Seite unter `studio/index.html`. v146: three.js + Strat-Modell in `rig-1` (beim ersten Öffnen von Rig).
+- `sw.js` löscht nur eigene `3nps-…`-Caches; Kits/Drones/Instrumente im Cache `drums-1` (`/drums/`, `/drones/`), Modelle in `asr-1`, alte Studio-Adresse `studio/index.html` = Weiterleitung auf `../` (eigener Navigations-Zweig in `sw.js` bleibt, sonst falsche relative Pfade). v146: three.js + Strat-Modell in `rig-1` (beim ersten Öffnen von Rig).
 - Leistung im Detail: Ketten/Messpunkte/Analyser nur solange genutzt bzw. Ansicht offen (Hall-Sends erst bei > 0 %, Amp nur wenn an); große Funktionen ins Studio oder lazy (Reiter erst beim Öffnen bauen, Modelle on demand mit Rückfrage). Kein Layout-Umbau während Animationen.
 - CC-BY-Material: Namensnennung auch sichtbar in der App.
 - Englisch: Wörterbuch `window.__EN` in `app/i18n-en2.js`, `T()` übersetzt; neue Einträge am Ende vor `});` anhängen. Lange Lehrtexte `translate=no` wie `hilfe.html`. `v59lang`/`v60lang` prüfen das.

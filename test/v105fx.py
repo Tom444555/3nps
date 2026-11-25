@@ -1,4 +1,4 @@
-# v105: Hall und Echo je Spur im Looper (Bedienung, Klang live, Export kreisförmig, Speichern in Ideen, Übernahme ins Studio)
+# v105: Hall und Echo je Spur im Looper (Bedienung, Klang live, Export kreisförmig, Speichern in Ideen) (Studio-Teil v156 entfernt)
 import asyncio, sys, struct
 from playwright.async_api import async_playwright
 U = 'http://localhost:8765/index.html'
@@ -45,10 +45,6 @@ async def main():
         await pg.evaluate("Looper.setTrackFx(0,{rev:0,dly:0})")
         await pg.evaluate("document.getElementById('ideaFold').open=true"); await pg.locator('.idea-row', has_text='Mit Hall').locator('[data-act="load"]').click(); await pg.wait_for_timeout(900)
         check('Idee laden stellt Hall wieder ein', await pg.evaluate("Looper.getTrackFx(0).rev") == 60)
-        # Studio übernimmt den Hall-Anteil
-        await pg.goto('http://localhost:8765/studio/'); await pg.wait_for_timeout(1200)
-        await pg.evaluate("UI.show('brw')"); await pg.wait_for_timeout(700); await pg.click('#bList .item:has-text("Mit Hall")'); await pg.wait_for_timeout(600); await pg.click('#bNew'); await pg.wait_for_timeout(3000)
-        check('Studio übernimmt Hall-Anteil der Spur', await pg.evaluate("Proj.P.tracks[0].fx.rev") == 60)
         check('keine Fehler', not errs, errs[:3])
         await b.close()
     print('\n%d/%d' % (ok, tot)); sys.exit(0 if ok == tot else 1)

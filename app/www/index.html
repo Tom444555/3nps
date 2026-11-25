@@ -761,7 +761,6 @@ html.ed-open .control-bar { visibility: hidden; }   /* Vollbild-Editor: Kopfleis
   .track-head .th-chords { flex: none; margin-left: auto; }
   .tsrc { font-size: var(--fs-s); color: var(--muted); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .tsrc:empty { display: none; }
-  .studio-btn { margin-top: 4px; }
   .idea-hint { margin: 2px 0 6px; font-size: var(--fs-s); } .idea-hint:empty { display: none; }
   .idea-bulk { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 8px; }
   .idea-bulk .toggle-btn { padding: 4px 10px; font-size: var(--fs-s); }
@@ -3483,7 +3482,7 @@ html.dev-min #msFoldCard { display: none !important; }
   .tracks .tsrc { display: none; }
   .tracks .keybadge { min-height: var(--hit); display: inline-flex; flex-direction: column; justify-content: center; line-height: 1.1; }
   .tracks .chdbadge { min-height: var(--hit); box-sizing: border-box; }
-  /* Spur-Knöpfe EQ · Hall/Echo · Im Studio · Gesang trennen zu zweit nebeneinander */
+  /* Spur-Knöpfe EQ · Hall/Echo · Gesang trennen zu zweit nebeneinander */
   .track-btns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
   .track-btns .eq-btn { min-height: var(--hit); margin-top: 0; padding-block: 0; white-space: normal; line-height: 1.15; }
 
@@ -3746,7 +3745,7 @@ html.dev-min #msFoldCard { display: none !important; }
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v155</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v156</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -11934,11 +11933,10 @@ const Looper = (() => {
     btn.addEventListener('click', () => { p.hidden = !p.hidden; btn.setAttribute('aria-expanded', String(!p.hidden)); btn.classList.toggle('open', !p.hidden); });
     paintFx(t);
   });
-  // v107: Name der geladenen Idee an der Spur, Knopf „Im Studio ↗“
+  // v107: Name der geladenen Idee an der Spur
   tracks.forEach(t => {
     const nm = t.chB && t.chB.parentNode && t.chB.parentNode.querySelector('.tname');
     if (nm) { t.srcEl = document.createElement('div'); t.srcEl.className = 'tsrc'; nm.closest('.th-name').insertAdjacentElement('afterend', t.srcEl); }   // eigene Zeile unter „Spur n“
-    // v148: Knopf „Im Studio ↗“ entfernt (Studio ist aus der App genommen)
   });
   setInterval(() => tracks.forEach(t => { if (!t.L) t.srcName = ''; const v = t.srcName || ''; if (t.srcEl && t.srcEl.textContent !== v) { t.srcEl.textContent = v; t.srcEl.title = v ? T('Geladen aus der Idee ') + '„' + t.srcName + '“' : ''; } }), 700);
   // ---- v124: „Gesang trennen“ je Spur (Spleeter im Worker, erst bei Bedarf geladen) und „Karaoke“ (Begleitung statt Original) ----
@@ -11948,11 +11946,11 @@ const Looper = (() => {
     sb.insertAdjacentElement('afterend', b); t.sepB = b;
     b.addEventListener('click', () => { if (karaValid(t)) karaoke(t, !t.kara.on); else sepTrack(t).catch(err => setStatus(T('Gesang trennen ging nicht: ') + (err && err.message || err))); });
   });
-  // v143: EQ · Hall/Echo · Im Studio · Gesang trennen in ein Raster zu zweit (44-px-Knöpfe, Spur wird nicht höher)
+  // v143: EQ · Hall/Echo · Gesang trennen in ein Raster zu zweit (44-px-Knöpfe, Spur wird nicht höher)
   tracks.forEach(t => {
     const eqb = $('eqb' + t.i); if (!eqb) return;
     const g = document.createElement('div'); g.className = 'track-btns'; eqb.parentNode.insertBefore(g, eqb);
-    ['eqb', 'fxb', 'studiob', 'sepb'].forEach(k => { const b = $(k + t.i); if (b) g.appendChild(b); });
+    ['eqb', 'fxb', 'sepb'].forEach(k => { const b = $(k + t.i); if (b) g.appendChild(b); });
   });
   function karaValid(t) {
     const k = t.kara; if (!k) return false;
@@ -12352,7 +12350,7 @@ const Looper = (() => {
     if (ctxHooked || !audioCtx) return; ctxHooked = true;
     audioCtx.addEventListener('statechange', () => {
       if (audioCtx.state === 'running') { if (needResume) { needResume = false; setStatus('Ton läuft wieder.'); } return; }
-      if (document.hidden || window.__studioHold) return;   // v110: absichtlich angehalten (Studio) – nicht von selbst weiterlaufen
+      if (document.hidden) return;
       audioCtx.resume().then(() => {}).catch(() => {});
       setTimeout(() => { if (audioCtx.state !== 'running') { needResume = true; setStatus('Der Ton wurde vom iPad unterbrochen (z. B. Ladekabel/USB-Gerät). Tippe einmal auf den Bildschirm, um weiterzumachen.'); } }, 400);
     });
@@ -12360,7 +12358,6 @@ const Looper = (() => {
   setInterval(hookCtx, 1000);
   // Erstes Tippen nach einer Unterbrechung: Ton fortsetzen und – war der Eingang offen – ihn gleich wieder öffnen
   ['pointerdown', 'keydown'].forEach(evn => window.addEventListener(evn, () => {
-    window.__studioHold = false;
     if (audioCtx && audioCtx.state !== 'running') audioCtx.resume().catch(() => {});
     if ((wasMic || micWanted) && !micReady && !micOpening && !document.hidden) { autoTries = 0; setTimeout(() => reopenMic(true), 50); }
   }, true));
@@ -12368,7 +12365,7 @@ const Looper = (() => {
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) { wasMic = micReady; return; }
     if (!audioCtx) return;
-    if (audioCtx.state !== 'running' && !window.__studioHold) audioCtx.resume().catch(() => {});
+    if (audioCtx.state !== 'running') audioCtx.resume().catch(() => {});
     ev('App vorne, Ton ' + audioCtx.state);
     if (micReady && stream && stream.getAudioTracks().every(tr => tr.readyState === 'ended')) micLost();
     else if (!micReady && wasMic) setTimeout(() => reopenMic(true), 500);
@@ -12496,7 +12493,7 @@ const Looper = (() => {
   const AUTO_MAX_MB = 60;   // v100: vorher 150 – zwei lange Lieder (≈140 MB) blockierten beim Sichern das iPad (Kopie + Datenbank) für Sekunden; Lieder liegen ja als Datei vor
   let autoTimer = null, autoBusy = false, autoReady = false;
   let livePendSave = false;
-  let changeN = 0;   // v107: zählt Änderungen (auch ohne Autosicherung) – „Im Studio ↗“ speichert nur, wenn sich etwas geändert hat
+  let changeN = 0;   // v107: zählt Änderungen (auch ohne Autosicherung)
   function markDirty() { changeN++; if (!autoReady) return; if (window.__live) { livePendSave = true; return; } clearTimeout(autoTimer); autoTimer = setTimeout(doAutosave, 2500); }
   async function doAutosave() {
     if (typeof AppDB === 'undefined') return;
@@ -16071,44 +16068,6 @@ const Pedal = (() => {
     }
   });
 
-  // v109: vor dem Wechsel ins Studio den Looper stumm schalten (sonst läuft er auf dem iPad im Hintergrund weiter)
-  function goStudio(id, url) {
-    hardStop();
-    try { sessionStorage.setItem('3nps-to-studio', id); } catch (e) {}
-    location.href = url || ('studio/?idea=' + encodeURIComponent(id) + '&from=looper');
-  }
-  // v111: Looper endgültig still machen – Ton-Kontext schließen (kann nicht von selbst weiterlaufen), Eingang schließen.
-  // Kommt man danach in dieses Fenster zurück, lädt es neu (mit der Idee).
-  function hardStop() {
-    window.__studioHold = true; window.__looperClosed = true;
-    try { Looper.stopAll(); } catch (e) {}
-    try { Looper.closeInput(); } catch (e) {}
-    try { if (typeof audioCtx !== 'undefined' && audioCtx && audioCtx.state !== 'closed') audioCtx.close(); } catch (e) {}
-  }
-  document.addEventListener('visibilitychange', () => { if (!document.hidden && window.__looperClosed) { let id = null; try { id = sessionStorage.getItem('3nps-to-studio'); } catch (e) {} location.replace('./' + (id || (loaded && loaded.id) ? '?load=' + encodeURIComponent(id || loaded.id) : '')); } });
-  // v110: Das Studio meldet sich über einen Kanal – läuft der Looper noch (z. B. in einem zweiten Fenster), verstummt er sofort
-  try { const bc = new BroadcastChannel('3nps-audio'); bc.onmessage = e => { if (e.data !== 'studio') return; hardStop(); try { bc.postMessage('looper-stopped'); } catch (x) {} $('loopStatus').textContent = T('Looper angehalten – das Studio spielt.'); }; window.__looperBC = bc; } catch (e) {}
-  // Kommt der Looper aus dem Zwischenspeicher zurück (Wischgeste/Zurück), frisch laden statt stumm weiterzulaufen
-  window.addEventListener('pageshow', e => { let id = null; try { id = sessionStorage.getItem('3nps-to-studio'); sessionStorage.removeItem('3nps-to-studio'); } catch (x) {} if (e.persisted && id) location.replace('./?load=' + encodeURIComponent(id)); });
-  // v107: „Im Studio ↗“ an der Spur – aktuellen Stand sichern (geladene Idee aktualisieren oder neu unter „Zusammenarbeit“), dann ins Studio
-  document.addEventListener('looper-studio', async () => {
-    const sess = Looper.getSession(); if (!sess) { $('loopStatus').textContent = T('Erst etwas aufnehmen oder laden.'); return; }
-    if (loaded && Looper.changes() === loaded.at) { goStudio(loaded.id); return; }   // unverändert: nicht neu speichern
-    if (!loaded) { if (!nameEl.value.trim()) nameEl.value = T('Loop ') + new Date().toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }); curCat = 'team'; showCat(); }
-    else nameEl.value = loaded.name;
-    const before = loaded && loaded.saved; $('ideaSave').click();
-    for (let k = 0; k < 80 && !(loaded && loaded.name === nameEl.value.trim() && loaded.saved !== before); k++) await new Promise(r => setTimeout(r, 50));
-    if (!loaded) return;
-    goStudio(loaded.id);
-  });
-  // Zurück aus dem Studio: ../?load=<id> lädt die bearbeitete Idee
-  (async () => {
-    const q = new URLSearchParams(location.search), lid = q.get('load'); try { sessionStorage.removeItem('3nps-to-studio'); } catch (e) {} if (!lid) return;
-    history.replaceState(null, '', location.pathname);
-    await new Promise(r => setTimeout(r, 700));
-    const row = document.createElement('div'); row.className = 'idea-row'; row.dataset.id = lid; const b = document.createElement('button'); b.dataset.act = 'load'; row.appendChild(b);
-    try { await act(b); const st = $('loopStatus'); st.textContent = T('Aus dem Studio zurück – ') + st.textContent; } catch (e) { $('loopStatus').textContent = T('Die Idee konnte nicht geladen werden: ') + (e && e.message || e); }
-  })();
   list.addEventListener('click', e => {
     const btn = e.target.closest('button'); if (!btn) return;
     act(btn).catch(err => { $('loopStatus').textContent = T('Die Idee konnte nicht geladen werden: ') + (err && err.message || err); });
@@ -16137,10 +16096,6 @@ const Pedal = (() => {
         Looper.loadSamples(buf.numberOfChannels > 1 ? { l: l0, r: new Float32Array(buf.getChannelData(1)), length: l0.length } : l0); Looper.setSrcName(idea.name);
         $('loopStatus').textContent = '„' + idea.name + '“ liegt auf Spur 1. Tonart und Tempo sind übernommen.';
       }
-    } else if (act === 'studio') {
-      // v103: Loopsmiths Studio ist eine eigene Seite – der Looper wird dabei geschlossen (Speicher frei für das Studio)
-      try { await Promise.race([AppDB.flush ? AppDB.flush() : null, new Promise(r => setTimeout(r, 400))]); } catch (x) {}
-      goStudio(id, 'studio/?idea=' + encodeURIComponent(id));
     } else if (act === 'share') {
       const wav = idea.wav || (await Looper.sessionMixEq(idea.session)).wav;
       const file = new File([wav], idea.name.replace(/[\\/:*?"<>|]/g, '_') + '.wav', { type: 'audio/wav' });
@@ -16936,7 +16891,7 @@ const AppCfg = (() => {
   window.Lieder = { save, load, render, textOf, pick };
 })();
 
-// ---- v124: Gesang trennen (Spleeter 2-Stems im Worker asr/sep-worker.js) – gemeinsam für Looper und Studio ----
+// ---- v124: Gesang trennen (Spleeter 2-Stems im Worker asr/sep-worker.js) ----
 // Nichts wird geladen, bevor jemand „Gesang trennen“ antippt: kein Worker, keine Laufzeit, kein Modell.
 // Ablauf: Rückfrage beim ersten Mal (Download ~79 MB, danach im Speicher „asr-1“ wie die Whisper-Modelle) → auf 44,1 kHz →
 // Worker (Gesangsmodell, dann Begleitungsmodell, Maske, ISTFT) → Gesang zurück auf die Abtastrate → Begleitung = Original − Gesang.
@@ -16944,7 +16899,7 @@ const AppCfg = (() => {
 const Sep = (() => {
   const T0 = s => (typeof T === 'function' ? T(s) : s);
   const SIZE_MB = 79, KEY = '3nps-sep-have', SR = 44100;
-  const base = () => (/\/studio\//.test(location.pathname) ? '../' : '') + 'asr/';
+  const base = () => 'asr/';
   let job = null;
   const ls = (k, v) => { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } };
   async function have() {
@@ -23080,7 +23035,7 @@ function mdNormalize(chs, sr, target, ceilDb, opts, prog) {
   }
 
   // ---------- Oberfläche ----------
-  // v151: Oberfläche erst beim Öffnen der Looper-Karte „Mastering“ (mount); im Studio sofort (#panel-master)
+  // v151: Oberfläche erst beim Öffnen der Looper-Karte „Mastering“ (mount)
   const api = window.Master = { measure, normalize, target, reportText, TARGETS };
   let mounted = false;
   api.mount = panel => { if (mounted || !panel) return; mounted = true; mountUI(panel); };
@@ -23108,7 +23063,6 @@ function mdNormalize(chs, sr, target, ceilDb, opts, prog) {
   async function getSource() {
     const v = $('msSrc').value;
     if (v === 'file') return null;   // über Dateiauswahl
-    if (window.MasterSource) { const r = await window.MasterSource(v); if (r) return r; }   // v112: Studio liefert Projekt-Mix
     if (v === 'mix') {                // v151: Looper-Mix aller Spuren (mit Spur-EQ/Hall/Echo, wie „Ideen“), ohne Drums/Drone
       const L = typeof Looper !== 'undefined' ? Looper : null, sess = L && L.getSession && L.getSession();
       if (!sess) throw new Error(TT('Im Looper ist noch nichts aufgenommen oder geladen.'));
@@ -23226,7 +23180,6 @@ function mdNormalize(chs, sr, target, ceilDb, opts, prog) {
 
   Object.assign(api, { cur: () => cur, load, run, startPlay, stopPlay, playing: () => !!play });
   }
-  if ($('panel-master')) api.mount($('panel-master'));
   const fold = $('msFold');   // v151: Looper-Karte – zu = nichts aufgebaut, nichts gerechnet, kein Knoten am Signalweg
   if (fold) fold.addEventListener('toggle', () => {
     if (fold.open && !mounted) { const body = $('msBody'), tpl = $('msTpl'); if (body && tpl) { body.appendChild(tpl.content.cloneNode(true)); api.mount(body); } }
@@ -23341,7 +23294,7 @@ const HILFE = [
     s: ['Unter der Spur „EQ“: Punkte in der Kurve ziehen oder eine „Vorlage …“ wählen. Doppelt tippen setzt ein Band auf 0 dB.', '„Hall/Echo“: je Spur den Anteil für Hall und Echo einstellen.', 'Für alle Spuren gemeinsam: „Raum“ (Raum, Halle, Platte, Kathedrale), „Echo-Abstand“ (läuft im Tempo) und „Wiederholungen“.'],
     tip: ['„EQ ●“ bzw. „Hall/Echo ●“ zeigt, dass etwas eingestellt ist. Alles kommt mit in Ideen und Export.'] },
   { id: 'ideen', t: 'Ideen speichern, laden, Ordner', k: 'ideen speichern laden ordner ablage idee loop backing track zusammenarbeit verschieben aktualisieren teilen umbenennen', img: 'ideen',
-    s: ['Unten „Ideen“ aufklappen, Namen eintragen.', '„Speichern als“: Idee, Reiner Loop (ohne Drums/Drone), Backing Track (mit) oder Zusammenarbeit – dann „Speichern“.', '„Laden“ holt alles zurück. Der Name steht danach im Feld und an den Spuren; „Aktualisieren“ überschreibt dieselbe Idee, ein neuer Name speichert eine neue.', 'Ordner wechseln: in der Zeile „📁 …“ wählen. Mehrere: „Mehrere verschieben“ → antippen → Ordner tippen.', '„Teilen“ gibt einen WAV-Mix, „Studio“ öffnet die Idee im Studio.'] },
+    s: ['Unten „Ideen“ aufklappen, Namen eintragen.', '„Speichern als“: Idee, Reiner Loop (ohne Drums/Drone), Backing Track (mit) oder Zusammenarbeit – dann „Speichern“.', '„Laden“ holt alles zurück. Der Name steht danach im Feld und an den Spuren; „Aktualisieren“ überschreibt dieselbe Idee, ein neuer Name speichert eine neue.', 'Ordner wechseln: in der Zeile „📁 …“ wählen. Mehrere: „Mehrere verschieben“ → antippen → Ordner tippen.', '„Teilen“ gibt einen WAV-Mix.'] },
   { id: 'logic', t: 'Export für Logic Pro', k: 'logic export zip wav midi airdrop mac spuren',
     s: ['Looper unten „Für Logic exportieren“ (Name aus dem Ideen-Feld).', 'Im Teilen-Menü AirDrop an den Mac oder „In Dateien sichern“.', 'In Logic: neues Projekt, zuerst die MIDI-Datei auf Takt 1 ziehen (Tempo übernehmen: Ja), dann alle WAV-Dateien auf Takt 1.'], },
   { id: 'pedal', t: 'Fußpedal (M-VAVE Chocolate)', k: 'pedal fußpedal mvave chocolate bluetooth tastatur keyboard footctrl',
@@ -23405,7 +23358,7 @@ const HILFE = [
   { id: 'gesangstext', t: 'Gesangstext mit Timing (Lied)', k: 'gesangstext timing text erkennen whisper wort einklopfen stimme moises lrc lied',
     s: ['Songdatei in eine Spur laden, Reiter „Improvisation“ → „🎤 Gesangstext“.', '„🤖 Text automatisch erkennen“ (oder eigenen Text einfügen und „Nur Zeiten erkennen – mein Text bleibt“).', 'In der Spur unter den Akkorden Wörter ziehen; Wort antippen = ändern. Takt antippen macht ihn breit zum Feinarbeiten.', '„Lieder mit Text“ (Looper unten) speichert Datei und Text zusammen.'],
     tip: ['Mit einer Gesangsspur wird alles genauer: „Gesang herauslösen (in der App)“ oder aus Moises („Gesangsspur dazuladen“).'] },
-  { id: 'gesang-trennen', t: 'Gesang trennen (Gesang und Begleitung)', k: 'gesang trennen stimme vocals begleitung instrumental spleeter moises herauslösen stems spur studio',
+  { id: 'gesang-trennen', t: 'Gesang trennen (Gesang und Begleitung)', k: 'gesang trennen stimme vocals begleitung instrumental spleeter moises herauslösen stems spur',
     p: ['Die App trennt ein Lied in <b>Gesang</b> und <b>Begleitung</b> – direkt auf dem Gerät, ohne fremden Dienst (Modell „Spleeter“ von Deezer, freie MIT-Lizenz). Beim ersten Mal lädt sie dafür einmalig etwa 79 MB; danach geht es offline.',
        'Gerechnet wird im Hintergrund, der Looper läuft weiter. Gesang und Begleitung ergeben zusammen genau wieder das Original.'],
     s: ['Lied oder Loop in eine Spur laden.', 'Im Spurkopf „Gesang trennen“ tippen und die Rückfrage zum Download (nur beim ersten Mal) bestätigen.', 'Fortschritt abwarten – „Abbrechen“ hört jederzeit auf, ohne etwas zu ändern.', 'Fertig: Die Spur spielt die Begleitung („Karaoke ✓“), der Gesang liegt auf der nächsten freien Spur, beide sind als Ideen „Name · Gesang“ und „Name · Begleitung“ gespeichert.'],

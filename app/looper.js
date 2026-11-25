@@ -513,11 +513,10 @@ const Looper = (() => {
     btn.addEventListener('click', () => { p.hidden = !p.hidden; btn.setAttribute('aria-expanded', String(!p.hidden)); btn.classList.toggle('open', !p.hidden); });
     paintFx(t);
   });
-  // v107: Name der geladenen Idee an der Spur, Knopf „Im Studio ↗“
+  // v107: Name der geladenen Idee an der Spur
   tracks.forEach(t => {
     const nm = t.chB && t.chB.parentNode && t.chB.parentNode.querySelector('.tname');
     if (nm) { t.srcEl = document.createElement('div'); t.srcEl.className = 'tsrc'; nm.closest('.th-name').insertAdjacentElement('afterend', t.srcEl); }   // eigene Zeile unter „Spur n“
-    // v148: Knopf „Im Studio ↗“ entfernt (Studio ist aus der App genommen)
   });
   setInterval(() => tracks.forEach(t => { if (!t.L) t.srcName = ''; const v = t.srcName || ''; if (t.srcEl && t.srcEl.textContent !== v) { t.srcEl.textContent = v; t.srcEl.title = v ? T('Geladen aus der Idee ') + '„' + t.srcName + '“' : ''; } }), 700);
   // ---- v124: „Gesang trennen“ je Spur (Spleeter im Worker, erst bei Bedarf geladen) und „Karaoke“ (Begleitung statt Original) ----
@@ -527,11 +526,11 @@ const Looper = (() => {
     sb.insertAdjacentElement('afterend', b); t.sepB = b;
     b.addEventListener('click', () => { if (karaValid(t)) karaoke(t, !t.kara.on); else sepTrack(t).catch(err => setStatus(T('Gesang trennen ging nicht: ') + (err && err.message || err))); });
   });
-  // v143: EQ · Hall/Echo · Im Studio · Gesang trennen in ein Raster zu zweit (44-px-Knöpfe, Spur wird nicht höher)
+  // v143: EQ · Hall/Echo · Gesang trennen in ein Raster zu zweit (44-px-Knöpfe, Spur wird nicht höher)
   tracks.forEach(t => {
     const eqb = $('eqb' + t.i); if (!eqb) return;
     const g = document.createElement('div'); g.className = 'track-btns'; eqb.parentNode.insertBefore(g, eqb);
-    ['eqb', 'fxb', 'studiob', 'sepb'].forEach(k => { const b = $(k + t.i); if (b) g.appendChild(b); });
+    ['eqb', 'fxb', 'sepb'].forEach(k => { const b = $(k + t.i); if (b) g.appendChild(b); });
   });
   function karaValid(t) {
     const k = t.kara; if (!k) return false;
@@ -931,7 +930,7 @@ const Looper = (() => {
     if (ctxHooked || !audioCtx) return; ctxHooked = true;
     audioCtx.addEventListener('statechange', () => {
       if (audioCtx.state === 'running') { if (needResume) { needResume = false; setStatus('Ton läuft wieder.'); } return; }
-      if (document.hidden || window.__studioHold) return;   // v110: absichtlich angehalten (Studio) – nicht von selbst weiterlaufen
+      if (document.hidden) return;
       audioCtx.resume().then(() => {}).catch(() => {});
       setTimeout(() => { if (audioCtx.state !== 'running') { needResume = true; setStatus('Der Ton wurde vom iPad unterbrochen (z. B. Ladekabel/USB-Gerät). Tippe einmal auf den Bildschirm, um weiterzumachen.'); } }, 400);
     });
@@ -939,7 +938,6 @@ const Looper = (() => {
   setInterval(hookCtx, 1000);
   // Erstes Tippen nach einer Unterbrechung: Ton fortsetzen und – war der Eingang offen – ihn gleich wieder öffnen
   ['pointerdown', 'keydown'].forEach(evn => window.addEventListener(evn, () => {
-    window.__studioHold = false;
     if (audioCtx && audioCtx.state !== 'running') audioCtx.resume().catch(() => {});
     if ((wasMic || micWanted) && !micReady && !micOpening && !document.hidden) { autoTries = 0; setTimeout(() => reopenMic(true), 50); }
   }, true));
@@ -947,7 +945,7 @@ const Looper = (() => {
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) { wasMic = micReady; return; }
     if (!audioCtx) return;
-    if (audioCtx.state !== 'running' && !window.__studioHold) audioCtx.resume().catch(() => {});
+    if (audioCtx.state !== 'running') audioCtx.resume().catch(() => {});
     ev('App vorne, Ton ' + audioCtx.state);
     if (micReady && stream && stream.getAudioTracks().every(tr => tr.readyState === 'ended')) micLost();
     else if (!micReady && wasMic) setTimeout(() => reopenMic(true), 500);
@@ -1075,7 +1073,7 @@ const Looper = (() => {
   const AUTO_MAX_MB = 60;   // v100: vorher 150 – zwei lange Lieder (≈140 MB) blockierten beim Sichern das iPad (Kopie + Datenbank) für Sekunden; Lieder liegen ja als Datei vor
   let autoTimer = null, autoBusy = false, autoReady = false;
   let livePendSave = false;
-  let changeN = 0;   // v107: zählt Änderungen (auch ohne Autosicherung) – „Im Studio ↗“ speichert nur, wenn sich etwas geändert hat
+  let changeN = 0;   // v107: zählt Änderungen (auch ohne Autosicherung)
   function markDirty() { changeN++; if (!autoReady) return; if (window.__live) { livePendSave = true; return; } clearTimeout(autoTimer); autoTimer = setTimeout(doAutosave, 2500); }
   async function doAutosave() {
     if (typeof AppDB === 'undefined') return;
@@ -4650,44 +4648,6 @@ const Pedal = (() => {
     }
   });
 
-  // v109: vor dem Wechsel ins Studio den Looper stumm schalten (sonst läuft er auf dem iPad im Hintergrund weiter)
-  function goStudio(id, url) {
-    hardStop();
-    try { sessionStorage.setItem('3nps-to-studio', id); } catch (e) {}
-    location.href = url || ('studio/?idea=' + encodeURIComponent(id) + '&from=looper');
-  }
-  // v111: Looper endgültig still machen – Ton-Kontext schließen (kann nicht von selbst weiterlaufen), Eingang schließen.
-  // Kommt man danach in dieses Fenster zurück, lädt es neu (mit der Idee).
-  function hardStop() {
-    window.__studioHold = true; window.__looperClosed = true;
-    try { Looper.stopAll(); } catch (e) {}
-    try { Looper.closeInput(); } catch (e) {}
-    try { if (typeof audioCtx !== 'undefined' && audioCtx && audioCtx.state !== 'closed') audioCtx.close(); } catch (e) {}
-  }
-  document.addEventListener('visibilitychange', () => { if (!document.hidden && window.__looperClosed) { let id = null; try { id = sessionStorage.getItem('3nps-to-studio'); } catch (e) {} location.replace('./' + (id || (loaded && loaded.id) ? '?load=' + encodeURIComponent(id || loaded.id) : '')); } });
-  // v110: Das Studio meldet sich über einen Kanal – läuft der Looper noch (z. B. in einem zweiten Fenster), verstummt er sofort
-  try { const bc = new BroadcastChannel('3nps-audio'); bc.onmessage = e => { if (e.data !== 'studio') return; hardStop(); try { bc.postMessage('looper-stopped'); } catch (x) {} $('loopStatus').textContent = T('Looper angehalten – das Studio spielt.'); }; window.__looperBC = bc; } catch (e) {}
-  // Kommt der Looper aus dem Zwischenspeicher zurück (Wischgeste/Zurück), frisch laden statt stumm weiterzulaufen
-  window.addEventListener('pageshow', e => { let id = null; try { id = sessionStorage.getItem('3nps-to-studio'); sessionStorage.removeItem('3nps-to-studio'); } catch (x) {} if (e.persisted && id) location.replace('./?load=' + encodeURIComponent(id)); });
-  // v107: „Im Studio ↗“ an der Spur – aktuellen Stand sichern (geladene Idee aktualisieren oder neu unter „Zusammenarbeit“), dann ins Studio
-  document.addEventListener('looper-studio', async () => {
-    const sess = Looper.getSession(); if (!sess) { $('loopStatus').textContent = T('Erst etwas aufnehmen oder laden.'); return; }
-    if (loaded && Looper.changes() === loaded.at) { goStudio(loaded.id); return; }   // unverändert: nicht neu speichern
-    if (!loaded) { if (!nameEl.value.trim()) nameEl.value = T('Loop ') + new Date().toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }); curCat = 'team'; showCat(); }
-    else nameEl.value = loaded.name;
-    const before = loaded && loaded.saved; $('ideaSave').click();
-    for (let k = 0; k < 80 && !(loaded && loaded.name === nameEl.value.trim() && loaded.saved !== before); k++) await new Promise(r => setTimeout(r, 50));
-    if (!loaded) return;
-    goStudio(loaded.id);
-  });
-  // Zurück aus dem Studio: ../?load=<id> lädt die bearbeitete Idee
-  (async () => {
-    const q = new URLSearchParams(location.search), lid = q.get('load'); try { sessionStorage.removeItem('3nps-to-studio'); } catch (e) {} if (!lid) return;
-    history.replaceState(null, '', location.pathname);
-    await new Promise(r => setTimeout(r, 700));
-    const row = document.createElement('div'); row.className = 'idea-row'; row.dataset.id = lid; const b = document.createElement('button'); b.dataset.act = 'load'; row.appendChild(b);
-    try { await act(b); const st = $('loopStatus'); st.textContent = T('Aus dem Studio zurück – ') + st.textContent; } catch (e) { $('loopStatus').textContent = T('Die Idee konnte nicht geladen werden: ') + (e && e.message || e); }
-  })();
   list.addEventListener('click', e => {
     const btn = e.target.closest('button'); if (!btn) return;
     act(btn).catch(err => { $('loopStatus').textContent = T('Die Idee konnte nicht geladen werden: ') + (err && err.message || err); });
@@ -4716,10 +4676,6 @@ const Pedal = (() => {
         Looper.loadSamples(buf.numberOfChannels > 1 ? { l: l0, r: new Float32Array(buf.getChannelData(1)), length: l0.length } : l0); Looper.setSrcName(idea.name);
         $('loopStatus').textContent = '„' + idea.name + '“ liegt auf Spur 1. Tonart und Tempo sind übernommen.';
       }
-    } else if (act === 'studio') {
-      // v103: Loopsmiths Studio ist eine eigene Seite – der Looper wird dabei geschlossen (Speicher frei für das Studio)
-      try { await Promise.race([AppDB.flush ? AppDB.flush() : null, new Promise(r => setTimeout(r, 400))]); } catch (x) {}
-      goStudio(id, 'studio/?idea=' + encodeURIComponent(id));
     } else if (act === 'share') {
       const wav = idea.wav || (await Looper.sessionMixEq(idea.session)).wav;
       const file = new File([wav], idea.name.replace(/[\\/:*?"<>|]/g, '_') + '.wav', { type: 'audio/wav' });
