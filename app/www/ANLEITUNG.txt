@@ -1518,3 +1518,12 @@ Gut zu wissen
      Jetzt passiert das in kleinen Häppchen, wenn die App gerade nichts zu tun hat – nie während Wiedergabe oder Aufnahme.
    - Tippst du sehr früh auf „Drums an“ oder spielt der erste Bass-Ton, wird der Rest sofort fertig gemacht.
      Klang und Timing von Drums und Bass sind unverändert (dieselben Puffer, derselbe Hall).
+
+133. Tap-Tempo (v150)
+   - Oben rechts beim Tempo gibt es neben „−“ und „+“ den Knopf „Tap“. Mehrmals im Takt tippen (z. B. auf jede
+     Viertel): ab dem zweiten Tipp stellt die App das Tempo aus dem Mittel der letzten Tipps ein (bis zu 6).
+   - Eine Pause von mehr als 2 Sekunden beginnt neu. Sehr schnelles oder sehr langsames Tippen (außerhalb 30–300 BPM)
+     wird ignoriert; das Tempo bleibt wie bei „−“ / „+“ zwischen 40 und 200 BPM.
+   - „Tap“ setzt das Tempo genau wie „−“ / „+“ (Looper, Drums, Übungen folgen wie gewohnt). Eine Fußpedal-Taste
+     dafür gibt es noch nicht.
+   - Anleitung „?“: Thema „Tap-Tempo: Tempo antippen“.

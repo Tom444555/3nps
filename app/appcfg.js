@@ -234,7 +234,8 @@ const AppCfg = (() => {
 /* v74: Tempo in 1er-Schritten (− / +), gedrückt halten wiederholt */
 (function () {
   const r = document.getElementById('bpm'); if (!r) return;
-  const step = d => { const v = Math.max(+r.min || 40, Math.min(+r.max || 200, Math.round(+r.value) + d)); if (v === +r.value) return; r.value = v; r.dispatchEvent(new Event('input', { bubbles: true })); r.dispatchEvent(new Event('change', { bubbles: true })); document.dispatchEvent(new Event('bpmuser')); };
+  const setTo = x => { const v = Math.max(+r.min || 40, Math.min(+r.max || 200, Math.round(x))); if (v === +r.value) return; r.value = v; r.dispatchEvent(new Event('input', { bubbles: true })); r.dispatchEvent(new Event('change', { bubbles: true })); document.dispatchEvent(new Event('bpmuser')); };
+  const step = d => setTo(Math.round(+r.value) + d);
   [['bpmDn', -1], ['bpmUp', 1]].forEach(([id, d]) => {
     const b = document.getElementById(id); if (!b) return; let t = null, iv = null;
     const stop = () => { clearTimeout(t); clearInterval(iv); t = iv = null; };
@@ -242,4 +243,20 @@ const AppCfg = (() => {
     ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => b.addEventListener(ev, stop));
     b.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); step(d); } });
   });
+  // v150: Tap-Tempo – ab dem 2. Tipp Mittel der letzten Abstände (bis 6 Tipps), Pause > 2 s beginnt neu, nur 30–300 BPM; setzt wie − / +
+  const tapB = document.getElementById('bpmTap');
+  if (tapB) {
+    let taps = [];
+    const tap = () => {
+      const now = performance.now();
+      if (taps.length && now - taps[taps.length - 1] > 2000) taps = [];
+      taps.push(now); if (taps.length > 6) taps.shift();
+      if (taps.length < 2) return;
+      const bpm = 60000 * (taps.length - 1) / (taps[taps.length - 1] - taps[0]);
+      if (bpm >= 30 && bpm <= 300) setTo(bpm);
+    };
+    tapB.addEventListener('pointerdown', e => { e.preventDefault(); tap(); });
+    tapB.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tap(); } });
+    window.__tap = tap;   // Test
+  }
 })();

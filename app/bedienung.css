@@ -11,6 +11,7 @@
   .lang-btn { position: relative; }
   .lang-btn::after { content: ""; position: absolute; left: 50%; top: 50%; width: max(100%, var(--hit)); height: var(--hit); transform: translate(-50%, -50%); }
   .control-bar .bpm-step { width: var(--hit); height: var(--hit); }
+  .control-bar .bpm-step.tap-btn { width: auto; min-width: var(--hit); padding: 0 6px; font-size: .8rem; letter-spacing: .03em; }   /* v150 */
   .control-bar .tbtn { height: var(--hit); }
   .tabs .tab, .tabs.areas .tab { min-height: var(--hit); }
   .tabs .help-btn { min-width: var(--hit); }
