@@ -12,12 +12,11 @@
   #uzRoot > .uz-card { grid-column: 1 / -1; }
   #uzRoot > #uzWann { grid-column: 1; } #uzRoot > #uzMonate { grid-column: 2; }
 }
-}
 .uz-top { display: flex; align-items: center; gap: 14px 18px; flex-wrap: wrap; }
 .uz-btn { min-height: 56px; min-width: 170px; padding: 0 22px; border-radius: 16px; border: 2px solid var(--line); background: var(--surface-2, rgba(127,127,127,.12));
   color: var(--ink); font: 700 1.15rem var(--f-body); cursor: pointer; touch-action: manipulation; }
 .uz-btn[aria-pressed="true"] { background: var(--ok, #2f9e5b); border-color: var(--ok, #2f9e5b); color: #fff; }
-.uz-now { min-width: 0; flex: 1 1 200px; }
+.uz-now { min-width: 0; flex: 1 1 120px; }
 .uz-time { font: 700 2.2rem/1.1 var(--f-body); color: var(--muted); font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
 .uz-time.on { color: var(--ink); }
 .uz-now .caption { min-height: 1.4em; }
@@ -112,20 +111,22 @@
 .uz-c.l4 { fill: var(--accent, #2d9cdb); background: var(--accent, #2d9cdb); opacity: 1; }
 .uz-c.fut { opacity: .35; }
 .uz-leg { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
+.uz-leg .uz-legx { flex: 1 1 100%; }
 .uz-leg i { display: inline-block; width: 11px; height: 11px; border-radius: 3px; }
 .uz-tl { display: flex; flex-direction: column; gap: 2px; }
-.uz-trow { display: grid; grid-template-columns: minmax(7em, 11em) minmax(0, 1fr) auto; align-items: center; gap: 10px; min-height: 44px; padding: 4px 6px;
+.uz-trow { display: grid; grid-template-columns: minmax(7em, 11em) minmax(0, 1fr) 9.6em; align-items: center; gap: 10px; min-height: 44px; padding: 4px 6px;
   border: 0; border-radius: 10px; background: transparent; color: var(--ink); font: 500 .9rem var(--f-body); text-align: left; cursor: pointer; }
 .uz-trow.on { background: var(--surface-2, rgba(127,127,127,.12)); }
 .uz-tn { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .uz-tb { height: 10px; border-radius: 5px; background: var(--line, rgba(127,127,127,.2)); overflow: hidden; }
 .uz-tb i { display: block; height: 100%; background: var(--accent, #2d9cdb); border-radius: 5px; }
-.uz-tv { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; font-size: .82rem; }
+.uz-tv { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; font-size: .82rem; }
+@media (min-width: 481px) and (max-width: 1100px) { .uz-sv { font-size: 1.1rem; } }
 @media (max-width: 480px) { .uz-sv { font-size: 1.12rem; } .uz-trow { grid-template-columns: minmax(0, 1fr) auto; } .uz-tb { grid-column: 1 / -1; grid-row: 2; } .uz-big { font-size: 1.9rem; } }
 .uz-addbox { max-height: calc(100vh - 32px); overflow: auto; }
 .uz-addg { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .uz-addg .uz-addd { grid-column: 1 / -1; }
-.uz-addg input { min-height: 44px; width: 100%; }
+.uz-addg input, .uz-addbox input[type=text] { min-height: 44px; width: 100%; box-sizing: border-box; }
 /* Profile: „Altes iPad“ ohne Schatten/Übergänge, „Minimal“ nur Schalter, Kennzahlen, Liste (+ Daten) */
 .dev-old #uzRoot *, .dev-old .uz-ask * { box-shadow: none !important; transition: none !important; }
 .dev-min #uzRoot .uz-viz { display: none; }

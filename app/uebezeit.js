@@ -324,7 +324,7 @@ window.Uebezeit = (() => {
       if (!confirm(TT('Importierte Einheiten entfernen?') + '\n' + n + ' ' + TT(n === 1 ? 'Einheit' : 'Einheiten') + ', ' + fmtHM(im.reduce((a, x) => a + x[1], 0)) + ', ' + TT('von') + ' ' + f(im[0][0]) + ' ' + TT('bis') + ' ' + f(im[n - 1][0]) + '.\n' + TT('Selbst gezählte und nachgetragene Einheiten bleiben.'))) return;
       $('uzDataMsg').textContent = removeImport() + ' ' + TT('importierte Einheiten entfernt.');
     });
-    paintAll(); paintChips(); paintSums(); paintList(); paintViz();
+    // gezeichnet wird danach im tabchange-Handler (einmal)
   }
   function paintRun(d) {
     const b = $('uzBtn'); if (!b) return;

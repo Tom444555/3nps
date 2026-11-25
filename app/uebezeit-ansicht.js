@@ -96,7 +96,7 @@ window.UebezeitAnsicht = (() => {
     us.forEach(u => {
       if (th !== '*' && u.t !== th) return;
       const m = u.sec / 60;
-      if (u.e < pts[0].t) base += m;
+      if (u.e < s.a) base += m;
       if (u.e >= s.a && u.e < s.end) { const i = idx.get(key(u.e)); if (i != null) pts[i].v += m; sum += m; }
       else if (s.pa != null && u.e >= s.pa && u.e < s.a) prev += m;
     });
@@ -128,9 +128,9 @@ window.UebezeitAnsicht = (() => {
     const ids = [''].concat(U().DEF.map(x => x[0]), t.c.map(x => x[0])).filter(id => used.has(id));
     return '<option value="*">' + esc(TT('Alle Themen')) + '</option>' + ids.map(id => '<option value="' + esc(id) + '"' + (st.th === id ? ' selected' : '') + '>' + esc(U().tname(id, t)) + '</option>').join('');
   }
-  function paintVerlauf(us, now) {
+  function paintVerlauf(us, now, w) {
     const el = $('uzVl'); if (!el) return;
-    const r = series(us, now), cum = st.m === 'sum', W = Math.max(260, el.clientWidth || 600);
+    const r = series(us, now), cum = st.m === 'sum', W = Math.max(260, w || 600);
     const binL = { d: TT('je Tag'), w: TT('je Woche'), m: TT('je Monat') }[r.s.bin];
     const per = { '1W': TT('7 Tage'), '1M': TT('30 Tage'), '3M': TT('3 Monate'), '1J': TT('12 Monate'), '3J': TT('3 Jahre'), all: TT('seit Beginn') }[st.r];
     let big, ch = '', cls = '';
@@ -184,15 +184,15 @@ window.UebezeitAnsicht = (() => {
     return { wd: wd.map((v, i) => cnt[i] ? v / cnt[i] : 0), hr: hr.map(v => tot ? v / tot : 0), tot };
   }
   const WDN = () => [1, 2, 3, 4, 5, 6, 0].map(d => new Date(2024, 0, 7 + d).toLocaleDateString(loc(), { weekday: 'short' }).replace('.', '').slice(0, 2));
-  function paintWann(us, now) {
-    const el = $('uzWn'); if (!el) return; const w = wann(us, now), W = Math.max(240, el.clientWidth || 300), wn = WDN();
+  function paintWann(us, now, w0) {
+    const el = $('uzWn'); if (!el) return; const w = wann(us, now), W = Math.max(240, w0 || 300), wn = WDN();
     const mx = Math.max(...w.wd);
     el.innerHTML = seg('ar', ['3M', '1J', 'all'], st.ar)
       + '<div class="uz-bh">' + esc(TT('Ø je Wochentag')) + '</div>' + bars(w.wd.map((v, i) => ({ v, l: wn[i], t: v > 0 ? Math.round(v) + ' min' : '', hl: v === mx && v > 0 })), W, { allVals: true, label: TT('Ø je Wochentag') })
       + '<div class="uz-bh">' + esc(TT('Tageszeit (Anteil, 2-Stunden-Fenster)')) + '</div>' + bars(w.hr.map((v, i) => ({ v, l: String(i * 2), t: v >= 0.005 ? Math.round(v * 100) + ' %' : '', hl: v === Math.max(...w.hr) && v > 0 })), W, { every: W < 360 ? 2 : 1, allVals: W >= 420, label: TT('Tageszeit') });
   }
-  function paintMonate(us, now) {
-    const el = $('uzMj'); if (!el) return; const W = Math.max(240, el.clientWidth || 300);
+  function paintMonate(us, now, w) {
+    const el = $('uzMj'); if (!el) return; const W = Math.max(240, w || 300);
     const m0 = month0(now), ms = []; for (let i = 11; i >= 0; i--) ms.push({ t: addMonths(m0, -i), v: 0 });
     const mi = new Map(ms.map((m, i) => [ymKey(m.t), i])), yrs = new Map();
     us.forEach(u => { const i = mi.get(ymKey(u.e)); if (i != null) ms[i].v += u.sec / 60; const y = new Date(u.e).getFullYear(); yrs.set(y, (yrs.get(y) || 0) + u.sec / 60); });
@@ -203,29 +203,30 @@ window.UebezeitAnsicht = (() => {
   }
 
   /* ---------- Kalender-Raster ---------- */
-  function paintKal(us, now) {
+  function paintKal(us, now, w) {
     const el = $('uzKl'); if (!el) return;
     const cy = new Date(now).getFullYear(), y0 = us.length ? new Date(us[0].e).getFullYear() : cy;
     if (!st.yr || st.yr > cy || st.yr < y0) st.yr = cy;
     const Y = st.yr, dm = new Map(); let ysum = 0;
     us.forEach(u => { if (new Date(u.e).getFullYear() === Y) { const k = dayKey(u.e); dm.set(k, (dm.get(k) || 0) + u.sec / 60); ysum += u.sec / 60; } });
-    const W = Math.max(260, el.clientWidth || 600), a = new Date(Y, 0, 1).getTime(), lastD = new Date(Y, 11, 31).getTime();
+    const W = Math.max(260, w || 600), a = new Date(Y, 0, 1).getTime(), lastD = new Date(Y, 11, 31).getTime();
     const wk0 = week0(a), weeks = Math.round((week0(lastD) - wk0) / (7 * 864e5)) + 1;
     const halves = W < 640 ? 2 : 1, cols = Math.ceil(weeks / halves), LW = 22, cell = Math.min(18, Math.floor((W - LW) / cols)), gap = Math.max(1, Math.round(cell / 7)), sz = cell - gap;
     const lvl = m => m <= 0 ? 0 : m <= 30 ? 1 : m <= 60 ? 2 : m <= 120 ? 3 : 4, bh = 7 * cell + 16;
     let out = '', days = 0;
-    const wn = WDN();
+    const wn = WDN(), MN = Array.from({ length: 12 }, (_, i) => mName(new Date(2024, i, 1).getTime())), p2 = n => (n < 10 ? '0' : '') + n;
     for (let h = 0; h < halves; h++) {
       const oy = h * (bh + 8);
       [0, 2, 4].forEach(r => { out += '<text class="uz-ax" x="0" y="' + (oy + 16 + r * cell + sz - 1) + '">' + esc(wn[r]) + '</text>'; });
       let lastM = -1;
-      for (let t = a; t <= lastD; t = addDays(t, 1)) {
-        const wi = Math.round((week0(t) - wk0) / (7 * 864e5)); if (Math.floor(wi / cols) !== h) continue;
-        const c = wi % cols, r = (new Date(t).getDay() + 6) % 7, m = dm.get(dayKey(t)) || 0, x = LW + c * cell, y = oy + 16 + r * cell;
+      // ein Datum-Objekt weiterzählen, Wochen-Index aus der Tagesnummer (schnell: 365 Felder ohne Intl je Tag)
+      const dd = new Date(Y, 0, 1), off = (dd.getDay() + 6) % 7, rx = Math.max(1, sz / 5).toFixed(1), noP = esc(TT('nicht geübt'));
+      for (let i = 0; dd.getFullYear() === Y; i++, dd.setDate(dd.getDate() + 1)) {
+        const wi = Math.floor((i + off) / 7); if (Math.floor(wi / cols) !== h) continue;
+        const c = wi % cols, r = (i + off) % 7, mo = dd.getMonth(), dn = dd.getDate(), m = dm.get(Y * 10000 + (mo + 1) * 100 + dn) || 0, x = LW + c * cell, y = oy + 16 + r * cell;
         if (m > 0) days++;
-        const mo = new Date(t).getMonth();
-        if (mo !== lastM && new Date(t).getDate() <= 7 && r === 0 || (mo !== lastM && t === a)) { out += '<text class="uz-ax" x="' + x + '" y="' + (oy + 11) + '">' + esc(mName(t)) + '</text>'; lastM = mo; }
-        out += '<rect class="uz-c l' + lvl(m) + (t > now ? ' fut' : '') + '" x="' + x + '" y="' + y + '" width="' + sz + '" height="' + sz + '" rx="' + Math.max(1, sz / 5).toFixed(1) + '"><title>' + esc(dfmt(t, { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' }) + ': ' + (m ? fmtHM(m * 60) : TT('nicht geübt'))) + '</title></rect>';
+        if (mo !== lastM && (dn <= 7 && r === 0 || i === 0)) { out += '<text class="uz-ax" x="' + x + '" y="' + (oy + 11) + '">' + esc(MN[mo]) + '</text>'; lastM = mo; }
+        out += '<rect class="uz-c l' + lvl(m) + (dd.getTime() > now ? ' fut' : '') + '" x="' + x + '" y="' + y + '" width="' + sz + '" height="' + sz + '" rx="' + rx + '"><title>' + p2(dn) + '.' + p2(mo + 1) + '.' + Y + ': ' + (m ? fmtHM(m * 60) : noP) + '</title></rect>';
       }
     }
     const H = halves * (bh + 8);
@@ -233,7 +234,7 @@ window.UebezeitAnsicht = (() => {
       + '<button type="button" class="toggle-btn" data-ky="1" aria-label="' + esc(TT('Jahr vor')) + '"' + (Y >= cy ? ' disabled' : '') + '>›</button>'
       + '<span class="caption" id="uzKSum">' + days + ' ' + TT(days === 1 ? 'Übetag' : 'Übetage') + ' · ' + esc(fmtHM(ysum * 60)) + '</span></div>'
       + '<svg class="uz-svg" width="' + (LW + cols * cell) + '" height="' + H + '" viewBox="0 0 ' + (LW + cols * cell) + ' ' + H + '" role="img" aria-label="' + esc(TT('Kalender') + ' ' + Y) + '">' + out + '</svg>'
-      + '<div class="uz-leg caption">' + esc(TT('weniger')) + ' ' + [0, 1, 2, 3, 4].map(l => '<i class="uz-c l' + l + '"></i>').join('') + ' ' + esc(TT('mehr')) + ' · ' + esc(TT('bis 30 min · 1 h · 2 h · mehr')) + '</div>';
+      + '<div class="uz-leg caption">' + esc(TT('weniger')) + ' ' + [0, 1, 2, 3, 4].map(l => '<i class="uz-c l' + l + '"></i>').join('') + ' ' + esc(TT('mehr')) + '<span class="uz-legx">' + esc(TT('bis 30 min · 1 h · 2 h · mehr')) + '</span></div>';
   }
 
   /* ---------- Woran geübt ---------- */
@@ -241,13 +242,12 @@ window.UebezeitAnsicht = (() => {
     const el = $('uzTh'); if (!el) return;
     const { a, end } = rangeA(us, now, st.tr), m = new Map(); let tot = 0;
     us.forEach(u => { if (u.e >= a && u.e < end) { m.set(u.t, (m.get(u.t) || 0) + u.sec); tot += u.sec; } });
-    const t = U().topics(), rows = [...m.entries()].sort((x, y) => y[1] - x[1]), W = Math.max(240, el.clientWidth || 300), mx = rows.length ? rows[0][1] : 1;
+    const t = U().topics(), rows = [...m.entries()].sort((x, y) => y[1] - x[1]), mx = rows.length ? rows[0][1] : 1;
     el.innerHTML = seg('tr', ['1M', '3M', '1J', 'all'], st.tr)
       + (rows.length ? '<div class="uz-tl">' + rows.map(([id, v]) => '<button type="button" class="uz-trow' + (st.th === id ? ' on' : '') + '" data-tth="' + esc(id) + '" title="' + esc(TT('Verlauf für dieses Thema zeigen')) + '"><span class="uz-tn">' + esc(U().tname(id, t)) + '</span>'
         + '<span class="uz-tb"><i style="width:' + (v / mx * 100).toFixed(1) + '%"></i></span><span class="uz-tv">' + esc(fmtHM(v)) + ' · ' + Math.round(v / tot * 100) + ' %</span></button>').join('') + '</div>'
         + '<p class="caption uz-note">' + esc(TT('Thema antippen: der Verlauf oben zeigt nur dieses Thema (nochmal antippen = alle). Importierte Numbers-Einheiten stehen unter „ohne Thema“.')) + '</p>'
         : '<p class="pattern-desc uz-empty">' + esc(TT('In diesem Zeitraum ist nichts eingetragen.')) + '</p>');
-    void W;
   }
 
   /* ---------- Zeichnen ---------- */
@@ -274,8 +274,11 @@ window.UebezeitAnsicht = (() => {
     if (!$('uzSums')) return null;
     d = d || U().load(); wire();
     const t0 = performance.now(), now = Date.now(), us = prep(d);
+    // erst alle Breiten lesen, dann schreiben (sonst rechnet der Browser nach jedem Abschnitt das Layout neu)
+    const mn = minDev(), cw = id => { const e = $(id); return e ? e.clientWidth : 0; };
+    const ws = mn ? null : { vl: cw('uzVl'), wn: cw('uzWn'), mj: cw('uzMj'), kl: cw('uzKl') };
     const k = paintKpi(us, now);
-    if (!minDev()) { paintVerlauf(us, now); paintWann(us, now); paintMonate(us, now); paintKal(us, now); paintThemen(us, now); }
+    if (!mn) { paintVerlauf(us, now, ws.vl); paintWann(us, now, ws.wn); paintMonate(us, now, ws.mj); paintKal(us, now, ws.kl); paintThemen(us, now); }
     last = performance.now() - t0;
     return k;
   }
