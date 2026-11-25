@@ -1501,3 +1501,13 @@ Gut zu wissen
      Studio-Reverb-Modell. Die Regler gibt es in der Reactor-App und am Verstärker; 0–10 entspricht dem Reglerweg.
    - Prompt und Stichpunkte („Spark-App einstellen“ bzw. „Reactor-App einstellen“) benutzen dieselben Namen.
      BIAS X bleibt wie bisher.
+
+131. Studio entfernt (v148)
+   - Das „Loopsmiths Studio“ ist nicht mehr Teil der App. Die Knöpfe „Im Studio ↗“ (unter jeder Spur) und „Studio“
+     (an jeder gespeicherten Idee) sind weg, ebenso die Studio-Themen in der Anleitung „?“. Ältere Abschnitte
+     dieser Datei, die das Studio beschreiben (86, 87, 90, 92, 93 und spätere Studio-Abschnitte), gelten nicht mehr.
+   - Der Looper und alle anderen Bereiche bleiben unverändert. Deine Ideen und Songs bleiben gespeichert.
+     Im Spurkopf stehen jetzt EQ · Hall/Echo · Gesang trennen.
+   - Mit dem Studio entfällt auch das Mastering-Fenster (es lag seit v112 im Studio). Der Song-Export im Looper
+     arbeitet wie bisher.
+   - Wer die Studio-Adresse …/3nps/studio/ noch als Symbol hat, landet automatisch im Looper.
