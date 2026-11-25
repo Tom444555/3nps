@@ -1,0 +1,24 @@
+/* v152: Übe-Verlauf (Börsenkurs-Stil, ruhig; Farben aus den Optik-Variablen) */
+.pv { gap: 10px; }
+.pv-top { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 10px 16px; }
+.pv-big { font: 700 2.1rem/1.1 var(--f-body); color: var(--ink); font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+.pv-chg { font: 600 .95rem var(--f-body); color: var(--muted); min-height: 1.3em; font-variant-numeric: tabular-nums; }
+.pv-chg.up { color: var(--ok, #3fbf6f); }
+.pv-chg.down { color: var(--warn, #e05a3a); }
+.pv .seg .toggle-btn { min-height: 44px; min-width: 44px; }
+.pv-chart { height: 170px; position: relative; }
+.pv-svg { display: block; width: 100%; height: 170px; overflow: visible; }
+.pv-line { fill: none; stroke: var(--accent, #2d9cdb); stroke-width: 2.2; stroke-linejoin: round; stroke-linecap: round; }
+.pv-area { fill: var(--accent, #2d9cdb); opacity: .13; }
+.pv-base { stroke: var(--line, rgba(127,127,127,.3)); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.pv-dot { fill: none; stroke: var(--accent, #2d9cdb); stroke-width: 6; stroke-linecap: round; }   /* Punkte als Null-Strich: bleiben rund trotz preserveAspectRatio=none */
+.pv-end { fill: none; stroke: var(--accent, #2d9cdb); stroke-width: 10; stroke-linecap: round; }
+.pv-empty { height: 170px; display: flex; align-items: center; justify-content: center; text-align: center; margin: 0; padding: 0 12px; }
+.pv-ax { display: flex; justify-content: space-between; min-height: 1.2em; margin-top: -4px; }
+.pv-r { display: flex; width: 100%; }
+.pv-r .toggle-btn { flex: 1 1 0; }
+.pv-hl { display: flex; flex-wrap: wrap; gap: 6px 18px; font-variant-numeric: tabular-nums; }
+.pv-hl b { color: var(--ink); font-weight: 600; }
+.pv-note { margin: 0; }
+#pvFold > summary { min-height: 44px; }
+#pvFold > summary h2 { white-space: nowrap; }

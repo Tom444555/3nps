@@ -62,6 +62,7 @@ async function refreshLog() {
   try {
     const entries = await AppDB.all('sessions');
     renderLog(entries);
+    if (window.UebeVerlauf) UebeVerlauf.update(entries);   // v152: offene Verlaufs-Karte mitziehen
   } catch (e) {
     console.error(e);
     document.getElementById('logList').innerHTML = '<p class="pattern-desc">Verlauf konnte nicht geladen werden. Private Surfen verhindert das Speichern.</p>';
