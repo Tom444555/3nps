@@ -4198,6 +4198,7 @@ return true;}}registerProcessor('loadmeter',LoadMeter);`;
   return {
     getMix, loadSamples, update, position, getSession, sessionMix, sessionSecs, sessionMixEq, loadSession, setTrackEq: (i, v) => setTrackEq(tracks[i], v, false), getTrackEq: i => EQ7.norm(tracks[i].eqVals), setTrackFx: (i, v) => setTrackFx(tracks[i], v, false), changes: () => changeN, setSrcName: n => tracks.forEach(t => { if (t.L) t.srcName = n || ''; }), srcNames: () => tracks.map(t => t.L ? t.srcName || '' : null), getTrackFx: i => Object.assign({}, tracks[i].fx), fxBus: () => Object.assign({}, fxBusV), getDroneState, setDroneState,
     isEmpty: () => !anyContent(),
+    busy: () => !!rec || tracks.some(t => t.state === 'playing'),   // v149: Aufnahme oder Wiedergabe läuft (Leerlauf-Arbeit wartet)
     foot: i => foot(tracks[i]),
     exportLogic: () => exportLogic(),
     _micKill: () => { if (stream) stream.getTracks().forEach(tr => tr.stop()); },

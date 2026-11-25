@@ -426,15 +426,33 @@ function playHihat(t, accent) {
 let bassSampleBuffers = {};
 let bassSamplesReady = false;
 
+// v149: Start-Vorbereitung (Bass-Proben, Drum-Kit) in kurzen Häppchen im Leerlauf statt in einem Stück nach dem Laden.
+// Nie während Wiedergabe/Aufnahme; wird etwas vorher gebraucht, macht der Aufrufer den Rest sofort fertig (gleiche Puffer, gleicher Klang).
+function bgBusy() {
+  try { return !!((typeof Rhythm !== 'undefined' && Rhythm.on()) || (typeof Looper !== 'undefined' && Looper.busy && Looper.busy())); } catch (e) { return false; }
+}
+function bgRun(step, fertig) {                       // step(): ein Häppchen (≤ ≈ 6 ms), false = abbrechen
+  const later = f => window.requestIdleCallback ? requestIdleCallback(f, { timeout: 500 }) : setTimeout(f, 40);
+  const go = () => { if (fertig()) return; if (!bgBusy() && step() === false) return; if (!fertig()) later(go); };
+  later(go);
+}
+
+let bassRaw = null, bassSR = 48000;
+function bassFlush(all) {                            // all = Rest sofort (erster Bass-Ton), sonst ein Häppchen
+  if (!bassRaw || typeof audioCtx === 'undefined' || !audioCtx) return false;
+  const t0 = performance.now();
+  while (bassRaw.length) {
+    const [midi, a] = bassRaw.shift();
+    const b = audioCtx.createBuffer(1, a.length, bassSR); b.copyToChannel(a, 0); bassSampleBuffers[parseInt(midi)] = b;
+    if (!all && performance.now() - t0 >= 6) break;
+  }
+  if (!bassRaw.length) { bassRaw = null; bassSamplesReady = true; }
+}
+
 async function loadBassSamples() {
   ensureAudio();
   const SR = audioCtx.sampleRate || 48000;
-  const done = raw => {
-    Object.entries(raw).forEach(([midi, a]) => {
-      const b = audioCtx.createBuffer(1, a.length, SR); b.copyToChannel(a, 0); bassSampleBuffers[parseInt(midi)] = b;
-    });
-    bassSamplesReady = true;
-  };
+  const done = raw => { bassSR = SR; bassRaw = Object.entries(raw); bgRun(() => bassFlush(false), () => !bassRaw); };
   try {
     const src = synthBass.toString() + '\nonmessage = e => { const r = synthBass(e.data.sr, 36, 55, 2.2); postMessage(r, Object.values(r).map(a => a.buffer)); };';
     const w = new Worker(URL.createObjectURL(new Blob([src], { type: 'application/javascript' })));
@@ -454,6 +472,7 @@ function nearestBassSample(midi) {
 }
 
 function playBassNote(t, deg, stepDurMs) {
+  if (!bassSamplesReady && bassRaw) bassFlush(true);
   if (!bassSamplesReady) return;
   const rootIdx = NOTES.indexOf(rootSel.value);
   const intervals = MODES[modeSel.value];

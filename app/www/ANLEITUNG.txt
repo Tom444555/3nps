@@ -1511,3 +1511,10 @@ Gut zu wissen
    - Mit dem Studio entfällt auch das Mastering-Fenster (es lag seit v112 im Studio). Der Song-Export im Looper
      arbeitet wie bisher.
    - Wer die Studio-Adresse …/3nps/studio/ noch als Symbol hat, landet automatisch im Looper.
+
+132. Schnellerer Start (v149)
+   - Die App ist nach dem Öffnen früher bedienbar. Bisher rechnete sie direkt nach dem Laden in einem Stück die
+     Bass-Töne und das Drum-Kit in Audio-Puffer um (auf einem langsamen Gerät gut eine Sekunde, in der Tippen hakte).
+     Jetzt passiert das in kleinen Häppchen, wenn die App gerade nichts zu tun hat – nie während Wiedergabe oder Aufnahme.
+   - Tippst du sehr früh auf „Drums an“ oder spielt der erste Bass-Ton, wird der Rest sofort fertig gemacht.
+     Klang und Timing von Drums und Bass sind unverändert (dieselben Puffer, derselbe Hall).

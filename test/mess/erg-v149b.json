@@ -1,0 +1,26 @@
+{
+ "start": {
+  "1": {
+   "dcl": 381,
+   "load": 464,
+   "ltN": 3,
+   "ltSum": 240,
+   "ltMax": 98,
+   "ready": 490,
+   "dom": 3555,
+   "klick": 146,
+   "errs": 0
+  },
+  "4": {
+   "dcl": 1158,
+   "load": 1398,
+   "ltN": 10,
+   "ltSum": 1235,
+   "ltMax": 287,
+   "ready": 1734,
+   "dom": 3555,
+   "klick": 409,
+   "errs": 0
+  }
+ }
+}

@@ -169,19 +169,31 @@ const Rhythm = (() => {
   eqBtn.addEventListener('click', () => { eqPanel.hidden = !eqPanel.hidden; eqBtn.setAttribute('aria-expanded', String(!eqPanel.hidden)); eqBtn.classList.toggle('active', !eqPanel.hidden); if (!eqPanel.hidden) eqUi.draw(); });
   showEqBtn();
   const KIT_SR = 48000;
+  // v149: Puffer je Instrument in Häppchen im Leerlauf (bgRun); kitToBuffers() macht den Rest sofort fertig (Drums an, erster Schlag)
+  let kitPart = null, kitBg = false;
+  function kitConv(all) {
+    if (kit || !kitRaw || typeof audioCtx === 'undefined' || !audioCtx) { kitBg = false; return false; }
+    const k = kitPart || (kitPart = {}), t0 = performance.now();
+    for (const id of Object.keys(kitRaw)) {
+      if (k[id]) continue;
+      k[id] = kitRaw[id].map(l => l.map(a => { const b = audioCtx.createBuffer(1, a.length, KIT_SR); b.copyToChannel(a, 0); return b; }));
+      if (!all && performance.now() - t0 >= 6) return true;
+    }
+    kitToBuffers();
+  }
   function kitToBuffers() {
     if (kit || !kitRaw || typeof audioCtx === 'undefined' || !audioCtx) return;
-    const k = {};
-    Object.entries(kitRaw).forEach(([id, layers]) => { k[id] = layers.map(l => l.map(a => { const b = audioCtx.createBuffer(1, a.length, KIT_SR); b.copyToChannel(a, 0); return b; })); });
-    kit = k; kitRaw = null;
+    const k = kitPart || {};
+    Object.entries(kitRaw).forEach(([id, layers]) => { if (!k[id]) k[id] = layers.map(l => l.map(a => { const b = audioCtx.createBuffer(1, a.length, KIT_SR); b.copyToChannel(a, 0); return b; })); });
+    kit = k; kitRaw = null; kitPart = null; kitBg = false;
     setTimeout(() => { ensureTails('synth'); wkStart(); }, 0);      // Hall-Puffer und Worklet schon vor dem ersten Schlag bereit
     if (wk) wkSend('synth');
     if (wantOn) { wantOn = false; setOn(true); }
   }
   function makeKit() {
-    if (kit || kitRaw || kitBusy) { kitToBuffers(); return; }
+    if (kit || kitRaw || kitBusy) { if (!kitBg) kitToBuffers(); return; }
     kitBusy = true;
-    const done = data => { kitRaw = data; kitBusy = false; kitToBuffers(); };
+    const done = data => { kitRaw = data; kitBusy = false; if (wantOn) kitToBuffers(); else { kitBg = true; bgRun(() => kitConv(false), () => !kitRaw || !kitBg); } };
     try {
       const src = synthKit.toString() + '\nonmessage = e => { const r = synthKit(e.data.sr); const tr = []; Object.values(r).forEach(l => l.forEach(v => v.forEach(a => tr.push(a.buffer)))); postMessage(r, tr); };';
       const w = new Worker(URL.createObjectURL(new Blob([src], { type: 'application/javascript' })));
@@ -248,8 +260,10 @@ const Rhythm = (() => {
   // Einmalig ≈ 0,1–0,5 s Rechnen im Hintergrund je Kit und ≈ 10 MB Puffer; der Faltungshall wird abgehängt.
   const TL = {}; let tlBusy = '';
   const rmsOf = b => { if (b.__rms != null) return b.__rms; let e = 0, n = 0; for (let c = 0; c < b.numberOfChannels; c++) { const d = b.getChannelData(c); for (let i = 0; i < d.length; i += 2) { e += d[i] * d[i]; n++; } } return (b.__rms = Math.sqrt(e / Math.max(1, n))); };
+  const yieldT = () => new Promise(r => setTimeout(r, 0));   // v149: Rechenpause zwischen den Schritten (keine langen Aufgaben)
   async function buildTails(K) {
-    const ir = roomBuf(), sr = audioCtx.sampleRate, irLen = ir.duration;
+    const fresh = !roomIRb, ir = roomBuf(), sr = audioCtx.sampleRate, irLen = ir.duration;
+    if (fresh) await yieldT();
     const items = INSTR.map(i => ({ i, layers: K[i.id] || K[ALIAS[i.id]] })).filter(x => x.layers && x.layers[2] && x.layers[2][0] && !x.layers[2][0].__w);
     let pos = 0.02;
     items.forEach(x => { x.rep = x.layers[2][0]; x.at = pos; x.len = x.rep.duration + irLen; pos += x.len + 0.05; });
@@ -261,13 +275,15 @@ const Rhythm = (() => {
       src.connect(g); if (p) { g.connect(p); p.connect(cv); } else g.connect(cv); src.start(x.at);
     });
     const out = await oc.startRendering(), A = out.getChannelData(0), B = out.getChannelData(1), M = {};
-    items.forEach(x => {
+    let t0 = performance.now();
+    for (const x of items) {
+      if (performance.now() - t0 > 6) { await yieldT(); t0 = performance.now(); }
       const a = Math.round(x.at * sr), n0 = Math.min(A.length - a, Math.round(x.len * sr));
       let pk = 0; for (let k = 0; k < n0; k++) pk = Math.max(pk, Math.abs(A[a + k]), Math.abs(B[a + k]));
       let n = n0; const lim = pk * 3e-4; while (n > 1 && Math.abs(A[a + n - 1]) < lim && Math.abs(B[a + n - 1]) < lim) n--;   // Ende unter −70 dB weg
       const b = audioCtx.createBuffer(2, Math.max(1, n), sr); b.copyToChannel(A.subarray(a, a + n), 0); b.copyToChannel(B.subarray(a, a + n), 1);
       M[x.i.id] = { b, rr: rmsOf(x.rep) || 1 };
-    });
+    }
     return M;
   }
   function ensureTails(tag) {
@@ -434,6 +450,7 @@ registerProcessor('drumvox',DrumVox);`;
       if (b.open) { try { b.open.gain.cancelScheduledValues(t); b.open.gain.setTargetAtTime(0, t, 0.012); } catch (e) {} b.open = null; }
       if (b.openT) { try { b.openT.gain.cancelScheduledValues(t); b.openT.gain.setTargetAtTime(0, t, 0.17); } catch (e) {} b.openT = null; }   // Hall klingt wie im Raum aus
     }
+    if (!kit && kitRaw) kitToBuffers();           // v149: Kit liegt schon vor, nur noch nicht ganz in Puffern → jetzt fertig machen
     if (!kit) { // einfache Ersatzstimmen
       roomUse = Math.max(roomUse, t + 0.6); roomLink(true);
       if (id === 'kick') playKick(t, b); else if (id === 'snare' || id === 'clap' || id === 'rim') playSnare(t, b); else if (id !== 'crash' && id !== 'tomh' && id !== 'toml') playHihat(t, v > 0.8, b);
