@@ -105,6 +105,14 @@ ACCEPT = 'audio/*,video/*,.mp3,.wav,.wave,.aif,.aiff,.aifc,.m4a,.m4b,.aac,.caf,.
 head = head.replace('</style>', lcss + metal + themecss + rd(A + 'geraet.css') + rd(A + 'bedienung.css') + rd(A + 'design.css') + '</style>', 1)
 head = head.replace('step="1" value="80"', 'step="any" value="80"')
 # v112: Mastering ist ins Studio umgezogen (master.js liefert weiter window.Master für den Song-Export)
+# v151: Mastering als Karte im Looper – Oberfläche aus master.html als <template> (wird erst beim Öffnen der Karte eingesetzt, master.js mount)
+_mh = rd(A + 'master.html')
+_mh = _mh[_mh.index('>', _mh.index('<section')) + 1:_mh.rindex('</section>')]
+_mh = _mh.replace('<div class="card">', '<div class="ms-sub">').replace('<h2>', '<h3>').replace('</h2>', '</h3>')
+_mh = _mh.replace('<option value="file">Datei laden …</option>', '<option value="mix">Looper-Mix (alle Spuren, ohne Drums/Drone)</option>\n          <option value="file">Datei laden …</option>')
+_mh = _mh.replace('>WAV speichern</button>', '>Als WAV exportieren</button>').replace('<div class="card-head"><h3>Mastering</h3>', '<div class="card-head"><h3>Quelle und Ziel</h3>')
+assert 'value="mix"' in _mh and 'Als WAV exportieren' in _mh and 'MASTER_CARD' in lhtml
+lhtml = lhtml.replace('MASTER_CARD', _mh)
 head = head.replace('LOOPER_PANEL', lhtml).replace('CIRCLE_PANEL', rd(A + 'circle.html')).replace('SINGEN_PANEL', rd(A + 'singen.html')).replace('MASTER_PANEL', '').replace('HILFE_PANEL', rd(A + 'hilfe.html')).replace('LERNEN_PANEL', rd(A + 'lernen.html')).replace('POWER_PANEL', rd(A + 'powerchords.html')).replace('SOLO_PANEL', rd(A + 'solo.html')).replace('CAGED_PANEL', rd(A + 'caged.html')).replace('JAM_PANEL', rd(A + 'jam.html')).replace('LIED_PANEL', rd(A + 'lied.html')).replace('UEBEN_PANEL', rd(A + 'uebung.html'))
 head = head.replace('AUDIO_ACCEPT', ACCEPT)
 assert 'AUDIO_ACCEPT' not in head and 'LOOPER_PANEL' not in head and 'CIRCLE_PANEL' not in head and 'SOLO_PANEL' not in head and 'JAM_PANEL' not in head and 'LIED_PANEL' not in head and 'UEBEN_PANEL' not in head and 'POWER_PANEL' not in head

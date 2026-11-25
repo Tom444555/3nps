@@ -46,7 +46,12 @@
   }
 
   // ---------- Oberfläche ----------
-  const panel = $('panel-master'); if (!panel) { window.Master = { measure, normalize, target, reportText, TARGETS }; return; }
+  // v151: Oberfläche erst beim Öffnen der Looper-Karte „Mastering“ (mount); im Studio sofort (#panel-master)
+  const api = window.Master = { measure, normalize, target, reportText, TARGETS };
+  let mounted = false;
+  api.mount = panel => { if (mounted || !panel) return; mounted = true; mountUI(panel); };
+  api.mounted = () => mounted;
+  function mountUI(panel) {
   let cur = null;   // { name, chs, sr, before, res }
   let play = null;  // { a, b, ga, gb, t0, off }
   const status = m => { $('msStatus').textContent = m; };
@@ -70,6 +75,14 @@
     const v = $('msSrc').value;
     if (v === 'file') return null;   // über Dateiauswahl
     if (window.MasterSource) { const r = await window.MasterSource(v); if (r) return r; }   // v112: Studio liefert Projekt-Mix
+    if (v === 'mix') {                // v151: Looper-Mix aller Spuren (mit Spur-EQ/Hall/Echo, wie „Ideen“), ohne Drums/Drone
+      const L = typeof Looper !== 'undefined' ? Looper : null, sess = L && L.getSession && L.getSession();
+      if (!sess) throw new Error(TT('Im Looper ist noch nichts aufgenommen oder geladen.'));
+      if (typeof ensureAudio === 'function') ensureAudio();
+      const m = await L.sessionMixEq(sess), buf = await audioCtx.decodeAudioData(await m.wav.arrayBuffer()), chs = [];
+      for (let c = 0; c < Math.min(2, buf.numberOfChannels); c++) chs.push(new Float32Array(buf.getChannelData(c)));
+      return { name: TT('Looper-Mix'), chs, sr: buf.sampleRate };
+    }
     if (v[0] === 't') {
       const i = +v[1], x = typeof Looper !== 'undefined' && Looper.singAudio ? Looper.singAudio(i, 0, 1e12) : null;
       if (!x) throw new Error(TT('Auf dieser Spur liegt keine geladene Datei. Mastering geht mit geladenen Dateien (z. B. aus Logic) – oder „Datei vom iPad …“ wählen.'));
@@ -103,7 +116,7 @@
       const t0 = performance.now(), r = await normalize(cur.chs, cur.sr, t.I, t.T, f => prog(f), cur.before);
       cur.res = r; cur.t = t; window.__msMs = Math.round(performance.now() - t0); prog(null); paintVals();
       const a = r.after, okI = Math.abs(a.I - t.I) <= 0.2, okT = a.TP <= t.T + 0.05;
-      status((okI && okT ? TT('Fertig: ') : TT('Fertig (Ziel nicht ganz erreicht): ')) + fmt(a.I) + ' LUFS · ' + fmt(a.TP) + ' dBTP. ' + TT('Mit „Master“ / „Original“ vergleichen, dann „WAV speichern“.'));
+      status((okI && okT ? TT('Fertig: ') : TT('Fertig (Ziel nicht ganz erreicht): ')) + fmt(a.I) + ' LUFS · ' + fmt(a.TP) + ' dBTP. ' + TT(panel.id === 'panel-master' ? 'Mit „Master“ / „Original“ vergleichen, dann „WAV speichern“.' : 'Mit „Master“ / „Original“ vergleichen, dann „Als WAV exportieren“.'));
       if (r.red < -6) hint(TT('Der Begrenzer musste stark arbeiten (') + fmt(r.red) + TT(' dB) – das kann den Klang flacher machen. Ein leiseres Ziel oder ein Mix mit weniger Spitzen klingt oft besser.'));
       else paintTarget();
     } catch (e) { prog(null); status(TT('Mastering fehlgeschlagen: ') + (e && e.message || e)); }
@@ -177,5 +190,12 @@
   document.addEventListener('tabchange', e => { if (e.detail !== 'master') stopPlay(); else paintTarget(); });
   paintTarget(); paintVals();
 
-  window.Master = { measure, normalize, target, reportText, TARGETS, cur: () => cur, load, run, startPlay, stopPlay, playing: () => !!play };
+  Object.assign(api, { cur: () => cur, load, run, startPlay, stopPlay, playing: () => !!play });
+  }
+  if ($('panel-master')) api.mount($('panel-master'));
+  const fold = $('msFold');   // v151: Looper-Karte – zu = nichts aufgebaut, nichts gerechnet, kein Knoten am Signalweg
+  if (fold) fold.addEventListener('toggle', () => {
+    if (fold.open && !mounted) { const body = $('msBody'), tpl = $('msTpl'); if (body && tpl) { body.appendChild(tpl.content.cloneNode(true)); api.mount(body); } }
+    else if (!fold.open && api.stopPlay) api.stopPlay();
+  });
 })();

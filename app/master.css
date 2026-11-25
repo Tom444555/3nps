@@ -15,3 +15,24 @@
 #panel-master .ms-ab { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin-bottom: 10px; }
 #panel-master #msPos { width: 100%; }
 @media (max-width: 560px) { #panel-master .ms-table th, #panel-master .ms-table td { padding: 5px 4px; font-size: .9em; } #panel-master .ms-table th:nth-child(4), #panel-master .ms-table td:nth-child(4) { display: none; } }
+/* v151: Mastering als Karte im Looper (#msBody, gleiche Regeln wie #panel-master) */
+#msBody .ms-fields { display: flex; flex-wrap: wrap; gap: 10px 14px; margin: 4px 0 10px; }
+#msBody .ms-fields .field { min-width: 0; }
+#msBody .ms-fields select { max-width: 100%; }
+#msBody .ms-own input { width: 6.5em; }
+#msBody .ms-btns { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 10px; }
+#msBody .ms-prog { height: 8px; border-radius: 4px; background: rgba(127,127,127,.22); overflow: hidden; margin: 6px 0; }
+#msBody .ms-prog i { display: block; height: 100%; width: 0; background: var(--accent, #e0a030); transition: width .2s; }
+#msBody .ms-hint { color: var(--warn, #e0a030); }
+#msBody .ms-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+#msBody .ms-table th, #msBody .ms-table td { padding: 6px 8px; text-align: right; border-bottom: 1px solid rgba(127,127,127,.18); white-space: nowrap; }
+#msBody .ms-table th:first-child, #msBody .ms-table td:first-child { text-align: left; white-space: normal; }
+#msBody .ms-table td.ok { color: var(--ok, #3fbf6f); }
+#msBody .ms-table td.bad { color: var(--warn, #e05a3a); }
+#msBody .ms-ab { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin-bottom: 10px; }
+#msBody #msPos { width: 100%; }
+#msBody .ms-sub + .ms-sub { border-top: 1px solid var(--line, rgba(127,127,127,.25)); padding-top: 12px; }
+#msBody .ms-sub h3 { margin: 0 0 6px; }
+#msBody .card-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+html.dev-min #msFoldCard { display: none !important; }
+@media (max-width: 560px) { #msBody .ms-table th, #msBody .ms-table td { padding: 5px 4px; font-size: .9em; } #msBody .ms-table th:nth-child(4), #msBody .ms-table td:nth-child(4) { display: none; } }
