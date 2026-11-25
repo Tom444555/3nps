@@ -1,5 +1,5 @@
 // Offline-Cache für die 3nps-App. Bei Updates CACHE-Version hochzählen.
-const CACHE = '3nps-v155';
+const CACHE = '3nps-v156';
 const ASR = 'asr-1';
 const DRUMS = 'drums-1';   // echtes Kit (v98): eigener Speicher, überlebt Updates (Version erhöhen, wenn sich kit.flac ändert)   // Name ohne „3nps-“: wird beim Update nicht gelöscht (Version erhöhen, wenn sich das Modell ändert)
 // v145: Schriften und Englisch-Wörterbuch als eigene Dateien (klein, offline immer da); Optik-Bilder nicht mehr hier, siehe OPTIK.
@@ -43,7 +43,7 @@ self.addEventListener('fetch', e => {
   const url = new URL(req.url);
   if (url.pathname.includes('/stabil/')) return;   // stabile Fassung hat ihren eigenen Speicher
   // Texterkennung: Modell und Laufzeit (~100 MB) in eigenem Speicher, der App-Updates überlebt; erst laden, wenn gebraucht
-  if (url.pathname.includes('/drums/') || url.pathname.includes('/drones/') || url.pathname.includes('/inst/')) {   // /inst/: Studio-Instrumente (v104)
+  if (url.pathname.includes('/drums/') || url.pathname.includes('/drones/')) {
     e.respondWith(caches.open(DRUMS).then(c => c.match(req).then(hit => hit || fetch(req).then(r => { if (r.ok) c.put(req, r.clone()); return r; }))));
     return;
   }
@@ -62,7 +62,7 @@ self.addEventListener('fetch', e => {
   // App-Seite: sofort aus dem Speicher (auch ohne oder mit hängendem Internet), neue Fassung im Hintergrund holen –
   // sie gilt beim nächsten Öffnen. Nur beim allerersten Start (noch nichts gespeichert) wird auf das Netz gewartet.
   if (req.mode === 'navigate') {
-    const page = url.pathname.includes('/studio/') ? 'studio/index.html' : 'index.html';   // Studio ist eine eigene Seite
+    const page = url.pathname.includes('/studio/') ? 'studio/index.html' : 'index.html';   // alte Studio-Adresse: eigene kleine Weiterleitungsseite (v148) – muss bleiben, sonst stimmen dort die relativen Pfade nicht
     const net = fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' }).then(r => { if (r.ok) { const copy = r.clone(); caches.open(CACHE).then(c => c.put(page, copy)); } return r; });
     e.respondWith(caches.open(CACHE).then(c => c.match(page)).then(hit => {
       if (hit) { e.waitUntil(net.catch(() => {})); return hit; }
