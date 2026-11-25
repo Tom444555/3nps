@@ -1,0 +1,3494 @@
+{
+ "corpus/ballad_72": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 72,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.87
+ },
+ "corpus/ballad_drums_80": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 80,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.29
+ },
+ "corpus/fast_170": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 170,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.42
+ },
+ "corpus/funk_104": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 104,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.24
+ },
+ "corpus/funk_96_drift": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 96,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.12
+ },
+ "corpus/guitar_only_132": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 132,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.79
+ },
+ "corpus/guitar_only_95": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 95,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.86
+ },
+ "corpus/halftime_140": {
+  "grp": "R",
+  "tempoOk": false,
+  "einsOk": true,
+  "bpm": 70,
+  "tempo": "½",
+  "off": "0",
+  "conf": 0.66
+ },
+ "corpus/live_drift_112": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 111.9,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.31
+ },
+ "corpus/pickup_100": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 100,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.81
+ },
+ "corpus/pop16_128": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 128,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.43
+ },
+ "corpus/rock_120": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 120,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.29
+ },
+ "corpus/rock_150_intro4": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 150,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.73
+ },
+ "corpus/rock_97_intro": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 97.3,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2.01
+ },
+ "corpus/shuffle_88": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 88,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.39
+ },
+ "corpus/slow_66": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 66,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.44
+ },
+ "valid/v_ballad_60": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 60,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.23
+ },
+ "valid/v_edm_124": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 124,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.77
+ },
+ "valid/v_edm_128_intro": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 128,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.88
+ },
+ "valid/v_finger_84": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 84,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.11
+ },
+ "valid/v_funk_115": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 115,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.19
+ },
+ "valid/v_guitar_76": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 76,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.3
+ },
+ "valid/v_metal_180": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 180,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.36
+ },
+ "valid/v_pop_92_pickup": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 92,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2.06
+ },
+ "valid/v_reggae_76": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 76,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.76
+ },
+ "valid/v_rock_110": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 110,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.22
+ },
+ "valid/v_rock_135_intro": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 135,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.96
+ },
+ "valid/v_shuffle_120": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 120,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.59
+ },
+ "hard/h_acoustic16_86": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 86,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.09
+ },
+ "hard/h_acoustic_100": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 100,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.11
+ },
+ "hard/h_ballad_reverb_68": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 68,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.74
+ },
+ "hard/h_bluesrock_124": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 124,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2.03
+ },
+ "hard/h_boogie_solo_132": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 132,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.42
+ },
+ "hard/h_breaks_112": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 112,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.77
+ },
+ "hard/h_chicago_shuffle_96": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 96,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.54
+ },
+ "hard/h_delta_84": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 84,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.96
+ },
+ "hard/h_fade_120": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 120,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2.17
+ },
+ "hard/h_halfshuffle_82": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": false,
+  "bpm": 82,
+  "tempo": "ok",
+  "off": "1",
+  "conf": 1.35
+ },
+ "hard/h_jump_150": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": false,
+  "bpm": 150,
+  "tempo": "ok",
+  "off": "1",
+  "conf": 1.16
+ },
+ "hard/h_live_drift_104": {
+  "grp": "R",
+  "tempoOk": false,
+  "einsOk": true,
+  "bpm": 106.9,
+  "tempo": "falsch",
+  "off": "0",
+  "conf": 1.98
+ },
+ "hard/h_mp3_funk_100": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 100,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.97
+ },
+ "hard/h_mp3_shuffle_126": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 126,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.22
+ },
+ "hard/h_pickup2_92": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 92,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2.19
+ },
+ "hard/h_rubato_90": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 90,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.73
+ },
+ "hard/h_shuffle_noBass_108": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 108,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.99
+ },
+ "hard/h_slowblues_54_nodrums": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 54,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2.01
+ },
+ "hard/h_slowblues_60": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 60,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.19
+ },
+ "hard/h_slowblues_68_mp3": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 68,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.06
+ },
+ "hard/h_slowblues_ride_64": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": false,
+  "bpm": 64,
+  "tempo": "ok",
+  "off": "2",
+  "conf": 1.47
+ },
+ "hard/h_texas_fast_168": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 168,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.72
+ },
+ "hard/h_texas_shuffle_118": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 118,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.2
+ },
+ "hard/h_train_150": {
+  "grp": "R",
+  "tempoOk": false,
+  "einsOk": false,
+  "bpm": 75,
+  "tempo": "½",
+  "off": "1",
+  "conf": 0.34
+ },
+ "long/L_acoustic_drift_90": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 89.9,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.23
+ },
+ "long/L_ballad_live_74": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 74,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.9
+ },
+ "long/L_blues_shuffle_96": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 96,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.03
+ },
+ "long/L_funk_mp3_104": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 104,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.65
+ },
+ "long/L_pop_late_drums_128": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 128,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2.09
+ },
+ "long/L_rock_song_112": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 112,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2.03
+ },
+ "blues/b_brush_110": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 110,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.37
+ },
+ "blues/b_chicago_104_auftakt1": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 104,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.04
+ },
+ "blues/b_chicago_112": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 112,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.58
+ },
+ "blues/b_chicago_132": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 132,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.02
+ },
+ "blues/b_chicago_80_nobass": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 80,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.89
+ },
+ "blues/b_drift_shuffle_112": {
+  "grp": "B",
+  "tempoOk": false,
+  "einsOk": true,
+  "bpm": 109.7,
+  "tempo": "falsch",
+  "off": "0",
+  "conf": 0.33
+ },
+ "blues/b_half_74": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 74,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.06
+ },
+ "blues/b_half_90_pop": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": false,
+  "bpm": 90,
+  "tempo": "ok",
+  "off": "1",
+  "conf": 1.18
+ },
+ "blues/b_jump_138": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": false,
+  "bpm": 138.1,
+  "tempo": "ok",
+  "off": "1",
+  "conf": 0.95
+ },
+ "blues/b_jump_160": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": false,
+  "bpm": 160,
+  "tempo": "ok",
+  "off": "1",
+  "conf": 1.53
+ },
+ "blues/b_pop_shuffle_108": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 108,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.12
+ },
+ "blues/b_ride_126": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": false,
+  "bpm": 126,
+  "tempo": "ok",
+  "off": "2",
+  "conf": 0
+ },
+ "blues/b_ride_96_mp3": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 96,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.03
+ },
+ "blues/b_shuffle4_104_nobass": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 104,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.52
+ },
+ "blues/b_shuffle4_120": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 120,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.02
+ },
+ "blues/b_slow_56_slide_nobass": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": false,
+  "bpm": 56,
+  "tempo": "ok",
+  "off": "2",
+  "conf": 1.56
+ },
+ "blues/b_slow_58": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 58,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.58
+ },
+ "blues/b_slow_66_slide": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": false,
+  "bpm": 66,
+  "tempo": "ok",
+  "off": "2",
+  "conf": 0.93
+ },
+ "blues/b_slow_70_slide": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": false,
+  "bpm": 70,
+  "tempo": "ok",
+  "off": "2",
+  "conf": 0.4
+ },
+ "blues/b_slow_72_nobass": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 72,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.08
+ },
+ "blues/b_slowb_62": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 62,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.96
+ },
+ "blues/b_solo_boogie_116": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 116,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.58
+ },
+ "blues/b_strum_shuffle_96": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 96,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.51
+ },
+ "blues/b_texas_100": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 100,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.87
+ },
+ "blues/b_texas_124_auftakt3": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 124,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.72
+ },
+ "blues/b_texas_140": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 140,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.4
+ },
+ "blues/b_texas_152_mp3": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 152,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.85
+ },
+ "blues/b_texas_92_nobass": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 92,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2
+ },
+ "gerade/g_acoustic_112_auftakt2": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 112,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.29
+ },
+ "gerade/g_ballad16_70": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 70,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.67
+ },
+ "gerade/g_ballad_76": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 76,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.47
+ },
+ "gerade/g_bluesrock_100_nobass": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 100,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.89
+ },
+ "gerade/g_bluesrock_136": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 136,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2.11
+ },
+ "gerade/g_disco_120": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 120,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.94
+ },
+ "gerade/g_funk_108": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 108,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.86
+ },
+ "gerade/g_funk_92_nobass": {
+  "grp": "R",
+  "tempoOk": false,
+  "einsOk": false,
+  "bpm": 184,
+  "tempo": "2×",
+  "off": "erste 0, 50 % richtig",
+  "conf": 0.79
+ },
+ "gerade/g_hiphop_88": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 88,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.64
+ },
+ "gerade/g_pop16_100_auftakt3": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 100,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.96
+ },
+ "gerade/g_pop16_116": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 116,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.96
+ },
+ "gerade/g_punk_176": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 176,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2.1
+ },
+ "gerade/g_quarters_96": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 96,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.98
+ },
+ "gerade/g_rnb_94": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 94,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2.29
+ },
+ "gerade/g_rock_108": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 108,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2.11
+ },
+ "gerade/g_rock_120_blues_auftakt2": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 120,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.89
+ },
+ "gerade/g_rock_128_blues": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 128,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.73
+ },
+ "gerade/g_rock_142_auftakt1": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 142,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2.01
+ },
+ "gerade/g_rock_150_mp3": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 150,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2.09
+ },
+ "gerade/g_softpop_104": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 104,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.71
+ },
+ "blues2/c_brush_124_stabs": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 124,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.37
+ },
+ "blues2/c_chicago_100": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 100,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.27
+ },
+ "blues2/c_chicago_120_mp3": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 120,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.03
+ },
+ "blues2/c_chicago_138_strum": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 138,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.02
+ },
+ "blues2/c_chicago_90_stabs_nobass": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 90,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.79
+ },
+ "blues2/c_drift_chicago_108": {
+  "grp": "B",
+  "tempoOk": false,
+  "einsOk": true,
+  "bpm": 106.5,
+  "tempo": "falsch",
+  "off": "0",
+  "conf": 0.62
+ },
+ "blues2/c_half_86": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 86,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.75
+ },
+ "blues2/c_jump_144": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": false,
+  "bpm": 144,
+  "tempo": "ok",
+  "off": "1",
+  "conf": 1.24
+ },
+ "blues2/c_pop_shuffle_100": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 100,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.69
+ },
+ "blues2/c_pop_shuffle_122_nobass": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 122,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.68
+ },
+ "blues2/c_ride_112": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": false,
+  "bpm": 112,
+  "tempo": "ok",
+  "off": "2",
+  "conf": 0.3
+ },
+ "blues2/c_ride_134_stabs": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 134,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.43
+ },
+ "blues2/c_shuffle4_128_strum_pop": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 128,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.27
+ },
+ "blues2/c_shuffle4_96": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 96,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.58
+ },
+ "blues2/c_slow_52_arp_nobass": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 52,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.59
+ },
+ "blues2/c_slow_60_slide": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": false,
+  "bpm": 60,
+  "tempo": "ok",
+  "off": "2",
+  "conf": 1.5
+ },
+ "blues2/c_slow_64_arp": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 64,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.58
+ },
+ "blues2/c_slow_74_slide_24": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": false,
+  "bpm": 74,
+  "tempo": "ok",
+  "off": "2",
+  "conf": 0.48
+ },
+ "blues2/c_solo_boogie_104": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 104,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.62
+ },
+ "blues2/c_texas_108": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 108,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.2
+ },
+ "blues2/c_texas_112_auftakt2": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": false,
+  "bpm": 112,
+  "tempo": "ok",
+  "off": "2",
+  "conf": 0.12
+ },
+ "blues2/c_texas_116_strum": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 116,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.03
+ },
+ "blues2/c_texas_132_stabs": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": false,
+  "bpm": 132,
+  "tempo": "ok",
+  "off": "2",
+  "conf": 0.71
+ },
+ "blues2/c_texas_146_mp3": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": false,
+  "bpm": 146,
+  "tempo": "ok",
+  "off": "2",
+  "conf": 0.5
+ },
+ "blues3/d_brushes_boogie_122": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 122,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.38
+ },
+ "blues3/d_brushes_strum8_134_pop": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 134,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.66
+ },
+ "blues3/d_chicago_boogie_100_nobass": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 100,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.94
+ },
+ "blues3/d_chicago_boogie_142": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 142,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.02
+ },
+ "blues3/d_chicago_stabs_154": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 154,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.71
+ },
+ "blues3/d_chicago_strum8_104_pop_auftakt2": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 104,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.05
+ },
+ "blues3/d_chicago_strum8_88_mp3": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 88,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.25
+ },
+ "blues3/d_halfshuffle_boogie_84": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 84,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.78
+ },
+ "blues3/d_jump_boogie_146": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": false,
+  "bpm": 146.1,
+  "tempo": "ok",
+  "off": "1",
+  "conf": 1.22
+ },
+ "blues3/d_rideshuffle_boogie_112_mp3": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 112,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.64
+ },
+ "blues3/d_rideshuffle_stabs_124": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": false,
+  "bpm": 124,
+  "tempo": "ok",
+  "off": "2",
+  "conf": 0.8
+ },
+ "blues3/d_rideshuffle_strum8_136_pop": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 136,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.66
+ },
+ "blues3/d_shuffle4_boogie_148": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 148,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.77
+ },
+ "blues3/d_shuffle4_stabs_98": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 98,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.36
+ },
+ "blues3/d_shuffle4_strum8_110_nobass": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 110,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.85
+ },
+ "blues3/d_slow128_arp128_56": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 56,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.39
+ },
+ "blues3/d_slow128_slide_62": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": false,
+  "bpm": 62,
+  "tempo": "ok",
+  "off": "2",
+  "conf": 1.19
+ },
+ "blues3/d_slow128b_arp128_68_nobass": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 68,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.46
+ },
+ "blues3/d_slow128b_slide_76": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": false,
+  "bpm": 76,
+  "tempo": "ok",
+  "off": "2",
+  "conf": 0.7
+ },
+ "blues3/d_texas_boogie_128_mp3_auftakt3": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 128,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.8
+ },
+ "blues3/d_texas_boogie_130_auftakt1": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 130,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.73
+ },
+ "blues3/d_texas_boogie_94": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 94,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.33
+ },
+ "blues3/d_texas_stabs_106_nobass": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 106,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.66
+ },
+ "blues3/d_texas_strum8_118_pop": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 118,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.24
+ },
+ "gerade2/e_ballad8_strum8_80_pop": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 80,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.63
+ },
+ "gerade2/e_ballad_arp8_72_pop": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 72,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.6
+ },
+ "gerade2/e_bluesrock_strum16_104_pop_mp3": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 104,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.89
+ },
+ "gerade2/e_bluesrock_strum8_118": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 118,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2.14
+ },
+ "gerade2/e_delta_strum8_88_pop": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 88,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.5
+ },
+ "gerade2/e_disco_strum8_122_pop": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 122,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.88
+ },
+ "gerade2/e_funk_strum16_100_pop": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 100,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.78
+ },
+ "gerade2/e_funk_strum16b_110": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 110,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2.08
+ },
+ "gerade2/e_hiphop_arp8_90_pop": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 90,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2.08
+ },
+ "gerade2/e_pop16_arp16_92_pop_auftakt2": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 92,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2.16
+ },
+ "gerade2/e_pop16_strum16b_126_pop": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 126,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2.06
+ },
+ "gerade2/e_punk_strum8_168": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 168,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.93
+ },
+ "gerade2/e_quarters_strum8_102": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 102,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.26
+ },
+ "gerade2/e_rnb_strum16b_98_pop": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 98,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.9
+ },
+ "gerade2/e_rock_arp8_96_nobass_pop": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 96,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.75
+ },
+ "gerade2/e_rock_strum16_124_pop": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 124,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2.17
+ },
+ "gerade2/e_rock_strum8_112": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 112,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2.22
+ },
+ "gerade2/e_rock_strum8_132_pop_auftakt1": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 132,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2.17
+ },
+ "gerade2/e_rock_strum8_138_nobass_auftakt3": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 138,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.46
+ },
+ "gerade2/e_softpop_arp16_108_pop": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 108,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.74
+ },
+ "oktave/o_arp16_60": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 60,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.23
+ },
+ "oktave/o_arp16_72": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 72,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.05
+ },
+ "oktave/o_arp16_84": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 84,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.26
+ },
+ "oktave/o_arp8_66": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 66,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.49
+ },
+ "oktave/o_arp8_80": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 80,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.56
+ },
+ "oktave/o_ballad16_62": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 62,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2.17
+ },
+ "oktave/o_ballad16_74": {
+  "grp": "R",
+  "tempoOk": false,
+  "einsOk": true,
+  "bpm": 73,
+  "tempo": "falsch",
+  "off": "0",
+  "conf": 1.7
+ },
+ "oktave/o_ballad8_104": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 104,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.99
+ },
+ "oktave/o_ballad8_60": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 60,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.68
+ },
+ "oktave/o_ballad8_68": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 68,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.52
+ },
+ "oktave/o_ballad8_76": {
+  "grp": "R",
+  "tempoOk": false,
+  "einsOk": true,
+  "bpm": 74.4,
+  "tempo": "falsch",
+  "off": "0",
+  "conf": 2.11
+ },
+ "oktave/o_ballad_rim_72": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 72,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.47
+ },
+ "oktave/o_funk_108": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 108,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.8
+ },
+ "oktave/o_hiphop_100": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 100,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.9
+ },
+ "oktave/o_hiphop_72": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 72,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.54
+ },
+ "oktave/o_hiphop_84": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 84,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.64
+ },
+ "oktave/o_hiphop_92": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 92,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.86
+ },
+ "oktave/o_pop16_118": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 118,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2.04
+ },
+ "oktave/o_pop16_128": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 128,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2.18
+ },
+ "oktave/o_pop16_70": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 70,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.85
+ },
+ "oktave/o_pop16_88": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 88,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.53
+ },
+ "oktave/o_pop16_96": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 96,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.55
+ },
+ "oktave/o_ride16_86": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 86,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.62
+ },
+ "oktave/o_rnb_66": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 66,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.76
+ },
+ "oktave/o_rnb_78": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 78,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.36
+ },
+ "oktave/o_rock8_84": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 84,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.71
+ },
+ "oktave/o_rock_120": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 120,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2.01
+ },
+ "oktave/o_rock_140": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 140,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2.16
+ },
+ "oktave/o_rock_160": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 160,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2.16
+ },
+ "oktave/o_rock_176": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 176,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.73
+ },
+ "oktave/o_shuffle_150": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 150,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.85
+ },
+ "oktave/o_softpop_68": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 68,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.85
+ },
+ "oktave/o_softpop_82": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 82,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.47
+ },
+ "oktave/o_strum16_70": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 70,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.06
+ },
+ "oktave/o_strum16_86": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 86,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.34
+ },
+ "oktave/o_strum16b_76": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 76,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.83
+ },
+ "oktave/o_strum16b_92": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 92,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2.13
+ },
+ "oktave/o_strum8_118": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 118,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.44
+ },
+ "oktave/o_strum8_136": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 136,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.83
+ },
+ "oktave/o_strum8_64": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 64,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.79
+ },
+ "oktave/o_strum8_72": {
+  "grp": "R",
+  "tempoOk": false,
+  "einsOk": true,
+  "bpm": 71,
+  "tempo": "falsch",
+  "off": "0",
+  "conf": 1.61
+ },
+ "oktave/o_tamb_124": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 124,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2
+ },
+ "oktave/o_tamb_80": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 80,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.97
+ },
+ "oktave/o_tamb_94": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 94,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.38
+ },
+ "oktave2/p_arp16_65": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 65,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.76
+ },
+ "oktave2/p_arp16_78": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 78,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.15
+ },
+ "oktave2/p_arp8_116": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 116,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.22
+ },
+ "oktave2/p_arp8_132": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 132,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.82
+ },
+ "oktave2/p_arp8_58": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 58,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.53
+ },
+ "oktave2/p_arp8_63": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 63,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.77
+ },
+ "oktave2/p_arp8_71": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 71,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.11
+ },
+ "oktave2/p_arp8_77": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 77,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.65
+ },
+ "oktave2/p_ballad16_67": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 67,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.41
+ },
+ "oktave2/p_ballad8_116": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 116,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.83
+ },
+ "oktave2/p_ballad8_71": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 71,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.79
+ },
+ "oktave2/p_ballad_rim_64": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 64,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2
+ },
+ "oktave2/p_ballad_rim_78": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 78,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.59
+ },
+ "oktave2/p_boogie_solo_120": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 120,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.67
+ },
+ "oktave2/p_disco_118": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 118,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.9
+ },
+ "oktave2/p_disco_126": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 126,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.99
+ },
+ "oktave2/p_hiphop_76": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 76,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.64
+ },
+ "oktave2/p_punk_168": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 168,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2.1
+ },
+ "oktave2/p_punk_184": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 184,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.48
+ },
+ "oktave2/p_quarters_120": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 120,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2.15
+ },
+ "oktave2/p_quarters_138": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 138,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.71
+ },
+ "oktave2/p_quarters_66": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 66,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.44
+ },
+ "oktave2/p_rnb_71": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 71,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.57
+ },
+ "oktave2/p_rock_112": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 112,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2.16
+ },
+ "oktave2/p_rock_150": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 150,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.83
+ },
+ "oktave2/p_shuffle_132": {
+  "grp": "B",
+  "tempoOk": true,
+  "einsOk": false,
+  "bpm": 132,
+  "tempo": "ok",
+  "off": "2",
+  "conf": 0.4
+ },
+ "oktave2/p_softpop_120": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 120,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.76
+ },
+ "oktave2/p_softpop_61": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 61,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.82
+ },
+ "oktave2/p_softpop_73": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 73,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.62
+ },
+ "oktave2/p_strum16_110": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 110,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.44
+ },
+ "oktave2/p_strum16_62": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 62,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.9
+ },
+ "oktave2/p_strum16_67": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 67,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.61
+ },
+ "oktave2/p_strum16_75": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 75,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.09
+ },
+ "oktave2/p_strum16b_64": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 64,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.75
+ },
+ "oktave2/p_strum16b_70": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 70,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2.05
+ },
+ "oktave2/p_strum8_112": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 112,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.49
+ },
+ "oktave2/p_strum8_126": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 126,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.81
+ },
+ "oktave2/p_strum8_144": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 144,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.35
+ },
+ "oktave2/p_strum8_58": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 58,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.7
+ },
+ "oktave2/p_strum8_80": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 80,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.73
+ },
+ "oktave2/p_tamb_112": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 112,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2.17
+ },
+ "oktave2/p_tamb_70": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 70,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.7
+ },
+ "oktave3/q00_pop16_arp16_79": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 79,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.83
+ },
+ "oktave3/q01_hiphop_strum16_120": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 120,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.85
+ },
+ "oktave3/q02_none_arp8_66": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 66,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.36
+ },
+ "oktave3/q03_pop16_arp8_129": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 129,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.4
+ },
+ "oktave3/q04_quarters_arp8_70": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 69.5,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.74
+ },
+ "oktave3/q05_disco_arp8_120": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 120,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.53
+ },
+ "oktave3/q06_disco_arp16_61": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 61,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.88
+ },
+ "oktave3/q07_quarters_strum16b_104": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 104,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.52
+ },
+ "oktave3/q08_disco_strum16_70": {
+  "grp": "R",
+  "tempoOk": false,
+  "einsOk": true,
+  "bpm": 69,
+  "tempo": "falsch",
+  "off": "0",
+  "conf": 0.94
+ },
+ "oktave3/q09_quarters_arp16_103": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 103,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.82
+ },
+ "oktave3/q10_ballad_strum8_74": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 74,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.56
+ },
+ "oktave3/q11_none_strum8_105": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 105,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.15
+ },
+ "oktave3/q12_quarters_arp16_75": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 75,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.92
+ },
+ "oktave3/q13_ballad_arp16_122": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 122,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.8
+ },
+ "oktave3/q14_disco_strum8_77": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 77,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.42
+ },
+ "oktave3/q15_hiphop_strum16b_149": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 149,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.91
+ },
+ "oktave3/q16_softpop_arp8_57": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 57,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.73
+ },
+ "oktave3/q17_ballad8_arp16_103": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 103,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2.05
+ },
+ "oktave3/q18_disco_strum8_57": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 57,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.06
+ },
+ "oktave3/q19_hiphop_strum16_141": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 141,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.12
+ },
+ "oktave3/q20_disco_strum8_76": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 76,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.18
+ },
+ "oktave3/q21_rnb_strum16_103": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 103,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.46
+ },
+ "oktave3/q22_pop16_strum16_55": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 55,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.12
+ },
+ "oktave3/q23_ballad8_arp16_155": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 155,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.55
+ },
+ "oktave3/q24_none_strum16_71": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 71,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.44
+ },
+ "oktave3/q25_hiphop_arp16_114": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 114,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.72
+ },
+ "oktave3/q26_ballad8_strum8_58": {
+  "grp": "R",
+  "tempoOk": false,
+  "einsOk": true,
+  "bpm": 57.2,
+  "tempo": "falsch",
+  "off": "0",
+  "conf": 1.51
+ },
+ "oktave3/q27_none_strum16b_149": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 150.2,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.83
+ },
+ "oktave3/q28_softpop_strum8_70": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 70,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.13
+ },
+ "oktave3/q29_rock_strum16b_130": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 130,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.64
+ },
+ "oktave3/q30_tamb_strum8_77": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 77,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.79
+ },
+ "oktave3/q31_softpop_strum8_156": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 157.2,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.34
+ },
+ "oktave3/q32_tamb_strum16b_64": {
+  "grp": "R",
+  "tempoOk": false,
+  "einsOk": true,
+  "bpm": 63,
+  "tempo": "falsch",
+  "off": "0",
+  "conf": 2.09
+ },
+ "oktave3/q33_ballad16_strum16_120": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 120,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2.25
+ },
+ "oktave3/q34_hiphop_strum16_56": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 56,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.74
+ },
+ "oktave3/q35_none_strum8_146": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 146,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.36
+ },
+ "oktave3/q36_tamb_strum16b_80": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 80,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.65
+ },
+ "oktave3/q37_none_strum16_133": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 133,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.9
+ },
+ "oktave3/q38_rock_arp16_79": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 79,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.41
+ },
+ "oktave3/q39_funk_arp8_144": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 145.1,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.54
+ },
+ "oktave3/q40_pop16_strum16_81": {
+  "grp": "R",
+  "tempoOk": false,
+  "einsOk": true,
+  "bpm": 79.7,
+  "tempo": "falsch",
+  "off": "0",
+  "conf": 1.15
+ },
+ "oktave3/q41_rnb_strum16_129": {
+  "grp": "R",
+  "tempoOk": false,
+  "einsOk": true,
+  "bpm": 131,
+  "tempo": "falsch",
+  "off": "0",
+  "conf": 1.8
+ },
+ "oktave3/q42_ballad16_strum16_58": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 57.5,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.58
+ },
+ "oktave3/q43_none_arp8_123": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 123,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.68
+ },
+ "oktave3/q44_funk_arp8_75": {
+  "grp": "R",
+  "tempoOk": false,
+  "einsOk": false,
+  "bpm": 150,
+  "tempo": "2×",
+  "off": "0.5",
+  "conf": 1.21
+ },
+ "oktave3/q45_funk_strum16_144": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 144,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.95
+ },
+ "oktave3/q46_ballad8_strum16b_59": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 59,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.4
+ },
+ "oktave3/q47_disco_arp8_130": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 129.9,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.55
+ },
+ "oktave3/q48_quarters_arp8_73": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 73,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.57
+ },
+ "oktave3/q49_quarters_arp8_132": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 132,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.37
+ },
+ "oktave3/q50_pop16_arp16_64": {
+  "grp": "R",
+  "tempoOk": false,
+  "einsOk": true,
+  "bpm": 63,
+  "tempo": "falsch",
+  "off": "0",
+  "conf": 1.91
+ },
+ "oktave3/q51_none_strum8_103": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 103.8,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.2
+ },
+ "oktave3/q52_ballad_strum16_55": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 55,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.4
+ },
+ "oktave3/q53_pop16_strum16b_154": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 154,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2.13
+ },
+ "oktave3/q54_rnb_arp8_62": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 62,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.23
+ },
+ "oktave3/q55_quarters_strum8_122": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 122,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.91
+ },
+ "oktave3/q56_rock_strum16_62": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 62,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.6
+ },
+ "oktave3/q57_tamb_arp16_101": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 101,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.76
+ },
+ "oktave3/q58_none_arp16_69": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 69,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.62
+ },
+ "oktave3/q59_hiphop_arp8_112": {
+  "grp": "R",
+  "tempoOk": false,
+  "einsOk": true,
+  "bpm": 113.7,
+  "tempo": "falsch",
+  "off": "0",
+  "conf": 1.14
+ },
+ "oktave3/q60_none_strum16b_63": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 62.5,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.88
+ },
+ "oktave3/q61_quarters_arp8_111": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 111,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.74
+ },
+ "oktave3/q62_ride16_strum8_68": {
+  "grp": "R",
+  "tempoOk": false,
+  "einsOk": false,
+  "bpm": 136,
+  "tempo": "2×",
+  "off": "erste 0, 50 % richtig",
+  "conf": 0.8
+ },
+ "oktave3/q63_none_arp8_111": {
+  "grp": "R",
+  "tempoOk": false,
+  "einsOk": true,
+  "bpm": 112.7,
+  "tempo": "falsch",
+  "off": "0",
+  "conf": 0.54
+ },
+ "oktave4/q00_softpop_strum16b_73": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 73,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.53
+ },
+ "oktave4/q01_tamb_arp16_130": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 130,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.07
+ },
+ "oktave4/q02_ride16_arp8_74": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 74,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.43
+ },
+ "oktave4/q03_ride16_strum16b_129": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 130,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.89
+ },
+ "oktave4/q04_ballad_strum8_57": {
+  "grp": "R",
+  "tempoOk": false,
+  "einsOk": true,
+  "bpm": 56.2,
+  "tempo": "falsch",
+  "off": "0",
+  "conf": 1.59
+ },
+ "oktave4/q05_tamb_strum16_146": {
+  "grp": "R",
+  "tempoOk": false,
+  "einsOk": true,
+  "bpm": 147.7,
+  "tempo": "falsch",
+  "off": "0",
+  "conf": 1.83
+ },
+ "oktave4/q06_disco_strum8_67": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 67,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.27
+ },
+ "oktave4/q07_pop16_strum8_133": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 134,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.89
+ },
+ "oktave4/q08_softpop_strum16b_64": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 63.5,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.79
+ },
+ "oktave4/q09_ballad16_strum16b_154": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 154,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.37
+ },
+ "oktave4/q10_quarters_strum16b_72": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 72,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.48
+ },
+ "oktave4/q11_funk_strum16b_146": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 146,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2.01
+ },
+ "oktave4/q12_tamb_arp16_77": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 77,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.93
+ },
+ "oktave4/q13_ballad_arp8_121": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 121,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.29
+ },
+ "oktave4/q14_rock_strum16b_79": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 79,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.2
+ },
+ "oktave4/q15_rock_arp16_159": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 159,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.89
+ },
+ "oktave4/q16_rock_strum16_60": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 59.5,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.82
+ },
+ "oktave4/q17_none_strum8_113": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 113,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.8
+ },
+ "oktave4/q18_none_arp8_73": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 73,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.01
+ },
+ "oktave4/q19_hiphop_strum8_114": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 114,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.68
+ },
+ "oktave4/q20_pop16_strum16_56": {
+  "grp": "R",
+  "tempoOk": false,
+  "einsOk": true,
+  "bpm": 55.2,
+  "tempo": "falsch",
+  "off": "0",
+  "conf": 1.43
+ },
+ "oktave4/q21_ballad16_arp8_112": {
+  "grp": "R",
+  "tempoOk": false,
+  "einsOk": true,
+  "bpm": 113.8,
+  "tempo": "falsch",
+  "off": "0",
+  "conf": 1.92
+ },
+ "oktave4/q22_funk_strum8_75": {
+  "grp": "R",
+  "tempoOk": false,
+  "einsOk": false,
+  "bpm": 150,
+  "tempo": "2×",
+  "off": "erste 0, 50 % richtig",
+  "conf": 0.62
+ },
+ "oktave4/q23_quarters_strum8_107": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 107,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2.02
+ },
+ "oktave4/q24_rock_strum8_60": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 60,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.25
+ },
+ "oktave4/q25_disco_arp16_107": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 107,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.56
+ },
+ "oktave4/q26_rock_arp8_55": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 55,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.92
+ },
+ "oktave4/q27_tamb_strum16_155": {
+  "grp": "R",
+  "tempoOk": false,
+  "einsOk": true,
+  "bpm": 157,
+  "tempo": "falsch",
+  "off": "0",
+  "conf": 1.61
+ },
+ "oktave4/q28_ballad16_strum16b_56": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 56,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.14
+ },
+ "oktave4/q29_ballad8_strum16_146": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 146,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.48
+ },
+ "oktave4/q30_quarters_arp16_61": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 61,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.37
+ },
+ "oktave4/q31_none_arp8_127": {
+  "grp": "R",
+  "tempoOk": false,
+  "einsOk": true,
+  "bpm": 129,
+  "tempo": "falsch",
+  "off": "0",
+  "conf": 1.44
+ },
+ "oktave4/q32_rnb_strum8_62": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 62,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.09
+ },
+ "oktave4/q33_tamb_arp16_117": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 117,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.85
+ },
+ "oktave4/q34_none_strum16b_76": {
+  "grp": "R",
+  "tempoOk": false,
+  "einsOk": true,
+  "bpm": 75,
+  "tempo": "falsch",
+  "off": "0",
+  "conf": 2.11
+ },
+ "oktave4/q35_hiphop_strum8_124": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 124,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.82
+ },
+ "oktave4/q36_pop16_arp16_70": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 70,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.12
+ },
+ "oktave4/q37_pop16_strum8_134": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 134,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.94
+ },
+ "oktave4/q38_ballad_arp16_60": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 59.5,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.95
+ },
+ "oktave4/q39_rnb_arp16_104": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 104,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.92
+ },
+ "oktave4/q40_ballad16_strum16_60": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 59.5,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.67
+ },
+ "oktave4/q41_tamb_strum16b_146": {
+  "grp": "R",
+  "tempoOk": false,
+  "einsOk": false,
+  "bpm": 73,
+  "tempo": "½",
+  "off": "1",
+  "conf": 1.74
+ },
+ "oktave4/q42_softpop_arp16_57": {
+  "grp": "R",
+  "tempoOk": false,
+  "einsOk": true,
+  "bpm": 56.2,
+  "tempo": "falsch",
+  "off": "0",
+  "conf": 1.97
+ },
+ "oktave4/q43_pop16_strum16b_142": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 142,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.02
+ },
+ "oktave4/q44_hiphop_strum16_66": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 66,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.42
+ },
+ "oktave4/q45_ballad_arp8_111": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 111.9,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.82
+ },
+ "oktave4/q46_hiphop_strum8_55": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 55,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.41
+ },
+ "oktave4/q47_none_strum16_117": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 117,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.32
+ },
+ "oktave4/q48_rnb_arp16_69": {
+  "grp": "R",
+  "tempoOk": false,
+  "einsOk": false,
+  "bpm": 138,
+  "tempo": "2×",
+  "off": "1.5",
+  "conf": 1.09
+ },
+ "oktave4/q49_quarters_strum16b_103": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 103,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2.12
+ },
+ "oktave4/q50_none_strum8_64": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 64,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.3
+ },
+ "oktave4/q51_none_arp16_125": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 125.9,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.38
+ },
+ "oktave4/q52_rnb_arp8_71": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 71,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 2.04
+ },
+ "oktave4/q53_ballad_strum8_155": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 155,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 0.89
+ },
+ "oktave4/q54_none_strum8_69": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 69,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.85
+ },
+ "oktave4/q55_ride16_strum16b_133": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 133,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.55
+ },
+ "oktave4/q56_rnb_strum16_59": {
+  "grp": "R",
+  "tempoOk": false,
+  "einsOk": false,
+  "bpm": 118,
+  "tempo": "2×",
+  "off": "erste 0, 50 % richtig",
+  "conf": 0.67
+ },
+ "oktave4/q57_ride16_strum16b_107": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 107,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.78
+ },
+ "oktave4/q58_none_arp16_75": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 75,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.42
+ },
+ "oktave4/q59_disco_arp8_112": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 112,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.39
+ },
+ "oktave4/q60_rock_strum8_70": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 70,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.65
+ },
+ "oktave4/q61_ballad_strum16_131": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 132,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.76
+ },
+ "oktave4/q62_softpop_strum8_57": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 57,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.75
+ },
+ "oktave4/q63_quarters_arp16_141": {
+  "grp": "R",
+  "tempoOk": true,
+  "einsOk": true,
+  "bpm": 141,
+  "tempo": "ok",
+  "off": "0",
+  "conf": 1.7
+ }
+}

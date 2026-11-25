@@ -18,6 +18,7 @@ pip install --quiet --break-system-packages numpy scipy playwright 2>/dev/null |
 python3 gen_corpus.py >/dev/null
 CORPUS=valid python3 gen_corpus.py valid >/dev/null
 python3 gen_hard.py >/dev/null
+python3 gen_blues.py >/dev/null   # v153: blues, gerade, blues2, blues3, gerade2 (Messung: node einsmess.js)
 python3 gen_long.py >/dev/null
 python3 gen_chords.py >/dev/null
 python3 gen_align.py >/dev/null
