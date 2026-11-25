@@ -61,6 +61,11 @@ async def ctxpage(b, w=1366, h=1024, init=''):
     pg = await ctx.new_page(); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)))
     pg.on('dialog', lambda d: asyncio.ensure_future(on_dialog(d)))
     return ctx, pg, errs
+async def ready(pg):
+    for _ in range(100):
+        if await pg.evaluate("!!window.UebezeitAnsicht && document.querySelectorAll('#uzSums .uz-sl').length===5"): return True
+        await pg.wait_for_timeout(50)
+    return False
 async def imp(pg, path=None, payload=None):
     await pg.evaluate("window.__uzLastImport=null")
     await pg.set_input_files('#uzFile', payload if payload else path)
@@ -84,7 +89,9 @@ async def main():
         await pg.goto(U + 'index.html'); await pg.wait_for_timeout(1200)
         check('ab v155', int(re.search(r'v(\d+)', await pg.inner_text('.brand')).group(1)) >= 155)
         check('Start: Übersicht nicht gebaut', not await pg.evaluate("Uebezeit.built()") and await pg.evaluate("document.getElementById('uzRoot').children.length") == 0)
-        await open_tab(pg, 'uebezeit'); await pg.wait_for_timeout(200)
+        check('Übersicht-Code wird erst beim Öffnen geladen', not await pg.evaluate("!!window.UebezeitAnsicht||[...document.scripts].some(s=>/uebezeit-ansicht/.test(s.src))"))
+        await open_tab(pg, 'uebezeit')
+        check('… und beim Öffnen nachgeladen und gezeichnet', await ready(pg))
         order = await pg.evaluate("[...document.querySelectorAll('#uzRoot > .card')].map(c=>c.id||c.className.split(' ').pop())")
         check('Reihenfolge: Schalter, Überblick, Verlauf, Wann, Monate, Kalender, Woran geübt, Liste, Daten', order == ['uz-sw', 'uzKpiCard', 'uzVerlauf', 'uzWann', 'uzMonate', 'uzKal', 'uzThemen', 'uzListCard', 'uzDaten'], order)
         check('Leerzustand freundlich', 'Noch keine Einheiten' in await pg.inner_text('#uzSumN'))
@@ -93,7 +100,8 @@ async def main():
         # Aufbau mit 750 Einheiten (frische Seite, Daten schon im Speicher)
         await pg.reload(); await pg.wait_for_timeout(900)
         ms = await pg.evaluate("(()=>{const a=performance.now();AppNav.show('uebezeit');return performance.now()-a})()")
-        check('Aufbau der Seite mit %d Einheiten < 50 ms (ungedrosselt)' % len(UNITS), ms < 50, round(ms, 1))
+        await ready(pg); ms2 = await pg.evaluate("UebezeitAnsicht.ms()")
+        check('Aufbau der Seite mit %d Einheiten < 50 ms (ungedrosselt; Seite + Übersicht)' % len(UNITS), ms + ms2 < 50, [round(ms, 1), round(ms2, 1)])
         await pg.wait_for_timeout(200)
         NOW = await pg.evaluate("Date.now()"); now = dt.datetime.fromtimestamp(NOW / 1000)
         k = await pg.evaluate("(n=>UebezeitAnsicht.kpi(null,n))(%d)" % NOW); x = expect(now)
@@ -201,7 +209,7 @@ async def main():
 
         # ---------- Herkunft nach Export → leerer Speicher → Import ----------
         ctx, pg, errs = await ctxpage(b)
-        await pg.goto(U + 'index.html'); await pg.wait_for_timeout(900); await open_tab(pg, 'uebezeit')
+        await pg.goto(U + 'index.html'); await pg.wait_for_timeout(900); await open_tab(pg, 'uebezeit'); await ready(pg)
         await pg.evaluate("localStorage.setItem('3nps-uebezeit',JSON.stringify({v:1,run:{s:Date.now()-50*60000},th:'tech',nt:'Lage 5',u:[]}))"); await pg.click('#uzBtn'); await pg.wait_for_timeout(80)
         await add(pg, date=(now.date() - dt.timedelta(days=1)).isoformat(), frm='09:00', to='09:40', th='ges')
         await imp(pg, MUSTER)
@@ -224,7 +232,7 @@ async def main():
             for th, dev in [('ios', 'new'), ('nordic', 'new'), ('precise-dark', 'new'), ('nordic', 'old'), ('nordic', 'min')]:
                 init = "localStorage.setItem('3nps-theme','nordic');localStorage.setItem('3nps-theme2','%s');localStorage.setItem('3nps-device','%s');" % (th, dev)
                 ctx, pg, errs = await ctxpage(b, w, h, init)
-                await pg.goto(U + 'index.html'); await pg.wait_for_timeout(800); await open_tab(pg, 'uebezeit'); await pg.wait_for_timeout(100)
+                await pg.goto(U + 'index.html'); await pg.wait_for_timeout(800); await open_tab(pg, 'uebezeit'); await ready(pg)
                 await imp(pg, CSVF)
                 await pg.evaluate("(()=>{const d=%s;d.run={s:Date.now()-47*60000};d.th='tl';d.nt='Pentatonik Lage 2';localStorage.setItem('3nps-uebezeit',JSON.stringify(d));document.dispatchEvent(new CustomEvent('tabchange',{detail:'uebezeit'}))})()" % L)
                 await pg.wait_for_timeout(150)
@@ -252,7 +260,7 @@ async def main():
                 await ctx.close()
         # ---------- EN ----------
         ctx, pg, errs = await ctxpage(b)
-        await pg.goto(U + 'index.html?lang=en'); await pg.wait_for_timeout(1500); await open_tab(pg, 'uebezeit'); await imp(pg, CSVF); await pg.wait_for_timeout(200)
+        await pg.goto(U + 'index.html?lang=en'); await pg.wait_for_timeout(1500); await open_tab(pg, 'uebezeit'); await ready(pg); await imp(pg, CSVF); await pg.wait_for_timeout(200)
         t = await pg.evaluate("[...document.querySelectorAll('#uzRoot > .card > .card-head h2')].map(h=>h.textContent).concat([document.getElementById('uzAddBtn').textContent.trim()])")
         check('EN: Überschriften und „Add a session“', t == ['Practice time', 'Overview', 'History', 'When practised', 'Months and years', 'Calendar', 'What was practised', 'Recent sessions', 'Data', '＋ Add a session'], t)
         e2 = await pg.evaluate("[...document.querySelectorAll('#uzRoot .uz-sl')].map(x=>x.textContent).join('|')+document.getElementById('uzVSub').textContent")

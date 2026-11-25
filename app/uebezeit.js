@@ -348,9 +348,19 @@ window.Uebezeit = (() => {
       + tlist(t).map(id => '<div class="uz-erow' + (t.h.includes(id) ? ' off' : '') + '"><input type="text" data-ren="' + esc(id) + '" value="' + esc(tname(id, t)) + '" maxlength="40" aria-label="' + esc(TT('Umbenennen')) + '">'
         + '<button type="button" class="toggle-btn" data-hide="' + esc(id) + '">' + esc(TT(t.h.includes(id) ? 'Thema einblenden' : 'Thema ausblenden')) + '</button></div>').join('');
   }
-  const paintViz = () => { if (built && window.UebezeitAnsicht) UebezeitAnsicht.paint(load()); };
+  // v155: Übersicht (uebezeit-ansicht.js/.css) erst beim ersten Öffnen laden – Start und index.html bleiben schlank
+  let vizLoading = false;
+  function loadViz() {
+    if (vizLoading || window.UebezeitAnsicht) return; vizLoading = true;
+    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'uebezeit-ansicht.css'; document.head.appendChild(l);
+    const sc = document.createElement('script'); sc.src = 'uebezeit-ansicht.js';
+    sc.onload = () => paintViz();
+    sc.onerror = () => { vizLoading = false; };
+    l.onload = l.onerror = () => document.head.appendChild(sc);   // erst Stil, dann Code
+  }
+  const paintViz = () => { if (!built) return; if (window.UebezeitAnsicht) UebezeitAnsicht.paint(load()); else loadViz(); };
   function paintSums() {
-    if (window.UebezeitAnsicht) return;   // v155: Kacheln mit ▲/▼ zeichnet uebezeit-ansicht.js (paintViz)
+    if (window.UebezeitAnsicht) return;   // Kacheln mit ▲/▼ zeichnet uebezeit-ansicht.js (paintViz)   // v155: Kacheln mit ▲/▼ zeichnet uebezeit-ansicht.js (paintViz)
     const el = $('uzSums'); if (!el) return; const d = load(), s = sums(d, Date.now());
     el.innerHTML = [['Heute', s.heute], ['Diese Woche', s.woche], ['Dieser Monat', s.monat], ['Dieses Jahr', s.jahr], ['Insgesamt', s.gesamt]]
       .map(x => '<div class="uz-sum"><div class="uz-sv">' + esc(fmtHM(x[1])) + '</div><div class="caption">' + esc(TT(x[0])) + '</div></div>').join('');
