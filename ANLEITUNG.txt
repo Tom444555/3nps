@@ -1547,3 +1547,13 @@ Gut zu wissen
    - Gezählt wird nur, was gespeichert ist: Metronom-Einheiten im Griffbrett ab 5 Sekunden und erledigte Blöcke der
      Tagesübung. Spielen im Looper zählt nicht mit. Ohne Einträge steht ein Hinweis da – der Verlauf wächst ab jetzt.
    - Die Karte rechnet nur, wenn sie offen ist; am Looper ändert sich nichts.
+
+136. Takt-Eins bei Shuffle und Blues (v153)
+   - Beim Laden einer Datei und nach der Aufnahme sucht die App Tempo, Takt und die Takt-Eins. Bei Shuffles und beim
+     12-Takt-Blues lag die Eins manchmal zwei Schläge daneben (auf der 3 statt auf der 1).
+   - Neu: Ist die Entscheidung zwischen 1 und 3 knapp, prüft die App zusätzlich, bei welcher Zählung jeder Takt eher nach
+     EINEM Akkord klingt (Akkordwechsel liegen auf der Eins), und nimmt diese. Bei klaren Fällen und bei kurzen Aufnahmen
+     (unter 10 Takten) bleibt alles wie bisher. Tempo und Schlagraster ändern sich nicht.
+   - Gemessen mit 388 Teststücken: Shuffle/Blues 72 statt 61 von 94 richtig, alle anderen Stücke unverändert.
+   - Bleibt die Eins trotzdem daneben (z. B. Slow Blues mit Slide-Gitarre oder Akkorde nur auf 2 und 4): im Editor ✂
+     „Takt-Eins falsch? ◀ / ▶ 1 Schlag“ verschiebt das Raster wie bisher.
