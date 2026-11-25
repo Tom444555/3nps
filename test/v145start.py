@@ -72,38 +72,11 @@ async def part_a(p):
     k = await pg.evaluate("caches.open('optik-1').then(c=>c.keys()).then(k=>k.map(r=>r.url.split('/').pop()).sort())")
     check('Nach dem Start: Bilder der gewählten Optik (ice) im Optik-Speicher, sonst keine', k == sorted(json.loads(re.search(r'window.__OPTIK_IMG=(\{.*?\});', h).group(1))['ice']), k)
     await ctx.close()
-    # Studio: Name wie im Looper, Optik übernommen, Telefon ohne Überlauf
-    ver = re.search(r'3nps · (v\d+)', h).group(1)
-    for w, hh in [(390, 844), (820, 1180), (1366, 1024)]:
-        ctx = await b.new_context(viewport={'width': w, 'height': hh}); pg = await ctx.new_page(); E = await errs_of(pg)
-        await pg.add_init_script(theme_init('ios'))
-        await pg.goto(U + 'studio/'); await pg.wait_for_timeout(1500)
-        r = await pg.evaluate("""(()=>{const v=document.getElementById('views'),bs=[...v.querySelectorAll('button')].map(b=>b.getBoundingClientRect());
-          return {doc:document.documentElement.scrollWidth-document.documentElement.clientWidth, v:v.scrollWidth-v.clientWidth,
-            inside:bs.every(r=>r.left>=0&&r.right<=innerWidth+0.5), cut:[...v.querySelectorAll('button')].filter(b=>b.scrollWidth>b.clientWidth+1).map(b=>b.textContent),
-            brand:document.querySelector('.brand').textContent, lt:document.documentElement.dataset.lt, acc:getComputedStyle(document.documentElement).getPropertyValue('--acc').trim(), tit:document.title}})()""")
-        check('Studio %d: Ansichtsleiste ohne Überlauf, alle Ansichten sichtbar und lesbar' % w, r['doc'] <= 0 and r['v'] <= 0 and r['inside'] and not r['cut'], r)
-        if w == 390:
-            check('Studio: Name „Studio 3nps · %s“, Akzent der Looper-Optik (iOS)' % ver, r['brand'].startswith('Studio') and ver in r['brand'] and r['lt'] == 'ios' and r['acc'] == '#0a84ff' and 'Loopsmiths' in r['tit'], r)
-            await pg.click('#views [data-v=brw]'); await pg.wait_for_timeout(300)
-            hint = await pg.inner_text('#bPrev .empty')
-            check('Studio Telefon: Hinweis zeigt nach oben (Liste steht darüber)', hint.startswith('Oben'), hint)
-            await pg.screenshot(path='/tmp/claude-0/v145/studio_390.png')
-        if w == 1366:
-            await pg.click('#views [data-v=brw]'); await pg.wait_for_timeout(300)
-            check('Studio breit: Hinweis „Links …“', (await pg.inner_text('#bPrev .empty')).startswith('Links'))
-            await pg.screenshot(path='/tmp/claude-0/v145/studio_1366.png')
-        check('Studio %d: keine Skriptfehler' % w, not E, E[:2])
-        await ctx.close()
-    for th, fam in [('nordic', 'Uncial Antiqua'), ('metal', 'Metal Mania')]:
-        ctx = await b.new_context(viewport={'width': 1366, 'height': 1024}); pg = await ctx.new_page()
-        await pg.add_init_script(theme_init(th)); await pg.goto(U + 'studio/'); await pg.wait_for_timeout(1500)
-        r = await pg.evaluate("[getComputedStyle(document.querySelector('.brand')).fontFamily, [...document.fonts].filter(f=>f.status==='loaded').map(f=>f.family)]")
-        check('Studio %s: Namensschrift der Optik' % th, fam in r[0] and fam in r[1], r)
-        await ctx.close()
-    ctx = await b.new_context(viewport={'width': 1366, 'height': 1024}); pg = await ctx.new_page()
-    await pg.add_init_script("localStorage.setItem('3nps-device','min');" + theme_init('metal')); await pg.goto(U + 'studio/'); await pg.wait_for_timeout(1000)
-    check('Studio bei „Minimal“: schlicht ohne Optik', await pg.evaluate("!document.documentElement.dataset.lt"))
+    # v148: Studio entfernt – die alte Adresse führt in den Looper
+    ctx = await b.new_context(viewport={'width': 1366, 'height': 1024}); pg = await ctx.new_page(); E = await errs_of(pg)
+    await pg.goto(U + 'studio/'); await pg.wait_for_timeout(2500)
+    check('Studio-Adresse führt in den Looper', not pg.url.rstrip('/').endswith('studio') and await pg.locator('#tab-looper').count() == 1, pg.url)
+    check('Weiterleitung: keine Skriptfehler', not E, E[:2])
     await ctx.close(); await b.close()
 
 async def part_b(p):
@@ -136,8 +109,6 @@ async def part_b(p):
     await pg.goto(PB + '?lang=en'); await pg.wait_for_timeout(1200)
     en = await pg.evaluate("[typeof window.__EN, document.getElementById('perfBtn').textContent]")
     check('offline: Englisch aus dem Speicher', en[0] == 'object' and 'Performance' in en[1], en)
-    await pg.goto(PB + 'studio/'); await pg.wait_for_timeout(1200)
-    check('offline: Studio startet', 'Studio' in await pg.evaluate("document.querySelector('.brand').textContent"))
     check('Pages: keine Skriptfehler', not E, E[:2])
     await b.close()
 

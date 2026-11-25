@@ -118,31 +118,7 @@ async def main():
         en = await pg.evaluate("(() => { const k = ['Gesang trennen', 'Karaoke ✓', 'Abbrechen', 'Gesang herauslösen (in der App)', 'Spielt die Begleitung ohne Originalgesang (trennt beim ersten Mal den Gesang in der App).']; return k.filter(x => !(window.__EN && __EN[x])) })()")
         check('Englische Texte vorhanden', not en, en)
         check('Looper: keine Skriptfehler', not errs, errs[:4])
-        # --- Studio: Region → Gesang/Begleitung, Original stumm ---
-        sp = await (await b.new_context(bypass_csp=True, viewport={'width': 1366, 'height': 1024})).new_page(); se = []
-        sp.on('pageerror', lambda e: se.append(str(e))); sp.on('console', lambda m: se.append('console: ' + m.text) if m.type == 'error' else None)
-        await sp.context.route('**/__t/*', route)
-        await sp.goto(S); await sp.wait_for_timeout(1500)
-        check('Studio: nichts aus asr/ beim Start', not await asr_res(sp))
-        await sp.evaluate("""(async () => { await Proj.newProject('Trennen'); const sr = Engine.sr(); const buf = await Engine.ac().decodeAudioData(await (await fetch('/__t/mix.wav')).arrayBuffer());
-          const m = await SDB.putAudio('mix', sr, buf.getChannelData(0).slice(), buf.getChannelData(1).slice()); let tid;
-          Proj.change('regions', q => { const t = Proj.track('audio', 'Lied'); tid = t.id; q.tracks.push(t); q.regions.push({ id: Proj.nid('r'), track: t.id, kind: 'audio', audio: m.id, start: 0, offset: 0, len: m.frames, gain: 0, fi: 0, fo: 0, name: 'mix' }); });
-          Engine.dirty(true); UI.show('arr'); Arr.V.sel = Proj.P.regions[0].id; Arr.V.selTrack = tid; UI.inspect(); window.confirm = () => true; return true })()""")
-        check('Studio: Region zeigt „Gesang trennen“', await sp.is_visible('#dRegC [data-r="sep"]'))
-        await sp.click('#dRegC [data-r="sep"]')
-        for _ in range(1200):
-            await sp.wait_for_timeout(500)
-            if await sp.evaluate("Proj.P.tracks.length >= 3 && !Sep.busy()"): break
-        P = await sp.evaluate("({ t: Proj.P.tracks.map(t => t.name), r: Proj.P.regions.map(r => ({ tr: Proj.P.tracks[Proj.tIndex(r.track)].name, m: !!r.muted, len: r.len, start: r.start })), s: document.getElementById('status').textContent })")
-        check('Studio: zwei neue Spuren „Gesang“ und „Begleitung“ unter der Spur', P['t'] == ['Lied', 'mix · Gesang', 'mix · Begleitung'], P)
-        check('Studio: Original-Region stumm, neue Regionen gleiche Lage/Länge', P['r'][0]['m'] and all(not r['m'] and r['len'] == P['r'][0]['len'] and r['start'] == 0 for r in P['r'][1:]), P['r'])
-        sv = await sp.evaluate("(async () => { const f = (" + (SHARE % 'Engine.ac()') + "); const out = []; for (const r of Proj.P.regions.slice(1)) { const d = await SDB.read(r.audio, 0, r.len); out.push(await f([d.l, 0])); } return out })()")
-        dv = 20 * math.log10(abs(sv[0]['cv']) / max(1e-9, abs(sv[0]['ca']))); da = 20 * math.log10(abs(sv[1]['ca']) / max(1e-9, abs(sv[1]['cv'])))
-        check('Studio: Gesang > 6 dB, Begleitung > 6 dB', dv > 6 and da > 6, '%.1f / %.1f dB' % (dv, da))
-        await sp.evaluate("Proj.undo(); 0"); await sp.wait_for_timeout(300)
-        u = await sp.evaluate("({ n: Proj.P.tracks.length, m: !!Proj.P.regions[0].muted })")
-        check('Studio: ↶ nimmt die Trennung zurück', u['n'] == 1 and not u['m'], u)
-        check('Studio: keine Skriptfehler', not se, se[:4])
+        # v148: Studio-Teil entfällt (Studio entfernt)
         await b.close()
     print('\n%d/%d' % (ok, tot))
 asyncio.run(main())

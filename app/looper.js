@@ -517,15 +517,12 @@ const Looper = (() => {
   tracks.forEach(t => {
     const nm = t.chB && t.chB.parentNode && t.chB.parentNode.querySelector('.tname');
     if (nm) { t.srcEl = document.createElement('div'); t.srcEl.className = 'tsrc'; nm.closest('.th-name').insertAdjacentElement('afterend', t.srcEl); }   // eigene Zeile unter „Spur n“
-    const anchorB = t.fxBtn || $('eqb' + t.i); if (!anchorB) return;
-    const b = document.createElement('button'); b.className = 'eq-btn studio-btn'; b.id = 'studiob' + t.i; b.textContent = T('Im Studio ↗'); b.title = T('Alle Spuren im Studio weiterbearbeiten');
-    anchorB.insertAdjacentElement('afterend', b);
-    b.addEventListener('click', () => document.dispatchEvent(new CustomEvent('looper-studio', { detail: t.i })));
+    // v148: Knopf „Im Studio ↗“ entfernt (Studio ist aus der App genommen)
   });
   setInterval(() => tracks.forEach(t => { if (!t.L) t.srcName = ''; const v = t.srcName || ''; if (t.srcEl && t.srcEl.textContent !== v) { t.srcEl.textContent = v; t.srcEl.title = v ? T('Geladen aus der Idee ') + '„' + t.srcName + '“' : ''; } }), 700);
   // ---- v124: „Gesang trennen“ je Spur (Spleeter im Worker, erst bei Bedarf geladen) und „Karaoke“ (Begleitung statt Original) ----
   tracks.forEach(t => {
-    const sb = $('studiob' + t.i); if (!sb) return;
+    const sb = t.fxBtn || $('eqb' + t.i); if (!sb) return;   // v148: Anker war der Studio-Knopf
     const b = document.createElement('button'); b.className = 'eq-btn sep-btn'; b.id = 'sepb' + t.i; b.hidden = true; b.textContent = T('Gesang trennen');
     sb.insertAdjacentElement('afterend', b); t.sepB = b;
     b.addEventListener('click', () => { if (karaValid(t)) karaoke(t, !t.kara.on); else sepTrack(t).catch(err => setStatus(T('Gesang trennen ging nicht: ') + (err && err.message || err))); });
@@ -4586,7 +4583,6 @@ const Pedal = (() => {
           <select class="idea-move" aria-label="Ablage ändern" title="${esc(T('In anderen Ordner verschieben'))}">${Object.keys(CATS).map(c => '<option value="' + c + '"' + (c === i.cat ? ' selected' : '') + '>📁 ' + esc(T(CATS[c])) + '</option>').join('')}</select>
           <button class="toggle-btn" data-act="load">Laden</button>
           <button class="toggle-btn" data-act="share">Teilen</button>
-          <button class="toggle-btn" data-act="studio" title="Im Studio weiterbearbeiten">Studio</button>
           <button class="toggle-btn" data-act="del">Löschen</button>
         </div>
       </div>`).join('');

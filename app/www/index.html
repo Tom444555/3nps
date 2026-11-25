@@ -3683,7 +3683,7 @@ html.sig-open .control-bar { visibility: hidden; }   /* Kopfleiste liegt sonst �
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v147</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v148</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -11120,15 +11120,12 @@ const Looper = (() => {
   tracks.forEach(t => {
     const nm = t.chB && t.chB.parentNode && t.chB.parentNode.querySelector('.tname');
     if (nm) { t.srcEl = document.createElement('div'); t.srcEl.className = 'tsrc'; nm.closest('.th-name').insertAdjacentElement('afterend', t.srcEl); }   // eigene Zeile unter „Spur n“
-    const anchorB = t.fxBtn || $('eqb' + t.i); if (!anchorB) return;
-    const b = document.createElement('button'); b.className = 'eq-btn studio-btn'; b.id = 'studiob' + t.i; b.textContent = T('Im Studio ↗'); b.title = T('Alle Spuren im Studio weiterbearbeiten');
-    anchorB.insertAdjacentElement('afterend', b);
-    b.addEventListener('click', () => document.dispatchEvent(new CustomEvent('looper-studio', { detail: t.i })));
+    // v148: Knopf „Im Studio ↗“ entfernt (Studio ist aus der App genommen)
   });
   setInterval(() => tracks.forEach(t => { if (!t.L) t.srcName = ''; const v = t.srcName || ''; if (t.srcEl && t.srcEl.textContent !== v) { t.srcEl.textContent = v; t.srcEl.title = v ? T('Geladen aus der Idee ') + '„' + t.srcName + '“' : ''; } }), 700);
   // ---- v124: „Gesang trennen“ je Spur (Spleeter im Worker, erst bei Bedarf geladen) und „Karaoke“ (Begleitung statt Original) ----
   tracks.forEach(t => {
-    const sb = $('studiob' + t.i); if (!sb) return;
+    const sb = t.fxBtn || $('eqb' + t.i); if (!sb) return;   // v148: Anker war der Studio-Knopf
     const b = document.createElement('button'); b.className = 'eq-btn sep-btn'; b.id = 'sepb' + t.i; b.hidden = true; b.textContent = T('Gesang trennen');
     sb.insertAdjacentElement('afterend', b); t.sepB = b;
     b.addEventListener('click', () => { if (karaValid(t)) karaoke(t, !t.kara.on); else sepTrack(t).catch(err => setStatus(T('Gesang trennen ging nicht: ') + (err && err.message || err))); });
@@ -15189,7 +15186,6 @@ const Pedal = (() => {
           <select class="idea-move" aria-label="Ablage ändern" title="${esc(T('In anderen Ordner verschieben'))}">${Object.keys(CATS).map(c => '<option value="' + c + '"' + (c === i.cat ? ' selected' : '') + '>📁 ' + esc(T(CATS[c])) + '</option>').join('')}</select>
           <button class="toggle-btn" data-act="load">Laden</button>
           <button class="toggle-btn" data-act="share">Teilen</button>
-          <button class="toggle-btn" data-act="studio" title="Im Studio weiterbearbeiten">Studio</button>
           <button class="toggle-btn" data-act="del">Löschen</button>
         </div>
       </div>`).join('');
@@ -22392,7 +22388,6 @@ const HILFE = [
   { id: 'ueberblick', t: 'Was kann die App?', k: 'überblick übersicht start anfang einstieg reiter app was ist bedienung', img: 'looper',
     p: ['Die App ist dein Übungs- und Ideen-Werkzeug für die Gitarre – auf iPad, iPhone, Mac, Windows-PC und Android, im Browser oder als App vom Home-Bildschirm. Im Mittelpunkt steht der <b>Looper</b> mit drei Stereo-Spuren: aufnehmen, Dateien laden, schneiden, mit Drums, Drone, EQ und Hall begleiten und als Idee speichern.',
        'Oben wählst du einen von fünf Bereichen: <b>Looper</b> · <b>Lernen</b> (Powerchords-Kurs, CAGED, Quintenzirkel, Technik, Training) · <b>Jammen</b> (Backing Track, Improvisation) · <b>Song &amp; Gesang</b> (Songwriting, Mitsingen) · <b>Rig</b> (Sounds für BIAS X/Reactor/Spark, Gitarren-Schaltung). Der runde Knopf <b>„?“</b> rechts oben öffnet diese Anleitung.',
-       'Für größere Arbeiten gibt es das <b>Loopsmiths Studio</b> – ein Tonstudio mit beliebig vielen Takten, Mischpult, Instrumenten, Drummer, Mastering und Export. Du erreichst es über „Im Studio ↗“ unter jeder Spur.',
        'Alles bleibt auf deinem Gerät. Es gibt kein Konto und keinen Server. Jedes Gerät speichert für sich – Ideen mitnehmen siehe „Speicher, Sichern“.'] },
   { id: 'bereiche', t: 'Bereiche, Unterleiste und „?“', k: 'bereiche navigation reiter lernen jammen song gesang unterleiste chips kacheln zuletzt fragezeichen hilfe wo finde ich',
     p: ['Oben stehen fünf Bereiche: <b>Looper</b> (allein, wie gewohnt), <b>Lernen</b>, <b>Jammen</b>, <b>Song &amp; Gesang</b> und <b>Rig</b> (ohne Unterleiste). Darunter zeigt eine schmale Leiste die Unterpunkte des Bereichs.',
@@ -22414,7 +22409,7 @@ const HILFE = [
   { id: 'latenz', t: 'Latenz einstellen (Overdubs sitzen nicht)', k: 'latenz verzögerung zu spät overdub versatz timing bluetooth ausgleich',
     p: ['Zwischen Spielen und Aufnehmen vergeht ein wenig Zeit (Interface, Audio-Puffer). Die App gleicht das aus. Liegen Overdubs trotzdem hörbar zu spät oder zu früh, stellst du den Ausgleich nach.'],
     s: ['Looper → Karte „Aufnahme“ → Regler „Latenz“.', 'Eine kurze Spur aufnehmen, eine zweite dazuspielen und anhören.', 'Zu spät: Wert erhöhen. Zu früh: Wert senken.'],
-    tip: ['Bluetooth-Kopfhörer machen die Latenz sehr groß – zum Aufnehmen Kabel nehmen.', 'Das Studio übernimmt diesen Wert für seine Aufnahmen.'] },
+    tip: ['Bluetooth-Kopfhörer machen die Latenz sehr groß – zum Aufnehmen Kabel nehmen.'] },
   { id: 'sichern', t: 'Speicher, Sichern, Absturzschutz', k: 'sichern backup sicherung laden speicher verloren absturz wiederherstellen zip icloud',
     p: ['Ideen, Songs, Einstellungen und Aufnahmen liegen nur auf diesem Gerät (und nur in diesem Browser). Wird die App gelöscht, sind sie weg – darum ab und zu sichern.',
         'Die aktuellen Spuren sichert die App ein paar Sekunden nach jeder Änderung von selbst. Nach einem Absturz erscheint „Letzte Sitzung gefunden“ → „Wiederherstellen“.'],
@@ -22469,7 +22464,7 @@ const HILFE = [
     tip: ['Bearbeiten-Funktionen (Kopieren, Stille, Umkehren, Blenden, ±3 dB, Normalisieren) behalten die Loop-Länge.', '↶ / ↷ oben im Editor.'] },
   { id: 'drums', t: 'Drums, Drummer und echte Schlagzeuge', k: 'drums schlagzeug drummer groove beat kit echt designer fill swing rhythmus', img: 'drums',
     s: ['In der Zeile „Drums“ auf „Drums aus“ tippen – der Knopf zeigt dann „Drums an“, die Drums laufen im Takt des Loops.', 'Stil wählen (Blues, Rock, Funk, Latin, Elektronisch …).', 'Rechts das Kit: „Synthese“ oder ein echtes Schlagzeug (lädt einmalig ein paar MB).', '„Designer“ öffnet den Drummer: „Hauptansicht“ (Lautstärke, Komplexität wie in Logic), „Details“ (Fills, Swing, Gefühl) oder „Manuell“ (jedes Feld antippen).', '„Muster speichern“ legt eigene Muster an.'],
-    tip: ['„Raum“ aus entlastet das Gerät.', 'Mit „Drums mitspeichern“ kommen sie in die Idee und ins Studio.'] },
+    tip: ['„Raum“ aus entlastet das Gerät.', 'Mit „Drums mitspeichern“ kommen sie in die Idee.'] },
   { id: 'drone', t: 'Drone (Klangteppich)', k: 'drone teppich fläche bordun wikinger heldensaga schlachtfeld kathedrale orchester', img: 'drums',
     s: ['Zeile „Drone“: auf „Drone aus“ tippen (zeigt dann „Drone an“).', 'Grundton und Dur/Moll wählen oder „Tonart aus Spur“.', 'Klang wählen (z. B. Pad & Chor, Nordmeer, Heldensaga, Schlachtfeld …). „Verzierungen“ schaltet Trommeln, Hornrufe und Glocken zu.', 'Haken „startet mit Alle starten“: läuft mit dem Loop an und aus.'] },
   { id: 'eqhall', t: 'EQ, Hall und Echo je Spur', k: 'eq equalizer klang höhen bässe hall echo delay raum effekt', img: 'eq-hall',
@@ -22478,8 +22473,7 @@ const HILFE = [
   { id: 'ideen', t: 'Ideen speichern, laden, Ordner', k: 'ideen speichern laden ordner ablage idee loop backing track zusammenarbeit verschieben aktualisieren teilen umbenennen', img: 'ideen',
     s: ['Unten „Ideen“ aufklappen, Namen eintragen.', '„Speichern als“: Idee, Reiner Loop (ohne Drums/Drone), Backing Track (mit) oder Zusammenarbeit – dann „Speichern“.', '„Laden“ holt alles zurück. Der Name steht danach im Feld und an den Spuren; „Aktualisieren“ überschreibt dieselbe Idee, ein neuer Name speichert eine neue.', 'Ordner wechseln: in der Zeile „📁 …“ wählen. Mehrere: „Mehrere verschieben“ → antippen → Ordner tippen.', '„Teilen“ gibt einen WAV-Mix, „Studio“ öffnet die Idee im Studio.'] },
   { id: 'logic', t: 'Export für Logic Pro', k: 'logic export zip wav midi airdrop mac spuren',
-    s: ['Looper unten „Für Logic exportieren“ (Name aus dem Ideen-Feld).', 'Im Teilen-Menü AirDrop an den Mac oder „In Dateien sichern“.', 'In Logic: neues Projekt, zuerst die MIDI-Datei auf Takt 1 ziehen (Tempo übernehmen: Ja), dann alle WAV-Dateien auf Takt 1.'],
-    tip: ['Im Studio gibt es „Für Logic Pro (ZIP)“ mit beliebig vielen Spuren.'] },
+    s: ['Looper unten „Für Logic exportieren“ (Name aus dem Ideen-Feld).', 'Im Teilen-Menü AirDrop an den Mac oder „In Dateien sichern“.', 'In Logic: neues Projekt, zuerst die MIDI-Datei auf Takt 1 ziehen (Tempo übernehmen: Ja), dann alle WAV-Dateien auf Takt 1.'], },
   { id: 'pedal', t: 'Fußpedal (M-VAVE Chocolate)', k: 'pedal fußpedal mvave chocolate bluetooth tastatur keyboard footctrl',
     s: ['In der App „CubeSuite“ den Modus „Keyboard A“ oder „B“ wählen, CubeSuite ganz schließen.', 'Einstellungen des Geräts → Bluetooth → „FootCtrl“ verbinden (das Pedal arbeitet als Tastatur – so geht es überall).', 'In der App unter „Fußpedal“: Belegung „Automatisch“. A = Spur 1, B = Spur 2, C = Spur 3, D = alle. Halten = Rückgängig.', 'Steht bei „Pedal-Empfang“ „einmal in die App tippen“: auf eine freie Stelle tippen.', 'Eigene Belegung: „Tasten belegen (Tippen · Halten · Doppelt tippen)“ aufklappen und je Taste A–D wählen, was Tippen, Gedrückt halten und Doppelt tippen tun (z. B. Spur 2 Stopp, Übe-Tempo an / aus, Stimmgerät an / aus, Nächste Szene, Amp an / aus).', '„Standard wiederherstellen“ setzt alles auf A = Spur 1, B = Spur 2, C = Spur 3, D = alle zurück.'],
     tip: ['Ist „Doppelt tippen“ belegt, wartet die Taste nach dem Tritt 0,3 s – für Aufnahmen auf den Punkt dort „– nichts –“ lassen.'] },
@@ -22544,7 +22538,7 @@ const HILFE = [
   { id: 'gesang-trennen', t: 'Gesang trennen (Gesang und Begleitung)', k: 'gesang trennen stimme vocals begleitung instrumental spleeter moises herauslösen stems spur studio',
     p: ['Die App trennt ein Lied in <b>Gesang</b> und <b>Begleitung</b> – direkt auf dem Gerät, ohne fremden Dienst (Modell „Spleeter“ von Deezer, freie MIT-Lizenz). Beim ersten Mal lädt sie dafür einmalig etwa 79 MB; danach geht es offline.',
        'Gerechnet wird im Hintergrund, der Looper läuft weiter. Gesang und Begleitung ergeben zusammen genau wieder das Original.'],
-    s: ['Lied oder Loop in eine Spur laden.', 'Im Spurkopf „Gesang trennen“ tippen und die Rückfrage zum Download (nur beim ersten Mal) bestätigen.', 'Fortschritt abwarten – „Abbrechen“ hört jederzeit auf, ohne etwas zu ändern.', 'Fertig: Die Spur spielt die Begleitung („Karaoke ✓“), der Gesang liegt auf der nächsten freien Spur, beide sind als Ideen „Name · Gesang“ und „Name · Begleitung“ gespeichert.', 'Studio: Audio-Region antippen → „Gesang trennen“ – zwei neue Spuren, die Original-Region wird stumm (↶ nimmt es zurück).'],
+    s: ['Lied oder Loop in eine Spur laden.', 'Im Spurkopf „Gesang trennen“ tippen und die Rückfrage zum Download (nur beim ersten Mal) bestätigen.', 'Fortschritt abwarten – „Abbrechen“ hört jederzeit auf, ohne etwas zu ändern.', 'Fertig: Die Spur spielt die Begleitung („Karaoke ✓“), der Gesang liegt auf der nächsten freien Spur, beide sind als Ideen „Name · Gesang“ und „Name · Begleitung“ gespeichert.'],
     tip: ['Ist die ganze Datei geladen, nutzt der Gesangstext-Editor den getrennten Gesang automatisch (statt der Spur aus Moises). Im Editor gibt es dafür auch „Gesang herauslösen (in der App)“.', 'Hall vom Gesang bleibt teils in der Begleitung; laute Soli können im Gesang landen. Sehr lange Lieder brauchen viel Speicher.'] },
   { id: 'powerchord-kurs', t: 'Kurs „Power Chord Theory“ (15 Kapitel)', k: 'kurs lektion kapitel power chord theory intervalle caged sus add 7er drop 2 drop 3 dreiklänge ear candy arpeggio drop d stufen funktionen barré abhaken quiz kacheln',
     p: ['Im Reiter „Powerchords“ ist der „Kurs“ die Startseite: 15 Kacheln (Einleitung bis Drop D) mit Nummer, Kurzbeschreibung und Fortschrittsring. Jedes Kapitel folgt den Worten des Lehrers.'],
@@ -22595,57 +22589,9 @@ const HILFE = [
     s: ['Oben „Rig“ antippen, dann „Sounds“.', 'Gitarre, Ziel-Gerät und Sound wählen.', 'Einen Block der Signalkette antippen und mit den Schiebereglern einstellen; „An/Aus“ und „Stereo“ daneben.', '„Prompt kopieren“ und in BIAS X einfügen – oder „Als eigenen Sound sichern“ (★).', '„Gitarren“: Schalterstellung und Regler wählen und zusehen, welche Pickups/Spulen aktiv sind.'],
     tip: ['3D-Modell: mit einem Finger drehen, mit zwei zoomen; „Korpus“ zeigt Pickups und Regler von nah.', 'Unter „Leistung ▾ › Gerät“: „Altes iPad“ zeigt das 3D-Modell schlichter, „Minimal“ nur die Zeichnung.', 'Eigene Sounds sind in „Alles sichern“ enthalten.', 'Ziel „Spark LIVE“ bzw. „Reactor 50“ zeigt die Kette genau wie in der jeweiligen App (feste Plätze, Reglernamen wie GAIN · BASS · MIDDLE · TREBLE · VOLUME bzw. MASTER).'] },
  ]},
- { g: 'Loopsmiths Studio', items: [
-  { id: 'studio-start', t: 'Ins Studio und zurück', k: 'studio öffnen wechseln zurück looper ↩ im studio', img: 'st-arr',
-    p: ['Das Studio ist ein Tonstudio für ganze Songs: viele Spuren, Arrangement über beliebig viele Takte, Mischpult, Instrumente, Drummer, Mastering und Export. Der Looper wird beim Wechsel ausgeschaltet, damit das Studio den ganzen Speicher hat.'],
-    s: ['Im Looper unter einer Spur „Im Studio ↗“ tippen – alle Spuren kommen ins Studio (die Idee wird vorher gesichert).', 'Bearbeiten (siehe unten).', 'Oben „↩ Looper“: Das Projekt wird in dieselbe Idee zurückgeschrieben (bis 3 Spuren, mehr werden auf Spur 3 gemischt) und der Looper öffnet sie.'],
-    tip: ['Unten im Studio steht „Looper angehalten ✓“, wenn der Looper wirklich aus ist.', 'Sind alle Spuren stumm (M), fragt „↩ Looper“ nach.'] },
-  { id: 'studio-uebernehmen', t: 'Ideen und Songs übernehmen', k: 'aus dem looper übernehmen browser ideen songs mitsingen neues projekt ins projekt', img: 'st-looper',
-    s: ['Oben „Aus dem Looper“: Ideen, Loops, Backing Tracks, Mitsingen-Lieder und Songs aus dem Songwriting.', 'Eintrag antippen, „▶ Anhören“.', '„Als neues Projekt“ oder „Ins Projekt …“ ab Takt, mit „Wiederholen“ und „ins Projekttempo bringen“.'] },
-  { id: 'studio-arrangement', t: 'Arrangement: Regionen, Takte loopen, Zoom', k: 'arrangement region verschieben kürzen teilen duplizieren loopen cycle takte zoom spurhöhe wellenform marker', img: 'st-arr',
-    s: ['Region antippen = auswählen, ziehen = verschieben, Ränder ziehen = kürzen, obere Ecken = Blende.', '„⟲ Takte loopen“ und über die Spuren ziehen: diese Takte laufen in Schleife. ⟲ oben schaltet die Schleife an/aus.', 'Zoomen mit + / − oder zwei Fingern; „↕+ / ↕−“ macht die Spuren (und die Wellenform) größer.', '„Teilen“ (an der Abspielposition), „Duplizieren“, „Wiederholen ×4“, „Löschen“, „+ Marker“, ↶ / ↷.'] },
-  { id: 'studio-mix', t: 'Mischpult und Effekte', k: 'mischpult fader panorama eq kompressor sättigung hall delay effekte master limiter', img: 'st-mix',
-    s: ['Oben „Mischpult“: je Spur Fader, Panorama, M/S, EQ-Kurve.', 'Felder „Kompressor“, „Sättigung“, „Hall“, „Delay“ antippen – mit Vorlagen für Gesang, Gitarre, Bass, Drums.', 'Master: EQ, Bus-Kompressor, Limiter, Hall- und Delay-Einstellungen.'] },
-  { id: 'studio-aufnahme', t: 'Aufnehmen und Automation', k: 'aufnehmen studio aufnahme automation lautstärke panorama punkte latenz vorzähler',
-    s: ['Spur mit „R“ scharf schalten (oder leere Audiospur wählen), Position setzen, ● tippen. Stopp mit ■ oder ●.', 'Spur → „Aufnahme …“: Stereo/Mono, Mithören, Vorzähler, Latenz.', 'Spur → „Automation Lautst.“ / „Automation Pan“: in die Spur tippen = Punkt, ziehen = verschieben, doppelt tippen = löschen.'] },
-  { id: 'studio-noten', t: 'Instrumente, Noten, Drummer, Akkorde → Bass', k: 'instrumente klavier streicher noten piano roll drummer akkorde bass flächen arpeggio midi e-bass gitarre akustikgitarre wurlitzer e-piano', img: 'st-noten',
-    s: ['„+ Spur“ → „Instrument (Noten)“ oder „Drummer“.', '„Noten“: leere Stelle antippen = Note, ziehen = verschieben, rechter Rand = Länge, doppelt tippen = löschen.', 'Drummer-Region antippen → „Bearbeiten“: Stil, Kraft, Komplexität, Swing, Fill.', 'Unten „Akkorde →“ z. B. „Am F C G“ → „Bass erzeugen“, „Flächen erzeugen“ oder „Arpeggio erzeugen“.'],
-    tip: ['Spur → „Instrument“: auch „E-Bass“, „Akustikgitarre“ und „E-Piano Wurlitzer“ (Aufnahmen, laden einmalig, danach offline). Das Wurlitzer stammt von Greg Sullivan (sullivang.net), CC BY 3.0.'] },
-  { id: 'mastering', t: 'Mastering (Lautheit für Spotify & Co.)', k: 'mastering master lufs lautheit spotify apple music true peak limiter laut', img: 'st-mastering',
-    p: ['Bringt einen fertigen Mix genau auf die Lautheit der Streaming-Dienste, ohne Übersteuern. Gemessen nach EBU R128.'],
-    s: ['Im Studio oben „Mastering“.', 'Quelle: „Projekt-Mix“, „nur Cycle-Bereich“ oder „Datei laden …“; Ziel z. B. „Spotify … (−14 LUFS)“.', '„Laden & messen“, dann „Mastern“.', '„Original“ / „Master“ mit „gleich laut vergleichen“ anhören, dann „WAV speichern“.'] },
-  { id: 'studio-takes', t: 'Takes und Comping (beste Stellen zusammensetzen)', k: 'takes comping comp take ordner cycle durchgang mehrere versuche beste stelle wischen zusammensetzen überblendung zu region machen',
-    p: ['Im Cycle aufnehmen und einfach weiterspielen: jeder Durchgang wird ein eigener Take. Danach setzt du aus allen Takes die beste Version zusammen – wie in Logic.'],
-    s: ['Oben „Takes“ einschalten (leuchtet; auch unter Spur → „Aufnahme …“).', 'Cycle setzen (⟲ oder „⟲ Takte loopen“), Spur mit „R“ scharf schalten, ● tippen und mehrmals durchspielen. Stopp mit ■ oder ●.', 'Unter der Spur klappen die Take-Zeilen auf („▾3“ im Spurkopf auf-/zuklappen). Hell = hörbar.', 'In einer Take-Zeile über einen Bereich wischen: dort klingt dieser Take. Antippen: der Take übernimmt den ganzen Abschnitt.', 'Region antippen → „Takes (n) …“: „Umbenennen“, „Ganz nehmen“, „Löschen“, „Zu Region machen“ (nur dieser Take bleibt, der Ordner wird aufgelöst).'],
-    tip: ['An den Schnittstellen wird automatisch kurz (10 ms) übergeblendet – kein Knacken.', 'Nochmal im selben Cycle aufnehmen legt weitere Takes in denselben Ordner.', '„Takes“ aus: Aufnahme ersetzt wie bisher.'] },
-  { id: 'studio-tempo', t: 'Tempo- und Taktwechsel (Tempospur)', k: 'tempo taktart taktwechsel tempowechsel tempospur 3/4 6/4 bpm ritardando sprung lineal metronom midi',
-    p: ['Ein Song kann das Tempo oder die Taktart wechseln, z. B. Refrain schneller oder eine Bridge im 3/4-Takt. Wechsel liegen immer auf einem Taktanfang.'],
-    s: ['Werkzeugleiste „♩ Tempo/Takt“ (oder oben auf die Taktart tippen).', 'Oben steht das Grundtempo ab Takt 1. „+ Wechsel an der Abspielposition“ legt einen Wechsel an; „ab Takt“, „Tempo“ und „Taktart“ eintragen („gleich“ = bleibt).', '„Übernehmen“. Im Lineal stehen die Wechsel orange (z. B. „♩90“, „3/4“).'],
-    tip: ['Raster, Taktzahlen, Metronom, Vorzähler, Drummer, Noten, Cycle, Einrasten und der MIDI-Export folgen den Wechseln.', 'Audio-Regionen bleiben in Sekunden, wo sie sind (wie in jeder DAW).', 'Das Tempo-Feld oben ändert den Wechsel, in dem die Abspielposition gerade steht.'] },
-  { id: 'studio-bus', t: 'Bus-Gruppen und Sidechain (Bass duckt bei der Kick)', k: 'bus gruppe gruppenbus summe routing ausgang sidechain ducking pumpen kompressor kick bass steuern',
-    p: ['Mehrere Spuren lassen sich auf einen Bus legen (z. B. alle Gitarren oder alle Gesänge) und dort gemeinsam regeln: Fader, Mute/Solo, EQ, Kompressor, Hall/Delay – wie eine Spur.'],
-    s: ['Im „Mischpult“ unter dem Spurnamen „→ Master“ auf „→ Bus 1“ (bis Bus 4) stellen. Rechts erscheint der Streifen „Bus 1“.', 'Bus-Fader, M/S, EQ und Effekte wirken auf alle Spuren darin. Ein leerer Bus lässt sich mit „entfernen“ löschen.', 'Sidechain: bei der Spur (oder dem Bus), die leiser werden soll, „Kompressor“ antippen → „Sidechain“ = z. B. die Drum-Spur. Schwelle tiefer = stärkeres Ducking.'],
-    tip: ['Busse und Sidechain rechnen nur, wenn sie benutzt werden.', 'Die Steuer-Spur muss nicht hörbar sein: auch stumm geschaltet (M) steuert sie weiter.', 'Export und Mastering klingen genauso wie beim Abspielen.'] },
-  { id: 'studio-insert', t: 'Spur-Effekte: Amp, Chorus, Tremolo, Tonhöhenkorrektur', k: 'amp verstärker verzerrung drive gate chorus schwebung tremolo pulsieren tonhöhenkorrektur autotune tonhöhe korrigieren schief skala insert effekt',
-    p: ['Jede Spur (und jeder Bus) kann Insert-Effekte bekommen. Sie rechnen nur, wenn ihr Haken an ist – aus ist der Klang genau wie vorher.'],
-    s: ['Spur antippen → „Effekte“ (oder im „Mischpult“ ein Effektfeld antippen).', '„Amp (wie im Looper)“: Vorlage wählen (Clean, Blues, Rock, Lead, Metal), dann Gate, Drive, Bass, Mitte, Höhen, Pegel.', '„Chorus“: Rate, Tiefe, Mix. „Tremolo“: Rate und Tiefe, oder „Im Takt“ mit Notenwert (1/4, 1/8 …) – folgt dem Projekttempo.', '„Tonhöhenkorrektur“ (Audio-Spuren): Tonart und Skala, „Stärke“ und „Geschwindigkeit“ einstellen, „Anwenden“ tippen. Haken aus = Original.'],
-    tip: ['Tonhöhenkorrektur: Geschwindigkeit 0 ms = harter Effekt, 20–60 ms = natürlich.', 'Abspielen und Export klingen gleich.'] },
-  { id: 'studio-quant', t: 'Audio quantisieren (Anschläge aufs Raster)', k: 'quantisieren audio timing raster anschlag onset genauer tight schneiden zeitdehnung 1/8 1/16 stärke wiederherstellen',
-    p: ['Holprige Aufnahmen (Gitarre, Percussion) lassen sich aufs Raster ziehen. Das Studio erkennt die Anschläge selbst.'],
-    s: ['Audio-Region antippen → „Quantisieren …“.', '„Raster“ (1/4, 1/8, 1/16) und „Stärke“ wählen (100 % = genau aufs Raster, 50 % = halber Weg).', 'Verfahren: „Schneiden + Verschieben“ (kurze Überblendung, Klang unverändert) oder „Zeitdehnung zwischen den Anschlägen“ (keine Lücken).', '„Quantisieren“ tippen.'],
-    tip: ['Das Original bleibt gespeichert: ↶ oder nochmal „Quantisieren …“ → „Original wiederherstellen“.', 'Erneutes Quantisieren geht immer vom Original aus.'] },
-  { id: 'studio-teilen', t: 'Projekt als Datei teilen und importieren', k: 'teilen weitergeben datei loopsmiths importieren anderes gerät freund schicken airdrop sicherung projekt öffnen',
-    s: ['„Projekt ▾“ → „Projekt als Datei teilen“: eine Datei „Name.loopsmiths“ mit allen Spuren, Mischpult und Audio (Teilen-Menü, z. B. AirDrop oder Dateien; sonst Download).', 'Auf dem anderen Gerät: Studio öffnen → „Projekt ▾“ → „Projekt importieren …“ → Datei wählen.', 'Das Projekt kommt als neues Projekt dazu (das alte bleibt).'],
-    tip: ['Instrumente und Drum-Kits werden nicht mitgepackt – sie sind in jedem Studio schon dabei.', 'Eine Datei aus einer neueren Studio-Version meldet sich – dann erst das Studio aktualisieren.'] },
-  { id: 'studio-akkorde', t: 'Akkorde aus einem Song erkennen (Akkordspur)', k: 'akkorde erkennen akkordspur harmonie song heraushören chroma begleitung bass flächen arpeggio aus akkorden',
-    s: ['Audio-Region antippen → „Akkorde erkennen“ (für den ganzen Mix: „Projekt ▾“ → „Akkordspur …“ → „Akkorde aus dem Mix erkennen“).', 'Unter dem Lineal erscheint die Akkordspur (je Takt oder halben Takt). Antippen = Akkord ändern, leer lassen = löschen, freie Stelle = neuer Akkord.', '„Akkorde“ links über den Spuren → „Begleitung aus Akkordspur erzeugen“: „Bass erzeugen“, „Flächen erzeugen“ oder „Arpeggio erzeugen“.'],
-    tip: ['Erkannt werden Dur, Moll, 7, maj7, m7, sus2/sus4, 5 (Powerchord) und mehr – im Takt der Tempokarte.', 'Ist ein Cycle an, wird nur der Cycle-Bereich erkannt.'] },
-  { id: 'studio-export', t: 'Export aus dem Studio', k: 'export mix wav spuren stems logic midi zip in den looper',
-    s: ['„Projekt ▾“ → Exportieren: „Mix (WAV)“, „Mix gemastert“, „Alle Spuren einzeln (ZIP)“, „Für Logic Pro (ZIP)“, „MIDI“.', '„nur den Cycle-Bereich“ für einen Ausschnitt.', '„In den Looper“ legt den Bereich als neue Idee unter „Zusammenarbeit“ ab.'] },
- ]},
  { g: 'Hilfe', items: [
   { id: 'probleme', t: 'Probleme lösen', k: 'problem fehler hängt stockt eingang geht nicht ton weg looper läuft weiter kein ton absturz speicher voll',
-    s: ['Eingang geht nicht auf: „Kein Zugriff“ → Mikrofon erlauben (iPad/iPhone: Einstellungen → Datenschutz → Mikrofon; am Computer: Schloss-Symbol in der Adressleiste → Mikrofon). „Belegt“ → andere Audio-App (Logic, GarageBand) ganz schließen.', 'Ton weg nach Kabel/USB-Wechsel oder Rückkehr in die App: einmal auf den Bildschirm tippen.', 'Es stockt (vor allem mit Drums): „Leistung ▾“ → „Stabil – großer Audio-Puffer“, App neu öffnen; bei den Drums „Raum“ aus.', 'Studio stumm: Sind die Spuren auf „M“ (stumm)? Fader im „Mischpult“ zu leise?', 'Neue Version erscheint nicht: App zweimal öffnen.'],
+    s: ['Eingang geht nicht auf: „Kein Zugriff“ → Mikrofon erlauben (iPad/iPhone: Einstellungen → Datenschutz → Mikrofon; am Computer: Schloss-Symbol in der Adressleiste → Mikrofon). „Belegt“ → andere Audio-App (Logic, GarageBand) ganz schließen.', 'Ton weg nach Kabel/USB-Wechsel oder Rückkehr in die App: einmal auf den Bildschirm tippen.', 'Es stockt (vor allem mit Drums): „Leistung ▾“ → „Stabil – großer Audio-Puffer“, App neu öffnen; bei den Drums „Raum“ aus.', 'Neue Version erscheint nicht: App zweimal öffnen.'],
     tip: ['„Leistung ▾“ → Hänger-Protokoll zeigt, was passiert ist („Kopieren“ zum Weiterschicken).'] },
  ]},
 ];
