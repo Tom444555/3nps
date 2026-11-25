@@ -14,7 +14,8 @@
     { t: 'griffbrett', ic: '▦', n: 'Technik', d: 'Griffbrett, 3nps-Muster, Begleitung, Übungslog' },
     { t: 'ueben', ic: '⏱', n: 'Training', d: 'Tagesübung, Gehörbildung, Licks, Solo-Auswertung' },
     { t: 'hoer', ic: '👂', n: 'Hör-Training', d: 'Intervalle, Akkorde, Tonleitern mit Ampel' },
-    { t: 'spick', ic: '📋', n: 'Spickzettel', d: 'Intervalle, Griffformen, Quintenzirkel, Akkordsymbole' }
+    { t: 'spick', ic: '📋', n: 'Spickzettel', d: 'Intervalle, Griffformen, Quintenzirkel, Akkordsymbole' },
+    { t: 'uebezeit', ic: '⏲', n: 'Übezeit', d: 'Schalter „Üben“, Themen, Import aus Numbers, CSV-Export' }
   ];
   const NAME = {}; TILES.forEach(x => { NAME[x.t] = x.n; });
   let L = jget('3nps-lernen', {}) || {}; L.where = L.where || null;
@@ -41,6 +42,10 @@
       return { p: n ? ok / n : 0, txt: n ? Math.round(ok / n * 100) + ' % ' + TT('Treffer') + ' (' + n + ')' : TT('noch nicht geübt') };
     }
     if (t === 'spick') return { p: 0, txt: TT('zum Nachschlagen') };
+    if (t === 'uebezeit' && window.Uebezeit) {   // v154: Woche in Stunden (Ring: Ziel 5 h)
+      const d = Uebezeit.load(), w = Uebezeit.sums(d, Date.now()).woche;
+      return { p: w / 18000, txt: d.run ? TT('läuft gerade') : String(Math.round(w / 360) / 10).replace('.', window.__lang === 'en' ? '.' : ',') + ' h ' + TT('diese Woche') };
+    }
     return { p: 0, txt: TT('frei üben') };
   }
   function tile(T0, lastT) {

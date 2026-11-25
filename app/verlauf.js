@@ -10,6 +10,7 @@ window.UebeVerlauf = (() => {
   const save = () => { try { localStorage.setItem('3nps-verlauf', JSON.stringify(st)); } catch (e) {} };
   const day0 = t => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); };
   const addDays = (t, n) => { const d = new Date(t); d.setDate(d.getDate() + n); return d.getTime(); };   // lokal, sommerzeitfest
+  const month0 = t => { const d = new Date(t); return new Date(d.getFullYear(), d.getMonth(), 1).getTime(); };   // v154: „Alles“ über Jahre je Monat
   const week0 = t => { const d = new Date(day0(t)); d.setDate(d.getDate() - (d.getDay() + 6) % 7); return d.getTime(); };
   const fmtN = (v, d) => (Math.round(v * Math.pow(10, d || 0)) / Math.pow(10, d || 0)).toFixed(d || 0).replace('.', window.__lang === 'en' ? '.' : ',');
   const fmtMin = m => m >= 120 ? fmtN(m / 60, 1) + ' h' : Math.round(m) + ' min';
@@ -24,9 +25,9 @@ window.UebeVerlauf = (() => {
     return { a, b: end, n: n || Math.max(1, Math.round((end - first) / 864e5)), pa: n ? addDays(a, -n) : null };
   }
   function series(es, now) {
-    const s = span(es, now), weekly = st.r === '3M' || st.r === '1J' || (st.r === 'all' && s.n > 92);
-    const key = weekly ? week0 : day0, step = weekly ? 7 : 1, pts = [];
-    for (let t = key(s.a); t < s.b; t = addDays(t, step)) pts.push({ t, v: st.m === 'zeit' ? 0 : null });
+    const s = span(es, now), monthly = st.r === 'all' && s.n > 730, weekly = !monthly && (st.r === '3M' || st.r === '1J' || (st.r === 'all' && s.n > 92));
+    const key = monthly ? month0 : weekly ? week0 : day0, step = weekly ? 7 : 1, pts = [];
+    for (let t = key(s.a); t < s.b; t = monthly ? new Date(new Date(t).getFullYear(), new Date(t).getMonth() + 1, 1).getTime() : addDays(t, step)) pts.push({ t, v: st.m === 'zeit' ? 0 : null });
     const idx = new Map(pts.map((p, i) => [p.t, i]));
     let sum = 0, prev = 0, prevAny = false, last = null, first = null, n = 0;
     es.forEach(e => {
@@ -39,7 +40,7 @@ window.UebeVerlauf = (() => {
     });
     const vals = pts.filter(p => p.v != null && (st.m === 'zeit' || p.v > 0));
     if (st.m === 'tempo' && vals.length) { first = vals[0]; last = vals[vals.length - 1]; }
-    return { s, weekly, pts, vals, sum, prev, prevAny, first, last, n };
+    return { s, weekly, monthly, pts, vals, sum, prev, prevAny, first, last, n };
   }
   function svg(r) {
     const W = 600, H = 170, P = 6, ps = r.pts, vs = r.vals;
@@ -59,13 +60,13 @@ window.UebeVerlauf = (() => {
   }
   function paint() {
     const body = $('pvBody'); if (!body || !built) return;
-    const es = data || [], r = series(es, Date.now()), zeit = st.m === 'zeit';
+    const es = window.Uebezeit ? Uebezeit.merge(data || []) : (data || []), r = series(es, Date.now()), zeit = st.m === 'zeit';
     body.querySelectorAll('[data-pr]').forEach(b => b.classList.toggle('active', b.dataset.pr === st.r));
     body.querySelectorAll('[data-pm]').forEach(b => b.classList.toggle('active', b.dataset.pm === st.m));
     const per = { '1W': TT('7 Tage'), '1M': TT('30 Tage'), '3M': TT('3 Monate'), '1J': TT('12 Monate'), all: TT('seit Beginn') }[st.r];
     let big = '–', chg = '', cls = '', sub = '';
     if (zeit) {
-      big = fmtMin(r.sum); sub = TT('Übezeit') + ' · ' + per + (r.weekly ? ' · ' + TT('je Woche') : ' · ' + TT('je Tag'));
+      big = fmtMin(r.sum); sub = TT('Übezeit') + ' · ' + per + (r.monthly ? ' · ' + TT('je Monat') : r.weekly ? ' · ' + TT('je Woche') : ' · ' + TT('je Tag'));
       if (r.s.pa != null) {
         const d = r.sum - r.prev;
         if (!r.prevAny && r.sum > 0) chg = '▲ ' + TT('neu') + ' · ' + TT('vorher nichts eingetragen');
@@ -78,7 +79,7 @@ window.UebeVerlauf = (() => {
     }
     const vs = r.vals.filter(p => zeit ? true : p.v > 0);
     const hiP = vs.length ? vs.reduce((a, p) => p.v > a.v ? p : a) : null, loP = vs.length ? vs.reduce((a, p) => p.v < a.v ? p : a) : null;
-    const hv = p => p ? (zeit ? fmtMin(p.v) : Math.round(p.v) + ' BPM') + ' · ' + (r.weekly ? TT('Woche ab') + ' ' : '') + fmtD(p.t) : '–';
+    const hv = p => p ? (zeit ? fmtMin(p.v) : Math.round(p.v) + ' BPM') + ' · ' + (r.monthly ? TT('Monat') + ' ' + new Date(p.t).toLocaleDateString(window.__lang === 'en' ? 'en-GB' : 'de-DE', { month: '2-digit', year: 'numeric' }) : (r.weekly ? TT('Woche ab') + ' ' : '') + fmtD(p.t)) : '–';
     const empty = !es.length || (zeit ? r.sum <= 0 : !r.last);
     $('pvBig').textContent = empty ? '–' : big; $('pvSub').textContent = sub || per;
     const c = $('pvChg'); c.textContent = empty ? '' : chg; c.className = 'pv-chg ' + cls;
@@ -97,9 +98,11 @@ window.UebeVerlauf = (() => {
       + '<div class="pv-chart" id="pvChart"></div><div class="pv-ax caption" id="pvAx"></div>'
       + '<div class="seg pv-r" role="group" aria-label="' + esc(TT('Zeitraum')) + '">' + rb + '</div>'
       + '<div class="pv-hl"><span><span class="caption">' + esc(TT('Hoch')) + '</span> <b id="pvHi">–</b></span><span><span class="caption">' + esc(TT('Tief')) + '</span> <b id="pvLo">–</b></span><span class="caption" id="pvN"></span></div>'
-      + '<p class="caption pv-note">' + esc(TT('Gezählt werden Metronom-Einheiten im Griffbrett (ab 5 s) und erledigte Blöcke der Tagesübung – Looper-Spielen wird nicht mitgezählt.')) + '</p>';
+      + '<p class="caption pv-note">' + esc(TT('Gezählt werden Metronom-Einheiten im Griffbrett (ab 5 s), erledigte Blöcke der Tagesübung und die Übezeit (Schalter „Üben“ und Import) – Looper-Spielen ohne Schalter wird nicht mitgezählt.')) + '</p>'
+      + '<button type="button" class="toggle-btn pv-go" id="pvGo">' + esc(TT('Ganze Übersicht')) + ' ›</button>';   // v154: zur Seite „Übezeit“
     body.addEventListener('click', e => {
       const b = e.target.closest('button'); if (!b) return;
+      if (b.id === 'pvGo') { if (window.AppNav) AppNav.show('uebezeit'); return; }
       if (b.dataset.pr) st.r = b.dataset.pr; else if (b.dataset.pm) st.m = b.dataset.pm; else return;
       save(); paint();
     });
@@ -107,5 +110,5 @@ window.UebeVerlauf = (() => {
   async function load() { try { data = await AppDB.all('sessions'); } catch (e) { data = []; } paint(); }
   const fold = $('pvFold');
   if (fold) fold.addEventListener('toggle', () => { if (fold.open) { build(); load(); } });
-  return { update: es => { if (fold && fold.open && built) { data = es; paint(); } }, built: () => built, _state: () => st };
+  return { update: es => { if (fold && fold.open && built) { data = es; paint(); } }, refresh: () => { if (fold && fold.open && built && data) paint(); }, built: () => built, _state: () => st };
 })();

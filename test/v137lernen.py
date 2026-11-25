@@ -24,7 +24,7 @@ async def main():
         chips = await pg.evaluate("[...document.querySelectorAll('#subNav [data-area=lernen]')].map(c=>c.dataset.tab)")
         check('Lernen-Chips mit Hör-Training und Spickzettel', chips == ['lernen', 'power', 'caged', 'quinten', 'griffbrett', 'ueben', 'hoer', 'spick'], chips)
         tiles = await pg.evaluate("[...document.querySelectorAll('.ln-tile')].map(t=>t.dataset.t)")
-        check('Kacheln Hör-Training und Spickzettel', 'hoer' in tiles and 'spick' in tiles and len(tiles) == 7, tiles)
+        check('Kacheln Hör-Training und Spickzettel', 'hoer' in tiles and 'spick' in tiles and len(tiles) == (8 if 'uebezeit' in tiles else 7), tiles)
         t = await pg.inner_text('#lnToday')
         check('Heute üben: 10-Minuten-Plan', 'Heute üben · 10 Min' in t and '3 Min Technik' in t and '4 Min Kurs Kap. 1' in t and '3 Min Hör-Training' in t, t)
         check('Serie von gestern sichtbar (3 Tage)', 'Serie: 3 Tage' in t, t)
