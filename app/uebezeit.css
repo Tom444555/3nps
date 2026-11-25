@@ -1,0 +1,67 @@
+/* v154: Übezeit – Kopfknopf und Seite „Lernen › Übezeit“ (Farben aus der Optik) */
+/* Schalter im Kopf der Looper-Karte (rechts neben „Kein Loop“): negative Ränder → die Kopfzeile wird nicht höher, nichts verrutscht */
+.looper-card > .card-head > #loopInfo { margin-left: auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.looper-card > .card-head > .ueben-btn { flex: 0 0 auto; align-self: center; min-height: 44px; min-width: 5.6em; margin-block: -22px; padding: 0 12px;
+  font-variant-numeric: tabular-nums; white-space: nowrap; position: relative; top: -3px; }
+.looper-card > .card-head > .ueben-btn[aria-pressed="true"] { background: var(--ok, #2f9e5b); border-color: var(--ok, #2f9e5b); color: #fff; }
+#uzRoot { display: flex; flex-direction: column; gap: 14px; }
+.uz-card { gap: 10px; }
+/* ab 900 px zweispaltig: Schalter oben über die volle Breite, darunter Summen | Daten, dann die Liste */
+@media (min-width: 900px) {
+  #uzRoot { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: stretch; }
+  #uzRoot > .uz-card:nth-child(1) { grid-column: 1 / -1; grid-row: 1; }
+  #uzRoot > .uz-card:nth-child(2) { grid-column: 1; grid-row: 2; }
+  #uzRoot > .uz-card:nth-child(4) { grid-column: 2; grid-row: 2; }
+  #uzRoot > .uz-card:nth-child(3) { grid-column: 1 / -1; grid-row: 3; }
+}
+.uz-top { display: flex; align-items: center; gap: 14px 18px; flex-wrap: wrap; }
+.uz-btn { min-height: 64px; min-width: 190px; padding: 0 22px; border-radius: 16px; border: 2px solid var(--line); background: var(--surface-2, rgba(127,127,127,.12));
+  color: var(--ink); font: 700 1.15rem var(--f-body); cursor: pointer; touch-action: manipulation; }
+.uz-btn[aria-pressed="true"] { background: var(--ok, #2f9e5b); border-color: var(--ok, #2f9e5b); color: #fff; }
+.uz-now { min-width: 0; flex: 1 1 200px; }
+.uz-time { font: 700 2.2rem/1.1 var(--f-body); color: var(--muted); font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+.uz-time.on { color: var(--ink); }
+.uz-now .caption { min-height: 2.6em; }
+.uz-lbl { font: 600 .9rem var(--f-body); color: var(--ink); margin-top: 2px; }
+.uz-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.uz-chips .toggle-btn, .uz-data .toggle-btn, .uz-pg .toggle-btn, .uz-edb .toggle-btn, .uz-erow .toggle-btn { min-height: 44px; min-width: 44px; }
+.uz-thedit { opacity: .8; }
+.uz-edit { display: flex; flex-direction: column; gap: 6px; padding: 10px; border: 1px solid var(--line); border-radius: 12px; }
+.uz-edit[hidden] { display: none; }
+.uz-erow { display: flex; gap: 8px; align-items: center; }
+.uz-erow input { flex: 1 1 auto; min-width: 0; min-height: 44px; }
+.uz-erow.off input { opacity: .5; }
+.uz-note input { min-height: 44px; }
+.uz-msg { min-height: 1.3em; margin: 0; }
+.uz-msg.bad { color: var(--warn, #e05a3a); }
+.uz-sums { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 8px; }
+.uz-sum { padding: 10px 8px; border: 1px solid var(--line); border-radius: 12px; min-width: 0; }
+.uz-sv { font: 700 1.15rem/1.2 var(--f-body); color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 600px) { .uz-sums { grid-template-columns: repeat(2, minmax(0, 1fr)); } .uz-sum:last-child { grid-column: 1 / -1; } }
+.uz-sum:last-child .uz-sv { color: var(--accent, #2d9cdb); }
+.uz-list { display: flex; flex-direction: column; }
+.uz-row { padding: 10px 4px; min-height: 44px; border-bottom: 1px solid var(--line); cursor: pointer; }
+.uz-row:last-child { border-bottom: 0; }
+.uz-row.open { cursor: default; }
+.uz-r1 { display: flex; justify-content: space-between; gap: 10px; }
+.uz-rd { color: var(--ink); }
+.uz-rdur { color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.uz-r2 { display: flex; flex-wrap: wrap; gap: 4px 10px; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.uz-tag { color: var(--accent, #2d9cdb); }
+.uz-imp { border: 1px solid var(--line); border-radius: 6px; padding: 0 6px; }
+.uz-rn { flex: 1 1 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.uz-empty { margin: 6px 0; }
+.uz-ed { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; cursor: default; }
+.uz-ed .uz-edn, .uz-ed .uz-edb { grid-column: 1 / -1; }
+.uz-ed select, .uz-ed input, .uz-askf input { min-height: 44px; }
+.uz-edb { display: flex; flex-wrap: wrap; gap: 8px; }
+.uz-del { margin-left: auto; color: var(--warn, #e05a3a); }
+.uz-pg { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 6px; }
+.uz-pg[hidden] { display: none; }
+.uz-data { display: flex; flex-wrap: wrap; gap: 8px; }
+.uz-ask { position: fixed; inset: 0; z-index: 90; background: rgba(0,0,0,.55); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.uz-ask[hidden] { display: none; }
+.uz-askbox { max-width: 440px; width: 100%; }
+.uz-askf { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+/* Kurzfassung im Übe-Verlauf (Technik): Sprung zur ganzen Seite */
+.pv-go { align-self: flex-start; min-height: 44px; min-width: 44px; }

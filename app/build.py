@@ -9,10 +9,10 @@ rd = lambda p: open(p, encoding='utf8').read()
 head = rd(A + 'head_app.html')
 script = rd(D + 'script.part')
 tabs = rd(D + 'tabs.js')
-storage = rd(A + 'storage.js') + '\n' + rd(A + 'verlauf.js')   # v152: Übe-Verlauf
+storage = rd(A + 'storage.js') + '\n' + rd(A + 'verlauf.js') + '\n' + rd(A + 'uebezeit.js')   # v152: Übe-Verlauf · v154: Übezeit
 looper = rd(A + 'looper.js')
 lhtml = rd(A + 'looper.html')
-lcss = rd(A + 'looper.css') + rd(A + 'circle.css') + rd(A + 'solo.css') + rd(A + 'caged.css') + rd(A + 'jam.css') + rd(A + 'uebung.css') + rd(A + 'passt.css') + rd(A + 'lied.css') + rd(A + 'sing.css') + rd(A + 'singen.css') + rd(A + 'master.css') + rd(A + 'verlauf.css') + rd(A + 'hilfe.css') + rd(A + 'powerchords.css') + rd(A + 'lernen.css')
+lcss = rd(A + 'looper.css') + rd(A + 'circle.css') + rd(A + 'solo.css') + rd(A + 'caged.css') + rd(A + 'jam.css') + rd(A + 'uebung.css') + rd(A + 'passt.css') + rd(A + 'lied.css') + rd(A + 'sing.css') + rd(A + 'singen.css') + rd(A + 'master.css') + rd(A + 'verlauf.css') + rd(A + 'uebezeit.css') + rd(A + 'hilfe.css') + rd(A + 'powerchords.css') + rd(A + 'lernen.css')
 # Früher wurde das persönliche Übungslog beim ersten Start eingespielt. Für die öffentliche App bleibt es leer.
 seeds = []
 
