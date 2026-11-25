@@ -1650,6 +1650,27 @@ html.sig-open .control-bar { visibility: hidden; }   /* Kopfleiste liegt sonst �
 #panel-master .ms-ab { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin-bottom: 10px; }
 #panel-master #msPos { width: 100%; }
 @media (max-width: 560px) { #panel-master .ms-table th, #panel-master .ms-table td { padding: 5px 4px; font-size: .9em; } #panel-master .ms-table th:nth-child(4), #panel-master .ms-table td:nth-child(4) { display: none; } }
+/* v151: Mastering als Karte im Looper (#msBody, gleiche Regeln wie #panel-master) */
+#msBody .ms-fields { display: flex; flex-wrap: wrap; gap: 10px 14px; margin: 4px 0 10px; }
+#msBody .ms-fields .field { min-width: 0; }
+#msBody .ms-fields select { max-width: 100%; }
+#msBody .ms-own input { width: 6.5em; }
+#msBody .ms-btns { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 10px; }
+#msBody .ms-prog { height: 8px; border-radius: 4px; background: rgba(127,127,127,.22); overflow: hidden; margin: 6px 0; }
+#msBody .ms-prog i { display: block; height: 100%; width: 0; background: var(--accent, #e0a030); transition: width .2s; }
+#msBody .ms-hint { color: var(--warn, #e0a030); }
+#msBody .ms-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+#msBody .ms-table th, #msBody .ms-table td { padding: 6px 8px; text-align: right; border-bottom: 1px solid rgba(127,127,127,.18); white-space: nowrap; }
+#msBody .ms-table th:first-child, #msBody .ms-table td:first-child { text-align: left; white-space: normal; }
+#msBody .ms-table td.ok { color: var(--ok, #3fbf6f); }
+#msBody .ms-table td.bad { color: var(--warn, #e05a3a); }
+#msBody .ms-ab { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin-bottom: 10px; }
+#msBody #msPos { width: 100%; }
+#msBody .ms-sub + .ms-sub { border-top: 1px solid var(--line, rgba(127,127,127,.25)); padding-top: 12px; }
+#msBody .ms-sub h3 { margin: 0 0 6px; }
+#msBody .card-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+html.dev-min #msFoldCard { display: none !important; }
+@media (max-width: 560px) { #msBody .ms-table th, #msBody .ms-table td { padding: 5px 4px; font-size: .9em; } #msBody .ms-table th:nth-child(4), #msBody .ms-table td:nth-child(4) { display: none; } }
 /* v113 Anleitung */
 #panel-hilfe .hl-search { display: flex; gap: 8px; margin-top: 8px; }
 #panel-hilfe .hl-search input { flex: 1; font-size: 1rem; padding: 10px 12px; }
@@ -3684,7 +3705,7 @@ html.sig-open .control-bar { visibility: hidden; }   /* Kopfleiste liegt sonst �
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v150</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v151</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -4315,6 +4336,69 @@ html.sig-open .control-bar { visibility: hidden; }   /* Kopfleiste liegt sonst �
         <button class="toggle-btn" id="restoreNo">Verwerfen</button>
       </div>
       <div class="status-line" id="loopStatus">Tippe auf REC von Spur 1 und spiel deine Idee ein. Nochmal tippen: Loop läuft. Nochmal: Overdub. Mit ✂ schneidest und synchronisierst du eine Spur.</div>
+    </div>
+
+    <div class="card fold-card" id="msFoldCard">
+      <details class="fold" id="msFold">
+      <summary><h2>Mastering</h2><span class="fold-n">lauter und fertig für Spotify &amp; Co.</span></summary>
+      <div class="fold-body ms-root" id="msBody"></div>
+      <template id="msTpl">
+    <div class="ms-sub">
+      <div class="card-head"><h3>Quelle und Ziel</h3><span class="caption" id="msName" translate="no">–</span></div>
+      <p class="caption">Bringt einen fertigen Mix auf die richtige Lautheit für Spotify, YouTube &amp; Co. – ohne Übersteuern (True Peak). Gemessen nach EBU R128.</p>
+      <div class="ms-fields">
+        <label class="field"><span>Quelle</span><select id="msSrc" aria-label="Quelle">
+          <option value="mix">Looper-Mix (alle Spuren, ohne Drums/Drone)</option>
+          <option value="file">Datei laden …</option>
+          <option value="t0">Looper Spur 1</option><option value="t1">Looper Spur 2</option><option value="t2">Looper Spur 3</option>
+          <option value="song">Song aus dem Songwriting</option>
+        </select></label>
+        <label class="field"><span>Ziel</span><select id="msTarget" aria-label="Ziel">
+          <option value="stream">Spotify, YouTube, Amazon, TIDAL (−14 LUFS)</option>
+          <option value="apple">Apple Music (−16 LUFS)</option>
+          <option value="deezer">Deezer (−15 LUFS)</option>
+          <option value="loud">Laut – Club/CD (−9 LUFS)</option>
+          <option value="own">Eigene Vorgabe</option>
+        </select></label>
+        <label class="field ms-own" id="msOwnI" hidden><span>LUFS</span><input type="number" id="msI" min="-30" max="-6" step="0.5" value="-14"></label>
+        <label class="field ms-own" id="msOwnT" hidden><span>dBTP</span><input type="number" id="msT" min="-6" max="0" step="0.1" value="-1"></label>
+        <input type="file" id="msFile" accept="audio/*,.wav,.mp3,.m4a,.aif,.aiff,.flac" hidden>
+      </div>
+      <div class="ms-btns">
+        <button class="toggle-btn" id="msLoad">Laden &amp; messen</button>
+        <button class="toggle-btn" id="msRun" disabled>Mastern</button>
+        <button class="toggle-btn" id="msSave" disabled>Als WAV exportieren</button>
+      </div>
+      <div class="ms-prog" id="msProg" hidden><i id="msBar"></i></div>
+      <p class="caption ms-hint" id="msHint" hidden></p>
+      <div class="status-line" id="msStatus">Quelle wählen und „Laden &amp; messen“ tippen.</div>
+    </div>
+    <div class="ms-sub">
+      <div class="card-head"><h3>Messwerte</h3><span class="caption">EBU R128 · ITU-R BS.1770-4</span></div>
+      <table class="ms-table" id="msTable">
+        <thead><tr><th></th><th>Vorher</th><th>Nachher</th><th>Ziel</th></tr></thead>
+        <tbody>
+          <tr><td>Lautheit (integriert)</td><td id="mvI0">–</td><td id="mvI1">–</td><td id="mvIz">–</td></tr>
+          <tr><td>True Peak</td><td id="mvT0">–</td><td id="mvT1">–</td><td id="mvTz">–</td></tr>
+          <tr><td>Lautheitsumfang (LRA)</td><td id="mvL0">–</td><td id="mvL1">–</td><td></td></tr>
+          <tr><td>Kurzzeit max.</td><td id="mvS0">–</td><td id="mvS1">–</td><td></td></tr>
+          <tr><td>Dynamik (PLR)</td><td id="mvP0">–</td><td id="mvP1">–</td><td></td></tr>
+          <tr><td>Begrenzer</td><td></td><td id="mvR1">–</td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="ms-sub">
+      <div class="card-head"><h3>Vergleichen</h3></div>
+      <div class="ms-ab">
+        <button class="play-btn" id="msPlay" aria-label="Abspielen" disabled>▶</button>
+        <div class="seg" id="msAB" role="group" aria-label="Original oder Master"><button class="toggle-btn active" data-ab="a">Original</button><button class="toggle-btn" data-ab="b">Master</button></div>
+        <label class="check"><input type="checkbox" id="msEq" checked> gleich laut vergleichen</label>
+      </div>
+      <input type="range" id="msPos" min="0" max="1000" value="0" aria-label="Abspielposition" disabled>
+      <p class="caption">„Gleich laut“: der Master wird beim Vergleich auf die Lautheit des Originals gedreht – sonst klingt das Lautere immer „besser“.</p>
+    </div>
+  </template>
+      </details>
     </div>
 
     <div class="card-grid">
@@ -22300,7 +22384,12 @@ function mdNormalize(chs, sr, target, ceilDb, opts, prog) {
   }
 
   // ---------- Oberfläche ----------
-  const panel = $('panel-master'); if (!panel) { window.Master = { measure, normalize, target, reportText, TARGETS }; return; }
+  // v151: Oberfläche erst beim Öffnen der Looper-Karte „Mastering“ (mount); im Studio sofort (#panel-master)
+  const api = window.Master = { measure, normalize, target, reportText, TARGETS };
+  let mounted = false;
+  api.mount = panel => { if (mounted || !panel) return; mounted = true; mountUI(panel); };
+  api.mounted = () => mounted;
+  function mountUI(panel) {
   let cur = null;   // { name, chs, sr, before, res }
   let play = null;  // { a, b, ga, gb, t0, off }
   const status = m => { $('msStatus').textContent = m; };
@@ -22324,6 +22413,14 @@ function mdNormalize(chs, sr, target, ceilDb, opts, prog) {
     const v = $('msSrc').value;
     if (v === 'file') return null;   // über Dateiauswahl
     if (window.MasterSource) { const r = await window.MasterSource(v); if (r) return r; }   // v112: Studio liefert Projekt-Mix
+    if (v === 'mix') {                // v151: Looper-Mix aller Spuren (mit Spur-EQ/Hall/Echo, wie „Ideen“), ohne Drums/Drone
+      const L = typeof Looper !== 'undefined' ? Looper : null, sess = L && L.getSession && L.getSession();
+      if (!sess) throw new Error(TT('Im Looper ist noch nichts aufgenommen oder geladen.'));
+      if (typeof ensureAudio === 'function') ensureAudio();
+      const m = await L.sessionMixEq(sess), buf = await audioCtx.decodeAudioData(await m.wav.arrayBuffer()), chs = [];
+      for (let c = 0; c < Math.min(2, buf.numberOfChannels); c++) chs.push(new Float32Array(buf.getChannelData(c)));
+      return { name: TT('Looper-Mix'), chs, sr: buf.sampleRate };
+    }
     if (v[0] === 't') {
       const i = +v[1], x = typeof Looper !== 'undefined' && Looper.singAudio ? Looper.singAudio(i, 0, 1e12) : null;
       if (!x) throw new Error(TT('Auf dieser Spur liegt keine geladene Datei. Mastering geht mit geladenen Dateien (z. B. aus Logic) – oder „Datei vom iPad …“ wählen.'));
@@ -22357,7 +22454,7 @@ function mdNormalize(chs, sr, target, ceilDb, opts, prog) {
       const t0 = performance.now(), r = await normalize(cur.chs, cur.sr, t.I, t.T, f => prog(f), cur.before);
       cur.res = r; cur.t = t; window.__msMs = Math.round(performance.now() - t0); prog(null); paintVals();
       const a = r.after, okI = Math.abs(a.I - t.I) <= 0.2, okT = a.TP <= t.T + 0.05;
-      status((okI && okT ? TT('Fertig: ') : TT('Fertig (Ziel nicht ganz erreicht): ')) + fmt(a.I) + ' LUFS · ' + fmt(a.TP) + ' dBTP. ' + TT('Mit „Master“ / „Original“ vergleichen, dann „WAV speichern“.'));
+      status((okI && okT ? TT('Fertig: ') : TT('Fertig (Ziel nicht ganz erreicht): ')) + fmt(a.I) + ' LUFS · ' + fmt(a.TP) + ' dBTP. ' + TT(panel.id === 'panel-master' ? 'Mit „Master“ / „Original“ vergleichen, dann „WAV speichern“.' : 'Mit „Master“ / „Original“ vergleichen, dann „Als WAV exportieren“.'));
       if (r.red < -6) hint(TT('Der Begrenzer musste stark arbeiten (') + fmt(r.red) + TT(' dB) – das kann den Klang flacher machen. Ein leiseres Ziel oder ein Mix mit weniger Spitzen klingt oft besser.'));
       else paintTarget();
     } catch (e) { prog(null); status(TT('Mastering fehlgeschlagen: ') + (e && e.message || e)); }
@@ -22431,7 +22528,14 @@ function mdNormalize(chs, sr, target, ceilDb, opts, prog) {
   document.addEventListener('tabchange', e => { if (e.detail !== 'master') stopPlay(); else paintTarget(); });
   paintTarget(); paintVals();
 
-  window.Master = { measure, normalize, target, reportText, TARGETS, cur: () => cur, load, run, startPlay, stopPlay, playing: () => !!play };
+  Object.assign(api, { cur: () => cur, load, run, startPlay, stopPlay, playing: () => !!play });
+  }
+  if ($('panel-master')) api.mount($('panel-master'));
+  const fold = $('msFold');   // v151: Looper-Karte – zu = nichts aufgebaut, nichts gerechnet, kein Knoten am Signalweg
+  if (fold) fold.addEventListener('toggle', () => {
+    if (fold.open && !mounted) { const body = $('msBody'), tpl = $('msTpl'); if (body && tpl) { body.appendChild(tpl.content.cloneNode(true)); api.mount(body); } }
+    else if (!fold.open && api.stopPlay) api.stopPlay();
+  });
 })();
 
 </script>
@@ -22485,6 +22589,10 @@ const HILFE = [
   { id: 'uebetempo', t: 'Übe-Tempo: langsamer üben, gleiche Tonhöhe', k: 'übe-tempo langsamer tempo verlangsamen 50 75 90 prozent üben dehnen tonhöhe',
     s: ['Oben im Looper bei „Übe-Tempo“ 90 %, 75 % oder 50 % wählen. Die App rechnet die Spuren kurz um („wird vorbereitet …“).', 'Alle Spuren laufen langsamer, die Tonhöhe bleibt. Drums, Drone, Vorzähler und Taktanzeige folgen dem langsamen Tempo.', 'Aufnehmen ist im Übe-Tempo gesperrt – dafür „100 %“ wählen. 100 % stellt alles exakt wieder her.'],
     tip: ['Am Fußpedal kann eine Taste „Übe-Tempo an / aus“ bekommen (siehe Fußpedal).', 'Beim Öffnen des Editors oder Laden einer Idee springt das Übe-Tempo auf 100 %.'] },
+  { id: 'mastering', t: 'Mastering (Lautheit für Spotify & Co.)', k: 'mastering master lufs lautheit spotify apple music true peak limiter laut export wav fertig',
+    p: ['Bringt einen fertigen Mix auf die Lautheit der Streaming-Dienste, ohne Übersteuern (True Peak). Gemessen nach EBU R128. Lauter und fertig zum Teilen.'],
+    s: ['Im Looper unter den Spuren die Karte „Mastering“ aufklappen.', 'Quelle: „Looper-Mix (alle Spuren, ohne Drums/Drone)“, eine einzelne Spur, der Song aus dem Songwriting oder „Datei laden …“; Ziel z. B. „Spotify … (−14 LUFS)“.', '„Laden & messen“, dann „Mastern“.', '„Original“ / „Master“ mit „gleich laut vergleichen“ anhören, dann „Als WAV exportieren“.'],
+    tip: ['Solange die Karte zu ist, lädt und rechnet sie nichts – Looper und Drums laufen unverändert.'] },
   { id: 'taptempo', t: 'Tap-Tempo: Tempo antippen', k: 'tap tempo antippen tippen bpm tempo einstellen takt schlag',
     s: ['Oben rechts beim Tempo auf „Tap“ mehrmals im Takt tippen (z. B. auf jede Viertel).', 'Ab dem zweiten Tipp stellt die App das Tempo aus dem Mittel der letzten Tipps ein (bis zu 6). Eine Pause von mehr als 2 Sekunden beginnt neu.', 'Das Tempo wird genau so gesetzt wie mit „−“ und „+“ – es gelten dieselben Grenzen (40–200 BPM) und dieselben Regeln bei geladenen Loops.'],
     tip: ['Mehr Tipps ergeben ein ruhigeres Tempo; zum Feinstellen danach „−“ / „+“ benutzen.'] },

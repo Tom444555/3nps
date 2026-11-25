@@ -1527,3 +1527,13 @@ Gut zu wissen
    - „Tap“ setzt das Tempo genau wie „−“ / „+“ (Looper, Drums, Übungen folgen wie gewohnt). Eine Fußpedal-Taste
      dafür gibt es noch nicht.
    - Anleitung „?“: Thema „Tap-Tempo: Tempo antippen“.
+
+134. Mastering als Karte im Looper (v151)
+   - Im Looper unter den Spuren gibt es wieder „Mastering“ – als eingeklappte Karte („lauter und fertig für Spotify & Co.“).
+     Zu lädt und rechnet sie nichts; Looper, Drums und Drone laufen genau wie vorher. In „Minimal“ ist sie ausgeblendet.
+   - Aufklappen, Quelle wählen: „Looper-Mix (alle Spuren, ohne Drums/Drone)“ (mit Spur-EQ und Hall/Echo, wie beim
+     Speichern einer Idee), eine einzelne Spur (nur geladene Dateien), der Song aus dem Songwriting oder „Datei laden …“.
+   - Ziel wählen (z. B. „Spotify, YouTube, Amazon, TIDAL (−14 LUFS)“), „Laden & messen“, dann „Mastern“.
+     Die Tabelle zeigt Lautheit, True Peak und Dynamik vorher/nachher.
+   - „Original“ / „Master“ mit „gleich laut vergleichen“ anhören, dann „Als WAV exportieren“ (24 Bit, Name mit „Master“).
+   - Anleitung „?“: Thema „Mastering (Lautheit für Spotify & Co.)“.
