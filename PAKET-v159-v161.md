@@ -72,4 +72,19 @@ Was ist für Tom anders und wo (Knopfnamen in „…“), Testergebnis, Grenzen 
 `/home/claude/bilder/vNN-*.png` (Pfad nennen), Stand von main (Commit, Pages-Lauf „success“).
 
 ## Nachträge
-(noch keine)
+### v162 – Gitarren aus druckwerk als Modellanzeige im Reiter „Rig“ (Tom, 26.11.2026 08:12: „Übernimm mal noch aus Druckwerk die Schecter, Strat und Gibson als Modellanzeige“)
+Eigenes Paket NACH v161 (nicht in v159–v161 mischen). Bestand: Reiter „Rig“ (v146, `app/www/rig/`, three.js lokal, lädt erst beim Öffnen) zeigt
+schon 3D-Gitarren: Strat aus druckwerk (alter Auftrag 2026-11-11_stratocaster), Schecter und Les Paul Studio als einfache eigene Modelle.
+Gewünscht: die aktuellen, detailreichen druckwerk-Modelle als Anzeige übernehmen.
+- Quelle: öffentliches Lager Tom444555/druckwerk (main): Schecter = `modelle/gitarre_rundum.py` + `gitarre_rundum_daten.json` (Projekte
+  schecter190/schecter370, vier Farben grau/weinrot/schwarz/silber, gerundete Deckenkante), Strat = Stratocaster 190/240 mit Details
+  (`gitarre_farben.py … --details 1`, cremeweiß, Ahornhals, 22 Bünde). Stand und Baubefehle: Block oben in druckwerk `UEBERGABE.md`.
+- Für die Anzeige: Modell je Farbe als ein Netz exportieren (GLB oder das Format, das der Rig-Reiter schon lädt), Druck-Hilfen weglassen
+  (Steckwirbel-Löcher, Saitenlöcher, Zapfen, Stützen), Netze vereinfachen (Ziel je Gitarre deutlich unter 1 MB, flüssig auf altem iPad;
+  Profile „Altes iPad“/„Minimal“ wie bisher im Rig). Dateien nur unter `app/www/rig/`, nachgeladen, Offline-Liste `sw.js`; index.html wächst nicht.
+- **Gibson / Les Paul:** In druckwerk gibt es dafür KEIN eigenes Modell – die Les-Paul-Dateien liegen im privaten Lager druckwerk-modelle und sind
+  fremde Modelle (Lizenz ungeklärt) → dürfen NICHT in die öffentliche App. Deshalb: das eigene Les-Paul-Studio-Modell des Rig-Reiters behalten und
+  nach derselben Machart wie Schecter/Strat verfeinern (gewölbte Decke, Binding, Humbucker, Regler, Brücke), ohne Schriftzug/Logo. Tom ist informiert.
+- Keine Marken-Schriftzüge/Logos auf den Modellen; Namen im Rig wie bisher (vor App Store ohnehin zu prüfen, siehe UEBERGABE „Offen“).
+- Test `test/v162modelle.py` (lädt erst beim Öffnen, drei Modelle sichtbar, Dateigrößen, Profile, keine Skriptfehler, v146rig weiter grün);
+  Vorher/Nachher-Bilder je Gitarre.
