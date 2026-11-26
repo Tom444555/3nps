@@ -47,10 +47,11 @@
     </div>
 
     <div class="card" id="ldTextCard" hidden>
-      <div class="card-head"><h2>Text</h2><button class="toggle-btn" id="ldPdf">Leadsheet (PDF)</button></div>
+      <div class="card-head"><h2>Text</h2><span class="ld-txbtn"><button class="toggle-btn" id="ldTw" aria-expanded="false">Text-Werkstatt</button><button class="toggle-btn" id="ldPdf">Leadsheet (PDF)</button></span></div>
       <label class="field ld-theme"><span>Thema / Idee</span><input type="text" id="ldTheme" maxlength="200" autocomplete="off" placeholder="Worum geht es? Bild, Gefühl, kleine Geschichte …"></label>
       <p class="caption ld-txhint">Links neben jeder Zeile: <b>Silben</b> und <b>Reim</b> (gleicher Buchstabe = reimt, ~ = unrein, grau = reimt mit nichts). Akkordwechsel kannst du mit <b>[Am]</b> direkt vor die Silbe schreiben – sonst verteilt das Leadsheet die Akkorde gleichmäßig.</p>
       <div class="ld-texts" id="ldTexts"></div>
+      <div id="ldTwBox" hidden></div>
     </div>
 
     <div class="card" id="ldCheckCard" hidden>

@@ -165,6 +165,7 @@ pv += '<style>' + rd(A + 'uebezeit-ansicht.css') + '</style>\n<script>\n' + rd(A
 pv += '<style>' + rd(A + 'tonleiter.css') + '</style>\n<script>\n' + rd(A + 'tonleiter.js') + '\n</script>\n'   # v158: Tonleiter-Trainer
 pv += '<style>' + rd(A + 'songbook.css') + '</style>\n<script>\n' + rd(A + 'songbook.js') + '\n</script>\n'   # v161: Songbook
 pv += '<style>' + rd(A + 'mitsingen.css') + '</style>\n<script>\n' + rd(A + 'mitsingen.js') + '\n</script>\n'   # v163: Mitsingen lernen
+pv += '<style>' + rd(A + 'textwerk.css') + '</style>\n<script>\n' + rd(A + 'textwerk.js') + '\n</script>\n'   # v164: Text-Werkstatt
 old_mic = "setStatus('Kein Zugriff aufs Mikrofon. Erlaube ihn in den iPad-Einstellungen unter Datenschutz → Mikrofon bzw. für die Website in Safari (aA → Website-Einstellungen → Mikrofon).');"
 assert old_mic in pv
 pv = pv.replace(old_mic, "setStatus('In der Vorschau ist das Mikrofon gesperrt. Nimm den Demo-Loop oben, in der App funktioniert die Aufnahme.');")
@@ -211,6 +212,7 @@ open(A + 'www/hilfe-daten.js', 'w', encoding='utf8').write(HILFE_FN + '\n')
 # v155: Übezeit-Übersicht als eigene Dateien (erst beim ersten Öffnen der Seite geladen, sw.js legt sie vorab ab)
 shutil.copy(A + 'songbook.js', A + 'www/songbook.js'); shutil.copy(A + 'songbook.css', A + 'www/songbook.css')   # v161: Songbook (erst beim Öffnen geladen)
 shutil.copy(A + 'mitsingen.js', A + 'www/mitsingen.js'); shutil.copy(A + 'mitsingen.css', A + 'www/mitsingen.css')   # v163: Mitsingen lernen (erst beim Öffnen geladen)
+shutil.copy(A + 'textwerk.js', A + 'www/textwerk.js'); shutil.copy(A + 'textwerk.css', A + 'www/textwerk.css')   # v164: Text-Werkstatt (erst beim Öffnen geladen; Reimliste app/www/reim/ aus werkzeug/reimliste.py)
 shutil.copy(A + 'tonleiter.js', A + 'www/tonleiter.js'); shutil.copy(A + 'tonleiter.css', A + 'www/tonleiter.css')   # v158: Tonleiter-Trainer (erst beim Öffnen geladen)
 shutil.copy(A + 'uebezeit-ansicht.js', A + 'www/uebezeit-ansicht.js'); shutil.copy(A + 'uebezeit-ansicht.css', A + 'www/uebezeit-ansicht.css')
 # Texterkennung (v64): Worker neben die Modelle legen (Modelle selbst kommen aus dem Branch „modelle“)

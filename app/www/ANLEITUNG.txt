@@ -1721,3 +1721,50 @@ Gut zu wissen
    - Übezeit: Die Seite zählt selbst keine Zeit (nichts doppelt). Sie zeigt die Summe „Gesang“ bzw. des Songbook-Stücks und bietet
      „Üben einschalten“ – das ist der gewohnte Schalter. Startest du den Looper, hält die Wiedergabe hier an.
    - Fußpedal: „Mitsingen: Zeile in Schleife an / aus“, „vorige Zeile“, „nächste Zeile“ (wirken nur bei offener Seite).
+
+147. Text-Werkstatt: Reime prüfen, Reimwörter, Akkorde nach Stimmung, Baukasten, Prompt für Claude (v164)
+   - Neu unter „Song & Gesang › Songwriting“ im Bereich „Text“: Knopf „Text-Werkstatt“ (lädt erst beim ersten Antippen). Fünf Reiter:
+     „Reime prüfen“ · „Reimwörter“ · „Akkorde nach Stimmung“ · „Baukasten“ · „Prompt für Claude“. Alles läuft offline mit Regeln und
+     Tabellen – die App hat keine KI und schickt nichts ins Netz. Für frei formulierte Texte gibt es den Weg über Claude (Prompt kopieren,
+     Antwort zurück einfügen).
+   - „Reime prüfen“: je Abschnitt die Zeilen mit Silbenzahl, Reimbuchstabe und Farbe je Reimpaar: „rein“ (gleicher Klang ab dem betonten
+     Vokal: Herz/Schmerz, Zeit/Leid), „~ unrein“ (ähnlich: ü/i, ö/e, eu/ei, lang/kurz, verwandte Endkonsonanten: Tür/mir, Freude/Weide,
+     Staat/statt), „= gleiches Wort“, grau = ohne Partner; dazu das Reimschema (ABAB, AABB …). Darunter ruhige Hinweise ohne Noten:
+     Silben-Abweichung zwischen Zeilen und Reimpartnern, gleiches Wort am Zeilenende, Füllwörter (halt, eben, irgendwie, eigentlich …),
+     sehr lange Zeilen, Wörter, die sich oft wiederholen. Tippst du oben im Text, rechnet die Prüfung mit. Eine Zeile antippen:
+     „Reimwörter zu „…““ oder „Diese Zeile besser formulieren“. Die Buchstaben links neben dem Text bleiben wie bisher (einfachere Regel).
+   - Grenzen: Reime werden nach der Schreibung erkannt, die Betonung wird geschätzt (meist erste Stammsilbe; Nachsilben wie -ung, -lich,
+     -heit, -keit gelten als unbetont, „-ieren“, „-ei“, „Musik“ betont hinten). Fremdwörter, Namen und Dialekt können falsch eingeordnet
+     werden – dein Ohr entscheidet. Nur Deutsch.
+   - „Reimwörter“: Wort eingeben (oder aus „Reime prüfen“ kommen), „Reimwörter“ – reine und unreine Reime, filterbar nach 1 · 2 · 3+
+     Silben, häufig gebrauchte Wörter zuerst (geschätzt). Kam man über eine Zeile, setzt Antippen das Wort dort ein (als neue Version,
+     Großschreibung und [Am]-Marken bleiben), sonst wird es kopiert. Die Wortliste lädt beim ersten Mal (≈ 0,4 MB) und bleibt danach
+     offline. Quelle: „German MFA dictionary v3.0.0“ von Michael McAuliffe & Morgan Sonderegger (2024, Montreal Forced Aligner),
+     Lizenz CC BY 4.0 – nach Aussprache gruppiert, gekürzt auf rund 110 000 Wörter (Lizenz und Quelle im Ordner reim/). Wörter, die
+     dort fehlen, werden nach der Schreibung gesucht. Die Liste enthält auch seltene Wörter und Namen – einfach überspringen.
+   - „Akkorde nach Stimmung“: in Worten beschreiben, z. B. „traurig, mit Spannungsabfall danach im Refrain“, und „Verstehen“ – oder je
+     Abschnitt Stimmung und Spannung wählen. Stimmungen: traurig, melancholisch, düster, hoffnungsvoll, fröhlich, treibend, ruhig,
+     wütend, sehnsüchtig (auch gebeugt und mit verwandten Wörtern wie Trauer, Wehmut, dunkel, Zuversicht, Sehnsucht). Spannung: steigt
+     (baut sich auf), fällt ab / löst sich, endet offen (auch „Trugschluss“), bleibt gleich, Kontrast. Abschnitte: Strophe, Pre-Chorus,
+     Refrain, Bridge. Steht die Spannung ohne Abschnitt da, gilt sie für den Refrain; Unbekanntes wird gemeldet, nicht geraten.
+     „Vorschläge“ zeigt je Abschnitt 2–3 Folgen in der Tonart des Songs mit einem Satz Begründung (Moll-Stimmungen in einem Dur-Song
+     über die Moll-Parallele, z. B. C-Dur → a-Moll). „▶ Anhören“ spielt die Folge über die Songwriting-Wiedergabe (schaltet „Fläche“
+     ein), „Übernehmen“ setzt sie in den ersten Teil dieser Art (Länge bleibt, die Folge wird wiederholt) – als neue Version; fehlt der
+     Teil, kommt er neu ans Ende des Ablaufs.
+   - Regelwerk (feste Tabelle): Moll/Dur gibt die Farbe; die Dominante (V, in Moll die Dur-Dominante) baut Spannung auf; V→I bzw. iv→i
+     lässt sie abfallen; der Trugschluss V→vi löst nur halb; die Subdominante (IV/iv) öffnet; ♭VI–♭VII bringen Kontrast, kurze
+     Zweierwechsel treiben (I–♭VII), ♭II klingt düster. Akkorde geben nur die Richtung – Tempo, Melodie und Text entscheiden mit.
+   - „Baukasten“: Thema (Abschied, Aufbruch, Nacht, Heimweg, Wut, Hoffnung), Reimschema, 4 oder 8 Zeilen, Silben – „Gerüst bauen“ setzt
+     selbst geschriebene Zeilen nach Reimschema zusammen, „Neu würfeln“ mischt neu. Nomen und das Reimwort am Zeilenende antippen →
+     Alternativen aus dem Wortfeld bzw. Reimwörter. „Ersetzen (neue Version)“ oder „Anhängen (neue Version)“ in einen Abschnitt. Ehrlich:
+     ein Baukasten-Entwurf zum Weiterschreiben, kein fertiger Text.
+   - „Prompt für Claude“: Aufgabe („Textvorgabe schreiben“, „Meinen Text überarbeiten“, „Ausgewählte Zeile besser formulieren“), Thema,
+     Stimmung, Sprache, Perspektive, Reimschema, Silben je Zeile (aus dem Song vorbelegt), Abschnitte und eigene Zeilen. „Prompt kopieren“
+     (oder „Teilen …“, „Prompt ansehen“) → in einen Chat mit Claude einfügen. Die Antwort kopieren und mit „Aus Zwischenablage einfügen“
+     zurückholen (oder unten bei „Mit Claude weiterarbeiten“ einfügen und „Einlesen“). Erkannt werden: der Song-Code (wie bisher),
+     Zeilen-Vorschläge („=== 3NPS ZEILEN ===“, auch eine einfache nummerierte Liste) mit „Diese nehmen“ und freier Text – Überschriften
+     wie „Strophe 1:“, „[Refrain]“ oder „**Bridge**“ werden den Teilen zugeordnet, sonst wählst du das Ziel. Immer mit Vorschau und als
+     neue Version; mit „Version“ kommst du zurück.
+   - Englische Oberfläche: Die Werkstatt arbeitet mit deutschen Texten (Prüfung, Reimwörter, Baukasten, Begründungen und Prompt sind
+     deutsch). Claude versteht den deutschen Prompt – für englische Texte bei „Sprache“ „Englisch“ wählen.
+   - Übezeit: Die Werkstatt zählt keine Zeit.

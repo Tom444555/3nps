@@ -266,6 +266,7 @@
     s.versions.forEach((x, i) => vs.add(new Option('V' + x.n + ' · ' + new Date(x.at).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) + ' · ' + x.note, i)));
     vs.value = s.cur;
     renderOrder(v); renderParts(v); renderText(v); renderVoice(v);
+    if (window.TextWerk && TextWerk.refresh) TextWerk.refresh();   // v164
     $('ldFind').innerHTML = ''; $('ldVar').innerHTML = ''; varCache = null;
   }
   const TCLS = t => 't-' + t;
@@ -513,6 +514,8 @@
   function readCode() {
     const base = ver(), r = X.fromCode($('ldPaste').value, base), box = $('ldImRes');
     imp = null;
+    // v164: kein Song-Code → Zeilen-Vorschläge oder freier Text über die Text-Werkstatt (Vorschau, als Version)
+    if (!r.ok && base && $('ldPaste').value.split('\n').filter(x => x.trim()).length >= 2 && !/=+\s*3NPS\s+SONG-CODE/i.test($('ldPaste').value)) { if (!window.TextWerk) { twLoad(readCode); return; } if (TextWerk.readOther($('ldPaste').value, box)) return; }
     if (!r.ok) { box.innerHTML = '<h3>Konnte den Song-Code nicht übernehmen</h3><ul class="err">' + r.errs.map(e => '<li>' + esc(e) + '</li>').join('') + '</ul>' + (r.warn && r.warn.length ? '<ul class="wrn">' + r.warn.map(e => '<li>' + esc(e) + '</li>').join('') + '</ul>' : '') + '<p class="note">Tipp: Claude bitten, „den vollständigen Song-Code im selben Format“ zu schicken.</p>'; return; }
     imp = r;
     const s = song(), d = base ? X.diff(base, r.v, s.name, r.title) : ['Neuer Song mit ' + r.v.parts.length + ' Teilen'];
@@ -540,6 +543,28 @@
     }
     imp = null; $('ldImRes').innerHTML = ''; $('ldPaste').value = ''; selOrd = -1; render();
   });
+
+  // ================= v164: Text-Werkstatt (Code und Stil erst beim ersten Öffnen: textwerk.js/.css) =================
+  let twL = false, twQ = [];
+  function twLoad(cb) {
+    if (window.TextWerk) { cb(); return; }
+    twQ.push(cb); if (twL) return; twL = true;
+    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'textwerk.css';
+    l.onload = l.onerror = () => {
+      const sc = document.createElement('script'); sc.src = 'textwerk.js';
+      sc.onload = () => { const q = twQ; twQ = []; q.forEach(f => f()); };
+      sc.onerror = () => { twL = false; twQ = []; sc.remove(); status(T('Die Text-Werkstatt konnte nicht geladen werden – bitte einmal mit Internet öffnen.')); };
+      document.head.appendChild(sc);
+    };
+    document.head.appendChild(l);
+  }
+  $('ldTw').addEventListener('click', () => {
+    const box = $('ldTwBox'), on = box.hidden;
+    $('ldTw').classList.toggle('active', on); $('ldTw').setAttribute('aria-expanded', on ? 'true' : 'false');
+    if (!on) { box.hidden = true; return; }
+    twLoad(() => TextWerk.open(box));
+  });
+  window.LiedApi = { song, ver, pushVersion, render, status, play, stop, playing: () => P ? P.label || 'Song' : null, copyText, readCode, textSlots };
 
   // ================= Ganzer Song für Logic =================
   $('ldExport').addEventListener('click', async () => {
