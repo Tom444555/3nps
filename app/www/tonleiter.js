@@ -316,7 +316,8 @@ window.Tonleiter = (() => {
       + '<div class="tl-lbl">' + esc(TT('Automatisch schneller nach … Durchgängen')) + '</div>' + seg('tlAuto', AUTO.map(n => [n, n ? String(n) : 'aus – per Knopf']), t.n, 'au')
       + '<div class="tl-lbl">' + esc(TT('Töne je Klick')) + '</div>' + seg('tlNv', NV, t.nv, 'nv')
       + '<label class="check tl-vz"><input type="checkbox" id="tlVz"' + (t.vz ? ' checked' : '') + '> ' + esc(TT('Vorzähler (1 Takt)')) + '</label></details>'
-      + '<div class="tl-uz" id="tlUz"></div>';
+      + '<div class="tl-uz" id="tlUz"></div>'
+      + '<p class="caption tl-pedal">' + esc(TT('Fußpedal: „Trainer: Start / Stopp“, „Trainer: Weiter“, „geschafft → schneller“ und „zu schnell → langsamer“ lassen sich unter Looper › Fußpedal › „Tasten belegen“ auf eine Taste legen.')) + '</p>';
     $('tlVz').addEventListener('change', e => { S.t.vz = e.target.checked ? 1 : 0; save(); paintRun(); });
     $('tlSet').addEventListener('toggle', e => { S.t.op = e.target.open ? 1 : 0; save(); });
     paintRun();
@@ -428,9 +429,20 @@ window.Tonleiter = (() => {
     else if (d.gl) p = { l: +d.gl, x: d.gx };
     if (p) { const was = !!run; stop(); setSel(p); paintAll(); if (was) start(); if (d.gl) { const c = $('tlBoardCard'); if (c && c.scrollIntoView) c.scrollIntoView({ block: 'nearest' }); } }
   }
+  // v159: Fußpedal (Looper › Fußpedal › „Tasten belegen“) – nur bei offener Seite (looper.js prüft das); wirkt wie die Knöpfe der Seite.
+  // „Weiter“ = nächste Lage; nach der letzten Lage (oder bei „Alle“) die nächste Übung, Lage 1 – läuft der Trainer, läuft er weiter.
+  function pedal(k) {
+    if (!built) return false;
+    const id = { go: 'tlGo', done: 'tlDone', slow: 'tlSlow' }[k];
+    if (id) { const b = $(id); if (!b || b.disabled) return false; onClick({ target: b }); return true; }
+    if (k !== 'next') return false;
+    const N = nLagen(fam(sel.f)), xi = FORMS.findIndex(f => f[0] === sel.x), nx = FORMS[(xi + 1) % FORMS.length][0];
+    const p = sel.l === 'all' ? { x: nx } : +sel.l < N ? { l: +sel.l + 1 } : { l: 1, x: nx };
+    const was = !!run; stop(); setSel(p); paintAll(); if (was) start(); return true;
+  }
   function open() { build(); paintRun(); paintHint(); }
   function close() { stop(true); }
   document.addEventListener('visibilitychange', () => { if (document.hidden) stop(); });
   document.addEventListener('tabchange', e => { if (e.detail !== 'tonleiter') close(); else if (built) { paintRun(); paintHint(); } });
-  return { open, close, start, stop, done, slower, pattern, seq, engine, boxPattern, nn, sim, clickAt, set: p => { stop(); setSel(p); paintAll(); }, state: () => ({ sel: Object.assign({}, sel), bpm, cur: curBpm(), run: !!run, locked: locked(), S: JSON.parse(JSON.stringify(S)), pass: run ? run.pass : 0 }), built: () => built };
+  return { open, close, start, stop, done, slower, pedal, pattern, seq, engine, boxPattern, nn, sim, clickAt, set: p => { stop(); setSel(p); paintAll(); }, state: () => ({ sel: Object.assign({}, sel), bpm, cur: curBpm(), run: !!run, locked: locked(), S: JSON.parse(JSON.stringify(S)), pass: run ? run.pass : 0 }), built: () => built };
 })();

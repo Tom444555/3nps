@@ -3755,7 +3755,7 @@ html.dev-min .looper-card > .card-head > .ueben-btn[aria-pressed="true"], html.d
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v158</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v159</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -15800,7 +15800,10 @@ const Pedal = (() => {
     ['undo:0', 'Spur 1 Rückgängig'], ['undo:1', 'Spur 2 Rückgängig'], ['undo:2', 'Spur 3 Rückgängig'],
     ['undo', 'Rückgängig (zuletzt benutzte Spur)'], ['all', 'Alle starten / stoppen'], ['pause', 'Pause / Weiter'],
     ['prac', 'Übe-Tempo an / aus'], ['pracNext', 'Übe-Tempo nächste Stufe'], ['tuner', 'Stimmgerät an / aus'],
-    ['sceneNext', 'Nächste Szene'], ['scenePrev', 'Vorherige Szene'], ['amp', 'Amp an / aus']];
+    ['sceneNext', 'Nächste Szene'], ['scenePrev', 'Vorherige Szene'], ['amp', 'Amp an / aus'],
+    // v159: nur wählbar, Standard-Belegung unverändert; Trainer-Aktionen wirken nur bei offener Seite „Tonleiter-Trainer“
+    ['tap', 'Tap (Tempo)'], ['tl:go', 'Trainer: Start / Stopp'], ['tl:next', 'Trainer: Weiter (nächste Lage/Übung)'],
+    ['tl:done', 'Trainer: geschafft → schneller'], ['tl:slow', 'Trainer: zu schnell → langsamer']];
   const ACT_NAME = Object.fromEntries(ACTS);
   const DEF_ACTS = { foot0: { tap: 'foot:0', hold: 'undo:0', dbl: 'none' }, foot1: { tap: 'foot:1', hold: 'undo:1', dbl: 'none' },
     foot2: { tap: 'foot:2', hold: 'undo:2', dbl: 'none' }, all: { tap: 'all', hold: 'none', dbl: 'none' } };
@@ -15811,6 +15814,8 @@ const Pedal = (() => {
     else if (k === 'all') Looper.all(); else if (k === 'pause') Looper.pauseToggle(); else if (k === 'prac') Looper.pracToggle();
     else if (k === 'pracNext') Looper.pracNext(); else if (k === 'tuner') Looper.tunerToggle();
     else if (k === 'sceneNext') Looper.sceneNext(); else if (k === 'scenePrev') Looper.scenePrev(); else if (k === 'amp') Looper.ampToggle();
+    else if (k === 'tap') { const b = document.getElementById('bpmTap'); if (b && !b.disabled && window.tapTempo) window.tapTempo(); }   // v159: wie ein Tipp auf „Tap“
+    else if (k === 'tl') { if (window.Tonleiter && Tonleiter.pedal && window.AppNav && AppNav.current() === 'tonleiter') Tonleiter.pedal(n); }   // v159: nur bei offener Seite, lädt nichts
   }
   const PRESETS = {
     a: { foot0: 'ArrowUp', foot1: 'ArrowDown', foot2: 'ArrowLeft', all: 'ArrowRight' },
@@ -16431,6 +16436,7 @@ const AppCfg = (() => {
     tapB.addEventListener('pointerdown', e => { e.preventDefault(); tap(); });
     tapB.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tap(); } });
     window.__tap = tap;   // Test
+    window.tapTempo = tap;   // v159: Pedal-Aktion „Tap (Tempo)“ (gleiche Logik wie der Knopf)
   }
 })();
 

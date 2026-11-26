@@ -258,5 +258,6 @@ const AppCfg = (() => {
     tapB.addEventListener('pointerdown', e => { e.preventDefault(); tap(); });
     tapB.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tap(); } });
     window.__tap = tap;   // Test
+    window.tapTempo = tap;   // v159: Pedal-Aktion „Tap (Tempo)“ (gleiche Logik wie der Knopf)
   }
 })();
