@@ -42,7 +42,7 @@ async def main():
         check('nichts gespeichert ohne Änderung', await pg.evaluate("localStorage.getItem('3nps-pedal-acts')") is None)
         opts = await pg.evaluate("[...document.querySelectorAll('#pedalActs select')].map(s=>[...s.options].map(o=>o.value))")
         check('alle 12 Auswahllisten haben die neuen Aktionen', len(opts) == 12 and all(all(v in o for v in ['tap', 'tl:go', 'tl:next', 'tl:done', 'tl:slow']) for o in opts))
-        check('bisherige Aktionen weiter in den Listen (20)', all(len(o) == 24 for o in opts), len(opts[0]))
+        check('bisherige Aktionen weiter in den Listen (20)', all(len(o) >= 24 for o in opts), len(opts[0]))
         lbl = await pg.evaluate("[...document.querySelector('#pedalActs select').options].filter(o=>/^(tap|tl:)/.test(o.value)).map(o=>o.text)")
         check('Namen: „Tap (Tempo)“, „Trainer: Start / Stopp“, „Trainer: Weiter …“', lbl[:3] == ['Tap (Tempo)', 'Trainer: Start / Stopp', 'Trainer: Weiter (nächste Lage/Übung)'], lbl)
         # Trainer-Aktion auf der Looper-Seite: nichts geladen, kein Fehler

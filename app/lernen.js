@@ -16,6 +16,7 @@
     { t: 'hoer', ic: '👂', n: 'Hör-Training', d: 'Intervalle, Akkorde, Tonleitern mit Ampel' },
     { t: 'spick', ic: '📋', n: 'Spickzettel', d: 'Intervalle, Griffformen, Quintenzirkel, Akkordsymbole' },
     { t: 'songbook', ic: '📖', n: 'Songbook', d: 'Deine Stücke: Tonart, Tempo, Akkorde & Text – „▶ Laden“ stellt alles ein' },
+    { t: 'singlernen', ic: '🎤', n: 'Mitsingen lernen', d: 'Fahrplan in 8 Schritten – Zeile in Schleife, langsamer, Vorsingen & Nachsingen' },
     { t: 'uebezeit', ic: '⏲', n: 'Übezeit', d: 'Schalter „Üben“, Themen, Import aus Numbers, CSV-Export' },
     { t: 'tonleiter', ic: '🎼', n: 'Tonleiter-Trainer', d: 'Pentatonik, 3nps, Kirchentonleitern in allen Lagen – Tempo Schritt für Schritt' }
   ];
@@ -53,6 +54,10 @@
       if (l.length && window.Uebezeit) Uebezeit.load().u.forEach(u => { th[u[3]] = 1; });
       return l.length ? { p: l.filter(x => th['sb' + x.id]).length / l.length, txt: l.length + ' ' + TT(l.length === 1 ? 'Stück' : 'Stücke') } : { p: 0, txt: TT('noch kein Stück') };
     }
+    if (t === 'singlernen') {   // v163: Schritte geschafft beim zuletzt gewählten Stück (liest nur „3nps-mitsingen“)
+      const d = jget('3nps-mitsingen', null), p = d && d.p && d.cur ? d.p[d.cur] : null, n = p && Array.isArray(p.d) ? p.d.length : 0;
+      return p ? { p: n / 8, txt: n + ' / 8 ' + TT('Schritte') } : { p: 0, txt: TT('noch nicht geübt') };
+    }
     if (t === 'tonleiter') {   // v158: Übungen mit Bestwert, Ring = Anteil mit erreichtem Ziel
       const d = jget('3nps-tonleiter', null), b = d && d.b ? Object.values(d.b) : [], z = d && d.t ? d.t.z : 120;
       return b.length ? { p: b.filter(x => x[0] >= z).length / b.length, txt: b.length + ' ' + TT(b.length === 1 ? 'Übung mit Bestwert' : 'Übungen mit Bestwert') } : { p: 0, txt: TT('noch nicht geübt') };
@@ -88,6 +93,21 @@
     document.head.appendChild(l);
   }
   document.addEventListener('tabchange', e => { if (e.detail === 'songbook') sbLoad(); });
+  // v163: Mitsingen lernen – Code, Stil und Anleitungstexte erst beim ersten Öffnen laden (mitsingen.js)
+  let msL = false;
+  function msLoad() {
+    if (window.MitsingenLernen) { MitsingenLernen.open(); return; }
+    if (msL) return; msL = true;
+    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'mitsingen.css';
+    l.onload = l.onerror = () => {
+      const sc = document.createElement('script'); sc.src = 'mitsingen.js';
+      sc.onload = () => { if (window.AppNav && AppNav.current() === 'singlernen') MitsingenLernen.open(); };
+      sc.onerror = () => { msL = false; sc.remove(); const r = $('mslRoot'); if (r) r.innerHTML = '<p class="pattern-desc">' + TT('„Mitsingen lernen“ konnte nicht geladen werden – bitte einmal mit Internet öffnen.') + '</p>'; };
+      document.head.appendChild(sc);
+    };
+    document.head.appendChild(l);
+  }
+  document.addEventListener('tabchange', e => { if (e.detail === 'singlernen') msLoad(); });
   function tile(T0, lastT) {
     const g = prog(T0.t);
     return '<button class="ln-tile' + (T0.t === lastT ? ' last' : '') + '" data-t="' + T0.t + '"><span class="ln-top"><span class="ln-ic" aria-hidden="true">' + T0.ic + '</span><span class="ln-ring">' + ring(g.p) + '</span></span>' +

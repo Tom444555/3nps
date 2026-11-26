@@ -53,7 +53,7 @@ async def main():
         await pg.goto(U + 'index.html'); await pg.wait_for_timeout(1200)
         check('ab v161', int(re.search(r'v(\d+)', await pg.inner_text('.brand')).group(1)) >= 161)
         check('Start: Songbook nicht geladen', await pg.evaluate("!window.Songbook && ![...document.scripts].some(s => /songbook/.test(s.src)) && !document.querySelector('link[href=\"songbook.css\"]')"))
-        check('Chip „Songbook“ unter Lernen vor „Übezeit“', await pg.evaluate("(() => { const c = [...document.querySelectorAll('#subNav [data-area=lernen]')].map(x => x.dataset.tab); return c.indexOf('songbook') >= 0 && c.indexOf('songbook') + 1 === c.indexOf('uebezeit'); })()"))
+        check('Chip „Songbook“ unter Lernen vor „Übezeit“', await pg.evaluate("(() => { const c = [...document.querySelectorAll('#subNav [data-area=lernen]')].map(x => x.dataset.tab); return c.indexOf('songbook') >= 0 && c.indexOf('songbook') < c.indexOf('uebezeit') && c.slice(c.indexOf('songbook') + 1, c.indexOf('uebezeit')).every(x => x === 'singlernen'); })()"))
         await open_tab(pg, 'lernen'); await pg.wait_for_timeout(300)
         check('Kachel „Songbook“ in der Übersicht', await pg.evaluate("!!document.querySelector('.ln-tile[data-t=songbook]')"))
         await pg.click('.ln-tile[data-t=songbook]')

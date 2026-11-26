@@ -592,7 +592,7 @@ const Looper = (() => {
     const mono = !(src.r && src.r !== src.l);
     const mk = x => mono ? { l: x.l, r: x.l } : x;
     const acc = ex ? buildSeg(mk(res.acc), ex, L0) : SP(res.acc.l, mono ? null : res.acc.r);
-    t.kara = { orig: ly0, acc, L: L0, on: false, name };
+    t.kara = { orig: ly0, acc, L: L0, on: false, name, ex };   // v163: ex = Lage in der Datei (für „Mitsingen lernen“: Gesang leiser)
     karaoke(t, true);
     // Gesang auf eine freie Spur (angehalten – mit dem Fußtaster oder ▶ starten)
     let free = null;
@@ -4257,6 +4257,13 @@ return true;}}registerProcessor('loadmeter',LoadMeter);`;
       const L = l.slice(a, e); return { l: L, r: r === l ? L : r.slice(a, e), length: e - a, sr };
     },
     stretchAudio: (x, n) => stretch(x, n),
+    // v163 „Mitsingen lernen“: Begleitung (aus „Gesang trennen“) für Bilder f0…f1 der Originaldatei – nur lesen; null, wenn nicht getrennt oder außerhalb
+    karaAudio: (i, f0, f1) => {
+      const t = tracks[i]; if (!t || !karaValid(t) || !t.kara.ex) return null;
+      const ex = t.kara.ex, acc = t.kara.acc, a = Math.floor(f0) - ex.start, e = Math.ceil(f1) - ex.start;
+      if (a < 0 || e > ex.Ldet - ex.pre || e > acc.length || e - a < 1) return null;
+      const L = acc.l.slice(a, e); return { l: L, r: acc.r && acc.r !== acc.l ? acc.r.slice(a, e) : L, length: e - a, sr };
+    },
     stretchAudioHQ: (x, n, loop) => stretchHQ(x, n, loop),
     latencyMs: () => parseFloat(latEl.value) || 0,
     // Eingang für „Mithören“: öffnet ihn bei Bedarf (gleicher Zugriff wie der Looper), liefert einen Analyser
@@ -4366,7 +4373,9 @@ const Pedal = (() => {
     ['sceneNext', 'Nächste Szene'], ['scenePrev', 'Vorherige Szene'], ['amp', 'Amp an / aus'],
     // v159: nur wählbar, Standard-Belegung unverändert; Trainer-Aktionen wirken nur bei offener Seite „Tonleiter-Trainer“
     ['tap', 'Tap (Tempo)'], ['tl:go', 'Trainer: Start / Stopp'], ['tl:next', 'Trainer: Weiter (nächste Lage/Übung)'],
-    ['tl:done', 'Trainer: geschafft → schneller'], ['tl:slow', 'Trainer: zu schnell → langsamer']];
+    ['tl:done', 'Trainer: geschafft → schneller'], ['tl:slow', 'Trainer: zu schnell → langsamer'],
+    // v163: wirken nur bei offener Seite „Mitsingen lernen“
+    ['ms:go', 'Mitsingen: Zeile in Schleife an / aus'], ['ms:prev', 'Mitsingen: vorige Zeile'], ['ms:next', 'Mitsingen: nächste Zeile']];
   const ACT_NAME = Object.fromEntries(ACTS);
   const DEF_ACTS = { foot0: { tap: 'foot:0', hold: 'undo:0', dbl: 'none' }, foot1: { tap: 'foot:1', hold: 'undo:1', dbl: 'none' },
     foot2: { tap: 'foot:2', hold: 'undo:2', dbl: 'none' }, all: { tap: 'all', hold: 'none', dbl: 'none' } };
@@ -4379,6 +4388,7 @@ const Pedal = (() => {
     else if (k === 'sceneNext') Looper.sceneNext(); else if (k === 'scenePrev') Looper.scenePrev(); else if (k === 'amp') Looper.ampToggle();
     else if (k === 'tap') { const b = document.getElementById('bpmTap'); if (b && !b.disabled && window.tapTempo) window.tapTempo(); }   // v159: wie ein Tipp auf „Tap“
     else if (k === 'tl') { if (window.Tonleiter && Tonleiter.pedal && window.AppNav && AppNav.current() === 'tonleiter') Tonleiter.pedal(n); }   // v159: nur bei offener Seite, lädt nichts
+    else if (k === 'ms') { if (window.MitsingenLernen && window.AppNav && AppNav.current() === 'singlernen') MitsingenLernen.pedal(n); }   // v163: nur bei offener Seite, lädt nichts
   }
   const PRESETS = {
     a: { foot0: 'ArrowUp', foot1: 'ArrowDown', foot2: 'ArrowLeft', all: 'ArrowRight' },
