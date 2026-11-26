@@ -140,3 +140,33 @@ früher ABGELEHNT in der Mitsing-Ansicht: Akkordbalken, Pausenbalken, Vergröße
   nach Trennen, Aufnahme, Nachladen, Größe, Profile, keine Skriptfehler; v63singen/v81vox/v85singen/v124trennen weiter wie zuvor).
 
 **Freigabe:** Tom am 26.11.2026 09:43: „Mach das genauso“ – v163 wie oben bauen (nach v162), Übezeit getrennt lassen (siehe „Verknüpfungen“).
+
+### v164 – Text-Werkstatt: eigene Songtexte prüfen, Textvorgabe per Prompt, Akkordvorgabe nach Stimmung (Tom, 26.11.2026 10:48)
+Toms Worte: „Noch eine Möglichkeit zur eigenen Texterstellung: man gibt einen Text ein und das Programm schaut, ob es sich reimt oder wie man es
+besser formulieren könnte. Ein Promptfenster zur Texterstellung, dass man schon eine Textvorgabe bekommt und diese dann nur noch anpassen braucht,
+plus die Akkordvorgabe, wenn ich eingebe: traurig mit Spannungsabfall danach im Refrain usw.“ Eigenes Paket NACH v163. (Die Tonhöhen-Linie aus
+v163 „Stufe 2“ rückt dadurch auf v165.) Konzept an Tom geschickt am 26.11. 10:50 – vor dem Bau im Chat/hier nachsehen, ob er etwas geändert hat.
+
+**Grenze, ehrlich:** Die App hat keinen Server und keine KI (CSP ohne fremde Quellen, keine Datenerhebung – bleibt so). Frei formulierte
+Textvorgaben und „besser formulieren“ auf KI-Niveau gehen deshalb NICHT in der App selbst. Lösung in zwei Teilen:
+1. **In der App, offline (Regeln, kein Raten):**
+   - **Reim-Prüfung:** Reimschema je Abschnitt (AABB/ABAB/…), reiner/unreiner/kein Reim je Zeilenpaar farbig, Silben je Zeile und Abweichung
+     zwischen Zeilen, die zusammengehören, Betonung grob; Wiederholungen, Füllwörter, sehr lange Zeilen als Hinweise. Bestand prüfen und
+     erweitern: Songwriting › „Text“ kann schon Silben und Reimschema (`[Am]`-Marken) – NICHT doppelt bauen, dort aufsetzen.
+   - **Reimwörter finden:** zu einem Wort Vorschläge (reine und unreine Reime) aus einer deutschen Wortliste mit freier Lizenz, nach Endung/Klang
+     sortiert; Liste nur bei Bedarf nachladen (Größe messen, Ziel wenige MB, Lizenzdatei). Englisch nur, wenn günstig machbar – sonst melden.
+   - **Akkordvorgabe nach Stimmung:** Eingabe in Worten oder Knöpfen je Abschnitt (z. B. Strophe „traurig“, Refrain „Spannung fällt ab/löst sich“,
+     „hoffnungsvoll“, „düster“, „treibend“) → 2–3 Akkordfolgen je Abschnitt in der gewählten Tonart, mit kurzer Begründung (Moll/Dur, Dominante =
+     Spannung, Auflösung auf die Tonika, Trugschluss, Subdominante = Öffnen), anhörbar über die vorhandene Wiedergabe, „Übernehmen“ in den Song /
+     ins Songbook-Stück. Regelwerk als Datentabelle (Stimmung → Stufenfolgen), deterministisch, in der Doku erklärt. Vorhandenes nutzen:
+     Quintenzirkel, „Song prüfen“ + Varianten, Akkorde im Songwriting.
+2. **Textvorgabe und Formulierungshilfe über Claude (Prompt-Fenster):** Felder Thema, Stimmung, Sprache, Perspektive, Reimschema, Silben je Zeile
+   (aus dem vorhandenen Song/Takt), Abschnitte, eigene Zeilen als Ausgangstext → die App baut daraus einen fertigen Prompt („Kopieren“ / Teilen);
+   Tom fügt ihn in Claude ein und holt das Ergebnis über „Einfügen“ zurück – mit Vorschau, als Version (nichts wird überschrieben). Dafür den
+   vorhandenen Weg „Mit Claude weiterarbeiten“ (Song-Code hin und zurück, Vorschau, als Version) ERWEITERN statt neu bauen. Gleicher Weg für
+   „Diese Zeile besser formulieren“ (markierte Zeile + Reim/Silben-Vorgabe → Prompt). Kein Netzabruf aus der App.
+**Ort:** bei „Song & Gesang“ › Songwriting › „Text“ als eigene Karte/Ansicht „Text-Werkstatt“ (dort liegt der Text schon); falls Tom sie unter
+„Lernen“ will, als Chip dorthin – vor dem Bau klären, wenn er sich dazu äußert, sonst Songwriting. Code nachgeladen, Offline-Liste.
+Regeln wie immer (Leistung, Profile, kleinste Diffs, keine echten Liedtexte in Tests/Bildern – erfundene Zeilen). Test `test/v164text.py`
+(Reimschema-Fälle deutsch inkl. unreiner Reime und Umlaute, Silbenzählung, Reimwort-Suche, Stimmung → Akkordfolgen in mehreren Tonarten, Prompt
+enthält alle Felder, Einfügen mit Vorschau/Version, Nachladen, Größe, keine Skriptfehler; bestehende Text-/Songwriting-Tests weiter grün).
