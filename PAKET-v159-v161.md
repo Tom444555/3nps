@@ -199,3 +199,4 @@ einem localStorage-Schlüssel; Übezeit bleibt getrennt (nichts selbst zählen).
 - Regeln: keine echten Liedtexte/-titel als Beispiele (Urheberrecht) – nur erfundene; Leitfaden-Texte selbst formulieren; alle vier Profile;
   englische Texte. Test `test/v165songtext.py` (Fahrplan/Haken je Song, Vorlagen legen Abschnitte korrekt an, Notizbuch speichern/ziehen/löschen,
   Export im Songbook-/Song-Export enthalten oder eigener Export, Nachladen, Größe, keine Skriptfehler).
+**Freigabe v165:** Tom am 26.11.2026 10:54: „Bau es genauso“ – v165 wie oben bauen (nach v164), nichts gestrichen.
