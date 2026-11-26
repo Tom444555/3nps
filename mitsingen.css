@@ -1,0 +1,101 @@
+/* v163: Mitsingen lernen (Lernen › Mitsingen lernen) – wird erst beim ersten Öffnen geladen. Klassen msl-… (sb… = Mitsingen, sgb… = Songbook) */
+.msl-wrap { display: flex; flex-direction: column; gap: 14px; }
+.msl-wrap > .card { min-width: 0; margin: 0; }
+/* iPad quer: links Fahrplan, rechts der Schritt (wie Toms freigegebenes Beispielbild) */
+@media (min-width: 1100px) {
+  .msl-wrap { display: grid; grid-template-columns: 330px minmax(0, 1fr); align-items: start; }
+  .msl-plan { position: sticky; top: 8px; }
+}
+.msl-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.msl-head h2 { margin: 0; flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+.msl-pc { display: flex; flex-direction: column; gap: 4px; margin: 6px 0 2px; }
+.msl-pc select, .msl-span select { min-height: 44px; border-radius: 10px; padding: 0 10px; font: inherit; color: inherit; background: var(--surface-2, rgba(127,127,127,.12)); border: 1px solid var(--line, rgba(127,127,127,.3)); }
+.msl-meta { margin: 2px 0 10px; min-height: 1.2em; }
+.msl-new { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
+.msl-new input { flex: 1 1 160px; min-height: 44px; box-sizing: border-box; padding: 0 10px; border-radius: 10px; font: inherit; color: inherit; background: var(--surface-2, rgba(127,127,127,.12)); border: 1px solid var(--line, rgba(127,127,127,.3)); }
+.msl-new .toggle-btn { min-height: 44px; }
+/* Fahrplan-Zeilen (Baustein, auch für weitere Fahrpläne) */
+.msl-rows { display: flex; flex-direction: column; gap: 6px; }
+.msl-r { display: flex; gap: 10px; align-items: center; width: 100%; min-height: 50px; padding: 8px 11px; border-radius: 10px; text-align: left; cursor: pointer; font: inherit; color: inherit;
+  background: var(--surface-2, rgba(127,127,127,.08)); border: 1px solid var(--line, rgba(127,127,127,.22)); }
+.msl-r i { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-weight: 700; background: rgba(127,127,127,.2); }
+.msl-r span { display: flex; flex-direction: column; min-width: 0; }
+.msl-r small { display: block; opacity: .68; font-size: .78rem; }
+.msl-r.ok i { background: #30d158; color: #06210f; }
+.msl-r.on { border-color: #30d158; box-shadow: 0 0 10px rgba(48,209,88,.35); }
+.msl-r.off { opacity: .55; }
+.msl-r .sr, .msl-r em { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.msl-ways { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+.msl-ways .toggle-btn { flex: 1 1 80px; min-height: 44px; }
+.msl-wayd { margin: 8px 0 0; min-height: 2.6em; }
+.msl-uz { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line, rgba(127,127,127,.2)); }
+.msl-uzon { color: #30d158; font-weight: 600; font-size: .9rem; }
+.msl-uzn { width: 100%; opacity: .7; }
+.msl-sm { min-height: 44px; padding: 0 12px; font-size: .85rem; }
+/* Schritt */
+.msl-min { white-space: nowrap; }
+.msl-so { margin: 6px 0 4px; line-height: 1.5; }
+.msl-why { margin: 0 0 12px; }
+.msl-xbox { margin: 0 0 12px; padding: 10px 12px; border-radius: 12px; background: rgba(127,127,127,.08); border: 1px solid var(--line, rgba(127,127,127,.2)); }
+.msl-xk { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.msl-xk .msl-seg { flex: 0 0 auto; }
+.msl-xbox p { margin: 4px 0 0; line-height: 1.45; }
+.msl-text { margin: 6px 0 0; max-height: 220px; overflow: auto; white-space: pre-wrap; font: inherit; line-height: 1.5; }
+.msl-text.mono { font-family: ui-monospace, Menlo, Consolas, monospace; white-space: pre; }
+/* Übungsfeld: feste Höhen, damit beim Mitlaufen nichts springt */
+.msl-box, .msl-nofile { padding: 12px; border-radius: 12px; background: rgba(0,0,0,.28); border: 1px solid rgba(255,255,255,.12); }
+html[data-theme="light"] .msl-box, html[data-theme="light"] .msl-nofile, html[data-theme="precise"] .msl-box, html[data-theme="precise"] .msl-nofile { background: rgba(127,127,127,.08); border-color: rgba(127,127,127,.25); }
+.msl-nofile p { margin: 6px 0 10px; line-height: 1.5; }
+.msl-top { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; opacity: .78; }
+.msl-wave { position: relative; height: 54px; margin: 8px 0; border-radius: 8px; overflow: hidden; background: rgba(127,127,127,.1); color: inherit; }
+.msl-wave canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.msl-hl { position: absolute; top: 0; bottom: 0; background: rgba(48,209,88,.24); border-left: 3px solid #30d158; border-right: 3px solid #30d158; box-sizing: border-box; }
+.msl-cur { position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: currentColor; will-change: transform; }
+html.dev-min .msl-cur { display: none; }
+.msl-line { font-weight: 600; font-size: 24px; line-height: 1.35; text-align: center; margin: 10px 0 2px; height: 2.7em; overflow: hidden; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 0 .28em; }
+.msl-now { color: #30d158; }
+.msl-nextl { text-align: center; font-size: 14px; opacity: .62; height: 1.4em; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.msl-phase { text-align: center; height: 1.5em; font-weight: 700; margin: 2px 0 6px; }
+.msl-phase.you { color: #30d158; }
+.msl-btns { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.msl-btns .toggle-btn { min-height: 44px; padding: 0 12px; }
+.msl-btns .msl-play { padding: 0 18px; font-weight: 700; min-width: 150px; }
+.msl-rec { min-height: 44px; }
+.msl-rec.on { background: #ff453a; border-color: #ff9a94; color: #fff; }
+.msl-span { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: center; margin-top: 10px; }
+.msl-span [data-span] { min-width: 44px; min-height: 44px; }
+.msl-mark { min-height: 44px; }
+.msl-kgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+.msl-k { padding: 10px; border-radius: 10px; background: rgba(127,127,127,.08); border: 1px solid var(--line, rgba(127,127,127,.22)); text-align: center; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.msl-k b { font-size: 17px; }
+.msl-k > span { font-size: 12px; opacity: .72; }
+.msl-seg { display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; }
+.msl-seg .toggle-btn { min-height: 44px; min-width: 44px; padding: 0 6px; flex: 1 1 44px; font-size: .85rem; }
+.msl-sep { min-height: 44px; }
+.msl-pre { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; justify-content: center; margin-top: 10px; min-height: 44px; }
+.msl-take, .msl-marks { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 10px; }
+.msl-take .toggle-btn, .msl-marks .toggle-btn { min-height: 44px; }
+.msl-mk { display: inline-flex; gap: 2px; }
+.msl-mkx { min-width: 44px; }
+.msl-msg { min-height: 1.4em; margin: 8px 0 0; }
+.msl-msg.warn { color: #ff9f0a; }
+.msl-foot { display: flex; gap: 8px; margin-top: 12px; align-items: center; flex-wrap: wrap; }
+.msl-foot .toggle-btn { min-height: 44px; }
+.msl-done { padding: 0 18px; font-weight: 700; }
+.msl-nx { margin-left: auto; }
+.msl-tips { margin-top: 10px; padding: 10px 12px; border-radius: 12px; background: rgba(127,127,127,.08); border: 1px solid var(--line, rgba(127,127,127,.2)); line-height: 1.45; }
+.msl-tips ul { margin: 4px 0 8px; padding-left: 1.2em; }
+.msl-tips p { margin: 4px 0; }
+/* iPad hochkant: Fahrplan zweispaltig, damit der Schritt sichtbar bleibt */
+@media (min-width: 700px) and (max-width: 1099px) { .msl-rows { display: grid; grid-template-columns: 1fr 1fr; } .msl-wayd { min-height: 0; } }
+/* Telefon */
+@media (max-width: 699px) {
+  .msl-rows { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+  .msl-r { min-height: 48px; padding: 6px 8px; gap: 7px; }
+  .msl-r small { display: none; }
+  .msl-kgrid { grid-template-columns: 1fr; }
+  .msl-line { font-size: 20px; }
+  .msl-play { min-width: 0; flex: 1 1 100%; }
+  .msl-wayd { min-height: 0; }
+}
+.dev-old #mslRoot *, html.dev-old #mslRoot * { box-shadow: none !important; transition: none !important; animation: none !important; }

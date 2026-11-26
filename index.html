@@ -3757,7 +3757,7 @@ html.dev-min .looper-card > .card-head > .ueben-btn[aria-pressed="true"], html.d
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v162</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v163</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -3852,6 +3852,7 @@ html.dev-min .looper-card > .card-head > .ueben-btn[aria-pressed="true"], html.d
     <button class="toggle-btn subtab" role="tab" id="tab-hoer" data-tab="hoer" data-area="lernen" aria-selected="false">Hör-Training</button>
     <button class="toggle-btn subtab" role="tab" id="tab-spick" data-tab="spick" data-area="lernen" aria-selected="false">Spickzettel</button>
     <button class="toggle-btn subtab" role="tab" id="tab-songbook" data-tab="songbook" data-area="lernen" aria-selected="false">Songbook</button>
+    <button class="toggle-btn subtab" role="tab" id="tab-singlernen" data-tab="singlernen" data-area="lernen" aria-selected="false">Mitsingen lernen</button>
     <button class="toggle-btn subtab" role="tab" id="tab-uebezeit" data-tab="uebezeit" data-area="lernen" aria-selected="false">Übezeit</button>
     <button class="toggle-btn subtab" role="tab" id="tab-tonleiter" data-tab="tonleiter" data-area="lernen" aria-selected="false">Tonleiter-Trainer</button>
     <button class="toggle-btn subtab" role="tab" id="tab-jam" data-tab="jam" data-area="jammen" aria-selected="false">Backing Track</button>
@@ -5269,6 +5270,8 @@ E|--0--|   E|--x--|   E|--x--|</pre>
   <section class="panel" id="panel-tonleiter" role="tabpanel" aria-labelledby="tab-tonleiter" hidden><div id="tlRoot"></div></section>
   <!-- v161: Songbook – Code und Stil erst beim ersten Öffnen (lernen.js lädt songbook.js/.css) -->
   <section class="panel" id="panel-songbook" role="tabpanel" aria-labelledby="tab-songbook" hidden><div id="sgbRoot"></div></section>
+  <!-- v163: Mitsingen lernen – Code, Stil und Anleitungstexte erst beim ersten Öffnen (lernen.js lädt mitsingen.js/.css) -->
+  <section class="panel" id="panel-singlernen" role="tabpanel" aria-labelledby="tab-singlernen" hidden><div id="mslRoot"></div></section>
 
 
   <!-- Üben -->
@@ -12098,7 +12101,7 @@ const Looper = (() => {
     const mono = !(src.r && src.r !== src.l);
     const mk = x => mono ? { l: x.l, r: x.l } : x;
     const acc = ex ? buildSeg(mk(res.acc), ex, L0) : SP(res.acc.l, mono ? null : res.acc.r);
-    t.kara = { orig: ly0, acc, L: L0, on: false, name };
+    t.kara = { orig: ly0, acc, L: L0, on: false, name, ex };   // v163: ex = Lage in der Datei (für „Mitsingen lernen“: Gesang leiser)
     karaoke(t, true);
     // Gesang auf eine freie Spur (angehalten – mit dem Fußtaster oder ▶ starten)
     let free = null;
@@ -15763,6 +15766,13 @@ return true;}}registerProcessor('loadmeter',LoadMeter);`;
       const L = l.slice(a, e); return { l: L, r: r === l ? L : r.slice(a, e), length: e - a, sr };
     },
     stretchAudio: (x, n) => stretch(x, n),
+    // v163 „Mitsingen lernen“: Begleitung (aus „Gesang trennen“) für Bilder f0…f1 der Originaldatei – nur lesen; null, wenn nicht getrennt oder außerhalb
+    karaAudio: (i, f0, f1) => {
+      const t = tracks[i]; if (!t || !karaValid(t) || !t.kara.ex) return null;
+      const ex = t.kara.ex, acc = t.kara.acc, a = Math.floor(f0) - ex.start, e = Math.ceil(f1) - ex.start;
+      if (a < 0 || e > ex.Ldet - ex.pre || e > acc.length || e - a < 1) return null;
+      const L = acc.l.slice(a, e); return { l: L, r: acc.r && acc.r !== acc.l ? acc.r.slice(a, e) : L, length: e - a, sr };
+    },
     stretchAudioHQ: (x, n, loop) => stretchHQ(x, n, loop),
     latencyMs: () => parseFloat(latEl.value) || 0,
     // Eingang für „Mithören“: öffnet ihn bei Bedarf (gleicher Zugriff wie der Looper), liefert einen Analyser
@@ -15872,7 +15882,9 @@ const Pedal = (() => {
     ['sceneNext', 'Nächste Szene'], ['scenePrev', 'Vorherige Szene'], ['amp', 'Amp an / aus'],
     // v159: nur wählbar, Standard-Belegung unverändert; Trainer-Aktionen wirken nur bei offener Seite „Tonleiter-Trainer“
     ['tap', 'Tap (Tempo)'], ['tl:go', 'Trainer: Start / Stopp'], ['tl:next', 'Trainer: Weiter (nächste Lage/Übung)'],
-    ['tl:done', 'Trainer: geschafft → schneller'], ['tl:slow', 'Trainer: zu schnell → langsamer']];
+    ['tl:done', 'Trainer: geschafft → schneller'], ['tl:slow', 'Trainer: zu schnell → langsamer'],
+    // v163: wirken nur bei offener Seite „Mitsingen lernen“
+    ['ms:go', 'Mitsingen: Zeile in Schleife an / aus'], ['ms:prev', 'Mitsingen: vorige Zeile'], ['ms:next', 'Mitsingen: nächste Zeile']];
   const ACT_NAME = Object.fromEntries(ACTS);
   const DEF_ACTS = { foot0: { tap: 'foot:0', hold: 'undo:0', dbl: 'none' }, foot1: { tap: 'foot:1', hold: 'undo:1', dbl: 'none' },
     foot2: { tap: 'foot:2', hold: 'undo:2', dbl: 'none' }, all: { tap: 'all', hold: 'none', dbl: 'none' } };
@@ -15885,6 +15897,7 @@ const Pedal = (() => {
     else if (k === 'sceneNext') Looper.sceneNext(); else if (k === 'scenePrev') Looper.scenePrev(); else if (k === 'amp') Looper.ampToggle();
     else if (k === 'tap') { const b = document.getElementById('bpmTap'); if (b && !b.disabled && window.tapTempo) window.tapTempo(); }   // v159: wie ein Tipp auf „Tap“
     else if (k === 'tl') { if (window.Tonleiter && Tonleiter.pedal && window.AppNav && AppNav.current() === 'tonleiter') Tonleiter.pedal(n); }   // v159: nur bei offener Seite, lädt nichts
+    else if (k === 'ms') { if (window.MitsingenLernen && window.AppNav && AppNav.current() === 'singlernen') MitsingenLernen.pedal(n); }   // v163: nur bei offener Seite, lädt nichts
   }
   const PRESETS = {
     a: { foot0: 'ArrowUp', foot1: 'ArrowDown', foot2: 'ArrowLeft', all: 'ArrowRight' },
@@ -23377,6 +23390,7 @@ function mdNormalize(chs, sr, target, ceilDb, opts, prog) {
     { t: 'hoer', ic: '👂', n: 'Hör-Training', d: 'Intervalle, Akkorde, Tonleitern mit Ampel' },
     { t: 'spick', ic: '📋', n: 'Spickzettel', d: 'Intervalle, Griffformen, Quintenzirkel, Akkordsymbole' },
     { t: 'songbook', ic: '📖', n: 'Songbook', d: 'Deine Stücke: Tonart, Tempo, Akkorde & Text – „▶ Laden“ stellt alles ein' },
+    { t: 'singlernen', ic: '🎤', n: 'Mitsingen lernen', d: 'Fahrplan in 8 Schritten – Zeile in Schleife, langsamer, Vorsingen & Nachsingen' },
     { t: 'uebezeit', ic: '⏲', n: 'Übezeit', d: 'Schalter „Üben“, Themen, Import aus Numbers, CSV-Export' },
     { t: 'tonleiter', ic: '🎼', n: 'Tonleiter-Trainer', d: 'Pentatonik, 3nps, Kirchentonleitern in allen Lagen – Tempo Schritt für Schritt' }
   ];
@@ -23414,6 +23428,10 @@ function mdNormalize(chs, sr, target, ceilDb, opts, prog) {
       if (l.length && window.Uebezeit) Uebezeit.load().u.forEach(u => { th[u[3]] = 1; });
       return l.length ? { p: l.filter(x => th['sb' + x.id]).length / l.length, txt: l.length + ' ' + TT(l.length === 1 ? 'Stück' : 'Stücke') } : { p: 0, txt: TT('noch kein Stück') };
     }
+    if (t === 'singlernen') {   // v163: Schritte geschafft beim zuletzt gewählten Stück (liest nur „3nps-mitsingen“)
+      const d = jget('3nps-mitsingen', null), p = d && d.p && d.cur ? d.p[d.cur] : null, n = p && Array.isArray(p.d) ? p.d.length : 0;
+      return p ? { p: n / 8, txt: n + ' / 8 ' + TT('Schritte') } : { p: 0, txt: TT('noch nicht geübt') };
+    }
     if (t === 'tonleiter') {   // v158: Übungen mit Bestwert, Ring = Anteil mit erreichtem Ziel
       const d = jget('3nps-tonleiter', null), b = d && d.b ? Object.values(d.b) : [], z = d && d.t ? d.t.z : 120;
       return b.length ? { p: b.filter(x => x[0] >= z).length / b.length, txt: b.length + ' ' + TT(b.length === 1 ? 'Übung mit Bestwert' : 'Übungen mit Bestwert') } : { p: 0, txt: TT('noch nicht geübt') };
@@ -23449,6 +23467,21 @@ function mdNormalize(chs, sr, target, ceilDb, opts, prog) {
     document.head.appendChild(l);
   }
   document.addEventListener('tabchange', e => { if (e.detail === 'songbook') sbLoad(); });
+  // v163: Mitsingen lernen – Code, Stil und Anleitungstexte erst beim ersten Öffnen laden (mitsingen.js)
+  let msL = false;
+  function msLoad() {
+    if (window.MitsingenLernen) { MitsingenLernen.open(); return; }
+    if (msL) return; msL = true;
+    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'mitsingen.css';
+    l.onload = l.onerror = () => {
+      const sc = document.createElement('script'); sc.src = 'mitsingen.js';
+      sc.onload = () => { if (window.AppNav && AppNav.current() === 'singlernen') MitsingenLernen.open(); };
+      sc.onerror = () => { msL = false; sc.remove(); const r = $('mslRoot'); if (r) r.innerHTML = '<p class="pattern-desc">' + TT('„Mitsingen lernen“ konnte nicht geladen werden – bitte einmal mit Internet öffnen.') + '</p>'; };
+      document.head.appendChild(sc);
+    };
+    document.head.appendChild(l);
+  }
+  document.addEventListener('tabchange', e => { if (e.detail === 'singlernen') msLoad(); });
   function tile(T0, lastT) {
     const g = prog(T0.t);
     return '<button class="ln-tile' + (T0.t === lastT ? ' last' : '') + '" data-t="' + T0.t + '"><span class="ln-top"><span class="ln-ic" aria-hidden="true">' + T0.ic + '</span><span class="ln-ring">' + ring(g.p) + '</span></span>' +
@@ -26446,11 +26479,11 @@ PcKurs.K.push({ t: 'Kapitel 15 – Drop D und tiefere Stimmungen', s: [
   // Panels/IDs bleiben gleich (panel-…, Chips tragen die alten Knopf-IDs tab-…), Ereignis „tabchange“ wie bisher.
   const $ = id => document.getElementById(id);
   // frühere Reiter (Begleitung, Song, Log) liegen jetzt im Griffbrett
-  const OLD = { begleitung: 'griffbrett', song: 'griffbrett', log: 'griffbrett', anleitung: 'hilfe', powerchords: 'power', backing: 'jam', improvisation: 'solo', songwriting: 'lied', mitsingen: 'singen', training: 'ueben', technik: 'griffbrett', 'hoer-training': 'hoer', spickzettel: 'spick', 'übezeit': 'uebezeit', 'tonleiter-trainer': 'tonleiter' };
-  const AREA = { looper: 'looper', lernen: 'lernen', power: 'lernen', caged: 'lernen', quinten: 'lernen', griffbrett: 'lernen', ueben: 'lernen', hoer: 'lernen', spick: 'lernen', uebezeit: 'lernen', tonleiter: 'lernen', songbook: 'lernen', jam: 'jammen', solo: 'jammen', lied: 'gesang', singen: 'gesang', rig: 'rig' };
+  const OLD = { begleitung: 'griffbrett', song: 'griffbrett', log: 'griffbrett', anleitung: 'hilfe', powerchords: 'power', backing: 'jam', improvisation: 'solo', songwriting: 'lied', mitsingen: 'singen', training: 'ueben', technik: 'griffbrett', 'hoer-training': 'hoer', spickzettel: 'spick', 'übezeit': 'uebezeit', 'tonleiter-trainer': 'tonleiter', 'mitsingen-lernen': 'singlernen' };
+  const AREA = { looper: 'looper', lernen: 'lernen', power: 'lernen', caged: 'lernen', quinten: 'lernen', griffbrett: 'lernen', ueben: 'lernen', hoer: 'lernen', spick: 'lernen', uebezeit: 'lernen', tonleiter: 'lernen', songbook: 'lernen', singlernen: 'lernen', jam: 'jammen', solo: 'jammen', lied: 'gesang', singen: 'gesang', rig: 'rig' };
   const FIRST = { looper: 'looper', lernen: 'lernen', jammen: 'jam', gesang: 'lied', rig: 'rig' };
   // Anleitung passend zum Bereich/Unterpunkt
-  const HELP = { looper: 'aufnehmen', lernen: 'bereiche', power: 'powerchord-kurs', caged: 'caged', quinten: 'quinten', griffbrett: 'technik', ueben: 'training', hoer: 'hoer-training', spick: 'spickzettel', uebezeit: 'uebezeit', tonleiter: 'tonleiter-trainer', songbook: 'songbook', jam: 'backing', solo: 'improvisation', lied: 'songwriting', singen: 'mitsingen', rig: 'rig' };
+  const HELP = { looper: 'aufnehmen', lernen: 'bereiche', power: 'powerchord-kurs', caged: 'caged', quinten: 'quinten', griffbrett: 'technik', ueben: 'training', hoer: 'hoer-training', spick: 'spickzettel', uebezeit: 'uebezeit', tonleiter: 'tonleiter-trainer', songbook: 'songbook', singlernen: 'mitsingen-lernen', jam: 'backing', solo: 'improvisation', lied: 'songwriting', singen: 'mitsingen', rig: 'rig' };
   const areaBtns = document.querySelectorAll('.tabs [data-area]'), chips = document.querySelectorAll('#subNav [data-tab]'), sub = $('subNav'), help = $('tab-hilfe');
   const PANELS = ['looper', 'hilfe', 'rig'].concat([...chips].map(c => c.dataset.tab));
   let last = {}; try { last = JSON.parse(localStorage.getItem('3nps-tab-last') || '{}') || {}; } catch (e) {}

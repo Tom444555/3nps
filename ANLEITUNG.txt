@@ -1699,3 +1699,25 @@ Gut zu wissen
      Korpus und Griffbrett, Tune-o-matic-Brücke mit Pfosten, Stopbar mit Bolzen und Top-Hat-Reglern. Keine Schriftzüge oder Logos.
    - Fehlt die Schecter-Datei (z. B. erstes Öffnen ohne Internet), erscheint das bisherige einfache Schecter-Modell.
    - Neu erzeugen (nur für die Pflege): werkzeug/rig_modelle.py <Pfad zu druckwerk> – siehe Kopf der Datei.
+
+146. Mitsingen lernen (v163)
+   - Neu unter „Lernen › Mitsingen lernen“ (Chip nach „Songbook“, Kachel in der Übersicht). Links der Fahrplan in 8 Schritten:
+     1 Song & Tonart · 2 Hören & gliedern · 3 Text sprechen · 4 Text im Takt · 5 Melodie ohne Text · 6 Mit Text mitsingen
+     (Original → leiser → Karaoke) · 7 Mit Gitarre (summen → sprechen → singen) · 8 Aufnehmen & anhören. Rechts der gewählte Schritt:
+     „So geht’s“, „Warum“, Richtzeit und „Tipps zu diesem Schritt“ (typische Fehler, woran du merkst, dass es sitzt).
+   - Oben das Stück wählen: Datei im Looper, Stück aus dem Songbook oder „＋ Eigenes Stück …“. „✓ Schritt geschafft“ setzt einen Haken
+     je Stück. Drei Wege: „Gründlich“ (alle 8), „Schnell“ (2 → 5 → 6 → 8) und „Mit Gitarre“ (3 → 4 → 7 → 8). Jeder Schritt lässt sich
+     trotzdem antippen – der Fahrplan führt, er sperrt nicht.
+   - Ohne Musikdatei ist die Seite Anleitung und Checkliste. „Song & Tonart“ nennt bei Songbook-Stücken die Tonart und mit −/+ die
+     Griffe bzw. den Kapodaster (z. B. A Moll → G Moll: Am → Gm), „Text sprechen“ zeigt den Text aus dem Songbook ohne Akkordzeilen,
+     „Mit Gitarre“ Akkorde & Text.
+   - Mit Datei im Looper (♫ auf Spur 1): Zeile für Zeile (mit erkanntem Text aus „Mitsingen“), sonst nach Takten. „▶ Zeile in Schleife“,
+     „‹ Zeile“/„Zeile ›“, Umfang 1 · 2 · 4, Tempo 50–100 % (Tonhöhe bleibt), „Tonart für deine Stimme“ −/+ bis 5 Halbtöne (nur für die
+     Wiedergabe hier), „Vorsingen – Pause – Nachsingen“ (die Zeile läuft, dann eine gleich lange Pause mit Klicks: „Jetzt du“).
+   - „Gesang im Lied: laut · leise · aus“ erst nach „Gesang trennen …“ (beim ersten Mal mit Rückfrage zum Download, ca. 79 MB).
+   - „● Aufnehmen“ (Mikrofon erst nach Antippen, Kopfhörer aufsetzen): danach „▶ Anhören“, „▶ Mit Lied“ (ungefähr ausgerichtet über die
+     Latenz-Einstellung des Loopers), „Als Idee sichern“ oder „Verwerfen“. Nichts verlässt das Gerät. „★ Stelle merken“ legt schwierige
+     Stellen je Stück ab.
+   - Übezeit: Die Seite zählt selbst keine Zeit (nichts doppelt). Sie zeigt die Summe „Gesang“ bzw. des Songbook-Stücks und bietet
+     „Üben einschalten“ – das ist der gewohnte Schalter. Startest du den Looper, hält die Wiedergabe hier an.
+   - Fußpedal: „Mitsingen: Zeile in Schleife an / aus“, „vorige Zeile“, „nächste Zeile“ (wirken nur bei offener Seite).
