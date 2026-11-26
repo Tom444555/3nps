@@ -88,3 +88,50 @@ Gewünscht: die aktuellen, detailreichen druckwerk-Modelle als Anzeige übernehm
 - Keine Marken-Schriftzüge/Logos auf den Modellen; Namen im Rig wie bisher (vor App Store ohnehin zu prüfen, siehe UEBERGABE „Offen“).
 - Test `test/v162modelle.py` (lädt erst beim Öffnen, drei Modelle sichtbar, Dateigrößen, Profile, keine Skriptfehler, v146rig weiter grün);
   Vorher/Nachher-Bilder je Gitarre.
+
+### v163 – Seite „Mitsingen lernen“ unter „Lernen“ (Tom, 26.11.2026 09:34)
+Toms Worte: „Schritt-für-Schritt-Anleitung zum Mitsingen auf einen Song – wie geht man das an, wie übt man was am besten; verschiedene Wege
+recherchieren, Aufbau überlegen. Dann als Reiter in Lernen. Vielleicht die Möglichkeit, wenn man eine Musikdatei lädt, damit üben zu können.
+Arbeite gründlich.“ Eigenes Paket NACH v162. Beispielbild (an Tom geschickt): `test/entwurf/mitsingen-entwurf.py`. Vor dem Bau im Chat nachsehen,
+ob Tom am Konzept etwas geändert hat (steht dann hier darunter).
+
+**Recherche (26.11., Gesangslehrer- und Gitarren-Quellen; Kern in eigenen Worten):** Fast alle Wege trennen die Schichten und setzen sie erst am
+Ende zusammen: Text allein (lesen/sprechen) → Rhythmus (Text im Takt sprechen, klatschen) → Melodie ohne Text (summen, ein Vokal) → alles
+zusammen; abschnittsweise, schwierige Stelle einzeln; nicht alles in einer Sitzung. Nachsingen nach Gehör: Zeile hören – nachsingen – anhängen;
+Karaoke erst, wenn es mit Original sitzt. Tonart an die Stimme anpassen (Kapo/transponieren) statt sich zu quälen. Töne treffen lässt sich üben;
+sich aufnehmen und anhören ist der wichtigste Abgleich, je Durchgang nur auf EINE Sache achten. Singen + Gitarre: Gitarrenpart erst
+automatisieren, dann dazu summen, dann Text, Anschlag anfangs vereinfachen (nur Akkordwechsel), zuletzt mit Metronom/Drums.
+Quellen: dummies.com (Steps for singing a new song; Recording yourself and singing along), 30daysinger.com (How to choose & work on a song;
+Pitch matching), bonedo.de (Crashkurs Gesang – Richtiges Songerarbeiten), musical-u.com (Learn to sing in tune), guitarworld.com / musicradar.com /
+stringkick.com (Singen und Gitarre spielen). Keine Texte daraus übernehmen – alles selbst formulieren.
+
+**Bestand nutzen, nichts doppelt bauen:** „Song & Gesang“ hat schon Mitsingen (`singen.js`, `sing.js`: Datei laden, Text erkennen mit Whisper,
+Wörter im Takt, „🎤 Karaoke“ über „Gesang trennen“/Spleeter), Stimmlage/Tonart-Empfehlung/Zieltöne im Songwriting, Mithören der Tonhöhe (YIN) im
+Solo-Bereich, Zeitdehnung (Test `v96stretch`), Looper-Datei laden mit Takt/Tempo. Zuerst sichten, was davon von außen sicher aufrufbar ist. Von Tom
+früher ABGELEHNT in der Mitsing-Ansicht: Akkordbalken, Pausenbalken, Vergrößern der aktuellen Zeile – nicht wieder einführen.
+
+**Aufbau (wie im Beispielbild):** eigener Chip „Mitsingen lernen“ + Kachel; Code/Stil nachgeladen (`mitsingen.js/.css`), Offline-Liste.
+- Links der **Fahrplan in 8 Schritten** mit Haken je Stück (Fortschritt je Stück gespeichert, localStorage `3nps-mitsingen`, ein Schlüssel):
+  1 Song & Tonart (passt es zur Stimme?) · 2 Hören & gliedern (Abschnitte, Atemstellen) · 3 Text sprechen · 4 Text im Takt sprechen ·
+  5 Melodie ohne Text (summen/„na“) Zeile für Zeile · 6 Mit Text mitsingen: Original → Original leiser → Karaoke · 7 Mit Gitarre: summen →
+  sprechen → singen, Anschlag erst vereinfacht · 8 Aufnehmen & anhören, schwierige Stellen merken und zurück in die Schleife.
+- **Drei Wege** (Umschalter): „Gründlich“ (alle 8), „Schnell“ (2 → 5 → 6 → 8, für Lieder, die man schon gut im Ohr hat), „Mit Gitarre“
+  (Gitarre zuerst sicher, dann 3 → 4 → 7 → 8). Schritte lassen sich immer frei antippen – der Fahrplan führt, sperrt nicht.
+- Rechts der **Schritt**: „So geht’s“ (2–3 Sätze), „Warum“, Richtzeit, „Tipps zu diesem Schritt“ (aufklappbar: typische Fehler, woran man merkt,
+  dass es sitzt), „✓ Schritt geschafft“. Ohne geladene Datei funktioniert die Seite als reine Anleitung mit Checkliste (auch für eigene Stücke).
+- **Üben mit Musikdatei** (wenn eine Datei geladen ist – dieselbe wie im Mitsingen/Looper, kein zweiter Ladeweg, wenn vermeidbar): Zeile/Abschnitt
+  in **Schleife** (Grenzen aus dem erkannten Text bzw. von Hand setzen), „‹ Zeile“/„Zeile ›“, **Tempo** 50–100 % ohne Tonhöhenänderung,
+  **Vorsingen – Pause – Nachsingen** (Zeile läuft, dann gleich lange Pause mit Klick zum Nachsingen), **Gesang im Lied laut ↔ leise ↔ Karaoke**
+  (nur wenn „Gesang trennen“ gelaufen ist; sonst Knopf, der das anbietet – 79-MB-Modell nie ungefragt laden), **● Aufnehmen** und direkt
+  anhören (Aufnahme nur im Speicher/als Idee, nichts verlässt das Gerät), „schwierige Stelle merken“ (Liste je Stück, Sprung zurück).
+- **Tonart für die Stimme:** Transponieren der Datei in Halbtönen NUR, wenn es im Bestand eine brauchbare Tonhöhen-Verschiebung gibt; sonst in
+  v163 als Empfehlung lösen („2 Halbtöne tiefer → Kapo/Griffe: …“ + vorhandene Tonart-Empfehlung nutzen) und als offenen Punkt melden.
+- **Tonhöhen-Rückmeldung** (eigene Stimme über Mikro als Linie; Zielmelodie aus der getrennten Gesangsspur): als **Stufe 2 (v164)** vorsehen,
+  nur bauen, wenn es sauber und ohne Leistungsverlust geht; in v163 höchstens „Ton halten/treffen“ mit dem vorhandenen Mithören für einen
+  Vergleichston. Ehrlich melden, was nicht belastbar ist (Erkennung bei Gitarre im Raum, Kopfhörer nötig).
+- **Verknüpfungen:** Stück aus dem Songbook wählbar (v161), Zeit zählt als Thema des Stücks bzw. „Gesang“ in die Übezeit (keine Doppelzählung –
+  Regeln v154/v160), Pedal-Aktionen für „Zeile wiederholen“/„Zeile ›“ wenn einfach (v159-Muster).
+- Regeln wie immer: Looper-Leistung unberührt, schweres erst bei geöffneter Seite, alle vier Geräte-Profile, keine echten Liedtexte in Tests/Bildern
+  (erfundene Zeilen wie im Beispielbild), Mikrofon nur nach Antippen, Kopfhörer-Hinweis gegen Rückkopplung.
+- Test `test/v163mitsingen.py` (Fahrplan/Haken je Stück, drei Wege, ohne Datei nutzbar, Schleife/Tempo/Vorsingen-Pause mit Testaudio, Karaoke nur
+  nach Trennen, Aufnahme, Nachladen, Größe, Profile, keine Skriptfehler; v63singen/v81vox/v85singen/v124trennen weiter wie zuvor).
