@@ -1,0 +1,79 @@
+/* v165: Songtext schreiben (Lernen › Songtext schreiben) – erst beim ersten Öffnen geladen. Fahrplan-Gerüst nutzt die Klassen msl-… aus mitsingen.css. */
+.stx { display: flex; flex-direction: column; gap: 14px; }
+.stx-nav { display: flex; gap: 6px; flex-wrap: wrap; }
+.stx-nav .toggle-btn { flex: 1 1 120px; min-height: 44px; font-weight: 600; }
+.stx-pn { margin: 10px 0 0; }
+.stx-tools { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 0; }
+.stx-tool, .stx .toggle-btn { min-height: 44px; }
+.stx-sm { padding: 0 12px; font-size: .85rem; }
+.stx-x { display: flex; flex-direction: column; gap: 8px; }
+.stx-x > p { margin: 0; }
+.stx-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; }
+.stx-f { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.stx-g { flex: 1 1 200px; }
+.stx-end { flex: none; }
+.stx textarea, .stx input[type="text"], .stx input[type="search"], .stx select {
+  min-height: 44px; box-sizing: border-box; width: 100%; padding: 8px 10px; border-radius: 10px; font: inherit; color: inherit;
+  background: var(--surface-2, rgba(127,127,127,.12)); border: 1px solid var(--line, rgba(127,127,127,.3)); }
+.stx textarea { resize: vertical; line-height: 1.4; }
+.stx-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.stx-chip { min-height: 44px; padding: 0 12px; font-size: .9rem; }
+.stx-chip small { opacity: .65; margin-left: 2px; }
+.stx-chip.stx-un { opacity: .8; font-style: italic; }
+.stx-wc { display: inline-flex; }
+.stx-wc .stx-chip { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.stx-x1 { min-width: 44px; padding: 0; border-top-left-radius: 0; border-bottom-left-radius: 0; opacity: .75; }
+.stx-rh { display: flex; flex-direction: column; gap: 6px; }
+.stx-rh p { margin: 4px 0 0; }
+.stx-dice { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+.stx-dice:empty { display: none; }
+.stx-dice > div { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 10px; background: rgba(127,127,127,.1); }
+.stx-dice > .toggle-btn { align-self: center; }
+/* Vorlagen */
+.stx-tpls { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px; }
+.stx-tpl { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; padding: 10px 12px; min-height: 64px; }
+.stx-tpl small { opacity: .72; font-weight: 400; font-size: .78rem; line-height: 1.3; white-space: normal; }
+.stx-flow { margin: 4px 0 0; font-weight: 600; overflow-wrap: anywhere; }
+.stx-prev { margin: 0; padding-left: 1.2em; line-height: 1.5; }
+.stx-ch { opacity: .75; }
+/* Checkliste */
+.stx-ckh { margin: 0; }
+.stx-auto { margin: 0; }
+.stx-cks { display: flex; flex-direction: column; gap: 6px; }
+.stx-ck { display: flex; gap: 10px; align-items: center; width: 100%; min-height: 46px; padding: 6px 10px; border-radius: 10px; text-align: left; font: inherit; color: inherit; cursor: pointer;
+  background: var(--surface-2, rgba(127,127,127,.08)); border: 1px solid var(--line, rgba(127,127,127,.22)); }
+.stx-ck i { flex: none; width: 26px; height: 26px; border-radius: 7px; display: grid; place-items: center; font-style: normal; font-weight: 700; border: 2px solid rgba(127,127,127,.5); }
+.stx-ck.on i { background: #30d158; border-color: #30d158; color: #06210f; }
+.stx-allok { margin: 4px 0 0; color: #30d158; font-weight: 600; }
+/* Leitfaden */
+.stx-topics { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.stx-t { border-radius: 12px; border: 1px solid var(--line, rgba(127,127,127,.22)); background: var(--surface-2, rgba(127,127,127,.06)); overflow: hidden; }
+.stx-th { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 50px; padding: 8px 14px; text-align: left; font: inherit; font-weight: 600; color: inherit; background: none; border: 0; cursor: pointer; }
+.stx-th i { font-style: normal; font-size: 1.3rem; opacity: .7; }
+.stx-t.on { border-color: #30d158; }
+.stx-tb { padding: 0 14px 12px; line-height: 1.55; max-width: 72ch; }
+.stx-tb > p { margin: 0 0 8px; }
+.stx-ex { padding: 8px 12px; border-left: 3px solid #30d158; border-radius: 0 10px 10px 0; background: rgba(48,209,88,.08); margin: 0 0 10px; }
+.stx-ex p { margin: 4px 0; }
+.stx-el { opacity: .75; }
+/* Notizbuch */
+.stx-nbw { display: flex; flex-direction: column; gap: 14px; }
+@media (min-width: 1100px) { .stx-nbw:not([hidden]) { display: grid; grid-template-columns: minmax(0, 1fr) 340px; align-items: start; } .stx-impc { position: sticky; top: 8px; } }
+.stx-nbw > .card, .stx-lfc { margin: 0; min-width: 0; }
+.stx-nbc { display: flex; flex-direction: column; gap: 10px; }
+.stx-in { display: flex; flex-direction: column; gap: 8px; }
+.stx-seg { display: flex; flex-wrap: wrap; gap: 4px; }
+.stx-seg .toggle-btn { min-height: 44px; padding: 0 12px; }
+.stx-list { display: flex; flex-direction: column; gap: 8px; }
+.stx-ni { padding: 10px 12px; border-radius: 12px; background: var(--surface-2, rgba(127,127,127,.07)); border: 1px solid var(--line, rgba(127,127,127,.2)); border-left-width: 4px; }
+.stx-ni.k-z { border-left-color: #0a84ff; } .stx-ni.k-t { border-left-color: #ff9f0a; } .stx-ni.k-b { border-left-color: #bf5af2; } .stx-ni.k-i { border-left-color: #30d158; }
+.stx-nh { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.stx-kind { font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; opacity: .8; }
+.stx-tg { font-size: .8rem; opacity: .7; }
+.stx-nt { margin: 4px 0 8px; white-space: pre-wrap; line-height: 1.45; overflow-wrap: anywhere; }
+.stx-take { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line, rgba(127,127,127,.3)); display: flex; flex-direction: column; gap: 8px; }
+.stx-take p { margin: 0; }
+.stx-io { margin-top: 4px; }
+.stx .warn { color: #ff9f0a; }
+/* Sprungziel im Songwriting kurz hervorheben */
+.stx-flash { box-shadow: 0 0 0 3px #30d158, 0 0 14px rgba(48,209,88,.6) !important; transition: box-shadow .3s; }

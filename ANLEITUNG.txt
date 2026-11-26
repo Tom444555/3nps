@@ -1732,7 +1732,7 @@ Gut zu wissen
      Staat/statt), „= gleiches Wort“, grau = ohne Partner; dazu das Reimschema (ABAB, AABB …). Darunter ruhige Hinweise ohne Noten:
      Silben-Abweichung zwischen Zeilen und Reimpartnern, gleiches Wort am Zeilenende, Füllwörter (halt, eben, irgendwie, eigentlich …),
      sehr lange Zeilen, Wörter, die sich oft wiederholen. Tippst du oben im Text, rechnet die Prüfung mit. Eine Zeile antippen:
-     „Reimwörter zu „…““ oder „Diese Zeile besser formulieren“. Die Buchstaben links neben dem Text bleiben wie bisher (einfachere Regel).
+     „Reimwörter zu „…““ oder „Diese Zeile besser formulieren“. Seit v165 nutzen die Buchstaben links neben dem Text dieselbe Erkennung.
    - Grenzen: Reime werden nach der Schreibung erkannt, die Betonung wird geschätzt (meist erste Stammsilbe; Nachsilben wie -ung, -lich,
      -heit, -keit gelten als unbetont, „-ieren“, „-ei“, „Musik“ betont hinten). Fremdwörter, Namen und Dialekt können falsch eingeordnet
      werden – dein Ohr entscheidet. Nur Deutsch.
@@ -1768,3 +1768,24 @@ Gut zu wissen
    - Englische Oberfläche: Die Werkstatt arbeitet mit deutschen Texten (Prüfung, Reimwörter, Baukasten, Begründungen und Prompt sind
      deutsch). Claude versteht den deutschen Prompt – für englische Texte bei „Sprache“ „Englisch“ wählen.
    - Übezeit: Die Werkstatt zählt keine Zeit.
+
+148. Songtext schreiben (v165)
+   - Neu unter „Lernen › Songtext schreiben“ (Chip nach „Mitsingen lernen“, Kachel in der Übersicht). Drei Bereiche: „Workflow“,
+     „Leitfaden“, „Ideen-Notizbuch“. Die Seite lädt erst beim ersten Öffnen und zählt keine Übezeit.
+   - Workflow: links der Fahrplan in 11 Schritten (wie bei „Mitsingen lernen“), oben der Song aus dem Songwriting („– ohne Song –“ oder
+     „＋ Neuer Song …“). Haken je Song. Rechts der Schritt mit „So geht’s“, „Warum“, „Tipps zu diesem Schritt“ und Knöpfen zum Werkzeug:
+     1 Idee & Kernsatz (Kernsatz, „Als Thema in den Song“, „🎲 Schreibimpuls“) · 2 Titel & Hook · 3 Stoff sammeln (Wortfeld; Wort antippen =
+     Reimwörter aus der Text-Werkstatt) · 4 Aufbau festlegen (Vorlagen) · 5 Refrain zuerst · 6 Strophen · 7 Bridge/Wendung · 8 Stimmung &
+     Akkorde (→ „Akkorde nach Stimmung“) · 9 Auf den Takt & probesingen (→ Songwriting, Looper) · 10 Überarbeiten (→ „Reime prüfen“,
+     „Prompt für Claude“) · 11 Fertig (Checkliste „Ist der Song fertig?“, „Leadsheet (PDF)“, „Ins Songbook übernehmen“, „Mitsingen lernen“).
+   - Aufbau-Vorlagen: „Strophe – Refrain“, „Mit Pre-Chorus“, „Mit Bridge“, „12-Takt-Blues (AAB)“. Sie legen die Abschnitte im Songwriting
+     an – mit Zeilenzahl und Reimschema als Hinweis im leeren Textfeld (z. B. „(4 Zeilen · Reim ABAB)“) und Platzhalter-Akkorden in der
+     Tonart des Songs. Leerer Song: direkt; Song mit Inhalt: als neue Version (die bisherige bleibt unter „Version“); ohne Song: neuer Song.
+   - Ideen-Notizbuch: Zeile, Titel, Bild oder Idee notieren, Schlagworte (auch #wort im Text), Suche, Filter. „In Song …“: Song und
+     Abschnitt wählen, „Anhängen (neue Version)“ – vorhandener Text bleibt, die Notiz kommt darunter. Titel: „Neuer Song mit diesem Titel“.
+     „Löschen“ fragt nach. „Notizbuch exportieren“/„importieren“ (JSON, fügt ohne Doppeltes zusammen); „Alles sichern“ nimmt es mit.
+     Daneben „Schreibimpulse“: Thema × Perspektive × Bild würfeln, „Als Idee notieren“.
+   - Leitfaden: 11 Themen zum Aufklappen (Aufbau, Kernaussage, Titel und Hook, zeigen statt behaupten, Perspektive und Zeitform,
+     Reimarten, Silben und Betonung, Kontrast, Wiederholung, Kürzen, Stimmung und Akkorde) – je mit erfundenem Beispiel.
+   - Reim-Buchstaben links am Text im Songwriting: nutzen jetzt dieselbe Erkennung wie „Reime prüfen“ der Text-Werkstatt (rein, „~“ =
+     unrein, gleiches Wort); englische Texte behalten die einfache Regel. Die Reimwortliste wird dafür nicht geladen.
