@@ -4703,6 +4703,11 @@ const Pedal = (() => {
     }
   }
 
+  // v161: Songbook – Idee wie mit „Laden“ der Liste holen (false = gibt es nicht mehr); dirty = Loop da, aber nicht als Idee gesichert
+  window.LooperIdeas = {
+    load: async id => { let i = null; try { i = await AppDB.get('ideas', id); } catch (x) {} if (!i || i.kind === 'lied') return false; const r = { name: i.name, bpm: i.bpm, drums: !!i.drumState }; i = null; await act({ closest: () => ({ dataset: { id } }), dataset: { act: 'load' } }); return r; },
+    dirty: () => Looper.hasLoop() && !(loaded && loaded.at === Looper.changes())
+  };
   document.addEventListener('ideas-refresh', () => render());   // v124: von außen gespeicherte Ideen (Gesang trennen)
   render();
   Looper.update();

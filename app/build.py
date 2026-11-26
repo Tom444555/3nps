@@ -163,6 +163,7 @@ pv = '<title>Looper-Vorschau</title>\n' + FONTS_PV + '\n' + EARLY.replace('docum
 pv = pv.replace("let start = 'griffbrett';", "let start = 'looper';")
 pv += '<style>' + rd(A + 'uebezeit-ansicht.css') + '</style>\n<script>\n' + rd(A + 'uebezeit-ansicht.js') + '\n</script>\n'   # Vorschau bleibt eine Datei
 pv += '<style>' + rd(A + 'tonleiter.css') + '</style>\n<script>\n' + rd(A + 'tonleiter.js') + '\n</script>\n'   # v158: Tonleiter-Trainer
+pv += '<style>' + rd(A + 'songbook.css') + '</style>\n<script>\n' + rd(A + 'songbook.js') + '\n</script>\n'   # v161: Songbook
 old_mic = "setStatus('Kein Zugriff aufs Mikrofon. Erlaube ihn in den iPad-Einstellungen unter Datenschutz → Mikrofon bzw. für die Website in Safari (aA → Website-Einstellungen → Mikrofon).');"
 assert old_mic in pv
 pv = pv.replace(old_mic, "setStatus('In der Vorschau ist das Mikrofon gesperrt. Nimm den Demo-Loop oben, in der App funktioniert die Aufnahme.');")
@@ -207,6 +208,7 @@ print('app', len(app), 'preview', len(pv))
 # v158: Anleitungs-Daten als eigene Datei (erst beim ersten Öffnen/Suchen geladen, sw.js legt sie vorab ab) – schafft Platz in index.html
 open(A + 'www/hilfe-daten.js', 'w', encoding='utf8').write(HILFE_FN + '\n')
 # v155: Übezeit-Übersicht als eigene Dateien (erst beim ersten Öffnen der Seite geladen, sw.js legt sie vorab ab)
+shutil.copy(A + 'songbook.js', A + 'www/songbook.js'); shutil.copy(A + 'songbook.css', A + 'www/songbook.css')   # v161: Songbook (erst beim Öffnen geladen)
 shutil.copy(A + 'tonleiter.js', A + 'www/tonleiter.js'); shutil.copy(A + 'tonleiter.css', A + 'www/tonleiter.css')   # v158: Tonleiter-Trainer (erst beim Öffnen geladen)
 shutil.copy(A + 'uebezeit-ansicht.js', A + 'www/uebezeit-ansicht.js'); shutil.copy(A + 'uebezeit-ansicht.css', A + 'www/uebezeit-ansicht.css')
 # Texterkennung (v64): Worker neben die Modelle legen (Modelle selbst kommen aus dem Branch „modelle“)

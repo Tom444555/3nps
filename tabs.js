@@ -5,10 +5,10 @@
   const $ = id => document.getElementById(id);
   // frühere Reiter (Begleitung, Song, Log) liegen jetzt im Griffbrett
   const OLD = { begleitung: 'griffbrett', song: 'griffbrett', log: 'griffbrett', anleitung: 'hilfe', powerchords: 'power', backing: 'jam', improvisation: 'solo', songwriting: 'lied', mitsingen: 'singen', training: 'ueben', technik: 'griffbrett', 'hoer-training': 'hoer', spickzettel: 'spick', 'übezeit': 'uebezeit', 'tonleiter-trainer': 'tonleiter' };
-  const AREA = { looper: 'looper', lernen: 'lernen', power: 'lernen', caged: 'lernen', quinten: 'lernen', griffbrett: 'lernen', ueben: 'lernen', hoer: 'lernen', spick: 'lernen', uebezeit: 'lernen', tonleiter: 'lernen', jam: 'jammen', solo: 'jammen', lied: 'gesang', singen: 'gesang', rig: 'rig' };
+  const AREA = { looper: 'looper', lernen: 'lernen', power: 'lernen', caged: 'lernen', quinten: 'lernen', griffbrett: 'lernen', ueben: 'lernen', hoer: 'lernen', spick: 'lernen', uebezeit: 'lernen', tonleiter: 'lernen', songbook: 'lernen', jam: 'jammen', solo: 'jammen', lied: 'gesang', singen: 'gesang', rig: 'rig' };
   const FIRST = { looper: 'looper', lernen: 'lernen', jammen: 'jam', gesang: 'lied', rig: 'rig' };
   // Anleitung passend zum Bereich/Unterpunkt
-  const HELP = { looper: 'aufnehmen', lernen: 'bereiche', power: 'powerchord-kurs', caged: 'caged', quinten: 'quinten', griffbrett: 'technik', ueben: 'training', hoer: 'hoer-training', spick: 'spickzettel', uebezeit: 'uebezeit', tonleiter: 'tonleiter-trainer', jam: 'backing', solo: 'improvisation', lied: 'songwriting', singen: 'mitsingen', rig: 'rig' };
+  const HELP = { looper: 'aufnehmen', lernen: 'bereiche', power: 'powerchord-kurs', caged: 'caged', quinten: 'quinten', griffbrett: 'technik', ueben: 'training', hoer: 'hoer-training', spick: 'spickzettel', uebezeit: 'uebezeit', tonleiter: 'tonleiter-trainer', songbook: 'songbook', jam: 'backing', solo: 'improvisation', lied: 'songwriting', singen: 'mitsingen', rig: 'rig' };
   const areaBtns = document.querySelectorAll('.tabs [data-area]'), chips = document.querySelectorAll('#subNav [data-tab]'), sub = $('subNav'), help = $('tab-hilfe');
   const PANELS = ['looper', 'hilfe', 'rig'].concat([...chips].map(c => c.dataset.tab));
   let last = {}; try { last = JSON.parse(localStorage.getItem('3nps-tab-last') || '{}') || {}; } catch (e) {}
@@ -52,7 +52,7 @@
   try { start = localStorage.getItem('3nps-tab') || start; } catch (e) {}
   if (norm(hash)) start = hash;
   show(start);
-  window.AppNav = { show, openHelp, current: () => cur, area: n => AREA[norm(n) || n] || null, last: () => Object.assign({}, last), AREA, HELP };
+  window.AppNav = { show, openHelp, loadRig, current: () => cur, area: n => AREA[norm(n) || n] || null, last: () => Object.assign({}, last), AREA, HELP };
 
   // Status des Metronoms auch in der Tempo-Leiste zeigen
   const src = document.getElementById('statusLine');

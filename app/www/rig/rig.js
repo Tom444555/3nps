@@ -631,6 +631,9 @@ load(saved.p && allP().some(x => x.id === saved.p) ? saved.p : P[0].id);
 window.Rig = {
   show, hide, setView, view: () => viewSel,
   state: () => ({ view: viewSel, g: gSel, t: tSel, p: pSel, gw, st: Object.assign({}, st2), view3d, showW, mine: mine.length, prompt: prompt(), chain: cur.chain.map(c => c.name), lv: levels(), model: model() }),
+  // v161: Songbook – Liste der Sounds und Sound vorwählen (nur Anzeige/Ansicht, kein Audio)
+  sounds: () => allP().map(p => ({ id: p.id, name: p.name })),
+  select: (id, t) => { if (!allP().some(x => x.id === id)) return false; if (/^(bias|reactor|spark)$/.test(t || '')) tSel = t; if (viewSel !== 'sounds') setView('sounds'); load(id); return true; },
   three: () => v3, threeInfo: () => (v3 ? v3.info() : null), _free3d: free3d,
 };
 if (window.AppNav && AppNav.current() === 'rig') show();

@@ -1,0 +1,79 @@
+/* v161: Songbook (Lernen › Songbook) – wird erst beim ersten Öffnen geladen */
+.sgb-wrap { display: flex; flex-direction: column; gap: 14px; }
+.sgb-wrap > .card { min-width: 0; margin: 0; }
+/* iPad quer: links Liste, rechts das Stück */
+@media (min-width: 1100px) {
+  .sgb-wrap { display: grid; grid-template-columns: 340px minmax(0, 1fr); align-items: start; }
+  .sgb-list { position: sticky; top: 8px; }
+}
+/* iPad hochkant: Liste oben (begrenzte Höhe), Stück darunter */
+@media (min-width: 700px) and (max-width: 1099px) { .sgb-rows { max-height: 290px; overflow-y: auto; } }
+.sgb-list .card-head, .sgb-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.sgb-new { margin-left: auto; min-height: 44px; font-weight: 700; }
+.sgb-q { width: 100%; box-sizing: border-box; min-height: 44px; margin: 6px 0 10px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line, rgba(127,127,127,.3)); background: var(--surface-2, rgba(127,127,127,.12)); color: inherit; font: inherit; }
+.sgb-rows { display: flex; flex-direction: column; gap: 6px; }
+.sgb-row { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; width: 100%; min-height: 52px; text-align: left; padding: 9px 12px; border-radius: 10px; cursor: pointer;
+  background: var(--surface-2, rgba(127,127,127,.1)); border: 1px solid var(--line, rgba(127,127,127,.25)); color: inherit; font: inherit; }
+.sgb-row b { font-size: 1.02rem; }
+.sgb-row small { opacity: .72; font-size: .82rem; }
+.sgb-row.on { border-color: #30d158; box-shadow: 0 0 10px rgba(48,209,88,.35); }
+.sgb-io { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.sgb-io .toggle-btn { min-height: 44px; flex: 1 1 140px; font-size: .85rem; }
+/* Stück */
+.sgb-tt { display: flex; flex-direction: column; min-width: 0; flex: 1 1 200px; }
+.sgb-tt h2 { margin: 0; overflow-wrap: anywhere; }
+.sgb-load { margin-left: auto; min-height: 52px; min-width: 140px; padding: 0 22px; font-weight: 800; font-size: 1.1rem; background: #30d158; border-color: #b4f5c6; color: #06210f; }
+.sgb-back { display: none; min-height: 44px; margin-bottom: 8px; }
+.sgb-msg { min-height: 1.4em; margin: -4px 0 -4px; font-size: .9rem; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.sgb-msg.warn { color: #ff9f0a; }
+.sgb-sm { min-height: 44px; padding: 0 12px; font-size: .85rem; }
+.sgb-kgrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 0; }
+.sgb-k { padding: 10px; border-radius: 10px; background: var(--surface-2, rgba(127,127,127,.1)); border: 1px solid var(--line, rgba(127,127,127,.25)); text-align: center; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.sgb-k b { font-size: 1.15rem; overflow-wrap: anywhere; }
+.sgb-k span { font-size: .75rem; opacity: .72; }
+.sgb-kl { text-align: left; align-items: flex-start; }
+.sgb-kl b { font-size: 1rem; }
+.sgb-kl .toggle-btn { margin-top: 6px; }
+.sgb-k2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0; }
+.sgb-xh { display: flex; align-items: center; gap: 10px; margin: 0; }
+.sgb-xh h3 { margin: 0; }
+.sgb-fs { margin-left: auto; display: flex; gap: 4px; }
+.sgb-fs .toggle-btn { min-width: 44px; min-height: 44px; padding: 0 8px; }
+.sgb-fs .toggle-btn:nth-child(1) { font-size: .8rem; } .sgb-fs .toggle-btn:nth-child(2) { font-size: 1rem; } .sgb-fs .toggle-btn:nth-child(3) { font-size: 1.25rem; }
+.sgb-x { margin: 0; padding: 12px; border-radius: 10px; background: rgba(0,0,0,.28); color: inherit; white-space: pre-wrap; overflow-wrap: anywhere; font-family: ui-monospace, Menlo, Consolas, monospace; line-height: 1.6; }
+.sgb-x.sgb-fs0 { font-size: 15px; } .sgb-x.sgb-fs1 { font-size: 19px; } .sgb-x.sgb-fs2 { font-size: 25px; }
+.sgb-ch { color: #ffd60a; font-weight: 700; }
+html[data-theme="light"] .sgb-x, html[data-theme="precise"] .sgb-x { background: rgba(255,255,255,.55); }
+html[data-theme="light"] .sgb-ch, html[data-theme="precise"] .sgb-ch { color: #a04000; }
+.sgb-note { margin: 10px 0 0; font-style: italic; opacity: .85; white-space: pre-wrap; }
+.sgb-acts { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; align-items: center; }
+.sgb-acts > .toggle-btn { min-height: 44px; }
+.sgb-tr { display: inline-flex; align-items: center; gap: 6px; padding: 0 4px; border-radius: 12px; border: 1px solid var(--line, rgba(127,127,127,.25)); }
+.sgb-tr .toggle-btn { min-width: 44px; min-height: 44px; font-size: 1.2rem; font-weight: 700; }
+.sgb-tr span { font-size: .9rem; }
+.sgb-empty { text-align: center; padding: 30px 10px; }
+.sgb-big { font-size: 2.6rem; margin: 0; }
+/* Dialoge */
+.sgb-ask { position: fixed; inset: 0; z-index: 90; background: rgba(0,0,0,.55); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.sgb-ask[hidden] { display: none; }
+.sgb-askbox { max-width: 620px; width: 100%; max-height: calc(100vh - 32px); overflow-y: auto; box-sizing: border-box; }
+.sgb-form { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 10px; }
+.sgb-form .sgb-wide { grid-column: 1 / -1; }
+.sgb-form input, .sgb-form select, .sgb-form textarea { min-height: 44px; box-sizing: border-box; width: 100%; }
+.sgb-form textarea { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 15px; line-height: 1.5; padding: 8px; border-radius: 10px; }
+.sgb-fbtn .toggle-btn { min-height: 44px; width: 100%; }
+.sgb-ferr { color: #ff453a; min-height: 1.2em; margin: 6px 0; }
+.sgb-askb { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.sgb-askb .toggle-btn { min-height: 48px; flex: 1 1 140px; font-weight: 600; }
+.sgb-del.danger, .sgb-del { color: #ff453a; }
+/* Telefon: Liste → Stück mit „‹ Zurück“ */
+@media (max-width: 699px) {
+  .sgb-wrap.sgb-phsong .sgb-list { display: none; }
+  .sgb-wrap:not(.sgb-phsong) .sgb-song { display: none; }
+  .sgb-back { display: inline-flex; }
+  .sgb-kgrid { grid-template-columns: 1fr 1fr; }
+  .sgb-k2, .sgb-form { grid-template-columns: 1fr; }
+  .sgb-load { width: 100%; margin-left: 0; }
+}
+/* Altes iPad / Minimal: kein Schein, keine Übergänge */
+.dev-old #sgbRoot *, .dev-old .sgb-ask * { box-shadow: none !important; transition: none !important; animation: none !important; }
