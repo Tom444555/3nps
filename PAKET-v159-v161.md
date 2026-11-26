@@ -171,6 +171,23 @@ Regeln wie immer (Leistung, Profile, kleinste Diffs, keine echten Liedtexte in T
 (Reimschema-Fälle deutsch inkl. unreiner Reime und Umlaute, Silbenzählung, Reimwort-Suche, Stimmung → Akkordfolgen in mehreren Tonarten, Prompt
 enthält alle Felder, Einfügen mit Vorschau/Version, Nachladen, Größe, keine Skriptfehler; bestehende Text-/Songwriting-Tests weiter grün).
 **Freigabe v164:** Tom am 26.11.2026 10:52: „Ok passt“ – v164 wie oben bauen (Ort: Songwriting › „Text“, Weg über Claude ist in Ordnung).
+**Recherche v164 (26.11.2026 11 Uhr, Wortliste und Akkorde):**
+- **Wortliste mit Aussprache – Wahl: „German MFA dictionary v3.0.0“** (Montreal Forced Aligner, McAuliffe & Sonderegger 2024), **CC BY 4.0**,
+  rund 143.000 Wörter mit Lautschrift (MFA-Lautsatz), Datei: raw.githubusercontent.com/MontrealCorpusTools/mfa-models/main/dictionary/german/mfa/
+  „German MFA dictionary v3_0_0.dict“ (Doku: mfa-models.readthedocs.io). Vorteil: Reime nach KLANG statt nach Schreibung (Reimteil = ab letztem
+  betonten Vokal bis Ende; rein = gleich, unrein = Vokal gleich/ähnlich, Endkonsonant ähnlich, z. B. ü/i, ö/e, ei/eu). Vorgehen beim Bau:
+  einmal im Chat aufbereiten (Skript ins Repo `test/` bzw. `app/werkzeug/`), nach Reimteil gruppieren, auf die häufigsten Wörter kürzen,
+  kompakt als JSON/Text (Ziel ≤ 2–3 MB, gzip-freundlich), Lizenzdatei + Nennung in der Anleitung. Für Wörter, die fehlen: Regel-Rückfall
+  nach Schreibung (Endung ab letztem Vokal, wie es einfache Reimhelfer machen).
+- **Nicht nehmen:** Wiktionary (Reimseiten „Reim:Deutsch:-…“ und Dumps sind CC BY-SA → Weitergabepflicht, nicht in unserer Lizenzliste);
+  DeReWo (CC BY-NC, nichtkommerziell → stört App Store); DWDS-Listen (CC BY-ND); npm „reimemonster“ (keine Lizenz angegeben, Wortlisten
+  unklarer Herkunft). Zum Kürzen nach Häufigkeit erlaubt: Leipzig Corpora Collection (CC BY) – Lizenz beim Abruf nochmal prüfen.
+- **Englisch:** CMU Pronouncing Dictionary (BSD-artig, frei) wäre günstig – nur, wenn Platz bleibt; sonst Tom melden.
+- **Akkordvorgabe:** keine fremde Tabelle übernehmen, eigene Datentabelle aus Harmonielehre (Fakten, frei): traurig = Molltonika/vi-Start
+  (i–VI–III–VII, vi–IV–I–V, i–iv–V), Spannung = Dominante/V oder v→V (harmonisch Moll), Spannungsabfall/Lösen = V→I bzw. iv→i, Trugschluss
+  V→vi als „gebrochene“ Lösung, hoffnungsvoll = Wechsel Moll-Strophe → Dur-Refrain (VI/III/VII), düster = i–bVI–bVII bzw. Halbtonschritte im
+  Bass abwärts, treibend = kurze Zweierwechsel (I–bVII, i–bVII), unruhig = I–vi–ii–V ohne Ankommen. Grundsatz in die Doku: Akkorde geben nur
+  die Richtung, Tempo, Melodie und Text entscheiden mit.
 
 ### v165 – Seite „Songtext schreiben“: Leitfaden + Schritt-für-Schritt-Workflow + Ideen-Notizbuch (Tom, 26.11.2026 10:52)
 Toms Worte: „Überlege, wie und was man zum Thema Text/Liederstellung noch brauchen könnte, vielleicht noch ein grundsätzlicher Leitfaden dafür und
