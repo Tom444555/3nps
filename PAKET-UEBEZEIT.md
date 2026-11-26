@@ -79,3 +79,34 @@ Optik ios und nordic, nach /tmp/shots/v154_*.png – selbst ansehen und nachbess
 - CSV-Export = vollständiges Protokoll im Numbers-Format der Vorlage: Kopfzeile `Datum und Uhrzeit;Start/Ende;Übungszeit;Übungen`, je Einheit eine „Start“-Zeile
   (`!!`) und eine „Ende“-Zeile mit Dauer (`1h 23m`), in „Übungen“ steht „Thema – Notiz“; `;`-getrennt, UTF-8 mit BOM, über Teilen-Menü/Download.
   Der Export muss sich mit dem eigenen Import wieder verlustfrei einlesen lassen (Test: Export → alles löschen → Import → gleiche Summen, Themen wieder erkannt).
+
+## v157 – Knopf „Üben“ mittig und leuchtend, Einheit nachträglich aufteilen (Tom, 26.11.2026 früh)
+Tom wörtlich: „Der Üben-Button müsste noch zentral gesetzt werden und wenn er an ist, sollte er leuchten. [Ich will] nur an und aus schalten können,
+[es] muss auch die Möglichkeit geben, in diese einfache An-Aus-Session danach die Zeit noch zu unterteilen.“
+Gelesen als (so auch an Tom gemeldet):
+1. **Knopf „Üben“ im Looper mittig und auffälliger.** Heute sitzt er klein oben rechts in der Looper-Karte neben dem Status („Kein Loop“). Neu: waagrecht
+   mittig in der Kopfzeile der Looper-Karte (Titel links, Knopf Mitte, Status rechts) oder – wenn das bei 390 px nicht sauber geht – als eigene mittige Stelle
+   direkt darunter, OHNE dass die Karte höher wird oder etwas beim Ein-/Ausschalten springt (feste Breite für „Üben“ und „● 0:47“/„● 12:05“; v143: Aufnahme
+   ohne Scrollen muss weiter gelten). Mindestens 44 px hoch, gern etwas breiter als bisher.
+2. **Leuchten, wenn an.** Solange die Zeit läuft: deutlich leuchtender Knopf in der Akzent-/Grünfarbe der Optik (weicher Schein per box-shadow, ruhiges
+   langsames Pulsieren erlaubt). Geräte-Profile beachten: „Neues iPad“/Automatisch mit Schein und Pulsieren, „Altes iPad“ ohne Animation und ohne großen
+   Schatten (kräftige Füllfarbe + heller Rand reichen), „Minimal“ nur Farbe. `prefers-reduced-motion` respektieren. Keine Dauer-Neuberechnung von Layout
+   (nur opacity/box-shadow/transform animieren), Leistung des Loopers darf nicht leiden (v141zeichnen/v34perf bleiben grün). Der große Schalter auf der Seite
+   „Übezeit“ leuchtet im An-Zustand genauso.
+3. **Einfach nur An/Aus, Themen später.** Der Knopf im Looper bleibt reines An/Aus ohne Themenwahl (ist schon so – prüfen, dass kein Thema erzwungen wird).
+   Neu: eine fertige Einheit lässt sich nachträglich **aufteilen**: in „Letzte Einheiten“ (Einheit antippen) der Knopf „Zeit aufteilen“. Dialog: Gesamtdauer
+   oben; Zeilen „Thema + Minuten (+ Notiz optional)“, „＋ Abschnitt“, Anzeige „noch zu verteilen: X min“, Knopf „Rest gleichmäßig verteilen“ bzw. Rest bleibt
+   „ohne Thema“. Summe darf die Gesamtdauer nie überschreiten; Beginn und Ende der ganzen Einheit bleiben unverändert, die Abschnitte liegen nahtlos
+   hintereinander (wie beim Themenwechsel während des Übens). Die Abschnitte merken sich, dass sie zusammengehören (gemeinsames Kennzeichen, nur ergänzen),
+   damit man die Aufteilung später ändern oder wieder zu einer Einheit zusammenführen kann („Aufteilung aufheben“). Direkt nach dem Ausschalten erscheint
+   bei der gerade beendeten Einheit ein unaufdringlicher Hinweis-Knopf „Zeit aufteilen“ (kein erzwungener Dialog). Auch importierte und nachgetragene
+   Einheiten sind aufteilbar. Summen, Verlauf, „Woran geübt“ und CSV-Export rechnen mit den Abschnitten; Gesamtzeit bleibt exakt gleich (Test).
+   CSV: Abschnitte als normale Start/Ende-Zeilen; Export → leerer Speicher → Import muss dieselben Summen je Thema ergeben.
+Technik: Der Dialog gehört in den nachgeladenen Teil (`uebezeit-ansicht.js`/Seitenstil), nicht in `index.html` (liegt nur ~5,7 KB unter der 2,1-MB-Grenze aus
+v145start; Knopf-Stil für den Looper klein halten). Kein neuer Speicher-Schlüssel nötig (`3nps-uebezeit` erweitern). EN-Texte, Anleitung-Thema ergänzen.
+Tests: `test/v157aufteilen.py` (Lage/Größe des Knopfs in 390/820/1366 × nordic/precise-dark/ios × Profile; Karte nicht höher als in v156, kein Sprung An/Aus;
+Leucht-Stil je Profil; Aufteilen inkl. Rest, Überschreiten abgelehnt, Aufheben, erneutes Ändern, Summen gleich, Export/Import; keine Skriptfehler), dazu
+v154uebezeit, v155uebersicht, v143bedienung, v144design, v140optik, v142geraet, v141zeichnen, v34perf, v116looperA, v117looperB, v152verlauf, v137lernen,
+v136reiter, v148ohnestudio, v156aufraeumen, v59lang, v60lang, v113hilfe, v31export, v149start und v145start (OLD = main-Commit von v156). Audio wird nicht
+berührt → v119leistung/v100mem entfallen. Bilder nach /tmp/shots/v157_*.png: Looper-Kopf vorher/nachher (aus/an) in 390 und 1366, Optik ios und nordic;
+Dialog „Zeit aufteilen“ in 390 und 1366 – mit erfundenen Daten.
