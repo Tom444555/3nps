@@ -6,6 +6,7 @@
    Format v1 (Teil B liest nur):
      { v: 1, run: null | { s: Start (ms) }, th: gewähltes Thema ('' = ohne), nt: Notiz,
        u: [[ende_s, dauer_s, herkunft (0 = selbst gezählt, 1 = Import, 2 = nachgetragen), thema, notiz], …] }
+   v157: optional u[5] = Kennzeichen einer Aufteilung (Abschnitte einer Einheit, nahtlos; aufteilen/aufheben in uebezeit-ansicht.js).
    v155: Export kennzeichnet Herkunft 0/2 in „Übungen“ mit „[App]“ bzw. „[nachgetragen]“, der Import stellt sie wieder her.   – nach Ende sortiert, Minutengenau
    Themen: „3nps-uebezeit-themen“ { c: [[id, name], …] eigene, r: { id: neuer Name }, h: [ausgeblendete ids] }.
    Beim Start: nur Kopfknopf (ein getItem); die Seite wird erst beim ersten Öffnen gebaut. Keine Timer außer der Minutenanzeige bei laufender Zeit. */
@@ -57,7 +58,7 @@ window.Uebezeit = (() => {
   const durTxt = sec => { const h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60), s = Math.round(sec % 60); const o = []; if (h) o.push(h + 'h'); if (m) o.push(m + 'm'); if (s) o.push(s + 's'); return o.join(' ') || '0ms'; };
 
   /* ---------- Schalter ---------- */
-  let tick = null;
+  let tick = null, lastE = 0;
   function on() {
     const d = load(); if (d.run) return true;
     d.run = { s: Date.now() };
@@ -71,7 +72,7 @@ window.Uebezeit = (() => {
     if (now - s > H8 && !opt.ok && !opt.drop) { ask8(s, now); return 'ask'; }
     let e = opt.dur != null ? s + opt.dur * 1000 : now;
     const u = opt.drop ? null : unitFrom(s, e, d);
-    if (u) d.u.push(u);
+    if (u) { d.u.push(u); lastE = u[0]; }
     d.run = null; d.nt = '';
     if (!store(d)) return null;
     say(u ? TT('Gespeichert:') + ' ' + fmtHM(u[1]) + (u[3] ? ' · ' + tname(u[3]) : '') : opt.drop ? TT('Verworfen.') : TT('Unter 1 Minute – nicht gespeichert.'));
@@ -308,6 +309,7 @@ window.Uebezeit = (() => {
     $('uzList').addEventListener('click', e => {
       const row = e.target.closest('[data-i]'), b = e.target.closest('button');
       if (b && b.dataset.act) { listAct(b.dataset.act); return; }
+      if (b && b.dataset.split) { split(+b.dataset.split); return; }
       if (row && !e.target.closest('.uz-ed')) { const i = +row.dataset.i; editIdx = editIdx === i ? null : i; paintList(); }
     });
     $('uzImp').addEventListener('click', () => $('uzFile').click());
@@ -361,6 +363,8 @@ window.Uebezeit = (() => {
     sc.onerror = () => { vizLoading = false; };
     l.onload = l.onerror = () => document.head.appendChild(sc);   // erst Stil, dann Code
   }
+  // v157: „Zeit aufteilen“ / „Aufteilung aufheben“ – Dialog und Rechnung in uebezeit-ansicht.js (nachgeladen)
+  const split = (i, un, n) => { if (window.UebezeitAnsicht) return un ? UebezeitAnsicht.unsplit(i) : UebezeitAnsicht.splitForm(i); loadViz(); if ((n || 0) < 30) setTimeout(() => split(i, un, (n || 0) + 1), 200); };
   const paintViz = () => { if (!built) return; if (window.UebezeitAnsicht) UebezeitAnsicht.paint(load()); else loadViz(); };
   function paintSums() {
     if (window.UebezeitAnsicht) return;   // Kacheln mit ▲/▼ zeichnet uebezeit-ansicht.js (paintViz)   // v155: Kacheln mit ▲/▼ zeichnet uebezeit-ansicht.js (paintViz)
@@ -375,9 +379,9 @@ window.Uebezeit = (() => {
     const from = N - 1 - page * PER, rows = [];
     for (let i = from; i > from - PER && i >= 0; i--) {
       const u = d.u[i], e = u[0] * 1000, s = e - u[1] * 1000;
-      rows.push('<div class="uz-row' + (editIdx === i ? ' open' : '') + '" data-i="' + i + '" role="button" tabindex="0"><div class="uz-r1"><span class="uz-rd">' + esc(dday(e)) + '</span><b class="uz-rdur">' + esc(fmtHM(u[1])) + '</b></div>'
+      rows.push('<div class="uz-row' + (editIdx === i ? ' open' : '') + '" data-i="' + i + '" role="button" tabindex="0"><div class="uz-r1"><span class="uz-rd">' + esc(dday(e)) + '</span><b class="uz-rdur">' + esc(fmtHM(u[1])) + '</b>' + (u[0] === lastE && !u[5] && editIdx !== i ? '<button type="button" class="toggle-btn uz-splh" data-split="' + i + '">' + esc(TT('Zeit aufteilen')) + '</button>' : '') + '</div>'
         + '<div class="uz-r2 caption"><span>' + hhmm(s) + '–' + hhmm(e) + '</span>' + (u[3] ? '<span class="uz-tag">' + esc(tname(u[3], t)) + '</span>' : '') + (u[2] === 1 ? '<span class="uz-imp">' + esc(TT('Import')) + '</span>' : u[2] === 2 ? '<span class="uz-imp">' + esc(TT('nachgetragen')) + '</span>' : '')
-        + (u[4] ? '<span class="uz-rn">' + esc(u[4]) + '</span>' : '') + '</div>'
+        + (u[5] ? '<span class="uz-imp">' + esc(TT('aufgeteilt')) + '</span>' : '') + (u[4] ? '<span class="uz-rn">' + esc(u[4]) + '</span>' : '') + '</div>'
         + (editIdx === i ? editor(u, t) : '') + '</div>');
     }
     el.innerHTML = rows.length ? rows.join('') : '<p class="pattern-desc uz-empty">' + esc(TT('Noch keine Einheiten. Tippe oben „Üben“, wenn du anfängst – oder importiere dein Protokoll aus Numbers (unten).')) + '</p>';
@@ -391,7 +395,7 @@ window.Uebezeit = (() => {
       + '<label class="field"><span>' + esc(TT('Thema')) + '</span><select id="uzEdTh">' + ids.map(id => '<option value="' + esc(id) + '"' + (id === u[3] ? ' selected' : '') + '>' + esc(tname(id, t)) + '</option>').join('') + '</select></label>'
       + '<label class="field"><span>' + esc(TT('Dauer (Minuten)')) + '</span><input type="number" id="uzEdDur" min="0" max="1440" step="1" value="' + m + '" inputmode="numeric"></label>'
       + '<label class="field uz-edn"><span>' + esc(TT('Notiz')) + '</span><input type="text" id="uzEdNote" maxlength="300" value="' + esc(u[4]) + '"></label>'
-      + '<div class="uz-edb"><button type="button" class="toggle-btn active" data-act="save">' + esc(TT('Speichern')) + '</button><button type="button" class="toggle-btn" data-act="cancel">' + esc(TT('Abbrechen')) + '</button><button type="button" class="toggle-btn uz-del" data-act="del">' + esc(TT('Löschen')) + '</button></div></div>';
+      + '<div class="uz-edb"><button type="button" class="toggle-btn active" data-act="save">' + esc(TT('Speichern')) + '</button><button type="button" class="toggle-btn" data-act="cancel">' + esc(TT('Abbrechen')) + '</button><button type="button" class="toggle-btn uz-del" data-act="del">' + esc(TT('Löschen')) + '</button><button type="button" class="toggle-btn" data-act="split">' + esc(TT(u[5] ? 'Aufteilung ändern' : 'Zeit aufteilen')) + '</button>' + (u[5] ? '<button type="button" class="toggle-btn" data-act="unsplit">' + esc(TT('Aufteilung aufheben')) + '</button>' : '') + '</div></div>';
   }
   // Ändern: Start bleibt, Ende = Start + neue Dauer
   function editUnit(i, ch) {
@@ -407,6 +411,8 @@ window.Uebezeit = (() => {
   function listAct(a) {
     const i = editIdx; if (i == null) return;
     if (a === 'cancel') { editIdx = null; paintList(); return; }
+    if (a === 'split') { editIdx = null; paintList(); split(i); return; }
+    if (a === 'unsplit') { editIdx = null; split(i, 1); return; }
     if (a === 'del') { if (!confirm(TT('Diese Einheit löschen?'))) return; editIdx = null; editUnit(i, { del: true }); say(TT('Einheit gelöscht.')); return; }
     const min = parseFloat($('uzEdDur').value), st = at($('uzEdDate').value, $('uzEdTime').value);
     editIdx = null; editUnit(i, { th: $('uzEdTh').value, nt: $('uzEdNote').value, min: isNaN(min) ? null : min, start: st });
@@ -499,5 +505,5 @@ window.Uebezeit = (() => {
     window.addEventListener('storage', e => { if (e.key === KEY || e.key === TKEY) changed(); });
   }
   if ($('uebenBtn')) init(); else document.addEventListener('DOMContentLoaded', init);   // Kopf steht schon im DOM → sofort, damit tabchange beim Start ankommt
-  return { on, off, toggle, setTopic, setNote, load, importFile, importMsg, removeImport, csv, exportCsv, merge, sums, topics, tname, editUnit, addUnit, addForm, fmtHM, dday, hhmm, esc, built: () => built, KEY, DEF, _parse: { csvRows, parseDur, parseDate, unzip } };
+  return { save: d => { const ok = store(d); changed(); return ok; }, tlist, lastE: () => lastE, on, off, toggle, setTopic, setNote, load, importFile, importMsg, removeImport, csv, exportCsv, merge, sums, topics, tname, editUnit, addUnit, addForm, fmtHM, dday, hhmm, esc, built: () => built, KEY, DEF, _parse: { csvRows, parseDur, parseDate, unzip } };
 })();

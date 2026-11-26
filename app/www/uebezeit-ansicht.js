@@ -282,5 +282,75 @@ window.UebezeitAnsicht = (() => {
     last = performance.now() - t0;
     return k;
   }
-  return { paint, kpi: (d, now) => kpi(prep(d || U().load()), now || Date.now()), ms: () => last, state: () => Object.assign({}, st), _wann: (now) => wann(prep(U().load()), now || Date.now()) };
+
+  /* ---------- v157: Einheit nachträglich aufteilen ----------
+     Eine Einheit (oder eine schon aufgeteilte Gruppe mit gleichem u[5]) wird in Abschnitte „Thema + Minuten (+ Notiz)“ zerlegt. Beginn und Ende der
+     ganzen Einheit bleiben, die Abschnitte liegen nahtlos hintereinander; was nicht verteilt ist, bleibt als Abschnitt „ohne Thema“ (unter 1 min: zum
+     letzten Abschnitt). Summe > Gesamtdauer wird abgelehnt. Herkunft (selbst gezählt/Import/nachgetragen) bleibt. Ein Schreibvorgang. */
+  function group(d, i) {
+    const u = d.u[i]; if (!u) return null;
+    const m = u[5] ? d.u.filter(x => x[5] === u[5]) : [u];
+    const s = Math.min(...m.map(x => x[0] - x[1])), tot = m.reduce((a, x) => a + x[1], 0);
+    return { m, s, tot, k: u[2], id: u[5] || '' };
+  }
+  function splitUnit(i, parts) {
+    const d = U().load(), g = group(d, i); if (!g) return { err: TT('Einheit nicht gefunden.') };
+    const ps = (parts || []).map(p => ({ th: p.th || '', sec: Math.max(0, Math.round(+p.min || 0)) * 60, nt: String(p.nt || '').trim().slice(0, 300) })).filter(p => p.sec > 0);
+    const used = ps.reduce((a, p) => a + p.sec, 0);
+    if (!ps.length) return { err: TT('Mindestens einem Abschnitt Minuten geben.') };
+    if (used > g.tot) return { err: TT('Mehr Minuten als die Einheit lang ist.') };
+    const rest = g.tot - used;
+    if (rest >= 60) ps.push({ th: '', sec: rest, nt: '' }); else ps[ps.length - 1].sec += rest;
+    const id = ps.length > 1 ? (g.id || 'g' + g.s.toString(36)) : '';
+    let t = g.s;
+    const nu = ps.map(p => { t += p.sec; const x = [t, p.sec, g.k, p.th, p.nt]; if (id) x.push(id); return x; });
+    d.u = d.u.filter(x => !g.m.includes(x)).concat(nu);
+    return U().save(d) ? { ok: nu.length } : { err: TT('Konnte nicht speichern – Speicher voll oder privates Surfen.') };
+  }
+  // Aufteilung aufheben: wieder eine Einheit (Thema nur, wenn alle gleich; Notizen zusammen)
+  function unsplit(i) {
+    const d = U().load(), g = group(d, i); if (!g || !g.id) return false;
+    const ths = [...new Set(g.m.map(x => x[3]))], nts = [...new Set(g.m.map(x => x[4]).filter(Boolean))];
+    d.u = d.u.filter(x => !g.m.includes(x)).concat([[g.s + g.tot, g.tot, g.k, ths.length === 1 ? ths[0] : '', nts.join(' · ').slice(0, 300)]]);
+    return U().save(d);
+  }
+  function splitForm(i) {
+    const d = U().load(), g = group(d, i); if (!g) return;
+    const t = U().topics(), ids = [''].concat(U().tlist(t).filter(id => !t.h.includes(id))), totM = Math.floor(g.tot / 60);
+    let rows = g.id ? g.m.slice().sort((a, b) => a[0] - b[0]).map(x => ({ th: x[3], min: Math.round(x[1] / 60), nt: x[4] })) : [{ th: d.u[i][3] || '', min: '', nt: d.u[i][4] || '' }];
+    let w = $('uzSplit');
+    if (!w) { w = document.createElement('div'); w.id = 'uzSplit'; w.className = 'uz-ask'; document.body.appendChild(w); }
+    const sum = () => rows.reduce((a, r) => a + Math.max(0, Math.round(+r.min || 0)), 0);
+    const opt = sel => ids.map(id => '<option value="' + esc(id) + '"' + (id === sel ? ' selected' : '') + '>' + esc(U().tname(id, t)) + '</option>').join('');
+    const left = () => { const r = totM - sum(), el = $('uzSpLeft'); el.textContent = r >= 0 ? TT('noch zu verteilen:') + ' ' + r + ' min' + (r ? ' (' + TT('bleibt „ohne Thema“') + ')' : '') : TT('zu viel:') + ' ' + (-r) + ' min'; el.classList.toggle('bad', r < 0); $('uzSpSave').disabled = r < 0; };
+    const draw = () => {
+      $('uzSpRows').innerHTML = rows.map((r, k) => '<div class="uz-sprow" data-k="' + k + '"><select data-f="th" aria-label="' + esc(TT('Thema')) + '">' + opt(r.th) + '</select>'
+        + '<input type="number" data-f="min" min="0" max="1440" step="1" inputmode="numeric" placeholder="min" aria-label="' + esc(TT('Minuten')) + '" value="' + esc(r.min) + '">'
+        + '<input type="text" data-f="nt" maxlength="300" placeholder="' + esc(TT('Notiz (optional)')) + '" value="' + esc(r.nt) + '">'
+        + '<button type="button" class="toggle-btn" data-a="rm" aria-label="' + esc(TT('Abschnitt entfernen')) + '"' + (rows.length < 2 ? ' disabled' : '') + '>✕</button></div>').join('');
+      left();
+    };
+    const u = d.u[i], e = (g.s + g.tot) * 1000;
+    w.innerHTML = '<div class="uz-askbox uz-addbox uz-spbox card" role="dialog" aria-modal="true" aria-labelledby="uzSpH"><h2 id="uzSpH">' + esc(TT('Zeit aufteilen')) + '</h2>'
+      + '<p class="uz-sptot"><b>' + esc(fmtHM(g.tot)) + '</b> <span class="caption">' + esc(U().dday(e) + ' · ' + U().hhmm(g.s * 1000) + '–' + U().hhmm(e)) + '</span></p>'
+      + '<div id="uzSpRows"></div><div class="uz-edb"><button type="button" class="toggle-btn" data-a="add">＋ ' + esc(TT('Abschnitt')) + '</button><button type="button" class="toggle-btn" data-a="even">' + esc(TT('Rest gleichmäßig verteilen')) + '</button></div>'
+      + '<p class="caption uz-msg" id="uzSpLeft" role="status"></p><p class="caption uz-msg bad" id="uzSpErr" role="alert"></p>'
+      + '<div class="uz-edb"><button type="button" class="toggle-btn active" data-a="save" id="uzSpSave">' + esc(TT('Speichern')) + '</button><button type="button" class="toggle-btn" data-a="cancel">' + esc(TT('Abbrechen')) + '</button>'
+      + (g.id ? '<button type="button" class="toggle-btn" data-a="un">' + esc(TT('Aufteilung aufheben')) + '</button>' : '') + '</div></div>';
+    w.hidden = false; draw();
+    w.oninput = w.onchange = ev => { const r = ev.target.closest('[data-k]'), f = ev.target.dataset.f; if (!r || !f) return; rows[+r.dataset.k][f] = ev.target.value; if (f === 'min') left(); };
+    w.onclick = ev => {
+      const b = ev.target.closest('button[data-a]'); if (!b && ev.target !== w) return;
+      const a = b ? b.dataset.a : 'cancel';
+      if (a === 'cancel') { w.hidden = true; return; }
+      if (a === 'add') { rows.push({ th: '', min: '', nt: '' }); draw(); const x = w.querySelectorAll('[data-f="min"]'); x[x.length - 1].focus(); return; }
+      if (a === 'rm') { rows.splice(+b.closest('[data-k]').dataset.k, 1); draw(); return; }
+      if (a === 'even') { const r = totM - sum(); if (r <= 0) return; const n = rows.length; rows.forEach((x, k) => { x.min = Math.max(0, Math.round(+x.min || 0)) + Math.floor(r / n) + (k < r % n ? 1 : 0); }); draw(); return; }
+      if (a === 'un') { w.hidden = true; unsplit(U().load().u.findIndex(x => x[5] === g.id)); return; }
+      const res = splitUnit(U().load().u.findIndex(x => g.id ? x[5] === g.id : x[0] === u[0] && x[1] === u[1]), rows);
+      if (res.err) { $('uzSpErr').textContent = res.err; return; }
+      w.hidden = true;
+    };
+  }
+  return { splitUnit, unsplit, splitForm, group, paint, kpi: (d, now) => kpi(prep(d || U().load()), now || Date.now()), ms: () => last, state: () => Object.assign({}, st), _wann: (now) => wann(prep(U().load()), now || Date.now()) };
 })();
