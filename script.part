@@ -98,7 +98,9 @@ function buildPattern(rootIdx, intervals, posIdx) {
     const stringPitches = [seq[ptr], seq[ptr + 1], seq[ptr + 2]];
     ptr += 3;
     const diff1 = stringPitches[1] - stringPitches[0];
-    let fingers = (diff1 === 1) ? [1, 3, 4] : [1, 2, 4];
+    // v158: Halbton zuerst → 1-2-4, Halbton danach → 1-3-4, zwei Ganztöne → 1-2-4 (vorher waren die ersten beiden Fälle vertauscht)
+    const diff2 = stringPitches[2] - stringPitches[1];
+    let fingers = diff1 === 1 ? [1, 2, 4] : diff2 === 1 ? [1, 3, 4] : [1, 2, 4];
     stringPitches.forEach((pitch, i) => {
       notes.push({ string: s, fret: pitch - STRING_OPEN[s], pitch, finger: fingers[i] });
     });

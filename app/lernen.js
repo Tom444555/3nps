@@ -15,7 +15,8 @@
     { t: 'ueben', ic: '⏱', n: 'Training', d: 'Tagesübung, Gehörbildung, Licks, Solo-Auswertung' },
     { t: 'hoer', ic: '👂', n: 'Hör-Training', d: 'Intervalle, Akkorde, Tonleitern mit Ampel' },
     { t: 'spick', ic: '📋', n: 'Spickzettel', d: 'Intervalle, Griffformen, Quintenzirkel, Akkordsymbole' },
-    { t: 'uebezeit', ic: '⏲', n: 'Übezeit', d: 'Schalter „Üben“, Themen, Import aus Numbers, CSV-Export' }
+    { t: 'uebezeit', ic: '⏲', n: 'Übezeit', d: 'Schalter „Üben“, Themen, Import aus Numbers, CSV-Export' },
+    { t: 'tonleiter', ic: '🎼', n: 'Tonleiter-Trainer', d: 'Pentatonik, 3nps, Kirchentonleitern in allen Lagen – Tempo Schritt für Schritt' }
   ];
   const NAME = {}; TILES.forEach(x => { NAME[x.t] = x.n; });
   let L = jget('3nps-lernen', {}) || {}; L.where = L.where || null;
@@ -46,8 +47,26 @@
       const d = Uebezeit.load(), w = Uebezeit.sums(d, Date.now()).woche;
       return { p: w / 18000, txt: d.run ? TT('läuft gerade') : String(Math.round(w / 360) / 10).replace('.', window.__lang === 'en' ? '.' : ',') + ' h ' + TT('diese Woche') };
     }
+    if (t === 'tonleiter') {   // v158: Übungen mit Bestwert, Ring = Anteil mit erreichtem Ziel
+      const d = jget('3nps-tonleiter', null), b = d && d.b ? Object.values(d.b) : [], z = d && d.t ? d.t.z : 120;
+      return b.length ? { p: b.filter(x => x[0] >= z).length / b.length, txt: b.length + ' ' + TT(b.length === 1 ? 'Übung mit Bestwert' : 'Übungen mit Bestwert') } : { p: 0, txt: TT('noch nicht geübt') };
+    }
     return { p: 0, txt: TT('frei üben') };
   }
+  // v158: Tonleiter-Trainer – Code und Stil (+ Übezeit-Stil für Kennzahlen/Verlauf) erst beim ersten Öffnen laden; Verlassen stoppt ihn (tonleiter.js)
+  let tlL = false;
+  function tlLoad() {
+    if (window.Tonleiter) { Tonleiter.open(); return; }
+    if (tlL) return; tlL = true;
+    const css = h => new Promise(r => { if (document.querySelector('link[href="' + h + '"]')) return r(); const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = h; l.onload = l.onerror = r; document.head.appendChild(l); });
+    Promise.all([css('uebezeit-ansicht.css'), css('tonleiter.css')]).then(() => {
+      const sc = document.createElement('script'); sc.src = 'tonleiter.js';
+      sc.onload = () => { if (window.AppNav && AppNav.current() === 'tonleiter') Tonleiter.open(); };
+      sc.onerror = () => { tlL = false; sc.remove(); const r = $('tlRoot'); if (r) r.innerHTML = '<p class="pattern-desc">' + TT('Der Tonleiter-Trainer konnte nicht geladen werden – bitte einmal mit Internet öffnen.') + '</p>'; };
+      document.head.appendChild(sc);
+    });
+  }
+  document.addEventListener('tabchange', e => { if (e.detail === 'tonleiter') tlLoad(); });
   function tile(T0, lastT) {
     const g = prog(T0.t);
     return '<button class="ln-tile' + (T0.t === lastT ? ' last' : '') + '" data-t="' + T0.t + '"><span class="ln-top"><span class="ln-ic" aria-hidden="true">' + T0.ic + '</span><span class="ln-ring">' + ring(g.p) + '</span></span>' +

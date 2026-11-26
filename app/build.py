@@ -124,7 +124,7 @@ script = script.replace("'Aus – folgt dem Tempo unten'", "'Aus – folgt dem T
 # v145: Anleitungs-Daten (≈ 88 KB) in einer Funktion – der Browser legt die Objekte erst beim ersten Öffnen an
 HILFE_FN = 'function __hilfeDaten() {\n' + rd(A + 'hilfe-daten.js') + '\nreturn HILFE;\n}'
 rhythm = rd(A + 'eq.js') + '\n' + rd(A + 'kit.js') + '\n' + rd(A + 'rhythm.js') + '\n' + rd(A + 'drones.js')
-body = head + script + '\n<script>\n' + rhythm + '\n</script>\n<script>\n' + looper + '\n</script>\n<script>\n' + appcfg + '\n</script>\n<script>\n' + rd(A + 'circle.js') + '\n</script>\n<script>\n' + rd(A + 'voicings.js') + '\n' + rd(A + 'pitch.js') + '\n' + rd(A + 'solo.js') + '\n' + rd(A + 'passt.js') + '\n' + rd(A + 'caged.js') + '\n' + rd(A + 'sing.js') + '\n' + rd(A + 'singen.js') + '\n</script>\n<script>\n' + rd(A + 'jam.js') + '\n' + rd(A + 'jammen.js') + '\n</script>\n<script>\n' + rd(A + 'licks.js') + '\n' + rd(A + 'uebung.js') + '\n</script>\n<script>\n' + rd(A + 'lied-core.js') + '\n' + rd(A + 'lied-text.js') + '\n' + rd(A + 'lied-pdf.js') + '\n' + rd(A + 'lied-export.js') + '\n' + rd(A + 'lied.js') + '\n</script>\n<script>\n' + rd(A + 'master-dsp.js') + '\n' + rd(A + 'master.js') + '\n</script>\n<script>\n' + HILFE_FN + '\n' + rd(A + 'hilfe.js') + '\n' + rd(A + 'lernen.js') + '\n' + rd(A + 'hoer.js') + '\n</script>\n<script>\n' + rd(A + 'powerchords.js') + '\n' + rd(A + 'powerchords-kurs.js') + '\n' + rd(A + 'powerchords-werkstatt.js') + '\n' + rd(A + 'powerchords-live.js') + '\n' + rd(A + 'powerchords-extra.js') + '\n' + rd(A + 'powerchords-plan.js') + '\n</script>\n' + tabs
+body = head + script + '\n<script>\n' + rhythm + '\n</script>\n<script>\n' + looper + '\n</script>\n<script>\n' + appcfg + '\n</script>\n<script>\n' + rd(A + 'circle.js') + '\n</script>\n<script>\n' + rd(A + 'voicings.js') + '\n' + rd(A + 'pitch.js') + '\n' + rd(A + 'solo.js') + '\n' + rd(A + 'passt.js') + '\n' + rd(A + 'caged.js') + '\n' + rd(A + 'sing.js') + '\n' + rd(A + 'singen.js') + '\n</script>\n<script>\n' + rd(A + 'jam.js') + '\n' + rd(A + 'jammen.js') + '\n</script>\n<script>\n' + rd(A + 'licks.js') + '\n' + rd(A + 'uebung.js') + '\n</script>\n<script>\n' + rd(A + 'lied-core.js') + '\n' + rd(A + 'lied-text.js') + '\n' + rd(A + 'lied-pdf.js') + '\n' + rd(A + 'lied-export.js') + '\n' + rd(A + 'lied.js') + '\n</script>\n<script>\n' + rd(A + 'master-dsp.js') + '\n' + rd(A + 'master.js') + '\n</script>\n<script>\n' + rd(A + 'hilfe.js') + '\n' + rd(A + 'lernen.js') + '\n' + rd(A + 'hoer.js') + '\n</script>\n<script>\n' + rd(A + 'powerchords.js') + '\n' + rd(A + 'powerchords-kurs.js') + '\n' + rd(A + 'powerchords-werkstatt.js') + '\n' + rd(A + 'powerchords-live.js') + '\n' + rd(A + 'powerchords-extra.js') + '\n' + rd(A + 'powerchords-plan.js') + '\n</script>\n' + tabs
 
 top = '''<!doctype html>
 <html lang="de">
@@ -159,9 +159,10 @@ app = top + body.replace('<header class="control-bar">', '</head>\n<body>\n' + I
 open(A + 'www/index.html', 'w', encoding='utf8').write(app)
 
 # --- Vorschau für Claude ---
-pv = '<title>Looper-Vorschau</title>\n' + FONTS_PV + '\n' + EARLY.replace('document.head.appendChild(l);', '') + I18N_PV + '<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>\n' + body
+pv = '<title>Looper-Vorschau</title>\n' + FONTS_PV + '\n' + EARLY.replace('document.head.appendChild(l);', '') + I18N_PV + '<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>\n<script>\n' + HILFE_FN + '\n</script>\n' + body
 pv = pv.replace("let start = 'griffbrett';", "let start = 'looper';")
 pv += '<style>' + rd(A + 'uebezeit-ansicht.css') + '</style>\n<script>\n' + rd(A + 'uebezeit-ansicht.js') + '\n</script>\n'   # Vorschau bleibt eine Datei
+pv += '<style>' + rd(A + 'tonleiter.css') + '</style>\n<script>\n' + rd(A + 'tonleiter.js') + '\n</script>\n'   # v158: Tonleiter-Trainer
 old_mic = "setStatus('Kein Zugriff aufs Mikrofon. Erlaube ihn in den iPad-Einstellungen unter Datenschutz → Mikrofon bzw. für die Website in Safari (aA → Website-Einstellungen → Mikrofon).');"
 assert old_mic in pv
 pv = pv.replace(old_mic, "setStatus('In der Vorschau ist das Mikrofon gesperrt. Nimm den Demo-Loop oben, in der App funktioniert die Aufnahme.');")
@@ -203,7 +204,10 @@ document.getElementById('demoLoop').addEventListener('click', () => {
 open(D + 'preview.html', 'w', encoding='utf8').write(pv)
 print('app', len(app), 'preview', len(pv))
 
+# v158: Anleitungs-Daten als eigene Datei (erst beim ersten Öffnen/Suchen geladen, sw.js legt sie vorab ab) – schafft Platz in index.html
+open(A + 'www/hilfe-daten.js', 'w', encoding='utf8').write(HILFE_FN + '\n')
 # v155: Übezeit-Übersicht als eigene Dateien (erst beim ersten Öffnen der Seite geladen, sw.js legt sie vorab ab)
+shutil.copy(A + 'tonleiter.js', A + 'www/tonleiter.js'); shutil.copy(A + 'tonleiter.css', A + 'www/tonleiter.css')   # v158: Tonleiter-Trainer (erst beim Öffnen geladen)
 shutil.copy(A + 'uebezeit-ansicht.js', A + 'www/uebezeit-ansicht.js'); shutil.copy(A + 'uebezeit-ansicht.css', A + 'www/uebezeit-ansicht.css')
 # Texterkennung (v64): Worker neben die Modelle legen (Modelle selbst kommen aus dem Branch „modelle“)
 import os, shutil

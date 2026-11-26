@@ -1,15 +1,25 @@
 // v113: Reiter „Anleitung“ – Inhalt aus hilfe-daten.js, erst beim Öffnen gebaut; Suche nach Begriffen (auch ohne Umlaute/Groß-Klein)
 (function () {
-  const $ = id => document.getElementById(id), panel = $('panel-hilfe'); if (!panel || (typeof __hilfeDaten !== 'function' && typeof HILFE === 'undefined')) return;
+  const $ = id => document.getElementById(id), panel = $('panel-hilfe'); if (!panel) return;
   // v145: Daten erst beim ersten Öffnen/Suchen erzeugen (build.py packt hilfe-daten.js in die Funktion __hilfeDaten)
-  let H = null; const data = () => H || (H = typeof __hilfeDaten === 'function' ? __hilfeDaten() : HILFE);
+  // v158: die Funktion liegt als eigene Datei www/hilfe-daten.js (≈ 90 KB weniger in index.html) und wird beim ersten Öffnen/Suchen geladen; Vorschau: eingebettet
+  let H = null, wait = null; const have = () => !!H || typeof __hilfeDaten === 'function' || typeof HILFE !== 'undefined';
+  const data = () => H || (H = typeof __hilfeDaten === 'function' ? __hilfeDaten() : HILFE);
   const TT = x => (typeof T === 'function' ? T(x) : x);
+  function need(cb) {
+    if (have()) return cb();
+    if (wait) { wait.push(cb); return; }
+    wait = [cb]; const sc = document.createElement('script'); sc.src = 'hilfe-daten.js';
+    sc.onload = () => { const w = wait; wait = null; if (have()) w.forEach(f => f()); };
+    sc.onerror = () => { wait = null; sc.remove(); const m = $('hlMain'); if (m && !built) m.innerHTML = '<p class="pattern-desc">' + TT('Die Anleitung konnte nicht geladen werden – bitte einmal mit Internet öffnen.') + '</p>'; };
+    document.head.appendChild(sc);
+  }
   const fold = s => String(s).toLowerCase().replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss').replace(/[„“"'.,:;!?()…·→↗↩]/g, ' ');
   const strip = h => String(h).replace(/<[^>]+>/g, '');
   let all = null; const index = () => { if (all) return all; all = []; data().forEach(g => g.items.forEach(it => { it.g = g.g; it.txt = strip([it.t].concat(it.p || [], it.s || [], it.tip || []).join(' ')); it.idx = fold(it.t + ' ' + it.k + ' ' + it.txt); it.tf = fold(it.t + ' ' + it.k); all.push(it); })); return all; };
   let built = false;
   function build() {
-    if (built) return; built = true;
+    if (built) return; if (!have()) return need(build); built = true;
     index(); $('hlToc').innerHTML = data().map(g => '<h4>' + g.g + '</h4>' + g.items.map(it => '<a href="#hl-' + it.id + '" data-id="' + it.id + '">' + it.t + '</a>').join('')).join('');
     $('hlMain').innerHTML = data().map(g => '<div class="hl-group">' + g.g + '</div>' + g.items.map(it =>
       '<article class="card hl-topic" id="hl-' + it.id + '"><h3>' + it.t + '</h3>' +
@@ -21,6 +31,7 @@
     $('hlEn').hidden = window.__lang !== 'en';
   }
   function go(id) {
+    if (!have()) return need(() => go(id));
     build(); const el = $('hl-' + id); if (!el) return;
     const bar = document.querySelector('.control-bar'), off = bar && getComputedStyle(bar).position === 'sticky' ? bar.getBoundingClientRect().height : 0;   // feste Kopfleiste nicht über die Überschrift legen
     const to = sm => window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - off - 12, behavior: sm ? 'smooth' : 'auto' });
@@ -32,6 +43,7 @@
   // Suche: alle Wörter müssen vorkommen; Treffer im Titel/Stichwort zählen mehr
   function search(q) {
     const w = fold(q).split(/\s+/).filter(x => x.length > 1); if (!w.length) return [];
+    if (!have()) { need(showRes); return []; }
     return index().map(it => { let sc = 0; for (const x of w) { if (!it.idx.includes(x)) return null; sc += it.tf.includes(x) ? 10 : 1; if (fold(it.t).includes(x)) sc += 10; } return { it, sc }; }).filter(Boolean).sort((a, b) => b.sc - a.sc).map(r => r.it);
   }
   function snippet(it, q) {
@@ -53,5 +65,5 @@
   $('hlMain').addEventListener('click', e => { const im = e.target.closest('.hl-img'); if (im) im.classList.toggle('big'); });
   document.addEventListener('tabchange', e => { if (e.detail === 'hilfe') build(); });
   if (!panel.hidden) build();
-  window.Hilfe = { go, search, build, count: () => index().length };
+  window.Hilfe = { go, search, build, count: () => (have() ? index().length : 0), ready: have };
 })();

@@ -1,6 +1,6 @@
 # v136: Hilfsfunktion für Tests – öffnet einen Unterpunkt über die neue Navigation (Bereich oben, dann Chip in der Unterleiste).
 # Unterpunkte (alte Reiter-Namen): looper | lernen power caged quinten griffbrett ueben | jam solo | lied singen | hilfe
-AREA = {'looper': 'looper', 'lernen': 'lernen', 'power': 'lernen', 'caged': 'lernen', 'quinten': 'lernen', 'griffbrett': 'lernen', 'ueben': 'lernen', 'hoer': 'lernen', 'spick': 'lernen', 'uebezeit': 'lernen',
+AREA = {'looper': 'looper', 'lernen': 'lernen', 'power': 'lernen', 'caged': 'lernen', 'quinten': 'lernen', 'griffbrett': 'lernen', 'ueben': 'lernen', 'hoer': 'lernen', 'spick': 'lernen', 'uebezeit': 'lernen', 'tonleiter': 'lernen',
         'jam': 'jammen', 'solo': 'jammen', 'lied': 'gesang', 'singen': 'gesang', 'rig': 'rig'}
 async def tab(pg, name):
     if name in ('looper', 'rig'):   # v146: Rig ist ein eigener Bereich ohne Unterleiste

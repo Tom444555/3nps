@@ -25,7 +25,9 @@ async def errs_of(pg):
 
 async def part_a(p):
     h = open(WWW + 'index.html', encoding='utf8').read()
-    check('index.html: keine eingebetteten Schriften, kein Wörterbuch, Anleitung als Funktion', 'base64' not in h and 'window.__EN = {' not in h and 'function __hilfeDaten()' in h, len(h.encode()))
+    # v158: Anleitungs-Daten als eigene Datei hilfe-daten.js (erst beim Öffnen geladen) statt als Funktion in index.html
+    hd = os.path.exists(WWW + 'hilfe-daten.js') and 'function __hilfeDaten()' in open(WWW + 'hilfe-daten.js', encoding='utf8').read()
+    check('index.html: keine eingebetteten Schriften, kein Wörterbuch, Anleitung als Funktion (ab v158 als eigene Datei)', 'base64' not in h and 'window.__EN = {' not in h and ('function __hilfeDaten()' in h or (hd and 'function __hilfeDaten()' not in h)), len(h.encode()))
     check('index.html deutlich kleiner (< 2,1 MB statt 2,55 MB)', len(h.encode()) < 2100000, len(h.encode()))
     check('Alle Optik-Schriften mit font-display:block (unsichtbar statt Ersatzschrift)', h.count('font-display:block') == 6 and 'font-display:swap' not in h)
     check('Schriften und Wörterbuch liegen als Dateien bereit', all(os.path.getsize(WWW + 'fonts/' + f) > 10000 for f in ['uncial.woff', 'metalmania.woff', 'blackopsone.woff', 'russoone.woff', 'michroma.woff', 'cinzel700.woff']) and os.path.getsize(WWW + 'i18n-en.js') > 150000)
