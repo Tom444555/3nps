@@ -1545,7 +1545,7 @@ Gut zu wissen
      „Tempo“: höchstes Tempo je Übungstag, ▲/▼ seit dem ersten Tag im Zeitraum.
    - Zeitraum: „1W“ · „1M“ · „3M“ · „1J“ · „Alles“ (wird gemerkt).
    - Gezählt wird nur, was gespeichert ist: Metronom-Einheiten im Griffbrett ab 5 Sekunden und erledigte Blöcke der
-     Tagesübung. Spielen im Looper zählt nicht mit. Ohne Einträge steht ein Hinweis da – der Verlauf wächst ab jetzt.
+     Tagesübung. Spielen im Looper zählt seit v160 als Looper-Zeit mit (siehe 143). Ohne Einträge steht ein Hinweis da – der Verlauf wächst ab jetzt.
    - Die Karte rechnet nur, wenn sie offen ist; am Looper ändert sich nichts.
 
 136. Takt-Eins bei Shuffle und Blues (v153)
@@ -1648,3 +1648,17 @@ Gut zu wissen
      „Weiter“ = nächste Lage; nach der letzten Lage (oder bei „Alle“) die nächste Übung. Läuft der Trainer, läuft er weiter.
      Die übrigen drei wirken wie die Knöpfe „▶ Start / ■ Stopp“, „geschafft → schneller“, „zu schnell → langsamer“.
    - Im Trainer steht unter „Üben einschalten“ ein kurzer Hinweis darauf.
+
+143. Looper-Zeit zählt in die Übezeit (v160)
+   - Läuft der Looper (Wiedergabe oder Aufnahme, auch mit Drums/Drone dazu) und der Schalter „Üben“ ist aus, zählt die App das als
+     eigene Einheit mit dem Kennzeichen „Looper“ und dem Thema „Looper/Jammen“ (in „Letzte Einheiten“ antippen und ändern wie jede
+     Einheit). Laufen nur Drums oder Drone ohne Loop, zählt nichts.
+   - Unter 1 Minute wird verworfen. Pausen bis 2 Minuten zwischen zwei Looper-Läufen gehören zur selben Einheit; gezählt wird nur die
+     Spielzeit, nicht die Pause. Die Einheit wird 2 Minuten nach dem letzten Stopp gespeichert.
+   - Nie doppelt: Schaltest du „Üben“ ein, während der Looper läuft, endet die Looper-Einheit in diesem Moment – ab da zählt nur „Üben“.
+     Schaltest du „Üben“ aus und der Looper läuft weiter, beginnt ab da eine Looper-Einheit.
+   - Geht die App in den Hintergrund oder wird geschlossen, endet der Lauf dort; nach einem Absturz beim letzten Zwischenstand
+     (höchstens 30 s fehlen). Es zählt nie bis zum nächsten Öffnen weiter.
+   - Abschalten: „Lernen › Übezeit“ › „Looper-Zeit mitzählen: An / Aus“ (Vorgabe An). Aus = Looper-Spielen zählt nicht.
+   - Liste, Übersicht, „Woran geübt“, Übe-Verlauf und CSV-Export (Kennzeichen „[Looper]“, der Import erkennt es wieder) rechnen mit.
+     Metronom-Zeit, die in einer Looper-Einheit liegt, zählt im Übe-Verlauf nicht doppelt.

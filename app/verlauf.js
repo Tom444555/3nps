@@ -98,7 +98,7 @@ window.UebeVerlauf = (() => {
       + '<div class="pv-chart" id="pvChart"></div><div class="pv-ax caption" id="pvAx"></div>'
       + '<div class="seg pv-r" role="group" aria-label="' + esc(TT('Zeitraum')) + '">' + rb + '</div>'
       + '<div class="pv-hl"><span><span class="caption">' + esc(TT('Hoch')) + '</span> <b id="pvHi">–</b></span><span><span class="caption">' + esc(TT('Tief')) + '</span> <b id="pvLo">–</b></span><span class="caption" id="pvN"></span></div>'
-      + '<p class="caption pv-note">' + esc(TT('Gezählt werden Metronom-Einheiten im Griffbrett (ab 5 s), erledigte Blöcke der Tagesübung und die Übezeit (Schalter „Üben“ und Import) – Looper-Spielen ohne Schalter wird nicht mitgezählt.')) + '</p>'
+      + '<p class="caption pv-note">' + esc(TT('Gezählt werden Metronom-Einheiten im Griffbrett (ab 5 s), erledigte Blöcke der Tagesübung und die Übezeit (Schalter „Üben“, Import und Looper-Zeit) – Looper-Spielen ohne Schalter zählt ab 1 min, wenn auf der Seite „Übezeit“ „Looper-Zeit mitzählen“ an ist.')) + '</p>'
       + '<button type="button" class="toggle-btn pv-go" id="pvGo">' + esc(TT('Ganze Übersicht')) + ' ›</button>';   // v154: zur Seite „Übezeit“
     body.addEventListener('click', e => {
       const b = e.target.closest('button'); if (!b) return;

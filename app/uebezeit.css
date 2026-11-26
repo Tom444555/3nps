@@ -25,3 +25,5 @@ html.dev-min .looper-card > .card-head > .ueben-btn[aria-pressed="true"], html.d
 /* Kurzfassung im Übe-Verlauf (Technik): Sprung zur ganzen Seite */
 .pv-go { align-self: flex-start; min-height: 44px; min-width: 44px; }
 
+.uz-lz { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin-top: 8px; }   /* v160: Looper-Zeit mitzählen */
+.uz-lz .toggle-btn { min-height: 44px; }

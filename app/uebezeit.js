@@ -8,6 +8,8 @@
        u: [[ende_s, dauer_s, herkunft (0 = selbst gezählt, 1 = Import, 2 = nachgetragen), thema, notiz], …] }
    v157: optional u[5] = Kennzeichen einer Aufteilung (Abschnitte einer Einheit, nahtlos; aufteilen/aufheben in uebezeit-ansicht.js).
    v155: Export kennzeichnet Herkunft 0/2 in „Übungen“ mit „[App]“ bzw. „[nachgetragen]“, der Import stellt sie wieder her.   – nach Ende sortiert, Minutengenau
+   v160: Herkunft 3 = Looper-Zeit (Export „[Looper]“). Zusätzlich lp: null | { s: Beginn, a: Summe abgeschlossener Läufe (ms), r: Beginn des
+   laufenden Laufs | null, l: letzter sicherer Zeitpunkt } (ms) und lz: 0 = „Looper-Zeit mitzählen“ aus (fehlt = an).
    Themen: „3nps-uebezeit-themen“ { c: [[id, name], …] eigene, r: { id: neuer Name }, h: [ausgeblendete ids] }.
    Beim Start: nur Kopfknopf (ein getItem); die Seite wird erst beim ersten Öffnen gebaut. Keine Timer außer der Minutenanzeige bei laufender Zeit. */
 window.Uebezeit = (() => {
@@ -61,8 +63,9 @@ window.Uebezeit = (() => {
   let tick = null, lastE = 0;
   function on() {
     const d = load(); if (d.run) return true;
-    d.run = { s: Date.now() };
-    const ok = store(d); paintAll(); return ok;
+    const now = Date.now(); lpClose(d, now); const lu = lpEnd(d);   // v160: Looper-Einheit endet jetzt, ab hier zählt nur der Schalter
+    d.run = { s: now };
+    const ok = store(d); lpSched(d); if (lu) changed(); else paintAll(); return ok;
   }
   // Ausschalten: Einheit schreiben und Laufzustand löschen – in einem Schreibvorgang. opt.end/opt.dur korrigieren (Nachfrage > 8 h).
   function off(opt) {
@@ -74,7 +77,9 @@ window.Uebezeit = (() => {
     const u = opt.drop ? null : unitFrom(s, e, d);
     if (u) { d.u.push(u); lastE = u[0]; }
     d.run = null; d.nt = '';
+    if (lzOn(d) && looping()) d.lp = { s: now, a: 0, r: now, l: now };   // v160: läuft der Looper, beginnt ab jetzt eine Looper-Einheit
     if (!store(d)) return null;
+    lpSched(d);
     say(u ? TT('Gespeichert:') + ' ' + fmtHM(u[1]) + (u[3] ? ' · ' + tname(u[3]) : '') : opt.drop ? TT('Verworfen.') : TT('Unter 1 Minute – nicht gespeichert.'));
     changed(); return u;
   }
@@ -91,6 +96,56 @@ window.Uebezeit = (() => {
   }
   function setNote(v) { const d = load(); d.nt = String(v || '').slice(0, 300); store(d); }
 
+  /* ---------- v160: Looper-Zeit – zählt nur, wenn „Üben“ aus ist und der Looper läuft (Wiedergabe/Aufnahme); nie doppelt ----------
+     Hängt nur am Ereignis „looperrun“ (Start/Stopp aus looper.js update()), an Sichtbarkeit/Schließen und einem Zwischenstand alle 30 s.
+     Kürzer als 1 min wird verworfen; Pausen bis 2 min gehören zur selben Einheit (Dauer = Summe der Laufzeiten). App im Hintergrund,
+     geschlossen oder abgestürzt: der Lauf endet beim letzten sicheren Zeitpunkt (Zwischenstand bzw. Schließen). Jede Änderung = ein setItem. */
+  const LP_MIN = 60e3, LP_GAP = 120e3, LP_TICK = 30e3, LP_LOST = 90e3, LP_TH = 'loop';
+  let lpT = null;
+  const lzOn = d => d.lz !== 0;
+  const looping = () => !document.hidden && typeof Looper !== 'undefined' && !!(Looper.looping && Looper.looping());
+  function lpClose(d, now) { const p = d.lp; if (p && p.r != null) { p.a += Math.max(0, now - p.r); p.r = null; p.l = now; } }
+  function lpEnd(d) {   // Einheit (ab 1 min) übernehmen und Laufzustand löschen – im selben Schreibvorgang wie der Aufrufer
+    const p = d.lp; d.lp = null;
+    if (!p || p.a < LP_MIN) return null;
+    const u = [minR(p.l), Math.max(1, Math.round(p.a / 60000)) * 60, 3, LP_TH, '']; d.u.push(u); return u;
+  }
+  function lpSync(boot) {
+    const d = load(), now = Date.now(), want = lzOn(d) && !d.run && looping();
+    let p = d.lp, ch = false, u = null;
+    if (p && p.r != null && (boot === true || now - p.l > LP_LOST)) { p.a += Math.max(0, p.l - p.r); p.r = null; ch = true; }   // App war weg: Ende beim letzten sicheren Zeitpunkt
+    if (p && p.r != null && !want) { lpClose(d, now); ch = true; }
+    if (p && p.r == null && (d.run || !lzOn(d) || now - p.l > LP_GAP)) { u = lpEnd(d); p = null; ch = true; }
+    if (want) {
+      if (!p) { d.lp = { s: now, a: 0, r: now, l: now }; ch = true; }
+      else if (p.r == null) { p.r = now; p.l = now; ch = true; }   // Pause ≤ 2 min: dieselbe Einheit
+      else if (now - p.l >= LP_TICK - 2000) { p.l = now; ch = true; }   // Zwischenstand
+    }
+    if (ch) store(d);
+    lpSched(d);
+    if (u) changed(); else if (ch && built) paintLz(d);
+    return d.lp;
+  }
+  function lpSched(d) {
+    clearTimeout(lpT); lpT = null; const p = d.lp; if (!p) { if (built) paintLz(d); return; }
+    lpT = setTimeout(lpSync, p.r != null ? LP_TICK : Math.max(1000, p.l + LP_GAP - Date.now() + 500));
+  }
+  function setLz(v) {
+    const d = load(), now = Date.now(); let u = null;
+    if (v) delete d.lz; else { lpClose(d, now); u = lpEnd(d); d.lz = 0; }
+    store(d);
+    if (v) lpSync(); else lpSched(d);
+    if (u) changed(); else if (built) paintLz(load());
+  }
+  function paintLz(d) {
+    const b = $('uzLz'); if (!b) return; const on = lzOn(d), p = d.lp;
+    b.textContent = TT(on ? 'Looper-Zeit mitzählen: An' : 'Looper-Zeit mitzählen: Aus'); b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    const run = p && p.r != null, sec = p ? (p.a + (run ? Date.now() - p.r : 0)) / 1000 : 0;
+    $('uzLzTx').textContent = !on ? TT('Looper-Spielen wird nicht gezählt.')
+      : p ? (run ? '● ' + TT('Looper läuft – zählt mit') : TT('Looper pausiert – läuft er innerhalb von 2 min weiter, zählt es zur selben Einheit')) + ' · ' + TT('seit') + ' ' + hhmm(p.s) + ' · ' + Math.floor(sec / 60) + ' min'
+      : TT('Zählt, wenn der Looper läuft und „Üben“ aus ist (ab 1 min; Pausen bis 2 min gehören zur selben Einheit).');
+  }
+
   // Kopfknopf + Anzeige; Auffrischen höchstens 1×/min und nur bei sichtbarer Seite
   function paintHdr(d) {
     const b = $('uebenBtn'); if (!b) return;
@@ -101,7 +156,7 @@ window.Uebezeit = (() => {
   }
   function paintAll() {
     const d = load();
-    paintHdr(d); if (built) paintRun(d);
+    paintHdr(d); if (built) { paintRun(d); paintLz(d); }
     clearTimeout(tick); tick = null;
     if (d.run && !document.hidden) tick = setTimeout(paintAll, 60000 - (Date.now() - d.run.s) % 60000 + 50);
   }
@@ -168,9 +223,9 @@ window.Uebezeit = (() => {
       const r = rows[i]; if (!r || (r[1] || '').trim() !== 'Ende') continue;
       const e = parseDate(r[0]), d = parseDur(r[2]);
       if (e == null || d == null) continue;
-      const mk = /\s*\[(App|nachgetragen)\]\s*$/.exec(r[3] || ''), txt = mk ? (r[3] || '').slice(0, mk.index) : r[3];
+      const mk = /\s*\[(App|nachgetragen|Looper)\]\s*$/.exec(r[3] || ''), txt = mk ? (r[3] || '').slice(0, mk.index) : r[3];
       const [th, nt] = splitNote(txt, t);
-      out.push([Math.round(e / 1000), d, mk ? (mk[1] === 'App' ? 0 : 2) : 1, th, nt]);
+      out.push([Math.round(e / 1000), d, mk ? (mk[1] === 'App' ? 0 : mk[1] === 'Looper' ? 3 : 2) : 1, th, nt]);
     }
     return out;
   }
@@ -209,7 +264,7 @@ window.Uebezeit = (() => {
     const d = load(), t = topics(), q = v => /[;"\r\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
     const L = ['Datum und Uhrzeit;Start/Ende;Übungszeit;Übungen'];
     d.u.forEach(u => {
-      const e = u[0] * 1000, mk = u[2] === 0 ? '[App]' : u[2] === 2 ? '[nachgetragen]' : '';
+      const e = u[0] * 1000, mk = u[2] === 0 ? '[App]' : u[2] === 2 ? '[nachgetragen]' : u[2] === 3 ? '[Looper]' : '';
       let txt = u[3] ? tname(u[3], t) + (u[4] ? ' – ' + u[4] : '') : (u[4] || '');
       if (mk) txt = txt ? txt + ' ' + mk : mk;
       L.push(numDate(e - u[1] * 1000) + ';Start;!!;');
@@ -241,7 +296,7 @@ window.Uebezeit = (() => {
   // selbst gezählten Übezeit liegen, zählen dort schon – ihre Zeit wird nicht doppelt gerechnet (Tempo bleibt).
   function merge(sessions) {
     const d = load(); if (!d.u.length) return sessions || [];
-    const iv = d.u.filter(u => u[2] === 0).map(u => [u[0] * 1000 - u[1] * 1000 - 60000, u[0] * 1000 + 60000]);
+    const iv = d.u.filter(u => u[2] === 0 || u[2] === 3).map(u => [u[0] * 1000 - u[1] * 1000 - 60000, u[0] * 1000 + 60000]);
     const inside = ts => iv.some(x => ts >= x[0] && ts <= x[1]);
     const out = (sessions || []).map(s => (+s.durationSec > 0 && inside(s.ts) ? Object.assign({}, s, { durationSec: 0 }) : s));
     d.u.forEach(u => out.push({ ts: u[0] * 1000, durationSec: u[1], uz: 1 }));
@@ -267,7 +322,8 @@ window.Uebezeit = (() => {
       + '<div class="uz-lbl">' + esc(TT('Was übe ich?')) + '</div><div class="uz-chips" id="uzChips"></div>'
       + '<div class="uz-edit" id="uzEdit" hidden></div>'
       + '<label class="field uz-note"><span>' + esc(TT('Notiz (optional)')) + '</span><input type="text" id="uzNote" maxlength="300" autocomplete="off" placeholder="' + esc(TT('z. B. Pentatonik Lage 1')) + '"></label>'
-      + '<p class="caption uz-msg" id="uzMsg" role="status"></p></div>'
+      + '<p class="caption uz-msg" id="uzMsg" role="status"></p>'
+      + '<div class="uz-lz"><button type="button" class="toggle-btn" id="uzLz" aria-pressed="true"></button><span class="caption" id="uzLzTx"></span></div></div>'
       // v155: Übersicht (Kacheln, Verlauf, Balken, Kalender, Themen) – gezeichnet von uebezeit-ansicht.js
       + card('uz-kpic', 'uzKpiCard', 'Überblick', '<div class="uz-sums" id="uzSums"></div><div class="uz-sums uz-kpi2" id="uzKpi2"></div><p class="caption" id="uzSumN"></p>')
       + card('uz-viz uz-full', 'uzVerlauf', 'Verlauf', '<div id="uzVl"></div>')
@@ -285,6 +341,7 @@ window.Uebezeit = (() => {
       + '<p class="caption">' + esc(TT('Import: die ZIP-Datei aus Numbers („Exportieren › CSV“) direkt wählen oder eine einzelne CSV. Gezählt wird jede „Ende“-Zeile; schon vorhandene Einheiten werden nicht doppelt übernommen. Der Export hat dasselbe Format und lässt sich hier wieder einlesen. „Alles sichern“ im Looper nimmt die Übezeit mit.')) + '</p></div>';
     $('uzAddBtn').addEventListener('click', () => addForm());
     $('uzBtn').addEventListener('click', toggle);
+    $('uzLz').addEventListener('click', () => setLz(!lzOn(load())));
     $('uzNote').addEventListener('input', e => setNote(e.target.value));
     $('uzChips').addEventListener('click', e => {
       const b = e.target.closest('button'); if (!b) return;
@@ -380,7 +437,7 @@ window.Uebezeit = (() => {
     for (let i = from; i > from - PER && i >= 0; i--) {
       const u = d.u[i], e = u[0] * 1000, s = e - u[1] * 1000;
       rows.push('<div class="uz-row' + (editIdx === i ? ' open' : '') + '" data-i="' + i + '" role="button" tabindex="0"><div class="uz-r1"><span class="uz-rd">' + esc(dday(e)) + '</span><b class="uz-rdur">' + esc(fmtHM(u[1])) + '</b>' + (u[0] === lastE && !u[5] && editIdx !== i ? '<button type="button" class="toggle-btn uz-splh" data-split="' + i + '">' + esc(TT('Zeit aufteilen')) + '</button>' : '') + '</div>'
-        + '<div class="uz-r2 caption"><span>' + hhmm(s) + '–' + hhmm(e) + '</span>' + (u[3] ? '<span class="uz-tag">' + esc(tname(u[3], t)) + '</span>' : '') + (u[2] === 1 ? '<span class="uz-imp">' + esc(TT('Import')) + '</span>' : u[2] === 2 ? '<span class="uz-imp">' + esc(TT('nachgetragen')) + '</span>' : '')
+        + '<div class="uz-r2 caption"><span>' + hhmm(s) + '–' + hhmm(e) + '</span>' + (u[3] ? '<span class="uz-tag">' + esc(tname(u[3], t)) + '</span>' : '') + (u[2] === 1 ? '<span class="uz-imp">' + esc(TT('Import')) + '</span>' : u[2] === 2 ? '<span class="uz-imp">' + esc(TT('nachgetragen')) + '</span>' : u[2] === 3 ? '<span class="uz-imp">' + esc(TT('Looper')) + '</span>' : '')
         + (u[5] ? '<span class="uz-imp">' + esc(TT('aufgeteilt')) + '</span>' : '') + (u[4] ? '<span class="uz-rn">' + esc(u[4]) + '</span>' : '') + '</div>'
         + (editIdx === i ? editor(u, t) : '') + '</div>');
     }
@@ -501,9 +558,14 @@ window.Uebezeit = (() => {
     const b = $('uebenBtn'); if (b) b.addEventListener('click', toggle);
     paintAll();
     document.addEventListener('visibilitychange', paintAll);
+    // v160: Looper-Zeit – Start/Stopp, Hintergrund/zurück, Schließen (letzter sicherer Zeitpunkt), Neustart
+    document.addEventListener('looperrun', () => lpSync());
+    document.addEventListener('visibilitychange', () => lpSync());
+    window.addEventListener('pagehide', () => { const d = load(); if (d.lp && d.lp.r != null) { lpClose(d, Date.now()); store(d); } });
+    lpSync(true);
     document.addEventListener('tabchange', e => { if (e.detail === 'uebezeit') { build(); paintAll(); paintChips(); paintSums(); paintList(); paintViz(); } });
     window.addEventListener('storage', e => { if (e.key === KEY || e.key === TKEY) changed(); });
   }
   if ($('uebenBtn')) init(); else document.addEventListener('DOMContentLoaded', init);   // Kopf steht schon im DOM → sofort, damit tabchange beim Start ankommt
-  return { save: d => { const ok = store(d); changed(); return ok; }, tlist, lastE: () => lastE, on, off, toggle, setTopic, setNote, load, importFile, importMsg, removeImport, csv, exportCsv, merge, sums, topics, tname, editUnit, addUnit, addForm, fmtHM, dday, hhmm, esc, built: () => built, KEY, DEF, _parse: { csvRows, parseDur, parseDate, unzip } };
+  return { save: d => { const ok = store(d); changed(); return ok; }, tlist, lastE: () => lastE, on, off, toggle, setTopic, setNote, load, importFile, importMsg, removeImport, csv, exportCsv, merge, sums, topics, tname, setLz, _lp: lpSync, LP: { MIN: LP_MIN, GAP: LP_GAP, TICK: LP_TICK, LOST: LP_LOST }, editUnit, addUnit, addForm, fmtHM, dday, hhmm, esc, built: () => built, KEY, DEF, _parse: { csvRows, parseDur, parseDate, unzip } };
 })();

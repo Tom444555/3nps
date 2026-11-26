@@ -12,6 +12,7 @@ const Looper = (() => {
   let baseL = 0;       // Länge des ersten Loops (Frames) – alle Spuren sind Vielfache davon
   let anchor = 0;      // Frame, an dem Phase 0 aller Spuren liegt
   let rec = null;      // {t, kind: first|new|overdub, start, end, chunks, n, layer, armed, Lt}
+  let lastLooping = false;   // v160: letzter gemeldeter Zustand „Looper läuft“ (Ereignis looperrun)
   let hist = [];       // die letzten Mikrofon-Blöcke, für den Vorlauf beim Signal-Start
   let level = 0, levelL = 0, levelR = 0, rafId = null, peakHold = 0;
   let cap = null;      // Mitschnitt rund um die erste Aufnahme (für das Eintakten)
@@ -1959,6 +1960,8 @@ const Looper = (() => {
       infoEl.textContent = 'Loop ' + (Math.abs(bars - Math.round(bars)) < 0.02 ? Math.round(bars) + ' Takt' + (Math.round(bars) === 1 ? '' : 'e') + ' · ' : '') + secs.toFixed(1).replace('.', ',') + ' s'
       if (pracRate !== 1) infoEl.textContent += ' · ' + T('Übe-Tempo') + ' ' + Math.round(pracRate * 100) + ' %';
     } else infoEl.textContent = 'Kein Loop';
+    // v160: Looper läuft (Wiedergabe oder Aufnahme) – nur beim Wechsel ein Ereignis für die Übezeit (nichts im Audio-Pfad)
+    { const lr = anyRunning() || !!rec; if (lr !== lastLooping) { lastLooping = lr; document.dispatchEvent(new CustomEvent('looperrun', { detail: lr })); } }
     kick();
   }
   function kick() { if (!rafId) rafId = window.__dev === 'min' ? (setTimeout(tick, 16), 1) : requestAnimationFrame(tick); }
@@ -4304,7 +4307,7 @@ return true;}}registerProcessor('loadmeter',LoadMeter);`;
       return { l: out.l, r: out.r, sr, frames: total, bpm: tempo, bars, chords: chords.map(c => ({ name: c.name, beats: c.beats })), key: kt && kt.key ? { pc: kt.key.pc, major: !!kt.key.major } : null };
     },
     busy: () => !!rec || tracks.some(t => !!t.src),     // spielt oder nimmt gerade etwas auf (für den Jam)
-    pauseToggle: () => pauseToggle(), running: () => anyRunning(), paused: () => !!pausedAt && !anyRunning(), hasLoop: () => anyContent(),
+    pauseToggle: () => pauseToggle(), running: () => anyRunning(), looping: () => anyRunning() || !!rec, paused: () => !!pausedAt && !anyRunning(), hasLoop: () => anyContent(),
     stopAll: () => { const b = $('loopAll'); if (b && tracks.some(t => !!t.src) && !rec) b.click(); },
     closeInput: () => { try { micWanted = false; if (micReady) closeMic(); else if (stream) stream.getTracks().forEach(tr => tr.stop()); } catch (e) {} },
     seek: (i, f) => { const t = tracks[i]; if (t && t.L && !rec) seekTo(t, f); },
