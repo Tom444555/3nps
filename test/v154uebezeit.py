@@ -160,14 +160,14 @@ async def main():
                 init = "localStorage.setItem('3nps-theme','nordic');localStorage.setItem('3nps-theme2','%s');localStorage.setItem('3nps-device','%s');" % (th, dev)
                 ctx, pg, errs = await ctxpage(b, w, h, init)
                 await pg.goto(U + 'index.html'); await pg.wait_for_timeout(900)
-                lb = await pg.evaluate("(()=>{const b=document.getElementById('uebenBtn').getBoundingClientRect(),i=document.getElementById('loopInfo').getBoundingClientRect();return [Math.round(b.width),Math.round(b.height),b.left>=i.right-1]})()")
+                lb = await pg.evaluate("(()=>{const b=document.getElementById('uebenBtn').getBoundingClientRect(),i=document.getElementById('loopInfo').getBoundingClientRect();return [Math.round(b.width),Math.round(b.height),b.right<=i.left+1]})()")
                 await pg.click('#uebenBtn'); await pg.wait_for_timeout(50)
                 on = await pg.get_attribute('#uebenBtn', 'aria-pressed') == 'true'
                 await pg.evaluate(setrun(47, 'tl')); await pg.reload(); await pg.wait_for_timeout(700)
                 await open_tab(pg, 'uebezeit'); await pg.wait_for_timeout(150); await imp(pg, ZIP)
                 await pg.fill('#uzNote', 'Pentatonik Lage 2'); await pg.wait_for_timeout(100)
                 g = await pg.evaluate("(()=>{const bs=[...document.querySelectorAll('#uzRoot button')].filter(b=>b.offsetParent);return {small:bs.filter(b=>{const r=b.getBoundingClientRect();return r.width<44||r.height<44}).map(b=>b.id||b.textContent),ow:document.documentElement.scrollWidth>innerWidth+1}})()")
-                check(f'{w}/{th}/{dev}: Looper-Knopf ≥ 44 px neben „Kein Loop“, schaltet; Seite ohne Überlauf, Knöpfe ≥ 44 px',
+                check(f'{w}/{th}/{dev}: Looper-Knopf ≥ 44 px (v157: mittig, links von „Kein Loop“), schaltet; Seite ohne Überlauf, Knöpfe ≥ 44 px',
                       lb[0] >= 44 and lb[1] >= 44 and lb[2] and on and not g['small'] and not g['ow'], [lb, on, g])
                 check(f'{w}/{th}/{dev}: keine Skriptfehler', not errs, errs[:3])
                 if SHOT and dev == 'new' and th in ('ios', 'nordic') and w in (1366, 390):

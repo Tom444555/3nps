@@ -1604,3 +1604,17 @@ Gut zu wissen
      die Studio-Instrumente (≈ 20 MB auf dem Server) und englische Studio-Texte. In der Anleitung „?“ fehlt bei „Ideen“ der
      veraltete Hinweis auf „Studio“.
    - Die alte Adresse …/3nps/studio/ führt weiter in den Looper. Gespeicherte Studio-Projekte auf dem iPad bleiben unangetastet.
+
+140. Knopf „Üben“ mittig und leuchtend, Zeit nachträglich aufteilen (v157)
+   - Im Looper sitzt „Üben“ jetzt mittig in der Kopfzeile der Looper-Karte (links „Looper“, rechts der Status wie „Kein Loop“),
+     etwas breiter und auf einer Linie mit beiden. Antippen = an, nochmal = aus. Ein Thema muss nicht gewählt werden.
+   - Läuft die Zeit, leuchtet der Knopf grün mit der Zeit („● 0:47“) und einem ruhigen, langsamen Schein. „Altes iPad“: ohne
+     Schein, kräftiges Grün mit hellem Rand; „Minimal“: nur Grün. Bei „Bewegung reduzieren“ (iPad) pulsiert nichts.
+     Der große Schalter unter „Lernen › Übezeit“ leuchtet genauso. Die Karte wird dabei nicht höher, nichts verrutscht.
+   - Zeit später auf Themen verteilen: „Lernen › Übezeit“ › „Letzte Einheiten“ › Einheit antippen › „Zeit aufteilen“
+     (gleich nach dem Ausschalten steht der Knopf auch direkt an der gerade beendeten Einheit). Oben die Gesamtdauer, darunter
+     Zeilen „Thema + Minuten (+ Notiz)“, „＋ Abschnitt“, „Rest gleichmäßig verteilen“. „noch zu verteilen: X min“ – was übrig
+     bleibt, zählt „ohne Thema“. Mehr Minuten als die Einheit lang war, lässt sich nicht speichern.
+   - Beginn und Ende der Einheit bleiben, die Abschnitte liegen nahtlos hintereinander (in der Liste „aufgeteilt“). Abschnitt
+     antippen › „Aufteilung ändern“ oder „Aufteilung aufheben“ (wieder eine Einheit). Geht auch für importierte und
+     nachgetragene Einheiten. Summen, Verlauf, „Woran geübt“ und CSV-Export rechnen mit den Abschnitten; die Gesamtzeit bleibt.

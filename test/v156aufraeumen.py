@@ -20,7 +20,7 @@ async def main():
     check('gebautes index.html ohne Studio-Reste', not left, left)
     check('Englisch-Wörterbuch ohne Studio-Texte', not [g for g in GONE_EN if g in en], [g for g in GONE_EN if g in en])
     n = len(html.encode()); check('index.html < 2,1 MB und kleiner als v155 (2 099 107 B)', n < 2099107 and n < 2100000, n)
-    check('sw.js: Cache 3nps-v156, kein /inst/-Zweig, Weiterleitungsseite bleibt', "'3nps-v156'" in sw and '/inst/' not in sw and "'studio/index.html'" in sw)
+    check('sw.js: Cache ab 3nps-v156, kein /inst/-Zweig, Weiterleitungsseite bleibt', int(re.search(r"'3nps-v(\d+)'", sw).group(1)) >= 156 and '/inst/' not in sw and "'studio/index.html'" in sw)
     check('Weiterleitungsseite studio/index.html vorhanden', 'url=../' in open(W + 'studio/index.html', encoding='utf8').read())
     check('Studio-Instrumente inst/ entfernt', not os.path.exists(W + 'inst'))
     async with async_playwright() as p:
@@ -75,11 +75,11 @@ async def main():
         await pg.goto(U + 'index.html'); await pg.wait_for_timeout(1500)
         await pg.evaluate("navigator.serviceWorker.register('sw.js').then(() => navigator.serviceWorker.ready).then(() => true)")
         for k in range(60):
-            if await pg.evaluate("!!navigator.serviceWorker.controller && caches.keys().then(k=>k.includes('3nps-v156'))"): break
+            if await pg.evaluate("!!navigator.serviceWorker.controller && caches.keys().then(k=>k.some(x=>/^3nps-v(\d+)$/.test(x)&&+x.slice(6)>=156))"): break
             await pg.wait_for_timeout(500)
         await pg.reload(); await pg.wait_for_timeout(1500)
         cn = await pg.evaluate("caches.keys()")
-        check('Service Worker aktiv, Speicher 3nps-v156', await pg.evaluate("!!navigator.serviceWorker.controller") and '3nps-v156' in cn, cn)
+        check('Service Worker aktiv, Speicher ab 3nps-v156', await pg.evaluate("!!navigator.serviceWorker.controller") and any(re.fullmatch(r'3nps-v(\d+)', x) and int(x[6:]) >= 156 for x in cn), cn)
         await pg.goto(U + 'studio/'); await pg.wait_for_timeout(2500)
         check('Studio-Adresse mit Service Worker online → Looper', await pg.locator('#tab-looper').count() == 1 and '/studio' not in pg.url, pg.url)
         await ctx.set_offline(True)
