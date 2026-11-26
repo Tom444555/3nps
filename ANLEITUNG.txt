@@ -1634,6 +1634,17 @@ Gut zu wissen
      die Übung. „Als Nächstes üben“ schlägt die schwächste Lage vor. „Verlauf“: dein Tempo über die Zeit im Börsenkurs-Stil.
    - Jeder Lauf ab 5 s steht im Übungslog (Technik) und zählt im Übe-Verlauf; läuft „Üben“, wird nichts doppelt gezählt. Läuft „Üben“
      nicht, bietet der Trainer „Üben einschalten“ an. Läuft der Looper, folgt der Trainer dessen Tempo; laufende Drums folgen dem Trainer.
-     Verlässt du die Seite, stoppt er. Kein Fußpedal-Befehl (die Pedal-Belegung hat keine passende Aktion).
+     Verlässt du die Seite, stoppt er. Fußpedal: siehe 142 (ab v159).
    - Nebenbei: Technik-Griffbrett zeigt im Finger-Modus den 3nps-Fingersatz jetzt richtig (Halbton zuerst 1-2-4, danach 1-3-4).
      Die Anleitung „?“ lädt ihren Text erst beim ersten Öffnen (App startet etwas schlanker).
+
+142. Fußpedal für „Tap“ und den Tonleiter-Trainer (v159)
+   - Looper › „Fußpedal“ › „Tasten belegen (Tippen · Halten · Doppelt tippen)“: in jeder Auswahlliste neu wählbar
+     „Tap (Tempo)“, „Trainer: Start / Stopp“, „Trainer: Weiter (nächste Lage/Übung)“, „Trainer: geschafft → schneller“ und
+     „Trainer: zu schnell → langsamer“. Die Standard-Belegung und deine gespeicherte Belegung bleiben, wie sie sind.
+   - „Tap (Tempo)“: jeder Tritt wirkt wie ein Tipp auf „Tap“ oben beim Tempo (ab dem 2. Tritt Mittel der letzten Abstände,
+     Pause über 2 s beginnt neu). Tipp: auf „Tippen“ legen, nicht auf „Doppelt tippen“ (das wartet 0,3 s).
+   - Die Trainer-Aktionen wirken nur, wenn die Seite „Tonleiter-Trainer“ offen ist – sonst tut der Tritt nichts.
+     „Weiter“ = nächste Lage; nach der letzten Lage (oder bei „Alle“) die nächste Übung. Läuft der Trainer, läuft er weiter.
+     Die übrigen drei wirken wie die Knöpfe „▶ Start / ■ Stopp“, „geschafft → schneller“, „zu schnell → langsamer“.
+   - Im Trainer steht unter „Üben einschalten“ ein kurzer Hinweis darauf.
