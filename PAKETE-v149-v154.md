@@ -26,7 +26,7 @@ Offen und NICHT Teil dieser Pakete: Songbook und Tonleiter-Trainer (Konzept erst
   Claude-Session: https://claude.ai/code/session_01MK1eRjSS7zQ5Z5kcwzfHFk
 - Regressionen (alle, nacheinander): neuer Test, v148ohnestudio v146rig v147spark v102ideas v59lang v60lang v31export v113hilfe v116looperA v117looperB
   v118signal v120power v127look v134leiste v136reiter v137lernen v138jammen v140optik v141zeichnen v142geraet v143bedienung v144design v35 v34perf
-  v63singen v81vox v85singen v124trennen v149start v150tap v151master v152verlauf v153eins v154uebezeit v155uebersicht v156aufraeumen (v149start kann bei 4× Drosselung selten knapp 20/21 zeigen –
+  v63singen v81vox v85singen v124trennen v149start v150tap v151master v152verlauf v153eins v154uebezeit v155uebersicht v156aufraeumen v157aufteilen v158tonleiter (v149start kann bei 4× Drosselung selten knapp 20/21 zeigen –
   dann wiederholen); bei Audio-/Start-/Leistungs-Änderungen zusätzlich v119leistung (~15 min), v100mem, v145start (`OLD=<main-Commit der Vorversion>`, vorher `sh test/pages.sh`).
   Bekannt rot schon vor v149 (nicht reparieren, nur nicht verschlechtern): v119leistung „Drone v1: Schleife klingt wie live“, v145start „Update nordic offline“.
   Alles andere muss grün sein, sonst nicht veröffentlichen.

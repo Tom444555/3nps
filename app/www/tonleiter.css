@@ -19,7 +19,8 @@
 .tl-lbl { display: block; font: 600 .82rem var(--f-body); color: var(--muted); margin: 2px 0 6px; }
 .tl-seg { display: flex; flex-wrap: wrap; gap: 4px; width: 100%; box-sizing: border-box; }
 .tl-seg .toggle-btn { min-height: 44px; min-width: 44px; padding: 0 12px; flex: 0 1 auto; font-weight: 600; }
-#tlLage .toggle-btn, #tlSt .toggle-btn, #tlNv .toggle-btn, #tlForm .toggle-btn, #tlAuto .toggle-btn { flex: 1 1 0; padding-inline: 6px; }
+#tlNv .toggle-btn { flex: 1 1 calc(25% - 4px); min-width: 104px; }
+#tlLage .toggle-btn, #tlSt .toggle-btn, #tlForm .toggle-btn, #tlAuto .toggle-btn { flex: 1 1 0; padding-inline: 6px; }
 .tl-row { display: flex; gap: 10px 14px; flex-wrap: wrap; align-items: flex-start; margin: 4px 0; }
 .tl-rsel { display: flex; flex-direction: column; flex: 0 0 auto; }
 .tl-rsel select { min-height: 48px; min-width: 92px; font: 700 1.15rem var(--f-body); padding: 0 10px; border-radius: 12px; }
@@ -91,6 +92,7 @@ html.dev-old .tl-n, html.dev-old .tl-rampbar i { transition: none; }
 #tlFg .toggle-btn { flex: 0 0 auto; }
 
 /* Fortschritt */
+#tlRoot .tl-kpi .uz-sum:last-child { grid-column: auto; }
 #tlRoot .tl-kpi { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .tl-next { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin: 12px 0 8px; padding: 10px 12px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface-2, rgba(127,127,127,.08)); }
 .tl-nx { font: 700 1.05rem var(--f-body); color: var(--ink); }

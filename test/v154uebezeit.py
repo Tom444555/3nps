@@ -149,7 +149,7 @@ async def main():
         gb = await pg.evaluate("(()=>{const r=document.getElementById('pvGo').getBoundingClientRect();return [r.width,r.height]})()")
         await pg.click('#pvGo'); await pg.wait_for_timeout(150)
         check('„Ganze Übersicht“ (≥ 44 px) öffnet Lernen › Übezeit', gb[0] >= 44 and gb[1] >= 44 and await pg.evaluate("AppNav.current()") == 'uebezeit', gb)
-        check('Anleitung: Thema „uebezeit“, „?“ führt dorthin', await pg.evaluate("AppNav.HELP.uebezeit==='uebezeit'&&JSON.stringify(__hilfeDaten()).includes('\"id\":\"uebezeit\"')"))
+        check('Anleitung: Thema „uebezeit“, „?“ führt dorthin', await pg.evaluate("(async()=>{if(typeof __hilfeDaten!=='function')await new Promise(r=>{const s=document.createElement('script');s.src='hilfe-daten.js';s.onload=s.onerror=r;document.head.appendChild(s)});return AppNav.HELP.uebezeit==='uebezeit'&&JSON.stringify(__hilfeDaten()).includes('\"id\":\"uebezeit\"')})()"))
         check('Lernen-Übersicht: Kachel „Übezeit“', await pg.evaluate("(()=>{AppNav.show('lernen');return !!document.querySelector('.ln-tile[data-t=uebezeit]')})()"))
         check('Looper unberührt (Drums aus, nichts beschäftigt)', await pg.evaluate("!Rhythm.on()&&!Looper.busy()"))
         check('1366: keine Skriptfehler', not errs, errs[:3])

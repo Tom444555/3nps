@@ -37,6 +37,7 @@ window.Tonleiter = (() => {
       notes.push({ string: s, fret: p - OPEN[s], pitch: p });
       if (blue && md(p - root) === 5) notes.push({ string: s, fret: p + 1 - OPEN[s], pitch: p + 1, blue: true });   // ♭5 direkt nach der Quarte, gleiche Saite
     });
+    if (notes.some(n => n.fret < 0)) notes.forEach(n => { n.fret += 12; n.pitch += 12; });   // Lage reicht unter den Sattel → eine Oktave höher
     // Fingersatz: liegt die Lage in 4 Bünden → ein Finger je Bund; sonst je Saite (tiefer Ton 1, Abstand 2 → 3, 3 → 4)
     const fr = notes.map(n => n.fret).filter(f => f > 0), lo = Math.min(...fr), hi = Math.max(...fr);
     notes.forEach(n => {
@@ -111,7 +112,7 @@ window.Tonleiter = (() => {
   /* ---------- Zustand ---------- */
   let built = false, sel = null, bpm = 60, run = null, msgT = 0, vr = '3M', vm = 'x';
   const dev = () => window.__dev || 'new';
-  const locked = () => !!(window.Looper && Looper.running && Looper.running());
+  const locked = () => !!(typeof Looper !== 'undefined' && Looper.running && Looper.running());
   const lockBpm = () => (parseFloat(($('bpm') || {}).value) || 80) * (window.__tempoMul || 1);
   const curBpm = () => (locked() ? lockBpm() : bpm);
   const lagen = () => (sel.l === 'all' ? Array.from({ length: nLagen(fam(sel.f)) }, (_, i) => i + 1) : [sel.l]);
@@ -125,7 +126,7 @@ window.Tonleiter = (() => {
   }
   const clampB = v => Math.max(30, Math.min(240, Math.round(v)));
   function syncDrums() {   // laufen die Drums (frei), folgen sie dem Trainer-Tempo – wie bei „−/+“
-    if (locked() || !(window.Rhythm && Rhythm.on && Rhythm.on())) return;
+    if (locked() || typeof Rhythm === 'undefined' || !(Rhythm.on && Rhythm.on())) return;
     const r = $('bpm'); if (!r || bpm < +r.min || bpm > +r.max || +r.value === bpm) return;
     r.value = bpm; r.dispatchEvent(new Event('input', { bubbles: true })); r.dispatchEvent(new Event('change', { bubbles: true }));
   }
@@ -156,7 +157,7 @@ window.Tonleiter = (() => {
     try { if (typeof isPlaying !== 'undefined' && isPlaying && typeof stopPlayback === 'function') stopPlayback(); } catch (e) {}   // Technik-Metronom nicht doppelt
     ensureAudio();
     let t0 = audioCtx.currentTime + 0.12;
-    if (locked() && window.Rhythm && Rhythm.nextBarTime) { try { const nb = Rhythm.nextBarTime(); if (nb > audioCtx.currentTime + 0.05) t0 = nb; } catch (e) {} }
+    if (locked() && typeof Rhythm !== 'undefined' && Rhythm.nextBarTime) { try { const nb = Rhythm.nextBarTime(); if (nb > audioCtx.currentTime + 0.05) t0 = nb; } catch (e) {} }
     run = makeRun(t0, (t, acc, cin) => { if (run) clickAt(t, acc, cin); });
     syncDrums();
     run.eng.pump(audioCtx.currentTime);
@@ -221,7 +222,7 @@ window.Tonleiter = (() => {
     const idx = p.q[rel]; r.cur = idx;
     if (dev() !== 'min') paintBoard(idx, p);
     const st = $('tlStat'), n = p.ns[idx];
-    const tx = TT('Durchgang') + ' ' + (pass + 1) + (r.ls.length > 1 ? ' · ' + TT('Lage') + ' ' + p.lage : '') + ' · ' + TT('Ton') + ' ' + (rel + 1) + ' / ' + p.q.length + ' · ' + nn(n.pitch, sel.f, sel.r) + ' (' + TT('Saite') + ' ' + (6 - n.string) + ', ' + TT('Bund') + ' ' + n.fret + ')';
+    const tx = TT('Durchgang') + ' ' + (pass + 1) + (r.ls.length > 1 ? ' · ' + TT('Lage') + ' ' + p.lage : '') + ' · ' + (rel + 1) + ' / ' + p.q.length + ' · ' + nn(n.pitch, sel.f, sel.r) + ' (' + TT('Saite') + ' ' + (6 - n.string) + ', ' + TT('Bund') + ' ' + n.fret + ')';
     if (st && st.textContent !== tx) st.textContent = tx;
     paintSeq(p, rel);
   }
