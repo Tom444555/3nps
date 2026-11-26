@@ -129,9 +129,14 @@ früher ABGELEHNT in der Mitsing-Ansicht: Akkordbalken, Pausenbalken, Vergröße
 - **Tonhöhen-Rückmeldung** (eigene Stimme über Mikro als Linie; Zielmelodie aus der getrennten Gesangsspur): als **Stufe 2 (v164)** vorsehen,
   nur bauen, wenn es sauber und ohne Leistungsverlust geht; in v163 höchstens „Ton halten/treffen“ mit dem vorhandenen Mithören für einen
   Vergleichston. Ehrlich melden, was nicht belastbar ist (Erkennung bei Gitarre im Raum, Kopfhörer nötig).
-- **Verknüpfungen:** Stück aus dem Songbook wählbar (v161), Zeit zählt als Thema des Stücks bzw. „Gesang“ in die Übezeit (keine Doppelzählung –
-  Regeln v154/v160), Pedal-Aktionen für „Zeile wiederholen“/„Zeile ›“ wenn einfach (v159-Muster).
+- **Verknüpfungen:** Stück aus dem Songbook wählbar (v161), **Übezeit bleibt getrennt (Tom 26.11. 09:43: „den Übetracker separat lassen, nicht dass die Zeit gedoppelt wird“):**
+  die Seite schreibt SELBST KEINE Zeit in `3nps-uebezeit` – gezählt wird nur wie bisher über den Schalter „Üben“ (bzw. Looper-Zeit v160, falls
+  die Datei über den Looper läuft; eigene Wiedergabe der Seite darf keine Looper-Einheit auslösen, wenn „Üben“ an ist – nie doppelt). Keine
+  eigene Zeitanzeige wie „Heute: 18 min an diesem Stück“ aus einem zweiten Zähler; höchstens die Summe aus der Übezeit ANZEIGEN (nur lesen)
+  und ein Hinweis/Knopf „Üben einschalten“, Pedal-Aktionen für „Zeile wiederholen“/„Zeile ›“ wenn einfach (v159-Muster).
 - Regeln wie immer: Looper-Leistung unberührt, schweres erst bei geöffneter Seite, alle vier Geräte-Profile, keine echten Liedtexte in Tests/Bildern
   (erfundene Zeilen wie im Beispielbild), Mikrofon nur nach Antippen, Kopfhörer-Hinweis gegen Rückkopplung.
 - Test `test/v163mitsingen.py` (Fahrplan/Haken je Stück, drei Wege, ohne Datei nutzbar, Schleife/Tempo/Vorsingen-Pause mit Testaudio, Karaoke nur
   nach Trennen, Aufnahme, Nachladen, Größe, Profile, keine Skriptfehler; v63singen/v81vox/v85singen/v124trennen weiter wie zuvor).
+
+**Freigabe:** Tom am 26.11.2026 09:43: „Mach das genauso“ – v163 wie oben bauen (nach v162), Übezeit getrennt lassen (siehe „Verknüpfungen“).
