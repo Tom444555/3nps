@@ -10,7 +10,7 @@
 .uz-top { display: flex; align-items: center; gap: 14px 18px; flex-wrap: wrap; }
 .uz-btn { min-height: 56px; min-width: 170px; padding: 0 22px; border-radius: 16px; border: 2px solid var(--line); background: var(--surface-2, rgba(127,127,127,.12));
   color: var(--ink); font: 700 1.15rem var(--f-body); cursor: pointer; touch-action: manipulation; }
-.uz-btn[aria-pressed="true"] { background: var(--ok, #2f9e5b); border-color: var(--ok, #2f9e5b); color: #fff; }
+.uz-btn[aria-pressed="true"] { background: #30d158; border-color: #b4f5c6; color: #06210f; }   /* v157: wie Looper-Knopf (Schein in uebezeit.css) */
 .uz-now { min-width: 0; flex: 1 1 120px; }
 .uz-time { font: 700 2.2rem/1.1 var(--f-body); color: var(--muted); font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
 .uz-time.on { color: var(--ink); }
@@ -116,5 +116,13 @@
 .uz-addg .uz-addd { grid-column: 1 / -1; }
 .uz-addg input, .uz-addbox input[type=text] { min-height: 44px; width: 100%; box-sizing: border-box; }
 /* Profile: „Altes iPad“ ohne Schatten/Übergänge, „Minimal“ nur Schalter, Kennzahlen, Liste (+ Daten) */
+/* v157: Zeit aufteilen */
+.uz-sprow { display: grid; grid-template-columns: minmax(0, 1.4fr) 5.2em minmax(0, 1.4fr) 44px; gap: 6px; margin-bottom: 6px; }
+.uz-sprow select, .uz-sprow input { min-height: 44px; width: 100%; box-sizing: border-box; }
+.uz-sptot { margin: 4px 0 10px; }
+.uz-sptot b { font-size: 1.4em; margin-right: 8px; }
+.uz-spbox { max-width: 600px; }
+.uz-splh { min-height: 44px; padding: 0 12px; margin: -12px 0; }
+@media (max-width: 560px) { .uz-sprow { grid-template-columns: minmax(0, 1fr) 5.2em 44px; } .uz-sprow [data-f="nt"] { grid-column: 1 / 3; grid-row: 2; } }
 .dev-old #uzRoot *, .dev-old .uz-ask * { box-shadow: none !important; transition: none !important; }
 .dev-min #uzRoot .uz-viz { display: none; }

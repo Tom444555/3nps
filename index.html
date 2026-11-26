@@ -1695,11 +1695,21 @@ html.dev-min #msFoldCard { display: none !important; }
 #pvFold > summary { min-height: 44px; }
 #pvFold > summary h2 { white-space: nowrap; }
 /* v154: Übezeit – Kopfknopf und Seite „Lernen › Übezeit“ (Farben aus der Optik) */
-/* Schalter im Kopf der Looper-Karte (rechts neben „Kein Loop“): negative Ränder → die Kopfzeile wird nicht höher, nichts verrutscht */
-.looper-card > .card-head > #loopInfo { margin-left: auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.looper-card > .card-head > .ueben-btn { flex: 0 0 auto; align-self: center; min-height: 44px; min-width: 5.6em; margin-block: -22px; padding: 0 12px;
-  font-variant-numeric: tabular-nums; white-space: nowrap; position: relative; top: -3px; }
-.looper-card > .card-head > .ueben-btn[aria-pressed="true"] { background: var(--ok, #2f9e5b); border-color: var(--ok, #2f9e5b); color: #fff; }
+/* v157: Kopf als Raster 1fr auto 1fr (Titel | Knopf mittig | Status); Knopf feste Breite, negative Ränder → Kopf nicht höher, nichts springt.
+   An = iOS-Grün mit Schein auf ::after, pulsiert nur per opacity; Altes iPad: Füllung + heller Rand; Minimal: nur Farbe */
+.looper-card > .card-head { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; column-gap: 10px; }
+.looper-card > .card-head > h2 { grid-area: 1 / 1; white-space: nowrap; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.looper-card > .card-head > #loopInfo { grid-area: 1 / 3; justify-self: end; max-width: 100%; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.looper-card > .card-head > .ueben-btn { grid-area: 1 / 2; width: 7rem; height: 44px; min-height: 44px; margin: -13px 0; padding: 0 8px; position: relative;
+  font-variant-numeric: tabular-nums; white-space: nowrap; border-radius: 14px; }
+.looper-card > .card-head > .ueben-btn[aria-pressed="true"], .uz-btn[aria-pressed="true"] { background: #30d158; border: 2px solid #b4f5c6; color: #06210f; font-weight: 700; }
+.uz-btn { position: relative; }
+.ueben-btn[aria-pressed="true"]::after, .uz-btn[aria-pressed="true"]::after { content: ""; position: absolute; inset: -2px; border-radius: inherit; pointer-events: none;
+  box-shadow: 0 0 0 2px rgba(48,209,88,.6), 0 0 16px 4px rgba(48,209,88,.75), 0 0 46px 12px rgba(48,209,88,.4); animation: uz-glow 2.6s ease-in-out infinite alternate; }
+@keyframes uz-glow { from { opacity: .5; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .ueben-btn[aria-pressed="true"]::after, .uz-btn[aria-pressed="true"]::after { animation: none; } }
+html.dev-old .ueben-btn::after, html.dev-old .uz-btn::after { display: none; }
+html.dev-min .looper-card > .card-head > .ueben-btn[aria-pressed="true"], html.dev-min .uz-btn[aria-pressed="true"] { border-color: #30d158; }
 .uz-askf input, .uz-edb .toggle-btn { min-height: 44px; }
 /* Seite: Stil kommt mit uebezeit-ansicht.css beim ersten Öffnen; bis dahin unsichtbar (kein ungestaltetes Aufblitzen) */
 #uzRoot:not(.uz-css) { visibility: hidden; }
@@ -3745,7 +3755,7 @@ html.dev-min #msFoldCard { display: none !important; }
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v156</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v157</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -7267,6 +7277,7 @@ Speicher: localStorage „3nps-uebezeit“ – EIN Schlüssel für Laufzustand u
 Format v1 (Teil B liest nur):
 { v: 1, run: null | { s: Start (ms) }, th: gewähltes Thema ('' = ohne), nt: Notiz,
 u: [[ende_s, dauer_s, herkunft (0 = selbst gezählt, 1 = Import, 2 = nachgetragen), thema, notiz], …] }
+v157: optional u[5] = Kennzeichen einer Aufteilung (Abschnitte einer Einheit, nahtlos; aufteilen/aufheben in uebezeit-ansicht.js).
 v155: Export kennzeichnet Herkunft 0/2 in „Übungen“ mit „[App]“ bzw. „[nachgetragen]“, der Import stellt sie wieder her.   – nach Ende sortiert, Minutengenau
 Themen: „3nps-uebezeit-themen“ { c: [[id, name], …] eigene, r: { id: neuer Name }, h: [ausgeblendete ids] }.
 Beim Start: nur Kopfknopf (ein getItem); die Seite wird erst beim ersten Öffnen gebaut. Keine Timer außer der Minutenanzeige bei laufender Zeit. */
@@ -7316,7 +7327,7 @@ const at = (date, time) => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date || 
 const durTxt = sec => { const h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60), s = Math.round(sec % 60); const o = []; if (h) o.push(h + 'h'); if (m) o.push(m + 'm'); if (s) o.push(s + 's'); return o.join(' ') || '0ms'; };
 
 /* ---------- Schalter ---------- */
-let tick = null;
+let tick = null, lastE = 0;
 function on() {
 const d = load(); if (d.run) return true;
 d.run = { s: Date.now() };
@@ -7329,7 +7340,7 @@ const now = Date.now(), s = d.run.s;
 if (now - s > H8 && !opt.ok && !opt.drop) { ask8(s, now); return 'ask'; }
 let e = opt.dur != null ? s + opt.dur * 1000 : now;
 const u = opt.drop ? null : unitFrom(s, e, d);
-if (u) d.u.push(u);
+if (u) { d.u.push(u); lastE = u[0]; }
 d.run = null; d.nt = '';
 if (!store(d)) return null;
 say(u ? TT('Gespeichert:') + ' ' + fmtHM(u[1]) + (u[3] ? ' · ' + tname(u[3]) : '') : opt.drop ? TT('Verworfen.') : TT('Unter 1 Minute – nicht gespeichert.'));
@@ -7560,6 +7571,7 @@ $('uzOlder').addEventListener('click', () => { page++; editIdx = null; paintList
 $('uzList').addEventListener('click', e => {
 const row = e.target.closest('[data-i]'), b = e.target.closest('button');
 if (b && b.dataset.act) { listAct(b.dataset.act); return; }
+if (b && b.dataset.split) { split(+b.dataset.split); return; }
 if (row && !e.target.closest('.uz-ed')) { const i = +row.dataset.i; editIdx = editIdx === i ? null : i; paintList(); }
 });
 $('uzImp').addEventListener('click', () => $('uzFile').click());
@@ -7611,6 +7623,7 @@ sc.onload = () => paintViz();
 sc.onerror = () => { vizLoading = false; };
 l.onload = l.onerror = () => document.head.appendChild(sc);   // erst Stil, dann Code
 }
+const split = (i, un, n) => { if (window.UebezeitAnsicht) return un ? UebezeitAnsicht.unsplit(i) : UebezeitAnsicht.splitForm(i); loadViz(); if ((n || 0) < 30) setTimeout(() => split(i, un, (n || 0) + 1), 200); };
 const paintViz = () => { if (!built) return; if (window.UebezeitAnsicht) UebezeitAnsicht.paint(load()); else loadViz(); };
 function paintSums() {
 if (window.UebezeitAnsicht) return;   // Kacheln mit ▲/▼ zeichnet uebezeit-ansicht.js (paintViz)   // v155: Kacheln mit ▲/▼ zeichnet uebezeit-ansicht.js (paintViz)
@@ -7625,9 +7638,9 @@ page = Math.min(page, pages - 1);
 const from = N - 1 - page * PER, rows = [];
 for (let i = from; i > from - PER && i >= 0; i--) {
 const u = d.u[i], e = u[0] * 1000, s = e - u[1] * 1000;
-rows.push('<div class="uz-row' + (editIdx === i ? ' open' : '') + '" data-i="' + i + '" role="button" tabindex="0"><div class="uz-r1"><span class="uz-rd">' + esc(dday(e)) + '</span><b class="uz-rdur">' + esc(fmtHM(u[1])) + '</b></div>'
+rows.push('<div class="uz-row' + (editIdx === i ? ' open' : '') + '" data-i="' + i + '" role="button" tabindex="0"><div class="uz-r1"><span class="uz-rd">' + esc(dday(e)) + '</span><b class="uz-rdur">' + esc(fmtHM(u[1])) + '</b>' + (u[0] === lastE && !u[5] && editIdx !== i ? '<button type="button" class="toggle-btn uz-splh" data-split="' + i + '">' + esc(TT('Zeit aufteilen')) + '</button>' : '') + '</div>'
 + '<div class="uz-r2 caption"><span>' + hhmm(s) + '–' + hhmm(e) + '</span>' + (u[3] ? '<span class="uz-tag">' + esc(tname(u[3], t)) + '</span>' : '') + (u[2] === 1 ? '<span class="uz-imp">' + esc(TT('Import')) + '</span>' : u[2] === 2 ? '<span class="uz-imp">' + esc(TT('nachgetragen')) + '</span>' : '')
-+ (u[4] ? '<span class="uz-rn">' + esc(u[4]) + '</span>' : '') + '</div>'
++ (u[5] ? '<span class="uz-imp">' + esc(TT('aufgeteilt')) + '</span>' : '') + (u[4] ? '<span class="uz-rn">' + esc(u[4]) + '</span>' : '') + '</div>'
 + (editIdx === i ? editor(u, t) : '') + '</div>');
 }
 el.innerHTML = rows.length ? rows.join('') : '<p class="pattern-desc uz-empty">' + esc(TT('Noch keine Einheiten. Tippe oben „Üben“, wenn du anfängst – oder importiere dein Protokoll aus Numbers (unten).')) + '</p>';
@@ -7641,7 +7654,7 @@ return '<div class="uz-ed"><label class="field"><span>' + esc(TT('Datum')) + '</
 + '<label class="field"><span>' + esc(TT('Thema')) + '</span><select id="uzEdTh">' + ids.map(id => '<option value="' + esc(id) + '"' + (id === u[3] ? ' selected' : '') + '>' + esc(tname(id, t)) + '</option>').join('') + '</select></label>'
 + '<label class="field"><span>' + esc(TT('Dauer (Minuten)')) + '</span><input type="number" id="uzEdDur" min="0" max="1440" step="1" value="' + m + '" inputmode="numeric"></label>'
 + '<label class="field uz-edn"><span>' + esc(TT('Notiz')) + '</span><input type="text" id="uzEdNote" maxlength="300" value="' + esc(u[4]) + '"></label>'
-+ '<div class="uz-edb"><button type="button" class="toggle-btn active" data-act="save">' + esc(TT('Speichern')) + '</button><button type="button" class="toggle-btn" data-act="cancel">' + esc(TT('Abbrechen')) + '</button><button type="button" class="toggle-btn uz-del" data-act="del">' + esc(TT('Löschen')) + '</button></div></div>';
++ '<div class="uz-edb"><button type="button" class="toggle-btn active" data-act="save">' + esc(TT('Speichern')) + '</button><button type="button" class="toggle-btn" data-act="cancel">' + esc(TT('Abbrechen')) + '</button><button type="button" class="toggle-btn uz-del" data-act="del">' + esc(TT('Löschen')) + '</button><button type="button" class="toggle-btn" data-act="split">' + esc(TT(u[5] ? 'Aufteilung ändern' : 'Zeit aufteilen')) + '</button>' + (u[5] ? '<button type="button" class="toggle-btn" data-act="unsplit">' + esc(TT('Aufteilung aufheben')) + '</button>' : '') + '</div></div>';
 }
 function editUnit(i, ch) {
 const d = load(), u = d.u[i]; if (!u) return false;
@@ -7656,6 +7669,8 @@ const ok = store(d); changed(); return ok;
 function listAct(a) {
 const i = editIdx; if (i == null) return;
 if (a === 'cancel') { editIdx = null; paintList(); return; }
+if (a === 'split') { editIdx = null; paintList(); split(i); return; }
+if (a === 'unsplit') { editIdx = null; split(i, 1); return; }
 if (a === 'del') { if (!confirm(TT('Diese Einheit löschen?'))) return; editIdx = null; editUnit(i, { del: true }); say(TT('Einheit gelöscht.')); return; }
 const min = parseFloat($('uzEdDur').value), st = at($('uzEdDate').value, $('uzEdTime').value);
 editIdx = null; editUnit(i, { th: $('uzEdTh').value, nt: $('uzEdNote').value, min: isNaN(min) ? null : min, start: st });
@@ -7746,7 +7761,7 @@ document.addEventListener('tabchange', e => { if (e.detail === 'uebezeit') { bui
 window.addEventListener('storage', e => { if (e.key === KEY || e.key === TKEY) changed(); });
 }
 if ($('uebenBtn')) init(); else document.addEventListener('DOMContentLoaded', init);   // Kopf steht schon im DOM → sofort, damit tabchange beim Start ankommt
-return { on, off, toggle, setTopic, setNote, load, importFile, importMsg, removeImport, csv, exportCsv, merge, sums, topics, tname, editUnit, addUnit, addForm, fmtHM, dday, hhmm, esc, built: () => built, KEY, DEF, _parse: { csvRows, parseDur, parseDate, unzip } };
+return { save: d => { const ok = store(d); changed(); return ok; }, tlist, lastE: () => lastE, on, off, toggle, setTopic, setNote, load, importFile, importMsg, removeImport, csv, exportCsv, merge, sums, topics, tname, editUnit, addUnit, addForm, fmtHM, dday, hhmm, esc, built: () => built, KEY, DEF, _parse: { csvRows, parseDur, parseDate, unzip } };
 })();
 
 /* ---------- Eigene Musik: Laden, Abspielen, automatische Tonart-Erkennung ---------- */
@@ -23241,9 +23256,9 @@ const HILFE = [
   { id: 'uebeverlauf', t: 'Übe-Verlauf: Übezeit und Tempo als Diagramm', k: 'übe-verlauf verlauf diagramm übezeit minuten tempo bpm fortschritt statistik woche monat jahr',
     s: ['In „Technik“ unter „Letzte Einheiten“ die Karte „Übe-Verlauf“ aufklappen.', 'Oben steht der aktuelle Wert: bei „Übezeit“ die Summe im Zeitraum, bei „Tempo“ das höchste Tempo des letzten Übungstags. Darunter ▲/▼ die Veränderung zum Vorzeitraum (Übezeit) bzw. seit dem ersten Tag im Zeitraum (Tempo).', 'Zeitraum wählen: 1W · 1M · 3M · 1J · Alles (ab 3 Monaten je Woche). „Hoch“ und „Tief“ zeigen den besten und schwächsten Tag bzw. die Woche.'],
     tip: ['Gezählt wird nur, was gespeichert ist: Metronom-Einheiten ab 5 Sekunden und erledigte Blöcke der Tagesübung. Spielen im Looper zählt nicht mit.'] },
-  { id: 'uebezeit', t: 'Übezeit: Üben an/aus, Themen, Import aus Numbers', k: 'übezeit üben schalter an aus tracken zeit zählen protokoll numbers import export csv thema themen notiz einheit stunden summe nachtragen übersicht kalender serie diagramm verlauf wochentag tageszeit',
+  { id: 'uebezeit', t: 'Übezeit: Üben an/aus, Themen, Import aus Numbers', k: 'übezeit üben schalter an aus tracken aufteilen abschnitt zeit zählen protokoll numbers import export csv thema themen notiz einheit stunden summe nachtragen übersicht kalender serie diagramm verlauf wochentag tageszeit',
     p: ['Die App zählt deine Übezeit selbst – wie ein Protokoll mit Start, Ende und Dauer. Einschalten, üben, ausschalten.'],
-    s: ['Schalter: im Looper oben rechts in der Looper-Karte „Üben“ (läuft: grün mit der Zeit, z. B. „● 0:42“) oder groß unter „Lernen › Übezeit“ („Üben: An / Aus“).', 'Unter „Was übe ich?“ ein Thema antippen (freiwillig). Wechselst du das Thema bei laufender Zeit, wird bis dahin gespeichert und ab jetzt neu gezählt.', '„Themen …“: eigenes Thema hinzufügen, umbenennen oder ausblenden. Dazu optional eine „Notiz“.', 'Ausschalten speichert die Einheit. Unter 1 Minute wird nichts gespeichert; nach mehr als 8 Stunden fragt die App nach der echten Dauer.', '„Letzte Einheiten“: Eintrag antippen → Datum, Beginn, Thema, Dauer, Notiz ändern oder löschen.', 'Vergessen zu tracken? „＋ Einheit nachtragen“: Datum, Beginn und Ende – oder nur die Dauer –, Thema, Notiz. Überschneidet sie sich mit einer vorhandenen Einheit, fragt die App nach.', 'Übersicht auf derselben Seite: Kacheln (Heute · Woche · Monat · Jahr mit ▲/▼ zum gleichen Zeitpunkt des Vorzeitraums, Insgesamt, Ø je Übetag, Übetage, Serie, längste Einheit, beste Woche), „Verlauf“ (1W · 1M · 3M · 1J · 3J · Alles, „je Zeitraum“/„aufsummiert“, je Thema), „Wann geübt“ (Wochentag, Tageszeit), „Monate und Jahre“, „Kalender“ (Jahr mit ‹ ›) und „Woran geübt“ (Zeit je Thema; antippen = Verlauf nur dieses Themas).', 'Numbers-Protokoll übernehmen: in Numbers „Exportieren › CSV“, die ZIP-Datei in „Dateien“ sichern, dann „Übezeit importieren …“ und die ZIP wählen (nicht entpacken). Eine einzelne CSV geht auch.', '„Als CSV exportieren“ gibt alles im selben Format zurück; „Import entfernen“ nimmt nur Importiertes wieder heraus.'],
+    s: ['Schalter: im Looper mittig in der Looper-Karte „Üben“ (läuft: leuchtet grün mit der Zeit, z. B. „● 0:42“; ohne Themenwahl) oder groß unter „Lernen › Übezeit“ („Üben: An / Aus“).', 'Unter „Was übe ich?“ ein Thema antippen (freiwillig). Wechselst du das Thema bei laufender Zeit, wird bis dahin gespeichert und ab jetzt neu gezählt.', '„Themen …“: eigenes Thema hinzufügen, umbenennen oder ausblenden. Dazu optional eine „Notiz“.', 'Ausschalten speichert die Einheit. Unter 1 Minute wird nichts gespeichert; nach mehr als 8 Stunden fragt die App nach der echten Dauer.', '„Letzte Einheiten“: Eintrag antippen → Datum, Beginn, Thema, Dauer, Notiz ändern oder löschen.', 'Später aufteilen: Einheit antippen › „Zeit aufteilen“ – Zeilen Thema + Minuten, „＋ Abschnitt“, „Rest gleichmäßig verteilen“; Rest bleibt „ohne Thema“. „Aufteilung aufheben“ macht wieder eine Einheit.', 'Vergessen zu tracken? „＋ Einheit nachtragen“: Datum, Beginn und Ende – oder nur die Dauer –, Thema, Notiz. Überschneidet sie sich mit einer vorhandenen Einheit, fragt die App nach.', 'Übersicht auf derselben Seite: Kacheln (Heute · Woche · Monat · Jahr mit ▲/▼ zum gleichen Zeitpunkt des Vorzeitraums, Insgesamt, Ø je Übetag, Übetage, Serie, längste Einheit, beste Woche), „Verlauf“ (1W · 1M · 3M · 1J · 3J · Alles, „je Zeitraum“/„aufsummiert“, je Thema), „Wann geübt“ (Wochentag, Tageszeit), „Monate und Jahre“, „Kalender“ (Jahr mit ‹ ›) und „Woran geübt“ (Zeit je Thema; antippen = Verlauf nur dieses Themas).', 'Numbers-Protokoll übernehmen: in Numbers „Exportieren › CSV“, die ZIP-Datei in „Dateien“ sichern, dann „Übezeit importieren …“ und die ZIP wählen (nicht entpacken). Eine einzelne CSV geht auch.', '„Als CSV exportieren“ gibt alles im selben Format zurück; „Import entfernen“ nimmt nur Importiertes wieder heraus.'],
     tip: ['Die Zeit läuft auch weiter, wenn die App geschlossen ist („läuft seit …“).', 'Übezeit zählt im „Übe-Verlauf“ (Technik) mit; „Ganze Übersicht“ führt hierher.', '„Alles sichern“ nimmt die Übezeit mit.'] },
   { id: 'mastering', t: 'Mastering (Lautheit für Spotify & Co.)', k: 'mastering master lufs lautheit spotify apple music true peak limiter laut export wav fertig',
     p: ['Bringt einen fertigen Mix auf die Lautheit der Streaming-Dienste, ohne Übersteuern (True Peak). Gemessen nach EBU R128. Lauter und fertig zum Teilen.'],
