@@ -453,9 +453,10 @@
     $('ldTexts').innerHTML = textSlots(v).map(sl => {
       const p = sl.p, t = (p.lyrics || [])[sl.n] || '', ls = X.lines(t, lg), rows = Math.max(3, t.split('\n').length + 1);
       const ph = sl.n === 0 ? 'Text für „' + p.name + '“ …' : 'Text beim ' + (sl.n + 1) + '. Mal …';
+      const ph2 = p.plan && p.plan.n ? ph + ' (' + p.plan.n + ' Zeilen' + (p.plan.r ? ' · Reim ' + p.plan.r : '') + ')' : ph;   // v165: Aufbau-Vorlage aus „Songtext schreiben“
       return '<div class="ld-tx ' + TCLS(p.type) + '" data-id="' + p.id + '" data-n="' + sl.n + '"><div class="ld-txh"><b><span translate="no">' + esc(p.name) + '</span>' + (sl.multi ? ' · ' + (sl.n + 1) + '. Mal' : '') + '</b>'
         + '<span class="ld-txc">' + esc(X.chordText(p.chords, v.key)) + '</span><span class="ld-txs">' + esc(statsText(ls, p)) + '</span></div>'
-        + '<div class="ld-txb"><div class="ld-gut">' + gutterHtml(ls) + '</div><textarea class="ld-txt" rows="' + rows + '" wrap="off" autocapitalize="sentences" placeholder="' + esc(ph) + '" aria-label="Text ' + esc(p.name) + '">' + esc(t) + '</textarea></div></div>';
+        + '<div class="ld-txb"><div class="ld-gut">' + gutterHtml(ls) + '</div><textarea class="ld-txt" rows="' + rows + '" wrap="off" autocapitalize="sentences" placeholder="' + esc(ph2) + '" aria-label="Text ' + esc(p.name) + '">' + esc(t) + '</textarea></div></div>';
     }).join('');
   }
   $('ldTexts').addEventListener('input', e => {
@@ -564,7 +565,9 @@
     if (!on) { box.hidden = true; return; }
     twLoad(() => TextWerk.open(box));
   });
-  window.LiedApi = { song, ver, pushVersion, render, status, play, stop, playing: () => P ? P.label || 'Song' : null, copyText, readCode, textSlots };
+  window.LiedApi = { song, ver, pushVersion, render, status, play, stop, playing: () => P ? P.label || 'Song' : null, copyText, readCode, textSlots,
+    // v165 („Songtext schreiben“): Songs lesen, Song wählen/anlegen, speichern, Text-Werkstatt laden – ändert nichts am Verhalten hier
+    songs: () => db.songs, select: id => { if (!db.songs.some(s => s.id === id)) return false; db.active = id; return save(); }, newSong: n => newSong(n), save, twLoad };
 
   // ================= Ganzer Song für Logic =================
   $('ldExport').addEventListener('click', async () => {

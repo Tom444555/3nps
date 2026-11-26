@@ -11,107 +11,20 @@
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
   // ================= Reime nach Schreibung =================
-  // Wort → Lautzeichen: Vokal = { v: Qualität, l: 'L' lang | 'S' kurz | '?' unbekannt }, Konsonant = Zeichen.
-  // Qualitäten: a e i o u y(ü) 8(ö) 1(ei/ai) 2(au) 3(eu/äu); ä zählt wie e.
-  const VQ = 'aeiouy8123';
-  function sounds(word) {
-    let w = String(word || '').toLowerCase().replace(/ß/g, 'Q').replace(/[^a-zäöüQ]/g, '');
-    if (!w) return [];
-    w = w.replace(/ph/g, 'f').replace(/th/g, 't').replace(/qu/g, 'kw').replace(/chs/g, 'ks').replace(/x/g, 'ks').replace(/dt/g, 'tt').replace(/ck/g, 'kk').replace(/tz/g, 'zz')
-      .replace(/sch/g, 'S').replace(/ch/g, 'H').replace(/ng/g, 'N').replace(/v/g, 'f').replace(/y/g, 'ü').replace(/c/g, 'k');
-    const out = []; let i = 0;
-    const V = (v, l, n) => { out.push({ v, l }); i += n; };
-    while (i < w.length) {
-      const r = w.slice(i);
-      if (/^ieh/.test(r)) V('i', 'L', 3);
-      else if (/^(ie|ih)/.test(r)) V('i', 'L', 2);
-      else if (/^(äu|eu)/.test(r)) V('3', 'L', 2);
-      else if (/^(ei|ai|ey|ay)/.test(r)) V('1', 'L', 2);
-      else if (/^au/.test(r)) V('2', 'L', 2);
-      else if (/^(aa|ah(?![aeiouäöü]))/.test(r)) V('a', 'L', 2);
-      else if (/^(ee|eh(?![aeiouäöü])|äh(?![aeiouäöü]))/.test(r)) V('e', 'L', 2);
-      else if (/^(oo|oh(?![aeiouäöü]))/.test(r)) V('o', 'L', 2);
-      else if (/^uh(?![aeiouäöü])/.test(r)) V('u', 'L', 2);
-      else if (/^üh(?![aeiouäöü])/.test(r)) V('y', 'L', 2);
-      else if (/^öh(?![aeiouäöü])/.test(r)) V('8', 'L', 2);
-      else if (/^[aeiouäöü]/.test(r)) V({ ä: 'e', ü: 'y', ö: '8' }[r[0]] || r[0], '?', 1);
-      else if (r[0] === 'Q') { const p = out[out.length - 1]; if (isV(p)) p.l = 'L'; out.push('s'); i++; }   // ß nur nach langem Vokal oder Doppellaut
-      else { out.push(r[0]); i++; }
-    }
-    // Länge aus der Schreibung: Doppelkonsonant (ss, ck, tz, dt …) → kurz; ein Konsonant + Vokal → lang; sonst unbekannt (Mond/Hand)
-    for (let k = 0; k < out.length; k++) {
-      const t = out[k]; if (typeof t !== 'object' || t.l !== '?') continue;
-      const a = out[k + 1], b = out[k + 2];
-      if (a == null) continue;
-      if (typeof a === 'string' && a === b) t.l = 'S';
-      else if (typeof a === 'string' && b && typeof b === 'object') t.l = 'L';
-    }
-    // Auslautverhärtung (b/d/g am Ende oder vor Konsonant), -ig → -ich, Doppelkonsonanten zusammenziehen
-    for (let k = 0; k < out.length; k++) {
-      const t = out[k], n = out[k + 1];
-      if (typeof t === 'string' && 'bdg'.includes(t) && (n == null || typeof n === 'string') && !(t === 'g' && n === 'g')) {
-        const p = out[k - 1];
-        out[k] = (t === 'g' && n == null && p && typeof p === 'object' && p.v === 'i' && k >= 2) ? 'H' : { b: 'p', d: 't', g: 'k' }[t];
-      }
-    }
-    const res = [];
-    out.forEach(t => { const p = res[res.length - 1]; if (typeof t === 'string' && p === t) return; res.push(t); });
-    return res;
-  }
+  // v165: Reim-Kern (Lautzeichen, Reimteil, rein/unrein) liegt jetzt in lied-text.js – dieselbe Regel für die Buchstaben links am Text
+  const { sounds, rhymePart, rhymeLevel } = X;
   const isV = t => t && typeof t === 'object';
-  const UNSTR = /(ung|ungen|ig|ige|igen|iger|iges|igem|igt|igte|igten|igkeit|lich|liche|lichen|licher|liches|lichem|isch|ische|ischen|ischer|in|innen|nis|nisse|nissen|sam|same|samen|samer|bar|bare|baren|barer|haft|hafte|haften|heit|heiten|keit|keiten|schaft|schaften|ling|linge|lingen|tum|chen|lein)$/;
-  // Reimteil: ab dem (geschätzt) betonten Vokal. Unbetonte Endsilbe (-e, -en, -er, -el …) und Nachsilben (-ung, -lich, -heit …) überspringen.
-  function rhymePart(word) {
-    const s = sounds(word), vi = []; s.forEach((t, k) => { if (isV(t)) vi.push(k); });
-    if (!vi.length) return null;
-    let j = vi.length - 1;
-    const tail = () => s.slice(vi[j] + 1).join('');
-    if (j > 0 && s[vi[j]].v === 'e' && s[vi[j]].l !== 'L' && /^(|n|r|l|m|s|nt|rn|ns|ln|rs|st|t|rt|nd)$/.test(tail())) j--;
-    const w = String(word || '').toLowerCase().replace(/[^a-zäöüß]/g, ''), m = UNSTR.exec(w);
-    if (m && j > 0 && !/allein$/.test(w) && w.length - m[1].length >= 2 && !/^(ei|ai|eu|äu|au|ie)$/.test(w.charAt(w.length - m[1].length - 1) + m[1].charAt(0))) {
-      const vInSuffix = (m[1].match(/(ie|ei|ai|eu|äu|au|[aeiouäöü])/g) || []).length;   // Vokale der Nachsilbe
-      const fromEnd = vi.length - 1 - j;
-      if (fromEnd < vInSuffix) j = Math.max(0, vi.length - 1 - vInSuffix);
-    }
-    return { s: s.slice(vi[j]), stressed: j, n: vi.length };
-  }
-  const vlen = (a, b) => a === b || a === '?' || b === '?';
-  const FOLD = { y: 'i', 8: 'e', 3: '1' };
-  const CLS = c => /[mnN]/.test(c) ? 'N' : /[ptkbdg]/.test(c) ? 'T' : /[szS]/.test(c) ? 'S' : /[fw]/.test(c) ? 'F' : c;
-  function nearSeq(p) {
-    let s = p.s.map(t => isV(t) ? (FOLD[t.v] || t.v) : CLS(t)).join('');
-    s = s.replace(/eN$/, 'e').replace(/er$/, 'a');
-    return s;
-  }
-  // Vergleich zweier Wörter: 'gleich' | 'rein' | 'unrein' | null
-  function rhymeLevel(a, b) {
-    const na = String(a || '').toLowerCase().replace(/[^a-zäöüß]/g, ''), nb = String(b || '').toLowerCase().replace(/[^a-zäöüß]/g, '');
-    if (!na || !nb) return null;
-    if (na === nb) return 'gleich';
-    const pa = rhymePart(na), pb = rhymePart(nb); if (!pa || !pb) return null;
-    if (pa.s.length === pb.s.length && pa.s.every((t, k) => { const u = pb.s[k]; return isV(t) ? isV(u) && t.v === u.v && vlen(t.l, u.l) : t === u; })) return 'rein';
-    const fa = isV(pa.s[0]) ? (FOLD[pa.s[0].v] || pa.s[0].v) : '', fb = isV(pb.s[0]) ? (FOLD[pb.s[0].v] || pb.s[0].v) : '';
-    if (fa && fa === fb && nearSeq(pa) === nearSeq(pb)) return 'unrein';
-    return null;
-  }
-  const RANK = { gleich: 3, rein: 2, unrein: 1 };
 
   // ================= Reim-Prüfung eines Textes =================
   const FILL = new Set(['halt', 'eben', 'irgendwie', 'eigentlich', 'einfach', 'wirklich', 'ziemlich', 'quasi', 'sozusagen', 'gewissermaßen', 'echt', 'total', 'eh', 'irgendwo', 'irgendwann', 'nunmal', 'sowieso', 'bisschen']);
   const STOP = new Set(['der', 'die', 'das', 'und', 'ich', 'du', 'nicht', 'ist', 'ein', 'eine', 'einen', 'einem', 'einer', 'mein', 'meine', 'dein', 'deine', 'wir', 'mit', 'auf', 'in', 'zu', 'es', 'sie', 'er', 'wie', 'was', 'noch', 'nur', 'mich', 'dich', 'uns', 'den', 'dem', 'des', 'bin', 'bist', 'hab', 'habe', 'kein', 'keine', 'wenn', 'dann', 'so', 'ja', 'im', 'am', 'an', 'von', 'vom', 'für', 'aus', 'bei', 'nach', 'mir', 'dir', 'sich', 'hat', 'war', 'wird', 'sind', 'auch', 'aber', 'oder', 'doch', 'schon', 'da', 'hier', 'wo', 'als', 'ob', 'um', 'bis', 'nie', 'immer', 'mal', 'man', 'the', 'and', 'you', 'to', 'of', 'oh']);
   const words = s => (X.stripChords(s).toLowerCase().match(/[a-zäöüß']+/g) || []).map(w => w.replace(/^'+|'+$/g, '')).filter(Boolean);
-  const lastWord = line => { const m = X.stripChords(line).match(/[A-Za-zÄÖÜäöüß']+/g); return m ? m[m.length - 1].replace(/^'+|'+$/g, '') : ''; };
+  const lastWord = X.rhymeWord;   // v165: gemeinsam mit lied-text.js
   // Text eines Abschnitts → Zeilen mit Silben, Reimbuchstabe, Stufe zum Partner; dazu ruhige Hinweise
   function checkText(text, name) {
     const raw = String(text || '').split('\n'), L = [];
     raw.forEach((r, i) => { const t = X.stripChords(r).trim(); if (t) L.push({ i, raw: r, text: t, word: lastWord(t), syl: X.syllables(t, 'de') }); });
-    let next = 0;
-    L.forEach((x, k) => {
-      let best = null;
-      for (let j = k - 1; j >= 0; j--) { const lv = rhymeLevel(L[j].word, x.word); if (lv && (!best || RANK[lv] > RANK[best.lv])) best = { j, lv }; }
-      if (best) { x.letter = L[best.j].letter; x.lv = best.lv; x.with = best.j; L[best.j].has = true; if (!L[best.j].lv) L[best.j].lvp = best.lv; }
-      else x.letter = String.fromCharCode(65 + (next++ % 26));
-    });
+    X.assignRhymes(L);   // v165: gemeinsame Zuordnung mit den Buchstaben links am Text (lied-text.js)
     L.forEach(x => { x.alone = !x.lv && !x.has; });
     const hints = [], nm = name ? '„' + name + '“: ' : '';
     if (L.length >= 3) {
@@ -506,7 +419,7 @@
     const b = body(); if (!b) return;
     const sl = slots().filter(x => String((x.p.lyrics || [])[x.n] || '').trim());
     if (!sl.length) { b.innerHTML = '<p class="tw-note">Noch kein Text. Schreib oben im Bereich „Text“ ein paar Zeilen – hier siehst du dann Reime, Silben und Hinweise. Oder bau dir im „Baukasten“ ein Startgerüst.</p>'; return; }
-    const hints = []; let html = '<p class="tw-note">Farbe = Reimpaar (gleicher Buchstabe). <b>rein</b> = gleicher Klang ab dem betonten Vokal · <b>~ unrein</b> = ähnlich (ü/i, ö/e, eu/ei, lang/kurz, verwandte Endkonsonanten) · <b>= gleiches Wort</b> · grau = ohne Partner. Zeile antippen für Reimwörter oder „besser formulieren“. Diese Prüfung ist genauer als die Buchstaben links neben dem Text (die bleiben wie bisher).</p>';
+    const hints = []; let html = '<p class="tw-note">Farbe = Reimpaar (gleicher Buchstabe). <b>rein</b> = gleicher Klang ab dem betonten Vokal · <b>~ unrein</b> = ähnlich (ü/i, ö/e, eu/ei, lang/kurz, verwandte Endkonsonanten) · <b>= gleiches Wort</b> · grau = ohne Partner. Zeile antippen für Reimwörter oder „besser formulieren“. Die Buchstaben links neben dem Text nutzen seit v165 dieselbe Erkennung (~ = unrein).</p>';
     sl.forEach(x => {
       const txt = x.p.lyrics[x.n], r = checkText(txt, slotName(x));
       r.hints.forEach(h => hints.push(h));
