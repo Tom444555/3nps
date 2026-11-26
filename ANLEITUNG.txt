@@ -1618,3 +1618,22 @@ Gut zu wissen
    - Beginn und Ende der Einheit bleiben, die Abschnitte liegen nahtlos hintereinander (in der Liste „aufgeteilt“). Abschnitt
      antippen › „Aufteilung ändern“ oder „Aufteilung aufheben“ (wieder eine Einheit). Geht auch für importierte und
      nachgetragene Einheiten. Summen, Verlauf, „Woran geübt“ und CSV-Export rechnen mit den Abschnitten; die Gesamtzeit bleibt.
+
+141. Tonleiter-Trainer (v158)
+   - Neu unter „Lernen › Tonleiter-Trainer“ (eigener Chip und Kachel). Oben die Tonleiter wählen: Moll-/Dur-Pentatonik und Blues
+     (5 Lagen, 2 Töne je Saite, die Blue Note ♭5 ist blau) oder Dur, Moll und die Kirchentonleitern Ionisch … Lokrisch als 3nps
+     (7 Lagen, 3 Töne je Saite). Grundton und Tonart kommen beim ersten Öffnen aus der Kopfleiste; „↺ G Ionisch“ übernimmt sie wieder.
+   - „Lage“ 1 … 5 bzw. 1 … 7 oder „Alle“ (jeder Durchgang eine Lage weiter). „Übung“: Auf und ab, 3er-Gruppen, 4er-Gruppen, Terzen.
+   - Großes Griffbrett mit der Lage (Grundton rot), „Töne“ oder „Finger“ (Fingersatz 1–4, 0 = leere Saite). Darunter die Tonfolge.
+   - „▶ Start“: ein Takt Vorzähler (abschaltbar), dann Klick auf der Audio-Uhr; der aktuelle Ton leuchtet auf dem Griffbrett und in
+     der Tonfolge, darunter „Durchgang · Ton · Saite/Bund“. „Altes iPad“: ohne Übergänge; „Minimal“: nur Klick und Text.
+   - „geschafft → schneller“ speichert das Tempo als Bestwert (je Tonleiter, Lage und Übung, mit Datum) und geht einen Schritt höher.
+     „zu schnell → langsamer“ geht einen Schritt zurück. „Tempo-Treppe“ aufklappen: Start, Ziel, Schritt (+2/+4/+5/+8),
+     automatisch schneller nach 2/4/8 Durchgängen oder nur per Knopf, Töne je Klick (Viertel, Achtel, Triolen, Sechzehntel), Vorzähler.
+   - „Fortschritt“: Raster Lagen × Übungen mit Bestwert (grau = noch nicht, orange < 80 %, gelb = fast, grün = Ziel); antippen wählt
+     die Übung. „Als Nächstes üben“ schlägt die schwächste Lage vor. „Verlauf“: dein Tempo über die Zeit im Börsenkurs-Stil.
+   - Jeder Lauf ab 5 s steht im Übungslog (Technik) und zählt im Übe-Verlauf; läuft „Üben“, wird nichts doppelt gezählt. Läuft „Üben“
+     nicht, bietet der Trainer „Üben einschalten“ an. Läuft der Looper, folgt der Trainer dessen Tempo; laufende Drums folgen dem Trainer.
+     Verlässt du die Seite, stoppt er. Kein Fußpedal-Befehl (die Pedal-Belegung hat keine passende Aktion).
+   - Nebenbei: Technik-Griffbrett zeigt im Finger-Modus den 3nps-Fingersatz jetzt richtig (Halbton zuerst 1-2-4, danach 1-3-4).
+     Die Anleitung „?“ lädt ihren Text erst beim ersten Öffnen (App startet etwas schlanker).
