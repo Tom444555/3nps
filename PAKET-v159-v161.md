@@ -232,3 +232,11 @@ einem localStorage-Schlüssel; Übezeit bleibt getrennt (nichts selbst zählen).
   englische Texte. Test `test/v165songtext.py` (Fahrplan/Haken je Song, Vorlagen legen Abschnitte korrekt an, Notizbuch speichern/ziehen/löschen,
   Export im Songbook-/Song-Export enthalten oder eigener Export, Nachladen, Größe, keine Skriptfehler).
 **Freigabe v165:** Tom am 26.11.2026 10:54: „Bau es genauso“ – v165 wie oben bauen (nach v164), nichts gestrichen.
+
+### Zusatz zu v165 – Reim-Buchstaben links am Text angleichen (Tom, 26.11.2026 15:45: „Gleich an“)
+Die Reim-Buchstaben links neben dem Text im Songwriting (alte, einfachere Regel) sollen dieselbe Reim-Erkennung nutzen wie die Text-Werkstatt
+v164 („Reime prüfen“), damit beide dasselbe Schema zeigen. Umsetzung klein halten: die Buchstaben über dieselbe Funktion berechnen (Logik darf
+dafür aus `textwerk.js` in eine kleine gemeinsame Datei wandern oder früh genug verfügbar gemacht werden – ohne die 1,2-MB-Reimwortliste zu laden
+und ohne den Start zu verlangsamen); unreine Reime bekommen denselben Buchstaben wie in der Werkstatt. Tests anpassen (`v30text`, `v164text`:
+Buchstaben am Text == Schema der Werkstatt für dieselben Zeilen), Anleitung/Hinweistext in der Werkstatt („Diese Prüfung ist genauer als die
+Buchstaben links …“) entsprechend ändern. Wird mit v165 veröffentlicht; falls das v165 gefährdet, direkt danach als v166, die Tonhöhen-Linie rückt dann auf v167.
