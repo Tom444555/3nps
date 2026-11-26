@@ -1687,3 +1687,15 @@ Gut zu wissen
    - Sichern: „Songbook exportieren“ (JSON-Datei über das Teilen-Menü) und „Songbook importieren“ (fügt zusammen, keine Dubletten;
      gleiches Stück → die neuere Fassung bleibt). „Alles sichern“ im Looper nimmt das Songbook mit. Texte fremder Lieder sind
      urheberrechtlich geschützt – eine Datei mit solchen Texten nicht weitergeben.
+
+145. Gitarren aus druckwerk im Rig (v162)
+   - Rig › „Gitarren“ › „3D-Modell“: Schecter und Strat sind jetzt deine detailreichen Modelle aus druckwerk – Schecter
+     (gitarre_rundum.py) grau/weinrot mit dunklem Muster, schwarze Tonabnehmer, Brücke, Regler und Schalter, silberne Bünde mit
+     römischen Ziffern, gerundete Deckenkante und Armschräge; Strat (gitarre_farben.py mit Details) cremeweiß, Ahornhals mit
+     22 Bünden, weißes Schlagbrett mit schwarzer Mittellage, silberne Schrauben, Zwei-Punkt-Tremolo, Buchsenplatte.
+   - Je Farbe ein Teil, Druck-Hilfen weggelassen (keine Steckwirbel-Löcher, Saitenlöcher, Zapfen oder Stützen); die Saiten sind wieder
+     zu sehen. Die Netze sind vereinfacht: je Gitarre unter 0,8 MB, geladen erst beim ersten Öffnen der Gitarre, danach offline.
+   - Les Paul Studio: weiter das eigene Modell (kein fremdes Modell in der App), jetzt mit gewölbter Decke, cremefarbenem Binding an
+     Korpus und Griffbrett, Tune-o-matic-Brücke mit Pfosten, Stopbar mit Bolzen und Top-Hat-Reglern. Keine Schriftzüge oder Logos.
+   - Fehlt die Schecter-Datei (z. B. erstes Öffnen ohne Internet), erscheint das bisherige einfache Schecter-Modell.
+   - Neu erzeugen (nur für die Pflege): werkzeug/rig_modelle.py <Pfad zu druckwerk> – siehe Kopf der Datei.

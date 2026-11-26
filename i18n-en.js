@@ -1234,7 +1234,7 @@ Object.assign(window.__EN, { 'Rig': 'Rig', 'Gitarren': 'Guitars', 'Gitarre': 'Gu
   'Coil-Split: AN (Tone-Poti gezogen)': 'Coil split: ON (tone knob pulled)', 'Coil-Split: AUS (Humbucker)': 'Coil split: OFF (humbucker)',
   '3D-Modell wird geladen …': 'Loading 3D model …', '3D-Modell nicht verfügbar – Zeichnung': '3D model not available – drawing',
   'Profil „Minimal“: nur die Zeichnung, das 3D-Modell wird nicht geladen.': 'Profile “Minimal”: drawing only, the 3D model is not loaded.',
-  'Strat: dein Modell aus druckwerk · Schecter und Les Paul: eigene 3D-Modelle. Mit einem Finger drehen, mit zwei zoomen.': 'Strat: your model from druckwerk · Schecter and Les Paul: own 3D models. Rotate with one finger, zoom with two.',
+  'Schecter und Strat: deine Modelle aus druckwerk · Les Paul: eigenes 3D-Modell. Mit einem Finger drehen, mit zwei zoomen.': 'Schecter and Strat: your models from druckwerk · Les Paul: own 3D model. Rotate with one finger, zoom with two.',
   'Zeichnung · „Zeichnung“ antippen für das 3D-Modell.': 'Drawing · tap “Drawing” for the 3D model.',
   'Vereinfachte Klangkurve (Pickup + Kabel + Poti): Höhe und Lage der Resonanzspitze bestimmen, wie hell es klingt.': 'Simplified tone curve (pickup + cable + pot): height and position of the resonance peak decide how bright it sounds.' });
 Object.assign(window.__EN, { 'Knackig, perkussiv, viel Attack – Rhythmusgitarre mit Kompressor.': 'Tight, percussive, lots of attack – rhythm guitar with compressor.',
