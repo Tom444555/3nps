@@ -142,7 +142,7 @@ async def main():
         if SHOT: await pg.click('#rg-posBtns [data-pos=B]'); await shot(pg, 'v146_gitarren_schecter.png')
         await pg.click('[data-g2=strat]'); await wait3d(pg, 'strat'); i = await info(pg)
         s = await st(pg)
-        check('Strat: Modell rig/strat.glb geladen, Stellung 2, 3 Pickups', i['strat'] and any(r.endswith('rig/strat.glb') for r in reqs) and s['st']['pos'] == '2' and len(await pg.evaluate("Rig.state().lv.raw ? Object.keys(Rig.state().lv.raw) : []")) == 3, i)
+        check('Strat: Modell rig/strat.glb geladen, Stellung 2, 3 Pickups', i['strat'] and any(r.endswith('rig/modelle/strat.glb') for r in reqs) and s['st']['pos'] == '2' and len(await pg.evaluate("Rig.state().lv.raw ? Object.keys(Rig.state().lv.raw) : []")) == 3, i)
         for k in ['1', '3', '5']:
             await pg.click('#rg-posBtns [data-pos="%s"]' % k); await pg.wait_for_timeout(60)
         check('Strat Stellung 5: nur Neck aktiv', (await st(pg))['lv']['raw'] == {'N': 200, 'M': 0, 'B': 0}, (await st(pg))['lv']['raw'])
@@ -232,7 +232,7 @@ async def main():
             await to_rig(pg); await guit(pg); await wait3d(pg, 'schecter'); await pg.click('[data-g2=strat]'); await wait3d(pg, 'strat'); await pg.wait_for_timeout(800)
             c = await pg.evaluate(CK); app = [k for k in c if k.startswith('3nps-v')][0]
             lib = sorted(c.get('rig-1', []))
-            check('SW: beim ersten Öffnen gespeichert (three.js + Modell in rig-1, Rig-Code im App-Speicher)', 'rig/strat.glb' in lib and 'rig/three/three.module.min.js' in lib and len(lib) == 8 and all(x in c[app] for x in ['rig/rig.js', 'rig/rig.css', 'rig/rig3d.js']), (lib, [x for x in c[app] if x.startswith('rig/')]))
+            check('SW: beim ersten Öffnen gespeichert (three.js + Modell in rig-1, Rig-Code im App-Speicher)', 'rig/modelle/strat.glb' in lib and 'rig/modelle/schecter.glb' in lib and 'rig/three/three.module.min.js' in lib and len(lib) == 9 and all(x in c[app] for x in ['rig/rig.js', 'rig/rig.css', 'rig/rig3d.js']), (lib, [x for x in c[app] if x.startswith('rig/')]))
             await ctx.set_offline(True); await pg.reload(); await pg.wait_for_timeout(1500)
             await until(pg, '!!window.Rig', 10000)
             await until(pg, "AppNav.current()==='rig' && Rig.view()==='guit'", 5000)
@@ -253,7 +253,7 @@ async def main():
             finally:
                 open(SWF, 'w', encoding='utf8').write(old)
             c = await pg.evaluate(CK); app = [k for k in c if k.startswith('3nps-v') and k != '3nps-v1']
-            check('SW: Update holt Rig-Code nach (wer Rig benutzt hat), rig-1 bleibt', app and all(x in c[app[0]] for x in ['rig/rig.js', 'rig/rig.css', 'rig/rig3d.js']) and '3nps-v1' not in c and len(c.get('rig-1', [])) == 8, (list(c), app and [x for x in c[app[0]] if x.startswith('rig/')]))
+            check('SW: Update holt Rig-Code nach (wer Rig benutzt hat), rig-1 bleibt', app and all(x in c[app[0]] for x in ['rig/rig.js', 'rig/rig.css', 'rig/rig3d.js']) and '3nps-v1' not in c and len(c.get('rig-1', [])) == 9, (list(c), app and [x for x in c[app[0]] if x.startswith('rig/')]))
             check('SW: keine Skriptfehler', not [e for e in errs if 'Failed to fetch' not in e], errs[:3])
             await ctx.close()
         await b.close()

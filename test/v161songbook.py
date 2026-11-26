@@ -43,7 +43,7 @@ async def main():
         check('index.html < 2,1 MB', len(h.encode()) < 2100000, len(h.encode()))
         check('Songbook-Code nicht in index.html, eigene Dateien', 'window.Songbook = ' not in h and os.path.exists(WWW + 'songbook.js') and os.path.exists(WWW + 'songbook.css'))
         sw = open(WWW + 'sw.js', encoding='utf8').read()
-        check('sw.js: songbook.js/.css in der Offline-Liste, Cache v161', all("'%s'" % f in sw.split('const CORE')[1].split('\n')[0] for f in ['songbook.js', 'songbook.css']) and "'3nps-v161'" in sw)
+        check('sw.js: songbook.js/.css in der Offline-Liste, Cache ab v161', all("'%s'" % f in sw.split('const CORE')[1].split('\n')[0] for f in ['songbook.js', 'songbook.css']) and int(re.search(r"'3nps-v(\d+)'", sw).group(1)) >= 161)
         hd = open(WWW + 'hilfe-daten.js', encoding='utf8').read()
         check('Anleitung: Thema „songbook“', "id: 'songbook'" in hd)
         en = open(WWW + 'i18n-en.js', encoding='utf8').read()

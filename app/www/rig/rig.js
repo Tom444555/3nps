@@ -566,7 +566,7 @@ function drawBody() {
   $('v3Body').disabled = $('v3All').disabled = !ok3d;
   $('v3Tog').textContent = view3d && can3d ? '3D-Modell' : 'Zeichnung'; $('v3Tog').classList.toggle('rg-blue', view3d && can3d);
   $('v3Tog').disabled = !can3d;
-  $('v3Hint').textContent = !can3d ? 'Profil „Minimal“: nur die Zeichnung, das 3D-Modell wird nicht geladen.' : ok3d ? 'Strat: dein Modell aus druckwerk · Schecter und Les Paul: eigene 3D-Modelle. Mit einem Finger drehen, mit zwei zoomen.' : 'Zeichnung · „Zeichnung“ antippen für das 3D-Modell.';
+  $('v3Hint').textContent = !can3d ? 'Profil „Minimal“: nur die Zeichnung, das 3D-Modell wird nicht geladen.' : ok3d ? 'Schecter und Strat: deine Modelle aus druckwerk · Les Paul: eigenes 3D-Modell. Mit einem Finger drehen, mit zwei zoomen.' : 'Zeichnung · „Zeichnung“ antippen für das 3D-Modell.';
   $('wTog').textContent = 'Verkabelung: ' + (showW ? 'AN' : 'AUS'); $('wTog').classList.toggle('active', showW);
   if (ok3d) { v3.show(visible); v3.update(state3d(), GEO); }
   $('wiring').innerHTML = wiringSVG(); const lv = levels();
@@ -597,7 +597,7 @@ function need3d() {
   v3load = import(new URL('rig3d.js', BASE).href).then(m => {
     v3load = null;
     if (dev() !== v3dev) { if (viewSel === 'guit' && visible) drawBody(); return; }
-    v3 = m.create($('v3d'), { low: d === 'old', onload: () => { if (viewSel === 'guit') drawBody(); }, onerror: e => console.warn('Rig: Strat-Modell nicht geladen', e) });
+    v3 = m.create($('v3d'), { low: d === 'old', onload: () => { if (viewSel === 'guit') drawBody(); }, onerror: e => console.warn('Rig: Modell nicht geladen', e) });
     v3.show(visible && viewSel === 'guit');
     if (viewSel === 'guit') drawBody();
   }).catch(e => { v3load = null; v3err = e; console.warn('Rig: 3D nicht verfügbar', e); if (viewSel === 'guit') drawBody(); });

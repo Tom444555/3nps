@@ -1,5 +1,5 @@
 // Offline-Cache für die 3nps-App. Bei Updates CACHE-Version hochzählen.
-const CACHE = '3nps-v161';
+const CACHE = '3nps-v162';
 const ASR = 'asr-1';
 const DRUMS = 'drums-1';   // echtes Kit (v98): eigener Speicher, überlebt Updates (Version erhöhen, wenn sich kit.flac ändert)   // Name ohne „3nps-“: wird beim Update nicht gelöscht (Version erhöhen, wenn sich das Modell ändert)
 // v145: Schriften und Englisch-Wörterbuch als eigene Dateien (klein, offline immer da); Optik-Bilder nicht mehr hier, siehe OPTIK.
@@ -15,7 +15,7 @@ const OPTIK_IMG = ['bg-metal.jpg', 'panel.jpg', 'panel-dark.jpg', 'runes.png', '
 // benutzt hat, bekommt die neue Fassung beim Update gleich mit (sonst ginge Rig nach einem Update erst wieder mit Internet).
 const RIG = 'rig-1';
 const RIG_CODE = ['rig/rig.js', 'rig/rig.css', 'rig/rig3d.js'];
-const isRigLib = url => url.origin === self.location.origin && (url.pathname.includes('/rig/three/') || url.pathname.endsWith('/rig/strat.glb'));
+const isRigLib = url => url.origin === self.location.origin && (url.pathname.includes('/rig/three/') || url.pathname.includes('/rig/modelle/'));   // v162: Modelle unter rig/modelle/ (neue Fassung = neuer Dateiname, sonst bleibt die gespeicherte)
 function keepRig(c) {
   return caches.keys().then(keys => keys.filter(k => k.startsWith('3nps-') && k !== CACHE).reduce((p, k) => p.then(r => r || caches.open(k).then(o => o.match(new URL('rig/rig.js', self.registration.scope).href))), Promise.resolve(null)))
     .then(used => used ? c.addAll(RIG_CODE.map(u => new Request(u, { cache: 'reload' }))) : null).catch(() => {});
@@ -35,7 +35,9 @@ self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE.map(u => new Request(u, { cache: 'reload' }))).then(() => keepRig(c))).then(keepOptik).then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k.startsWith('3nps-') && k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
+  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k.startsWith('3nps-') && k !== CACHE).map(k => caches.delete(k))))
+    .then(() => caches.has(RIG)).then(h => h && caches.open(RIG).then(c => c.delete(new URL('rig/strat.glb', self.registration.scope).href))).catch(() => {})   // v162: altes Strat-Modell (1,7 MB) aus rig-1 entfernen
+    .then(() => self.clients.claim()));
 });
 self.addEventListener('fetch', e => {
   const req = e.request;
