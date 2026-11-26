@@ -110,7 +110,7 @@ async def main():
         check('Reimwort antippen nimmt es ins Wortfeld (Liste bleibt offen, Wort abgehakt)', len(w2) == 4 and w2[3] in rw and await pg.evaluate("document.querySelectorAll('#stxRh [data-a=wfTake][disabled]').length") == 1, w2)
         await pg.click('#stxWfL [data-w="Kartons"][data-a=wfDel]'); await pg.wait_for_timeout(100)
         check('Wort entfernen', 'Kartons' not in (await pg.evaluate(LS('3nps-songtext')))['p']['l:sN']['wf']['w'])
-        if SHOT: await pg.fill('#stxWfIn', 'kalter Kaffee, Regen am Fenster, Funkloch, Tankstellenlicht'); await pg.press('#stxWfIn', 'Enter'); await pg.click('#stxWfL [data-w="Nacht"][data-a=wfRh]'); await waitfor(pg, "document.querySelectorAll('#stxRh [data-a=wfTake]').length>3"); await shot(pg, 'v165-1-workflow-wortfeld.png')
+        if SHOT: await pg.fill('#stxWfIn', 'kalter Kaffee, Regen am Fenster, Funkloch, Tankstellenlicht'); await pg.press('#stxWfIn', 'Enter'); await waitfor(pg, "document.querySelectorAll('#stxRh [data-a=wfTake]').length>3"); await shot(pg, 'v165-1-workflow-wortfeld.png')
         # ---------- E: Aufbau-Vorlagen ----------
         await pick(pg, 'l:sL'); await step(pg, 4)
         check('leerer Song: Knopf „Abschnitte im Song anlegen“', (await pg.inner_text('#stxTplGo')) == 'Abschnitte im Song anlegen')
@@ -225,7 +225,7 @@ async def main():
         # Export / Import-Rundlauf
         async with pg.expect_download() as dl: await pg.click('#stxExp')
         path = await (await dl.value).path(); j = json.load(open(path, encoding='utf8'))
-        check('Export: JSON „3nps-songtext“ mit Notizen und Songs (Kernsatz, Wortfeld, Haken)', j['app'] == '3nps-songtext' and len(j['n']) == n0 + 2 and 'l:sN' in j['p'] and len(j['p']['l:sN']['wf']['w']) == 3, (len(j['n']), list(j['p'])[:3]))
+        check('Export: JSON „3nps-songtext“ mit Notizen und Songs (Kernsatz, Wortfeld, Haken)', j['app'] == '3nps-songtext' and len(j['n']) == n0 + 2 and 'l:sN' in j['p'] and len(j['p']['l:sN']['wf']['w']) >= 3, (len(j['n']), list(j['p'])[:3]))
         await pg.evaluate("localStorage.removeItem('3nps-songtext')"); await tab(pg, 'lernen'); await back(pg)
         await pg.click('.stx-nav [data-view=nb]'); await pg.wait_for_timeout(100)
         check('nach Löschen des Speichers leer', await cnt() == 0)

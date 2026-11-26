@@ -74,7 +74,7 @@ async def main():
            col:L.map(x=>getComputedStyle(x.querySelector('.tw-w')||x).color), hints:[...document.querySelectorAll('#twBody .tw-hints li')].map(x=>x.textContent), sch:[...document.querySelectorAll('#twBody .tw-sech span')].map(x=>x.textContent)}})()""")
         check('Reime prüfen: 8 Zeilen, Schema ABAB / AABA', info['n'] == 8 and info['sch'][0].startswith('Schema ABAB') and info['sch'][1].startswith('Schema AABA'), info['sch'])
         # v165 (Zusatz): Buchstaben links am Text == Schema der Werkstatt für dieselben Zeilen, unrein mit „~“
-        gl = await pg.evaluate("[...document.querySelectorAll('.ld-tx')].slice(0,2).map(b=>[...b.querySelectorAll('.ld-gut b')].map(x=>x.textContent).join(''))")
+        gl = await pg.evaluate("[...document.querySelectorAll('.ld-tx')].map(b=>[...b.querySelectorAll('.ld-gut b')].map(x=>x.textContent).join('')).filter(Boolean).slice(0,2)")
         check('ab v165: Buchstaben am Text = Schema der Werkstatt (unrein mit ~)', [g.replace('~', '') for g in gl] == [x.split(' ')[1] for x in info['sch'][:2]] and '~' in gl[0], (gl, info['sch'][:2]))
         check('Stufen sichtbar: rein ↔ 1, ~ unrein ↔ 2, = gleiches Wort ↔ 1, ohne Reim', info['lv'][2] == 'rein ↔ 1' and info['lv'][3] == '~ unrein ↔ 2' and info['lv'][5] == '= gleiches Wort ↔ 1' and info['lv'][6] == 'ohne Reim', info['lv'])
         check('Reimpaare farbig (gleiche Farbe je Buchstabe, Partnerlose grau)', info['col'][0] == info['col'][2] and info['col'][1] == info['col'][3] and info['col'][0] != info['col'][1] and info['col'][6] == 'rgb(138, 138, 138)', info['col'][:4])
