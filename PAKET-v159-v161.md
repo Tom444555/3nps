@@ -170,3 +170,32 @@ Textvorgaben und „besser formulieren“ auf KI-Niveau gehen deshalb NICHT in d
 Regeln wie immer (Leistung, Profile, kleinste Diffs, keine echten Liedtexte in Tests/Bildern – erfundene Zeilen). Test `test/v164text.py`
 (Reimschema-Fälle deutsch inkl. unreiner Reime und Umlaute, Silbenzählung, Reimwort-Suche, Stimmung → Akkordfolgen in mehreren Tonarten, Prompt
 enthält alle Felder, Einfügen mit Vorschau/Version, Nachladen, Größe, keine Skriptfehler; bestehende Text-/Songwriting-Tests weiter grün).
+**Freigabe v164:** Tom am 26.11.2026 10:52: „Ok passt“ – v164 wie oben bauen (Ort: Songwriting › „Text“, Weg über Claude ist in Ordnung).
+
+### v165 – Seite „Songtext schreiben“: Leitfaden + Schritt-für-Schritt-Workflow + Ideen-Notizbuch (Tom, 26.11.2026 10:52)
+Toms Worte: „Überlege, wie und was man zum Thema Text/Liederstellung noch brauchen könnte, vielleicht noch ein grundsätzlicher Leitfaden dafür und
+ein Schritt-für-Schritt-Workflow.“ Eigenes Paket NACH v164 (nutzt dessen Werkzeuge). Die Tonhöhen-Linie (Mitsingen Stufe 2) rückt auf v166.
+Konzept an Tom geschickt am 26.11. 10:55 – vor dem Bau nachsehen, ob er etwas geändert/gestrichen hat.
+**Aufbau:** eigener Chip „Songtext schreiben“ unter „Lernen“ (gleiches Muster und gleiche Bausteine wie „Mitsingen lernen“ v163: links Fahrplan
+mit Haken je Song, rechts der Schritt mit „So geht’s“, „Warum“, „Tipps“, Knopf zum passenden Werkzeug). Code nachgeladen; Fortschritt je Song in
+einem localStorage-Schlüssel; Übezeit bleibt getrennt (nichts selbst zählen).
+- **Leitfaden (Grundlagen, kurz, eigene Formulierungen, je Thema ein erfundenes Mini-Beispiel):** Aufbau eines Songs und Aufgabe jedes Teils
+  (Strophe erzählt, Pre-Chorus hebt an, Refrain = Kernaussage/Hook, Bridge = Wendung); eine Kernaussage je Song; Titel und Hook; zeigen statt
+  behaupten (Bilder, Sinne, konkrete Dinge); Perspektive und Zeitform durchhalten; Reimarten und wann unreine Reime besser klingen; Silben und
+  Betonung passend zum Takt (betonte Silbe auf betonten Schlag); Kontrast Strophe ↔ Refrain (Länge, Tonhöhe, Dichte); Wiederholung gezielt;
+  kürzen; Stimmung ↔ Tonart/Akkorde (Verweis auf die Akkordvorgabe v164).
+- **Workflow (Schritte, frei anspringbar):** 1 Idee & Kernsatz (ein Satz: worum geht es?) · 2 Titel/Hook · 3 Stoff sammeln (Wortfeld, Bilder,
+  Erinnerungen) · 4 Aufbau festlegen (Vorlagen: Strophe-Refrain, mit Pre-Chorus, mit Bridge, 12-Takt-Blues AAB) · 5 Refrain zuerst schreiben ·
+  6 Strophen (jede bringt etwas Neues) · 7 Bridge/Wendung · 8 Stimmung & Akkorde je Abschnitt (→ Akkordvorgabe v164) · 9 Text auf den Takt legen
+  und zur Begleitung probesingen (→ Looper/Song, Aufnahme) · 10 Überarbeiten: Reim-Prüfung, laut lesen, kürzen, schwache Zeilen ersetzen
+  (→ Text-Werkstatt, Prompt-Fenster v164) · 11 Fertig: Leadsheet-PDF, ins Songbook, „Mitsingen lernen“.
+- **Was man noch braucht (in v165 mitbauen, klein halten):** **Ideen-Notizbuch** (Zeilen, Titel, Bilder schnell notieren, Schlagworte, später in
+  einen Song ziehen); **Wortfeld-Sammler** zu einem Thema (eigene Liste + Reimwörter aus v164); **Aufbau-Vorlagen** (legt die Abschnitte mit
+  Zeilenzahl/Reimschema an); **Checkliste „Ist der Song fertig?“** (Kernaussage klar, Hook im Refrain, jede Strophe neu, singbar, nichts doppelt);
+  **Schreibimpulse** (Würfel: Thema × Perspektive × Bild, erfundene Listen). Vorhandenes nutzen statt doppeln: Songwriting (Teile, Ablauf, Text,
+  Versionen, Leadsheet-PDF, „Mit Claude weiterarbeiten“), Looper-Ideen für Melodie-Schnipsel, Songbook v161.
+- **Als spätere Ideen nur notieren (nicht in v165):** Betonungs-Check Wort gegen Schlag; Melodie-Skizze summen → Töne als Linie; Text in
+  zwei Sprachen nebeneinander.
+- Regeln: keine echten Liedtexte/-titel als Beispiele (Urheberrecht) – nur erfundene; Leitfaden-Texte selbst formulieren; alle vier Profile;
+  englische Texte. Test `test/v165songtext.py` (Fahrplan/Haken je Song, Vorlagen legen Abschnitte korrekt an, Notizbuch speichern/ziehen/löschen,
+  Export im Songbook-/Song-Export enthalten oder eigener Export, Nachladen, Größe, keine Skriptfehler).
