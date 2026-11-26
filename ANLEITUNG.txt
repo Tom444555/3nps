@@ -1662,3 +1662,28 @@ Gut zu wissen
    - Abschalten: „Lernen › Übezeit“ › „Looper-Zeit mitzählen: An / Aus“ (Vorgabe An). Aus = Looper-Spielen zählt nicht.
    - Liste, Übersicht, „Woran geübt“, Übe-Verlauf und CSV-Export (Kennzeichen „[Looper]“, der Import erkennt es wieder) rechnen mit.
      Metronom-Zeit, die in einer Looper-Einheit liegt, zählt im Übe-Verlauf nicht doppelt.
+
+144. Songbook (v161)
+   - Neu unter „Lernen › Songbook“ (Chip vor „Übezeit“ und Kachel in der Übersicht). Links die Liste deiner Stücke mit „Suchen …“
+     und „＋ Neues Stück“ (je Zeile Titel, Tonart · Tempo · Schlagzeug; sortiert nach „zuletzt geübt“ bzw. zuletzt geladen, das gewählte
+     Stück leuchtet). Rechts das Stück: Kacheln Tonart · BPM · Schlagzeug · „geübt“, „Akkorde & Text“, Rig-Sound, Looper-Idee und die
+     Knöpfe „▶ Laden“, „Bearbeiten“, „Tonart ändern − / +“, „Übezeit zu diesem Stück“. iPad hochkant: Liste oben, Stück darunter;
+     Telefon: Liste, Stück antippen, zurück mit „‹ Zurück“. Die Seite lädt erst beim ersten Öffnen.
+   - „＋ Neues Stück“ / „Bearbeiten“: Titel, Grundton, Tonart, Tempo („aktuelles Tempo übernehmen“), Taktart, Schlagzeug-Stil
+     („– nicht ändern –“ oder ein Stil aus dem Looper), Akkorde & Text, Rig-Sound (aus der Rig-Bibliothek, dazu Ziel-Gerät, oder als
+     freier Text), Looper-Idee (aus deinen gespeicherten Ideen), Notiz. „Löschen“ fragt nach („Wirklich löschen?“).
+   - „Akkorde & Text“: Akkordzeile über die Textzeile schreiben – feste Schriftbreite, Akkorde gelb. Schrift mit „A A A“ klein/mittel/groß.
+   - „▶ Laden“ stellt ein: Tonart und Modus der Kopfleiste, Tempo, Schlagzeug-Stil (Drums bleiben aus, bis du sie startest), merkt den
+     Rig-Sound im Rig vor („Im Rig öffnen“ springt direkt hin), lädt die verknüpfte Looper-Idee wie „Laden“ in der Ideen-Liste und
+     schlägt das Stück als Übezeit-Thema vor. Läuft „Üben“ schon mit einem anderen Thema, bleibt es so („Übezeit-Thema auf dieses Stück“
+     wählt um). Mit Idee gelten deren Tempo und deren gespeicherte Drums – die Meldung nennt den Unterschied.
+   - Sicherheit: Läuft der Looper oder liegt ein Loop vor, der noch nicht als Idee gespeichert ist, fragt die App erst
+     („Trotzdem laden“ · „Erst speichern (zum Looper)“ · „Abbrechen“). Während einer Aufnahme lädt sie nicht. Gibt es die verknüpfte
+     Idee nicht mehr, steht das in der Meldung; Tonart, Tempo und Schlagzeug werden trotzdem gesetzt.
+   - Taktart ist eine Angabe für dich; das Schlagzeug spielt so, wie der gewählte Stil es vorgibt (z. B. 12/8 bei Shuffle-Stilen).
+   - „Tonart ändern − / +“: Tonart und alle Akkordzeilen einen Halbton tiefer/höher (♭-Tonarten mit b, z. B. Bb-Moll). Nur Zeilen, die
+     ganz aus Akkorden bestehen, werden geändert – Textzeilen bleiben, wie sie sind.
+   - „geübt“ zählt alle Übezeit-Einheiten mit dem Thema dieses Stücks. „Übezeit zu diesem Stück“ öffnet die Übezeit mit diesem Thema.
+   - Sichern: „Songbook exportieren“ (JSON-Datei über das Teilen-Menü) und „Songbook importieren“ (fügt zusammen, keine Dubletten;
+     gleiches Stück → die neuere Fassung bleibt). „Alles sichern“ im Looper nimmt das Songbook mit. Texte fremder Lieder sind
+     urheberrechtlich geschützt – eine Datei mit solchen Texten nicht weitergeben.
