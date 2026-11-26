@@ -188,6 +188,21 @@ enthält alle Felder, Einfügen mit Vorschau/Version, Nachladen, Größe, keine 
   V→vi als „gebrochene“ Lösung, hoffnungsvoll = Wechsel Moll-Strophe → Dur-Refrain (VI/III/VII), düster = i–bVI–bVII bzw. Halbtonschritte im
   Bass abwärts, treibend = kurze Zweierwechsel (I–bVII, i–bVII), unruhig = I–vi–ii–V ohne Ankommen. Grundsatz in die Doku: Akkorde geben nur
   die Richtung, Tempo, Melodie und Text entscheiden mit.
+**Nachtrag v164 + neues Paket v167 (Tom, 26.11.2026 11:01: „Passt mach das so“):**
+- **v164 zusätzlich – Text-Baukasten (ohne KI, alle Geräte, offline):** Datentabelle mit Wortfeldern und Zeilenbausteinen je Thema/Stimmung
+  (z. B. Abschied, Aufbruch, Nacht, Heimweg, Wut, Hoffnung – alles selbst formuliert), Generator setzt daraus Zeilen nach Reimschema und
+  Silbenzahl (Reimwörter aus der MFA-Liste); jedes Wort antippen → Alternativen aus Wortfeld/Reimliste. Ergebnis als Startgerüst mit Vorschau,
+  „Übernehmen“ als Version. Ehrlich in der Doku: Baukasten-Entwurf, kein fertiger Text.
+- **v167 – Schalter „Lokales Modell“ (eigenes Paket NACH v166):** Text-Werkstatt schickt den fertigen Prompt (gleicher Prompt wie zum Kopieren)
+  an ein lokales Modell auf Toms Mac über die OpenAI-kompatible Schnittstelle von LM Studio (Standard http://localhost:1234/v1, Adresse und
+  Modellname einstellbar, z. B. Qwen aus dem Offline-Paket), Antwort zurück mit Vorschau, als Version. Standard AUS; Kopieren/Einfügen bleibt
+  Rückfall. Ausnahme von der Regel „keine KI in der App“ von Tom freigegeben, aber NUR lokal (localhost bzw. Adresse im eigenen WLAN), nie ein
+  fremder Dienst; CSP nur dafür und nur bei eingeschaltetem Schalter erweitern (oder Ausnahme connect-src auf localhost), keine Daten sonst wohin.
+  Zu prüfen: Safari/Chrome auf dem Mac von https-Seite → http://localhost (gemischte Inhalte, CORS in LM Studio einschalten); falls Safari blockt:
+  App am Mac aus lokalem Ordner starten (Anleitung). iPad → Mac im WLAN nur als Option mit Hinweis. Anleitung in ANLEITUNG.txt + Hilfe:
+  LM Studio einrichten, Server starten, CORS an. Test `test/v167lokal.py` mit Ersatz-Server (Antwort im OpenAI-Format), Fehlerfälle (kein
+  Server, Zeitüberschreitung, leere Antwort) ohne Absturz, Schalter aus = keinerlei Netzabruf.
+- Weg über GitHub (Online-Modell mit Schlüssel) verworfen.
 
 ### v165 – Seite „Songtext schreiben“: Leitfaden + Schritt-für-Schritt-Workflow + Ideen-Notizbuch (Tom, 26.11.2026 10:52)
 Toms Worte: „Überlege, wie und was man zum Thema Text/Liederstellung noch brauchen könnte, vielleicht noch ein grundsätzlicher Leitfaden dafür und
