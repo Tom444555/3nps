@@ -1,10 +1,10 @@
 // Offline-Cache für die 3nps-App. Bei Updates CACHE-Version hochzählen.
-const CACHE = '3nps-v163';
+const CACHE = '3nps-v164';
 const ASR = 'asr-1';
 const DRUMS = 'drums-1';   // echtes Kit (v98): eigener Speicher, überlebt Updates (Version erhöhen, wenn sich kit.flac ändert)   // Name ohne „3nps-“: wird beim Update nicht gelöscht (Version erhöhen, wenn sich das Modell ändert)
 // v145: Schriften und Englisch-Wörterbuch als eigene Dateien (klein, offline immer da); Optik-Bilder nicht mehr hier, siehe OPTIK.
 // './' fehlt bewusst: Seitenaufrufe holen immer den Eintrag 'index.html' (spart ≈ 2 MB je Update).
-const CORE = ['index.html', 'hilfe-daten.js', 'tonleiter.js', 'tonleiter.css', 'songbook.js', 'songbook.css', 'mitsingen.js', 'mitsingen.css', 'uebezeit-ansicht.js', 'uebezeit-ansicht.css', 'stretch/worker.js', 'stretch/SignalsmithStretch.js', 'fonts/uncial.woff', 'fonts/metalmania.woff', 'fonts/blackopsone.woff', 'fonts/russoone.woff', 'fonts/michroma.woff', 'fonts/cinzel700.woff', 'i18n-en.js', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
+const CORE = ['index.html', 'hilfe-daten.js', 'textwerk.js', 'textwerk.css', 'tonleiter.js', 'tonleiter.css', 'songbook.js', 'songbook.css', 'mitsingen.js', 'mitsingen.css', 'uebezeit-ansicht.js', 'uebezeit-ansicht.css', 'stretch/worker.js', 'stretch/SignalsmithStretch.js', 'fonts/uncial.woff', 'fonts/metalmania.woff', 'fonts/blackopsone.woff', 'fonts/russoone.woff', 'fonts/michroma.woff', 'fonts/cinzel700.woff', 'i18n-en.js', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
 // v145: Optik-Bilder (≈ 2,9 MB) in eigenem Speicher, der App-Updates überlebt. Die Seite legt die Bilder der gewählten Optik nach dem Start
 // hinein (AppCfg › warmOptik), die übrigen kommen beim Umschalten dazu. Beim ersten Update werden die Bilder aus dem alten App-Speicher
 // übernommen (ohne Netz), damit offline nichts fehlt. Ändert sich ein Bild: Namen erhöhen (optik-2).
@@ -20,6 +20,13 @@ function keepRig(c) {
   return caches.keys().then(keys => keys.filter(k => k.startsWith('3nps-') && k !== CACHE).reduce((p, k) => p.then(r => r || caches.open(k).then(o => o.match(new URL('rig/rig.js', self.registration.scope).href))), Promise.resolve(null)))
     .then(used => used ? c.addAll(RIG_CODE.map(u => new Request(u, { cache: 'reload' }))) : null).catch(() => {});
 }
+// v164 Text-Werkstatt: Reimwörter-Liste (≈ 1,2 MB, gepackt ≈ 0,4 MB) in eigenem Speicher, der Updates überlebt; einmal im Hintergrund
+// vorab geholt (Fehler stören die Installation nicht), die Seite lädt sie erst beim ersten „Reimwörter“. Neue Liste = neuer Dateiname + REIM erhöhen.
+const REIM = 'reim-1';
+const REIM_LIST = 'reim/reim-de-1.txt';
+function keepReim() {
+  return caches.open(REIM).then(c => { const u = new URL(REIM_LIST, self.registration.scope).href; return c.match(u).then(h => h || c.add(new Request(u, { cache: 'reload' }))); }).catch(() => {});
+}
 function isOptik(url) { const f = url.pathname.slice(url.pathname.lastIndexOf('/') + 1); return url.origin === self.location.origin && OPTIK_IMG.includes(f) && !url.pathname.includes('/studio/'); }
 // Bilder aus früheren App-Speichern (bis v144 lagen alle Optik-Bilder dort) in OPTIK übernehmen – kein Netz nötig
 function keepOptik() {
@@ -32,7 +39,7 @@ function keepOptik() {
 
 self.addEventListener('install', e => {
   // v145: am Browser-Zwischenspeicher vorbei laden – sonst kann beim Update noch die alte index.html in den neuen Speicher geraten
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE.map(u => new Request(u, { cache: 'reload' }))).then(() => keepRig(c))).then(keepOptik).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE.map(u => new Request(u, { cache: 'reload' }))).then(() => keepRig(c))).then(keepOptik).then(keepReim).then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k.startsWith('3nps-') && k !== CACHE).map(k => caches.delete(k))))
@@ -51,6 +58,10 @@ self.addEventListener('fetch', e => {
   }
   if (isOptik(url)) {   // v145: Optik-Bilder – Speicher zuerst, sonst laden und merken
     e.respondWith(caches.open(OPTIK).then(c => c.match(req).then(hit => hit || fetch(req).then(r => { if (r.ok) c.put(req, r.clone()); return r; }))));
+    return;
+  }
+  if (url.origin === self.location.origin && url.pathname.includes('/reim/')) {   // v164: Reimwörter-Liste – Speicher zuerst, sonst laden und merken
+    e.respondWith(caches.open(REIM).then(c => c.match(req).then(hit => hit || fetch(req).then(r => { if (r.ok) c.put(req, r.clone()); return r; }))));
     return;
   }
   if (isRigLib(url)) {   // v146: three.js + Strat-Modell – Speicher zuerst, sonst laden und merken

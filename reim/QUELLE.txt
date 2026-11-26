@@ -1,0 +1,11 @@
+Reimwörter-Liste der Text-Werkstatt (3nps / Loopsmiths, ab v164)
+
+Quelle: „German MFA dictionary v3.0.0“ – Michael McAuliffe & Morgan Sonderegger (2024), Montreal Forced Aligner,
+https://github.com/MontrealCorpusTools/mfa-models (dictionary/german/mfa), Lizenz: Creative Commons Namensnennung 4.0 (CC BY 4.0),
+Lizenztext: LIZENZ-MFA.txt in diesem Ordner.
+
+Änderungen: Die Datei reim-de-1.txt ist aus dem Wörterbuch abgeleitet (werkzeug/reimliste.py im Branch „entwicklung“):
+je Wort die Aussprache, die der Schreibung am nächsten ist, Lautschrift vereinfacht und in eigene Zeichen umgeschrieben, nach Reimteil (ab dem letzten vollen Vokal,
+Betonung geschätzt) gruppiert, auf Wörter mit 2–14 Buchstaben und höchstens vier vollen Silben gekürzt, Wörter mit typisch fremder
+Schreibung weggelassen, Reihenfolge nach geschätzter Gebräuchlichkeit. Die Lautschrift selbst ist nicht mehr enthalten.
+Keine Gewähr für Vollständigkeit oder Richtigkeit.

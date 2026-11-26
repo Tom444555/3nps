@@ -3757,7 +3757,7 @@ html.dev-min .looper-card > .card-head > .ueben-btn[aria-pressed="true"], html.d
 <header class="control-bar">
   <div class="cb-inner">
     <div class="brand-col">
-      <div class="brand">Looper <span>3nps · v163</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
+      <div class="brand">Looper <span>3nps · v164</span> <button type="button" class="lang-btn" id="langBtn" title="Sprache · Language">EN</button></div>
       <div class="hdr-btns">
         <button class="optik-btn" id="optikBtn" aria-expanded="false" aria-controls="optikPop">App-Optik ▾</button>
         <button class="optik-btn" id="perfBtn" aria-expanded="false" aria-controls="perfPop">Leistung ▾</button>
@@ -5143,10 +5143,11 @@ E|--0--|   E|--x--|   E|--x--|</pre>
     </div>
 
     <div class="card" id="ldTextCard" hidden>
-      <div class="card-head"><h2>Text</h2><button class="toggle-btn" id="ldPdf">Leadsheet (PDF)</button></div>
+      <div class="card-head"><h2>Text</h2><span class="ld-txbtn"><button class="toggle-btn" id="ldTw" aria-expanded="false">Text-Werkstatt</button><button class="toggle-btn" id="ldPdf">Leadsheet (PDF)</button></span></div>
       <label class="field ld-theme"><span>Thema / Idee</span><input type="text" id="ldTheme" maxlength="200" autocomplete="off" placeholder="Worum geht es? Bild, Gefühl, kleine Geschichte …"></label>
       <p class="caption ld-txhint">Links neben jeder Zeile: <b>Silben</b> und <b>Reim</b> (gleicher Buchstabe = reimt, ~ = unrein, grau = reimt mit nichts). Akkordwechsel kannst du mit <b>[Am]</b> direkt vor die Silbe schreiben – sonst verteilt das Leadsheet die Akkorde gleichmäßig.</p>
       <div class="ld-texts" id="ldTexts"></div>
+      <div id="ldTwBox" hidden></div>
     </div>
 
     <div class="card" id="ldCheckCard" hidden>
@@ -22610,6 +22611,7 @@ if (typeof module !== 'undefined') module.exports = LiedExport;
     s.versions.forEach((x, i) => vs.add(new Option('V' + x.n + ' · ' + new Date(x.at).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) + ' · ' + x.note, i)));
     vs.value = s.cur;
     renderOrder(v); renderParts(v); renderText(v); renderVoice(v);
+    if (window.TextWerk && TextWerk.refresh) TextWerk.refresh();   // v164
     $('ldFind').innerHTML = ''; $('ldVar').innerHTML = ''; varCache = null;
   }
   const TCLS = t => 't-' + t;
@@ -22857,6 +22859,8 @@ if (typeof module !== 'undefined') module.exports = LiedExport;
   function readCode() {
     const base = ver(), r = X.fromCode($('ldPaste').value, base), box = $('ldImRes');
     imp = null;
+    // v164: kein Song-Code → Zeilen-Vorschläge oder freier Text über die Text-Werkstatt (Vorschau, als Version)
+    if (!r.ok && base && $('ldPaste').value.split('\n').filter(x => x.trim()).length >= 2 && !/=+\s*3NPS\s+SONG-CODE/i.test($('ldPaste').value)) { if (!window.TextWerk) { twLoad(readCode); return; } if (TextWerk.readOther($('ldPaste').value, box)) return; }
     if (!r.ok) { box.innerHTML = '<h3>Konnte den Song-Code nicht übernehmen</h3><ul class="err">' + r.errs.map(e => '<li>' + esc(e) + '</li>').join('') + '</ul>' + (r.warn && r.warn.length ? '<ul class="wrn">' + r.warn.map(e => '<li>' + esc(e) + '</li>').join('') + '</ul>' : '') + '<p class="note">Tipp: Claude bitten, „den vollständigen Song-Code im selben Format“ zu schicken.</p>'; return; }
     imp = r;
     const s = song(), d = base ? X.diff(base, r.v, s.name, r.title) : ['Neuer Song mit ' + r.v.parts.length + ' Teilen'];
@@ -22884,6 +22888,28 @@ if (typeof module !== 'undefined') module.exports = LiedExport;
     }
     imp = null; $('ldImRes').innerHTML = ''; $('ldPaste').value = ''; selOrd = -1; render();
   });
+
+  // ================= v164: Text-Werkstatt (Code und Stil erst beim ersten Öffnen: textwerk.js/.css) =================
+  let twL = false, twQ = [];
+  function twLoad(cb) {
+    if (window.TextWerk) { cb(); return; }
+    twQ.push(cb); if (twL) return; twL = true;
+    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'textwerk.css';
+    l.onload = l.onerror = () => {
+      const sc = document.createElement('script'); sc.src = 'textwerk.js';
+      sc.onload = () => { const q = twQ; twQ = []; q.forEach(f => f()); };
+      sc.onerror = () => { twL = false; twQ = []; sc.remove(); status(T('Die Text-Werkstatt konnte nicht geladen werden – bitte einmal mit Internet öffnen.')); };
+      document.head.appendChild(sc);
+    };
+    document.head.appendChild(l);
+  }
+  $('ldTw').addEventListener('click', () => {
+    const box = $('ldTwBox'), on = box.hidden;
+    $('ldTw').classList.toggle('active', on); $('ldTw').setAttribute('aria-expanded', on ? 'true' : 'false');
+    if (!on) { box.hidden = true; return; }
+    twLoad(() => TextWerk.open(box));
+  });
+  window.LiedApi = { song, ver, pushVersion, render, status, play, stop, playing: () => P ? P.label || 'Song' : null, copyText, readCode, textSlots };
 
   // ================= Ganzer Song für Logic =================
   $('ldExport').addEventListener('click', async () => {
