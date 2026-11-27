@@ -4,14 +4,17 @@
   // Panels/IDs bleiben gleich (panel-…, Chips tragen die alten Knopf-IDs tab-…), Ereignis „tabchange“ wie bisher.
   const $ = id => document.getElementById(id);
   // frühere Reiter (Begleitung, Song, Log) liegen jetzt im Griffbrett
-  const OLD = { begleitung: 'griffbrett', song: 'griffbrett', log: 'griffbrett', anleitung: 'hilfe', powerchords: 'power', backing: 'jam', improvisation: 'solo', songwriting: 'lied', mitsingen: 'singen', training: 'ueben', technik: 'griffbrett', 'hoer-training': 'hoer', spickzettel: 'spick', 'übezeit': 'uebezeit', 'tonleiter-trainer': 'tonleiter', 'mitsingen-lernen': 'singlernen' };
-  const AREA = { looper: 'looper', lernen: 'lernen', power: 'lernen', caged: 'lernen', quinten: 'lernen', griffbrett: 'lernen', ueben: 'lernen', hoer: 'lernen', spick: 'lernen', uebezeit: 'lernen', tonleiter: 'lernen', songbook: 'lernen', singlernen: 'lernen', songtext: 'lernen', jam: 'jammen', solo: 'jammen', lied: 'gesang', singen: 'gesang', rig: 'rig' };
+  const OLD = { begleitung: 'griffbrett', song: 'griffbrett', log: 'griffbrett', anleitung: 'hilfe', powerchords: 'power', backing: 'jam', improvisation: 'solo', songwriting: 'lied', mitsingen: 'singen', training: 'ueben', technik: 'griffbrett', 'hoer-training': 'hoer', spickzettel: 'spick', 'übezeit': 'uebezeit', 'tonleiter-trainer': 'tonleiter', 'mitsingen-lernen': 'singlernen', songtext: 'lied', 'songtext-schreiben': 'lied' };
+  // v167: „Songtext schreiben“ liegt jetzt in Songwriting › Bereich (alte Routen, gemerkte Reiter, Hilfe-Links landen dort)
+  const SWA = { songtext: 'wf', 'songtext-schreiben': 'wf' };
+  const AREA = { looper: 'looper', lernen: 'lernen', power: 'lernen', caged: 'lernen', quinten: 'lernen', griffbrett: 'lernen', ueben: 'lernen', hoer: 'lernen', spick: 'lernen', uebezeit: 'lernen', tonleiter: 'lernen', songbook: 'lernen', singlernen: 'lernen', jam: 'jammen', solo: 'jammen', lied: 'gesang', singen: 'gesang', rig: 'rig' };
   const FIRST = { looper: 'looper', lernen: 'lernen', jammen: 'jam', gesang: 'lied', rig: 'rig' };
   // Anleitung passend zum Bereich/Unterpunkt
-  const HELP = { looper: 'aufnehmen', lernen: 'bereiche', power: 'powerchord-kurs', caged: 'caged', quinten: 'quinten', griffbrett: 'technik', ueben: 'training', hoer: 'hoer-training', spick: 'spickzettel', uebezeit: 'uebezeit', tonleiter: 'tonleiter-trainer', songbook: 'songbook', singlernen: 'mitsingen-lernen', songtext: 'songtext-schreiben', jam: 'backing', solo: 'improvisation', lied: 'songwriting', singen: 'mitsingen', rig: 'rig' };
+  const HELP = { looper: 'aufnehmen', lernen: 'bereiche', power: 'powerchord-kurs', caged: 'caged', quinten: 'quinten', griffbrett: 'technik', ueben: 'training', hoer: 'hoer-training', spick: 'spickzettel', uebezeit: 'uebezeit', tonleiter: 'tonleiter-trainer', songbook: 'songbook', singlernen: 'mitsingen-lernen', jam: 'backing', solo: 'improvisation', lied: 'songwriting', singen: 'mitsingen', rig: 'rig' };
   const areaBtns = document.querySelectorAll('.tabs [data-area]'), chips = document.querySelectorAll('#subNav [data-tab]'), sub = $('subNav'), help = $('tab-hilfe');
   const PANELS = ['looper', 'hilfe', 'rig'].concat([...chips].map(c => c.dataset.tab));
   let last = {}; try { last = JSON.parse(localStorage.getItem('3nps-tab-last') || '{}') || {}; } catch (e) {}
+  Object.keys(last).forEach(k => { if (SWA[last[k]]) delete last[k]; });   // v167: gemerkter Reiter „songtext“ → Lernen zeigt die Übersicht
   let cur = null, prev = 'looper';
   const norm = n => { n = OLD[n] || n; if (FIRST[n] && !AREA[n]) n = last[n] || FIRST[n]; return $('panel-' + n) && PANELS.includes(n) ? n : null; };
   // v146: Reiter „Rig“ – Code, Stil (und später three.js/3D-Modell) erst beim ersten Öffnen laden; Start und Looper bleiben unberührt
@@ -25,6 +28,7 @@
     l.onload = l.onerror = () => document.head.appendChild(s);   // erst Stil, dann Code (kein ungestaltetes Aufblitzen)
   }
   function show(name) {
+    if (SWA[name]) window.__swWant = SWA[name];   // v167: Songwriting öffnet den passenden Bereich
     name = norm(name) || 'looper';
     const area = AREA[name] || null;
     if (name !== 'hilfe') prev = name;

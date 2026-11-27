@@ -4,6 +4,8 @@
 # neuer Song; Blues AAB; Hinweis im Textfeld), Sprünge (Text-Werkstatt mit richtigem Reiter und Song, Text, Leadsheet, Looper, Songbook, Mitsingen lernen),
 # Checkliste, Leitfaden (11 Themen, aufklappbar), Notizbuch (notieren, Schlagworte, Suche, Filter, „In Song …“ als neue Version, neuer Song aus Titel,
 # Löschen mit Rückfrage), Export/Import-Rundlauf ohne Doppeltes, Schreibimpulse, keine Übezeit, Profile, 3 Größen, EN, keine Skriptfehler.
+# v167: Seite liegt jetzt in Songwriting › „Workflow“/„Leitfaden & Beispiel“/„Ideen“ mit EINER Songauswahl (#ldSong) – Prüfinhalte gleich,
+# nur Ort/Navigation angepasst; „ohne Song“ = Song „Leerlauf“ ohne Abschnitte bzw. (Vorlage → neuer Song) ein Songwriting ganz ohne Songs.
 # Aufruf: python3 test/v165songtext.py  (~2 min). SHOT=1 → Bilder nach /home/claude/bilder/v165-*.png
 import asyncio, json, os, re, tempfile
 from playwright.async_api import async_playwright
@@ -20,13 +22,14 @@ NACHT = {"id": "sN", "name": "Nachtfahrt", "created": 1, "voice": None, "cur": 0
               {"id": "pc", "name": "Refrain", "type": "chorus", "chords": [ch(5), ch(0), ch(7), ch(9, 'm')], "audio": None, "lyrics": ["Nachtfahrt, nur der Motor singt\nNachtfahrt, bis der Morgen klingt"]}],
     "order": [{"p": "pv", "reps": 1}, {"p": "pc", "reps": 1}, {"p": "pv", "reps": 1}, {"p": "pc", "reps": 1}]}]}
 LEER = {"id": "sL", "name": "Staub und Sterne", "created": 2, "voice": None, "cur": 0, "versions": [{"n": 1, "at": 2, "note": "Start", "key": {"pc": 7, "major": True}, "bpm": 100, "parts": [], "order": []}]}
-LIED = {"active": "sN", "songs": [NACHT, LEER]}
-def init(extra=''):
-    return "if(!sessionStorage.getItem('x')){sessionStorage.setItem('x','1');localStorage.setItem('3nps-lieder',%s);%s}" % (json.dumps(json.dumps(LIED)), extra)
-async def newpage(b, w=1366, h=1024, extra='', q=''):
+LEERL = {"id": "sX", "name": "Leerlauf", "created": 3, "voice": None, "cur": 0, "versions": [{"n": 1, "at": 3, "note": "Start", "key": {"pc": 0, "major": True}, "bpm": 90, "parts": [], "order": []}]}
+LIED = {"active": "sX", "songs": [NACHT, LEER, LEERL]}
+def init(extra='', lied=None):
+    return "if(!sessionStorage.getItem('x')){sessionStorage.setItem('x','1');localStorage.setItem('3nps-lieder',%s);%s}" % (json.dumps(json.dumps(lied or LIED)), extra)
+async def newpage(b, w=1366, h=1024, extra='', q='', lied=None):
     ctx = await b.new_context(viewport={'width': w, 'height': h}, accept_downloads=True); pg = await ctx.new_page(); errs = []
     pg.on('pageerror', lambda e: errs.append(str(e)))
-    await pg.add_init_script(init(extra)); await pg.goto(U + q); await pg.wait_for_timeout(900)
+    await pg.add_init_script(init(extra, lied)); await pg.goto(U + q); await pg.wait_for_timeout(900)
     return pg, errs
 async def shot(pg, n):
     if SHOT: os.makedirs(SH, exist_ok=True); await pg.wait_for_timeout(300); await pg.screenshot(path=SH + n)
@@ -38,7 +41,9 @@ async def waitfor(pg, js, ms=6000):
 LS = lambda k: "JSON.parse(localStorage.getItem('%s')||'null')" % k
 async def song(pg, sid): return await pg.evaluate("(" + LS('3nps-lieder') + ").songs.find(s=>s.id==='%s')" % sid)
 async def step(pg, n): await pg.click('#stxL [data-s="%d"]' % n); await pg.wait_for_timeout(150)
-async def pick(pg, k): await pg.select_option('#stxSong', k); await pg.wait_for_timeout(200)
+async def pick(pg, k): await pg.select_option('#ldSong', 'sX' if k == '_' else k[2:]); await pg.wait_for_timeout(250)   # v167: eine Songauswahl (Songwriting)
+CUR = "(AppNav.current()==='lied'&&['wf','lf','nb'].includes(document.getElementById('panel-lied').dataset.sw))?'songtext':AppNav.current()"
+K0 = 'l:sX'   # v167: früher „_“ (ohne Song)
 async def back(pg): await tab(pg, 'songtext'); await pg.wait_for_timeout(300)
 
 async def main():
@@ -54,40 +59,39 @@ async def main():
         check('Start lädt songtext.js/.css nicht', await res() == [] and not await pg.evaluate("!!window.Songtext"))
         await pg.click('#area-lernen'); await pg.wait_for_timeout(300)
         chips = await pg.evaluate("[...document.querySelectorAll('#subNav [data-area=lernen]')].map(c=>c.dataset.tab)")
-        check('Chip „Songtext schreiben“ nach „Mitsingen lernen“', chips.index('songtext') == chips.index('singlernen') + 1 and await pg.inner_text('#tab-songtext') == 'Songtext schreiben', chips)
+        check('v167: kein Chip „Songtext schreiben“ mehr unter Lernen', 'songtext' not in chips and 'singlernen' in chips, chips)
         await pg.click('#tab-lernen'); await pg.wait_for_timeout(400)
-        tile = await pg.evaluate("(()=>{const t=document.querySelector('.ln-tile[data-t=songtext]');return t?t.textContent:''})()")
-        check('Kachel in der Übersicht', 'Songtext schreiben' in tile and 'noch nichts geschrieben' in tile, tile[:90])
+        check('v167: keine Kachel mehr in der Übersicht', not await pg.evaluate("!!document.querySelector('.ln-tile[data-t=songtext]')"))
         uz0 = await pg.evaluate("localStorage.getItem('3nps-uebezeit')")
-        await pg.click('.ln-tile[data-t=songtext]'); await waitfor(pg, "window.Songtext && Songtext.built()")
+        await tab(pg, 'songtext')
         r = await res()
-        check('Kachel öffnet die Seite; songtext + mitsingen.css nachgeladen, Werkstatt/Reimliste nicht', await pg.evaluate("AppNav.current()") == 'songtext' and 'songtext.js' in r and 'songtext.css' in r and 'mitsingen.css' in r and 'mitsingen.js' not in r and 'textwerk.js' not in r, r)
+        check('Songwriting › Workflow öffnet die Seite; songtext + mitsingen.css nachgeladen, Werkstatt/Reimliste nicht', await pg.evaluate(CUR) == 'songtext' and 'songtext.js' in r and 'songtext.css' in r and 'mitsingen.css' in r and 'mitsingen.js' not in r and 'textwerk.js' not in r, r)
         rows = await pg.evaluate("[...document.querySelectorAll('#stxL .msl-r')].map(r=>r.querySelector('b').textContent)")
         check('Workflow: 11 Schritte in der Fahrplan-Optik (msl-r)', len(rows) == 11 and rows[0] == 'Idee & Kernsatz' and rows[3] == 'Aufbau festlegen' and rows[10] == 'Fertig', rows)
-        check('Bereiche Workflow · Leitfaden · Ideen-Notizbuch', await pg.evaluate("[...document.querySelectorAll('.stx-nav [data-view]')].map(b=>b.textContent).join('|')") == 'Workflow|Leitfaden|Ideen-Notizbuch')
-        opts = await pg.evaluate("[...document.querySelectorAll('#stxSong option')].map(o=>o.textContent)")
-        check('Song-Auswahl: ohne Song, Songs aus dem Songwriting, „＋ Neuer Song …“', opts[0].startswith('– ohne Song') and 'Nachtfahrt' in opts and 'Staub und Sterne' in opts and opts[-1].startswith('＋'), opts)
+        check('Bereiche Workflow · Leitfaden · Ideen (Leiste im Songwriting)', await pg.evaluate("[...document.querySelectorAll('#swNav [data-sw]')].map(b=>b.textContent).join('|')") == 'Song|Text-Werkstatt|Workflow|Leitfaden & Beispiel|Ideen')
+        opts = await pg.evaluate("[...document.querySelectorAll('#ldSong option')].map(o=>o.textContent)")
+        check('Song-Auswahl: die des Songwritings (eigene Songwahl ausgeblendet)', 'Nachtfahrt' in opts and 'Staub und Sterne' in opts and 'Leerlauf' in opts and not await pg.is_visible('#stxSong'), opts)
         check('Schritt 1: So geht’s, Warum, Werkzeug-Knopf', (await pg.inner_text('#stxH')) == 'Schritt 1 · Idee & Kernsatz' and 'So geht’s' in await pg.inner_text('#stxSo') and (await pg.inner_text('#stxWhy')).startswith('Warum:') and await pg.is_visible('#stxTools [data-go=nb]'))
         await pg.click('#stxTipsB'); await pg.wait_for_timeout(100)
         check('Tipps aufklappbar', await pg.is_visible('#stxTips') and 'Woran merke ich' in await pg.inner_text('#stxTips'))
         # ---------- B: ohne Song, Kernsatz, Schreibimpuls ----------
         await pg.fill('#stxKern', 'Er merkt beim Umzug, wie lange er schon allein wohnt.'); await pg.click('#stxDone'); await pg.wait_for_timeout(500)
         d = await pg.evaluate(LS('3nps-songtext'))
-        check('ohne Song: Haken + Kernsatz gespeichert („_“)', d['p']['_']['d'] == [1] and 'Umzug' in d['p']['_']['k'] and await pg.inner_text('#stxCnt') == '1 von 11', d['p'].get('_'))
+        check('Song ohne Abschnitte: Haken + Kernsatz gespeichert', d['p'][K0]['d'] == [1] and 'Umzug' in d['p'][K0]['k'] and await pg.inner_text('#stxCnt') == '1 von 11', d['p'].get(K0))
         await pg.click('#stxX [data-a=dice]'); await pg.wait_for_timeout(100)
         dz = await pg.inner_text('#stxDice')
         check('Schreibimpuls: Thema × Perspektive × Bild', 'Thema' in dz and 'Perspektive' in dz and 'Bild' in dz, dz.replace('\n', ' ')[:80])
         await pg.click('#stxDice [data-a=diceSave]'); await pg.wait_for_timeout(100)
         check('Impuls als Idee notiert', (await pg.evaluate(LS('3nps-songtext')))['n'][0]['k'] == 'i')
         await step(pg, 8); await pg.click('#stxTools [data-go="tw:akk"]'); await pg.wait_for_timeout(200)
-        check('ohne Song: Werkzeug-Sprung bleibt hier mit Hinweis', await pg.evaluate("AppNav.current()") == 'songtext' and 'Wähle zuerst' in await pg.inner_text('#stxWf .stx-msg'))
+        check('Song ohne Abschnitte: Werkzeug-Sprung bleibt hier mit Hinweis', await pg.evaluate(CUR) == 'songtext' and 'keine Abschnitte' in await pg.inner_text('#stxWf .stx-msg'))
         # ---------- C: Haken je Song ----------
         await pick(pg, 'l:sN')
         check('Song gewählt: eigener Fortschritt, Meta mit Abschnitten', await pg.inner_text('#stxCnt') == '0 von 11' and '2 Abschnitte' in await pg.inner_text('#stxMeta'), await pg.inner_text('#stxMeta'))
         await step(pg, 2); await pg.click('#stxDone'); await step(pg, 5); await pg.click('#stxDone'); await pg.wait_for_timeout(200)
         await pick(pg, '_'); c0 = await pg.inner_text('#stxCnt'); await pick(pg, 'l:sN')
         d = await pg.evaluate(LS('3nps-songtext'))
-        check('Haken je Song getrennt (Nachtfahrt 2+5, ohne Song 1), letzter Schritt gemerkt', d['p']['l:sN']['d'] == [2, 5] and d['p']['_']['d'] == [1] and c0 == '1 von 11' and await pg.inner_text('#stxCnt') == '2 von 11' and (await pg.inner_text('#stxH')).startswith('Schritt 5'), (d['p']['l:sN']['d'], c0))
+        check('Haken je Song getrennt (Nachtfahrt 2+5, Leerlauf 1), letzter Schritt gemerkt', d['p']['l:sN']['d'] == [2, 5] and d['p'][K0]['d'] == [1] and c0 == '1 von 11' and await pg.inner_text('#stxCnt') == '2 von 11' and (await pg.inner_text('#stxH')).startswith('Schritt 5'), (d['p']['l:sN']['d'], c0))
         # Kernsatz als Thema (Rückfrage, wenn schon eins da)
         await step(pg, 1); await pg.fill('#stxKern', 'Eine Fahrt durch die Nacht, die nichts klärt.'); await pg.click('#stxX [data-a=kern2]'); await pg.wait_for_timeout(200)
         th = (await song(pg, 'sN'))['versions'][0]['theme']
@@ -129,11 +133,13 @@ async def main():
         await pg.click('#stxX [data-tpl=vr]'); await pg.click('#stxTplGo'); await pg.wait_for_timeout(300)
         s = await song(pg, 'sN')
         check('Song mit Text: neue Version V2 mit Vorlage, V1 samt Text unverändert', len(s['versions']) == 2 and s['versions'][0] == old[0] and s['cur'] == 1 and [p['name'] for p in s['versions'][1]['parts']] == ['Strophe', 'Refrain'] and s['versions'][1]['note'].startswith('Vorlage') and s['versions'][1]['parts'][0]['chords'][0]['t'] == 'm', s['versions'][1]['note'])
-        await pick(pg, '_'); await step(pg, 4); await pg.click('#stxX [data-tpl=blues]'); await pg.fill('#stxTplN', 'Montagsblues'); await pg.click('#stxTplGo'); await pg.wait_for_timeout(300)
-        db = await pg.evaluate(LS('3nps-lieder')); nb = db['songs'][-1]; v = nb['versions'][0]
-        check('ohne Song: neuer Song „Montagsblues“ mit 12-Takt-Blues (AAB, 3 Strophen, I7 IV7 V7)', nb['name'] == 'Montagsblues' and len(v['parts']) == 1 and v['parts'][0]['plan'] == {'n': 3, 'r': 'AAB'} and len(v['parts'][0]['chords']) == 12 and len(v['order']) == 3 and [c['t'] for c in v['parts'][0]['chords']].count('7') == 12, [p['name'] for p in v['parts']])
-        d = await pg.evaluate(LS('3nps-songtext'))
-        check('…und ist gleich gewählt, Kernsatz von „ohne Song“ mitgenommen', d['cur'] == 'l:' + nb['id'] and 'Umzug' in d['p']['l:' + nb['id']]['k'] and await pg.evaluate("document.getElementById('stxSong').value") == 'l:' + nb['id'])
+        pg2, errs2 = await newpage(b, lied={"active": None, "songs": []}, extra="localStorage.setItem('3nps-songtext',JSON.stringify({v:1,cur:'_',view:'wf',p:{_:{n:'',d:[1],s:4,k:'Er merkt beim Umzug, wie lange er schon allein wohnt.',h:'',wf:{t:'',w:[]},c:[],e:1}},n:[]}));")
+        await tab(pg2, 'songtext'); await step(pg2, 4); await pg2.click('#stxX [data-tpl=blues]'); await pg2.fill('#stxTplN', 'Montagsblues'); await pg2.click('#stxTplGo'); await pg2.wait_for_timeout(300)
+        db = await pg2.evaluate(LS('3nps-lieder')); nb = db['songs'][-1]; v = nb['versions'][0]
+        check('ohne Song (Songwriting leer): neuer Song „Montagsblues“ mit 12-Takt-Blues (AAB, 3 Strophen, I7 IV7 V7)', nb['name'] == 'Montagsblues' and len(v['parts']) == 1 and v['parts'][0]['plan'] == {'n': 3, 'r': 'AAB'} and len(v['parts'][0]['chords']) == 12 and len(v['order']) == 3 and [c['t'] for c in v['parts'][0]['chords']].count('7') == 12, [p['name'] for p in v['parts']])
+        await pg2.wait_for_timeout(200); d = await pg2.evaluate(LS('3nps-songtext'))
+        check('…und ist gleich gewählt (Songwriting oben), Kernsatz von „ohne Song“ mitgenommen', d['cur'] == 'l:' + nb['id'] and 'Umzug' in d['p']['l:' + nb['id']]['k'] and await pg2.evaluate("document.getElementById('ldSong').value") == nb['id'] and not errs2, errs2[:2])
+        await pg2.context.close()
         # Hinweis im Textfeld des Songwritings
         await pick(pg, 'l:sL'); await step(pg, 5); await pg.click('#stxTools [data-go=text]'); await pg.wait_for_timeout(400)
         ph = await pg.evaluate("[...document.querySelectorAll('#ldTexts .ld-txt')].map(t=>t.placeholder)")
@@ -151,11 +157,11 @@ async def main():
         await back(pg); await pick(pg, 'l:sL'); await step(pg, 11); await pg.click('#stxTools [data-go=pdf]'); await pg.wait_for_timeout(300)
         check('Schritt 11 → „Leadsheet (PDF)“ hervorgehoben, richtiger Song', await pg.evaluate("document.getElementById('ldPdf').classList.contains('stx-flash') && document.getElementById('ldSong').value==='sL'"))
         # Song ohne Abschnitte → Hinweis statt Sprung
-        await back(pg); await pg.select_option('#stxSong', '+'); await pg.fill('#stxNewN', 'Skizze'); await pg.click('#stxNewOk'); await pg.wait_for_timeout(200)
+        await back(pg); await pg.click('#ldNew'); await pg.wait_for_timeout(300)
         sk = (await pg.evaluate(LS('3nps-lieder')))['songs'][-1]
-        check('„＋ Neuer Song …“ legt Song im Songwriting an und wählt ihn', sk['name'] == 'Skizze' and await pg.evaluate("document.getElementById('stxSong').value") == 'l:' + sk['id'])
+        check('„+ Neuer Song“ (Songwriting oben) legt Song an, Workflow arbeitet mit ihm', sk['name'].startswith('Song ') and await pg.evaluate("document.getElementById('ldSong').value") == sk['id'] and await pg.evaluate("Songtext._st().cur") == 'l:' + sk['id'], sk['name'])
         await step(pg, 10); await pg.click('#stxTools [data-go="tw:reim"]'); await pg.wait_for_timeout(200)
-        check('Song ohne Abschnitte: bleibt hier, Hinweis + „Zu Schritt 4“', await pg.evaluate("AppNav.current()") == 'songtext' and 'keine Abschnitte' in await pg.inner_text('#stxWf .stx-msg') and await pg.is_visible('#stxWf .stx-msg [data-a=to4]'))
+        check('Song ohne Abschnitte: bleibt hier, Hinweis + „Zu Schritt 4“', await pg.evaluate(CUR) == 'songtext' and 'keine Abschnitte' in await pg.inner_text('#stxWf .stx-msg') and await pg.is_visible('#stxWf .stx-msg [data-a=to4]'))
         await pg.click('#stxWf .stx-msg [data-a=to4]'); await pg.wait_for_timeout(100)
         check('„Zu Schritt 4“ springt zu den Vorlagen', (await pg.inner_text('#stxH')).startswith('Schritt 4'))
         # Songbook + Mitsingen lernen
@@ -175,7 +181,7 @@ async def main():
         await pg.wait_for_timeout(100)
         check('Checkliste: 7 Punkte, gespeichert, „Alles abgehakt“', (await pg.evaluate(LS('3nps-songtext')))['p']['l:sN']['c'] == list(range(7)) and await pg.is_visible('#stxX .stx-allok'))
         # ---------- G: Leitfaden ----------
-        await pg.click('.stx-nav [data-view=lf]'); await pg.wait_for_timeout(200)
+        await pg.click('#swNav [data-sw=lf]'); await pg.wait_for_timeout(200)
         th = await pg.evaluate("[...document.querySelectorAll('#stxLf .stx-th span')].map(x=>x.textContent)")
         check('Leitfaden: 11 Themen, zugeklappt', len(th) == 11 and th[0] == '1. Aufbau eines Songs' and th[10] == '11. Stimmung, Tonart und Akkorde' and await pg.evaluate("document.querySelectorAll('#stxLf .stx-tb:not([hidden])').length") == 0, th)
         await pg.click('#stxLf [data-g="3"]'); await pg.wait_for_timeout(100)
@@ -186,10 +192,10 @@ async def main():
         check('„Alle aufklappen“; jedes Thema mit Beispiel', await pg.evaluate("document.querySelectorAll('#stxLf .stx-tb:not([hidden]) .stx-ex').length") == 11)
         await pg.click('#stxLf [data-go="tw:akk"]'); await pg.wait_for_timeout(500)
         check('Leitfaden-Knopf „Akkorde nach Stimmung“ springt in die Werkstatt', await pg.evaluate("AppNav.current()") == 'lied' and await pg.evaluate("!!document.querySelector('#ldTwBox [data-pane=akk].active')"))
-        await back(pg)
+        await pg.click('#swNav [data-sw=lf]'); await tab(pg, 'looper'); await tab(pg, 'lied'); await pg.wait_for_timeout(500)   # v167: Songwriting merkt den Bereich
         check('Seite merkt den Bereich (Leitfaden)', await pg.is_visible('#stxLf') and not await pg.is_visible('#stxWf'))
         # ---------- H: Ideen-Notizbuch ----------
-        await pg.click('.stx-nav [data-view=nb]'); await pg.wait_for_timeout(200)
+        await pg.click('#swNav [data-sw=nb]'); await pg.wait_for_timeout(200)
         n0 = len((await pg.evaluate(LS('3nps-songtext')))['n'])
         await pg.click('#stxNbK [data-nk=z]'); await pg.fill('#stxNbX', 'Der Bahnsteig gähnt, die Uhr zählt mit'); await pg.fill('#stxNbG', 'bahnhof, nacht'); await pg.click('#stxNbAdd')
         await pg.click('#stxNbK [data-nk=b]'); await pg.fill('#stxNbX', 'Kreidestriche, halb vom Regen weg #stadt'); await pg.click('#stxNbAdd')
@@ -227,7 +233,7 @@ async def main():
         path = await (await dl.value).path(); j = json.load(open(path, encoding='utf8'))
         check('Export: JSON „3nps-songtext“ mit Notizen und Songs (Kernsatz, Wortfeld, Haken)', j['app'] == '3nps-songtext' and len(j['n']) == n0 + 2 and 'l:sN' in j['p'] and len(j['p']['l:sN']['wf']['w']) >= 3, (len(j['n']), list(j['p'])[:3]))
         await pg.evaluate("localStorage.removeItem('3nps-songtext')"); await tab(pg, 'lernen'); await back(pg)
-        await pg.click('.stx-nav [data-view=nb]'); await pg.wait_for_timeout(100)
+        await pg.click('#swNav [data-sw=nb]'); await pg.wait_for_timeout(100)
         check('nach Löschen des Speichers leer', await cnt() == 0)
         await pg.set_input_files('#stxFile', path); await pg.wait_for_timeout(500)
         d2 = await pg.evaluate(LS('3nps-songtext'))
@@ -241,9 +247,9 @@ async def main():
         await pg.click('.stx-impc [data-a=dice]'); await pg.click('#stxDiceS'); await pg.wait_for_timeout(100)
         check('Schreibimpulse im Notizbuch: würfeln + als Idee notieren', len((await pg.evaluate(LS('3nps-songtext')))['n']) == n0 + 3 and await cnt() == n0 + 3)
         # ---------- I: Kachel, Übezeit, Fehler ----------
+        tile = await pg.inner_text('#swKw')
+        check('v167: Stand-Kachel „Workflow“ zeigt die Schritte des gewählten Songs', re.match(r'^\d+/11$', tile) is not None, tile)
         await tab(pg, 'lernen'); await pg.wait_for_timeout(300)
-        tile = await pg.evaluate("document.querySelector('.ln-tile[data-t=songtext]').textContent")
-        check('Kachel zeigt Schritte des zuletzt gewählten Songs', '/ 11 Schritte' in tile or 'Notiz' in tile, tile[:90])
         check('keine Übezeit geschrieben', await pg.evaluate("localStorage.getItem('3nps-uebezeit')") == uz0)
         check('keine Skriptfehler', not errs, errs[:3])
         await pg.context.close()
@@ -261,7 +267,7 @@ async def main():
                 await tab(pg, 'songtext'); await waitfor(pg, "window.Songtext && Songtext.built()")
                 small = []
                 for v in ['wf', 'lf', 'nb']:
-                    await pg.click('.stx-nav [data-view=%s]' % v); await pg.wait_for_timeout(150)
+                    await pg.click('#swNav [data-sw=%s]' % v); await pg.wait_for_timeout(150)
                     if v == 'wf':
                         for st in [3, 4, 11]:
                             await step(pg, st)
@@ -272,15 +278,15 @@ async def main():
                 ov = await pg.evaluate("document.documentElement.scrollWidth<=innerWidth+1")
                 check('%d×%d %s: keine Überbreite, Bedienelemente ≥ 44 px' % (w, hh, dev), ov and not small and not errs, (small[:5], errs[:2]))
                 if SHOT and w == 390 and dev == 'auto':
-                    await pg.click('.stx-nav [data-view=wf]'); await step(pg, 4); await pg.evaluate("document.getElementById('stxS').scrollIntoView()"); await shot(pg, 'v165-5-telefon.png')
+                    await pg.click('#swNav [data-sw=wf]'); await step(pg, 4); await pg.evaluate("document.getElementById('stxS').scrollIntoView()"); await shot(pg, 'v165-5-telefon.png')
                 await pg.context.close()
         pg, errs = await newpage(b, q='?lang=en')
         await tab(pg, 'songtext'); await waitfor(pg, "window.Songtext && Songtext.built()"); await step(pg, 4); await pg.click('#stxTipsB'); await pg.wait_for_timeout(300)
         txt = await pg.inner_text('#stxRoot')
-        await pg.click('.stx-nav [data-view=lf]'); await pg.click('#stxLf [data-a=lfAll]'); await pg.wait_for_timeout(200); txt2 = await pg.inner_text('#stxLf')
+        await pg.click('#swNav [data-sw=lf]'); await pg.click('#stxLf [data-a=lfAll]'); await pg.wait_for_timeout(200); txt2 = await pg.inner_text('#stxLf')
         de = re.findall(r'[^\n]*(?:\b(?:und|der|die|das|nicht|Schritt|Zeile|Strophe)\b)[^\n]*', (txt + '\n' + txt2).replace('Staub und Sterne', ''))
         check('Englisch: Seite englisch (Workflow + Leitfaden)', 'Write lyrics' in txt and 'Set the structure' in txt and 'How do I know it works?' in txt and 'Show, don’t tell' in txt2 and not de, de[:4])
-        check('Englisch: Chip übersetzt', await pg.inner_text('#tab-songtext') == 'Write lyrics')
+        check('Englisch: Leiste übersetzt', await pg.inner_text('#swNav [data-sw=lf]') == 'Guide & example' and await pg.inner_text('#swNav [data-sw=nb]') == 'Ideas', await pg.inner_text('#swNav'))
         check('keine Skriptfehler (EN)', not errs, errs[:3])
         await b.close()
     print('\n%d/%d' % (ok, tot))
