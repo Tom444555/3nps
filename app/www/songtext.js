@@ -1,4 +1,6 @@
-/* ---------- v165: Songtext schreiben (Lernen › Songtext schreiben) ----------
+/* ---------- v165: Songtext schreiben – seit v167 Teil von Song & Gesang › Songwriting (Bereiche „Workflow“, „Leitfaden & Beispiel“, „Ideen“) ----------
+   v167: Der Song kommt aus der Songauswahl des Songwritings (LiedApi.song()); die eigene Songwahl ist ausgeblendet, Haken bleiben an derselben Song-Id.
+   Geladen von songwriting.js (SW); Bereichswechsel über SW.area/SW.mark.
    Wird erst beim ersten Öffnen geladen (lernen.js lädt mitsingen.css + songtext.css/.js). Drei Bereiche:
    „Workflow“ – Fahrplan in 11 Schritten mit Haken je Song (gleiches Gerüst und dieselben Klassen msl-… wie „Mitsingen lernen“ v163; mitsingen.js
    bleibt unverändert), rechts der Schritt mit „So geht’s“, „Warum“, Tipps, Helfer (Kernsatz, Titel/Hook, Wortfeld-Sammler, Aufbau-Vorlagen,
@@ -293,13 +295,16 @@ window.Songtext = (() => {
   }
   function store() { try { localStorage.setItem(KEY, JSON.stringify(D)); return true; } catch (e) { say(u('nosave'), true); return false; } }
   let storeT = 0; const storeSoon = () => { clearTimeout(storeT); storeT = setTimeout(store, 400); };
+  let lastK = null;   // v167: zuletzt gezeigter Song (für sync)
   let D = load(), built = false, sel = 1, takeId = '', tkSong = '', tpl = 'vr', dice = null, rhW = '', nbKind = '', nbF = '', openG = {};
 
   /* ---------- Songs (aus dem Songwriting) ---------- */
   function songs() { const A = LA(); try { return A && A.songs ? A.songs() : []; } catch (e) { return []; } }
   const newest = s => s.versions[s.versions.length - 1];
   const verOf = s => s ? s.versions[s.cur] || newest(s) : null;
-  function curKey() { const k = D.cur; return k && k.startsWith('l:') && songs().some(s => 'l:' + s.id === k) ? k : '_'; }
+  function curKey() {
+    const A = LA(); if (A && A.song) { const s = A.song(); return s && songs().some(x => x.id === s.id) ? 'l:' + s.id : '_'; }   // v167: eine Songauswahl für alles
+    const k = D.cur; return k && k.startsWith('l:') && songs().some(s => 'l:' + s.id === k) ? k : '_'; }
   function curSong() { const k = curKey(); return k === '_' ? null : songs().find(s => 'l:' + s.id === k) || null; }
   function rec(k, make) {
     k = k || curKey(); let r = D.p[k];
@@ -349,7 +354,7 @@ window.Songtext = (() => {
     if (v === 'wf') { paintPlan(); paintStep(); } else if (v === 'lf') paintLf(); else paintNb();
     paintExAll();   // v166
   }
-  function setView(v) { D.view = v; store(); say(''); paint(); const r = $('stxRoot'); if (r && r.scrollIntoView && r.getBoundingClientRect().top < 0) r.scrollIntoView({ block: 'start' }); }
+  function setView(v) { D.view = v; store(); if (window.SW && SW.mark) SW.mark(v); say(''); paint(); const r = $('stxRoot'); if (r && r.scrollIntoView && r.getBoundingClientRect().top < 0) r.scrollIntoView({ block: 'start' }); }
 
   /* ---------- Workflow ---------- */
   function songOpts(selK, withNew) {
@@ -358,7 +363,7 @@ window.Songtext = (() => {
       + (withNew ? '<option value="+">' + esc(u('newOpt')) + '</option>' : '');
   }
   function paintPlan() {
-    const k = curKey(), pr = rec(k), done = pr ? pr.d : [], s = curSong();
+    const k = curKey(), pr = rec(k), done = pr ? pr.d : [], s = curSong(); lastK = k;
     const html = songOpts(k, true), el = $('stxSong'); if (el.dataset.h !== html) { el.innerHTML = html; el.dataset.h = html; } el.value = k;
     if (s) { const v = verOf(s), n = v.parts.length; $('stxMeta').textContent = (n ? n + ' ' + u('parts') : u('noParts0')) + ' · ' + u('ver') + ' V' + (v.n || s.cur + 1) + (pr && pr.k ? ' · „' + pr.k.slice(0, 60) + '“' : ''); }
     else $('stxMeta').textContent = u('meta0');
@@ -420,7 +425,8 @@ window.Songtext = (() => {
       x.innerHTML = '<div class="msl-xbox stx-x"><p class="stx-ckh"><b>' + esc(u('chkH')) + '</b></p>' + auto + '<div class="stx-cks">' + CHECK.map((t, i) => { const on = c.includes(i);
         return '<button type="button" class="stx-ck' + (on ? ' on' : '') + '" data-ck="' + i + '" aria-pressed="' + on + '"><i aria-hidden="true">' + (on ? '✓' : '') + '</i><span>' + esc(tx(t)) + '</span></button>'; }).join('') + '</div>'
         + (all ? '<p class="stx-allok">' + esc(u('chkAll')) + '</p>' : '') + '</div>';
-    } else x.innerHTML = '';
+    } else if (sel === 9 && window.SW && SW.raster) { x.innerHTML = '<div class="msl-xbox stx-x" id="stxRaster"></div>'; SW.raster($('stxRaster')); }   // v167: Silben-Raster
+    else x.innerHTML = '';
   }
   function setDone(n, on) { const pr = rec(null, true), i = pr.d.indexOf(n); if (on && i < 0) pr.d.push(n); if (!on && i >= 0) pr.d.splice(i, 1); pr.d.sort((a, b) => a - b); touch(pr); D.cur = curKey(); store(); }
   function goStep(n) { sel = Math.max(1, Math.min(NS, n)); const pr = rec(); if (pr) { pr.s = sel; store(); } rhW = ''; say(''); paintPlan(); paintStep(); }
@@ -496,6 +502,14 @@ window.Songtext = (() => {
     if (a !== 'lied' && !has) { noParts(); return; }
     if (a === 'songbook') { toSongbook(s); return; }
     A.select(s.id); NAV('lied');
+    const SW = window.SW;   // v167: Ziele liegen im Songwriting – passender Bereich
+    if (SW && a.startsWith('tw:')) {
+      const pane = a.slice(3);
+      SW.area('tw', () => { const box = $('ldTwBox'); if (!box) return; const b = box.querySelector('[data-pane="' + pane + '"]'); if (b && !b.classList.contains('active')) b.click(); if (box.scrollIntoView) box.scrollIntoView({ block: 'start' }); });
+      return;
+    }
+    if (SW) SW.area('song');
+    if (a === 'lied') { const r = $('panel-lied'); if (r && r.scrollIntoView) r.scrollIntoView({ block: 'start' }); return; }
     if (a === 'text') { const c = $('ldTextCard'); if (c && c.scrollIntoView) c.scrollIntoView({ block: 'start' }); return; }
     if (a === 'pdf') { const b = $('ldPdf'); if (b) { b.scrollIntoView({ block: 'center' }); b.classList.add('stx-flash'); try { b.focus({ preventScroll: true }); } catch (e) {} setTimeout(() => b.classList.remove('stx-flash'), 2600); } return; }
     if (a.startsWith('tw:')) {
@@ -673,6 +687,7 @@ window.Songtext = (() => {
   function paintLf() {
     const w = $('stxLf');
     w.innerHTML = '<div class="card stx-lfc"><div class="card-head msl-head"><h2>' + esc(u('lf')) + '</h2><button type="button" class="toggle-btn stx-sm" data-a="lfAll">' + esc(u(Object.keys(openG).length >= GUIDE.length ? 'lfNone' : 'lfAll')) + '</button></div>'
+      + '<div class="stx-row stx-lfex"><button type="button" class="toggle-btn stx-exb" data-a="exAllLf" aria-expanded="' + exAll + '" aria-controls="stxExW">' + esc(u('exAll')) + '</button>' + exBtn() + '</div>'   // v167: Beispiel hier
       + '<p class="caption">' + esc(u('lfIntro')) + '</p><div class="stx-topics">' + GUIDE.map((G, i) => {
         const on = !!openG[i];
         return '<div class="stx-t' + (on ? ' on' : '') + '"><button type="button" class="stx-th" data-g="' + i + '" aria-expanded="' + on + '" aria-controls="stxG' + i + '"><span>' + (i + 1) + '. ' + esc(tx(G.t)) + '</span><i aria-hidden="true">' + (on ? '−' : '+') + '</i></button>'
@@ -701,8 +716,9 @@ window.Songtext = (() => {
       case 'stxNewOk': newSong(); return;
       case 'stxNewX': $('stxNew').hidden = true; return;
       case 'stxExB': exOpen = !exOpen; paintEx(); return;
-      case 'stxExAll': exAll = !exAll; paintExAll(); if (exAll) { const w = $('stxExW'); if (w && w.scrollIntoView) w.scrollIntoView({ block: 'start' }); } return;
+      case 'stxExAll': case 'exAllLf': exAll = !exAll; paintExAll(); if (exAll) { const w = $('stxExW'); if (w && w.scrollIntoView) w.scrollIntoView({ block: 'start' }); } return;
     }
+    if (a === 'exAllLf') { exAll = !exAll; paintExAll(); if (exAll) { const w = $('stxExW'); if (w && w.scrollIntoView) w.scrollIntoView({ block: 'start' }); } return; }   // v167
     switch (a) {
       case 'kern2': {
         const pr = rec(), s = curSong(), A = LA(); if (!s || !A) return; const k = pr && pr.k ? pr.k.trim() : ''; if (!k) { say(u('themeNo'), true); return; }
@@ -723,7 +739,7 @@ window.Songtext = (() => {
       case 'exGo': go('lied'); return;
       case 'exX': exAll = false; paintExAll(); { const r = $('stxRoot'); if (r && r.scrollIntoView) r.scrollIntoView({ block: 'start' }); } return;
       case 'exStep': exOpen = true; goStep(+b.dataset.n); { const c = $('stxS'); if (c && c.scrollIntoView) c.scrollIntoView({ block: 'start' }); } return;
-      case 'to4': case 'to4s': if (D.view !== 'wf') setView('wf'); if (a === 'to4s' && tkSong) { D.cur = 'l:' + tkSong; store(); } goStep(4); return;
+      case 'to4': case 'to4s': if (D.view !== 'wf') setView('wf'); if (a === 'to4s' && tkSong) { D.cur = 'l:' + tkSong; store(); const A = LA(); if (A && A.select) A.select(tkSong); } goStep(4); return;
       case 'nbAdd': {
         const t = $('stxNbX'); if (!t.value.trim()) { t.focus(); say(u('empty'), true); return; }
         addNote(t.value, nbKind || 'z', tagsOf($('stxNbG').value, t.value)); t.value = ''; $('stxNbG').value = ''; say(u('saved')); paintNbList(); t.focus(); return;
@@ -791,7 +807,9 @@ window.Songtext = (() => {
   function paintExAll() {
     const w = $('stxExW'), b = $('stxExAll'); if (!w) return;
     if (b) { b.setAttribute('aria-expanded', String(exAll)); b.classList.toggle('active', exAll); }
-    w.hidden = !exAll || D.view !== 'wf'; if (w.hidden) return;
+    document.querySelectorAll('#stxRoot [data-a="exAllLf"]').forEach(x => { x.setAttribute('aria-expanded', String(exAll)); x.classList.toggle('active', exAll); });   // v167
+    const lf = D.view === 'lf', anchor = $(lf ? 'stxLf' : 'stxWf'); if (anchor && anchor.nextElementSibling !== w) anchor.after(w);
+    w.hidden = !exAll || (D.view !== 'wf' && !lf); if (w.hidden) return;
     if (!window.SongtextBeispiel) { w.innerHTML = exWait(); exLoad(paintExAll); return; }
     const E = window.SongtextBeispiel, M = E.META, row = '<div class="stx-row">' + exBtn() + '<button type="button" class="toggle-btn" data-a="exX">' + esc(u('exClose')) + '</button></div>';
     w.innerHTML = '<div class="card-head msl-head"><h2>' + esc(u('exHead')) + ': „' + esc(M.title) + '“</h2><span class="caption">' + esc(M.key + ' · ' + M.bpm + ' BPM · 4/4') + '</span></div>'
@@ -818,6 +836,9 @@ window.Songtext = (() => {
     return s;
   }
   function open() { build(); }
-  document.addEventListener('tabchange', e => { if (e.detail === 'songtext' && built) { clearTimeout(storeT); D = load(); const pr = rec(); if (pr && pr.s) sel = pr.s; paint(); } else if (built && storeT) { clearTimeout(storeT); storeT = 0; store(); } });
-  return { open, built: () => built, load, merge, STEPS, GUIDE, TPL, CHECK, DICE, exSong, _st: () => ({ sel, cur: curKey(), view: D.view, tpl, takeId, rhW, notes: D.n.length, exOpen, exAll }) };
+  // v167: Bereich zeigen (SW-Leiste) und nach einem Songwechsel im Songwriting nachziehen
+  function show(v) { if (['wf', 'lf', 'nb'].includes(v) && D.view !== v) { D.view = v; store(); } say(''); build(); }
+  function sync() { if (!built) return; const k = curKey(); if (k === lastK) return; const pr = rec(k); sel = pr && pr.s ? pr.s : 1; rhW = ''; takeId = ''; paint(); }
+  document.addEventListener('tabchange', () => { if (built && storeT) { clearTimeout(storeT); storeT = 0; store(); } });
+  return { open, show, sync, go, view: () => D.view, built: () => built, load, merge, STEPS, GUIDE, TPL, CHECK, DICE, exSong, _st: () => ({ sel, cur: curKey(), view: D.view, tpl, takeId, rhW, notes: D.n.length, exOpen, exAll }) };
 })();

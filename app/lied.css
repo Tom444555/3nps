@@ -110,3 +110,20 @@
   .ld-imr .err li { color: #ff7a59; } .ld-imr .wrn li { color: var(--muted); }
   .ld-imr .note { font: 500 .86rem var(--f-body); color: var(--muted); } .ld-imr .note b { color: var(--ink); }
   .ld-imr .ld-vact { flex-wrap: wrap; }
+  /* v167: Songwriting – Stand-Kacheln, Leiste der Bereiche, Bereiche (Rest in songwriting.css, erst beim Öffnen) */
+  .ld-topbtn .toggle-btn { min-height: 44px; }
+  .sw-bar { margin: 12px 0 10px; }
+  .sw-stand { display: flex; gap: 8px 10px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+  .sw-stand > .caption { flex: 1; min-width: 120px; }
+  .sw-tiles { display: flex; gap: 8px; flex-wrap: wrap; }
+  .swk { min-width: 84px; min-height: 48px; padding: 6px 10px; border-radius: 10px; background: rgba(127,127,127,.1); border: 1px solid rgba(127,127,127,.25); text-align: center; display: flex; flex-direction: column; justify-content: center; color: inherit; font: inherit; }
+  .swk b { font-size: 1.05rem; } .swk span { font-size: .7rem; opacity: .75; }
+  button.swk { cursor: pointer; }
+  .sw-nav { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  .sw-nav .toggle-btn { min-height: 46px; padding: 10px 4px; }
+  .sw-nav .toggle-btn.active { font-weight: 700; }
+  #panel-lied .sw-area { display: none; }
+  #panel-lied[data-sw="tw"] #swTw, #panel-lied[data-sw="wf"] #swSt, #panel-lied[data-sw="lf"] #swSt, #panel-lied[data-sw="nb"] #swSt { display: block; }
+  #panel-lied[data-sw]:not([data-sw="song"]) > .card:not(:first-child):not(.sw-area), #panel-lied[data-sw]:not([data-sw="song"]) #ldEmpty, #panel-lied[data-sw]:not([data-sw="song"]) #ldMain { display: none !important; }
+  #panel-lied .stx-nav, #panel-lied .stx-wf .msl-pc, #panel-lied #stxNew { display: none !important; }
+  @media (max-width: 640px) { .sw-nav { display: flex; overflow-x: auto; scroll-snap-type: x proximity; } .sw-nav .toggle-btn { flex: 0 0 auto; padding: 10px 14px; } .swk { min-width: 70px; } }

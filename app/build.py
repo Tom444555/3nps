@@ -168,6 +168,7 @@ pv += '<style>' + rd(A + 'mitsingen.css') + '</style>\n<script>\n' + rd(A + 'mit
 pv += '<style>' + rd(A + 'textwerk.css') + '</style>\n<script>\n' + rd(A + 'textwerk.js') + '\n</script>\n'   # v164: Text-Werkstatt
 pv += '<style>' + rd(A + 'songtext.css') + '</style>\n<script>\n' + rd(A + 'songtext.js') + '\n</script>\n'   # v165: Songtext schreiben
 pv += '<script>\n' + rd(A + 'songtext-beispiel.js') + '\n</script>\n'   # v166: Beispiel (Vorschau bleibt eine Datei)
+pv += '<style>' + rd(A + 'songwriting.css') + '</style>\n<script>\n' + rd(A + 'songwriting.js') + '\n' + rd(A + 'silbenraster.js') + '\n</script>\n'   # v167: Songwriting-Bereiche, Silben-Raster
 old_mic = "setStatus('Kein Zugriff aufs Mikrofon. Erlaube ihn in den iPad-Einstellungen unter Datenschutz → Mikrofon bzw. für die Website in Safari (aA → Website-Einstellungen → Mikrofon).');"
 assert old_mic in pv
 pv = pv.replace(old_mic, "setStatus('In der Vorschau ist das Mikrofon gesperrt. Nimm den Demo-Loop oben, in der App funktioniert die Aufnahme.');")
@@ -216,6 +217,7 @@ shutil.copy(A + 'songbook.js', A + 'www/songbook.js'); shutil.copy(A + 'songbook
 shutil.copy(A + 'mitsingen.js', A + 'www/mitsingen.js'); shutil.copy(A + 'mitsingen.css', A + 'www/mitsingen.css')   # v163: Mitsingen lernen (erst beim Öffnen geladen)
 shutil.copy(A + 'textwerk.js', A + 'www/textwerk.js'); shutil.copy(A + 'textwerk.css', A + 'www/textwerk.css')   # v164: Text-Werkstatt (erst beim Öffnen geladen; Reimliste app/www/reim/ aus werkzeug/reimliste.py)
 shutil.copy(A + 'songtext.js', A + 'www/songtext.js'); shutil.copy(A + 'songtext.css', A + 'www/songtext.css')   # v165: Songtext schreiben (erst beim Öffnen geladen)
+shutil.copy(A + 'songwriting.js', A + 'www/songwriting.js'); shutil.copy(A + 'songwriting.css', A + 'www/songwriting.css'); shutil.copy(A + 'silbenraster.js', A + 'www/silbenraster.js')   # v167: Songwriting-Bereiche, Silben-Raster (erst beim Öffnen geladen)
 shutil.copy(A + 'songtext-beispiel.js', A + 'www/songtext-beispiel.js')   # v166: Beispiel „von Anfang bis Ende“ (erst bei Bedarf geladen)
 shutil.copy(A + 'tonleiter.js', A + 'www/tonleiter.js'); shutil.copy(A + 'tonleiter.css', A + 'www/tonleiter.css')   # v158: Tonleiter-Trainer (erst beim Öffnen geladen)
 shutil.copy(A + 'uebezeit-ansicht.js', A + 'www/uebezeit-ansicht.js'); shutil.copy(A + 'uebezeit-ansicht.css', A + 'www/uebezeit-ansicht.css')

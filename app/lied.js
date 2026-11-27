@@ -254,7 +254,7 @@
     const v = ver(), has = !!(v && v.parts.length);
     $('ldEmpty').hidden = has; $('ldMain').hidden = !s;
     ['ldOrderCard', 'ldPartsCard', 'ldTextCard', 'ldCheckCard', 'ldVoiceCard'].forEach(id => { $(id).hidden = !has; });
-    if (!s) return;
+    if (!s) { if (window.SW && SW.onRender) SW.onRender(); return; }   // v167
     const L = C.totals(v);
     $('ldInfo').innerHTML = '<b>' + C.keyLabel(v.key) + '</b> · ' + Math.round(v.bpm) + ' BPM · ' + L.bars + ' Takte · ' + C.mmss(L.secs)
       + ' <span class="ld-tr"><button class="toggle-btn" id="ldTrD" title="Halbton tiefer">♭ −½</button><button class="toggle-btn" id="ldTrU" title="Halbton höher">♯ +½</button></span>'
@@ -267,6 +267,7 @@
     vs.value = s.cur;
     renderOrder(v); renderParts(v); renderText(v); renderVoice(v);
     if (window.TextWerk && TextWerk.refresh) TextWerk.refresh();   // v164
+    if (window.SW && SW.onRender) SW.onRender();   // v167: Stand-Kacheln, Summ-Ideen, Bereiche nachziehen
     $('ldFind').innerHTML = ''; $('ldVar').innerHTML = ''; varCache = null;
   }
   const TCLS = t => 't-' + t;
@@ -559,15 +560,25 @@
     };
     document.head.appendChild(l);
   }
-  $('ldTw').addEventListener('click', () => {
-    const box = $('ldTwBox'), on = box.hidden;
-    $('ldTw').classList.toggle('active', on); $('ldTw').setAttribute('aria-expanded', on ? 'true' : 'false');
-    if (!on) { box.hidden = true; return; }
-    twLoad(() => TextWerk.open(box));
-  });
+  // v167: Text-Werkstatt ist ein eigener Bereich im Songwriting – der Knopf in der Karte „Text“ springt dorthin
+  $('ldTw').addEventListener('click', () => swLoad(() => SW.area('tw')));
+  // v167: Leiste der Bereiche, Stand, Songliste, Summ-Ideen (songwriting.js/.css erst beim Öffnen des Songwritings)
+  let swL = false, swQ = [];
+  function swLoad(cb) {
+    if (window.SW) { if (cb) cb(); return; }
+    if (cb) swQ.push(cb); if (swL) return; swL = true;
+    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'songwriting.css';
+    l.onload = l.onerror = () => {
+      const sc = document.createElement('script'); sc.src = 'songwriting.js';
+      sc.onload = () => { const q = swQ; swQ = []; q.forEach(f => f()); };
+      sc.onerror = () => { swL = false; swQ = []; sc.remove(); status(T('Die Songwriting-Bereiche konnten nicht geladen werden – bitte einmal mit Internet öffnen.')); };
+      document.head.appendChild(sc);
+    };
+    document.head.appendChild(l);
+  }
   window.LiedApi = { song, ver, pushVersion, render, status, play, stop, playing: () => P ? P.label || 'Song' : null, copyText, readCode, textSlots,
     // v165 („Songtext schreiben“): Songs lesen, Song wählen/anlegen, speichern, Text-Werkstatt laden – ändert nichts am Verhalten hier
-    songs: () => db.songs, select: id => { if (!db.songs.some(s => s.id === id)) return false; db.active = id; return save(); }, newSong: n => newSong(n), save, twLoad };
+    songs: () => db.songs, select: id => { if (!db.songs.some(s => s.id === id)) return false; db.active = id; return save(); }, newSong: n => newSong(n), save, twLoad, swLoad };
 
   // ================= Ganzer Song für Logic =================
   $('ldExport').addEventListener('click', async () => {
@@ -599,7 +610,7 @@
   let ui = null;
   document.addEventListener('tabchange', e => {
     clearInterval(ui); ui = null;
-    if (e.detail === 'lied') { db = load(); if (P) P.v = P.v; render(); ui = setInterval(paintPos, 120); }
+    if (e.detail === 'lied') { db = load(); if (P) P.v = P.v; render(); ui = setInterval(paintPos, 120); swLoad(); }
   });
   render();
   // Schnittstelle (Improvisation, Quintenzirkel, Tests)

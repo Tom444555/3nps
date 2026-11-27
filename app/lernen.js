@@ -17,7 +17,6 @@
     { t: 'spick', ic: '📋', n: 'Spickzettel', d: 'Intervalle, Griffformen, Quintenzirkel, Akkordsymbole' },
     { t: 'songbook', ic: '📖', n: 'Songbook', d: 'Deine Stücke: Tonart, Tempo, Akkorde & Text – „▶ Laden“ stellt alles ein' },
     { t: 'singlernen', ic: '🎤', n: 'Mitsingen lernen', d: 'Fahrplan in 8 Schritten – Zeile in Schleife, langsamer, Vorsingen & Nachsingen' },
-    { t: 'songtext', ic: '✍', n: 'Songtext schreiben', d: 'Leitfaden, Workflow in 11 Schritten, Ideen-Notizbuch, Aufbau-Vorlagen' },
     { t: 'uebezeit', ic: '⏲', n: 'Übezeit', d: 'Schalter „Üben“, Themen, Import aus Numbers, CSV-Export' },
     { t: 'tonleiter', ic: '🎼', n: 'Tonleiter-Trainer', d: 'Pentatonik, 3nps, Kirchentonleitern in allen Lagen – Tempo Schritt für Schritt' }
   ];
@@ -58,10 +57,6 @@
     if (t === 'singlernen') {   // v163: Schritte geschafft beim zuletzt gewählten Stück (liest nur „3nps-mitsingen“)
       const d = jget('3nps-mitsingen', null), p = d && d.p && d.cur ? d.p[d.cur] : null, n = p && Array.isArray(p.d) ? p.d.length : 0;
       return p ? { p: n / 8, txt: n + ' / 8 ' + TT('Schritte') } : { p: 0, txt: TT('noch nicht geübt') };
-    }
-    if (t === 'songtext') {   // v165: Schritte geschafft beim zuletzt gewählten Song (liest nur „3nps-songtext“)
-      const d = jget('3nps-songtext', null), p = d && d.p && d.cur ? d.p[d.cur] : null, n = p && Array.isArray(p.d) ? p.d.length : 0, nn = d && Array.isArray(d.n) ? d.n.length : 0;
-      return p && n ? { p: n / 11, txt: n + ' / 11 ' + TT('Schritte') } : nn ? { p: 0, txt: nn + ' ' + TT(nn === 1 ? 'Notiz' : 'Notizen') } : { p: 0, txt: TT('noch nichts geschrieben') };
     }
     if (t === 'tonleiter') {   // v158: Übungen mit Bestwert, Ring = Anteil mit erreichtem Ziel
       const d = jget('3nps-tonleiter', null), b = d && d.b ? Object.values(d.b) : [], z = d && d.t ? d.t.z : 120;
@@ -113,20 +108,7 @@
     document.head.appendChild(l);
   }
   document.addEventListener('tabchange', e => { if (e.detail === 'singlernen') msLoad(); });
-  // v165: Songtext schreiben – Code, Stil und Texte erst beim ersten Öffnen laden (songtext.js; nutzt die Fahrplan-Klassen aus mitsingen.css)
-  let stL = false;
-  function stLoad() {
-    if (window.Songtext) { Songtext.open(); return; }
-    if (stL) return; stL = true;
-    const css = h => new Promise(r => { if (document.querySelector('link[href="' + h + '"]')) return r(); const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = h; l.onload = l.onerror = r; document.head.appendChild(l); });
-    Promise.all([css('mitsingen.css'), css('songtext.css')]).then(() => {
-      const sc = document.createElement('script'); sc.src = 'songtext.js';
-      sc.onload = () => { if (window.AppNav && AppNav.current() === 'songtext') Songtext.open(); };
-      sc.onerror = () => { stL = false; sc.remove(); const r = $('stxRoot'); if (r) r.innerHTML = '<p class="pattern-desc">' + TT('„Songtext schreiben“ konnte nicht geladen werden – bitte einmal mit Internet öffnen.') + '</p>'; };
-      document.head.appendChild(sc);
-    });
-  }
-  document.addEventListener('tabchange', e => { if (e.detail === 'songtext') stLoad(); });
+  // v167: „Songtext schreiben“ ist jetzt Teil von Song & Gesang › Songwriting (songwriting.js lädt songtext.js)
   function tile(T0, lastT) {
     const g = prog(T0.t);
     return '<button class="ln-tile' + (T0.t === lastT ? ' last' : '') + '" data-t="' + T0.t + '"><span class="ln-top"><span class="ln-ic" aria-hidden="true">' + T0.ic + '</span><span class="ln-ring">' + ring(g.p) + '</span></span>' +
