@@ -150,7 +150,7 @@ window.SW = (() => {
     const s = song(); if (!s) return;
     document.querySelectorAll('#ldTexts .ld-tx[data-n="0"]').forEach(box => {
       const pid = box.dataset.id, h = D.h[hk(s.id, pid)], head = box.querySelector('.ld-txh'); if (!head) return;
-      let w = head.querySelector('.sw-hum'); if (!w) { w = document.createElement('span'); w.className = 'sw-hum'; head.appendChild(w); }
+      let w = head.querySelector('.sw-hum'); if (!w) { w = document.createElement('span'); w.className = 'sw-hum'; w.setAttribute('translate', 'no'); head.appendChild(w); }
       const recNow = R && R.sid === s.id && R.pid === pid, playNow = Pl && Pl.k === hk(s.id, pid);
       const html = recNow ? '<button type="button" class="toggle-btn sw-hb rec" data-h="stop">' + esc(u('humStop')) + ' · ' + fmtS(R.n / R.sr) + ' s</button>'
         : h ? '<button type="button" class="toggle-btn sw-hb" data-h="play" aria-label="' + esc(tx(U.humT).replace('%s', box.querySelector('.ld-txh b') ? box.querySelector('.ld-txh b').textContent : '')) + '">' + (playNow ? '■' : '▶') + ' ' + fmtS(h.s) + ' s</button><button type="button" class="toggle-btn sw-hb" data-h="del">' + esc(u('humDel')) + '</button>'
@@ -244,7 +244,7 @@ window.SW = (() => {
     tiles(); hums();
   }
   document.addEventListener('tabchange', e => {
-    if (e.detail === 'lied') { D = load(); open(); }
+    if (e.detail === 'lied') { D = load(); if (window.Songtext && Songtext.reload) Songtext.reload(); open(); }
     else { if (sT) store(); if (R) recStop(); stopPlay(); }
   });
   if (window.AppNav && AppNav.current() === 'lied') open();

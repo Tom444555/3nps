@@ -1,6 +1,6 @@
 /* ---------- v167: Silben-Raster (Songwriting › Workflow Schritt 9 und Bereich „Text-Werkstatt“) ----------
    Erst bei Bedarf geladen (songwriting.js). Eine Textzeile wählen → Silben auf die Zählzeiten der Takte (1 e + e 2 e + e …, 4/4) verteilt,
-   geschätzte Betonung fett/unterstrichen (gleiche Heuristik wie die Text-Werkstatt v164: LiedText.rhymePart; kurze Füllwörter unbetont),
+   geschätzte Betonung fett/unterstrichen (Heuristik wie in der Text-Werkstatt v164 beschrieben: erste Stammsilbe, Vor-/Nachsilben und kurze Füllwörter unbetont),
    Hinweis, wenn betonte Silben neben den Schlag fallen. Silbe antippen, dann leeres Feld antippen oder ◀ ▶ = verschieben (Reihenfolge bleibt).
    Verschobene Lagen in „3nps-sw“ unter r['p:<Song>|<Teil>|<Mal>|<Zeile>'] = { t: Zeile, b: Takte, p: [Lagen] } (nur, solange die Zeile gleich bleibt). */
 window.SilbenRaster = (() => {
@@ -16,8 +16,8 @@ window.SilbenRaster = (() => {
     offN: ['%n betonte Silben liegen neben dem Schlag.', '%n stressed syllables are off the beat.'],
     much: ['%n Silben passen nicht gut in %b Takte – Takt dazu (+) oder die Zeile kürzen.', '%n syllables do not fit well into %b bars – add a bar (+) or shorten the line.'],
     pick: ['Silbe „%s“ gewählt – freies Feld antippen oder ◀ ▶.', 'Syllable “%s” selected – tap a free cell or ◀ ▶.'], order: ['Silben bleiben in ihrer Reihenfolge – Feld zwischen den Nachbarn wählen.', 'Syllables keep their order – choose a cell between the neighbours.'],
-    lim: ['Grenzen: Silben und Betonung nach der Schreibung geschätzt (wie die Text-Werkstatt: meist Stammsilbe, Endungen -e/-en/-er und Nachsilben wie -ung, -lich unbetont; bei zusammengesetzten Wörtern oft die letzte Stammsilbe; Fremdwörter und Englisch ungenau). 4/4-Takt angenommen; Takte je Zeile = Takte des Abschnitts geteilt durch seine Zeilen (mit − + änderbar).',
-      'Limits: syllables and stress estimated from spelling (like the text workshop: mostly the stem syllable; endings -e/-en/-er and suffixes like -ung, -lich unstressed; compounds often get the last stem; loanwords and English are rough). 4/4 assumed; bars per line = bars of the section divided by its lines (change with − +).']
+    lim: ['Grenzen: Silben und Betonung nach der Schreibung geschätzt (wie die Text-Werkstatt: meist die erste Stammsilbe, Vorsilben wie ver-, be-, ge- sowie Endungen und Nachsilben wie -en, -ung, -lich unbetont; kurze Füllwörter wie „der“, „und“ unbetont; Fremdwörter wie „Musik“ und englische Texte ungenau). 4/4-Takt angenommen; Takte je Zeile = Takte des Abschnitts geteilt durch seine Zeilen (mit − + änderbar).',
+      'Limits: syllables and stress estimated from spelling (like the text workshop: mostly the first stem syllable; prefixes like ver-, be-, ge- and endings/suffixes like -en, -ung, -lich unstressed; short function words unstressed; loanwords and English lyrics are rough). 4/4 assumed; bars per line = bars of the section divided by its lines (change with − +).']
   };
   let X = null, host = null, cur = null, sel = -1, msg = '';
   const u = k => X.tx(U[k]);
@@ -34,9 +34,13 @@ window.SilbenRaster = (() => {
       const m = cl.match(/sch$|ch$|ck$|ph$|th$|qu$|.$/); cuts.push(cl.length === 1 ? e : b - m[0].length);   // vor den letzten Konsonanten
     }
     const parts = cuts.map((c, i) => w.slice(c, i + 1 < cuts.length ? cuts[i + 1] : w.length));
+    // Betonung wie in der Text-Werkstatt beschrieben: meist die erste Stammsilbe; Vorsilben (ver-, zer-, ent-, emp-, be-, ge-, er-) und Endungen unbetont
     let j = 0;
     if (n === 1) j = FN.has(lw.replace(/'/g, '')) ? -1 : 0;
-    else { try { const rp = window.LiedText && LiedText.rhymePart ? LiedText.rhymePart(lw) : null; j = rp && rp.n === n ? rp.stressed : 0; } catch (e) { j = 0; } }
+    else {
+      const p1 = parts[1].toLowerCase(), end = /^[^aeiouyäöü]*(e|en|er|el|em|es|ern|eln|ens)$/.test(p1);
+      if (/^(ver|zer|ent|emp)/.test(lw) || (/^(be|ge|er)/.test(lw) && !end)) j = 1;
+    }
     return parts.map((t, i) => ({ t, s: i === j }));
   }
   function sylls(text) {

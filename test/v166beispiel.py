@@ -82,8 +82,8 @@ async def main():
         await pg.click('#stxExW [data-a=exStep][data-n="8"]'); await pg.wait_for_timeout(200)
         st = await pg.evaluate("Songtext._st()")
         check('„Zu Schritt 8 ›“ öffnet Schritt 8 mit Beispiel-Karte', st['sel'] == 8 and st['exOpen'] and 'Akkorde nach Stimmung' in await pg.inner_text('#stxExS'), st)
-        await pg.click('.stx-nav [data-view=lf]'); hid = await pg.is_hidden('#stxExW'); await pg.click('.stx-nav [data-view=wf]')
-        check('Übersicht nur im Workflow sichtbar', hid and not await pg.is_hidden('#stxExW'))
+        await pg.click('#swNav [data-sw=nb]'); hid = await pg.is_hidden('#stxExW'); await pg.click('#swNav [data-sw=wf]'); await pg.wait_for_timeout(200)   # v167: Leiste im Songwriting; auch in „Leitfaden & Beispiel“ sichtbar
+        check('Übersicht im Workflow sichtbar, in „Ideen“ nicht', hid and not await pg.is_hidden('#stxExW'))
         # ---------- E: Beispiel als Song laden ----------
         before = await pg.evaluate(LS('3nps-lieder'))
         await pg.click('#stxExW [data-a=exSong] >> nth=0'); await pg.wait_for_timeout(300)
@@ -104,7 +104,7 @@ async def main():
         db2 = await pg.evaluate(LS('3nps-lieder'))
         check('zweites Laden: „(2)“, erster Beispiel-Song unverändert', len(db2['songs']) == 3 and db2['songs'][2]['name'] == 'Beispiel – Die erste Bahn zurück (2)' and db2['songs'][1] == s1 and db2['songs'][0] == before['songs'][0], [x['name'] for x in db2['songs']])
         # Checkliste findet den Hook trotz Akkordmarken
-        await pg.select_option('#stxSong', k); await pg.wait_for_timeout(200); await step(pg, 11)
+        await pg.select_option('#ldSong', k[2:]); await pg.wait_for_timeout(200); await step(pg, 11)
         check('Checkliste: „Titel/Hook im Refrain: gefunden“, Abschnitte mit Text 5 / 5', 'Titel/Hook im Refrain: gefunden' in (await pg.inner_text('#stxX')) and '5 / 5' in await pg.inner_text('#stxX'), (await pg.inner_text('#stxX'))[:120])
         # Reim-Prüfung der Werkstatt (im Browser) am geladenen Song
         rr = await pg.evaluate("""new Promise(res=>LiedApi.twLoad(()=>{const s=JSON.parse(localStorage.getItem('3nps-lieder')).songs[1], v=s.versions[s.cur], out=[];
@@ -114,7 +114,7 @@ async def main():
         lt = await pg.evaluate("(()=>{const s=JSON.parse(localStorage.getItem('3nps-lieder')).songs[1], v=s.versions[s.cur]; return LiedText.lines(v.parts[0].lyrics[0],'de').map(x=>x.letter||'')})()")
         check('Buchstaben links im Songwriting = Werkstatt-Schema (Strophe 1 ABAB)', ''.join(lt) == 'ABAB', lt)
         # Sprung ins Songwriting
-        await pg.select_option('#stxSong', k); await pg.wait_for_timeout(150); await pg.click('#stxExW [data-a=exSong] >> nth=0'); await pg.wait_for_timeout(300)
+        await pg.select_option('#ldSong', k[2:]); await pg.wait_for_timeout(150); await pg.click('#stxExW [data-a=exSong] >> nth=0'); await pg.wait_for_timeout(300)
         await pg.click('#stxS [data-a=exGo]'); await pg.wait_for_timeout(400)
         cur = await pg.evaluate("[AppNav.current(), LiedApi.song() && LiedApi.song().name]")
         check('„Im Songwriting öffnen ›“ zeigt den neuen Beispiel-Song', cur == ['lied', 'Beispiel – Die erste Bahn zurück (3)'], cur)

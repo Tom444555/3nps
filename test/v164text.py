@@ -176,6 +176,7 @@ async def main():
         check('Song-Code wird wie bisher gelesen (Vorschau „Vorschlag von Claude“)', 'Vorschlag von Claude' in await pg.inner_text('#ldImRes') and 'Tempo: 92 → 96' in await pg.inner_text('#ldImRes'))
         await pg.click('#ldImRes [data-a=drop]')
         # Version zurück
+        await pg.click('#swNav [data-sw=song]'); await pg.wait_for_timeout(200)   # v167: Versionen liegen im Bereich „Song“
         await pg.select_option('#ldVer', '0'); await pg.wait_for_timeout(300)
         check('Version V1 zurückholen: Originaltext und -akkorde wieder da', await lyr(pg, 'p1') == VERSE and await lyr(pg, 'p2') == CHORUS and await pg.evaluate("LiedApi.ver().parts[1].chords[0].r") == 5)
         check('keine Übezeit geschrieben', json.loads(await pg.evaluate("localStorage.getItem('3nps-uebezeit')")) == UZ)

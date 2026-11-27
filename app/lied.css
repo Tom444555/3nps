@@ -125,5 +125,6 @@
   #panel-lied .sw-area { display: none; }
   #panel-lied[data-sw="tw"] #swTw, #panel-lied[data-sw="wf"] #swSt, #panel-lied[data-sw="lf"] #swSt, #panel-lied[data-sw="nb"] #swSt { display: block; }
   #panel-lied[data-sw]:not([data-sw="song"]) > .card:not(:first-child):not(.sw-area), #panel-lied[data-sw]:not([data-sw="song"]) #ldEmpty, #panel-lied[data-sw]:not([data-sw="song"]) #ldMain { display: none !important; }
+  #panel-lied[data-sw="tw"] > #ldTextCard:not([hidden]), #panel-lied[data-sw="tw"] > #ldAiCard { display: block !important; }   /* Text bleibt neben der Werkstatt bearbeitbar */
   #panel-lied .stx-nav, #panel-lied .stx-wf .msl-pc, #panel-lied #stxNew { display: none !important; }
   @media (max-width: 640px) { .sw-nav { display: flex; overflow-x: auto; scroll-snap-type: x proximity; } .sw-nav .toggle-btn { flex: 0 0 auto; padding: 10px 14px; } .swk { min-width: 70px; } }

@@ -5,10 +5,10 @@
         <div class="ld-topbtn"><button class="toggle-btn" id="ldNew">+ Neuer Song</button><button class="toggle-btn" id="ldRename">Umbenennen</button><button class="toggle-btn" id="ldDel">Löschen</button><button class="toggle-btn" id="swListB" aria-expanded="false" aria-controls="swList">Songliste</button><button class="toggle-btn" id="swSb">Ins Songbook übernehmen</button></div>
       </div>
       <!-- v167: Songliste, Stand des Songs und Leiste der Bereiche (Logik: songwriting.js, erst beim Öffnen geladen) -->
-      <div class="sw-list" id="swList" hidden></div>
+      <div class="sw-list" id="swList" translate="no" hidden></div>
       <div class="sw-bar" id="swBar">
         <div class="sw-stand"><span class="caption">Stand des Songs:</span><div class="sw-tiles">
-          <div class="swk"><b id="swKw">–</b><span>Workflow</span></div><div class="swk"><b id="swKt">–</b><span>Abschnitte mit Text</span></div><div class="swk"><b id="swKa">–</b><span>Akkorde</span></div><button type="button" class="swk sw-st" id="swKs" title="Antippen: Idee · Entwurf · fertig"><b id="swKsV">–</b><span>Stand</span></button></div></div>
+          <div class="swk"><b id="swKw">–</b><span>Workflow</span></div><div class="swk"><b id="swKt">–</b><span>Abschnitte mit Text</span></div><div class="swk"><b id="swKa">–</b><span>Akkorde</span></div><button type="button" class="swk sw-st" id="swKs" title="Antippen: Idee · Entwurf · fertig"><b id="swKsV" translate="no">–</b><span>Stand</span></button></div></div>
         <div class="sw-nav" id="swNav" role="tablist" aria-label="Bereiche"><button type="button" class="toggle-btn" role="tab" data-sw="song" aria-selected="true">Song</button><button type="button" class="toggle-btn" role="tab" data-sw="tw" aria-selected="false">Text-Werkstatt</button><button type="button" class="toggle-btn" role="tab" data-sw="wf" aria-selected="false">Workflow</button><button type="button" class="toggle-btn" role="tab" data-sw="lf" aria-selected="false">Leitfaden &amp; Beispiel</button><button type="button" class="toggle-btn" role="tab" data-sw="nb" aria-selected="false">Ideen</button></div>
       </div>
       <div class="ld-empty" id="ldEmpty">
@@ -59,6 +59,8 @@
       <p class="caption ld-txhint">Links neben jeder Zeile: <b>Silben</b> und <b>Reim</b> (gleicher Buchstabe = reimt, ~ = unrein, grau = reimt mit nichts). Akkordwechsel kannst du mit <b>[Am]</b> direkt vor die Silbe schreiben – sonst verteilt das Leadsheet die Akkorde gleichmäßig.</p>
       <div class="ld-texts" id="ldTexts"></div>
     </div>
+    <!-- v167: Bereich „Text-Werkstatt“ (textwerk.js erst beim ersten Öffnen); dort bleiben „Text“ und „Mit Claude weiterarbeiten“ sichtbar -->
+    <div class="card sw-area" id="swTw"><div class="card-head"><h2>Text-Werkstatt</h2><span class="caption">arbeitet mit dem Song oben</span></div><div id="ldTwBox" hidden></div><div id="swRasterTw"></div></div>
 
     <div class="card" id="ldCheckCard" hidden>
       <div class="card-head"><h2>Prüfen &amp; Varianten</h2><button class="toggle-btn active" id="ldCheck">Song prüfen</button></div>
@@ -90,7 +92,6 @@
       <div class="ld-impb"><button class="toggle-btn" id="ldClip">Aus Zwischenablage einfügen</button><button class="toggle-btn active" id="ldRead">Einlesen</button></div>
       <div class="ld-imr" id="ldImRes"></div>
     </div>
-    <!-- v167: Bereiche „Text-Werkstatt“ (textwerk.js) und „Workflow“/„Leitfaden & Beispiel“/„Ideen“ (songtext.js) – Code erst beim ersten Öffnen -->
-    <div class="card sw-area" id="swTw"><div class="card-head"><h2>Text-Werkstatt</h2><span class="caption">arbeitet mit dem Song oben</span></div><div id="ldTwBox" hidden></div><div id="swRasterTw"></div></div>
+    <!-- v167: Bereiche „Workflow“/„Leitfaden & Beispiel“/„Ideen“ (songtext.js) – Code erst beim ersten Öffnen -->
     <div class="sw-area" id="swSt"><div id="stxRoot"></div></div>
   </section>

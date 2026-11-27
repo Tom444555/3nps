@@ -293,7 +293,7 @@ window.Songtext = (() => {
     } catch (e) {}
     return blank();
   }
-  function store() { try { localStorage.setItem(KEY, JSON.stringify(D)); return true; } catch (e) { say(u('nosave'), true); return false; } }
+  function store() { try { localStorage.setItem(KEY, JSON.stringify(D)); if (window.SW && SW.tiles) SW.tiles(); return true; } catch (e) { say(u('nosave'), true); return false; } }
   let storeT = 0; const storeSoon = () => { clearTimeout(storeT); storeT = setTimeout(store, 400); };
   let lastK = null;   // v167: zuletzt gezeigter Song (für sync)
   let D = load(), built = false, sel = 1, takeId = '', tkSong = '', tpl = 'vr', dice = null, rhW = '', nbKind = '', nbF = '', openG = {};
@@ -838,7 +838,8 @@ window.Songtext = (() => {
   function open() { build(); }
   // v167: Bereich zeigen (SW-Leiste) und nach einem Songwechsel im Songwriting nachziehen
   function show(v) { if (['wf', 'lf', 'nb'].includes(v) && D.view !== v) { D.view = v; store(); } say(''); build(); }
+  function reload() { if (storeT) { clearTimeout(storeT); storeT = 0; store(); } D = load(); lastK = null; }   // v167: beim Öffnen des Songwritings frisch lesen (wie früher beim Öffnen der Seite)
   function sync() { if (!built) return; const k = curKey(); if (k === lastK) return; const pr = rec(k); sel = pr && pr.s ? pr.s : 1; rhW = ''; takeId = ''; paint(); }
   document.addEventListener('tabchange', () => { if (built && storeT) { clearTimeout(storeT); storeT = 0; store(); } });
-  return { open, show, sync, go, view: () => D.view, built: () => built, load, merge, STEPS, GUIDE, TPL, CHECK, DICE, exSong, _st: () => ({ sel, cur: curKey(), view: D.view, tpl, takeId, rhW, notes: D.n.length, exOpen, exAll }) };
+  return { open, show, sync, reload, go, view: () => D.view, built: () => built, load, merge, STEPS, GUIDE, TPL, CHECK, DICE, exSong, _st: () => ({ sel, cur: curKey(), view: D.view, tpl, takeId, rhW, notes: D.n.length, exOpen, exAll }) };
 })();
