@@ -1804,3 +1804,25 @@ Gut zu wissen
      „Im Songwriting öffnen ›“ zeigt ihn sofort – dann in Text-Werkstatt („Reime prüfen“), Looper, „Leadsheet (PDF)“ und „Mitsingen lernen“ ausprobieren.
    - Das Beispiel lädt erst beim ersten Antippen (danach offline). Der Beispiel-Song ist deutsch, auch in der englischen Oberfläche.
      Die Seite zählt keine Übezeit.
+
+150. Songwriting mit Leiste: „Songtext schreiben“ zusammengelegt, Stand, Songliste, Summ-Idee, Silben-Raster (v167)
+   - „Songtext schreiben“ ist kein eigener Chip unter „Lernen“ mehr, sondern Teil von „Song & Gesang › Songwriting“. Oben bleibt EINE
+     Songauswahl für alles; darunter die Stand-Kacheln des Songs und die Leiste mit fünf Bereichen:
+     „Song“ (Ablauf, Teile, Text, Prüfen & Varianten, Gesang, Mit Claude – unverändert), „Text-Werkstatt“ (die Werkstatt als eigener Bereich,
+     Text und „Mit Claude weiterarbeiten“ bleiben daneben, darunter das Silben-Raster), „Workflow“ (11 Schritte mit Haken je Song und den
+     Beispiel-Karten), „Leitfaden & Beispiel“ (11 Themen, „📖 Beispiel ansehen“, „Beispiel als Song laden“), „Ideen“ (Notizbuch, Schreibimpulse).
+     Der gewählte Bereich bleibt gemerkt. Der Knopf „Text-Werkstatt“ in der Karte „Text“ springt in den Bereich.
+   - Alte Wege kommen an: gemerkter Reiter, Adresse #songtext, Hilfe-Links und die Sprünge aus dem Workflow landen im passenden Bereich.
+     Haken, Kernsatz, Wortfeld und Notizen bleiben, wie sie waren (Speicher „3nps-songtext“), Export/Import wie bisher.
+   - Stand-Kacheln: „Workflow n/11“, „Abschnitte mit Text“, „Akkorde ✓/–“, „Stand“ – antippen: Idee → Entwurf → fertig (im Song gespeichert).
+   - „Songliste“ (neben der Songauswahl): alle Songs mit Stand, Workflow, Tonart, Abschnitten und „geändert“; Filter Alle/Idee/Entwurf/fertig;
+     antippen wählt den Song. „Ins Songbook übernehmen“ daneben = gleiche Funktion wie Workflow-Schritt 11 (Rückfrage beim Aktualisieren).
+   - Summ-Idee: in der Karte „Text“ je Abschnitt „● Idee summen“ – Kopfhörer auf, summen oder singen, „■ Stopp“. Das Mikrofon geht erst
+     nach dem Antippen an, höchstens 30 s, gespeichert mono mit 16 kHz (30 s ≈ 0,9 MB) nur auf dem Gerät (IndexedDB). Danach „▶“ und „Löschen“
+     (mit Rückfrage). „Alles sichern“ nimmt die Summ-Ideen mit; im Logic-Export sind sie nicht enthalten.
+   - Silben-Raster (Workflow Schritt 9 und Bereich „Text-Werkstatt“): Zeile wählen → die Silben liegen auf den Zählzeiten 1 e + e 2 e + e …
+     der Takte (Takte des Abschnitts geteilt durch seine Zeilen, mit − + änderbar). Fett = geschätzt betont; liegt eine betonte Silbe neben dem
+     Schlag, steht ein Hinweis darunter. Silbe antippen, dann freies Feld oder ◀ ▶ (die Reihenfolge bleibt); „Betonte auf die Schläge“ rückt
+     sie zurecht, „Neu verteilen“ fängt neu an. Grenzen: Betonung nach der Schreibung geschätzt (erste Stammsilbe, Vor-/Nachsilben und kurze
+     Füllwörter unbetont; Fremdwörter und Englisch ungenau), 4/4-Takt angenommen.
+   - Nichts davon zählt Übezeit. Die Bereiche laden ihren Code erst beim ersten Öffnen (danach offline).
