@@ -1789,3 +1789,18 @@ Gut zu wissen
      Reimarten, Silben und Betonung, Kontrast, Wiederholung, Kürzen, Stimmung und Akkorde) – je mit erfundenem Beispiel.
    - Reim-Buchstaben links am Text im Songwriting: nutzen jetzt dieselbe Erkennung wie „Reime prüfen“ der Text-Werkstatt (rein, „~“ =
      unrein, gleiches Wort); englische Texte behalten die einfache Regel. Die Reimwortliste wird dafür nicht geladen.
+
+149. Songtext schreiben: Beispiel von Anfang bis Ende (v166)
+   - Unter „Lernen › Songtext schreiben“ › „Workflow“ links „📖 Beispiel ansehen“: ein erfundener Song („Die erste Bahn zurück“, a-Moll,
+     84 BPM, Strophe – Refrain – Strophe – Refrain – Bridge – Schluss-Refrain) durch alle 11 Schritte – Kernsatz mit verworfenen Anläufen,
+     Titel-Kandidaten und warum sie rausflogen, Wortfeld je Sinn, gewählte Vorlage, Refrain-Rohfassung, Strophen, Bridge und Wendung im
+     Schluss-Refrain, Akkorde nach Stimmung mit Begründung, Silben und Betonung je Zeile, vier Vorher/Nachher-Zeilen, Checkliste und der
+     fertige Text mit Akkorden über den Silben. „Zu Schritt n ›“ springt in den Schritt.
+   - In jedem Schritt rechts „So sieht das im Beispiel aus“: klappt den Stand des Beispiels genau an dieser Stelle auf (bleibt beim
+     Weiterblättern offen).
+   - „Beispiel als Song laden“ (in der Übersicht und in Schritt 4 und 11): legt im Songwriting einen NEUEN Song „Beispiel – Die erste Bahn
+     zurück“ an – mit allen Abschnitten, Akkorden, Tonart, Tempo und Thema, als V1 Rohfassung (vor dem Überarbeiten) und V2 fertig. Kernsatz,
+     Hook und Wortfeld stehen schon drin, die Haken setzt du selbst. Vorhandene Songs bleiben unverändert; ein zweites Laden heißt „(2)“.
+     „Im Songwriting öffnen ›“ zeigt ihn sofort – dann in Text-Werkstatt („Reime prüfen“), Looper, „Leadsheet (PDF)“ und „Mitsingen lernen“ ausprobieren.
+   - Das Beispiel lädt erst beim ersten Antippen (danach offline). Der Beispiel-Song ist deutsch, auch in der englischen Oberfläche.
+     Die Seite zählt keine Übezeit.

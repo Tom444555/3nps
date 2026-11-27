@@ -1,10 +1,10 @@
 // Offline-Cache für die 3nps-App. Bei Updates CACHE-Version hochzählen.
-const CACHE = '3nps-v165';
+const CACHE = '3nps-v166';
 const ASR = 'asr-1';
 const DRUMS = 'drums-1';   // echtes Kit (v98): eigener Speicher, überlebt Updates (Version erhöhen, wenn sich kit.flac ändert)   // Name ohne „3nps-“: wird beim Update nicht gelöscht (Version erhöhen, wenn sich das Modell ändert)
 // v145: Schriften und Englisch-Wörterbuch als eigene Dateien (klein, offline immer da); Optik-Bilder nicht mehr hier, siehe OPTIK.
 // './' fehlt bewusst: Seitenaufrufe holen immer den Eintrag 'index.html' (spart ≈ 2 MB je Update).
-const CORE = ['index.html', 'hilfe-daten.js', 'textwerk.js', 'textwerk.css', 'tonleiter.js', 'tonleiter.css', 'songbook.js', 'songbook.css', 'mitsingen.js', 'mitsingen.css', 'songtext.js', 'songtext.css', 'uebezeit-ansicht.js', 'uebezeit-ansicht.css', 'stretch/worker.js', 'stretch/SignalsmithStretch.js', 'fonts/uncial.woff', 'fonts/metalmania.woff', 'fonts/blackopsone.woff', 'fonts/russoone.woff', 'fonts/michroma.woff', 'fonts/cinzel700.woff', 'i18n-en.js', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
+const CORE = ['index.html', 'hilfe-daten.js', 'textwerk.js', 'textwerk.css', 'tonleiter.js', 'tonleiter.css', 'songbook.js', 'songbook.css', 'mitsingen.js', 'mitsingen.css', 'songtext.js', 'songtext.css', 'songtext-beispiel.js', 'uebezeit-ansicht.js', 'uebezeit-ansicht.css', 'stretch/worker.js', 'stretch/SignalsmithStretch.js', 'fonts/uncial.woff', 'fonts/metalmania.woff', 'fonts/blackopsone.woff', 'fonts/russoone.woff', 'fonts/michroma.woff', 'fonts/cinzel700.woff', 'i18n-en.js', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
 // v145: Optik-Bilder (≈ 2,9 MB) in eigenem Speicher, der App-Updates überlebt. Die Seite legt die Bilder der gewählten Optik nach dem Start
 // hinein (AppCfg › warmOptik), die übrigen kommen beim Umschalten dazu. Beim ersten Update werden die Bilder aus dem alten App-Speicher
 // übernommen (ohne Netz), damit offline nichts fehlt. Ändert sich ein Bild: Namen erhöhen (optik-2).
