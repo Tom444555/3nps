@@ -240,3 +240,27 @@ dafür aus `textwerk.js` in eine kleine gemeinsame Datei wandern oder früh genu
 und ohne den Start zu verlangsamen); unreine Reime bekommen denselben Buchstaben wie in der Werkstatt. Tests anpassen (`v30text`, `v164text`:
 Buchstaben am Text == Schema der Werkstatt für dieselben Zeilen), Anleitung/Hinweistext in der Werkstatt („Diese Prüfung ist genauer als die
 Buchstaben links …“) entsprechend ändern. Wird mit v165 veröffentlicht; falls das v165 gefährdet, direkt danach als v166, die Tonhöhen-Linie rückt dann auf v167.
+
+### v166 – Durchgehendes Beispiel „von Anfang bis Ende“ in „Songtext schreiben“ (Tom, 27.11.2026 07:42: „Bau mal noch ein Beispiel ein von Anfang bis Ende“)
+Auslegung (Tom so mitgeteilt): EIN erfundener Beispiel-Song, an dem alle 11 Workflow-Schritte von v165 vollständig vorgeführt werden – vom Kernsatz
+bis zum fertigen Text mit Akkorden. Die Tonhöhen-Linie rückt dadurch auf **v167** (weiterhin erst nach Toms iPad-Test von „● Aufnehmen“).
+- **Inhalt:** ein komplett selbst geschriebener, erfundener Song (Deutsch, kein Bezug zu echten Liedern/Künstlern/Titeln), z. B. Thema „Nachtschicht /
+  Heimweg“ oder Ähnliches, in einer gitarrenfreundlichen Tonart (z. B. A-Moll oder E-Moll), Aufbau Strophe–Refrain–Strophe–Refrain–Bridge–Refrain.
+  Je Schritt zeigt das Beispiel, was an dieser Stelle konkret entsteht, als **Zwischenstand** (nicht nur das Endergebnis):
+  1 Kernsatz · 2 Titel + Hook (mit 2–3 verworfenen Varianten und warum) · 3 Wortfeld (Bilder/Sinne) · 4 gewählte Vorlage · 5 Refrain-Rohfassung →
+  6 Strophen (jede bringt Neues) · 7 Bridge/Wendung · 8 Stimmung je Abschnitt + gewählte Akkordfolgen mit einem Satz Begründung (passend zu den
+  Regeln der Text-Werkstatt v164 – mit ihr erzeugen/abgleichen) · 9 Text auf Takt/Silben (Silben je Zeile, wo betont) · 10 Überarbeitung: 2–4
+  konkrete Vorher/Nachher-Zeilen (Reim verbessert, Füllwort raus, Zeile gekürzt, Bild statt Behauptung) mit Begründung · 11 Checkliste abgehakt +
+  fertiger Text mit Akkorden.
+  Die Texte so schreiben, dass der Song wirklich singbar ist und die Reim-Prüfung v164 ihn sauber erkennt (bewusst gesetzte unreine Reime erklären).
+- **In der App:** auf der Seite „Songtext schreiben“ im Bereich „Workflow“ ein Knopf „Beispiel ansehen“ (und im Schritt rechts je Schritt eine
+  aufklappbare Karte „So sieht das im Beispiel aus“ mit dem Zwischenstand dieses Schritts). Dazu „Beispiel als Song laden“: legt den fertigen Song im
+  Songwriting als NEUEN Song an (Name z. B. „Beispiel – <Titel>“, nie einen vorhandenen überschreiben; zweites Laden → Rückfrage oder „(2)“), mit
+  allen Abschnitten, Akkorden, Tonart, Tempo – damit man ihn sofort in Text-Werkstatt, Looper, Leadsheet und „Mitsingen lernen“ ausprobieren kann.
+  Optional „Versionen“ des Beispiels (Rohfassung → fertig), wenn der Versions-Weg das einfach hergibt.
+- Daten als eigene, nachgeladene Datei (z. B. `songtext-beispiel.js`), Offline-Liste `sw.js`; index.html wächst nicht. Englisch: Oberflächentexte
+  übersetzen; der Beispiel-Song selbst darf deutsch bleiben (in der englischen Oberfläche kurzer Hinweis).
+- Keine echten Liedtexte, keine Markennamen. Bestandsverhalten von v165 nicht ändern (Fahrplan, Haken, Notizbuch).
+- Test `test/v166beispiel.py`: Karte je Schritt vorhanden und passend, „Beispiel als Song laden“ legt neuen Song mit allen Abschnitten an und
+  überschreibt nichts (auch beim zweiten Mal), Reim-Prüfung v164 auf dem Beispiel ohne „ohne Reim“ an unbeabsichtigten Stellen, Akkorde in der
+  angegebenen Tonart, Nachladen, Größe, keine Skriptfehler; v165songtext, v164text, v30text weiter grün.
