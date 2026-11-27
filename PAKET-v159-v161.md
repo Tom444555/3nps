@@ -264,3 +264,33 @@ bis zum fertigen Text mit Akkorden. Die Tonhöhen-Linie rückt dadurch auf **v16
 - Test `test/v166beispiel.py`: Karte je Schritt vorhanden und passend, „Beispiel als Song laden“ legt neuen Song mit allen Abschnitten an und
   überschreibt nichts (auch beim zweiten Mal), Reim-Prüfung v164 auf dem Beispiel ohne „ohne Reim“ an unbeabsichtigten Stellen, Akkorde in der
   angegebenen Tonart, Nachladen, Größe, keine Skriptfehler; v165songtext, v164text, v30text weiter grün.
+
+### v167 – „Songtext schreiben“ ins Songwriting zusammenlegen + vier Ergänzungen (Tom, 27.11.2026 09:01/09:04: „Ja, setz das genauso komplett um“)
+Nummern verschieben sich: **Tonhöhen-Linie → v168** (weiter erst nach Toms iPad-Test „● Aufnehmen“), **Lokales Modell → v169**.
+Beispielbild (freigegeben): `test/entwurf/songwriting-entwurf.py`.
+**Aufbau Song & Gesang › Songwriting:**
+- Oben EINE Songauswahl für alles (die bisherige im Songwriting; die eigene Songwahl von „Songtext schreiben“ entfällt) + Stand-Kacheln des Songs:
+  „Workflow n/11“, „Abschnitte mit Text n/m“, „Akkorde ✓/–“, „Stand“ (Idee · Entwurf · fertig, antippbar).
+- Darunter Leiste mit fünf Bereichen: **„Song“** (alle bisherigen Karten: Ablauf, Teile, Text, Prüfen & Varianten, Gesang, Mit Claude – unverändert),
+  **„Text-Werkstatt“** (eigene Ansicht statt Aufklappen in der Karte „Text“; der Knopf „Text-Werkstatt“ in der Karte springt dorthin),
+  **„Workflow“** (11 Schritte von v165 inkl. Beispiel-Karten v166), **„Leitfaden & Beispiel“** (Leitfaden + „📖 Beispiel ansehen“ + „Beispiel als
+  Song laden“), **„Ideen“** (Notizbuch + Schreibimpulse). Gewählter Bereich wird gemerkt; Bereiche laden ihren Code erst beim ersten Öffnen.
+- Chip „Songtext schreiben“ und Kachel unter „Lernen“ entfernen. **Weiterleitung:** alte Routen/Sprünge/Kacheln (Reiter-Id von v165, Hilfe-Links,
+  Sprünge aus „Mitsingen lernen“, Pedal o. ä.) landen in Songwriting › passender Bereich. Daten unverändert weiterverwenden (`3nps-songtext`:
+  Notizen, Kernsatz, Wortfeld, Haken je Song) – nichts verlieren, Export/Import wie bisher.
+**Ergänzungen:**
+1. **Stand je Song** (Idee/Entwurf/fertig, im Song gespeichert, nur erweitern) + **Songliste** (aufklappbar unter der Songauswahl oder als Ansicht im
+   Bereich „Song“): alle Songs mit Stand, Workflow-Fortschritt, zuletzt geändert, Tonart; antippen wählt den Song; Filter nach Stand.
+2. **Summ-Idee je Abschnitt:** in „Teile“ bzw. „Text“ je Abschnitt „● Idee summen“ → Aufnahme (Weg aus v163 „Mitsingen lernen“ wiederverwenden:
+   Mikrofon nur nach Antippen, Kopfhörer-Hinweis, nichts verlässt das Gerät), danach „▶“ und „Löschen“ am Abschnitt. Speicher: vorhandene
+   IndexedDB `3nps-app` (Store `ideas` oder `meta`, nur erweitern, keine neue DB-Version, kein neuer Store); auch in „Alles sichern“/Song-Export,
+   falls Audio dort schon mitgeht – sonst ehrlich melden.
+3. **Silben-Raster** (Hilfe für Workflow-Schritt 9, auch im Bereich „Text-Werkstatt“): eine Zeile wählen → Silben auf die Zählzeiten der Takte des
+   Abschnitts verteilt (1 e + e …), geschätzte Betonung markiert, Hinweis, wenn betonte Silben auf unbetonte Schläge fallen; Silben per Tippen
+   verschieben. Betonung nach derselben Heuristik wie v164 (Grenzen nennen).
+4. **„Ins Songbook übernehmen“** fest neben der Songauswahl (gleiche Funktion wie in Workflow-Schritt 11, gleiche Rückfrage beim Aktualisieren).
+Regeln wie immer: nur das Nötige umbauen, Verhalten der bisherigen Karten unverändert, Looper-Leistung unberührt (Aufnahme nur bei Antippen),
+alle vier Profile, Telefon-Ansicht (Leiste als waagrecht scrollbare Knöpfe oder 2 Reihen), Übezeit: nichts selbst zählen, keine echten Liedtexte.
+Tests: neu `test/v167songwriting.py` (Leiste, Bereiche, eine Songauswahl wirkt überall, Weiterleitung aller alten Wege, Datenübernahme v165/v166,
+Stand + Songliste, Summ-Idee aufnehmen/abspielen/löschen mit Fake-Mikrofon, Silben-Raster-Fälle, Songbook-Knopf, Nachladen, Größe, Profile,
+keine Skriptfehler); v161–v166-Tests, v30text, v66lied, v137lernen anpassen wo nur Ort/Chip sich ändert – Inhalt der Prüfungen beibehalten.
