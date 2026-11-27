@@ -77,3 +77,45 @@
 .stx .warn { color: #ff9f0a; }
 /* Sprungziel im Songwriting kurz hervorheben */
 .stx-flash { box-shadow: 0 0 0 3px #30d158, 0 0 14px rgba(48,209,88,.6) !important; transition: box-shadow .3s; }
+/* v166: Durchgehendes Beispiel (Inhalt aus songtext-beispiel.js, erst bei Bedarf geladen) – ohne Schatten/Animation, alle Geräte-Profile */
+.stx-exb { width: 100%; margin-top: 10px; font-weight: 600; }
+.stx-exs { align-self: flex-start; margin-top: 10px; text-align: left; }
+.stx-exc { margin-top: 8px; padding: 10px 12px; border-left: 3px solid #0a84ff; border-radius: 0 10px 10px 0; background: rgba(10,132,255,.07); }
+.stx-exw { margin: 0; min-width: 0; }
+.stb { line-height: 1.5; overflow-wrap: anywhere; }
+.stb p { margin: 0 0 8px; }
+.stb h3 { margin: 0 0 8px; font-size: 1.02rem; }
+.stb h4 { margin: 12px 0 6px; font-size: .95rem; }
+.stb small { opacity: .72; }
+.stb .stx-row { margin: 4px 0 8px; }
+.stb-hd { margin: 0 0 6px !important; font-weight: 600; }
+.stb-sec { padding: 12px 0 14px; border-top: 1px solid var(--line, rgba(127,127,127,.25)); }
+.stb-sec > .toggle-btn { margin-top: 4px; }
+.stb-x, .stb-ok { display: flex; gap: 10px; align-items: flex-start; padding: 6px 10px; margin: 0 0 6px; border-radius: 10px; background: rgba(127,127,127,.08); }
+.stb-x p, .stb-ok p { margin: 2px 0 0; font-size: .9rem; opacity: .85; }
+.stb-x b { text-decoration: line-through; text-decoration-color: rgba(255,69,58,.7); }
+.stb-k { flex: none; width: 22px; font-weight: 700; text-align: center; }
+.stb-x .stb-k { color: #ff453a; } .stb-ok .stb-k, .stb-u { color: #30d158; font-weight: 700; }
+.stb-ok { background: rgba(48,209,88,.09); }
+.stb-lines { margin: 0 0 8px; padding: 6px 12px; border-radius: 10px; background: rgba(127,127,127,.08); }
+.stb-lines p { margin: 2px 0; }
+.stb-m { color: #ff9f0a; }
+.stb-vn { margin: 0 0 8px; padding: 6px 10px; border-radius: 10px; background: rgba(127,127,127,.06); border: 1px solid var(--line, rgba(127,127,127,.2)); }
+.stb-vn p { margin: 2px 0; }
+.stb-vn span { display: inline-block; min-width: 64px; font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
+.stb-v { opacity: .75; } .stb-v span { color: #ff453a; } .stb-n span { color: #30d158; } .stb-n { font-weight: 600; }
+.stb-w { font-size: .9rem; opacity: .85; }
+.stb-wf { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 6px 14px; margin: 0 0 8px; }
+.stb-wf p { margin: 0; }
+.stb-tw { overflow-x: auto; margin: 0 0 8px; }
+.stb-t { border-collapse: collapse; width: 100%; font-size: .9rem; }
+.stb-t th, .stb-t td { text-align: left; vertical-align: top; padding: 6px 8px; border-bottom: 1px solid var(--line, rgba(127,127,127,.22)); }
+.stb-t th { font-size: .78rem; opacity: .75; }
+.stb-l { font-weight: 600; white-space: nowrap; }
+.stb-t th, .stb-t td { overflow-wrap: normal; } .stb-t td b { white-space: nowrap; }
+@media (max-width: 640px) { .stb-t thead { display: none; } .stb-t tr { display: block; padding: 6px 0; border-bottom: 1px solid var(--line, rgba(127,127,127,.22)); } .stb-t td { display: block; border: 0; padding: 2px 4px; } }
+.stb-ck p { margin: 2px 0; }
+.stb-sheet { margin: 0 0 10px; }
+.stb-sheet pre { margin: 4px 0 0; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .92rem; line-height: 1.35; white-space: pre; overflow-x: auto; }
+.stb-c { color: #0a84ff; font-weight: 700; }
+@media (max-width: 480px) { .stb-sheet pre { font-size: .76rem; } .stx-exc { padding: 8px; } }

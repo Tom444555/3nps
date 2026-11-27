@@ -79,6 +79,14 @@ window.Songtext = (() => {
     dTopic: ['Thema', 'Topic'], dPersp: ['Perspektive', 'Perspective'], dImg: ['Bild', 'Image'],
     lfIntro: ['Grundlagen in Kürze – jedes Thema mit einem erfundenen Mini-Beispiel. Antippen klappt auf.', 'The basics in brief – each topic with an invented mini example. Tap to expand.'],
     lfAll: ['Alle aufklappen', 'Expand all'], lfNone: ['Alle zuklappen', 'Collapse all'], lfEx: ['Beispiel', 'Example'],
+    exAll: ['📖 Beispiel ansehen', '📖 See example'], exCard: ['So sieht das im Beispiel aus', 'How it looks in the example'],
+    exHead: ['Beispiel von Anfang bis Ende', 'Example from start to finish'], exSong: ['Beispiel als Song laden', 'Load example as song'], exClose: ['Beispiel schließen', 'Close example'],
+    exIntro: ['Ein erfundener Song, an dem alle 11 Schritte vorgeführt werden – mit echten Zwischenständen, Verworfenem und Vorher/Nachher. „Beispiel als Song laden“ legt ihn im Songwriting als neuen Song an (nichts wird überschrieben).',
+      'An invented song that walks through all 11 steps – with real in-between drafts, rejected ideas and before/after lines. “Load example as song” creates it as a new song in Songwriting (nothing is overwritten).'],
+    exDe: ['', '(The example song itself is in German – it shows the German rhyme check.)'], exToStep: ['Zu Schritt %n ›', 'Go to step %n ›'],
+    exWait: ['Lade Beispiel …', 'Loading example …'], exFail: ['Das Beispiel konnte nicht geladen werden – bitte einmal mit Internet öffnen.', 'The example could not be loaded – please open once with internet.'],
+    exOk: ['Angelegt: „%s“ – V1 Rohfassung und V2 fertig, %n Abschnitte, %k, %b BPM. Kernsatz, Hook und Wortfeld stehen schon drin; die Haken setzt du selbst.', 'Created: “%s” – V1 rough draft and V2 finished, %n sections, %k, %b BPM. Core sentence, hook and word field are filled in; the ticks are yours to set.'],
+    exGo: ['Im Songwriting öffnen ›', 'Open in Songwriting ›'], exV1: ['Rohfassung (nach Schritt 9)', 'Rough draft (after step 9)'], exV2: ['Fertig (nach Schritt 10)', 'Finished (after step 10)'],
     KZ: ['Zeile', 'Line'], KT: ['Titel', 'Title'], KB: ['Bild', 'Image'], KI: ['Idee', 'Idea'], KZs: ['Zeilen', 'Lines'], KTs: ['Titel', 'Titles'], KBs: ['Bilder', 'Images'], KIs: ['Ideen', 'Ideas']
   };
   const u = k => tx(U[k] || k);
@@ -313,11 +321,13 @@ window.Songtext = (() => {
       + '<p class="caption msl-meta" id="stxMeta"></p>'
       + '<div class="msl-new" id="stxNew" hidden><input type="text" id="stxNewN" maxlength="40" placeholder="' + esc(u('newN')) + '" aria-label="' + esc(u('newN')) + '">'
       + '<button type="button" class="toggle-btn" id="stxNewOk">' + esc(u('create')) + '</button><button type="button" class="toggle-btn" id="stxNewX">' + esc(u('cancel')) + '</button></div>'
-      + '<div class="msl-rows" id="stxL" role="list"></div><p class="caption stx-pn">' + esc(u('planNote')) + '</p></div>';
+      + '<div class="msl-rows" id="stxL" role="list"></div><p class="caption stx-pn">' + esc(u('planNote')) + '</p>'
+      + '<button type="button" class="toggle-btn stx-exb" id="stxExAll" aria-expanded="false" aria-controls="stxExW">' + esc(u('exAll')) + '</button></div>';   // v166
   }
   function stepCard() {
     return '<div class="card msl-step" id="stxS"><div class="card-head msl-head"><h2 id="stxH"></h2><span class="caption msl-min" id="stxC"></span></div>'
       + '<p class="msl-so" id="stxSo"></p><p class="caption msl-why" id="stxWhy"></p><div id="stxX"></div><div class="stx-tools" id="stxTools"></div>'
+      + '<button type="button" class="toggle-btn stx-exs" id="stxExB" aria-expanded="false" aria-controls="stxExS"></button><div class="stb stx-exc" id="stxExS" hidden></div>'   // v166
       + '<p class="caption msl-msg stx-msg" role="status"></p>'
       + '<div class="msl-foot"><button type="button" class="toggle-btn msl-done" id="stxDone"></button><button type="button" class="toggle-btn" id="stxTipsB" aria-expanded="false" aria-controls="stxTips">' + esc(u('tips')) + '</button>'
       + '<button type="button" class="toggle-btn msl-nx" id="stxNext"></button></div><div class="msl-tips" id="stxTips" hidden></div></div>';
@@ -325,7 +335,7 @@ window.Songtext = (() => {
   function build() {
     const r = $('stxRoot'); if (!r) return;
     if (!built) {
-      r.innerHTML = '<div class="stx" translate="no">' + navHtml() + '<div class="msl-wrap stx-wf" id="stxWf">' + planCard() + stepCard() + '</div><div id="stxLf" hidden></div><div class="stx-nbw" id="stxNb" hidden></div></div>';
+      r.innerHTML = '<div class="stx" translate="no">' + navHtml() + '<div class="msl-wrap stx-wf" id="stxWf">' + planCard() + stepCard() + '</div><div class="card stb stx-exw" id="stxExW" hidden></div><div id="stxLf" hidden></div><div class="stx-nbw" id="stxNb" hidden></div></div>';
       r.addEventListener('click', onClick); r.addEventListener('input', onInput); r.addEventListener('change', onChange); r.addEventListener('keydown', onKey);
       built = true;
     }
@@ -337,6 +347,7 @@ window.Songtext = (() => {
     document.querySelectorAll('#stxRoot .stx-nav [data-view]').forEach(b => { const on = b.dataset.view === v; b.classList.toggle('active', on); b.setAttribute('aria-selected', String(on)); });
     $('stxWf').hidden = v !== 'wf'; $('stxLf').hidden = v !== 'lf'; $('stxNb').hidden = v !== 'nb';
     if (v === 'wf') { paintPlan(); paintStep(); } else if (v === 'lf') paintLf(); else paintNb();
+    paintExAll();   // v166
   }
   function setView(v) { D.view = v; store(); say(''); paint(); const r = $('stxRoot'); if (r && r.scrollIntoView && r.getBoundingClientRect().top < 0) r.scrollIntoView({ block: 'start' }); }
 
@@ -368,7 +379,7 @@ window.Songtext = (() => {
     const nb = $('stxNext'); nb.hidden = sel >= NS; nb.textContent = u('next');
     $('stxTips').innerHTML = '<b>' + esc(u('tipH')) + '</b><ul>' + S.tips.map(t => '<li>' + esc(tx(t)) + '</li>').join('') + '</ul><b>' + esc(u('okH')) + '</b><p>' + esc(tx(S.ok)) + '</p>';
     $('stxTools').innerHTML = (S.tools || []).map(a => '<button type="button" class="toggle-btn stx-tool" data-go="' + a + '">' + esc(tx(TOOL[a])) + ' ›</button>').join('');
-    paintX();
+    paintX(); paintEx();
   }
   function paintX() {
     const S = STEPS[sel - 1], x = $('stxX'), pr = rec() || {}, s = curSong();
@@ -402,7 +413,7 @@ window.Songtext = (() => {
       let auto = '';
       if (s) {
         const v = verOf(s), A = LA(), sl = A && v.parts.length ? A.textSlots(v) : [], fill = sl.filter(z => String((z.p.lyrics || [])[z.n] || '').trim()).length;
-        const ct = v.parts.filter(p => p.type === 'chorus').map(p => (p.lyrics || []).join('\n')).join('\n').toLowerCase();
+        const ct = v.parts.filter(p => p.type === 'chorus').map(p => (p.lyrics || []).join('\n')).join('\n').replace(/\[[^\]]*\]/g, '').toLowerCase();
         const h = String(pr.h || s.name || '').toLowerCase().replace(/[^\p{L}\d ]/gu, '').trim();
         auto = '<p class="caption stx-auto">' + esc(u('chkHook')) + ' <b>' + esc(h && ct.replace(/[^\p{L}\d\n ]/gu, '').includes(h) ? u('yes') : u('no')) + '</b> · ' + esc(u('chkFill')) + ' <b>' + fill + ' / ' + sl.length + '</b></p>';
       }
@@ -689,6 +700,8 @@ window.Songtext = (() => {
       case 'stxTipsB': { const t = $('stxTips'), o = t.hidden; t.hidden = !o; b.setAttribute('aria-expanded', String(o)); b.classList.toggle('active', o); return; }
       case 'stxNewOk': newSong(); return;
       case 'stxNewX': $('stxNew').hidden = true; return;
+      case 'stxExB': exOpen = !exOpen; paintEx(); return;
+      case 'stxExAll': exAll = !exAll; paintExAll(); if (exAll) { const w = $('stxExW'); if (w && w.scrollIntoView) w.scrollIntoView({ block: 'start' }); } return;
     }
     switch (a) {
       case 'kern2': {
@@ -706,6 +719,10 @@ window.Songtext = (() => {
       case 'wfRh': { const w = b.dataset.w; if (rhW === w) { rhW = ''; paintX(); return; } rhW = w; document.querySelectorAll('#stxWfL [data-a="wfRh"]').forEach(x => x.classList.toggle('active', x.dataset.w === w)); rhymes(w); return; }
       case 'wfTake': { const pr = rec(null, true), w = b.dataset.w; if (!pr.wf.w.some(x => x.toLowerCase() === w.toLowerCase()) && pr.wf.w.length < 300) pr.wf.w.push(w); touch(pr); D.cur = curKey(); store(); paintX(); return; }
       case 'tplGo': applyTpl(); return;
+      case 'exSong': exSong(); return;
+      case 'exGo': go('lied'); return;
+      case 'exX': exAll = false; paintExAll(); { const r = $('stxRoot'); if (r && r.scrollIntoView) r.scrollIntoView({ block: 'start' }); } return;
+      case 'exStep': exOpen = true; goStep(+b.dataset.n); { const c = $('stxS'); if (c && c.scrollIntoView) c.scrollIntoView({ block: 'start' }); } return;
       case 'to4': case 'to4s': if (D.view !== 'wf') setView('wf'); if (a === 'to4s' && tkSong) { D.cur = 'l:' + tkSong; store(); } goStep(4); return;
       case 'nbAdd': {
         const t = $('stxNbX'); if (!t.value.trim()) { t.focus(); say(u('empty'), true); return; }
@@ -750,7 +767,57 @@ window.Songtext = (() => {
     const k = 'l:' + s.id; D.cur = k; const r = rec(k, true); r.n = s.name; store();
     $('stxNewN').value = ''; $('stxNew').hidden = true; sel = 1; paintPlan(); paintStep();
   }
+  /* ---------- v166: Durchgehendes Beispiel (Daten in songtext-beispiel.js, erst bei Bedarf geladen) ---------- */
+  let exOpen = false, exAll = false, exBusy = false, exCb = null;
+  function exLoad(cb) {
+    if (window.SongtextBeispiel) { cb(); return; }
+    exCb = cb; if (exBusy) return; exBusy = true;
+    const sc = document.createElement('script'); sc.src = 'songtext-beispiel.js';
+    sc.onload = () => { exBusy = false; const f = exCb; exCb = null; if (f && window.SongtextBeispiel) f(); };
+    sc.onerror = () => { exBusy = false; exCb = null; sc.remove(); document.querySelectorAll('#stxRoot .stx-exwait').forEach(p => { p.textContent = u('exFail'); p.classList.add('warn'); }); };
+    document.head.appendChild(sc);
+  }
+  const exWait = () => '<p class="caption stx-exwait">' + esc(u('exWait')) + '</p>';
+  const exBtn = () => '<button type="button" class="toggle-btn active" data-a="exSong">' + esc(u('exSong')) + '</button>';
+  function paintEx() {
+    const b = $('stxExB'), c = $('stxExS'); if (!b || !c) return;
+    b.textContent = (exOpen ? '▾ ' : '▸ ') + u('exCard'); b.setAttribute('aria-expanded', String(exOpen)); b.classList.toggle('active', exOpen);
+    c.hidden = !exOpen; if (!exOpen) return;
+    if (!window.SongtextBeispiel) { c.innerHTML = exWait(); exLoad(paintEx); return; }
+    const E = window.SongtextBeispiel;
+    c.innerHTML = '<p class="caption stb-hd">„' + esc(E.META.title) + '“ · ' + esc(E.META.key) + ' · ' + E.META.bpm + ' BPM' + (EN() ? ' ' + esc(u('exDe')) : '') + '</p>' + E.step(sel)
+      + (sel === 4 || sel === NS ? '<div class="stx-row">' + exBtn() + '</div>' : '');
+  }
+  function paintExAll() {
+    const w = $('stxExW'), b = $('stxExAll'); if (!w) return;
+    if (b) { b.setAttribute('aria-expanded', String(exAll)); b.classList.toggle('active', exAll); }
+    w.hidden = !exAll || D.view !== 'wf'; if (w.hidden) return;
+    if (!window.SongtextBeispiel) { w.innerHTML = exWait(); exLoad(paintExAll); return; }
+    const E = window.SongtextBeispiel, M = E.META, row = '<div class="stx-row">' + exBtn() + '<button type="button" class="toggle-btn" data-a="exX">' + esc(u('exClose')) + '</button></div>';
+    w.innerHTML = '<div class="card-head msl-head"><h2>' + esc(u('exHead')) + ': „' + esc(M.title) + '“</h2><span class="caption">' + esc(M.key + ' · ' + M.bpm + ' BPM · 4/4') + '</span></div>'
+      + '<p class="caption">' + esc(u('exIntro')) + (EN() ? ' ' + esc(u('exDe')) : '') + '</p>' + row + '<p class="caption msl-msg stx-msg" role="status"></p>'
+      + STEPS.map((S, i) => '<section class="stb-sec" data-ex="' + (i + 1) + '"><h3>' + esc(u('step') + ' ' + (i + 1) + ' · ' + tx(S.t)) + '</h3>' + E.step(i + 1)
+        + '<button type="button" class="toggle-btn stx-sm" data-a="exStep" data-n="' + (i + 1) + '">' + esc(u('exToStep').replace('%n', i + 1)) + '</button></section>').join('') + row;
+  }
+  // „Beispiel als Song laden“: immer ein NEUER Song (Name mit „(2)“ usw., nie überschreiben); V1 Rohfassung, V2 fertig – über LiedApi wie die Vorlagen
+  function exSong() {
+    const A = LA(), X = window.LiedText, E = window.SongtextBeispiel;
+    if (!A || !A.newSong || !A.pushVersion || !X || !E) { say(u('noLied'), true); return null; }
+    const r1 = X.fromCode(E.code(true)), r2 = r1.ok ? X.fromCode(E.code(false), r1.v) : r1;
+    if (!r1.ok || !r2.ok) { say(u('exFail'), true); return null; }
+    const base = (EN() ? 'Example – ' : 'Beispiel – ') + E.META.title, names = new Set(songs().map(s => s.name));
+    let nm = base; for (let i = 2; names.has(nm); i++) nm = base + ' (' + i + ')';
+    const s = A.newSong(nm.slice(0, 60)); if (!s) return null;
+    Object.assign(s.versions[0], r1.v, { note: u('exV1') }); s.cur = 0; A.save();
+    A.pushVersion(r2.v, u('exV2'));
+    const k = 'l:' + s.id; D.cur = k; const pr = rec(k, true);
+    pr.n = s.name; pr.k = E.META.kern; pr.h = E.META.hook; pr.wf = { t: E.META.wfT, w: E.META.wf.slice() }; touch(pr); store();
+    paintPlan(); paintStep();
+    say(u('exOk').replace('%s', s.name).replace('%n', r2.v.parts.length).replace('%k', E.META.key).replace('%b', E.META.bpm));
+    document.querySelectorAll('#stxRoot .stx-msg').forEach(m => m.insertAdjacentHTML('beforeend', ' <button type="button" class="toggle-btn stx-sm" data-a="exGo">' + esc(u('exGo')) + '</button>'));
+    return s;
+  }
   function open() { build(); }
   document.addEventListener('tabchange', e => { if (e.detail === 'songtext' && built) { clearTimeout(storeT); D = load(); const pr = rec(); if (pr && pr.s) sel = pr.s; paint(); } else if (built && storeT) { clearTimeout(storeT); storeT = 0; store(); } });
-  return { open, built: () => built, load, merge, STEPS, GUIDE, TPL, CHECK, DICE, _st: () => ({ sel, cur: curKey(), view: D.view, tpl, takeId, rhW, notes: D.n.length }) };
+  return { open, built: () => built, load, merge, STEPS, GUIDE, TPL, CHECK, DICE, exSong, _st: () => ({ sel, cur: curKey(), view: D.view, tpl, takeId, rhW, notes: D.n.length, exOpen, exAll }) };
 })();
